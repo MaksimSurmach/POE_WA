@@ -1,4 +1,4 @@
-import type { Price } from '@poe-worksmith/contracts';
+import type { Price, RecipeEvaluation } from '@poe-worksmith/contracts';
 import type { ReactNode } from 'react';
 
 const compactNumber = new Intl.NumberFormat('en-US', {
@@ -63,6 +63,27 @@ export function FreshnessIndicator({ ageSeconds }: { ageSeconds: number }) {
 
 export function Tag({ children }: { children: ReactNode }) {
   return <span className="tag">{children}</span>;
+}
+
+const evaluationLabel: Record<RecipeEvaluation['status'], string> = {
+  error: 'Error',
+  loading: 'Loading',
+  partial: 'Partial',
+  stale: 'Stale',
+  success: 'Ready',
+};
+
+export function EvaluationStatus({
+  status,
+}: {
+  status: RecipeEvaluation['status'];
+}) {
+  return (
+    <span className={`evaluation-status evaluation-status--${status}`}>
+      <span aria-hidden="true" />
+      {evaluationLabel[status]}
+    </span>
+  );
 }
 
 type StatusTone = 'info' | 'success' | 'warning' | 'danger';

@@ -239,7 +239,7 @@ export const publishedCycle = refreshCycleSchema.parse({
 export const activeCycle = refreshCycleSchema.parse({
   id: 'cycle-active',
   status: 'running',
-  startedAt: '2026-07-20T03:00:00.000Z',
+  startedAt: '2026-07-20T00:03:00.000Z',
   publishedAt: null,
   totalRecipes: catalogFixtures.length,
   completedRecipes: 3,
