@@ -1,0 +1,247 @@
+import {
+  catalogEntrySchema,
+  marketSnapshotSchema,
+  refreshCycleSchema,
+  type CatalogEntry,
+  type MarketSnapshot,
+} from '@poe-worksmith/contracts';
+
+const snapshotsInput = [
+  {
+    id: 'snapshot-profitable',
+    queryHash: 'query-profitable',
+    capturedAt: '2026-07-20T00:00:00.000Z',
+    totalResults: 42,
+    listings: [
+      {
+        id: 'listing-1',
+        seller: 'merchant-a',
+        price: { amount: 8, currency: 'divine' },
+        indexedAt: '2026-07-19T23:30:00.000Z',
+        ageSeconds: 1800,
+      },
+      {
+        id: 'listing-2',
+        seller: 'merchant-a',
+        price: { amount: 8.2, currency: 'divine' },
+        indexedAt: '2026-07-19T22:00:00.000Z',
+        ageSeconds: 7200,
+      },
+    ],
+  },
+  {
+    id: 'snapshot-low-margin',
+    queryHash: 'query-low-margin',
+    capturedAt: '2026-07-20T00:00:00.000Z',
+    totalResults: 18,
+    listings: [
+      {
+        id: 'listing-3',
+        seller: 'merchant-b',
+        price: { amount: 2.1, currency: 'divine' },
+        indexedAt: '2026-07-19T18:00:00.000Z',
+        ageSeconds: 21600,
+      },
+    ],
+  },
+  {
+    id: 'snapshot-no-listings',
+    queryHash: 'query-no-listings',
+    capturedAt: '2026-07-20T00:00:00.000Z',
+    totalResults: 0,
+    listings: [],
+  },
+  {
+    id: 'snapshot-stale',
+    queryHash: 'query-stale',
+    capturedAt: '2026-07-18T00:00:00.000Z',
+    totalResults: 7,
+    listings: [
+      {
+        id: 'listing-4',
+        seller: 'merchant-c',
+        price: { amount: 4.5, currency: 'divine' },
+        indexedAt: '2026-07-17T12:00:00.000Z',
+        ageSeconds: 129600,
+      },
+    ],
+  },
+] satisfies MarketSnapshot[];
+
+export const rawMarketSnapshots = marketSnapshotSchema
+  .array()
+  .parse(snapshotsInput);
+
+const snapshotById = new Map(
+  rawMarketSnapshots.map((snapshot) => [snapshot.id, snapshot]),
+);
+
+const catalogInput = [
+  {
+    recipe: {
+      id: 'profitable-cluster',
+      title: 'Physical Large Cluster Jewel',
+      summary: 'Harvest-reforge a physical cluster into a three-notable jewel.',
+      category: 'jewel',
+      craftMethod: 'harvest',
+      tags: ['physical', 'cluster'],
+      minimumCapital: { amount: 4, currency: 'divine' },
+    },
+    evaluation: {
+      recipeId: 'profitable-cluster',
+      status: 'success',
+      evaluatedAt: '2026-07-20T00:01:00.000Z',
+      expectedCraftCost: { amount: 4.1, currency: 'divine' },
+      estimatedSalePrice: { amount: 8.2, currency: 'divine' },
+      profit: { amount: 4.1, currency: 'divine' },
+      marginPercent: 50,
+      snapshotId: 'snapshot-profitable',
+      lastSuccessfulAt: '2026-07-20T00:01:00.000Z',
+      errorCode: null,
+    },
+    snapshot: snapshotById.get('snapshot-profitable') ?? null,
+  },
+  {
+    recipe: {
+      id: 'low-margin-ring',
+      title: 'Essence Attribute Ring',
+      summary: 'Essence-spam an attribute base for a narrow resale spread.',
+      category: 'ring',
+      craftMethod: 'essence',
+      tags: ['attribute', 'budget'],
+      minimumCapital: { amount: 1.8, currency: 'divine' },
+    },
+    evaluation: {
+      recipeId: 'low-margin-ring',
+      status: 'success',
+      evaluatedAt: '2026-07-20T00:01:00.000Z',
+      expectedCraftCost: { amount: 1.9, currency: 'divine' },
+      estimatedSalePrice: { amount: 2.1, currency: 'divine' },
+      profit: { amount: 0.2, currency: 'divine' },
+      marginPercent: 9.52,
+      snapshotId: 'snapshot-low-margin',
+      lastSuccessfulAt: '2026-07-20T00:01:00.000Z',
+      errorCode: null,
+    },
+    snapshot: snapshotById.get('snapshot-low-margin') ?? null,
+  },
+  {
+    recipe: {
+      id: 'no-listings-bow',
+      title: 'Niche Elemental Bow',
+      summary: 'A narrow bow search currently has no merchant listings.',
+      category: 'weapon',
+      craftMethod: 'fossil',
+      tags: ['elemental', 'bow'],
+      minimumCapital: { amount: 3, currency: 'divine' },
+    },
+    evaluation: {
+      recipeId: 'no-listings-bow',
+      status: 'partial',
+      evaluatedAt: '2026-07-20T00:01:00.000Z',
+      expectedCraftCost: { amount: 3.2, currency: 'divine' },
+      estimatedSalePrice: null,
+      profit: null,
+      marginPercent: null,
+      snapshotId: 'snapshot-no-listings',
+      lastSuccessfulAt: null,
+      errorCode: 'NO_LISTINGS',
+    },
+    snapshot: snapshotById.get('snapshot-no-listings') ?? null,
+  },
+  {
+    recipe: {
+      id: 'stale-boots',
+      title: 'Movement Speed Boots',
+      summary:
+        'A previous profitable result retained during provider degradation.',
+      category: 'boots',
+      craftMethod: 'essence',
+      tags: ['movement', 'resistance'],
+      minimumCapital: { amount: 2.5, currency: 'divine' },
+    },
+    evaluation: {
+      recipeId: 'stale-boots',
+      status: 'stale',
+      evaluatedAt: '2026-07-18T00:01:00.000Z',
+      expectedCraftCost: { amount: 2.7, currency: 'divine' },
+      estimatedSalePrice: { amount: 4.5, currency: 'divine' },
+      profit: { amount: 1.8, currency: 'divine' },
+      marginPercent: 40,
+      snapshotId: 'snapshot-stale',
+      lastSuccessfulAt: '2026-07-18T00:01:00.000Z',
+      errorCode: 'PROVIDER_UNAVAILABLE',
+    },
+    snapshot: snapshotById.get('snapshot-stale') ?? null,
+  },
+  {
+    recipe: {
+      id: 'calculation-error-amulet',
+      title: 'Influenced Critical Amulet',
+      summary: 'A fixture with an unavailable expected cost calculation.',
+      category: 'amulet',
+      craftMethod: 'meta-craft',
+      tags: ['critical', 'influence'],
+      minimumCapital: { amount: 12, currency: 'divine' },
+    },
+    evaluation: {
+      recipeId: 'calculation-error-amulet',
+      status: 'error',
+      evaluatedAt: null,
+      expectedCraftCost: null,
+      estimatedSalePrice: null,
+      profit: null,
+      marginPercent: null,
+      snapshotId: null,
+      lastSuccessfulAt: null,
+      errorCode: 'CALCULATION_FAILED',
+    },
+    snapshot: null,
+  },
+  {
+    recipe: {
+      id: 'loading-gloves',
+      title: 'Suppression Gloves',
+      summary: 'A newly queued recipe waiting for its first market snapshot.',
+      category: 'gloves',
+      craftMethod: 'harvest',
+      tags: ['suppression', 'life'],
+      minimumCapital: { amount: 2, currency: 'divine' },
+    },
+    evaluation: {
+      recipeId: 'loading-gloves',
+      status: 'loading',
+      evaluatedAt: null,
+      expectedCraftCost: null,
+      estimatedSalePrice: null,
+      profit: null,
+      marginPercent: null,
+      snapshotId: null,
+      lastSuccessfulAt: null,
+      errorCode: null,
+    },
+    snapshot: null,
+  },
+] satisfies CatalogEntry[];
+
+export const catalogFixtures = catalogEntrySchema.array().parse(catalogInput);
+
+export const publishedCycle = refreshCycleSchema.parse({
+  id: 'cycle-published',
+  status: 'published',
+  startedAt: '2026-07-20T00:00:00.000Z',
+  publishedAt: '2026-07-20T00:02:00.000Z',
+  totalRecipes: catalogFixtures.length,
+  completedRecipes: 5,
+  failedRecipes: 1,
+});
+
+export const activeCycle = refreshCycleSchema.parse({
+  id: 'cycle-active',
+  status: 'running',
+  startedAt: '2026-07-20T03:00:00.000Z',
+  publishedAt: null,
+  totalRecipes: catalogFixtures.length,
+  completedRecipes: 3,
+  failedRecipes: 0,
+});
