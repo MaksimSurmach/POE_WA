@@ -71,6 +71,11 @@ export const domainErrorDefinitions = {
     disposition: 'permanent',
     publicMessage: 'The market query is invalid.',
   },
+  MATERIAL_PRICE_MISSING: {
+    category: 'market',
+    disposition: 'degraded',
+    publicMessage: 'The material has no current market price.',
+  },
   NO_LISTINGS: {
     category: 'market',
     disposition: 'degraded',
@@ -225,6 +230,11 @@ export const domainErrorDefinitions = {
     category: 'calculation',
     disposition: 'permanent',
     publicMessage: 'The listing uses an unsupported currency.',
+  },
+  UNKNOWN_MATERIAL: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage: 'The material key is not configured.',
   },
 } as const satisfies Record<string, ErrorDefinition>;
 
