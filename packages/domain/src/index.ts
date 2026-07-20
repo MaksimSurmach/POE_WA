@@ -1,4 +1,5 @@
 export * from './errors.js';
+export * from './gameData.js';
 export * from './canonical/craftMethod.js';
 export * from './canonical/item.js';
 export * from './canonical/normalization.js';

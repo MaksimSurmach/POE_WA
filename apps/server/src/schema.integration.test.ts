@@ -28,6 +28,8 @@ describe('migration baseline', () => {
       expect.arrayContaining([
         'aggregated_observations',
         'catalog_state',
+        'canonical_entities',
+        'game_data_versions',
         'jobs',
         'market_queries',
         'provider_circuits',

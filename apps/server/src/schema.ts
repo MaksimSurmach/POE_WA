@@ -419,3 +419,52 @@ export const providerCircuits = pgTable(
     ),
   ],
 );
+
+export const gameDataVersions = pgTable(
+  'game_data_versions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    game: text('game').notNull(),
+    patchVersion: text('patch_version').notNull(),
+    source: text('source').notNull(),
+    sourceRevision: text('source_revision').notNull(),
+    status: text('status').default('importing').notNull(),
+    manifestHash: text('manifest_hash').notNull(),
+    importedAt: timestamp('imported_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    activatedAt: timestamp('activated_at', { withTimezone: true }),
+  },
+  (table) => [
+    check(
+      'game_data_versions_status_check',
+      sql`${table.status} in ('importing', 'active', 'failed', 'archived')`,
+    ),
+    uniqueIndex('game_data_versions_active_game_uq')
+      .on(table.game)
+      .where(sql`${table.status} = 'active'`),
+  ],
+);
+
+export const canonicalEntities = pgTable(
+  'canonical_entities',
+  {
+    gameDataVersionId: uuid('game_data_version_id')
+      .notNull()
+      .references(() => gameDataVersions.id, { onDelete: 'cascade' }),
+    entityKind: text('entity_kind').notNull(),
+    canonicalId: text('canonical_id').notNull(),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+    payloadHash: text('payload_hash').notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.gameDataVersionId, table.entityKind, table.canonicalId],
+    }),
+    index('canonical_entities_lookup_idx').on(
+      table.gameDataVersionId,
+      table.entityKind,
+      table.canonicalId,
+    ),
+  ],
+);
