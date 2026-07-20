@@ -1,0 +1,67 @@
+name: poe-worksmith
+
+services:
+  app:
+    profiles: [app]
+    build: .
+    environment:
+      APP_ENV: development
+      APP_HOST: 0.0.0.0
+      APP_MODE: all
+      APP_PORT: 3000
+      DATABASE_SSL_MODE: disable
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/poe_worksmith_dev
+      CLEANUP_CRON: '15 2 * * *'
+      JOB_LEASE_TIMEOUT_MS: 300000
+      LOG_LEVEL: info
+      MARKET_CONCURRENCY: 4
+      MARKET_RETRY_DELAY_MS: 60000
+      PG_BOSS_SCHEMA: pgboss
+      POE_LEAGUE: Mercenaries
+      POE_REQUEST_TIMEOUT_MS: 15000
+      POE_USER_AGENT: 'OAuth poe-worksmith/0.0.0 (contact: local-development)'
+      REFRESH_CRON: '0 */4 * * *'
+      RETENTION_BATCH_SIZE: 500
+      SHUTDOWN_TIMEOUT_MS: 30000
+      SNAPSHOT_TTL_MS: 1800000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:3000:3000
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: poe_worksmith_dev
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - 127.0.0.1:54322:5432
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres -d poe_worksmith_dev]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+
+  postgres-test:
+    image: postgres:17-alpine
+    profiles: [test]
+    environment:
+      POSTGRES_DB: poe_worksmith_test
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - 127.0.0.1:54324:5432
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres -d poe_worksmith_test]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    tmpfs:
+      - /var/lib/postgresql/data
+
+volumes:
+  postgres-dev-data:

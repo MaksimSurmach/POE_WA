@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "refresh_cycles_single_running_uq" ON "refresh_cycles" USING btree ("status") WHERE "refresh_cycles"."status" = 'running';

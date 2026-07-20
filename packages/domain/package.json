@@ -1,0 +1,40 @@
+{
+  "name": "@poe-worksmith/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./economics": {
+      "types": "./src/economics.ts",
+      "development": "./src/economics.ts",
+      "default": "./dist/economics.js"
+    },
+    "./fixtures": {
+      "types": "./src/fixtures/index.ts",
+      "development": "./src/fixtures/index.ts",
+      "default": "./dist/fixtures/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --exclude 'dist/**'",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "vitest": "4.1.10"
+  },
+  "dependencies": {
+    "decimal.js": "10.6.0",
+    "zod": "4.4.3"
+  }
+}
