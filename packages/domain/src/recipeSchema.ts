@@ -168,10 +168,10 @@ export type RecipeValidationIssue = {
 export class RecipeValidationError extends Error {
   readonly issues: readonly RecipeValidationIssue[];
 
-  constructor(error: z.ZodError) {
+  constructor(error: z.ZodError, schemaVersion = 1) {
     const issues = normalizeIssues(error.issues);
     super(
-      `Invalid recipe v1: ${issues
+      `Invalid recipe v${schemaVersion}: ${issues
         .map(({ message, path }) => `${path}: ${message}`)
         .join('; ')}`,
       { cause: error },

@@ -45,6 +45,43 @@ function expectCatalogError(error: unknown) {
 }
 
 describe('Markdown recipe loader', () => {
+  it('keeps v1 compatibility and returns v2 through a separate loader path', async () => {
+    const catalog = await createCatalog();
+    await writeRecipe(catalog, 'legacy', validRecipeV1Fixture);
+    await writeRecipe(catalog, 'v2', {
+      base: {
+        baseId: 'Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge',
+        influences: [],
+        itemLevel: 84,
+        rarity: 'rare',
+        state: { corrupted: false, fractured: false, synthesised: false },
+        variant: {
+          kind: 'cluster-jewel',
+          passiveCount: 8,
+          smallPassiveStatId: 'physical-damage',
+        },
+      },
+      category: 'cluster-jewel',
+      content: { craftSteps: [] },
+      craft: {
+        method: { kind: 'harvest-reforge', tag: 'physical' },
+        startingMods: [],
+      },
+      gameDataVersion: '3.26.0',
+      id: 'v2',
+      schemaVersion: 2,
+      tags: ['physical'],
+      target: { allOf: [], anyOf: [], minimumMatched: null },
+      title: 'V2 Recipe',
+    });
+
+    const recipes = await loadRecipeCatalog(catalog);
+
+    expect(recipes.map(({ definition }) => definition.schemaVersion)).toEqual([
+      1, 2,
+    ]);
+  });
+
   it('loads every recipe in deterministic id order and keeps Markdown separate', async () => {
     const catalog = await createCatalog();
     await writeRecipe(catalog, 'z-recipe', {

@@ -2,9 +2,9 @@ import { lstat, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
-  type CanonicalRecipeV1,
   RecipeValidationError,
-  validateRecipeV1,
+  type LoadedRecipeDefinition,
+  validateRecipeDocument,
 } from '@poe-worksmith/domain';
 import matter from 'gray-matter';
 import remarkParse from 'remark-parse';
@@ -20,11 +20,14 @@ const ALLOWED_IMAGE_EXTENSIONS = new Set([
   '.webp',
 ]);
 
-export type LoadedRecipe = {
+type LoadedRecipeBase = {
   assets: readonly string[];
-  definition: CanonicalRecipeV1;
   markdown: string;
   sourcePath: string;
+};
+
+export type LoadedRecipe = LoadedRecipeBase & {
+  definition: LoadedRecipeDefinition;
 };
 
 export type RecipeLoaderIssue = {
@@ -150,9 +153,9 @@ export async function loadRecipeFile(
     ]);
   }
 
-  let definition: CanonicalRecipeV1;
+  let definition: LoadedRecipeDefinition;
   try {
-    definition = validateRecipeV1(parsed.data);
+    definition = validateRecipeDocument(parsed.data);
   } catch (error) {
     if (error instanceof RecipeValidationError) {
       throw new RecipeCatalogError(

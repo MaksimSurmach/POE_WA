@@ -7,6 +7,7 @@ import type {
   Recipe,
   RecipeRepository,
 } from '@poe-worksmith/domain';
+import { recipeDocumentMetadata } from '@poe-worksmith/domain';
 
 import { type LoadedRecipe, loadRecipeCatalog } from './loader.js';
 
@@ -142,20 +143,18 @@ export async function synchronizeRecipeCatalog(
 }
 
 function toRecipe(source: LoadedRecipe, contentHash: string): Recipe {
-  const { definition } = source;
-  const method = definition.craftSteps[0]?.metadata?.method;
+  const metadata = recipeDocumentMetadata(source.definition);
   return {
     active: true,
-    category: definition.category,
+    category: metadata.category,
     contentHash,
-    craftMethod:
-      typeof method === 'string' ? method : definition.craftSteps[0]!.id,
-    definition: { ...definition } as JsonRecord,
-    gameVersion: definition.gameVersion,
+    craftMethod: metadata.craftMethod,
+    definition: { ...source.definition } as JsonRecord,
+    gameVersion: metadata.gameVersion,
     guideMarkdown: source.markdown,
-    id: definition.id,
-    tags: definition.tags,
-    title: definition.title,
+    id: metadata.id,
+    tags: metadata.tags,
+    title: metadata.title,
   };
 }
 
