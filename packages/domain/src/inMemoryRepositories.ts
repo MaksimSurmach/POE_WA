@@ -301,9 +301,13 @@ export function createInMemoryRepositories(): Repositories {
         }
         return deleted;
       },
-      async findLatest(marketQueryId) {
+      async findLatest(marketQueryId, leagueId) {
         const latest = [...snapshots.values()]
-          .filter((snapshot) => snapshot.marketQueryId === marketQueryId)
+          .filter(
+            (snapshot) =>
+              snapshot.marketQueryId === marketQueryId &&
+              snapshot.leagueId === leagueId,
+          )
           .sort(
             (left, right) =>
               right.capturedAt.getTime() - left.capturedAt.getTime(),
@@ -324,11 +328,12 @@ export function createInMemoryRepositories(): Repositories {
       },
     },
     observations: {
-      async listRecent(marketQueryId, since) {
+      async listRecent(marketQueryId, leagueId, since) {
         return [...observations.values()]
           .filter(
             (observation) =>
               observation.marketQueryId === marketQueryId &&
+              observation.leagueId === leagueId &&
               observation.observedAt >= since,
           )
           .sort(
@@ -582,8 +587,24 @@ export function createInMemoryRepositories(): Repositories {
       async publish(id, publishedAt) {
         const cycle = cycles.get(id);
         if (!cycle) throw new Error(`Refresh cycle ${id} does not exist`);
-        if (publishedCycleId === id && cycle.status === 'published') return;
+        if (publishedCycleId === id && cycle.status === 'published')
+          return true;
         assertPublicationReady(cycle);
+        const currentLeague = [...leagues.values()].find(
+          (league) => league.isCurrent,
+        );
+        if (currentLeague?.id !== cycle.leagueId) {
+          cycles.set(
+            id,
+            transitionRefreshCycle(
+              cycle,
+              'completed',
+              publishedAt,
+              'CATALOG_PUBLICATION_SKIPPED_LEAGUE_CHANGED',
+            ),
+          );
+          return false;
+        }
         const previous = publishedCycleId ? cycles.get(publishedCycleId) : null;
         if (previous && previous.id !== id) {
           cycles.set(
@@ -593,6 +614,7 @@ export function createInMemoryRepositories(): Repositories {
         }
         cycles.set(id, transitionRefreshCycle(cycle, 'published', publishedAt));
         publishedCycleId = id;
+        return true;
       },
       async save(cycle) {
         const current = cycles.get(cycle.id);

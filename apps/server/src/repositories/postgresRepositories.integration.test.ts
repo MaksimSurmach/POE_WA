@@ -135,9 +135,9 @@ describe('PostgreSQL repositories', () => {
 
     expect(first.inserted).toBe(true);
     expect(duplicate).toEqual({ inserted: false, snapshot: first.snapshot });
-    expect(await repositories.snapshots.findLatest(marketQuery.id)).toEqual(
-      first.snapshot,
-    );
+    expect(
+      await repositories.snapshots.findLatest(marketQuery.id, leagueId),
+    ).toEqual(first.snapshot);
     expect(await repositories.snapshots.deleteExpired(input.expiresAt)).toBe(1);
   });
 
@@ -165,6 +165,7 @@ describe('PostgreSQL repositories', () => {
     expect(
       await repositories.observations.listRecent(
         marketQuery.id,
+        leagueId,
         new Date('2026-07-19T00:00:00.000Z'),
       ),
     ).toEqual([updated]);

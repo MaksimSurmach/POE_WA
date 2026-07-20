@@ -78,6 +78,13 @@
       "when": 1784589379618,
       "tag": "0010_wonderful_callisto",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784670000000,
+      "tag": "0011_lush_catalog_guard",
+      "breakpoints": true
     }
   ]
 }

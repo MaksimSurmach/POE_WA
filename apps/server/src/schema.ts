@@ -52,7 +52,7 @@ export const refreshCycles = pgTable(
   (table) => [
     check(
       'refresh_cycles_status_check',
-      sql`${table.status} in ('queued', 'running', 'published', 'failed', 'superseded')`,
+      sql`${table.status} in ('queued', 'running', 'completed', 'published', 'failed', 'superseded')`,
     ),
     check(
       'refresh_cycles_counts_check',
