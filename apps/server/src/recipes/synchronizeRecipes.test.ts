@@ -49,6 +49,10 @@ describe('recipe synchronization', () => {
 
   it('hashes normalized recipe data and referenced asset bytes', async () => {
     const source = loadedRecipe({ assets: ['images/example.png'] });
+    if (source.definition.schemaVersion !== 1) {
+      throw new Error('Expected the legacy fixture to load as schema v1');
+    }
+    const definition = source.definition;
     const first = await computeRecipeContentHash(source, async () =>
       Buffer.from('image-one'),
     );
@@ -56,8 +60,8 @@ describe('recipe synchronization', () => {
       {
         ...source,
         definition: {
-          ...source.definition,
-          craftSteps: source.definition.craftSteps.map((step) => ({
+          ...definition,
+          craftSteps: definition.craftSteps.map((step) => ({
             ...step,
             metadata: { notes: step.metadata?.notes ?? [], method: 'harvest' },
           })),
