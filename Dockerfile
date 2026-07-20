@@ -5,18 +5,29 @@ WORKDIR /workspace
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY apps/server/package.json apps/server/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY packages/contracts/package.json packages/contracts/package.json
 COPY packages/domain/package.json packages/domain/package.json
 RUN pnpm install --frozen-lockfile
 
 COPY apps/server apps/server
+COPY apps/web apps/web
+COPY packages/contracts packages/contracts
 COPY packages/domain packages/domain
 COPY recipes recipes
 RUN pnpm --filter @poe-worksmith/domain build \
+  && pnpm --filter @poe-worksmith/contracts build \
   && pnpm --filter @poe-worksmith/server build \
+  && pnpm --filter @poe-worksmith/web build \
   && node apps/server/dist/recipes/validateCatalog.js recipes \
   && pnpm --filter @poe-worksmith/server deploy --prod --legacy /opt/server
 
-FROM node:22.22.0-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.29-alpine AS web
+
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /workspace/apps/web/dist /usr/share/nginx/html
+
+FROM node:22.22.0-alpine AS server
 
 ENV APP_ENV=development \
     APP_HOST=0.0.0.0 \
@@ -39,6 +50,7 @@ ENV APP_ENV=development \
 
 WORKDIR /app
 COPY --from=build --chown=node:node /opt/server ./
+COPY --from=build --chown=node:node /workspace/apps/server/drizzle ./drizzle
 COPY --from=build --chown=node:node /workspace/recipes ./recipes
 
 USER node

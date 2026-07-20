@@ -48,4 +48,5 @@ jobs:
           echo '## Recipe catalog' >> "$GITHUB_STEP_SUMMARY"
           pnpm --filter @poe-worksmith/server recipes:validate 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
           pnpm --filter @poe-worksmith/server recipes:sync --dry-run 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
-      - run: docker build --tag poe-worksmith:test .
+      - run: docker build --target server --tag poe-worksmith:test .
+      - run: docker build --target web --tag poe-worksmith-web:test .

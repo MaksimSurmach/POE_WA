@@ -16,7 +16,7 @@
     "start:api": "node --env-file-if-exists=../../.env.development dist/entrypoints/api.js",
     "start:worker": "node --env-file-if-exists=../../.env.development dist/entrypoints/worker.js",
     "test": "vitest run --passWithNoTests --exclude '**/*.integration.test.ts' --exclude 'dist/**'",
-    "test:integration": "vitest run 'src/*.integration.test.ts' --no-file-parallelism",
+    "test:integration": "vitest run src/*.integration.test.ts src/repositories/*.integration.test.ts --no-file-parallelism",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
