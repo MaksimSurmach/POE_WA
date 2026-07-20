@@ -4,6 +4,7 @@ import {
   apiErrorEnvelopeSchema,
   catalogResponseSchema,
   publicDomainErrorSchema,
+  refreshProgressResponseSchema,
 } from './index.js';
 
 const correlationId = '11111111-1111-4111-8111-111111111111';
@@ -117,6 +118,39 @@ describe('HTTP API contracts', () => {
         publishedAt: null,
         refreshStatus: 'failed',
         state: 'error',
+      }),
+    ).toThrow();
+  });
+
+  it('validates complete refresh progress for active and published cycles', () => {
+    const cycle = {
+      completedQueries: 8,
+      completedRecipes: 3,
+      failedQueries: 1,
+      failedRecipes: 0,
+      finishedAt: null,
+      id: 'cycle-active',
+      publishedAt: null,
+      requestedAt: timestamp,
+      startedAt: timestamp,
+      status: 'running' as const,
+      totalQueries: 12,
+      totalRecipes: 5,
+    };
+
+    expect(
+      refreshProgressResponseSchema.parse({
+        correlationId,
+        data: { active: cycle, published: null },
+      }),
+    ).toMatchObject({ data: { active: { completedQueries: 8 } } });
+    expect(() =>
+      refreshProgressResponseSchema.parse({
+        correlationId,
+        data: {
+          active: { ...cycle, completedQueries: 12, failedQueries: 1 },
+          published: null,
+        },
       }),
     ).toThrow();
   });

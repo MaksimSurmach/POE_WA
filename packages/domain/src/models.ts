@@ -75,6 +75,11 @@ export type PublishedCatalog = {
   recipes: Recipe[];
 };
 
+export type CatalogProgress = {
+  active: RefreshCycle | null;
+  published: RefreshCycle | null;
+};
+
 export type RefreshCycleStatus =
   'queued' | 'running' | 'published' | 'failed' | 'superseded';
 
@@ -114,4 +119,17 @@ export type Job = {
   refreshCycleId: string | null;
   runAfter: Date;
   status: JobStatus;
+};
+
+export type RetentionCleanupOptions = {
+  batchSize: number;
+  jobsBefore: Date;
+  observationsBefore: Date;
+  rawSnapshotsBefore: Date;
+};
+
+export type RetentionCleanupReport = {
+  jobs: number;
+  observations: number;
+  rawSnapshots: number;
 };

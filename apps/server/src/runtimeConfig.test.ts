@@ -22,13 +22,21 @@ describe('runtime configuration', () => {
     const config = loadRuntimeConfig(environment);
 
     expect(config).toMatchObject({
+      cleanupCron: '15 2 * * *',
       host: '0.0.0.0',
+      jobLeaseTimeoutMs: 300_000,
       jobSchema: 'pgboss',
+      league: 'Mercenaries',
       logLevel: 'info',
+      marketConcurrency: 4,
+      marketRetryDelayMs: 60_000,
       mode: 'worker',
+      poeUserAgent: 'POE-Worksmith/0.0.0 (contact: local-development)',
       port: 4100,
+      refreshCron: '0 */4 * * *',
+      retentionBatchSize: 500,
       shutdownTimeoutMs: 30_000,
-      testCron: '* * * * *',
+      snapshotTtlMs: 1_800_000,
     });
   });
 

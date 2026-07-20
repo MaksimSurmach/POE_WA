@@ -51,6 +51,23 @@ export function createInMemoryRepositories(): Repositories {
 
   return {
     catalog: {
+      async getProgress() {
+        const active = [...cycles.values()]
+          .filter(({ status }) => ['queued', 'running'].includes(status))
+          .sort(
+            (left, right) =>
+              Number(right.status === 'running') -
+                Number(left.status === 'running') ||
+              right.requestedAt.getTime() - left.requestedAt.getTime(),
+          )[0];
+        const published = publishedCycleId
+          ? cycles.get(publishedCycleId)
+          : null;
+        return {
+          active: active ? clone(active) : null,
+          published: published ? clone(published) : null,
+        };
+      },
       async getPublished() {
         if (!publishedCycleId) return null;
         const cycle = cycles.get(publishedCycleId);
@@ -401,6 +418,59 @@ export function createInMemoryRepositories(): Repositories {
           recovered += 1;
         }
         return recovered;
+      },
+    },
+    retention: {
+      async cleanup(options) {
+        if (!Number.isInteger(options.batchSize) || options.batchSize < 1) {
+          throw new TypeError('batchSize must be a positive integer');
+        }
+        const protectedCycleIds = new Set(
+          [...cycles.values()]
+            .filter(({ status }) => ['queued', 'running'].includes(status))
+            .map(({ id }) => id),
+        );
+        if (publishedCycleId) protectedCycleIds.add(publishedCycleId);
+
+        const deleteBatch = <K, T>(
+          storage: Map<K, T>,
+          predicate: (value: T) => boolean,
+        ) => {
+          let deleted = 0;
+          for (const [id, value] of storage) {
+            if (deleted >= options.batchSize) break;
+            if (!predicate(value)) continue;
+            storage.delete(id);
+            deleted += 1;
+          }
+          return deleted;
+        };
+
+        const rawSnapshots = deleteBatch(
+          snapshots,
+          (snapshot) =>
+            snapshot.capturedAt < options.rawSnapshotsBefore &&
+            !protectedCycleIds.has(snapshot.refreshCycleId),
+        );
+        const observationsDeleted = deleteBatch(
+          observations,
+          (observation) =>
+            observation.observedAt < options.observationsBefore &&
+            !protectedCycleIds.has(observation.refreshCycleId),
+        );
+        const jobsDeleted = deleteBatch(
+          jobs,
+          (job) =>
+            ['succeeded', 'failed'].includes(job.status) &&
+            job.runAfter < options.jobsBefore &&
+            (!job.refreshCycleId || !protectedCycleIds.has(job.refreshCycleId)),
+        );
+
+        return {
+          jobs: jobsDeleted,
+          observations: observationsDeleted,
+          rawSnapshots,
+        };
       },
     },
   };

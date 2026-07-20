@@ -22,11 +22,19 @@ ENV APP_ENV=development \
     APP_HOST=0.0.0.0 \
     APP_MODE=all \
     APP_PORT=3000 \
+    CLEANUP_CRON="15 2 * * *" \
+    JOB_LEASE_TIMEOUT_MS=300000 \
     LOG_LEVEL=info \
+    MARKET_CONCURRENCY=4 \
+    MARKET_RETRY_DELAY_MS=60000 \
     NODE_ENV=production \
     PG_BOSS_SCHEMA=pgboss \
-    SCHEDULER_TEST_CRON="* * * * *" \
-    SHUTDOWN_TIMEOUT_MS=30000
+    POE_LEAGUE=Mercenaries \
+    POE_USER_AGENT="POE-Worksmith/0.0.0 (contact: local-development)" \
+    REFRESH_CRON="0 */4 * * *" \
+    RETENTION_BATCH_SIZE=500 \
+    SHUTDOWN_TIMEOUT_MS=30000 \
+    SNAPSHOT_TTL_MS=1800000
 
 WORKDIR /app
 COPY --from=build --chown=node:node /opt/server ./

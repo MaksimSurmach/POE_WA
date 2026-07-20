@@ -71,15 +71,36 @@ export const recipeEvaluationSchema = z
 /** Current or published full-catalog refresh progress. */
 export const refreshCycleSchema = z
   .object({
-    id: z.string().min(1),
-    status: z.enum(['queued', 'running', 'published', 'failed']),
-    startedAt: z.iso.datetime(),
-    publishedAt: z.iso.datetime().nullable(),
-    totalRecipes: z.number().int().nonnegative(),
+    completedQueries: z.number().int().nonnegative(),
     completedRecipes: z.number().int().nonnegative(),
+    failedQueries: z.number().int().nonnegative(),
     failedRecipes: z.number().int().nonnegative(),
+    finishedAt: z.iso.datetime().nullable(),
+    id: z.string().min(1),
+    publishedAt: z.iso.datetime().nullable(),
+    requestedAt: z.iso.datetime(),
+    startedAt: z.iso.datetime().nullable(),
+    status: z.enum(['queued', 'running', 'published', 'failed', 'superseded']),
+    totalQueries: z.number().int().nonnegative(),
+    totalRecipes: z.number().int().nonnegative(),
   })
-  .strict();
+  .strict()
+  .superRefine((cycle, context) => {
+    if (cycle.completedQueries + cycle.failedQueries > cycle.totalQueries) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Query progress exceeds totalQueries',
+        path: ['completedQueries'],
+      });
+    }
+    if (cycle.completedRecipes + cycle.failedRecipes > cycle.totalRecipes) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Recipe progress exceeds totalRecipes',
+        path: ['completedRecipes'],
+      });
+    }
+  });
 
 /** Example API-shaped catalog entry consumed by UI components. */
 export const catalogEntrySchema = z
@@ -255,6 +276,14 @@ export const recipeResponseSchema = resourceResponseSchema(
   recipeDetailViewSchema,
 );
 
+export const refreshProgressResponseSchema = z.strictObject({
+  correlationId: correlationIdSchema,
+  data: z.strictObject({
+    active: refreshCycleSchema.nullable(),
+    published: refreshCycleSchema.nullable(),
+  }),
+});
+
 export type Price = z.infer<typeof priceSchema>;
 export type Listing = z.infer<typeof listingSchema>;
 export type MarketSnapshot = z.infer<typeof marketSnapshotSchema>;
@@ -269,3 +298,6 @@ export type ApiErrorEnvelope = z.infer<typeof apiErrorEnvelopeSchema>;
 export type RefreshStatus = z.infer<typeof refreshStatusSchema>;
 export type CatalogResponse = z.infer<typeof catalogResponseSchema>;
 export type RecipeResponse = z.infer<typeof recipeResponseSchema>;
+export type RefreshProgressResponse = z.infer<
+  typeof refreshProgressResponseSchema
+>;

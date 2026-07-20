@@ -137,6 +137,11 @@ describe('catalog refresh planner', () => {
       jobsReused: 0,
     });
     expect(cached.queries.every(({ job }) => job === null)).toBe(true);
+    expect(await repositories.cycles.findById(cached.cycle.id)).toMatchObject({
+      completedQueries: 5,
+      failedQueries: 0,
+      totalQueries: 5,
+    });
   });
 
   it('applies the configured TTL even when a snapshot expiry is later', async () => {

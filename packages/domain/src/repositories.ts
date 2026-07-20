@@ -1,5 +1,6 @@
 import type {
   AggregatedObservation,
+  CatalogProgress,
   Job,
   JobKind,
   MarketQuery,
@@ -11,6 +12,8 @@ import type {
   Recipe,
   RecipeEvaluation,
   RefreshCycle,
+  RetentionCleanupOptions,
+  RetentionCleanupReport,
 } from './models.js';
 
 export interface RecipeRepository {
@@ -59,7 +62,12 @@ export interface CycleRepository {
 }
 
 export interface CatalogRepository {
+  getProgress(): Promise<CatalogProgress>;
   getPublished(): Promise<PublishedCatalog | null>;
+}
+
+export interface RetentionRepository {
+  cleanup(options: RetentionCleanupOptions): Promise<RetentionCleanupReport>;
 }
 
 export interface JobRepository {
@@ -93,5 +101,6 @@ export type Repositories = {
   marketResults: MarketResultRepository;
   observations: ObservationRepository;
   recipes: RecipeRepository;
+  retention: RetentionRepository;
   snapshots: SnapshotRepository;
 };

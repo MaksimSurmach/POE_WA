@@ -307,21 +307,31 @@ const catalogInput = [
 export const catalogFixtures = catalogEntrySchema.array().parse(catalogInput);
 
 export const publishedCycle = refreshCycleSchema.parse({
-  id: 'cycle-published',
-  status: 'published',
-  startedAt: '2026-07-20T00:00:00.000Z',
-  publishedAt: '2026-07-20T00:02:00.000Z',
-  totalRecipes: catalogFixtures.length,
+  completedQueries: 12,
   completedRecipes: catalogFixtures.length,
+  failedQueries: 0,
   failedRecipes: 0,
+  finishedAt: '2026-07-20T00:02:00.000Z',
+  id: 'cycle-published',
+  publishedAt: '2026-07-20T00:02:00.000Z',
+  requestedAt: '2026-07-19T23:59:00.000Z',
+  startedAt: '2026-07-20T00:00:00.000Z',
+  status: 'published',
+  totalQueries: 12,
+  totalRecipes: catalogFixtures.length,
 });
 
 export const activeCycle = refreshCycleSchema.parse({
-  id: 'cycle-active',
-  status: 'running',
-  startedAt: '2026-07-20T00:03:00.000Z',
-  publishedAt: null,
-  totalRecipes: catalogFixtures.length,
+  completedQueries: 8,
   completedRecipes: 3,
+  failedQueries: 1,
   failedRecipes: 0,
+  finishedAt: null,
+  id: 'cycle-active',
+  publishedAt: null,
+  requestedAt: '2026-07-20T00:02:30.000Z',
+  startedAt: '2026-07-20T00:03:00.000Z',
+  status: 'running',
+  totalQueries: 12,
+  totalRecipes: catalogFixtures.length,
 });

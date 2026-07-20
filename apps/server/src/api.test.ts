@@ -7,7 +7,10 @@ import { buildApi } from './api.js';
 
 describe('health API', () => {
   it('reports liveness without external dependencies', async () => {
-    const api = buildApi(pino({ level: 'silent' }), vi.fn());
+    const api = buildApi(pino({ level: 'silent' }), vi.fn(), async () => ({
+      active: null,
+      published: null,
+    }));
 
     const response = await api.inject({ method: 'GET', url: '/health/live' });
 
@@ -20,10 +23,15 @@ describe('health API', () => {
   });
 
   it('reports database readiness and failure', async () => {
-    const readyApi = buildApi(pino({ level: 'silent' }), vi.fn());
-    const unavailableApi = buildApi(pino({ level: 'silent' }), async () => {
-      throw new Error('unavailable');
-    });
+    const readProgress = async () => ({ active: null, published: null });
+    const readyApi = buildApi(pino({ level: 'silent' }), vi.fn(), readProgress);
+    const unavailableApi = buildApi(
+      pino({ level: 'silent' }),
+      async () => {
+        throw new Error('unavailable');
+      },
+      readProgress,
+    );
 
     const ready = await readyApi.inject({
       method: 'GET',
@@ -48,7 +56,10 @@ describe('health API', () => {
   });
 
   it('propagates valid request IDs and normalizes all route errors', async () => {
-    const api = buildApi(pino({ level: 'silent' }), vi.fn());
+    const api = buildApi(pino({ level: 'silent' }), vi.fn(), async () => ({
+      active: null,
+      published: null,
+    }));
     api.get('/domain-error', async () => {
       throw new DomainError('MARKET_QUERY_INVALID');
     });
@@ -83,6 +94,45 @@ describe('health API', () => {
     expect(apiErrorEnvelopeSchema.parse(notFound.json())).toMatchObject({
       correlationId: notFound.headers['x-request-id'],
       error: { code: 'ROUTE_NOT_FOUND' },
+    });
+    await api.close();
+  });
+
+  it('returns current and published refresh progress with every counter', async () => {
+    const timestamp = new Date('2026-07-20T00:00:00.000Z');
+    const api = buildApi(pino({ level: 'silent' }), vi.fn(), async () => ({
+      active: {
+        completedQueries: 7,
+        completedRecipes: 2,
+        errorMessage: null,
+        failedQueries: 1,
+        failedRecipes: 0,
+        finishedAt: null,
+        id: 'cycle-active',
+        publishedAt: null,
+        requestedAt: timestamp,
+        startedAt: timestamp,
+        status: 'running',
+        totalQueries: 10,
+        totalRecipes: 5,
+      },
+      published: null,
+    }));
+
+    const response = await api.inject({ method: 'GET', url: '/api/refresh' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      correlationId: response.headers['x-request-id'],
+      data: {
+        active: {
+          completedQueries: 7,
+          failedQueries: 1,
+          requestedAt: timestamp.toISOString(),
+          totalQueries: 10,
+        },
+        published: null,
+      },
     });
     await api.close();
   });

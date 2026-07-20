@@ -2,7 +2,12 @@ import pino from 'pino';
 
 import { buildApi } from './api.js';
 import { createDatabasePool } from './database.js';
-import { createJobBoss, PgBossJobRunner } from './jobs.js';
+import { CatalogRefreshScheduler, createJobBoss } from './jobs.js';
+import { MarketJobProcessor } from './marketJobProcessor.js';
+import { PoeTradeClient } from './providers/poeTrade.js';
+import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
+import { createPostgresRepositories } from './repositories/index.js';
+import { RetentionCleaner } from './retention.js';
 import { ApplicationRuntime } from './runtime.js';
 import {
   type ApplicationMode,
@@ -15,18 +20,46 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   const config = loadRuntimeConfig(process.env, forcedMode);
   const logger = pino({ level: config.logLevel, name: 'poe-worksmith' });
   const pool = createDatabasePool(config.database);
+  const repositories = createPostgresRepositories(pool);
   const api = modeIncludesApi(config.mode)
-    ? buildApi(logger, async () => {
-        await pool.query('select 1');
-      })
-    : undefined;
-  const jobs = modeIncludesWorker(config.mode)
-    ? new PgBossJobRunner(
-        createJobBoss(pool, config.jobSchema, logger),
-        config.testCron,
+    ? buildApi(
         logger,
+        async () => {
+          await pool.query('select 1');
+        },
+        repositories.catalog.getProgress,
       )
     : undefined;
+  let jobs: CatalogRefreshScheduler | undefined;
+  if (modeIncludesWorker(config.mode)) {
+    const marketJobs = new MarketJobProcessor({
+      concurrency: config.marketConcurrency,
+      leaseTimeoutMs: config.jobLeaseTimeoutMs,
+      providers: [new PoeTradeClient({ userAgent: config.poeUserAgent })],
+      repositories,
+      retryDelayMs: config.marketRetryDelayMs,
+      snapshotTtlMs: config.snapshotTtlMs,
+    });
+    const orchestrator = new FullRefreshOrchestrator({
+      league: config.league,
+      marketJobs,
+      repositories,
+      snapshotTtlMs: config.snapshotTtlMs,
+      workerId: `worker-${process.pid}`,
+    });
+    const retention = new RetentionCleaner({
+      batchSize: config.retentionBatchSize,
+      repositories,
+    });
+    jobs = new CatalogRefreshScheduler({
+      boss: createJobBoss(pool, config.jobSchema, logger),
+      cleanupCron: config.cleanupCron,
+      logger,
+      refreshCron: config.refreshCron,
+      runCleanup: () => retention.run(),
+      runRefresh: (cycleId) => orchestrator.run(cycleId),
+    });
+  }
   const runtime = new ApplicationRuntime({
     ...(api ? { api } : {}),
     host: config.host,

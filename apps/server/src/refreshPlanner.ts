@@ -25,6 +25,12 @@ type RefreshDependency = {
   schemaVersion: number;
 };
 
+type ResolvedRefreshDependency = RefreshDependency & {
+  cache: 'hit' | 'miss';
+  marketQuery: MarketQuery;
+  snapshot: RawSnapshot | null;
+};
+
 export type PlannedMarketQuery = Readonly<{
   cache: 'hit' | 'miss';
   canonicalHash: string;
@@ -94,10 +100,28 @@ export async function planCatalogRefresh(
   ) {
     throw new DomainError('REFRESH_STATE_INVALID');
   }
+  const resolved: ResolvedRefreshDependency[] = [];
+  let cacheHits = 0;
+  let cacheMisses = 0;
+  for (const dependency of dependencies) {
+    const marketQuery = await findOrCreateMarketQuery(
+      repositories,
+      dependency,
+      createId,
+    );
+    const snapshot = await repositories.snapshots.findLatest(marketQuery.id);
+    const cache = isFreshSnapshot(snapshot, now, options.snapshotTtlMs)
+      ? 'hit'
+      : 'miss';
+    if (cache === 'hit') cacheHits += 1;
+    else cacheMisses += 1;
+    resolved.push({ ...dependency, cache, marketQuery, snapshot });
+  }
+
   const cycle =
     existingCycle ??
     (await repositories.cycles.save({
-      completedQueries: 0,
+      completedQueries: cacheHits,
       completedRecipes: 0,
       errorMessage: null,
       failedQueries: 0,
@@ -113,33 +137,22 @@ export async function planCatalogRefresh(
     }));
 
   const queries: PlannedMarketQuery[] = [];
-  let cacheHits = 0;
-  let cacheMisses = 0;
   let jobsEnqueued = 0;
   let jobsReused = 0;
-
-  for (const dependency of dependencies) {
-    const marketQuery = await findOrCreateMarketQuery(
-      repositories,
-      dependency,
-      createId,
-    );
-    const snapshot = await repositories.snapshots.findLatest(marketQuery.id);
-    if (isFreshSnapshot(snapshot, now, options.snapshotTtlMs)) {
-      cacheHits += 1;
+  for (const dependency of resolved) {
+    if (dependency.cache === 'hit') {
       queries.push({
         cache: 'hit',
         canonicalHash: dependency.canonicalHash,
         job: null,
         jobDisposition: null,
-        marketQuery,
+        marketQuery: dependency.marketQuery,
         recipeIds: dependency.recipeIds,
-        snapshot,
+        snapshot: dependency.snapshot,
       });
       continue;
     }
 
-    cacheMisses += 1;
     const candidate: Job = {
       attempts: 0,
       dedupeKey: `market-refresh:${cycle.id}:${dependency.canonicalHash}`,
@@ -148,7 +161,7 @@ export async function planCatalogRefresh(
       lastError: null,
       lockedAt: null,
       lockedBy: null,
-      marketQueryId: marketQuery.id,
+      marketQueryId: dependency.marketQuery.id,
       maxAttempts,
       payload: {
         canonicalHash: dependency.canonicalHash,
@@ -172,9 +185,9 @@ export async function planCatalogRefresh(
       canonicalHash: dependency.canonicalHash,
       job,
       jobDisposition,
-      marketQuery,
+      marketQuery: dependency.marketQuery,
       recipeIds: dependency.recipeIds,
-      snapshot,
+      snapshot: dependency.snapshot,
     });
   }
 

@@ -7,10 +7,19 @@ start one mode with `pnpm start:api`, `pnpm start:worker`, or `pnpm start`.
 The default combined mode exposes liveness at `/health/live` and database
 readiness at `/health/ready` on `127.0.0.1:3000`.
 
-The worker owns the pg-boss scheduler and test cron queue. Schedule registration
-uses a stable queue/key pair, so restarts update the singleton schedule instead
-of inserting duplicates. `SIGINT` and `SIGTERM` stop HTTP intake, wait for active
-jobs up to `SHUTDOWN_TIMEOUT_MS`, then close the shared PostgreSQL pool.
+The worker owns PostgreSQL-backed full-refresh and retention schedules. The
+refresh runs every four hours by default, uses an exclusive pg-boss queue across
+all worker instances, and reuses the queue job ID as the refresh-cycle ID. The
+cleanup runs daily and removes raw snapshots after 72 hours, observations after
+14 days, and old completed jobs in bounded batches while preserving active and
+published cycles. `SIGINT` and `SIGTERM` stop HTTP intake, wait for active jobs
+up to `SHUTDOWN_TIMEOUT_MS`, then close the shared PostgreSQL pool.
+
+`GET /api/refresh` returns the current and published cycles with query/recipe
+totals, completed and failed counts, and all progress timestamps. Tests can run
+the production scheduling path deterministically through
+`CatalogRefreshScheduler.triggerRefresh()`; pg-boss applies the same singleton
+protection as cron delivery.
 
 Build and run the same application in Docker with environment configuration:
 

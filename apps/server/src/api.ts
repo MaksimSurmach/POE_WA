@@ -3,18 +3,26 @@ import { randomUUID } from 'node:crypto';
 import {
   apiErrorEnvelopeSchema,
   correlationIdSchema,
+  refreshProgressResponseSchema,
 } from '@poe-worksmith/contracts';
 import {
+  type CatalogProgress,
   type AnyDomainError,
   DomainError,
+  type RefreshCycle,
   serializeDomainError,
 } from '@poe-worksmith/domain';
 import Fastify from 'fastify';
 import type { Logger } from 'pino';
 
 export type ReadinessProbe = () => Promise<void>;
+export type RefreshProgressReader = () => Promise<CatalogProgress>;
 
-export function buildApi(logger: Logger, checkReadiness: ReadinessProbe) {
+export function buildApi(
+  logger: Logger,
+  checkReadiness: ReadinessProbe,
+  readRefreshProgress: RefreshProgressReader,
+) {
   const api = Fastify({
     genReqId(request) {
       const supplied = request.headers['x-request-id'];
@@ -58,8 +66,36 @@ export function buildApi(logger: Logger, checkReadiness: ReadinessProbe) {
       throw new DomainError('PERSISTENCE_UNAVAILABLE', { cause: error });
     }
   });
+  api.get('/api/refresh', async (request) => {
+    const progress = await readRefreshProgress();
+    return refreshProgressResponseSchema.parse({
+      correlationId: request.id,
+      data: {
+        active: serializeCycle(progress.active),
+        published: serializeCycle(progress.published),
+      },
+    });
+  });
 
   return api;
+}
+
+function serializeCycle(cycle: RefreshCycle | null) {
+  if (!cycle) return null;
+  return {
+    completedQueries: cycle.completedQueries,
+    completedRecipes: cycle.completedRecipes,
+    failedQueries: cycle.failedQueries,
+    failedRecipes: cycle.failedRecipes,
+    finishedAt: cycle.finishedAt?.toISOString() ?? null,
+    id: cycle.id,
+    publishedAt: cycle.publishedAt?.toISOString() ?? null,
+    requestedAt: cycle.requestedAt.toISOString(),
+    startedAt: cycle.startedAt?.toISOString() ?? null,
+    status: cycle.status,
+    totalQueries: cycle.totalQueries,
+    totalRecipes: cycle.totalRecipes,
+  };
 }
 
 function httpStatus(error: AnyDomainError) {

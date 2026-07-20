@@ -47,6 +47,57 @@ export function createPostgresRepositories(pool: Pool): Repositories {
 
   return {
     catalog: {
+      getProgress() {
+        return mapRepositoryError('catalog', 'getProgress', async () => {
+          const client = await pool.connect();
+          try {
+            await client.query(
+              'begin transaction isolation level repeatable read read only',
+            );
+            const transaction = drizzle({ client });
+            const [running] = await transaction
+              .select()
+              .from(refreshCycles)
+              .where(eq(refreshCycles.status, 'running'))
+              .orderBy(desc(refreshCycles.requestedAt))
+              .limit(1);
+            const [queued] = running
+              ? []
+              : await transaction
+                  .select()
+                  .from(refreshCycles)
+                  .where(eq(refreshCycles.status, 'queued'))
+                  .orderBy(desc(refreshCycles.requestedAt))
+                  .limit(1);
+            const active = running ?? queued;
+            const [state] = await transaction
+              .select({ publishedCycleId: catalogState.publishedCycleId })
+              .from(catalogState)
+              .where(eq(catalogState.id, 1))
+              .limit(1);
+            const [published] = state?.publishedCycleId
+              ? await transaction
+                  .select()
+                  .from(refreshCycles)
+                  .where(eq(refreshCycles.id, state.publishedCycleId))
+                  .limit(1)
+              : [];
+            if (state?.publishedCycleId && !published) {
+              throw new RepositoryNotFoundError('catalog', 'getProgress');
+            }
+            await client.query('commit');
+            return {
+              active: active ? mapCycle(active) : null,
+              published: published ? mapCycle(published) : null,
+            };
+          } catch (error) {
+            await client.query('rollback').catch(() => undefined);
+            throw error;
+          } finally {
+            client.release();
+          }
+        });
+      },
       getPublished() {
         return mapRepositoryError('catalog', 'getPublished', async () => {
           const client = await pool.connect();
@@ -791,6 +842,105 @@ export function createPostgresRepositories(pool: Pool): Repositories {
           } catch (caught) {
             await client.query('rollback').catch(() => undefined);
             throw caught;
+          } finally {
+            client.release();
+          }
+        });
+      },
+    },
+    retention: {
+      cleanup(options) {
+        return mapRepositoryError('retention', 'cleanup', async () => {
+          if (!Number.isInteger(options.batchSize) || options.batchSize < 1) {
+            throw new TypeError('batchSize must be a positive integer');
+          }
+          const client = await pool.connect();
+          try {
+            await client.query('begin');
+            await client.query(
+              `insert into catalog_state (id)
+               values (1)
+               on conflict (id) do nothing`,
+            );
+            await client.query(
+              `select id from catalog_state where id = 1 for update`,
+            );
+            const rawSnapshotsResult = await client.query(
+              `delete from raw_snapshots
+               where id in (
+                 select snapshot.id
+                 from raw_snapshots snapshot
+                 where snapshot.captured_at < $1
+                   and not exists (
+                     select 1 from refresh_cycles cycle
+                     where cycle.id = snapshot.refresh_cycle_id
+                       and cycle.status in ('queued', 'running')
+                   )
+                   and not exists (
+                     select 1 from catalog_state state
+                     where state.id = 1
+                       and state.published_cycle_id = snapshot.refresh_cycle_id
+                   )
+                 order by snapshot.id
+                 limit $2
+               )
+               returning id`,
+              [options.rawSnapshotsBefore, options.batchSize],
+            );
+            const observationsResult = await client.query(
+              `delete from aggregated_observations
+               where id in (
+                 select observation.id
+                 from aggregated_observations observation
+                 where observation.observed_at < $1
+                   and not exists (
+                     select 1 from refresh_cycles cycle
+                     where cycle.id = observation.refresh_cycle_id
+                       and cycle.status in ('queued', 'running')
+                   )
+                   and not exists (
+                     select 1 from catalog_state state
+                     where state.id = 1
+                       and state.published_cycle_id = observation.refresh_cycle_id
+                   )
+                 order by observation.id
+                 limit $2
+               )
+               returning id`,
+              [options.observationsBefore, options.batchSize],
+            );
+            const jobsResult = await client.query(
+              `delete from jobs
+               where id in (
+                 select job.id
+                 from jobs job
+                 where job.status in ('succeeded', 'failed')
+                   and job.updated_at < $1
+                   and not exists (
+                     select 1 from refresh_cycles cycle
+                     where cycle.id = job.refresh_cycle_id
+                       and cycle.status in ('queued', 'running')
+                   )
+                   and not exists (
+                     select 1 from catalog_state state
+                     where state.id = 1
+                       and state.published_cycle_id = job.refresh_cycle_id
+                   )
+                 order by job.updated_at, job.id
+                 limit $2
+               )
+               returning id`,
+              [options.jobsBefore, options.batchSize],
+            );
+            await client.query('commit');
+            return {
+              jobs: jobsResult.rowCount ?? 0,
+              observations: observationsResult.rowCount ?? 0,
+              rawSnapshots: rawSnapshotsResult.rowCount ?? 0,
+            };
+          } catch (error) {
+            await client.query('rollback').catch(() => undefined);
+            throw error;
           } finally {
             client.release();
           }

@@ -4,6 +4,7 @@ import type {
   Recipe,
   RefreshCycle,
 } from '@poe-worksmith/domain';
+import { transitionRefreshCycle } from '@poe-worksmith/domain';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { loadDatabaseConfig } from '../config.js';
@@ -233,6 +234,23 @@ describe('PostgreSQL repositories', () => {
     });
   });
 
+  it('reads active and published progress from one catalog snapshot', async () => {
+    await repositories.cycles.save(queuedCycle);
+    await repositories.cycles.save(cycle);
+    await repositories.cycles.publish(cycle.id, now);
+    const active = {
+      ...queuedCycle,
+      id: '77777777-7777-4777-8777-777777777777',
+      requestedAt: new Date(now.getTime() + 1000),
+    };
+    await repositories.cycles.save(active);
+
+    await expect(repositories.catalog.getProgress()).resolves.toMatchObject({
+      active: { id: active.id, status: 'queued' },
+      published: { id: cycle.id, status: 'published' },
+    });
+  });
+
   it('rejects a second running refresh cycle', async () => {
     await repositories.cycles.save(queuedCycle);
     await repositories.cycles.save(cycle);
@@ -326,5 +344,112 @@ describe('PostgreSQL repositories', () => {
       [job.id],
     );
     expect(result.rows[0]?.status).toBe('succeeded');
+  });
+
+  it('cleans one old batch and protects active and published cycle data', async () => {
+    const old = new Date('2026-06-01T00:00:00.000Z');
+    await repositories.recipes.save(recipe);
+    await repositories.marketQueries.save(marketQuery);
+
+    await repositories.cycles.save(queuedCycle);
+    await repositories.cycles.save(cycle);
+    await repositories.cycles.publish(cycle.id, now);
+    const obsoleteQueued = {
+      ...queuedCycle,
+      completedQueries: 0,
+      completedRecipes: 0,
+      id: '88888888-8888-4888-8888-888888888888',
+      requestedAt: old,
+      totalQueries: 0,
+      totalRecipes: 0,
+    };
+    await repositories.cycles.save(obsoleteQueued);
+    const obsoleteRunning = await repositories.cycles.save(
+      transitionRefreshCycle(obsoleteQueued, 'running', old),
+    );
+    await repositories.cycles.save(
+      transitionRefreshCycle(obsoleteRunning, 'failed', old, 'obsolete'),
+    );
+    const activeQueued = {
+      ...obsoleteQueued,
+      id: '99999999-9999-4999-8999-999999999999',
+    };
+    await repositories.cycles.save(activeQueued);
+    await repositories.cycles.save(
+      transitionRefreshCycle(activeQueued, 'running', old),
+    );
+
+    for (const [index, cycleId] of [
+      obsoleteQueued.id,
+      activeQueued.id,
+      cycle.id,
+    ].entries()) {
+      await repositories.snapshots.save({
+        capturedAt: old,
+        dedupeKey: `retention-snapshot-${index}`,
+        expiresAt: new Date(old.getTime() + 60_000),
+        marketQueryId: marketQuery.id,
+        payload: {},
+        providerStatus: 200,
+        refreshCycleId: cycleId,
+      });
+      await repositories.observations.save({
+        cheapestPrice: '1',
+        currency: 'chaos',
+        marketQueryId: marketQuery.id,
+        medianTopNPrice: '1',
+        nthPrice: null,
+        observedAt: old,
+        refreshCycleId: cycleId,
+        sampleSize: 1,
+        summary: {},
+      });
+      const jobId = `${String(index + 1).repeat(8)}-${String(index + 1).repeat(4)}-4${String(index + 1).repeat(3)}-8${String(index + 1).repeat(3)}-${String(index + 1).repeat(12)}`;
+      await repositories.jobs.enqueue({
+        attempts: 0,
+        dedupeKey: `retention-job-${index}`,
+        id: jobId,
+        kind: 'snapshot_cleanup',
+        lastError: null,
+        lockedAt: null,
+        lockedBy: null,
+        marketQueryId: null,
+        maxAttempts: 1,
+        payload: {},
+        priority: 1,
+        recipeId: null,
+        refreshCycleId: cycleId,
+        runAfter: old,
+        status: 'queued',
+      });
+      await pool.query(
+        `update jobs set status = 'succeeded', updated_at = $2 where id = $1`,
+        [jobId, old],
+      );
+    }
+
+    const options = {
+      batchSize: 1,
+      jobsBefore: now,
+      observationsBefore: now,
+      rawSnapshotsBefore: now,
+    };
+    await expect(repositories.retention.cleanup(options)).resolves.toEqual({
+      jobs: 1,
+      observations: 1,
+      rawSnapshots: 1,
+    });
+    await expect(repositories.retention.cleanup(options)).resolves.toEqual({
+      jobs: 0,
+      observations: 0,
+      rawSnapshots: 0,
+    });
+    const protectedRows = await pool.query<{ refresh_cycle_id: string }>(
+      `select refresh_cycle_id from raw_snapshots order by refresh_cycle_id`,
+    );
+    expect(protectedRows.rows.map((row) => row.refresh_cycle_id)).toEqual([
+      cycle.id,
+      activeQueued.id,
+    ]);
   });
 });
