@@ -468,3 +468,46 @@ export const canonicalEntities = pgTable(
     ),
   ],
 );
+
+export const providerMappings = pgTable(
+  'provider_mappings',
+  {
+    gameDataVersionId: uuid('game_data_version_id')
+      .notNull()
+      .references(() => gameDataVersions.id, { onDelete: 'cascade' }),
+    provider: text('provider').notNull(),
+    entityKind: text('entity_kind').notNull(),
+    canonicalId: text('canonical_id').notNull(),
+    externalId: text('external_id').notNull(),
+    discriminator: text('discriminator'),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+    status: text('status').default('active').notNull(),
+    confidence: integer('confidence').default(100).notNull(),
+    sourceRevision: text('source_revision').notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [
+        table.gameDataVersionId,
+        table.provider,
+        table.entityKind,
+        table.canonicalId,
+        table.externalId,
+      ],
+    }),
+    index('provider_mappings_resolve_idx').on(
+      table.gameDataVersionId,
+      table.provider,
+      table.entityKind,
+      table.canonicalId,
+    ),
+    check(
+      'provider_mappings_status_check',
+      sql`${table.status} in ('active', 'disabled')`,
+    ),
+    check(
+      'provider_mappings_confidence_check',
+      sql`${table.confidence} between 0 and 100`,
+    ),
+  ],
+);
