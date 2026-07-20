@@ -1,1 +1,1 @@
-export {};
+import './checkDatabase.js';

@@ -5,11 +5,19 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "db:check": "node dist/checkDatabase.js",
     "start": "node dist/index.js",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run --passWithNoTests --exclude '**/*.integration.test.ts' --exclude 'dist/**'",
+    "test:integration": "vitest run src/database.integration.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
+  "dependencies": {
+    "pg": "8.22.0",
+    "zod": "4.4.3"
+  },
   "devDependencies": {
+    "@types/node": "22.20.1",
+    "@types/pg": "8.20.0",
     "typescript": "6.0.3",
     "vitest": "4.1.10"
   }

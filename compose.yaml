@@ -1,0 +1,38 @@
+name: poe-worksmith
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: poe_worksmith_dev
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - 127.0.0.1:54322:5432
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres -d poe_worksmith_dev]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+
+  postgres-test:
+    image: postgres:17-alpine
+    profiles: [test]
+    environment:
+      POSTGRES_DB: poe_worksmith_test
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - 127.0.0.1:54324:5432
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres -d poe_worksmith_test]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    tmpfs:
+      - /var/lib/postgresql/data
+
+volumes:
+  postgres-dev-data:

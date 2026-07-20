@@ -10,6 +10,10 @@
   },
   "scripts": {
     "build": "pnpm -r --if-present build",
+    "db:check": "pnpm --filter @poe-worksmith/server build && node --env-file=.env.development apps/server/dist/checkDatabase.js",
+    "db:down": "docker compose --profile test down",
+    "db:test:up": "docker compose --profile test up -d --wait postgres-test",
+    "db:up": "docker compose up -d --wait postgres",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
