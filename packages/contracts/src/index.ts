@@ -81,6 +81,54 @@ export const catalogEntrySchema = z
   })
   .strict();
 
+export const recipeDetailViewSchema = z
+  .object({
+    recipe: recipeSchema,
+    gameVersion: z.string().min(1),
+    confidence: z.enum(['low', 'medium', 'high']).nullable(),
+    base: z
+      .object({
+        name: z.string().min(1),
+        requirements: z.array(z.string().min(1)),
+      })
+      .strict(),
+    materials: z.array(
+      z
+        .object({
+          name: z.string().min(1),
+          quantityPerAttempt: z.number().positive(),
+          unitPrice: priceSchema,
+          costPerAttempt: priceSchema,
+        })
+        .strict(),
+    ),
+    craftSteps: z.array(z.string().min(1)).min(1),
+    requiredMods: z.array(z.string().min(1)),
+    costBreakdown: z
+      .object({
+        baseCost: priceSchema,
+        materialsPerAttempt: priceSchema,
+        expectedAttempts: z.number().positive(),
+        finishingCost: priceSchema,
+        expectedCost: priceSchema,
+      })
+      .strict()
+      .nullable(),
+    estimators: z.array(
+      z
+        .object({
+          id: z.string().min(1),
+          label: z.string().min(1),
+          price: priceSchema,
+        })
+        .strict(),
+    ),
+    selectedEstimatorId: z.string().min(1).nullable(),
+    evaluation: recipeEvaluationSchema,
+    snapshot: marketSnapshotSchema.nullable(),
+  })
+  .strict();
+
 export type Price = z.infer<typeof priceSchema>;
 export type Listing = z.infer<typeof listingSchema>;
 export type MarketSnapshot = z.infer<typeof marketSnapshotSchema>;
@@ -88,3 +136,4 @@ export type Recipe = z.infer<typeof recipeSchema>;
 export type RecipeEvaluation = z.infer<typeof recipeEvaluationSchema>;
 export type RefreshCycle = z.infer<typeof refreshCycleSchema>;
 export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
+export type RecipeDetailView = z.infer<typeof recipeDetailViewSchema>;

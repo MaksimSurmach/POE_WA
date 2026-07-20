@@ -21,6 +21,22 @@ describe('application shell', () => {
     expect(catalog).toContain('Craft catalog');
     expect(recipe).toContain('Physical Large Cluster Jewel');
     expect(recipe).toContain('Back to catalog');
+    expect(recipe).toContain('Cost breakdown');
+    expect(recipe).toContain('Top 10 Merchant listings');
+  });
+
+  it.each([
+    ['/recipes/stale-boots', 'Using stale market data'],
+    ['/recipes/no-listings-bow', 'No Merchant listings found'],
+    ['/recipes/calculation-error-amulet', 'Calculation unavailable'],
+  ])('renders the explicit detail state for %s', (route, message) => {
+    const page = renderToStaticMarkup(
+      <MemoryRouter initialEntries={[route]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(page).toContain(message);
   });
 });
 
@@ -31,6 +47,11 @@ describe('shared presentation primitives', () => {
         <Money price={{ amount: 4.1, currency: 'divine' }} />,
       ),
     ).toContain('4.1 div');
+    expect(
+      renderToStaticMarkup(
+        <Money price={{ amount: 0.0003, currency: 'divine' }} />,
+      ),
+    ).toContain('0.0003 div');
     expect(formatAge(59)).toBe('59 sec ago');
     expect(formatAge(120)).toBe('2 min ago');
     expect(formatAge(7200)).toBe('2 hr ago');

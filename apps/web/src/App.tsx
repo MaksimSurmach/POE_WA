@@ -1,12 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import {
-  Link,
-  NavLink,
-  Outlet,
-  Route,
-  Routes,
-  useParams,
-} from 'react-router-dom';
+import { Link, NavLink, Outlet, Route, Routes } from 'react-router-dom';
 
 import {
   defaultCatalogFilters,
@@ -28,6 +21,7 @@ import {
   catalogFixtures,
   publishedCycle,
 } from './mocks/catalog.js';
+import { RecipePage } from './RecipePage.js';
 
 const mockNow = '2026-07-20T00:04:00.000Z';
 const categories = [
@@ -345,41 +339,12 @@ function CatalogCell({
   );
 }
 
-function RecipeRoute() {
-  const { recipeId } = useParams();
-  const entry = catalogFixtures.find(({ recipe }) => recipe.id === recipeId);
-
-  if (!entry) {
-    return (
-      <>
-        <Link className="back-link" to="/">
-          Back to catalog
-        </Link>
-        <StatusPanel tone="danger" title="Recipe not found" />
-      </>
-    );
-  }
-
-  return (
-    <section className="recipe-route" aria-labelledby="recipe-heading">
-      <Link className="back-link" to="/">
-        Back to catalog
-      </Link>
-      <h1 id="recipe-heading">{entry.recipe.title}</h1>
-      <p>{entry.recipe.summary}</p>
-      <StatusPanel tone="success" title="Recipe route is ready">
-        Market and crafting details will appear here.
-      </StatusPanel>
-    </section>
-  );
-}
-
 export function App() {
   return (
     <Routes>
       <Route element={<AppShell />}>
         <Route index element={<CatalogRoute />} />
-        <Route path="recipes/:recipeId" element={<RecipeRoute />} />
+        <Route path="recipes/:recipeId" element={<RecipePage />} />
       </Route>
     </Routes>
   );

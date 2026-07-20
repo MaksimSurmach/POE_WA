@@ -2,7 +2,7 @@ import type { Price, RecipeEvaluation } from '@poe-worksmith/contracts';
 import type { ReactNode } from 'react';
 
 const compactNumber = new Intl.NumberFormat('en-US', {
-  maximumFractionDigits: 2,
+  maximumFractionDigits: 4,
 });
 
 const currencyLabel = {
