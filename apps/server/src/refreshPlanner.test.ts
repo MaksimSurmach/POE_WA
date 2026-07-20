@@ -5,12 +5,17 @@ import {
   validateRecipeV1,
 } from '@poe-worksmith/domain';
 import { validRecipeV1Fixture } from '@poe-worksmith/domain/fixtures';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { planCatalogRefresh } from './refreshPlanner.js';
 
 const now = new Date('2026-07-20T00:00:00.000Z');
 const snapshotTtlMs = 5 * 60 * 1000;
+const refreshLeague = {
+  leagueGggId: 'Mercenaries',
+  leagueId: '00000000-0000-4000-8000-000000000001',
+  leagueName: 'Mercenaries',
+};
 
 async function seedCurrentLeague(
   repositories: ReturnType<typeof createInMemoryRepositories>,
@@ -73,11 +78,29 @@ async function repositoriesWithSharedMaterial() {
 }
 
 describe('catalog refresh planner', () => {
+  it('uses only the captured league context', async () => {
+    const repositories = await repositoriesWithSharedMaterial();
+    const findCurrent = vi
+      .spyOn(repositories.leagues, 'findCurrent')
+      .mockRejectedValue(new Error('unexpected league lookup'));
+
+    const plan = await planCatalogRefresh(repositories, {
+      cycleId: '00000000-0000-4000-8000-000000000002',
+      league: refreshLeague,
+      now,
+      snapshotTtlMs,
+    });
+
+    expect(findCurrent).not.toHaveBeenCalled();
+    expect(plan.cycle.leagueId).toBe(refreshLeague.leagueId);
+    expect(plan.queries[0]?.job?.payload).toMatchObject(refreshLeague);
+  });
+
   it('deduplicates shared dependencies and is idempotent within a cycle', async () => {
     const repositories = await repositoriesWithSharedMaterial();
     const options = {
       cycleId: '11111111-1111-4111-8111-111111111111',
-      league: 'Mercenaries',
+      league: refreshLeague,
       now,
       snapshotTtlMs,
     };
@@ -124,7 +147,7 @@ describe('catalog refresh planner', () => {
     const repositories = await repositoriesWithSharedMaterial();
     const first = await planCatalogRefresh(repositories, {
       cycleId: '22222222-2222-4222-8222-222222222222',
-      league: 'Mercenaries',
+      league: refreshLeague,
       now,
       snapshotTtlMs,
     });
@@ -143,7 +166,7 @@ describe('catalog refresh planner', () => {
 
     const cached = await planCatalogRefresh(repositories, {
       cycleId: '33333333-3333-4333-8333-333333333333',
-      league: 'Mercenaries',
+      league: refreshLeague,
       now,
       snapshotTtlMs,
     });
@@ -168,7 +191,7 @@ describe('catalog refresh planner', () => {
     await repositories.recipes.save(recipe('recipe-a', 'A'));
     const first = await planCatalogRefresh(repositories, {
       cycleId: '44444444-4444-4444-8444-444444444444',
-      league: 'Mercenaries',
+      league: refreshLeague,
       now,
       snapshotTtlMs,
     });
@@ -187,7 +210,7 @@ describe('catalog refresh planner', () => {
 
     const stale = await planCatalogRefresh(repositories, {
       cycleId: '55555555-5555-4555-8555-555555555555',
-      league: 'Mercenaries',
+      league: refreshLeague,
       now,
       snapshotTtlMs,
     });

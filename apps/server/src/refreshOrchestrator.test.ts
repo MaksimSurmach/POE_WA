@@ -73,7 +73,11 @@ describe('full refresh orchestrator', () => {
     });
     const orchestrator = new FullRefreshOrchestrator({
       clock: () => now,
-      league: 'Mercenaries',
+      league: {
+        leagueGggId: 'Mercenaries',
+        leagueId: '00000000-0000-4000-8000-000000000001',
+        leagueName: 'Mercenaries',
+      },
       marketJobs,
       repositories,
       snapshotTtlMs: 60_000,
