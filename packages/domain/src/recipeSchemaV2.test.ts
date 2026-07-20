@@ -162,5 +162,8 @@ describe('recipe schema v2', () => {
         method: { kind: 'harvest-reforge', tag: 'fire' },
       }),
     );
+    expect(hashCanonicalCraftSetup(setup)).toBe(
+      hashCanonicalCraftSetup({ ...setup, gameDataVersion: '3.27.0' }),
+    );
   });
 });
