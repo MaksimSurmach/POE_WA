@@ -68,6 +68,40 @@ export const refreshCycles = pgTable(
   ],
 );
 
+export const poeLeagues = pgTable(
+  'poe_leagues',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    game: text('game').default('poe1').notNull(),
+    realm: text('realm').default('pc').notNull(),
+    gggId: text('ggg_id').notNull(),
+    name: text('name').notNull(),
+    startAt: timestamp('start_at', { withTimezone: true }),
+    endAt: timestamp('end_at', { withTimezone: true }),
+    isCurrent: boolean('is_current').default(false).notNull(),
+    syncedAt: timestamp('synced_at', { withTimezone: true }).notNull(),
+    metadata: jsonb('metadata')
+      .$type<Record<string, unknown>>()
+      .default(sql`'{}'::jsonb`)
+      .notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex('poe_leagues_game_realm_ggg_id_uq').on(
+      table.game,
+      table.realm,
+      table.gggId,
+    ),
+    uniqueIndex('poe_leagues_one_current_uq')
+      .on(table.game, table.realm)
+      .where(sql`${table.isCurrent} = true`),
+    check(
+      'poe_leagues_dates_check',
+      sql`${table.endAt} is null or ${table.startAt} is null or ${table.endAt} >= ${table.startAt}`,
+    ),
+  ],
+);
+
 export const recipes = pgTable(
   'recipes',
   {

@@ -1,6 +1,7 @@
 import type {
   AggregatedObservation,
   Job,
+  LeagueUpsert,
   MarketQuery,
   ProviderCircuitState,
   RawSnapshot,
@@ -9,6 +10,7 @@ import type {
   Recipe,
   RecipeEvaluation,
   RefreshCycle,
+  PoeLeague,
   Repositories,
 } from '@poe-worksmith/domain';
 import {
@@ -30,6 +32,7 @@ import {
   catalogState,
   jobs,
   marketQueries,
+  poeLeagues,
   rawSnapshots,
   recipeEvaluations,
   recipes,
@@ -44,6 +47,7 @@ type ObservationRow = typeof aggregatedObservations.$inferSelect;
 type EvaluationRow = typeof recipeEvaluations.$inferSelect;
 type CycleRow = typeof refreshCycles.$inferSelect;
 type JobRow = typeof jobs.$inferSelect;
+type LeagueRow = typeof poeLeagues.$inferSelect;
 type RateLimitStateSqlRow = {
   blocked_until: Date;
   endpoints: string[];
@@ -71,6 +75,90 @@ export function createPostgresRepositories(pool: Pool): Repositories {
   const database = drizzle({ client: pool });
 
   return {
+    leagues: {
+      list() {
+        return mapRepositoryError('leagues', 'list', async () =>
+          (
+            await database
+              .select()
+              .from(poeLeagues)
+              .orderBy(desc(poeLeagues.startAt), desc(poeLeagues.createdAt))
+          ).map(mapLeague),
+        );
+      },
+      findCurrent() {
+        return mapRepositoryError('leagues', 'findCurrent', async () => {
+          const [row] = await database
+            .select()
+            .from(poeLeagues)
+            .where(eq(poeLeagues.isCurrent, true))
+            .limit(1);
+          return row ? mapLeague(row) : null;
+        });
+      },
+      upsert(input: LeagueUpsert) {
+        return mapRepositoryError('leagues', 'upsert', async () => {
+          const [row] = await database
+            .insert(poeLeagues)
+            .values({ ...input, metadata: { ...input.metadata } })
+            .onConflictDoUpdate({
+              target: [poeLeagues.game, poeLeagues.realm, poeLeagues.gggId],
+              set: {
+                name: input.name,
+                syncedAt: input.syncedAt,
+                metadata: { ...input.metadata },
+                updatedAt: new Date(),
+              },
+            })
+            .returning();
+          return mapLeague(row!);
+        });
+      },
+      setCurrent(leagueId: string, switchedAt: Date) {
+        return mapRepositoryError('leagues', 'setCurrent', async () => {
+          const client = await pool.connect();
+          try {
+            await client.query('begin');
+            const selected = await client.query<LeagueRow>(
+              'select * from poe_leagues where id = $1 for update',
+              [leagueId],
+            );
+            const row = selected.rows[0];
+            if (!row)
+              throw new RepositoryNotFoundError('leagues', 'setCurrent');
+            if (row.isCurrent) {
+              await client.query('commit');
+              return mapLeague(row);
+            }
+            const current = await client.query<LeagueRow>(
+              'select * from poe_leagues where game = $1 and realm = $2 and is_current = true for update',
+              [row.game, row.realm],
+            );
+            if (current.rows[0] && !current.rows[0].endAt && row.startAt)
+              await client.query(
+                'update poe_leagues set is_current = false, end_at = $2, updated_at = $2 where id = $1',
+                [current.rows[0].id, row.startAt],
+              );
+            else
+              await client.query(
+                'update poe_leagues set is_current = false, updated_at = $2 where game = $1 and realm = $3 and is_current = true',
+                [row.game, switchedAt, row.realm],
+              );
+            const updated = await client.query<LeagueRow>(
+              'update poe_leagues set is_current = true, updated_at = $2 where id = $1 returning *',
+              [leagueId, switchedAt],
+            );
+            await client.query('commit');
+            return mapLeague(updated.rows[0]!);
+          } catch (error) {
+            await client.query('rollback').catch(() => undefined);
+            throw error;
+          } finally {
+            client.release();
+          }
+        });
+      },
+    },
     catalog: {
       getProgress() {
         return mapRepositoryError('catalog', 'getProgress', async () => {
@@ -1636,4 +1724,8 @@ function mapJob(row: JobRow): Job {
     payload: row.payload,
     status: row.status as Job['status'],
   };
+}
+
+function mapLeague(row: LeagueRow): PoeLeague {
+  return { ...row, metadata: row.metadata };
 }

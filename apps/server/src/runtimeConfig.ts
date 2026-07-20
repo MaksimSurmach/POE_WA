@@ -23,7 +23,8 @@ const runtimeEnvironmentSchema = z.object({
     .string()
     .regex(/^[a-z_][a-z0-9_]*$/)
     .default('pgboss'),
-  POE_LEAGUE: z.string().trim().min(1).default('Mercenaries'),
+  LEAGUE_RESOLVE_CRON: z.string().min(1).default('0 23 * * *'),
+  LEAGUE_RESOLVE_TIMEZONE: z.string().min(1).default('Europe/Warsaw'),
   POE_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).default(15_000),
   POE_USER_AGENT: z
     .string()
@@ -47,7 +48,8 @@ export type RuntimeConfig = {
   host: string;
   jobLeaseTimeoutMs: number;
   jobSchema: string;
-  league: string;
+  leagueResolveCron: string;
+  leagueResolveTimezone: string;
   logLevel: z.infer<typeof runtimeEnvironmentSchema>['LOG_LEVEL'];
   marketConcurrency: number;
   marketRetryDelayMs: number;
@@ -89,7 +91,8 @@ export function loadRuntimeConfig(
     host: result.data.APP_HOST,
     jobLeaseTimeoutMs: result.data.JOB_LEASE_TIMEOUT_MS,
     jobSchema: result.data.PG_BOSS_SCHEMA,
-    league: result.data.POE_LEAGUE,
+    leagueResolveCron: result.data.LEAGUE_RESOLVE_CRON,
+    leagueResolveTimezone: result.data.LEAGUE_RESOLVE_TIMEZONE,
     logLevel: result.data.LOG_LEVEL,
     marketConcurrency: result.data.MARKET_CONCURRENCY,
     marketRetryDelayMs: result.data.MARKET_RETRY_DELAY_MS,

@@ -1,5 +1,22 @@
 export type JsonRecord = Readonly<Record<string, unknown>>;
 
+export type PoeLeague = {
+  createdAt: Date;
+  endAt: Date | null;
+  game: string;
+  gggId: string;
+  id: string;
+  isCurrent: boolean;
+  metadata: JsonRecord;
+  name: string;
+  realm: string;
+  startAt: Date | null;
+  syncedAt: Date;
+  updatedAt: Date;
+};
+
+export type LeagueUpsert = Omit<PoeLeague, 'id' | 'createdAt' | 'updatedAt'>;
+
 export type Recipe = {
   active: boolean;
   category: string;

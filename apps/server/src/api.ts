@@ -6,6 +6,8 @@ import {
   catalogResponseSchema,
   correlationIdSchema,
   rateLimitDiagnosticsResponseSchema,
+  leaguesResponseSchema,
+  currentLeagueResponseSchema,
   type RecipeResponse,
   recipeResponseSchema,
   refreshProgressResponseSchema,
@@ -16,6 +18,7 @@ import {
   DomainError,
   type RateLimitState,
   type RefreshCycle,
+  type PoeLeague,
   serializeDomainError,
 } from '@poe-worksmith/domain';
 import Fastify from 'fastify';
@@ -29,6 +32,8 @@ export type RecipeReader = (
   correlationId: string,
   recipeId: string,
 ) => Promise<RecipeResponse>;
+export type LeagueReader = () => Promise<PoeLeague[]>;
+export type CurrentLeagueReader = () => Promise<PoeLeague | null>;
 
 export function buildApi(
   logger: Logger,
@@ -37,6 +42,8 @@ export function buildApi(
   readRateLimits: RateLimitDiagnosticsReader = async () => [],
   readCatalog?: CatalogReader,
   readRecipe?: RecipeReader,
+  readLeagues?: LeagueReader,
+  readCurrentLeague?: CurrentLeagueReader,
 ) {
   const api = Fastify({
     genReqId(request) {
@@ -112,8 +119,35 @@ export function buildApi(
         ),
     );
   }
+  if (readLeagues)
+    api.get('/api/leagues', async (request) =>
+      leaguesResponseSchema.parse({
+        correlationId: request.id,
+        data: (await readLeagues()).map(serializeLeague),
+      }),
+    );
+  if (readCurrentLeague)
+    api.get('/api/leagues/current', async (request) => {
+      const league = await readCurrentLeague();
+      if (!league) throw new DomainError('CURRENT_LEAGUE_UNRESOLVED');
+      return currentLeagueResponseSchema.parse({
+        correlationId: request.id,
+        data: serializeLeague(league),
+      });
+    });
 
   return api;
+}
+
+function serializeLeague(league: PoeLeague) {
+  return {
+    ...league,
+    startAt: league.startAt?.toISOString() ?? null,
+    endAt: league.endAt?.toISOString() ?? null,
+    syncedAt: league.syncedAt.toISOString(),
+    createdAt: league.createdAt.toISOString(),
+    updatedAt: league.updatedAt.toISOString(),
+  };
 }
 
 function serializeCycle(cycle: RefreshCycle | null) {
