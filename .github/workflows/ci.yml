@@ -43,4 +43,5 @@ jobs:
       - run: pnpm db:migrate
       - run: pnpm test:integration
       - run: pnpm build
+      - run: pnpm --filter @poe-worksmith/server recipes:validate
       - run: docker build --tag poe-worksmith:test .

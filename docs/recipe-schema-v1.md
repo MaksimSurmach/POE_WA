@@ -33,3 +33,16 @@ JSON because their keys belong to providers or future step-specific tooling.
 
 `validateRecipeV1` throws `RecipeValidationError`; each issue includes a concrete
 path such as `materials[0].quantityPerAttempt` or `output.tradeQuery.provider`.
+
+## Markdown loader
+
+Recipes live at `recipes/<recipe-name>/recipe.md`. Run `pnpm recipes:validate`
+to load every file, validate its front matter, parse CommonMark without MDX,
+check duplicate IDs, and verify referenced images. The loader preserves the
+normalized Markdown body separately from `CanonicalRecipeV1` and returns recipes
+in stable ID order.
+
+Images must be relative regular files inside the recipe directory. PNG, JPEG,
+GIF, WebP, and AVIF are accepted; remote URLs, traversal, symlinks, and missing
+files fail validation. Raw HTML and JSX are rejected, while inert fenced code
+examples remain valid Markdown.

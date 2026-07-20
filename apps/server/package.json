@@ -9,6 +9,7 @@
     "db:check:migrations": "drizzle-kit check --config drizzle.config.ts",
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
+    "recipes:validate": "node dist/recipes/validateCatalog.js ../../recipes",
     "start": "node --env-file-if-exists=../../.env.development dist/index.js",
     "start:all": "node --env-file-if-exists=../../.env.development dist/entrypoints/all.js",
     "start:api": "node --env-file-if-exists=../../.env.development dist/entrypoints/api.js",
@@ -21,9 +22,13 @@
     "@poe-worksmith/domain": "workspace:*",
     "drizzle-orm": "0.45.2",
     "fastify": "5.10.0",
+    "gray-matter": "4.0.3",
     "pg": "8.22.0",
     "pg-boss": "12.26.1",
     "pino": "10.3.1",
+    "remark-parse": "11.0.0",
+    "unified": "11.0.5",
+    "unist-util-visit": "5.1.0",
     "zod": "4.4.3"
   },
   "devDependencies": {

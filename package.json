@@ -21,6 +21,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
+    "recipes:validate": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server recipes:validate",
     "start": "pnpm --filter @poe-worksmith/server start",
     "start:api": "pnpm --filter @poe-worksmith/server start:api",
     "start:worker": "pnpm --filter @poe-worksmith/server start:worker",

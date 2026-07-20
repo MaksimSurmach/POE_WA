@@ -10,8 +10,10 @@ RUN pnpm install --frozen-lockfile
 
 COPY apps/server apps/server
 COPY packages/domain packages/domain
+COPY recipes recipes
 RUN pnpm --filter @poe-worksmith/domain build \
   && pnpm --filter @poe-worksmith/server build \
+  && node apps/server/dist/recipes/validateCatalog.js recipes \
   && pnpm --filter @poe-worksmith/server deploy --prod --legacy /opt/server
 
 FROM node:22.22.0-alpine AS runtime
@@ -28,6 +30,7 @@ ENV APP_ENV=development \
 
 WORKDIR /app
 COPY --from=build --chown=node:node /opt/server ./
+COPY --from=build --chown=node:node /workspace/recipes ./recipes
 
 USER node
 EXPOSE 3000
