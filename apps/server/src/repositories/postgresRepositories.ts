@@ -8,6 +8,15 @@ import type {
   RefreshCycle,
   Repositories,
 } from '@poe-worksmith/domain';
+import {
+  assertNewJob,
+  assertNewRefreshCycle,
+  assertPublicationReady,
+  assertRefreshCycleInvariant,
+  assertRefreshTransition,
+  assertSnapshotInvariant,
+  assertSingleRunningCycle,
+} from '@poe-worksmith/domain';
 import { and, desc, eq, gte, lte } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import type { Pool } from 'pg';
@@ -22,11 +31,7 @@ import {
   recipes,
   refreshCycles,
 } from '../schema.js';
-import {
-  mapRepositoryError,
-  RepositoryConflictError,
-  RepositoryNotFoundError,
-} from './errors.js';
+import { mapRepositoryError, RepositoryNotFoundError } from './errors.js';
 
 type RecipeRow = typeof recipes.$inferSelect;
 type MarketQueryRow = typeof marketQueries.$inferSelect;
@@ -145,6 +150,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
         });
       },
       save(snapshot) {
+        assertSnapshotInvariant(snapshot);
         return mapRepositoryError('snapshots', 'save', async () => {
           const [inserted] = await database
             .insert(rawSnapshots)
@@ -283,6 +289,20 @@ export function createPostgresRepositories(pool: Pool): Repositories {
           const client = await pool.connect();
           try {
             await client.query('begin');
+            await client.query(
+              `insert into catalog_state (id)
+               values (1)
+               on conflict (id) do nothing`,
+            );
+            const state = await client.query<{
+              published_cycle_id: string | null;
+            }>(
+              `select published_cycle_id
+               from catalog_state
+               where id = 1
+               for update`,
+            );
+            const previousCycleId = state.rows[0]?.published_cycle_id ?? null;
             const candidate = await client.query<{
               completed_recipes: number;
               failed_recipes: number;
@@ -297,22 +317,16 @@ export function createPostgresRepositories(pool: Pool): Repositories {
             );
             const row = candidate.rows[0];
             if (!row) throw new RepositoryNotFoundError('cycles', 'publish');
-            if (
-              row.status !== 'running' ||
-              row.completed_recipes + row.failed_recipes !== row.total_recipes
-            ) {
-              throw new RepositoryConflictError('cycles', 'publish');
+            if (previousCycleId === id && row.status === 'published') {
+              await client.query('commit');
+              return;
             }
-
-            const state = await client.query<{
-              published_cycle_id: string | null;
-            }>(
-              `select published_cycle_id
-               from catalog_state
-               where id = 1
-               for update`,
-            );
-            const previousCycleId = state.rows[0]?.published_cycle_id ?? null;
+            assertPublicationReady({
+              completedRecipes: row.completed_recipes,
+              failedRecipes: row.failed_recipes,
+              status: row.status as RefreshCycle['status'],
+              totalRecipes: row.total_recipes,
+            });
 
             if (previousCycleId && previousCycleId !== id) {
               await client.query(
@@ -351,6 +365,28 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
       save(cycle) {
         return mapRepositoryError('cycles', 'save', async () => {
+          if (cycle.status === 'running') {
+            const [running] = await database
+              .select({ id: refreshCycles.id })
+              .from(refreshCycles)
+              .where(eq(refreshCycles.status, 'running'))
+              .limit(1);
+            assertSingleRunningCycle(running?.id ?? null, cycle.id);
+          }
+          const [current] = await database
+            .select({ status: refreshCycles.status })
+            .from(refreshCycles)
+            .where(eq(refreshCycles.id, cycle.id))
+            .limit(1);
+          if (current) {
+            assertRefreshTransition(
+              current.status as RefreshCycle['status'],
+              cycle.status,
+            );
+            assertRefreshCycleInvariant(cycle);
+          } else {
+            assertNewRefreshCycle(cycle);
+          }
           const [row] = await database
             .insert(refreshCycles)
             .values(cycleValues(cycle))
@@ -423,6 +459,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
         });
       },
       enqueue(job) {
+        assertNewJob(job);
         return mapRepositoryError('jobs', 'enqueue', async () => {
           const [inserted] = await database
             .insert(jobs)

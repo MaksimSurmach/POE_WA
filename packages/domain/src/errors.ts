@@ -47,6 +47,11 @@ export const domainErrorDefinitions = {
     disposition: 'permanent',
     publicMessage: 'The background job is invalid.',
   },
+  JOB_TRANSITION_INVALID: {
+    category: 'queue',
+    disposition: 'permanent',
+    publicMessage: 'The background job cannot enter the requested state.',
+  },
   MARKET_QUERY_INVALID: {
     category: 'market',
     disposition: 'permanent',
@@ -112,6 +117,11 @@ export const domainErrorDefinitions = {
     disposition: 'retryable',
     publicMessage: 'The refreshed catalog could not be published.',
   },
+  PUBLICATION_INCOMPLETE: {
+    category: 'publication',
+    disposition: 'permanent',
+    publicMessage: 'The refresh must finish before it can be published.',
+  },
   PUBLICATION_TRANSITION_INVALID: {
     category: 'publication',
     disposition: 'permanent',
@@ -161,6 +171,11 @@ export const domainErrorDefinitions = {
     category: 'refresh',
     disposition: 'degraded',
     publicMessage: 'The catalog refresh completed with missing results.',
+  },
+  REFRESH_STATE_INVALID: {
+    category: 'refresh',
+    disposition: 'permanent',
+    publicMessage: 'The refresh state is internally inconsistent.',
   },
   REFRESH_TRANSITION_INVALID: {
     category: 'refresh',

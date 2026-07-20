@@ -7,6 +7,17 @@ import type {
   RecipeEvaluation,
   RefreshCycle,
 } from './models.js';
+import {
+  assertJobTransition,
+  assertNewJob,
+  assertNewRefreshCycle,
+  assertPublicationReady,
+  assertRefreshCycleInvariant,
+  assertRefreshTransition,
+  assertSnapshotInvariant,
+  assertSingleRunningCycle,
+  transitionRefreshCycle,
+} from './invariants.js';
 import type { Repositories } from './repositories.js';
 
 function clone<T>(value: T): T {
@@ -94,6 +105,7 @@ export function createInMemoryRepositories(): Repositories {
         return latest ? clone(latest) : null;
       },
       async save(snapshot) {
+        assertSnapshotInvariant(snapshot);
         const existing = [...snapshots.values()].find(
           (candidate) => candidate.dedupeKey === snapshot.dedupeKey,
         );
@@ -172,25 +184,32 @@ export function createInMemoryRepositories(): Repositories {
       async publish(id, publishedAt) {
         const cycle = cycles.get(id);
         if (!cycle) throw new Error(`Refresh cycle ${id} does not exist`);
-        if (
-          cycle.status !== 'running' ||
-          cycle.completedRecipes + cycle.failedRecipes !== cycle.totalRecipes
-        ) {
-          throw new Error(`Refresh cycle ${id} is not ready to publish`);
-        }
+        if (publishedCycleId === id && cycle.status === 'published') return;
+        assertPublicationReady(cycle);
         const previous = publishedCycleId ? cycles.get(publishedCycleId) : null;
-        if (previous) {
-          cycles.set(previous.id, { ...previous, status: 'superseded' });
+        if (previous && previous.id !== id) {
+          cycles.set(
+            previous.id,
+            transitionRefreshCycle(previous, 'superseded', publishedAt),
+          );
         }
-        cycles.set(id, {
-          ...cycle,
-          finishedAt: publishedAt,
-          publishedAt,
-          status: 'published',
-        });
+        cycles.set(id, transitionRefreshCycle(cycle, 'published', publishedAt));
         publishedCycleId = id;
       },
       async save(cycle) {
+        const current = cycles.get(cycle.id);
+        if (cycle.status === 'running') {
+          const running = [...cycles.values()].find(
+            ({ status }) => status === 'running',
+          );
+          assertSingleRunningCycle(running?.id ?? null, cycle.id);
+        }
+        if (current) {
+          assertRefreshTransition(current.status, cycle.status);
+          assertRefreshCycleInvariant(cycle);
+        } else {
+          assertNewRefreshCycle(cycle);
+        }
         cycles.set(cycle.id, clone(cycle));
         return clone(cycle);
       },
@@ -210,6 +229,7 @@ export function createInMemoryRepositories(): Repositories {
               left.runAfter.getTime() - right.runAfter.getTime(),
           )[0];
         if (!job) return null;
+        assertJobTransition(job.status, 'running');
         const claimed: Job = {
           ...job,
           attempts: job.attempts + 1,
@@ -223,6 +243,7 @@ export function createInMemoryRepositories(): Repositories {
       async complete(id) {
         const job = jobs.get(id);
         if (!job) return;
+        assertJobTransition(job.status, 'succeeded');
         jobs.set(id, {
           ...job,
           lastError: null,
@@ -232,6 +253,7 @@ export function createInMemoryRepositories(): Repositories {
         });
       },
       async enqueue(job) {
+        assertNewJob(job);
         const existing = [...jobs.values()].find(
           (candidate) => candidate.dedupeKey === job.dedupeKey,
         );
@@ -242,13 +264,15 @@ export function createInMemoryRepositories(): Repositories {
       async fail(id, error, retryAt) {
         const job = jobs.get(id);
         if (!job) return;
+        const status = job.attempts < job.maxAttempts ? 'retry' : 'failed';
+        assertJobTransition(job.status, status);
         jobs.set(id, {
           ...job,
           lastError: error,
           lockedAt: null,
           lockedBy: null,
           runAfter: retryAt,
-          status: job.attempts < job.maxAttempts ? 'retry' : 'failed',
+          status,
         });
       },
     },

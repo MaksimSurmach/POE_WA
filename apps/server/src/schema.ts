@@ -54,6 +54,9 @@ export const refreshCycles = pgTable(
       table.status,
       table.requestedAt,
     ),
+    uniqueIndex('refresh_cycles_single_running_uq')
+      .on(table.status)
+      .where(sql`${table.status} = 'running'`),
     index('refresh_cycles_published_at_idx')
       .on(table.publishedAt)
       .where(sql`${table.publishedAt} is not null`),

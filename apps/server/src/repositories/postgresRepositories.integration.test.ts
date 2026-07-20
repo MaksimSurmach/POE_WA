@@ -51,6 +51,12 @@ const cycle: RefreshCycle = {
   totalRecipes: 1,
 };
 
+const queuedCycle: RefreshCycle = {
+  ...cycle,
+  startedAt: null,
+  status: 'queued',
+};
+
 afterAll(async () => {
   await pool.end();
 });
@@ -65,6 +71,7 @@ beforeEach(async () => {
 
 async function seedDependencies() {
   await repositories.recipes.save(recipe);
+  await repositories.cycles.save(queuedCycle);
   await repositories.cycles.save(cycle);
   await repositories.marketQueries.save(marketQuery);
 }
@@ -182,17 +189,33 @@ describe('PostgreSQL repositories', () => {
   });
 
   it('publishes only complete cycles and supersedes the previous cycle', async () => {
+    await repositories.cycles.save(queuedCycle);
     await repositories.cycles.save({ ...cycle, completedRecipes: 0 });
     await expect(
       repositories.cycles.publish(cycle.id, now),
-    ).rejects.toBeInstanceOf(RepositoryConflictError);
+    ).rejects.toMatchObject({ code: 'PUBLICATION_INCOMPLETE' });
 
     await repositories.cycles.save(cycle);
     await repositories.cycles.publish(cycle.id, now);
+    const firstPublication = await pool.query<{
+      published_cycle_id: string;
+      revision: string;
+    }>('select published_cycle_id, revision from catalog_state where id = 1');
+    await repositories.cycles.publish(cycle.id, now);
+    const repeatedPublication = await pool.query<{
+      published_cycle_id: string;
+      revision: string;
+    }>('select published_cycle_id, revision from catalog_state where id = 1');
+    expect(repeatedPublication.rows[0]).toEqual(firstPublication.rows[0]);
     const nextCycle = {
       ...cycle,
       id: '55555555-5555-4555-8555-555555555555',
     };
+    await repositories.cycles.save({
+      ...nextCycle,
+      startedAt: null,
+      status: 'queued',
+    });
     await repositories.cycles.save(nextCycle);
     await repositories.cycles.publish(
       nextCycle.id,
@@ -202,6 +225,56 @@ describe('PostgreSQL repositories', () => {
     expect(await repositories.cycles.getPublishedCycleId()).toBe(nextCycle.id);
     expect(await repositories.cycles.findById(cycle.id)).toMatchObject({
       status: 'superseded',
+    });
+  });
+
+  it('rejects a second running refresh cycle', async () => {
+    await repositories.cycles.save(queuedCycle);
+    await repositories.cycles.save(cycle);
+    const secondQueued: RefreshCycle = {
+      ...queuedCycle,
+      id: '99999999-9999-4999-8999-999999999999',
+    };
+    await repositories.cycles.save(secondQueued);
+
+    await expect(
+      repositories.cycles.save({
+        ...secondQueued,
+        startedAt: now,
+        status: 'running',
+      }),
+    ).rejects.toMatchObject({ code: 'REFRESH_ALREADY_RUNNING' });
+    const running = await pool.query<{ count: string }>(
+      `select count(*) from refresh_cycles where status = 'running'`,
+    );
+    expect(running.rows[0]?.count).toBe('1');
+  });
+
+  it('keeps the published catalog when a new cycle misses the threshold', async () => {
+    await repositories.cycles.save(queuedCycle);
+    await repositories.cycles.save(cycle);
+    await repositories.cycles.publish(cycle.id, now);
+
+    const nextQueued: RefreshCycle = {
+      ...queuedCycle,
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      totalRecipes: 100,
+    };
+    await repositories.cycles.save(nextQueued);
+    await repositories.cycles.save({
+      ...nextQueued,
+      completedRecipes: 94,
+      failedRecipes: 6,
+      startedAt: now,
+      status: 'running',
+    });
+
+    await expect(
+      repositories.cycles.publish(nextQueued.id, now),
+    ).rejects.toMatchObject({ code: 'PUBLICATION_BELOW_THRESHOLD' });
+    expect(await repositories.cycles.getPublishedCycleId()).toBe(cycle.id);
+    expect(await repositories.cycles.findById(cycle.id)).toMatchObject({
+      status: 'published',
     });
   });
 

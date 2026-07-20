@@ -39,6 +39,12 @@ const cycle: RefreshCycle = {
   totalRecipes: 1,
 };
 
+const queuedCycle: RefreshCycle = {
+  ...cycle,
+  startedAt: null,
+  status: 'queued',
+};
+
 describe('in-memory repositories', () => {
   let repositories: Repositories;
 
@@ -131,9 +137,11 @@ describe('in-memory repositories', () => {
   });
 
   it('publishes a complete refresh cycle atomically', async () => {
+    await repositories.cycles.save(queuedCycle);
     await repositories.cycles.save(cycle);
     const publishedAt = new Date('2026-07-20T00:02:00.000Z');
 
+    await repositories.cycles.publish(cycle.id, publishedAt);
     await repositories.cycles.publish(cycle.id, publishedAt);
 
     expect(await repositories.cycles.getPublishedCycleId()).toBe(cycle.id);
@@ -144,11 +152,58 @@ describe('in-memory repositories', () => {
   });
 
   it('rejects publication of an incomplete refresh cycle', async () => {
+    await repositories.cycles.save(queuedCycle);
     await repositories.cycles.save({ ...cycle, completedRecipes: 0 });
 
     await expect(
       repositories.cycles.publish(cycle.id, new Date()),
-    ).rejects.toThrow('is not ready to publish');
+    ).rejects.toMatchObject({ code: 'PUBLICATION_INCOMPLETE' });
+  });
+
+  it('keeps the published catalog when a new cycle misses the threshold', async () => {
+    await repositories.cycles.save(queuedCycle);
+    await repositories.cycles.save(cycle);
+    await repositories.cycles.publish(cycle.id, new Date());
+
+    const nextQueued: RefreshCycle = {
+      ...queuedCycle,
+      id: '77777777-7777-4777-8777-777777777777',
+      totalRecipes: 100,
+    };
+    await repositories.cycles.save(nextQueued);
+    await repositories.cycles.save({
+      ...nextQueued,
+      completedRecipes: 94,
+      failedRecipes: 6,
+      startedAt: new Date(),
+      status: 'running',
+    });
+
+    await expect(
+      repositories.cycles.publish(nextQueued.id, new Date()),
+    ).rejects.toMatchObject({ code: 'PUBLICATION_BELOW_THRESHOLD' });
+    expect(await repositories.cycles.getPublishedCycleId()).toBe(cycle.id);
+    expect(await repositories.cycles.findById(cycle.id)).toMatchObject({
+      status: 'published',
+    });
+  });
+
+  it('rejects a second running refresh cycle', async () => {
+    await repositories.cycles.save(queuedCycle);
+    await repositories.cycles.save(cycle);
+    const secondQueued: RefreshCycle = {
+      ...queuedCycle,
+      id: '88888888-8888-4888-8888-888888888888',
+    };
+    await repositories.cycles.save(secondQueued);
+
+    await expect(
+      repositories.cycles.save({
+        ...secondQueued,
+        startedAt: new Date(),
+        status: 'running',
+      }),
+    ).rejects.toMatchObject({ code: 'REFRESH_ALREADY_RUNNING' });
   });
 
   it('deduplicates and claims jobs in priority order', async () => {

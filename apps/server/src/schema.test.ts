@@ -51,6 +51,7 @@ describe('PostgreSQL schema', () => {
         'raw_snapshots_dedupe_key_uq',
         'raw_snapshots_expires_at_idx',
         'recipe_evaluations_refresh_cycle_id_idx',
+        'refresh_cycles_single_running_uq',
         'jobs_pending_run_after_idx',
       ]),
     );

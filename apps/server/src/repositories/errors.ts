@@ -1,3 +1,5 @@
+import { DomainError } from '@poe-worksmith/domain';
+
 export type RepositoryErrorCode =
   'conflict' | 'failure' | 'not_found' | 'unavailable';
 
@@ -54,12 +56,22 @@ export async function mapRepositoryError<T>(
   try {
     return await action();
   } catch (error) {
-    if (error instanceof RepositoryError) throw error;
+    if (error instanceof DomainError || error instanceof RepositoryError) {
+      throw error;
+    }
 
     const databaseCode =
       typeof error === 'object' && error && 'code' in error
         ? String(error.code)
         : null;
+    const constraint =
+      typeof error === 'object' && error && 'constraint' in error
+        ? String(error.constraint)
+        : null;
+
+    if (constraint === 'refresh_cycles_single_running_uq') {
+      throw new DomainError('REFRESH_ALREADY_RUNNING', { cause: error });
+    }
 
     if (databaseCode && ['23503', '23505', '23514'].includes(databaseCode)) {
       throw new RepositoryConflictError(repository, operation, error);

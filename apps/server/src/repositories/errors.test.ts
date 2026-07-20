@@ -24,6 +24,19 @@ describe('repository errors', () => {
     });
   });
 
+  it('maps the running-cycle guard to a domain decision', async () => {
+    const databaseError = Object.assign(new Error('duplicate running cycle'), {
+      code: '23505',
+      constraint: 'refresh_cycles_single_running_uq',
+    });
+
+    await expect(
+      mapRepositoryError('cycles', 'save', async () => {
+        throw databaseError;
+      }),
+    ).rejects.toMatchObject({ code: 'REFRESH_ALREADY_RUNNING' });
+  });
+
   it('preserves typed infrastructure errors', async () => {
     const conflict = new RepositoryConflictError('cycles', 'publish');
 

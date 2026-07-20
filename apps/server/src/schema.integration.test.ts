@@ -40,6 +40,7 @@ describe('migration baseline', () => {
       expect.arrayContaining([
         'market_queries_canonical_hash_uq',
         'raw_snapshots_expires_at_idx',
+        'refresh_cycles_single_running_uq',
         'jobs_pending_run_after_idx',
       ]),
     );
