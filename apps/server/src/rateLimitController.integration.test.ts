@@ -45,12 +45,11 @@ describe('PostgreSQL GGG rate-limit coordination', () => {
 
     await first.observeResponse('trade-search', { headers, status: 429 });
     await second.waitForPermit('trade-search');
+    const recoveredHeaders = new Headers(headers);
+    recoveredHeaders.set('Retry-After', '0');
+    recoveredHeaders.set('X-Rate-Limit-Client-State', '1:5:0');
     await second.observeResponse('trade-fetch', {
-      headers: new Headers({
-        ...Object.fromEntries(headers),
-        'Retry-After': '0',
-        'X-Rate-Limit-Client-State': '1:5:0',
-      }),
+      headers: recoveredHeaders,
       status: 200,
     });
 

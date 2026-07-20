@@ -1584,11 +1584,29 @@ function jobValues(job: Job) {
 }
 
 function mapRecipe(row: RecipeRow): Recipe {
-  return { ...row, definition: row.definition, tags: row.tags };
+  return {
+    active: row.active,
+    category: row.category,
+    contentHash: row.contentHash,
+    craftMethod: row.craftMethod,
+    definition: row.definition,
+    gameVersion: row.gameVersion,
+    guideMarkdown: row.guideMarkdown,
+    id: row.id,
+    tags: row.tags,
+    title: row.title,
+  };
 }
 
 function mapMarketQuery(row: MarketQueryRow): MarketQuery {
-  return { ...row, query: row.query };
+  return {
+    active: row.active,
+    canonicalHash: row.canonicalHash,
+    id: row.id,
+    provider: row.provider,
+    query: row.query,
+    recipeId: row.recipeId,
+  };
 }
 
 function mapSnapshot(row: SnapshotRow): RawSnapshot {
