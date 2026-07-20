@@ -30,6 +30,7 @@ ENV APP_ENV=development \
     NODE_ENV=production \
     PG_BOSS_SCHEMA=pgboss \
     POE_LEAGUE=Mercenaries \
+    POE_REQUEST_TIMEOUT_MS=15000 \
     POE_USER_AGENT="OAuth poe-worksmith/0.0.0 (contact: local-development)" \
     REFRESH_CRON="0 */4 * * *" \
     RETENTION_BATCH_SIZE=500 \

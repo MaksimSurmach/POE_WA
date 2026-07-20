@@ -178,3 +178,45 @@ export type RateLimitObservation = {
   status: number;
   windows: RateLimitWindow[];
 };
+
+export type ProviderCircuitStatus = 'closed' | 'open' | 'half_open';
+
+export type ProviderCircuitState = {
+  consecutiveFailures: number;
+  endpoint: string;
+  lastFailureCode: string | null;
+  openedAt: Date | null;
+  probeLeaseUntil: Date | null;
+  provider: string;
+  retryAt: Date | null;
+  status: ProviderCircuitStatus;
+  updatedAt: Date;
+};
+
+export type ProviderCircuitPermit = {
+  allowed: boolean;
+  retryAt: Date | null;
+  state: ProviderCircuitState;
+};
+
+export type ProviderCircuitAcquireInput = {
+  endpoint: string;
+  now: Date;
+  probeLeaseMs: number;
+  provider: string;
+};
+
+export type ProviderCircuitFailureInput = {
+  cooldownMs: number;
+  endpoint: string;
+  errorCode: string;
+  failureThreshold: number;
+  now: Date;
+  provider: string;
+};
+
+export type ProviderCircuitSuccessInput = {
+  endpoint: string;
+  now: Date;
+  provider: string;
+};

@@ -24,6 +24,7 @@ const runtimeEnvironmentSchema = z.object({
     .regex(/^[a-z_][a-z0-9_]*$/)
     .default('pgboss'),
   POE_LEAGUE: z.string().trim().min(1).default('Mercenaries'),
+  POE_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).default(15_000),
   POE_USER_AGENT: z
     .string()
     .trim()
@@ -52,6 +53,7 @@ export type RuntimeConfig = {
   marketRetryDelayMs: number;
   mode: ApplicationMode;
   poeUserAgent: string;
+  poeRequestTimeoutMs: number;
   port: number;
   refreshCron: string;
   retentionBatchSize: number;
@@ -93,6 +95,7 @@ export function loadRuntimeConfig(
     marketRetryDelayMs: result.data.MARKET_RETRY_DELAY_MS,
     mode: forcedMode ?? result.data.APP_MODE,
     poeUserAgent: result.data.POE_USER_AGENT,
+    poeRequestTimeoutMs: result.data.POE_REQUEST_TIMEOUT_MS,
     port: result.data.APP_PORT,
     refreshCron: result.data.REFRESH_CRON,
     retentionBatchSize: result.data.RETENTION_BATCH_SIZE,

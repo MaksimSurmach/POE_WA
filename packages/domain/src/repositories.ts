@@ -13,6 +13,11 @@ import type {
   RateLimitObservation,
   RateLimitPermit,
   RateLimitState,
+  ProviderCircuitAcquireInput,
+  ProviderCircuitFailureInput,
+  ProviderCircuitPermit,
+  ProviderCircuitState,
+  ProviderCircuitSuccessInput,
   Recipe,
   RecipeEvaluation,
   RefreshCycle,
@@ -80,6 +85,17 @@ export interface RateLimitRepository {
   observe(input: RateLimitObservation): Promise<RateLimitState>;
 }
 
+export interface ProviderCircuitRepository {
+  acquire(input: ProviderCircuitAcquireInput): Promise<ProviderCircuitPermit>;
+  list(): Promise<ProviderCircuitState[]>;
+  recordFailure(
+    input: ProviderCircuitFailureInput,
+  ): Promise<ProviderCircuitState>;
+  recordSuccess(
+    input: ProviderCircuitSuccessInput,
+  ): Promise<ProviderCircuitState>;
+}
+
 export interface JobRepository {
   claimNext(
     workerId: string,
@@ -110,6 +126,7 @@ export type Repositories = {
   marketQueries: MarketQueryRepository;
   marketResults: MarketResultRepository;
   observations: ObservationRepository;
+  providerCircuits: ProviderCircuitRepository;
   rateLimits: RateLimitRepository;
   recipes: RecipeRepository;
   retention: RetentionRepository;

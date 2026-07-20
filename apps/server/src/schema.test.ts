@@ -6,6 +6,7 @@ import {
   catalogState,
   jobs,
   marketQueries,
+  providerCircuits,
   rawSnapshots,
   rateLimitEndpointPolicies,
   rateLimitStates,
@@ -25,6 +26,7 @@ const tables = [
   jobs,
   rateLimitStates,
   rateLimitEndpointPolicies,
+  providerCircuits,
 ];
 
 describe('PostgreSQL schema', () => {
@@ -40,6 +42,7 @@ describe('PostgreSQL schema', () => {
       'jobs',
       'rate_limit_states',
       'rate_limit_endpoint_policies',
+      'provider_circuits',
     ]);
   });
 
@@ -61,6 +64,7 @@ describe('PostgreSQL schema', () => {
         'jobs_pending_run_after_idx',
         'rate_limit_states_blocked_until_idx',
         'rate_limit_endpoint_policies_policy_idx',
+        'provider_circuits_status_retry_at_idx',
       ]),
     );
   });

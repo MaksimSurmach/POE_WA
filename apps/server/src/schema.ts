@@ -10,6 +10,7 @@ import {
   jsonb,
   numeric,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -386,5 +387,35 @@ export const rateLimitEndpointPolicies = pgTable(
   },
   (table) => [
     index('rate_limit_endpoint_policies_policy_idx').on(table.policy),
+  ],
+);
+
+export const providerCircuits = pgTable(
+  'provider_circuits',
+  {
+    provider: text('provider').notNull(),
+    endpoint: text('endpoint').notNull(),
+    status: text('status').default('closed').notNull(),
+    consecutiveFailures: integer('consecutive_failures').default(0).notNull(),
+    openedAt: timestamp('opened_at', { withTimezone: true }),
+    retryAt: timestamp('retry_at', { withTimezone: true }),
+    probeLeaseUntil: timestamp('probe_lease_until', { withTimezone: true }),
+    lastFailureCode: text('last_failure_code'),
+    ...timestamps,
+  },
+  (table) => [
+    primaryKey({ columns: [table.provider, table.endpoint] }),
+    index('provider_circuits_status_retry_at_idx').on(
+      table.status,
+      table.retryAt,
+    ),
+    check(
+      'provider_circuits_status_check',
+      sql`${table.status} in ('closed', 'open', 'half_open')`,
+    ),
+    check(
+      'provider_circuits_failures_check',
+      sql`${table.consecutiveFailures} >= 0`,
+    ),
   ],
 );

@@ -1,6 +1,7 @@
 import pino from 'pino';
 
 import { buildApi } from './api.js';
+import { ProviderCircuitBreaker } from './circuitBreaker.js';
 import { createDatabasePool } from './database.js';
 import { CatalogRefreshScheduler, createJobBoss } from './jobs.js';
 import { MarketJobProcessor } from './marketJobProcessor.js';
@@ -37,12 +38,18 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     const rateLimits = new GggRateLimitController({
       repository: repositories.rateLimits,
     });
+    const circuits = new ProviderCircuitBreaker({
+      provider: 'poe-trade',
+      repository: repositories.providerCircuits,
+    });
     const marketJobs = new MarketJobProcessor({
       concurrency: config.marketConcurrency,
       leaseTimeoutMs: config.jobLeaseTimeoutMs,
       providers: [
         new PoeTradeClient({
+          circuits,
           rateLimits,
+          requestTimeoutMs: config.poeRequestTimeoutMs,
           userAgent: config.poeUserAgent,
         }),
       ],

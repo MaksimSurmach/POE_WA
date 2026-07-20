@@ -12,6 +12,8 @@ import {
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
 
+import { ProviderRetryPolicy, type RetryDecider } from './retryPolicy.js';
+
 const payloadSchema = z.strictObject({
   canonicalHash: z.string().min(1),
   league: z.string().trim().min(1),
@@ -40,7 +42,7 @@ export class MarketJobProcessor {
   readonly #leaseTimeoutMs: number;
   readonly #providers: ReadonlyMap<string, MarketSearchProvider>;
   readonly #repositories: Repositories;
-  readonly #retryDelayMs: number;
+  readonly #retryPolicy: RetryDecider;
   readonly #snapshotTtlMs: number;
 
   constructor(options: {
@@ -50,6 +52,7 @@ export class MarketJobProcessor {
     providers: readonly MarketSearchProvider[];
     repositories: Repositories;
     retryDelayMs: number;
+    retryPolicy?: RetryDecider;
     snapshotTtlMs: number;
   }) {
     assertPositiveInteger('concurrency', options.concurrency);
@@ -67,7 +70,9 @@ export class MarketJobProcessor {
     this.#leaseTimeoutMs = options.leaseTimeoutMs;
     this.#providers = providers;
     this.#repositories = options.repositories;
-    this.#retryDelayMs = options.retryDelayMs;
+    this.#retryPolicy =
+      options.retryPolicy ??
+      new ProviderRetryPolicy({ baseDelayMs: options.retryDelayMs });
     this.#snapshotTtlMs = options.snapshotTtlMs;
   }
 
@@ -167,18 +172,20 @@ export class MarketJobProcessor {
           ? cause
           : new DomainError('INTERNAL_ERROR', { cause });
       const failedAt = this.#clock();
-      if (error.disposition === 'retryable') {
-        const retryAt = new Date(
-          failedAt.getTime() +
-            this.#retryDelayMs * 2 ** Math.max(0, job.attempts - 1),
-        );
+      const decision = this.#retryPolicy.decide(
+        error,
+        job.attempts,
+        job.maxAttempts,
+      );
+      if (decision.retry) {
+        const retryAt = new Date(failedAt.getTime() + decision.delayMs);
         await this.#repositories.jobs.fail(
           job.id,
           error.code,
           retryAt,
           failedAt,
         );
-        return job.attempts < job.maxAttempts ? 'retried' : 'failed';
+        return 'retried';
       }
       await this.#repositories.jobs.failPermanently(
         job.id,

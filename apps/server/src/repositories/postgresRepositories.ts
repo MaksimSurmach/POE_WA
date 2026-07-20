@@ -2,6 +2,7 @@ import type {
   AggregatedObservation,
   Job,
   MarketQuery,
+  ProviderCircuitState,
   RawSnapshot,
   RateLimitState,
   RateLimitWindow,
@@ -53,6 +54,17 @@ type RateLimitStateSqlRow = {
   policy: string;
   updated_at: Date;
   windows: RateLimitWindow[];
+};
+type ProviderCircuitSqlRow = {
+  consecutive_failures: number;
+  endpoint: string;
+  last_failure_code: string | null;
+  opened_at: Date | null;
+  probe_lease_until: Date | null;
+  provider: string;
+  retry_at: Date | null;
+  status: ProviderCircuitState['status'];
+  updated_at: Date;
 };
 
 export function createPostgresRepositories(pool: Pool): Repositories {
@@ -172,6 +184,200 @@ export function createPostgresRepositories(pool: Pool): Repositories {
             client.release();
           }
         });
+      },
+    },
+    providerCircuits: {
+      acquire(input) {
+        return mapRepositoryError('providerCircuits', 'acquire', async () => {
+          assertProviderCircuitInput(input.provider, input.endpoint, input.now);
+          if (!Number.isInteger(input.probeLeaseMs) || input.probeLeaseMs < 1) {
+            throw new TypeError('Circuit probe lease must be positive');
+          }
+          const client = await pool.connect();
+          try {
+            await client.query('begin');
+            await lockProviderCircuit(client, input.provider, input.endpoint);
+            await insertProviderCircuit(
+              client,
+              input.provider,
+              input.endpoint,
+              input.now,
+            );
+            let state = await selectProviderCircuitForUpdate(
+              client,
+              input.provider,
+              input.endpoint,
+            );
+            let allowed = state.status === 'closed';
+            let retryAt = state.retry_at;
+            const cooldownElapsed =
+              state.status === 'open' &&
+              state.retry_at !== null &&
+              state.retry_at <= input.now;
+            const probeExpired =
+              state.status === 'half_open' &&
+              (!state.probe_lease_until ||
+                state.probe_lease_until <= input.now);
+            if (cooldownElapsed || probeExpired) {
+              const probeLeaseUntil = new Date(
+                input.now.getTime() + input.probeLeaseMs,
+              );
+              const result = await client.query<ProviderCircuitSqlRow>(
+                `update provider_circuits
+                   set status = 'half_open', retry_at = null,
+                       probe_lease_until = $4, updated_at = $3
+                   where provider = $1 and endpoint = $2
+                   returning *`,
+                [input.provider, input.endpoint, input.now, probeLeaseUntil],
+              );
+              state = result.rows[0]!;
+              allowed = true;
+              retryAt = null;
+            } else if (state.status === 'open') {
+              allowed = false;
+            } else if (state.status === 'half_open') {
+              allowed = false;
+              retryAt = state.probe_lease_until;
+            }
+            await client.query('commit');
+            return {
+              allowed,
+              retryAt,
+              state: mapProviderCircuit(state),
+            };
+          } catch (error) {
+            await client.query('rollback').catch(() => undefined);
+            throw error;
+          } finally {
+            client.release();
+          }
+        });
+      },
+      list() {
+        return mapRepositoryError('providerCircuits', 'list', async () => {
+          const result = await pool.query<ProviderCircuitSqlRow>(
+            `select * from provider_circuits order by provider, endpoint`,
+          );
+          return result.rows.map(mapProviderCircuit);
+        });
+      },
+      recordFailure(input) {
+        return mapRepositoryError(
+          'providerCircuits',
+          'recordFailure',
+          async () => {
+            assertProviderCircuitInput(
+              input.provider,
+              input.endpoint,
+              input.now,
+            );
+            if (
+              input.errorCode.trim().length === 0 ||
+              !Number.isInteger(input.failureThreshold) ||
+              input.failureThreshold < 1 ||
+              !Number.isInteger(input.cooldownMs) ||
+              input.cooldownMs < 1
+            ) {
+              throw new TypeError('Circuit failure input is invalid');
+            }
+            const client = await pool.connect();
+            try {
+              await client.query('begin');
+              await lockProviderCircuit(client, input.provider, input.endpoint);
+              await insertProviderCircuit(
+                client,
+                input.provider,
+                input.endpoint,
+                input.now,
+              );
+              const current = await selectProviderCircuitForUpdate(
+                client,
+                input.provider,
+                input.endpoint,
+              );
+              const consecutiveFailures = current.consecutive_failures + 1;
+              const shouldOpen =
+                current.status !== 'closed' ||
+                consecutiveFailures >= input.failureThreshold;
+              const requestedRetryAt = new Date(
+                input.now.getTime() + input.cooldownMs,
+              );
+              const retryAt = shouldOpen
+                ? new Date(
+                    Math.max(
+                      requestedRetryAt.getTime(),
+                      current.retry_at?.getTime() ?? 0,
+                    ),
+                  )
+                : null;
+              const result = await client.query<ProviderCircuitSqlRow>(
+                `update provider_circuits
+                 set status = $4, consecutive_failures = $5,
+                     opened_at = $6, retry_at = $7,
+                     probe_lease_until = null, last_failure_code = $8,
+                     updated_at = $3
+                 where provider = $1 and endpoint = $2
+                 returning *`,
+                [
+                  input.provider,
+                  input.endpoint,
+                  input.now,
+                  shouldOpen ? 'open' : 'closed',
+                  consecutiveFailures,
+                  shouldOpen ? input.now : null,
+                  retryAt,
+                  input.errorCode,
+                ],
+              );
+              await client.query('commit');
+              return mapProviderCircuit(result.rows[0]!);
+            } catch (error) {
+              await client.query('rollback').catch(() => undefined);
+              throw error;
+            } finally {
+              client.release();
+            }
+          },
+        );
+      },
+      recordSuccess(input) {
+        return mapRepositoryError(
+          'providerCircuits',
+          'recordSuccess',
+          async () => {
+            assertProviderCircuitInput(
+              input.provider,
+              input.endpoint,
+              input.now,
+            );
+            const client = await pool.connect();
+            try {
+              await client.query('begin');
+              await lockProviderCircuit(client, input.provider, input.endpoint);
+              const result = await client.query<ProviderCircuitSqlRow>(
+                `insert into provider_circuits
+                   (provider, endpoint, status, consecutive_failures,
+                    opened_at, retry_at, probe_lease_until,
+                    last_failure_code, updated_at)
+                 values ($1, $2, 'closed', 0, null, null, null, null, $3)
+                 on conflict (provider, endpoint) do update
+                 set status = 'closed', consecutive_failures = 0,
+                     opened_at = null, retry_at = null,
+                     probe_lease_until = null, last_failure_code = null,
+                     updated_at = excluded.updated_at
+                 returning *`,
+                [input.provider, input.endpoint, input.now],
+              );
+              await client.query('commit');
+              return mapProviderCircuit(result.rows[0]!);
+            } catch (error) {
+              await client.query('rollback').catch(() => undefined);
+              throw error;
+            } finally {
+              client.release();
+            }
+          },
+        );
       },
     },
     rateLimits: {
@@ -1135,6 +1341,79 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
     },
   };
+}
+
+async function lockProviderCircuit(
+  client: PoolClient,
+  provider: string,
+  endpoint: string,
+) {
+  await client.query(`select pg_advisory_xact_lock(hashtextextended($1, 0))`, [
+    `provider-circuit:${provider}:${endpoint}`,
+  ]);
+}
+
+async function insertProviderCircuit(
+  client: PoolClient,
+  provider: string,
+  endpoint: string,
+  now: Date,
+) {
+  await client.query(
+    `insert into provider_circuits
+       (provider, endpoint, updated_at)
+     values ($1, $2, $3)
+     on conflict (provider, endpoint) do nothing`,
+    [provider, endpoint, now],
+  );
+}
+
+async function selectProviderCircuitForUpdate(
+  client: PoolClient,
+  provider: string,
+  endpoint: string,
+) {
+  const result = await client.query<ProviderCircuitSqlRow>(
+    `select * from provider_circuits
+     where provider = $1 and endpoint = $2
+     for update`,
+    [provider, endpoint],
+  );
+  const row = result.rows[0];
+  if (!row) {
+    throw new RepositoryNotFoundError('providerCircuits', 'selectForUpdate');
+  }
+  return row;
+}
+
+function mapProviderCircuit(row: ProviderCircuitSqlRow): ProviderCircuitState {
+  return {
+    consecutiveFailures: row.consecutive_failures,
+    endpoint: row.endpoint,
+    lastFailureCode: row.last_failure_code,
+    openedAt: row.opened_at,
+    probeLeaseUntil: row.probe_lease_until,
+    provider: row.provider,
+    retryAt: row.retry_at,
+    status: row.status,
+    updatedAt: row.updated_at,
+  };
+}
+
+function assertProviderCircuitInput(
+  provider: string,
+  endpoint: string,
+  now: Date,
+) {
+  if (
+    provider.trim().length === 0 ||
+    provider.length > 200 ||
+    endpoint.trim().length === 0 ||
+    endpoint.length > 200 ||
+    !Number.isFinite(now.getTime())
+  ) {
+    throw new TypeError('Provider circuit input is invalid');
+  }
 }
 
 async function insertRateLimitState(

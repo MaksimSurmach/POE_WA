@@ -39,6 +39,11 @@ describe('PoE Trade Merchant client', () => {
       observeResponse: vi.fn().mockResolvedValue({}),
       waitForPermit: vi.fn().mockResolvedValue({}),
     };
+    const circuits = {
+      beforeRequest: vi.fn().mockResolvedValue({}),
+      recordFailure: vi.fn().mockResolvedValue({}),
+      recordSuccess: vi.fn().mockResolvedValue({}),
+    };
     const fetch: PoeTradeFetch = async (input, init) => {
       calls.push({ init, url: String(input) });
       return Response.json(
@@ -47,6 +52,7 @@ describe('PoE Trade Merchant client', () => {
     };
     const client = new PoeTradeClient({
       baseUrl: 'https://trade.test',
+      circuits,
       clock: () => new Date('2026-07-20T00:00:00.000Z'),
       fetch,
       rateLimits,
@@ -73,6 +79,15 @@ describe('PoE Trade Merchant client', () => {
     const result = await client.search(input);
 
     expect(calls).toHaveLength(2);
+    expect(circuits.beforeRequest.mock.calls).toEqual([
+      ['trade-search'],
+      ['trade-fetch'],
+    ]);
+    expect(circuits.recordSuccess.mock.calls).toEqual([
+      ['trade-search'],
+      ['trade-fetch'],
+    ]);
+    expect(circuits.recordFailure).not.toHaveBeenCalled();
     expect(rateLimits.waitForPermit.mock.calls).toEqual([
       ['trade-search'],
       ['trade-fetch'],
@@ -97,6 +112,7 @@ describe('PoE Trade Merchant client', () => {
       expect(headers.get('user-agent')).toContain('poe-worksmith');
       expect(headers.has('cookie')).toBe(false);
       expect(headers.has('authorization')).toBe(false);
+      expect(call.init?.signal).toBeInstanceOf(AbortSignal);
     }
     expect(result.totalResults).toBe(42);
     expect(result.listings).toHaveLength(10);
@@ -204,5 +220,63 @@ describe('PoE Trade Merchant client', () => {
         schemaVersion: 1,
       }),
     ).rejects.toMatchObject({ code: 'PROVIDER_RESPONSE_INVALID' });
+  });
+
+  it('does not call the provider while its endpoint circuit is open', async () => {
+    const fetch = vi.fn<PoeTradeFetch>();
+    const circuits = {
+      beforeRequest: vi
+        .fn()
+        .mockRejectedValue(new DomainError('PROVIDER_CIRCUIT_OPEN')),
+      recordFailure: vi.fn().mockResolvedValue({}),
+      recordSuccess: vi.fn().mockResolvedValue({}),
+    };
+    const client = new PoeTradeClient({
+      baseUrl: 'https://trade.test',
+      circuits,
+      fetch,
+      userAgent: 'OAuth poe-worksmith/0.0.0 (contact: test@example.com)',
+    });
+
+    await expect(
+      client.search({
+        league: 'Settlers',
+        query: { query: { type: 'Jewel' } },
+        schemaVersion: 1,
+      }),
+    ).rejects.toMatchObject({ code: 'PROVIDER_CIRCUIT_OPEN' });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('classifies transport timeouts as retryable provider failures', async () => {
+    const circuits = {
+      beforeRequest: vi.fn().mockResolvedValue({}),
+      recordFailure: vi.fn().mockResolvedValue({}),
+      recordSuccess: vi.fn().mockResolvedValue({}),
+    };
+    const timeout = new DOMException('request timed out', 'TimeoutError');
+    const client = new PoeTradeClient({
+      baseUrl: 'https://trade.test',
+      circuits,
+      fetch: async () => {
+        throw timeout;
+      },
+      userAgent: 'OAuth poe-worksmith/0.0.0 (contact: test@example.com)',
+    });
+
+    await expect(
+      client.search({
+        league: 'Settlers',
+        query: { query: { type: 'Jewel' } },
+        schemaVersion: 1,
+      }),
+    ).rejects.toMatchObject({
+      code: 'PROVIDER_UNAVAILABLE',
+      disposition: 'retryable',
+    });
+    expect(circuits.recordFailure).toHaveBeenCalledWith(
+      'trade-search',
+      expect.objectContaining({ code: 'PROVIDER_UNAVAILABLE' }),
+    );
   });
 });

@@ -29,6 +29,14 @@ pacing when headers are absent or malformed. The diagnostics endpoint
 delay, status, and the effective wait deadline. Configure `POE_USER_AGENT` with
 GGG's required `OAuth client/version (contact: contact)` format.
 
+Provider calls time out after `POE_REQUEST_TIMEOUT_MS` and retry transient
+timeouts, 429s, and 5xx responses with bounded exponential backoff and jitter.
+Repeated failures open a PostgreSQL-backed circuit per provider endpoint, so
+all workers stop outbound calls during cooldown and admit one half-open probe.
+Authentication and schema errors are terminal. A failed refresh never replaces
+the last published catalog; eligible recipes can use their prior evaluations as
+explicitly stale fallback data.
+
 Build and run the same application in Docker with environment configuration:
 
 ```bash

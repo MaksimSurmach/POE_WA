@@ -43,6 +43,13 @@
       "when": 1784519475792,
       "tag": "0005_supreme_night_nurse",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784520468798,
+      "tag": "0006_aromatic_ben_grimm",
+      "breakpoints": true
     }
   ]
 }

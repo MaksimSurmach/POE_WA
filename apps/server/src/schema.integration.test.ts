@@ -30,6 +30,7 @@ describe('migration baseline', () => {
         'catalog_state',
         'jobs',
         'market_queries',
+        'provider_circuits',
         'raw_snapshots',
         'rate_limit_endpoint_policies',
         'rate_limit_states',
@@ -46,6 +47,7 @@ describe('migration baseline', () => {
         'jobs_pending_run_after_idx',
         'rate_limit_states_blocked_until_idx',
         'rate_limit_endpoint_policies_policy_idx',
+        'provider_circuits_status_retry_at_idx',
       ]),
     );
   });

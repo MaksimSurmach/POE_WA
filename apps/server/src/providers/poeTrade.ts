@@ -10,6 +10,7 @@ import {
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
 
+import type { ProviderCircuitGate } from '../circuitBreaker.js';
 import type { RateLimitGate } from '../rateLimitController.js';
 
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
@@ -59,6 +60,7 @@ const fetchResponseSchema = z
   .loose();
 
 const defaultBaseUrl = 'https://www.pathofexile.com';
+const defaultRequestTimeoutMs = 15_000;
 const maximumListings = 10;
 
 export type PoeTradeFetch = (
@@ -70,24 +72,35 @@ export class PoeTradeClient implements MarketSearchProvider {
   readonly id = 'poe-trade';
   readonly #baseUrl: URL;
   readonly #clock: () => Date;
+  readonly #circuits: ProviderCircuitGate | undefined;
   readonly #fetch: PoeTradeFetch;
   readonly #rateLimits: RateLimitGate | undefined;
+  readonly #requestTimeoutMs: number;
   readonly #userAgent: string;
 
   constructor(options: {
     baseUrl?: string;
+    circuits?: ProviderCircuitGate;
     clock?: () => Date;
     fetch?: PoeTradeFetch;
     rateLimits?: RateLimitGate;
+    requestTimeoutMs?: number;
     userAgent: string;
   }) {
     this.#baseUrl = new URL(options.baseUrl ?? defaultBaseUrl);
+    this.#circuits = options.circuits;
     this.#clock = options.clock ?? (() => new Date());
     this.#fetch = options.fetch ?? globalThis.fetch;
     this.#rateLimits = options.rateLimits;
+    this.#requestTimeoutMs =
+      options.requestTimeoutMs ?? defaultRequestTimeoutMs;
     this.#userAgent = options.userAgent.trim();
-    if (this.#userAgent.length === 0) {
-      throw new TypeError('userAgent must not be empty');
+    if (
+      this.#userAgent.length === 0 ||
+      !Number.isInteger(this.#requestTimeoutMs) ||
+      this.#requestTimeoutMs < 1
+    ) {
+      throw new TypeError('PoE Trade client options are invalid');
     }
   }
 
@@ -152,18 +165,31 @@ export class PoeTradeClient implements MarketSearchProvider {
   }
 
   async #request(endpoint: string, url: URL, init: RequestInit) {
+    await this.#circuits?.beforeRequest(endpoint);
     await this.#rateLimits?.waitForPermit(endpoint);
     let response: Response;
     try {
-      response = await this.#fetch(url, init);
+      response = await this.#fetch(url, {
+        ...init,
+        signal: AbortSignal.timeout(this.#requestTimeoutMs),
+      });
     } catch (error) {
-      if (error instanceof DomainError) throw error;
-      throw new DomainError('PROVIDER_UNAVAILABLE', { cause: error });
+      const providerError =
+        error instanceof DomainError
+          ? error
+          : new DomainError('PROVIDER_UNAVAILABLE', { cause: error });
+      await this.#circuits?.recordFailure(endpoint, providerError);
+      throw providerError;
     }
 
     await this.#rateLimits?.observeResponse(endpoint, response);
 
-    if (!response.ok) throw mapHttpError(response.status);
+    if (!response.ok) {
+      const providerError = mapHttpError(response.status);
+      await this.#circuits?.recordFailure(endpoint, providerError);
+      throw providerError;
+    }
+    await this.#circuits?.recordSuccess(endpoint);
 
     try {
       return (await response.json()) as unknown;

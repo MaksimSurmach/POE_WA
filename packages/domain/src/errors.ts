@@ -106,6 +106,11 @@ export const domainErrorDefinitions = {
     disposition: 'permanent',
     publicMessage: 'The market provider rejected authentication.',
   },
+  PROVIDER_CIRCUIT_OPEN: {
+    category: 'market',
+    disposition: 'retryable',
+    publicMessage: 'The market provider is cooling down after repeated errors.',
+  },
   PROVIDER_RATE_LIMITED: {
     category: 'market',
     disposition: 'retryable',

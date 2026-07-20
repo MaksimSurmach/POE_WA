@@ -2,6 +2,7 @@ import type {
   AggregatedObservation,
   Job,
   MarketQuery,
+  ProviderCircuitState,
   RawSnapshot,
   RateLimitState,
   Recipe,
@@ -35,6 +36,7 @@ export function createInMemoryRepositories(): Repositories {
   const jobs = new Map<string, Job>();
   const endpointPolicies = new Map<string, string>();
   const rateLimitStates = new Map<string, RateLimitState>();
+  const providerCircuits = new Map<string, ProviderCircuitState>();
   let snapshotId = 0;
   let observationId = 0;
   let evaluationId = 0;
@@ -67,6 +69,28 @@ export function createInMemoryRepositories(): Repositories {
       policy,
       updatedAt: now,
       windows: [],
+    };
+  }
+
+  function circuitKey(provider: string, endpoint: string) {
+    return `${provider}:${endpoint}`;
+  }
+
+  function initialProviderCircuitState(
+    provider: string,
+    endpoint: string,
+    now: Date,
+  ): ProviderCircuitState {
+    return {
+      consecutiveFailures: 0,
+      endpoint,
+      lastFailureCode: null,
+      openedAt: null,
+      probeLeaseUntil: null,
+      provider,
+      retryAt: null,
+      status: 'closed',
+      updatedAt: now,
     };
   }
 
@@ -262,6 +286,117 @@ export function createInMemoryRepositories(): Repositories {
         };
         observations.set(saved.id, saved);
         return clone(saved);
+      },
+    },
+    providerCircuits: {
+      async acquire(input) {
+        const key = circuitKey(input.provider, input.endpoint);
+        const current =
+          providerCircuits.get(key) ??
+          initialProviderCircuitState(
+            input.provider,
+            input.endpoint,
+            input.now,
+          );
+        let allowed = current.status === 'closed';
+        let retryAt = current.retryAt;
+        let state = current;
+        if (
+          current.status === 'open' &&
+          current.retryAt &&
+          current.retryAt <= input.now
+        ) {
+          allowed = true;
+          retryAt = null;
+          state = {
+            ...current,
+            probeLeaseUntil: new Date(input.now.getTime() + input.probeLeaseMs),
+            retryAt: null,
+            status: 'half_open',
+            updatedAt: input.now,
+          };
+        } else if (current.status === 'open') {
+          allowed = false;
+        } else if (current.status === 'half_open') {
+          if (
+            !current.probeLeaseUntil ||
+            current.probeLeaseUntil <= input.now
+          ) {
+            allowed = true;
+            retryAt = null;
+            state = {
+              ...current,
+              probeLeaseUntil: new Date(
+                input.now.getTime() + input.probeLeaseMs,
+              ),
+              updatedAt: input.now,
+            };
+          } else {
+            allowed = false;
+            retryAt = current.probeLeaseUntil;
+          }
+        }
+        providerCircuits.set(key, clone(state));
+        return { allowed, retryAt, state: clone(state) };
+      },
+      async list() {
+        return [...providerCircuits.values()]
+          .sort(
+            (left, right) =>
+              left.provider.localeCompare(right.provider) ||
+              left.endpoint.localeCompare(right.endpoint),
+          )
+          .map(clone);
+      },
+      async recordFailure(input) {
+        const key = circuitKey(input.provider, input.endpoint);
+        const current =
+          providerCircuits.get(key) ??
+          initialProviderCircuitState(
+            input.provider,
+            input.endpoint,
+            input.now,
+          );
+        const consecutiveFailures = current.consecutiveFailures + 1;
+        const shouldOpen =
+          current.status === 'half_open' ||
+          consecutiveFailures >= input.failureThreshold;
+        const state: ProviderCircuitState = {
+          ...current,
+          consecutiveFailures,
+          lastFailureCode: input.errorCode,
+          openedAt: shouldOpen ? input.now : current.openedAt,
+          probeLeaseUntil: null,
+          retryAt: shouldOpen
+            ? new Date(input.now.getTime() + input.cooldownMs)
+            : null,
+          status: shouldOpen ? 'open' : 'closed',
+          updatedAt: input.now,
+        };
+        providerCircuits.set(key, clone(state));
+        return clone(state);
+      },
+      async recordSuccess(input) {
+        const key = circuitKey(input.provider, input.endpoint);
+        const current =
+          providerCircuits.get(key) ??
+          initialProviderCircuitState(
+            input.provider,
+            input.endpoint,
+            input.now,
+          );
+        const state: ProviderCircuitState = {
+          ...current,
+          consecutiveFailures: 0,
+          lastFailureCode: null,
+          openedAt: null,
+          probeLeaseUntil: null,
+          retryAt: null,
+          status: 'closed',
+          updatedAt: input.now,
+        };
+        providerCircuits.set(key, clone(state));
+        return clone(state);
       },
     },
     rateLimits: {

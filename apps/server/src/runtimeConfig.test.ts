@@ -32,6 +32,7 @@ describe('runtime configuration', () => {
       marketRetryDelayMs: 60_000,
       mode: 'worker',
       poeUserAgent: 'OAuth poe-worksmith/0.0.0 (contact: local-development)',
+      poeRequestTimeoutMs: 15_000,
       port: 4100,
       refreshCron: '0 */4 * * *',
       retentionBatchSize: 500,
