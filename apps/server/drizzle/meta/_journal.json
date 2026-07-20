@@ -50,6 +50,13 @@
       "when": 1784520468798,
       "tag": "0006_aromatic_ben_grimm",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784584672260,
+      "tag": "0007_bright_lucky_pierre",
+      "breakpoints": true
     }
   ]
 }
