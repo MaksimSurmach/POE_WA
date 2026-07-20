@@ -57,6 +57,21 @@ describe('in-memory repositories', () => {
     repositories = createInMemoryRepositories();
   });
 
+  async function cycleInCurrentLeague() {
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Mercenaries',
+      isCurrent: true,
+      metadata: {},
+      name: 'Mercenaries',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: cycle.requestedAt,
+    });
+    return { ...cycle, leagueId: league.id };
+  }
+
   it('stores and lists active recipes', async () => {
     await repositories.recipes.save(recipe);
 
@@ -148,15 +163,21 @@ describe('in-memory repositories', () => {
   });
 
   it('publishes a complete refresh cycle atomically', async () => {
-    await repositories.cycles.save(queuedCycle);
-    await repositories.cycles.save(cycle);
+    const currentCycle = await cycleInCurrentLeague();
+    await repositories.cycles.save({
+      ...queuedCycle,
+      leagueId: currentCycle.leagueId,
+    });
+    await repositories.cycles.save(currentCycle);
     const publishedAt = new Date('2026-07-20T00:02:00.000Z');
 
-    await repositories.cycles.publish(cycle.id, publishedAt);
-    await repositories.cycles.publish(cycle.id, publishedAt);
+    await repositories.cycles.publish(currentCycle.id, publishedAt);
+    await repositories.cycles.publish(currentCycle.id, publishedAt);
 
-    expect(await repositories.cycles.getPublishedCycleId()).toBe(cycle.id);
-    expect(await repositories.cycles.findById(cycle.id)).toMatchObject({
+    expect(await repositories.cycles.getPublishedCycleId()).toBe(
+      currentCycle.id,
+    );
+    expect(await repositories.cycles.findById(currentCycle.id)).toMatchObject({
       publishedAt,
       status: 'published',
     });
@@ -172,13 +193,18 @@ describe('in-memory repositories', () => {
   });
 
   it('keeps the published catalog when a new cycle misses the threshold', async () => {
-    await repositories.cycles.save(queuedCycle);
-    await repositories.cycles.save(cycle);
-    await repositories.cycles.publish(cycle.id, new Date());
+    const currentCycle = await cycleInCurrentLeague();
+    await repositories.cycles.save({
+      ...queuedCycle,
+      leagueId: currentCycle.leagueId,
+    });
+    await repositories.cycles.save(currentCycle);
+    await repositories.cycles.publish(currentCycle.id, new Date());
 
     const nextQueued: RefreshCycle = {
       ...queuedCycle,
       id: '77777777-7777-4777-8777-777777777777',
+      leagueId: currentCycle.leagueId,
       totalRecipes: 100,
     };
     await repositories.cycles.save(nextQueued);
@@ -193,8 +219,10 @@ describe('in-memory repositories', () => {
     await expect(
       repositories.cycles.publish(nextQueued.id, new Date()),
     ).rejects.toMatchObject({ code: 'PUBLICATION_BELOW_THRESHOLD' });
-    expect(await repositories.cycles.getPublishedCycleId()).toBe(cycle.id);
-    expect(await repositories.cycles.findById(cycle.id)).toMatchObject({
+    expect(await repositories.cycles.getPublishedCycleId()).toBe(
+      currentCycle.id,
+    );
+    expect(await repositories.cycles.findById(currentCycle.id)).toMatchObject({
       status: 'published',
     });
   });
