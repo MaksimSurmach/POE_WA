@@ -18,7 +18,7 @@ import {
   assertSnapshotInvariant,
   assertSingleRunningCycle,
 } from '@poe-worksmith/domain';
-import { and, desc, eq, gte, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lte } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import type { Pool, PoolClient } from 'pg';
 
@@ -46,6 +46,70 @@ export function createPostgresRepositories(pool: Pool): Repositories {
   const database = drizzle({ client: pool });
 
   return {
+    catalog: {
+      getPublished() {
+        return mapRepositoryError('catalog', 'getPublished', async () => {
+          const client = await pool.connect();
+          try {
+            await client.query(
+              'begin transaction isolation level repeatable read read only',
+            );
+            const transaction = drizzle({ client });
+            const [state] = await transaction
+              .select({ publishedCycleId: catalogState.publishedCycleId })
+              .from(catalogState)
+              .where(eq(catalogState.id, 1))
+              .limit(1);
+            if (!state?.publishedCycleId) {
+              await client.query('commit');
+              return null;
+            }
+            const [cycle] = await transaction
+              .select()
+              .from(refreshCycles)
+              .where(eq(refreshCycles.id, state.publishedCycleId))
+              .limit(1);
+            if (!cycle) {
+              throw new RepositoryNotFoundError('catalog', 'getPublished');
+            }
+            const evaluationRows = await transaction
+              .select()
+              .from(recipeEvaluations)
+              .where(
+                eq(recipeEvaluations.refreshCycleId, state.publishedCycleId),
+              )
+              .orderBy(recipeEvaluations.recipeId);
+            const recipeRows =
+              evaluationRows.length === 0
+                ? []
+                : await transaction
+                    .select()
+                    .from(recipes)
+                    .where(
+                      inArray(
+                        recipes.id,
+                        evaluationRows.map(({ recipeId }) => recipeId),
+                      ),
+                    )
+                    .orderBy(recipes.id);
+            if (recipeRows.length !== evaluationRows.length) {
+              throw new RepositoryNotFoundError('catalog', 'getPublished');
+            }
+            await client.query('commit');
+            return {
+              cycle: mapCycle(cycle),
+              evaluations: evaluationRows.map(mapEvaluation),
+              recipes: recipeRows.map(mapRecipe),
+            };
+          } catch (error) {
+            await client.query('rollback').catch(() => undefined);
+            throw error;
+          } finally {
+            client.release();
+          }
+        });
+      },
+    },
     recipes: {
       findById(id) {
         return mapRepositoryError('recipes', 'findById', async () => {

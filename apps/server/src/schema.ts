@@ -211,6 +211,7 @@ export const recipeEvaluations = pgTable(
     ),
     sourceSnapshotDedupeKey: text('source_snapshot_dedupe_key'),
     status: text('status').notNull(),
+    currency: text('currency'),
     expectedCraftCost: numeric('expected_craft_cost', {
       precision: 20,
       scale: 8,
@@ -224,6 +225,7 @@ export const recipeEvaluations = pgTable(
     confidence: text('confidence'),
     errorCode: text('error_code'),
     evaluatedAt: timestamp('evaluated_at', { withTimezone: true }).notNull(),
+    lastSuccessfulAt: timestamp('last_successful_at', { withTimezone: true }),
     ...timestamps,
   },
   (table) => [

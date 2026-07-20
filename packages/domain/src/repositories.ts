@@ -6,6 +6,7 @@ import type {
   NewAggregatedObservation,
   NewRawSnapshot,
   NewRecipeEvaluation,
+  PublishedCatalog,
   RawSnapshot,
   Recipe,
   RecipeEvaluation,
@@ -57,6 +58,10 @@ export interface CycleRepository {
   save(cycle: RefreshCycle): Promise<RefreshCycle>;
 }
 
+export interface CatalogRepository {
+  getPublished(): Promise<PublishedCatalog | null>;
+}
+
 export interface JobRepository {
   claimNext(
     workerId: string,
@@ -80,6 +85,7 @@ export interface MarketResultRepository {
 }
 
 export type Repositories = {
+  catalog: CatalogRepository;
   cycles: CycleRepository;
   evaluations: EvaluationRepository;
   jobs: JobRepository;

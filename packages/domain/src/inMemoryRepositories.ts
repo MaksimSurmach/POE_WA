@@ -50,6 +50,30 @@ export function createInMemoryRepositories(): Repositories {
   }
 
   return {
+    catalog: {
+      async getPublished() {
+        if (!publishedCycleId) return null;
+        const cycle = cycles.get(publishedCycleId);
+        if (!cycle) throw new Error('Published refresh cycle does not exist');
+        const publishedEvaluations = [...evaluations.values()]
+          .filter(
+            (evaluation) => evaluation.refreshCycleId === publishedCycleId,
+          )
+          .sort((left, right) => left.recipeId.localeCompare(right.recipeId));
+        const publishedRecipes = publishedEvaluations.map((evaluation) => {
+          const recipe = recipes.get(evaluation.recipeId);
+          if (!recipe) {
+            throw new Error(`Recipe ${evaluation.recipeId} does not exist`);
+          }
+          return clone(recipe);
+        });
+        return {
+          cycle: clone(cycle),
+          evaluations: publishedEvaluations.map(clone),
+          recipes: publishedRecipes,
+        };
+      },
+    },
     recipes: {
       async findById(id) {
         const recipe = recipes.get(id);

@@ -120,10 +120,12 @@ describe('in-memory repositories', () => {
   it('upserts evaluations by recipe and cycle', async () => {
     const input = {
       confidence: 'medium' as const,
+      currency: 'divine',
       errorCode: null,
       estimatedSalePrice: '8.20000000',
       evaluatedAt: new Date('2026-07-20T00:00:00.000Z'),
       expectedCraftCost: '4.10000000',
+      lastSuccessfulAt: new Date('2026-07-20T00:00:00.000Z'),
       marginPercent: '50.000000',
       observationId: null,
       profit: '4.10000000',

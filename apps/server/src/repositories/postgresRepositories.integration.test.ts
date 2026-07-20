@@ -164,10 +164,12 @@ describe('PostgreSQL repositories', () => {
     await seedDependencies();
     const input = {
       confidence: 'medium' as const,
+      currency: 'divine',
       errorCode: null,
       estimatedSalePrice: '8.20000000',
       evaluatedAt: now,
       expectedCraftCost: '4.10000000',
+      lastSuccessfulAt: now,
       marginPercent: '50.000000',
       observationId: null,
       profit: '4.10000000',

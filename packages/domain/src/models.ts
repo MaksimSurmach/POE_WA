@@ -52,10 +52,12 @@ export type EvaluationStatus = 'success' | 'stale' | 'partial' | 'error';
 
 export type NewRecipeEvaluation = {
   confidence: 'low' | 'medium' | 'high' | null;
+  currency: string | null;
   errorCode: string | null;
   estimatedSalePrice: string | null;
   evaluatedAt: Date;
   expectedCraftCost: string | null;
+  lastSuccessfulAt: Date | null;
   marginPercent: string | null;
   observationId: number | null;
   profit: string | null;
@@ -66,6 +68,12 @@ export type NewRecipeEvaluation = {
 };
 
 export type RecipeEvaluation = NewRecipeEvaluation & { id: number };
+
+export type PublishedCatalog = {
+  cycle: RefreshCycle;
+  evaluations: RecipeEvaluation[];
+  recipes: Recipe[];
+};
 
 export type RefreshCycleStatus =
   'queued' | 'running' | 'published' | 'failed' | 'superseded';
