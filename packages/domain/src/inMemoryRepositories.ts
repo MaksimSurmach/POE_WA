@@ -32,8 +32,16 @@ export function createInMemoryRepositories(): Repositories {
         const recipe = recipes.get(id);
         return recipe ? clone(recipe) : null;
       },
+      async listAll() {
+        return [...recipes.values()]
+          .sort((left, right) => left.id.localeCompare(right.id))
+          .map(clone);
+      },
       async listActive() {
-        return [...recipes.values()].filter(({ active }) => active).map(clone);
+        return [...recipes.values()]
+          .filter(({ active }) => active)
+          .sort((left, right) => left.title.localeCompare(right.title))
+          .map(clone);
       },
       async save(recipe) {
         const conflicting = [...recipes.values()].find(

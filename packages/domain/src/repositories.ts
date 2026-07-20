@@ -13,6 +13,7 @@ import type {
 
 export interface RecipeRepository {
   findById(id: string): Promise<Recipe | null>;
+  listAll(): Promise<Recipe[]>;
   listActive(): Promise<Recipe[]>;
   save(recipe: Recipe): Promise<Recipe>;
 }

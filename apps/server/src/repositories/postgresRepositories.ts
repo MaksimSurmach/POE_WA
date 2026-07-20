@@ -51,6 +51,15 @@ export function createPostgresRepositories(pool: Pool): Repositories {
           return row ? mapRecipe(row) : null;
         });
       },
+      listAll() {
+        return mapRepositoryError('recipes', 'listAll', async () => {
+          const rows = await database
+            .select()
+            .from(recipes)
+            .orderBy(recipes.id);
+          return rows.map(mapRecipe);
+        });
+      },
       listActive() {
         return mapRepositoryError('recipes', 'listActive', async () => {
           const rows = await database

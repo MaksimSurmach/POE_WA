@@ -50,6 +50,7 @@ describe('in-memory repositories', () => {
     await repositories.recipes.save(recipe);
 
     expect(await repositories.recipes.findById(recipe.id)).toEqual(recipe);
+    expect(await repositories.recipes.listAll()).toEqual([recipe]);
     expect(await repositories.recipes.listActive()).toEqual([recipe]);
   });
 

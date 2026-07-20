@@ -10,12 +10,13 @@
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
     "recipes:validate": "node dist/recipes/validateCatalog.js ../../recipes",
+    "recipes:sync": "node --env-file-if-exists=../../.env.development dist/recipes/syncCatalog.js ../../recipes",
     "start": "node --env-file-if-exists=../../.env.development dist/index.js",
     "start:all": "node --env-file-if-exists=../../.env.development dist/entrypoints/all.js",
     "start:api": "node --env-file-if-exists=../../.env.development dist/entrypoints/api.js",
     "start:worker": "node --env-file-if-exists=../../.env.development dist/entrypoints/worker.js",
     "test": "vitest run --passWithNoTests --exclude '**/*.integration.test.ts' --exclude 'dist/**'",
-    "test:integration": "vitest run 'src/*.integration.test.ts'",
+    "test:integration": "vitest run 'src/*.integration.test.ts' --no-file-parallelism",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
