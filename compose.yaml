@@ -1,6 +1,26 @@
 name: poe-worksmith
 
 services:
+  app:
+    profiles: [app]
+    build: .
+    environment:
+      APP_ENV: development
+      APP_HOST: 0.0.0.0
+      APP_MODE: all
+      APP_PORT: 3000
+      DATABASE_SSL_MODE: disable
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/poe_worksmith_dev
+      LOG_LEVEL: info
+      PG_BOSS_SCHEMA: pgboss
+      SCHEDULER_TEST_CRON: '* * * * *'
+      SHUTDOWN_TIMEOUT_MS: 30000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:3000:3000
+
   postgres:
     image: postgres:17-alpine
     environment:

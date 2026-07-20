@@ -1,5 +1,27 @@
 # POE Worksmith Automator
 
+## Backend runtime
+
+The server has dedicated API, worker, and combined entrypoints. After building,
+start one mode with `pnpm start:api`, `pnpm start:worker`, or `pnpm start`.
+The default combined mode exposes liveness at `/health/live` and database
+readiness at `/health/ready` on `127.0.0.1:3000`.
+
+The worker owns the pg-boss scheduler and test cron queue. Schedule registration
+uses a stable queue/key pair, so restarts update the singleton schedule instead
+of inserting duplicates. `SIGINT` and `SIGTERM` stop HTTP intake, wait for active
+jobs up to `SHUTDOWN_TIMEOUT_MS`, then close the shared PostgreSQL pool.
+
+Build and run the same application in Docker with environment configuration:
+
+```bash
+docker compose --profile app up --build
+```
+
+The image defaults to combined mode. Override its command with
+`node dist/entrypoints/api.js` or `node dist/entrypoints/worker.js` for split
+deployments.
+
 ## Local PostgreSQL
 
 Requirements: Node.js 22, pnpm 11, and Docker Compose.

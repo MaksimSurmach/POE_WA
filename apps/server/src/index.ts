@@ -1,1 +1,3 @@
-import './checkDatabase.js';
+import { runProcess } from './process.js';
+
+await runProcess();

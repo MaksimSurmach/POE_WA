@@ -21,6 +21,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
+    "start": "pnpm --filter @poe-worksmith/server start",
+    "start:api": "pnpm --filter @poe-worksmith/server start:api",
+    "start:worker": "pnpm --filter @poe-worksmith/server start:worker",
     "test": "pnpm -r --if-present test",
     "test:integration": "pnpm -r --if-present test:integration",
     "typecheck": "pnpm -r --if-present typecheck"
