@@ -65,7 +65,9 @@ export function normalizeCanonicalCraftSetup(
 }
 
 export function hashCanonicalCraftSetup(input: unknown) {
-  const value = JSON.stringify(normalizeCanonicalCraftSetup(input));
+  const { base, method, startingMods, target } =
+    normalizeCanonicalCraftSetup(input);
+  const value = JSON.stringify({ base, method, startingMods, target });
   return `${fnv1a(value, 0xcbf29ce484222325n)}${fnv1a(value, 0x84222325cbf29ce4n)}`;
 }
 
