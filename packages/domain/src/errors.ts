@@ -31,6 +31,11 @@ export const domainErrorDefinitions = {
     disposition: 'permanent',
     publicMessage: 'The recipe economics could not be calculated.',
   },
+  CURRENT_LEAGUE_UNRESOLVED: {
+    category: 'market',
+    disposition: 'retryable',
+    publicMessage: 'The current league could not be resolved.',
+  },
   CALCULATION_INPUT_INVALID: {
     category: 'calculation',
     disposition: 'permanent',
@@ -105,6 +110,26 @@ export const domainErrorDefinitions = {
     category: 'market',
     disposition: 'permanent',
     publicMessage: 'The market provider rejected authentication.',
+  },
+  POE_NINJA_LEAGUES_INVALID: {
+    category: 'market',
+    disposition: 'degraded',
+    publicMessage: 'The market provider returned an invalid response.',
+  },
+  POE_NINJA_LEAGUES_UNAVAILABLE: {
+    category: 'market',
+    disposition: 'retryable',
+    publicMessage: 'The market provider is temporarily unavailable.',
+  },
+  POE_TRADE_LEAGUES_INVALID: {
+    category: 'market',
+    disposition: 'degraded',
+    publicMessage: 'The market provider returned an invalid response.',
+  },
+  POE_TRADE_LEAGUES_UNAVAILABLE: {
+    category: 'market',
+    disposition: 'retryable',
+    publicMessage: 'The market provider is temporarily unavailable.',
   },
   PROVIDER_CIRCUIT_OPEN: {
     category: 'market',

@@ -3,7 +3,12 @@ import pino from 'pino';
 import { buildApi } from './api.js';
 import { ProviderCircuitBreaker } from './circuitBreaker.js';
 import { createDatabasePool } from './database.js';
-import { CatalogRefreshScheduler, createJobBoss } from './jobs.js';
+import { ApplicationJobScheduler, createJobBoss } from './jobs.js';
+import {
+  HttpPoeNinjaLeagueClient,
+  HttpPoeTradeLeagueClient,
+  LeagueResolver,
+} from './leagues.js';
 import { MarketJobProcessor } from './marketJobProcessor.js';
 import { PoeTradeClient } from './providers/poeTrade.js';
 import { GggRateLimitController } from './rateLimitController.js';
@@ -35,9 +40,11 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         repositories.rateLimits.list,
         resourceReaders.readCatalog,
         resourceReaders.readRecipe,
+        repositories.leagues.list,
+        repositories.leagues.findCurrent,
       )
     : undefined;
-  let jobs: CatalogRefreshScheduler | undefined;
+  let jobs: ApplicationJobScheduler | undefined;
   if (modeIncludesWorker(config.mode)) {
     const rateLimits = new GggRateLimitController({
       repository: repositories.rateLimits,
@@ -61,24 +68,41 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       retryDelayMs: config.marketRetryDelayMs,
       snapshotTtlMs: config.snapshotTtlMs,
     });
-    const orchestrator = new FullRefreshOrchestrator({
-      league: config.league,
-      marketJobs,
-      repositories,
-      snapshotTtlMs: config.snapshotTtlMs,
-      workerId: `worker-${process.pid}`,
-    });
     const retention = new RetentionCleaner({
       batchSize: config.retentionBatchSize,
       repositories,
     });
-    jobs = new CatalogRefreshScheduler({
+    const resolver = new LeagueResolver({
+      leagues: repositories.leagues,
+      poeNinja: new HttpPoeNinjaLeagueClient({
+        requestTimeoutMs: config.poeRequestTimeoutMs,
+        userAgent: config.poeUserAgent,
+      }),
+      trade: new HttpPoeTradeLeagueClient({
+        requestTimeoutMs: config.poeRequestTimeoutMs,
+        userAgent: config.poeUserAgent,
+      }),
+    });
+    jobs = new ApplicationJobScheduler({
       boss: createJobBoss(pool, config.jobSchema, logger),
       cleanupCron: config.cleanupCron,
       logger,
       refreshCron: config.refreshCron,
       runCleanup: () => retention.run(),
-      runRefresh: (cycleId) => orchestrator.run(cycleId),
+      runRefresh: async (cycleId) => {
+        const currentLeague = await repositories.leagues.findCurrent();
+        if (!currentLeague) throw new Error('CURRENT_LEAGUE_UNRESOLVED');
+        return new FullRefreshOrchestrator({
+          league: currentLeague.gggId,
+          marketJobs,
+          repositories,
+          snapshotTtlMs: config.snapshotTtlMs,
+          workerId: `worker-${process.pid}`,
+        }).run(cycleId);
+      },
+      leagueCron: config.leagueResolveCron,
+      leagueTimezone: config.leagueResolveTimezone,
+      runLeagueResolve: () => resolver.resolve(),
     });
   }
   const runtime = new ApplicationRuntime({

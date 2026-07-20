@@ -12,10 +12,14 @@ export const CATALOG_CLEANUP_QUEUE = 'catalog.retention-cleanup';
 export const CATALOG_CLEANUP_SCHEDULE_KEY = 'retention-cleanup';
 const CATALOG_REFRESH_SINGLETON_KEY = 'catalog-refresh';
 const CATALOG_CLEANUP_SINGLETON_KEY = 'catalog-cleanup';
+export const LEAGUE_RESOLVE_QUEUE = 'league.resolve';
+export const LEAGUE_RESOLVE_SCHEDULE_KEY = 'league-resolve';
+const LEAGUE_RESOLVE_SINGLETON_KEY = 'league-resolve';
 
 type TestJobData = { source: 'scheduler' };
 type CatalogRefreshJobData = { source: 'manual' | 'scheduler' };
 type CatalogCleanupJobData = { source: 'scheduler' };
+type LeagueResolveJobData = { source: 'scheduler' | 'startup' };
 
 export type JobRunner = {
   start(): Promise<void>;
@@ -113,13 +117,41 @@ export async function ensureCatalogSchedules(
   );
 }
 
-export class CatalogRefreshScheduler implements JobRunner {
+export async function ensureLeagueSchedule(
+  boss: PgBoss,
+  options: { cron: string; timezone: string },
+) {
+  await boss.createQueue(LEAGUE_RESOLVE_QUEUE, {
+    deleteAfterSeconds: 7 * 24 * 60 * 60,
+    expireInSeconds: 30 * 60,
+    policy: 'exclusive',
+    retryBackoff: true,
+    retryDelay: 60,
+    retryLimit: 6,
+  });
+  await boss.schedule(
+    LEAGUE_RESOLVE_QUEUE,
+    options.cron,
+    { source: 'scheduler' } satisfies LeagueResolveJobData,
+    {
+      key: LEAGUE_RESOLVE_SCHEDULE_KEY,
+      singletonKey: LEAGUE_RESOLVE_SINGLETON_KEY,
+      singletonSeconds: 60,
+      tz: options.timezone,
+    },
+  );
+}
+
+export class ApplicationJobScheduler implements JobRunner {
   readonly #boss: PgBoss;
   readonly #cleanupCron: string;
   readonly #logger: Logger;
   readonly #refreshCron: string;
   readonly #runCleanup: () => Promise<unknown>;
   readonly #runRefresh: (cycleId: string) => Promise<unknown>;
+  readonly #leagueCron: string;
+  readonly #leagueTimezone: string;
+  readonly #runLeagueResolve: () => Promise<unknown>;
   #started = false;
 
   constructor(options: {
@@ -129,6 +161,9 @@ export class CatalogRefreshScheduler implements JobRunner {
     refreshCron: string;
     runCleanup: () => Promise<unknown>;
     runRefresh: (cycleId: string) => Promise<unknown>;
+    leagueCron?: string;
+    leagueTimezone?: string;
+    runLeagueResolve?: () => Promise<unknown>;
   }) {
     this.#boss = options.boss;
     this.#cleanupCron = options.cleanupCron;
@@ -136,6 +171,10 @@ export class CatalogRefreshScheduler implements JobRunner {
     this.#refreshCron = options.refreshCron;
     this.#runCleanup = options.runCleanup;
     this.#runRefresh = options.runRefresh;
+    this.#leagueCron = options.leagueCron ?? '0 23 * * *';
+    this.#leagueTimezone = options.leagueTimezone ?? 'Europe/Warsaw';
+    this.#runLeagueResolve =
+      options.runLeagueResolve ?? (async () => undefined);
   }
 
   async start() {
@@ -145,6 +184,10 @@ export class CatalogRefreshScheduler implements JobRunner {
       await ensureCatalogSchedules(this.#boss, {
         cleanupCron: this.#cleanupCron,
         refreshCron: this.#refreshCron,
+      });
+      await ensureLeagueSchedule(this.#boss, {
+        cron: this.#leagueCron,
+        timezone: this.#leagueTimezone,
       });
       await this.#boss.work<CatalogRefreshJobData>(
         CATALOG_REFRESH_QUEUE,
@@ -172,6 +215,26 @@ export class CatalogRefreshScheduler implements JobRunner {
           }
         },
       );
+      await this.#boss.work<LeagueResolveJobData>(
+        LEAGUE_RESOLVE_QUEUE,
+        { localConcurrency: 1 },
+        async (jobs) => {
+          for (const job of jobs)
+            this.#logger.info(
+              {
+                jobId: job.id,
+                report: await this.#runLeagueResolve(),
+                source: job.data.source,
+              },
+              'league resolver completed',
+            );
+        },
+      );
+      await this.#boss.send(
+        LEAGUE_RESOLVE_QUEUE,
+        { source: 'startup' } satisfies LeagueResolveJobData,
+        { singletonKey: LEAGUE_RESOLVE_SINGLETON_KEY, singletonSeconds: 60 },
+      );
       this.#started = true;
     } catch (error) {
       await this.#boss.stop({ close: false, graceful: false });
@@ -196,6 +259,8 @@ export class CatalogRefreshScheduler implements JobRunner {
     );
   }
 }
+
+export { ApplicationJobScheduler as CatalogRefreshScheduler };
 
 export class PgBossJobRunner implements JobRunner {
   readonly #boss: PgBoss;

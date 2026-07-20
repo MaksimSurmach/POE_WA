@@ -293,6 +293,27 @@ export const refreshProgressResponseSchema = z.strictObject({
     published: refreshCycleSchema.nullable(),
   }),
 });
+export const poeLeagueSchema = z.strictObject({
+  id: z.uuid(),
+  game: z.string(),
+  realm: z.string(),
+  gggId: z.string(),
+  name: z.string(),
+  startAt: z.iso.datetime().nullable(),
+  endAt: z.iso.datetime().nullable(),
+  isCurrent: z.boolean(),
+  syncedAt: z.iso.datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+export const leaguesResponseSchema = z.strictObject({
+  correlationId: correlationIdSchema,
+  data: z.array(poeLeagueSchema),
+});
+export const currentLeagueResponseSchema = z.strictObject({
+  correlationId: correlationIdSchema,
+  data: poeLeagueSchema,
+});
 
 export const rateLimitWindowSchema = z.strictObject({
   activeRestrictionSeconds: z.number().int().nonnegative(),
@@ -343,3 +364,4 @@ export type RefreshProgressResponse = z.infer<
 export type RateLimitDiagnosticsResponse = z.infer<
   typeof rateLimitDiagnosticsResponseSchema
 >;
+export type PoeLeague = z.infer<typeof poeLeagueSchema>;

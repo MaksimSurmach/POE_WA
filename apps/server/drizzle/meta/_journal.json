@@ -64,6 +64,13 @@
       "when": 1784587283088,
       "tag": "0008_premium_blazing_skull",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784587915348,
+      "tag": "0009_needy_scream",
+      "breakpoints": true
     }
   ]
 }

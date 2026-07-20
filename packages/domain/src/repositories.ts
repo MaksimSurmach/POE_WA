@@ -2,6 +2,7 @@ import type {
   AggregatedObservation,
   CatalogProgress,
   Job,
+  LeagueUpsert,
   JobKind,
   MarketQuery,
   NewAggregatedObservation,
@@ -21,6 +22,7 @@ import type {
   Recipe,
   RecipeEvaluation,
   RefreshCycle,
+  PoeLeague,
   RetentionCleanupOptions,
   RetentionCleanupReport,
 } from './models.js';
@@ -30,6 +32,13 @@ export interface RecipeRepository {
   listAll(): Promise<Recipe[]>;
   listActive(): Promise<Recipe[]>;
   save(recipe: Recipe): Promise<Recipe>;
+}
+
+export interface LeagueRepository {
+  findCurrent(): Promise<PoeLeague | null>;
+  list(): Promise<PoeLeague[]>;
+  setCurrent(leagueId: string, switchedAt: Date): Promise<PoeLeague>;
+  upsert(input: LeagueUpsert): Promise<PoeLeague>;
 }
 
 export interface MarketQueryRepository {
@@ -123,6 +132,7 @@ export type Repositories = {
   cycles: CycleRepository;
   evaluations: EvaluationRepository;
   jobs: JobRepository;
+  leagues: LeagueRepository;
   marketQueries: MarketQueryRepository;
   marketResults: MarketResultRepository;
   observations: ObservationRepository;

@@ -7,6 +7,8 @@ import {
   CATALOG_CLEANUP_QUEUE,
   CATALOG_REFRESH_QUEUE,
   CATALOG_REFRESH_SCHEDULE_KEY,
+  LEAGUE_RESOLVE_QUEUE,
+  LEAGUE_RESOLVE_SCHEDULE_KEY,
   PgBossJobRunner,
   TEST_JOB_QUEUE,
   TEST_SCHEDULE_KEY,
@@ -98,6 +100,9 @@ describe('catalog refresh scheduler', () => {
       refreshCron: '0 */4 * * *',
       runCleanup: vi.fn(),
       runRefresh: vi.fn(),
+      leagueCron: '0 23 * * *',
+      leagueTimezone: 'Europe/Warsaw',
+      runLeagueResolve: vi.fn(),
     });
 
     await scheduler.start();
@@ -120,7 +125,21 @@ describe('catalog refresh scheduler', () => {
         singletonKey: 'catalog-refresh',
       }),
     );
-    expect(fake.work).toHaveBeenCalledTimes(2);
+    expect(fake.schedule).toHaveBeenCalledWith(
+      LEAGUE_RESOLVE_QUEUE,
+      '0 23 * * *',
+      { source: 'scheduler' },
+      expect.objectContaining({
+        key: LEAGUE_RESOLVE_SCHEDULE_KEY,
+        tz: 'Europe/Warsaw',
+      }),
+    );
+    expect(fake.work).toHaveBeenCalledTimes(3);
+    expect(fake.send).toHaveBeenCalledWith(
+      LEAGUE_RESOLVE_QUEUE,
+      { source: 'startup' },
+      expect.objectContaining({ singletonKey: 'league-resolve' }),
+    );
   });
 
   it('supports a singleton manual refresh trigger', async () => {

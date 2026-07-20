@@ -1,6 +1,7 @@
 import type {
   AggregatedObservation,
   Job,
+  PoeLeague,
   MarketQuery,
   ProviderCircuitState,
   RawSnapshot,
@@ -34,6 +35,7 @@ export function createInMemoryRepositories(): Repositories {
   const evaluations = new Map<number, RecipeEvaluation>();
   const cycles = new Map<string, RefreshCycle>();
   const jobs = new Map<string, Job>();
+  const leagues = new Map<string, PoeLeague>();
   const endpointPolicies = new Map<string, string>();
   const rateLimitStates = new Map<string, RateLimitState>();
   const providerCircuits = new Map<string, ProviderCircuitState>();
@@ -95,6 +97,67 @@ export function createInMemoryRepositories(): Repositories {
   }
 
   return {
+    leagues: {
+      async list() {
+        return [...leagues.values()]
+          .sort(
+            (a, b) =>
+              (b.startAt?.getTime() ?? -Infinity) -
+                (a.startAt?.getTime() ?? -Infinity) ||
+              b.createdAt.getTime() - a.createdAt.getTime(),
+          )
+          .map(clone);
+      },
+      async findCurrent() {
+        const league = [...leagues.values()].find((league) => league.isCurrent);
+        return league ? clone(league) : null;
+      },
+      async upsert(input) {
+        const existing = [...leagues.values()].find(
+          (league) =>
+            league.game === input.game &&
+            league.realm === input.realm &&
+            league.gggId === input.gggId,
+        );
+        const now = input.syncedAt;
+        const league: PoeLeague = existing
+          ? {
+              ...existing,
+              name: input.name,
+              syncedAt: input.syncedAt,
+              metadata: clone(input.metadata),
+              updatedAt: now,
+            }
+          : {
+              ...clone(input),
+              id: crypto.randomUUID(),
+              createdAt: now,
+              updatedAt: now,
+            };
+        leagues.set(league.id, league);
+        return clone(league);
+      },
+      async setCurrent(id, switchedAt) {
+        const selected = leagues.get(id);
+        if (!selected) throw new Error('League does not exist');
+        if (selected.isCurrent) return clone(selected);
+        for (const league of leagues.values())
+          if (
+            league.game === selected.game &&
+            league.realm === selected.realm &&
+            league.isCurrent
+          )
+            leagues.set(league.id, {
+              ...league,
+              isCurrent: false,
+              endAt: league.endAt ?? selected.startAt,
+              updatedAt: switchedAt,
+            });
+        const current = { ...selected, isCurrent: true, updatedAt: switchedAt };
+        leagues.set(id, current);
+        return clone(current);
+      },
+    },
     catalog: {
       async getProgress() {
         const active = [...cycles.values()]
