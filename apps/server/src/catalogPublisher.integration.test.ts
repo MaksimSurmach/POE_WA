@@ -13,6 +13,7 @@ import { createPostgresRepositories } from './repositories/postgresRepositories.
 const pool = createDatabasePool(loadDatabaseConfig());
 const repositories = createPostgresRepositories(pool);
 const now = new Date('2026-07-20T00:00:00.000Z');
+const leagueId = '00000000-0000-4000-8000-000000000001';
 
 afterAll(async () => {
   await pool.end();
@@ -22,7 +23,12 @@ beforeEach(async () => {
   await pool.query(
     `truncate table jobs, recipe_evaluations, raw_snapshots,
        aggregated_observations, catalog_state, market_queries,
-       refresh_cycles, recipes restart identity cascade`,
+       refresh_cycles, recipes, poe_leagues restart identity cascade`,
+  );
+  await pool.query(
+    `insert into poe_leagues (id, ggg_id, name, is_current, synced_at)
+     values ($1, 'Standard', 'Standard', true, now())`,
+    [leagueId],
   );
 });
 
@@ -35,6 +41,7 @@ function cycle(id: string): RefreshCycle {
     failedRecipes: 0,
     finishedAt: null,
     id,
+    leagueId,
     publishedAt: null,
     requestedAt: now,
     startedAt: null,

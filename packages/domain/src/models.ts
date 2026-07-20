@@ -43,6 +43,7 @@ export type NewRawSnapshot = {
   capturedAt: Date;
   dedupeKey: string;
   expiresAt: Date;
+  leagueId: string;
   marketQueryId: string;
   payload: JsonRecord;
   providerStatus: number;
@@ -54,6 +55,7 @@ export type RawSnapshot = NewRawSnapshot & { id: number };
 export type NewAggregatedObservation = {
   cheapestPrice: string | null;
   currency: string;
+  leagueId: string;
   marketQueryId: string;
   medianTopNPrice: string | null;
   nthPrice: string | null;
@@ -75,6 +77,7 @@ export type NewRecipeEvaluation = {
   evaluatedAt: Date;
   expectedCraftCost: string | null;
   lastSuccessfulAt: Date | null;
+  leagueId: string;
   marginPercent: string | null;
   observationId: number | null;
   profit: string | null;
@@ -108,6 +111,7 @@ export type RefreshCycle = {
   failedRecipes: number;
   finishedAt: Date | null;
   id: string;
+  leagueId: string;
   publishedAt: Date | null;
   requestedAt: Date;
   startedAt: Date | null;

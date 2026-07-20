@@ -32,6 +32,17 @@ function storedRecipe(): Recipe {
 describe('full refresh orchestrator', () => {
   it('plans, executes, evaluates and publishes one retry-safe cycle', async () => {
     const repositories = createInMemoryRepositories();
+    await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Standard',
+      isCurrent: true,
+      metadata: {},
+      name: 'Standard',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
     await repositories.recipes.save(storedRecipe());
     const provider: MarketSearchProvider = {
       id: 'poe-trade',

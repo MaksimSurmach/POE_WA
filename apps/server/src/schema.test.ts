@@ -6,6 +6,7 @@ import {
   catalogState,
   jobs,
   marketQueries,
+  poeLeagues,
   providerCircuits,
   rawSnapshots,
   rateLimitEndpointPolicies,
@@ -18,6 +19,7 @@ import {
 const tables = [
   recipes,
   marketQueries,
+  poeLeagues,
   rawSnapshots,
   aggregatedObservations,
   recipeEvaluations,
@@ -34,6 +36,7 @@ describe('PostgreSQL schema', () => {
     expect(tables.map((table) => getTableConfig(table).name)).toEqual([
       'recipes',
       'market_queries',
+      'poe_leagues',
       'raw_snapshots',
       'aggregated_observations',
       'recipe_evaluations',

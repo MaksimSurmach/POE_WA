@@ -15,6 +15,7 @@ const pool = createDatabasePool(loadDatabaseConfig());
 const repositories = createPostgresRepositories(pool);
 const now = new Date('2026-07-20T00:00:00.000Z');
 const leaseTimeoutMs = 10_000;
+const leagueId = '00000000-0000-4000-8000-000000000001';
 
 afterAll(async () => {
   await pool.end();
@@ -24,7 +25,12 @@ beforeEach(async () => {
   await pool.query(
     `truncate table jobs, recipe_evaluations, raw_snapshots,
        aggregated_observations, catalog_state, market_queries,
-       refresh_cycles, recipes restart identity cascade`,
+       refresh_cycles, recipes, poe_leagues restart identity cascade`,
+  );
+  await pool.query(
+    `insert into poe_leagues (id, ggg_id, name, is_current, synced_at)
+     values ($1, 'Standard', 'Standard', true, now())`,
+    [leagueId],
   );
 });
 
@@ -50,6 +56,7 @@ describe('market job processor with PostgreSQL', () => {
       failedRecipes: 0,
       finishedAt: null,
       id: '77777777-7777-4777-8777-777777777777',
+      leagueId,
       publishedAt: null,
       requestedAt: now,
       startedAt: now,

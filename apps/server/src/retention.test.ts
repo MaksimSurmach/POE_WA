@@ -9,6 +9,7 @@ import { RetentionCleaner } from './retention.js';
 
 const now = new Date('2026-07-20T00:00:00.000Z');
 const old = new Date('2026-06-01T00:00:00.000Z');
+const leagueId = '00000000-0000-4000-8000-000000000001';
 
 function queuedCycle(id: string, totalRecipes = 1): RefreshCycle {
   return {
@@ -19,6 +20,7 @@ function queuedCycle(id: string, totalRecipes = 1): RefreshCycle {
     failedRecipes: 0,
     finishedAt: null,
     id,
+    leagueId,
     publishedAt: null,
     requestedAt: old,
     startedAt: null,
@@ -73,6 +75,7 @@ describe('retention cleanup', () => {
         capturedAt: old,
         dedupeKey: `snapshot-${index}`,
         expiresAt: new Date(old.getTime() + 1000),
+        leagueId,
         marketQueryId: queryId,
         payload: {},
         providerStatus: 200,
@@ -81,6 +84,7 @@ describe('retention cleanup', () => {
       await repositories.observations.save({
         cheapestPrice: '1',
         currency: 'chaos',
+        leagueId,
         marketQueryId: queryId,
         medianTopNPrice: '1',
         nthPrice: null,

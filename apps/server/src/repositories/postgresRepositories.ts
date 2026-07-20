@@ -770,9 +770,10 @@ export function createPostgresRepositories(pool: Pool): Repositories {
               const cycleResult = await client.query<{
                 completed_queries: number;
                 failed_queries: number;
+                league_id: string;
                 total_queries: number;
               }>(
-                `select total_queries, completed_queries, failed_queries
+                `select total_queries, completed_queries, failed_queries, league_id
                  from refresh_cycles
                  where id = $1
                  for update`,
@@ -786,6 +787,14 @@ export function createPostgresRepositories(pool: Pool): Repositories {
                 );
               }
               if (
+                cycle.league_id !== result.snapshot.leagueId ||
+                cycle.league_id !== result.observation.leagueId
+              ) {
+                throw new Error(
+                  'Market result does not match its cycle league',
+                );
+              }
+              if (
                 cycle.completed_queries + cycle.failed_queries >=
                 cycle.total_queries
               ) {
@@ -794,14 +803,15 @@ export function createPostgresRepositories(pool: Pool): Repositories {
 
               await client.query(
                 `insert into raw_snapshots
-                   (dedupe_key, market_query_id, refresh_cycle_id, captured_at,
+                   (dedupe_key, market_query_id, refresh_cycle_id, league_id, captured_at,
                     expires_at, provider_status, payload)
-                 values ($1, $2, $3, $4, $5, $6, $7)
+                 values ($1, $2, $3, $4, $5, $6, $7, $8)
                  on conflict (dedupe_key) do nothing`,
                 [
                   result.snapshot.dedupeKey,
                   result.snapshot.marketQueryId,
                   result.snapshot.refreshCycleId,
+                  result.snapshot.leagueId,
                   result.snapshot.capturedAt,
                   result.snapshot.expiresAt,
                   result.snapshot.providerStatus,
@@ -810,13 +820,14 @@ export function createPostgresRepositories(pool: Pool): Repositories {
               );
               await client.query(
                 `insert into aggregated_observations
-                   (market_query_id, refresh_cycle_id, observed_at, sample_size,
+                   (market_query_id, refresh_cycle_id, league_id, observed_at, sample_size,
                     currency, cheapest_price, nth_price, median_top_n_price, summary)
-                 values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                 values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                  on conflict (market_query_id, refresh_cycle_id) do nothing`,
                 [
                   result.observation.marketQueryId,
                   result.observation.refreshCycleId,
+                  result.observation.leagueId,
                   result.observation.observedAt,
                   result.observation.sampleSize,
                   result.observation.currency,
