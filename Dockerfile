@@ -1,4 +1,4 @@
-FROM node:22.22.0-alpine AS build
+FROM --platform=$BUILDPLATFORM node:22.22.0-alpine AS build
 
 RUN corepack enable && corepack prepare pnpm@11.8.0 --activate
 WORKDIR /workspace
