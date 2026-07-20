@@ -1,3 +1,9 @@
+import {
+  domainErrorCategories,
+  domainErrorCodes,
+  domainErrorDefinitions,
+  errorDispositions,
+} from '@poe-worksmith/domain';
 import { z } from 'zod';
 
 /** A display price. Market normalization will later use chaos amounts. */
@@ -129,6 +135,124 @@ export const recipeDetailViewSchema = z
   })
   .strict();
 
+export const correlationIdSchema = z.uuid();
+export const domainErrorCodeSchema = z.enum(domainErrorCodes);
+export const refreshStatusSchema = z.enum([
+  'idle',
+  'queued',
+  'running',
+  'published',
+  'failed',
+  'superseded',
+]);
+
+export const publicDomainErrorSchema = z
+  .strictObject({
+    category: z.enum(domainErrorCategories),
+    code: domainErrorCodeSchema,
+    disposition: z.enum(errorDispositions),
+    message: z.string().min(1),
+    retryable: z.boolean(),
+  })
+  .superRefine((error, context) => {
+    const definition = domainErrorDefinitions[error.code];
+    if (error.category !== definition.category) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Category does not match error code',
+        path: ['category'],
+      });
+    }
+    if (error.disposition !== definition.disposition) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Disposition does not match error code',
+        path: ['disposition'],
+      });
+    }
+    if (error.retryable !== (definition.disposition === 'retryable')) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Retry flag does not match error code',
+        path: ['retryable'],
+      });
+    }
+    if (error.message !== definition.publicMessage) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Message does not match the safe public error message',
+        path: ['message'],
+      });
+    }
+  });
+
+export const apiErrorEnvelopeSchema = z.strictObject({
+  correlationId: correlationIdSchema,
+  error: publicDomainErrorSchema,
+});
+
+function resourceResponseSchema<T extends z.ZodType>(dataSchema: T) {
+  const success = z.strictObject({
+    correlationId: correlationIdSchema,
+    data: dataSchema,
+    errorCode: z.null(),
+    isStale: z.literal(false),
+    lastSuccessfulAt: z.iso.datetime(),
+    publishedAt: z.iso.datetime(),
+    refreshStatus: refreshStatusSchema,
+    state: z.literal('success'),
+  });
+  const stale = z.strictObject({
+    correlationId: correlationIdSchema,
+    data: dataSchema,
+    errorCode: domainErrorCodeSchema,
+    isStale: z.literal(true),
+    lastSuccessfulAt: z.iso.datetime(),
+    publishedAt: z.iso.datetime(),
+    refreshStatus: refreshStatusSchema,
+    state: z.literal('stale'),
+  });
+  const partial = z.strictObject({
+    correlationId: correlationIdSchema,
+    data: dataSchema,
+    errorCode: domainErrorCodeSchema,
+    isStale: z.boolean(),
+    lastSuccessfulAt: z.iso.datetime().nullable(),
+    publishedAt: z.iso.datetime(),
+    refreshStatus: refreshStatusSchema,
+    state: z.literal('partial'),
+  });
+  const error = apiErrorEnvelopeSchema
+    .safeExtend({
+      data: z.null(),
+      errorCode: domainErrorCodeSchema,
+      isStale: z.boolean(),
+      lastSuccessfulAt: z.iso.datetime().nullable(),
+      publishedAt: z.iso.datetime().nullable(),
+      refreshStatus: refreshStatusSchema,
+      state: z.literal('error'),
+    })
+    .superRefine((response, context) => {
+      if (response.errorCode !== response.error.code) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Error code must match the error envelope',
+          path: ['errorCode'],
+        });
+      }
+    });
+
+  return z.union([success, stale, partial, error]);
+}
+
+export const catalogResponseSchema = resourceResponseSchema(
+  z.strictObject({ entries: z.array(catalogEntrySchema) }),
+);
+
+export const recipeResponseSchema = resourceResponseSchema(
+  recipeDetailViewSchema,
+);
+
 export type Price = z.infer<typeof priceSchema>;
 export type Listing = z.infer<typeof listingSchema>;
 export type MarketSnapshot = z.infer<typeof marketSnapshotSchema>;
@@ -137,3 +261,8 @@ export type RecipeEvaluation = z.infer<typeof recipeEvaluationSchema>;
 export type RefreshCycle = z.infer<typeof refreshCycleSchema>;
 export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
 export type RecipeDetailView = z.infer<typeof recipeDetailViewSchema>;
+export type PublicDomainError = z.infer<typeof publicDomainErrorSchema>;
+export type ApiErrorEnvelope = z.infer<typeof apiErrorEnvelopeSchema>;
+export type RefreshStatus = z.infer<typeof refreshStatusSchema>;
+export type CatalogResponse = z.infer<typeof catalogResponseSchema>;
+export type RecipeResponse = z.infer<typeof recipeResponseSchema>;

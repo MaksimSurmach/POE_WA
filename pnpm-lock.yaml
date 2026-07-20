@@ -32,6 +32,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@poe-worksmith/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@poe-worksmith/domain':
         specifier: workspace:*
         version: link:../../packages/domain
@@ -118,6 +121,9 @@ importers:
 
   packages/contracts:
     dependencies:
+      '@poe-worksmith/domain':
+        specifier: workspace:*
+        version: link:../domain
       zod:
         specifier: 4.4.3
         version: 4.4.3

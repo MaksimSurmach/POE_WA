@@ -20,6 +20,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@poe-worksmith/contracts": "workspace:*",
     "@poe-worksmith/domain": "workspace:*",
     "drizzle-orm": "0.45.2",
     "fastify": "5.10.0",

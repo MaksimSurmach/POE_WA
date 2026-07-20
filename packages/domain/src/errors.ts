@@ -1,14 +1,23 @@
-export type DomainErrorCategory =
-  | 'calculation'
-  | 'market'
-  | 'persistence'
-  | 'publication'
-  | 'queue'
-  | 'recipe'
-  | 'refresh'
-  | 'snapshot';
+export const domainErrorCategories = [
+  'calculation',
+  'internal',
+  'market',
+  'persistence',
+  'publication',
+  'queue',
+  'recipe',
+  'refresh',
+  'snapshot',
+] as const;
 
-export type ErrorDisposition = 'degraded' | 'permanent' | 'retryable';
+export const errorDispositions = [
+  'degraded',
+  'permanent',
+  'retryable',
+] as const;
+
+export type DomainErrorCategory = (typeof domainErrorCategories)[number];
+export type ErrorDisposition = (typeof errorDispositions)[number];
 
 type ErrorDefinition = {
   category: DomainErrorCategory;
@@ -31,6 +40,11 @@ export const domainErrorDefinitions = {
     category: 'calculation',
     disposition: 'degraded',
     publicMessage: 'There are not enough listings for a reliable estimate.',
+  },
+  INTERNAL_ERROR: {
+    category: 'internal',
+    disposition: 'retryable',
+    publicMessage: 'The request could not be completed.',
   },
   JOB_ATTEMPTS_EXHAUSTED: {
     category: 'queue',
@@ -157,6 +171,11 @@ export const domainErrorDefinitions = {
     disposition: 'retryable',
     publicMessage: 'The recipe catalog could not be synchronized.',
   },
+  ROUTE_NOT_FOUND: {
+    category: 'internal',
+    disposition: 'permanent',
+    publicMessage: 'The requested API route does not exist.',
+  },
   REFRESH_ALREADY_RUNNING: {
     category: 'refresh',
     disposition: 'retryable',
@@ -210,6 +229,11 @@ export const domainErrorDefinitions = {
 } as const satisfies Record<string, ErrorDefinition>;
 
 export type DomainErrorCode = keyof typeof domainErrorDefinitions;
+
+export const domainErrorCodes = Object.keys(domainErrorDefinitions) as [
+  DomainErrorCode,
+  ...DomainErrorCode[],
+];
 
 type DefinitionFor<C extends DomainErrorCode> =
   (typeof domainErrorDefinitions)[C];
