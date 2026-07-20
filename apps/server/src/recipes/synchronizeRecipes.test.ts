@@ -3,13 +3,17 @@ import {
   validateRecipeV1,
 } from '@poe-worksmith/domain';
 import { validRecipeV1Fixture } from '@poe-worksmith/domain/fixtures';
+import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { LoadedRecipe } from './loader.js';
+import { type LoadedRecipe, loadRecipeFile } from './loader.js';
 import {
   computeRecipeContentHash,
+  synchronizeRecipeCatalog,
   synchronizeRecipes,
 } from './synchronizeRecipes.js';
+
+const recipeCatalog = path.resolve(import.meta.dirname, '../../../../recipes');
 
 function loadedRecipe(overrides: Partial<LoadedRecipe> = {}): LoadedRecipe {
   return {
@@ -22,6 +26,27 @@ function loadedRecipe(overrides: Partial<LoadedRecipe> = {}): LoadedRecipe {
 }
 
 describe('recipe synchronization', () => {
+  it('validates the authoring template and synchronizes the starter catalog', async () => {
+    const template = await loadRecipeFile(
+      path.join(recipeCatalog, 'recipe.template.md'),
+      recipeCatalog,
+    );
+    expect(template.definition.id).toBe('your-recipe-id');
+
+    const repositories = createInMemoryRepositories();
+    const first = await synchronizeRecipeCatalog(
+      recipeCatalog,
+      repositories.recipes,
+    );
+    const second = await synchronizeRecipeCatalog(
+      recipeCatalog,
+      repositories.recipes,
+    );
+
+    expect(first.created).toEqual(['physical-large-cluster']);
+    expect(second.unchanged).toEqual(['physical-large-cluster']);
+  });
+
   it('hashes normalized recipe data and referenced asset bytes', async () => {
     const source = loadedRecipe({ assets: ['images/example.png'] });
     const first = await computeRecipeContentHash(source, async () =>
@@ -128,5 +153,21 @@ describe('recipe synchronization', () => {
     ).toMatchObject({
       active: true,
     });
+  });
+
+  it('reports dry-run changes without writing them', async () => {
+    const repositories = createInMemoryRepositories();
+    const source = loadedRecipe();
+    const readAsset = async () => Buffer.from('unused');
+
+    const report = await synchronizeRecipes(
+      repositories.recipes,
+      [source],
+      readAsset,
+      { dryRun: true },
+    );
+
+    expect(report.created).toEqual([source.definition.id]);
+    expect(await repositories.recipes.listAll()).toEqual([]);
   });
 });

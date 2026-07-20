@@ -43,5 +43,9 @@ jobs:
       - run: pnpm db:migrate
       - run: pnpm test:integration
       - run: pnpm build
-      - run: pnpm --filter @poe-worksmith/server recipes:validate
+      - name: Validate and preview recipe catalog
+        run: |
+          echo '## Recipe catalog' >> "$GITHUB_STEP_SUMMARY"
+          pnpm --filter @poe-worksmith/server recipes:validate 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          pnpm --filter @poe-worksmith/server recipes:sync --dry-run 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
       - run: docker build --tag poe-worksmith:test .

@@ -26,6 +26,10 @@ export type RecipeSyncReport = {
 
 export type ReadRecipeAsset = (assetPath: string) => Promise<Uint8Array>;
 
+export type RecipeSyncOptions = {
+  dryRun?: boolean;
+};
+
 export async function computeRecipeContentHash(
   recipe: LoadedRecipe,
   readAsset: ReadRecipeAsset,
@@ -52,6 +56,7 @@ export async function synchronizeRecipes(
   repository: RecipeRepository,
   sourceRecipes: readonly LoadedRecipe[],
   readAsset: ReadRecipeAsset,
+  options: RecipeSyncOptions = {},
 ): Promise<RecipeSyncReport> {
   const report: RecipeSyncReport = {
     created: [],
@@ -91,7 +96,9 @@ export async function synchronizeRecipes(
 
     const operation = current ? 'update' : 'create';
     try {
-      await repository.save(toRecipe(source, contentHash));
+      if (!options.dryRun) {
+        await repository.save(toRecipe(source, contentHash));
+      }
       report[operation === 'create' ? 'created' : 'updated'].push(id);
     } catch (error) {
       report.failed.push({ id, message: errorMessage(error), operation });
@@ -103,7 +110,9 @@ export async function synchronizeRecipes(
   )) {
     if (!current.active || sourceIds.has(current.id)) continue;
     try {
-      await repository.save({ ...current, active: false });
+      if (!options.dryRun) {
+        await repository.save({ ...current, active: false });
+      }
       report.disabled.push(current.id);
     } catch (error) {
       report.failed.push({
@@ -120,11 +129,15 @@ export async function synchronizeRecipes(
 export async function synchronizeRecipeCatalog(
   catalogPath: string,
   repository: RecipeRepository,
+  options: RecipeSyncOptions = {},
 ) {
   const catalogRoot = path.resolve(catalogPath);
   const recipes = await loadRecipeCatalog(catalogRoot);
-  return synchronizeRecipes(repository, recipes, (assetPath) =>
-    readFile(path.resolve(catalogRoot, assetPath)),
+  return synchronizeRecipes(
+    repository,
+    recipes,
+    (assetPath) => readFile(path.resolve(catalogRoot, assetPath)),
+    options,
   );
 }
 
