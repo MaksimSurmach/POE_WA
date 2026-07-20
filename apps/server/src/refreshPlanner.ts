@@ -100,6 +100,9 @@ export async function planCatalogRefresh(
   ) {
     throw new DomainError('REFRESH_STATE_INVALID');
   }
+  const leagueId =
+    existingCycle?.leagueId ?? (await repositories.leagues.findCurrent())?.id;
+  if (!leagueId) throw new DomainError('CURRENT_LEAGUE_UNRESOLVED');
   const resolved: ResolvedRefreshDependency[] = [];
   let cacheHits = 0;
   let cacheMisses = 0;
@@ -128,6 +131,7 @@ export async function planCatalogRefresh(
       failedRecipes: 0,
       finishedAt: null,
       id: cycleId,
+      leagueId,
       publishedAt: null,
       requestedAt: now,
       startedAt: null,

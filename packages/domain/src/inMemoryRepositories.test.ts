@@ -16,6 +16,7 @@ const recipe: Recipe = {
   tags: ['physical'],
   title: 'Physical Cluster Jewel',
 };
+const leagueId = '00000000-0000-4000-8000-000000000001';
 
 const marketQuery: MarketQuery = {
   active: true,
@@ -34,6 +35,7 @@ const cycle: RefreshCycle = {
   failedRecipes: 0,
   finishedAt: null,
   id: '22222222-2222-4222-8222-222222222222',
+  leagueId,
   publishedAt: null,
   requestedAt: new Date('2026-07-20T00:00:00.000Z'),
   startedAt: new Date('2026-07-20T00:00:01.000Z'),
@@ -78,6 +80,7 @@ describe('in-memory repositories', () => {
       capturedAt: new Date('2026-07-20T00:00:00.000Z'),
       dedupeKey: 'snapshot-hash',
       expiresAt: new Date('2026-07-20T01:00:00.000Z'),
+      leagueId,
       marketQueryId: marketQuery.id,
       payload: { result: [] },
       providerStatus: 200,
@@ -99,6 +102,7 @@ describe('in-memory repositories', () => {
     const input = {
       cheapestPrice: '8.00000000',
       currency: 'divine',
+      leagueId,
       marketQueryId: marketQuery.id,
       medianTopNPrice: '8.40000000',
       nthPrice: '8.20000000',
@@ -126,6 +130,7 @@ describe('in-memory repositories', () => {
       evaluatedAt: new Date('2026-07-20T00:00:00.000Z'),
       expectedCraftCost: '4.10000000',
       lastSuccessfulAt: new Date('2026-07-20T00:00:00.000Z'),
+      leagueId,
       marginPercent: '50.000000',
       observationId: null,
       profit: '4.10000000',

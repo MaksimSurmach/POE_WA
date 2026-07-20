@@ -32,6 +32,7 @@ describe('migration baseline', () => {
         'game_data_versions',
         'jobs',
         'market_queries',
+        'poe_leagues',
         'provider_circuits',
         'raw_snapshots',
         'rate_limit_endpoint_policies',

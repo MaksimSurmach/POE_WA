@@ -30,6 +30,9 @@ export const refreshCycles = pgTable(
   'refresh_cycles',
   {
     id: uuid('id').defaultRandom().primaryKey(),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id, { onDelete: 'restrict' }),
     status: text('status').default('queued').notNull(),
     totalRecipes: integer('total_recipes').default(0).notNull(),
     totalQueries: integer('total_queries').default(0).notNull(),
@@ -158,6 +161,9 @@ export const rawSnapshots = pgTable(
     marketQueryId: uuid('market_query_id')
       .notNull()
       .references(() => marketQueries.id, { onDelete: 'cascade' }),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id, { onDelete: 'restrict' }),
     refreshCycleId: uuid('refresh_cycle_id')
       .notNull()
       .references(() => refreshCycles.id, { onDelete: 'cascade' }),
@@ -189,6 +195,9 @@ export const aggregatedObservations = pgTable(
     marketQueryId: uuid('market_query_id')
       .notNull()
       .references(() => marketQueries.id, { onDelete: 'restrict' }),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id, { onDelete: 'restrict' }),
     refreshCycleId: uuid('refresh_cycle_id')
       .notNull()
       .references(() => refreshCycles.id, { onDelete: 'cascade' }),
@@ -238,6 +247,9 @@ export const recipeEvaluations = pgTable(
     recipeId: text('recipe_id')
       .notNull()
       .references(() => recipes.id, { onDelete: 'restrict' }),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id, { onDelete: 'restrict' }),
     refreshCycleId: uuid('refresh_cycle_id')
       .notNull()
       .references(() => refreshCycles.id, { onDelete: 'cascade' }),

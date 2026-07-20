@@ -109,6 +109,7 @@ describe('health API', () => {
         failedRecipes: 0,
         finishedAt: null,
         id: 'cycle-active',
+        leagueId: '00000000-0000-4000-8000-000000000001',
         publishedAt: null,
         requestedAt: timestamp,
         startedAt: timestamp,

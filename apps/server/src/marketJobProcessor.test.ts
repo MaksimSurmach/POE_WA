@@ -12,6 +12,7 @@ import { MarketJobProcessor } from './marketJobProcessor.js';
 const now = new Date('2026-07-20T00:00:00.000Z');
 const retryDelayMs = 1000;
 const leaseTimeoutMs = 10_000;
+const leagueId = '00000000-0000-4000-8000-000000000001';
 
 async function seedJobs(count: number, maxAttempts = 3) {
   const repositories = createInMemoryRepositories();
@@ -23,6 +24,7 @@ async function seedJobs(count: number, maxAttempts = 3) {
     failedRecipes: 0,
     finishedAt: null,
     id: 'cycle-id',
+    leagueId,
     publishedAt: null,
     requestedAt: now,
     startedAt: null,

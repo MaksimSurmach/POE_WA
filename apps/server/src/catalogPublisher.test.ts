@@ -17,6 +17,7 @@ import {
 } from './catalogPublisher.js';
 
 const now = new Date('2026-07-20T00:00:00.000Z');
+const leagueId = '00000000-0000-4000-8000-000000000001';
 
 function storedRecipe(id: string, definition: JsonRecord = {}): Recipe {
   return {
@@ -46,6 +47,7 @@ function cycle(
     failedRecipes: 0,
     finishedAt: null,
     id,
+    leagueId,
     publishedAt: null,
     requestedAt: now,
     startedAt: null,
@@ -194,6 +196,7 @@ describe('catalog evaluation and publication', () => {
         capturedAt: now,
         dedupeKey: `snapshot-${queryIndex}`,
         expiresAt: new Date(now.getTime() + 300_000),
+        leagueId,
         marketQueryId,
         payload: { listings, provider: 'poe-trade', totalResults: 10 },
         providerStatus: 200,
@@ -202,6 +205,7 @@ describe('catalog evaluation and publication', () => {
       await repositories.observations.save({
         cheapestPrice: listings[0]!.price.amount,
         currency: 'chaos',
+        leagueId,
         marketQueryId,
         medianTopNPrice: null,
         nthPrice: null,

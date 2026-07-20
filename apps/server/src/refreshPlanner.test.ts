@@ -12,6 +12,22 @@ import { planCatalogRefresh } from './refreshPlanner.js';
 const now = new Date('2026-07-20T00:00:00.000Z');
 const snapshotTtlMs = 5 * 60 * 1000;
 
+async function seedCurrentLeague(
+  repositories: ReturnType<typeof createInMemoryRepositories>,
+) {
+  return repositories.leagues.upsert({
+    endAt: null,
+    game: 'poe1',
+    gggId: 'Standard',
+    isCurrent: true,
+    metadata: {},
+    name: 'Standard',
+    realm: 'pc',
+    startAt: null,
+    syncedAt: now,
+  });
+}
+
 function recipe(id: string, querySuffix: string): Recipe {
   const definition = validateRecipeV1({
     ...validRecipeV1Fixture,
@@ -50,6 +66,7 @@ function recipe(id: string, querySuffix: string): Recipe {
 
 async function repositoriesWithSharedMaterial() {
   const repositories = createInMemoryRepositories();
+  await seedCurrentLeague(repositories);
   await repositories.recipes.save(recipe('recipe-a', 'A'));
   await repositories.recipes.save(recipe('recipe-b', 'B'));
   return repositories;
@@ -116,6 +133,7 @@ describe('catalog refresh planner', () => {
         capturedAt: new Date(now.getTime() - 60_000),
         dedupeKey: `snapshot:${query.canonicalHash}`,
         expiresAt: new Date(now.getTime() + snapshotTtlMs - 60_000),
+        leagueId: first.cycle.leagueId,
         marketQueryId: query.marketQuery.id,
         payload: {},
         providerStatus: 200,
@@ -146,6 +164,7 @@ describe('catalog refresh planner', () => {
 
   it('applies the configured TTL even when a snapshot expiry is later', async () => {
     const repositories = createInMemoryRepositories();
+    await seedCurrentLeague(repositories);
     await repositories.recipes.save(recipe('recipe-a', 'A'));
     const first = await planCatalogRefresh(repositories, {
       cycleId: '44444444-4444-4444-8444-444444444444',
@@ -158,6 +177,7 @@ describe('catalog refresh planner', () => {
         capturedAt: new Date(now.getTime() - snapshotTtlMs),
         dedupeKey: `stale:${query.canonicalHash}`,
         expiresAt: new Date(now.getTime() + snapshotTtlMs),
+        leagueId: first.cycle.leagueId,
         marketQueryId: query.marketQuery.id,
         payload: {},
         providerStatus: 200,

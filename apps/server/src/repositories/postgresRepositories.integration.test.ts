@@ -16,6 +16,7 @@ const config = loadDatabaseConfig();
 const pool = createDatabasePool(config);
 const repositories = createPostgresRepositories(pool);
 const now = new Date('2026-07-20T00:00:00.000Z');
+const leagueId = '00000000-0000-4000-8000-000000000001';
 
 const recipe: Recipe = {
   active: true,
@@ -47,6 +48,7 @@ const cycle: RefreshCycle = {
   failedRecipes: 0,
   finishedAt: null,
   id: '22222222-2222-4222-8222-222222222222',
+  leagueId,
   publishedAt: null,
   requestedAt: now,
   startedAt: new Date('2026-07-20T00:00:01.000Z'),
@@ -69,7 +71,12 @@ beforeEach(async () => {
   await pool.query(
     `truncate table jobs, recipe_evaluations, raw_snapshots,
        aggregated_observations, catalog_state, market_queries,
-       refresh_cycles, recipes restart identity cascade`,
+       refresh_cycles, recipes, poe_leagues restart identity cascade`,
+  );
+  await pool.query(
+    `insert into poe_leagues (id, ggg_id, name, is_current, synced_at)
+     values ($1, 'Standard', 'Standard', true, now())`,
+    [leagueId],
   );
 });
 
@@ -117,6 +124,7 @@ describe('PostgreSQL repositories', () => {
       capturedAt: now,
       dedupeKey: 'snapshot-hash',
       expiresAt: new Date('2026-07-20T01:00:00.000Z'),
+      leagueId,
       marketQueryId: marketQuery.id,
       payload: { result: [] },
       providerStatus: 200,
@@ -138,6 +146,7 @@ describe('PostgreSQL repositories', () => {
     const input = {
       cheapestPrice: '8.00000000',
       currency: 'divine',
+      leagueId,
       marketQueryId: marketQuery.id,
       medianTopNPrice: '8.40000000',
       nthPrice: '8.20000000',
@@ -171,6 +180,7 @@ describe('PostgreSQL repositories', () => {
       evaluatedAt: now,
       expectedCraftCost: '4.10000000',
       lastSuccessfulAt: now,
+      leagueId,
       marginPercent: '50.000000',
       observationId: null,
       profit: '4.10000000',
@@ -388,6 +398,7 @@ describe('PostgreSQL repositories', () => {
         capturedAt: old,
         dedupeKey: `retention-snapshot-${index}`,
         expiresAt: new Date(old.getTime() + 60_000),
+        leagueId,
         marketQueryId: marketQuery.id,
         payload: {},
         providerStatus: 200,
@@ -396,6 +407,7 @@ describe('PostgreSQL repositories', () => {
       await repositories.observations.save({
         cheapestPrice: '1',
         currency: 'chaos',
+        leagueId,
         marketQueryId: marketQuery.id,
         medianTopNPrice: '1',
         nthPrice: null,

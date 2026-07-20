@@ -92,6 +92,8 @@ export class MarketJobProcessor {
     if (!marketQuery || marketQuery.id !== job.marketQueryId) {
       throw new DomainError('MARKET_QUERY_INVALID');
     }
+    const cycle = await this.#repositories.cycles.findById(job.refreshCycleId);
+    if (!cycle) throw new DomainError('PERSISTENCE_NOT_FOUND');
     const provider = this.#providers.get(payload.provider);
     if (!provider || marketQuery.provider !== provider.id) {
       throw new DomainError('MARKET_QUERY_INVALID');
@@ -112,6 +114,7 @@ export class MarketJobProcessor {
       job,
       payload.canonicalHash,
       result,
+      cycle.leagueId,
       this.#snapshotTtlMs,
     );
   }
@@ -209,6 +212,7 @@ function prepareResult(
   job: Job,
   canonicalHash: string,
   result: MarketSearchResult,
+  leagueId: string,
   snapshotTtlMs: number,
 ): PreparedMarketJob {
   const currency = result.listings[0]?.price.currency ?? 'unknown';
@@ -221,6 +225,7 @@ function prepareResult(
     capturedAt: result.fetchedAt,
     dedupeKey: `market:${job.refreshCycleId!}:${canonicalHash}`,
     expiresAt: new Date(result.fetchedAt.getTime() + snapshotTtlMs),
+    leagueId,
     marketQueryId: job.marketQueryId!,
     payload: {
       listings: result.listings.map((listing) => ({
@@ -236,6 +241,7 @@ function prepareResult(
   const observation: NewAggregatedObservation = {
     cheapestPrice: aggregation.cheapest?.amount ?? null,
     currency,
+    leagueId,
     marketQueryId: job.marketQueryId!,
     medianTopNPrice:
       aggregation.medianTopTen?.amount ??
