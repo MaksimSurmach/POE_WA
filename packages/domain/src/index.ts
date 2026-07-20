@@ -14,3 +14,4 @@ export * from './recipeSchema.js';
 export * from './recipeSchemaV2.js';
 export * from './recipeCompatibility.js';
 export * from './repositories.js';
+export * from './trade.js';

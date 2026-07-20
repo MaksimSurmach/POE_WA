@@ -1,0 +1,34 @@
+{
+  "gameDataVersion": "3.26.0",
+  "mappingVersion": "poe-trade-2026-07-21.1",
+  "mappings": [
+    {
+      "entityKind": "base",
+      "canonicalId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+      "externalId": "Large Cluster Jewel",
+      "discriminator": "jewel",
+      "payload": {
+        "filters": {
+          "enchant.stat_3086156145": 8,
+          "enchant.stat_3948993189": 12,
+          "enchant.stat_4079888060": 2
+        }
+      }
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:battle-hardened",
+      "externalId": "explicit.stat_4188581520"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:furious-assault",
+      "externalId": "explicit.stat_3415827027"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:master-the-fundamentals",
+      "externalId": "explicit.stat_3585232432"
+    }
+  ]
+}

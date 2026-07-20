@@ -22,6 +22,7 @@
     "game-data:activate": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server game-data:activate",
     "game-data:import": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server game-data:import",
     "game-data:validate": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server game-data:validate",
+    "trade-mappings:import": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server trade-mappings:import",
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "recipes:validate": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server recipes:validate",
