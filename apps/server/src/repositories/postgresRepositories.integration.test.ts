@@ -48,6 +48,7 @@ const cycle: RefreshCycle = {
   requestedAt: now,
   startedAt: new Date('2026-07-20T00:00:01.000Z'),
   status: 'running',
+  totalQueries: 1,
   totalRecipes: 1,
 };
 

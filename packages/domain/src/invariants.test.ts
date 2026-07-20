@@ -23,6 +23,7 @@ const queuedCycle: RefreshCycle = {
   requestedAt: now,
   startedAt: null,
   status: 'queued',
+  totalQueries: 200,
   totalRecipes: 100,
 };
 

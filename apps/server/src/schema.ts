@@ -30,6 +30,7 @@ export const refreshCycles = pgTable(
     id: uuid('id').defaultRandom().primaryKey(),
     status: text('status').default('queued').notNull(),
     totalRecipes: integer('total_recipes').default(0).notNull(),
+    totalQueries: integer('total_queries').default(0).notNull(),
     completedRecipes: integer('completed_recipes').default(0).notNull(),
     failedRecipes: integer('failed_recipes').default(0).notNull(),
     requestedAt: timestamp('requested_at', { withTimezone: true })
@@ -48,7 +49,7 @@ export const refreshCycles = pgTable(
     ),
     check(
       'refresh_cycles_counts_check',
-      sql`${table.totalRecipes} >= 0 and ${table.completedRecipes} >= 0 and ${table.failedRecipes} >= 0 and ${table.completedRecipes} + ${table.failedRecipes} <= ${table.totalRecipes}`,
+      sql`${table.totalRecipes} >= 0 and ${table.totalQueries} >= 0 and ${table.completedRecipes} >= 0 and ${table.failedRecipes} >= 0 and ${table.completedRecipes} + ${table.failedRecipes} <= ${table.totalRecipes}`,
     ),
     index('refresh_cycles_status_requested_at_idx').on(
       table.status,

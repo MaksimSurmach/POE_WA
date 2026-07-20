@@ -80,6 +80,7 @@ export type RefreshCycle = {
   requestedAt: Date;
   startedAt: Date | null;
   status: RefreshCycleStatus;
+  totalQueries: number;
   totalRecipes: number;
 };
 

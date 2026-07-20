@@ -44,6 +44,11 @@ export function assertRefreshTransition(
 
 export function assertRefreshCycleInvariant(cycle: RefreshCycle) {
   if (
+    !Number.isInteger(cycle.totalQueries) ||
+    !Number.isInteger(cycle.totalRecipes) ||
+    !Number.isInteger(cycle.completedRecipes) ||
+    !Number.isInteger(cycle.failedRecipes) ||
+    cycle.totalQueries < 0 ||
     cycle.totalRecipes < 0 ||
     cycle.completedRecipes < 0 ||
     cycle.failedRecipes < 0 ||
