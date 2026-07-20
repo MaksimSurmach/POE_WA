@@ -21,6 +21,8 @@ RUN pnpm --filter @poe-worksmith/domain build \
   && pnpm --filter @poe-worksmith/web build \
   && node apps/server/dist/recipes/validateCatalog.js recipes \
   && pnpm --filter @poe-worksmith/server deploy --prod --legacy /opt/server
+RUN cd /opt/server \
+  && node -e "await Promise.all([import('./dist/api.js'), import('@poe-worksmith/contracts'), import('@poe-worksmith/domain')])"
 
 FROM nginxinc/nginx-unprivileged:1.29-alpine AS web
 
