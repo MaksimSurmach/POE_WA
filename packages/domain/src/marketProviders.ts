@@ -17,6 +17,7 @@ export type ProviderMoney = Readonly<{
 
 export type MarketListing = Readonly<{
   account: string;
+  ageSeconds: number;
   fee: ProviderMoney | null;
   id: string;
   indexedAt: Date;
