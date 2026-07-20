@@ -136,4 +136,55 @@ describe('health API', () => {
     });
     await api.close();
   });
+
+  it('exposes shared rate-limit windows and waiting time', async () => {
+    const timestamp = new Date('2026-07-20T00:00:00.000Z');
+    const blockedUntil = new Date(timestamp.getTime() + 10_000);
+    const api = buildApi(
+      pino({ level: 'silent' }),
+      vi.fn(),
+      async () => ({ active: null, published: null }),
+      async () => [
+        {
+          blockedUntil,
+          endpoints: ['trade-search', 'trade-fetch'],
+          lastResponseAt: timestamp,
+          lastStatus: 429,
+          minimumDelayMs: 1100,
+          nextRequestAt: timestamp,
+          policy: 'trade-search-request-limit',
+          updatedAt: timestamp,
+          windows: [
+            {
+              activeRestrictionSeconds: 10,
+              currentHits: 11,
+              maximumHits: 10,
+              periodSeconds: 5,
+              restrictionSeconds: 10,
+              rule: 'client',
+            },
+          ],
+        },
+      ],
+    );
+
+    const response = await api.inject({
+      method: 'GET',
+      url: '/api/diagnostics/rate-limits',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      data: {
+        policies: [
+          {
+            blockedUntil: blockedUntil.toISOString(),
+            minimumDelayMs: 1100,
+            waitingUntil: blockedUntil.toISOString(),
+          },
+        ],
+      },
+    });
+    await api.close();
+  });
 });

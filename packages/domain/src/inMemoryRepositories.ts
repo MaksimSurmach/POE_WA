@@ -3,6 +3,7 @@ import type {
   Job,
   MarketQuery,
   RawSnapshot,
+  RateLimitState,
   Recipe,
   RecipeEvaluation,
   RefreshCycle,
@@ -32,6 +33,8 @@ export function createInMemoryRepositories(): Repositories {
   const evaluations = new Map<number, RecipeEvaluation>();
   const cycles = new Map<string, RefreshCycle>();
   const jobs = new Map<string, Job>();
+  const endpointPolicies = new Map<string, string>();
+  const rateLimitStates = new Map<string, RateLimitState>();
   let snapshotId = 0;
   let observationId = 0;
   let evaluationId = 0;
@@ -47,6 +50,24 @@ export function createInMemoryRepositories(): Repositories {
     const updated = { ...cycle, [field]: cycle[field] + 1 };
     assertRefreshCycleInvariant(updated);
     cycles.set(cycleId, updated);
+  }
+
+  function initialRateLimitState(
+    policy: string,
+    now: Date,
+    minimumDelayMs: number,
+  ): RateLimitState {
+    return {
+      blockedUntil: now,
+      endpoints: [],
+      lastResponseAt: null,
+      lastStatus: null,
+      minimumDelayMs,
+      nextRequestAt: now,
+      policy,
+      updatedAt: now,
+      windows: [],
+    };
   }
 
   return {
@@ -241,6 +262,87 @@ export function createInMemoryRepositories(): Repositories {
         };
         observations.set(saved.id, saved);
         return clone(saved);
+      },
+    },
+    rateLimits: {
+      async acquire(input) {
+        const policy =
+          endpointPolicies.get(input.endpoint) ?? input.fallbackPolicy;
+        const current =
+          rateLimitStates.get(policy) ??
+          initialRateLimitState(policy, input.now, input.conservativeDelayMs);
+        const retryAt = new Date(
+          Math.max(
+            current.blockedUntil.getTime(),
+            current.nextRequestAt.getTime(),
+            input.now.getTime(),
+          ),
+        );
+        const acquired = retryAt <= input.now;
+        const state: RateLimitState = {
+          ...current,
+          endpoints: [...new Set([...current.endpoints, input.endpoint])],
+          nextRequestAt: acquired
+            ? new Date(input.now.getTime() + current.minimumDelayMs)
+            : current.nextRequestAt,
+          updatedAt: input.now,
+        };
+        rateLimitStates.set(policy, clone(state));
+        return { acquired, retryAt, state: clone(state) };
+      },
+      async list() {
+        return [...rateLimitStates.values()]
+          .filter(({ endpoints }) => endpoints.length > 0)
+          .sort((left, right) => left.policy.localeCompare(right.policy))
+          .map(clone);
+      },
+      async observe(input) {
+        const previousPolicy =
+          endpointPolicies.get(input.endpoint) ?? input.fallbackPolicy;
+        const previous =
+          rateLimitStates.get(previousPolicy) ??
+          initialRateLimitState(
+            previousPolicy,
+            input.now,
+            input.minimumDelayMs,
+          );
+        const current =
+          rateLimitStates.get(input.policy) ??
+          initialRateLimitState(input.policy, input.now, input.minimumDelayMs);
+        if (previousPolicy !== input.policy) {
+          rateLimitStates.set(previousPolicy, {
+            ...previous,
+            endpoints: previous.endpoints.filter(
+              (endpoint) => endpoint !== input.endpoint,
+            ),
+          });
+        }
+        endpointPolicies.set(input.endpoint, input.policy);
+        const state: RateLimitState = {
+          blockedUntil: new Date(
+            Math.max(
+              current.blockedUntil.getTime(),
+              previous.blockedUntil.getTime(),
+              input.blockedUntil.getTime(),
+            ),
+          ),
+          endpoints: [...new Set([...current.endpoints, input.endpoint])],
+          lastResponseAt: input.now,
+          lastStatus: input.status,
+          minimumDelayMs: input.minimumDelayMs,
+          nextRequestAt: new Date(
+            Math.max(
+              current.nextRequestAt.getTime(),
+              previous.nextRequestAt.getTime(),
+              input.now.getTime() + input.minimumDelayMs,
+            ),
+          ),
+          policy: input.policy,
+          updatedAt: input.now,
+          windows: clone(input.windows),
+        };
+        rateLimitStates.set(input.policy, clone(state));
+        return clone(state);
       },
     },
     evaluations: {

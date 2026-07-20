@@ -284,6 +284,35 @@ export const refreshProgressResponseSchema = z.strictObject({
   }),
 });
 
+export const rateLimitWindowSchema = z.strictObject({
+  activeRestrictionSeconds: z.number().int().nonnegative(),
+  currentHits: z.number().int().nonnegative(),
+  maximumHits: z.number().int().positive(),
+  periodSeconds: z.number().int().positive(),
+  restrictionSeconds: z.number().int().nonnegative(),
+  rule: z.string().min(1),
+});
+
+export const rateLimitDiagnosticsResponseSchema = z.strictObject({
+  correlationId: correlationIdSchema,
+  data: z.strictObject({
+    policies: z.array(
+      z.strictObject({
+        blockedUntil: z.iso.datetime(),
+        endpoints: z.array(z.string().min(1)),
+        lastResponseAt: z.iso.datetime().nullable(),
+        lastStatus: z.number().int().min(100).max(599).nullable(),
+        minimumDelayMs: z.number().int().positive(),
+        nextRequestAt: z.iso.datetime(),
+        policy: z.string().min(1),
+        updatedAt: z.iso.datetime(),
+        waitingUntil: z.iso.datetime(),
+        windows: z.array(rateLimitWindowSchema),
+      }),
+    ),
+  }),
+});
+
 export type Price = z.infer<typeof priceSchema>;
 export type Listing = z.infer<typeof listingSchema>;
 export type MarketSnapshot = z.infer<typeof marketSnapshotSchema>;
@@ -300,4 +329,7 @@ export type CatalogResponse = z.infer<typeof catalogResponseSchema>;
 export type RecipeResponse = z.infer<typeof recipeResponseSchema>;
 export type RefreshProgressResponse = z.infer<
   typeof refreshProgressResponseSchema
+>;
+export type RateLimitDiagnosticsResponse = z.infer<
+  typeof rateLimitDiagnosticsResponseSchema
 >;

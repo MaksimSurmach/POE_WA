@@ -31,7 +31,7 @@ describe('runtime configuration', () => {
       marketConcurrency: 4,
       marketRetryDelayMs: 60_000,
       mode: 'worker',
-      poeUserAgent: 'POE-Worksmith/0.0.0 (contact: local-development)',
+      poeUserAgent: 'OAuth poe-worksmith/0.0.0 (contact: local-development)',
       port: 4100,
       refreshCron: '0 */4 * * *',
       retentionBatchSize: 500,
@@ -47,6 +47,12 @@ describe('runtime configuration', () => {
   it('rejects unsafe schema identifiers', () => {
     expect(() =>
       loadRuntimeConfig({ ...environment, PG_BOSS_SCHEMA: 'pgboss; drop' }),
+    ).toThrow(RuntimeConfigurationError);
+  });
+
+  it('requires GGG-compliant OAuth user-agent identification', () => {
+    expect(() =>
+      loadRuntimeConfig({ ...environment, POE_USER_AGENT: 'anonymous-client' }),
     ).toThrow(RuntimeConfigurationError);
   });
 

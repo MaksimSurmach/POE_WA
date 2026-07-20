@@ -1,5 +1,5 @@
 import { DomainError } from '@poe-worksmith/domain';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { PoeTradeClient, type PoeTradeFetch } from './poeTrade.js';
 
@@ -35,6 +35,10 @@ const mockFetchResponse = {
 describe('PoE Trade Merchant client', () => {
   it('forces Merchant search and returns the ordered top ten without seller dedupe', async () => {
     const calls: { init: RequestInit | undefined; url: string }[] = [];
+    const rateLimits = {
+      observeResponse: vi.fn().mockResolvedValue({}),
+      waitForPermit: vi.fn().mockResolvedValue({}),
+    };
     const fetch: PoeTradeFetch = async (input, init) => {
       calls.push({ init, url: String(input) });
       return Response.json(
@@ -45,6 +49,7 @@ describe('PoE Trade Merchant client', () => {
       baseUrl: 'https://trade.test',
       clock: () => new Date('2026-07-20T00:00:00.000Z'),
       fetch,
+      rateLimits,
       userAgent: 'OAuth poe-worksmith/0.0.0 (contact: test@example.com)',
     });
     const input = {
@@ -68,6 +73,13 @@ describe('PoE Trade Merchant client', () => {
     const result = await client.search(input);
 
     expect(calls).toHaveLength(2);
+    expect(rateLimits.waitForPermit.mock.calls).toEqual([
+      ['trade-search'],
+      ['trade-fetch'],
+    ]);
+    expect(
+      rateLimits.observeResponse.mock.calls.map(([endpoint]) => endpoint),
+    ).toEqual(['trade-search', 'trade-fetch']);
     expect(calls[0]?.url).toBe('https://trade.test/api/trade/search/Settlers');
     const searchBody = JSON.parse(String(calls[0]?.init?.body)) as {
       query: { stats: unknown; status: { option: string } };
@@ -122,6 +134,37 @@ describe('PoE Trade Merchant client', () => {
       }),
     ).resolves.toMatchObject({ listings: [], totalResults: 0 });
     expect(calls).toBe(1);
+  });
+
+  it('routes currency queries through exchange with the same safe search policy', async () => {
+    const calls: { init: RequestInit | undefined; url: string }[] = [];
+    const client = new PoeTradeClient({
+      baseUrl: 'https://trade.test',
+      fetch: async (input, init) => {
+        calls.push({ init, url: String(input) });
+        return Response.json({ id: 'exchange-id', result: [], total: 0 });
+      },
+      userAgent: 'OAuth poe-worksmith/0.0.0 (contact: test@example.com)',
+    });
+    const query = {
+      exchange: { have: ['divine'], want: ['chaos'] },
+    } as const;
+
+    await client.search({ league: 'Settlers', query, schemaVersion: 1 });
+
+    expect(calls[0]?.url).toBe(
+      'https://trade.test/api/trade/exchange/Settlers',
+    );
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({
+      exchange: {
+        have: ['divine'],
+        status: { option: 'online' },
+        want: ['chaos'],
+      },
+    });
+    expect(query).toEqual({
+      exchange: { have: ['divine'], want: ['chaos'] },
+    });
   });
 
   it.each([

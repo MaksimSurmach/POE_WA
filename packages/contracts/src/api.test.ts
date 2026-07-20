@@ -4,6 +4,7 @@ import {
   apiErrorEnvelopeSchema,
   catalogResponseSchema,
   publicDomainErrorSchema,
+  rateLimitDiagnosticsResponseSchema,
   refreshProgressResponseSchema,
 } from './index.js';
 
@@ -153,5 +154,40 @@ describe('HTTP API contracts', () => {
         },
       }),
     ).toThrow();
+  });
+
+  it('validates rate-limit diagnostics without hiding policy windows', () => {
+    const response = {
+      correlationId,
+      data: {
+        policies: [
+          {
+            blockedUntil: timestamp,
+            endpoints: ['trade-search'],
+            lastResponseAt: timestamp,
+            lastStatus: 429,
+            minimumDelayMs: 1000,
+            nextRequestAt: timestamp,
+            policy: 'trade-policy',
+            updatedAt: timestamp,
+            waitingUntil: timestamp,
+            windows: [
+              {
+                activeRestrictionSeconds: 10,
+                currentHits: 11,
+                maximumHits: 10,
+                periodSeconds: 5,
+                restrictionSeconds: 10,
+                rule: 'client',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    expect(rateLimitDiagnosticsResponseSchema.parse(response)).toEqual(
+      response,
+    );
   });
 });

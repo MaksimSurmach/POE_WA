@@ -18,7 +18,7 @@ services:
       MARKET_RETRY_DELAY_MS: 60000
       PG_BOSS_SCHEMA: pgboss
       POE_LEAGUE: Mercenaries
-      POE_USER_AGENT: 'POE-Worksmith/0.0.0 (contact: local-development)'
+      POE_USER_AGENT: 'OAuth poe-worksmith/0.0.0 (contact: local-development)'
       REFRESH_CRON: '0 */4 * * *'
       RETENTION_BATCH_SIZE: 500
       SHUTDOWN_TIMEOUT_MS: 30000

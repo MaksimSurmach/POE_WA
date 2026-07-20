@@ -9,6 +9,10 @@ import type {
   NewRecipeEvaluation,
   PublishedCatalog,
   RawSnapshot,
+  RateLimitAcquireInput,
+  RateLimitObservation,
+  RateLimitPermit,
+  RateLimitState,
   Recipe,
   RecipeEvaluation,
   RefreshCycle,
@@ -70,6 +74,12 @@ export interface RetentionRepository {
   cleanup(options: RetentionCleanupOptions): Promise<RetentionCleanupReport>;
 }
 
+export interface RateLimitRepository {
+  acquire(input: RateLimitAcquireInput): Promise<RateLimitPermit>;
+  list(): Promise<RateLimitState[]>;
+  observe(input: RateLimitObservation): Promise<RateLimitState>;
+}
+
 export interface JobRepository {
   claimNext(
     workerId: string,
@@ -100,6 +110,7 @@ export type Repositories = {
   marketQueries: MarketQueryRepository;
   marketResults: MarketResultRepository;
   observations: ObservationRepository;
+  rateLimits: RateLimitRepository;
   recipes: RecipeRepository;
   retention: RetentionRepository;
   snapshots: SnapshotRepository;

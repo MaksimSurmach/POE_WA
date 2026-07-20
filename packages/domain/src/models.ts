@@ -133,3 +133,48 @@ export type RetentionCleanupReport = {
   observations: number;
   rawSnapshots: number;
 };
+
+export type RateLimitWindow = {
+  activeRestrictionSeconds: number;
+  currentHits: number;
+  maximumHits: number;
+  periodSeconds: number;
+  restrictionSeconds: number;
+  rule: string;
+};
+
+export type RateLimitState = {
+  blockedUntil: Date;
+  endpoints: string[];
+  lastResponseAt: Date | null;
+  lastStatus: number | null;
+  minimumDelayMs: number;
+  nextRequestAt: Date;
+  policy: string;
+  updatedAt: Date;
+  windows: RateLimitWindow[];
+};
+
+export type RateLimitPermit = {
+  acquired: boolean;
+  retryAt: Date;
+  state: RateLimitState;
+};
+
+export type RateLimitAcquireInput = {
+  conservativeDelayMs: number;
+  endpoint: string;
+  fallbackPolicy: string;
+  now: Date;
+};
+
+export type RateLimitObservation = {
+  blockedUntil: Date;
+  endpoint: string;
+  fallbackPolicy: string;
+  minimumDelayMs: number;
+  now: Date;
+  policy: string;
+  status: number;
+  windows: RateLimitWindow[];
+};

@@ -28,7 +28,8 @@ const runtimeEnvironmentSchema = z.object({
     .string()
     .trim()
     .min(1)
-    .default('POE-Worksmith/0.0.0 (contact: local-development)'),
+    .startsWith('OAuth ')
+    .default('OAuth poe-worksmith/0.0.0 (contact: local-development)'),
   REFRESH_CRON: z.string().min(1).default('0 */4 * * *'),
   RETENTION_BATCH_SIZE: z.coerce.number().int().min(1).default(500),
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().min(1000).default(30_000),

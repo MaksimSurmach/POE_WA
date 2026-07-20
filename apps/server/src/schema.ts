@@ -1,3 +1,4 @@
+import type { RateLimitWindow } from '@poe-worksmith/domain';
 import { sql } from 'drizzle-orm';
 import {
   bigint,
@@ -336,5 +337,54 @@ export const jobs = pgTable(
       'jobs_attempts_check',
       sql`${table.attempts} >= 0 and ${table.maxAttempts} > 0 and ${table.attempts} <= ${table.maxAttempts}`,
     ),
+  ],
+);
+
+export const rateLimitStates = pgTable(
+  'rate_limit_states',
+  {
+    policy: text('policy').primaryKey(),
+    blockedUntil: timestamp('blocked_until', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    nextRequestAt: timestamp('next_request_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    minimumDelayMs: integer('minimum_delay_ms').default(1000).notNull(),
+    windows: jsonb('windows')
+      .$type<RateLimitWindow[]>()
+      .default(sql`'[]'::jsonb`)
+      .notNull(),
+    lastStatus: integer('last_status'),
+    lastResponseAt: timestamp('last_response_at', { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index('rate_limit_states_blocked_until_idx').on(table.blockedUntil),
+    check(
+      'rate_limit_states_minimum_delay_check',
+      sql`${table.minimumDelayMs} > 0`,
+    ),
+    check(
+      'rate_limit_states_last_status_check',
+      sql`${table.lastStatus} is null or ${table.lastStatus} between 100 and 599`,
+    ),
+  ],
+);
+
+export const rateLimitEndpointPolicies = pgTable(
+  'rate_limit_endpoint_policies',
+  {
+    endpoint: text('endpoint').primaryKey(),
+    policy: text('policy')
+      .notNull()
+      .references(() => rateLimitStates.policy, {
+        onDelete: 'restrict',
+        onUpdate: 'cascade',
+      }),
+    ...timestamps,
+  },
+  (table) => [
+    index('rate_limit_endpoint_policies_policy_idx').on(table.policy),
   ],
 );

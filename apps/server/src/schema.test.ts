@@ -7,6 +7,8 @@ import {
   jobs,
   marketQueries,
   rawSnapshots,
+  rateLimitEndpointPolicies,
+  rateLimitStates,
   recipeEvaluations,
   recipes,
   refreshCycles,
@@ -21,6 +23,8 @@ const tables = [
   refreshCycles,
   catalogState,
   jobs,
+  rateLimitStates,
+  rateLimitEndpointPolicies,
 ];
 
 describe('PostgreSQL schema', () => {
@@ -34,6 +38,8 @@ describe('PostgreSQL schema', () => {
       'refresh_cycles',
       'catalog_state',
       'jobs',
+      'rate_limit_states',
+      'rate_limit_endpoint_policies',
     ]);
   });
 
@@ -53,6 +59,8 @@ describe('PostgreSQL schema', () => {
         'recipe_evaluations_refresh_cycle_id_idx',
         'refresh_cycles_single_running_uq',
         'jobs_pending_run_after_idx',
+        'rate_limit_states_blocked_until_idx',
+        'rate_limit_endpoint_policies_policy_idx',
       ]),
     );
   });

@@ -5,6 +5,7 @@ import { createDatabasePool } from './database.js';
 import { CatalogRefreshScheduler, createJobBoss } from './jobs.js';
 import { MarketJobProcessor } from './marketJobProcessor.js';
 import { PoeTradeClient } from './providers/poeTrade.js';
+import { GggRateLimitController } from './rateLimitController.js';
 import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
 import { createPostgresRepositories } from './repositories/index.js';
 import { RetentionCleaner } from './retention.js';
@@ -28,14 +29,23 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           await pool.query('select 1');
         },
         repositories.catalog.getProgress,
+        repositories.rateLimits.list,
       )
     : undefined;
   let jobs: CatalogRefreshScheduler | undefined;
   if (modeIncludesWorker(config.mode)) {
+    const rateLimits = new GggRateLimitController({
+      repository: repositories.rateLimits,
+    });
     const marketJobs = new MarketJobProcessor({
       concurrency: config.marketConcurrency,
       leaseTimeoutMs: config.jobLeaseTimeoutMs,
-      providers: [new PoeTradeClient({ userAgent: config.poeUserAgent })],
+      providers: [
+        new PoeTradeClient({
+          rateLimits,
+          userAgent: config.poeUserAgent,
+        }),
+      ],
       repositories,
       retryDelayMs: config.marketRetryDelayMs,
       snapshotTtlMs: config.snapshotTtlMs,

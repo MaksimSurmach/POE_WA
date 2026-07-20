@@ -10,6 +10,8 @@ import {
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
 
+import type { RateLimitGate } from '../rateLimitController.js';
+
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
   z.union([
     z.boolean(),
@@ -69,17 +71,20 @@ export class PoeTradeClient implements MarketSearchProvider {
   readonly #baseUrl: URL;
   readonly #clock: () => Date;
   readonly #fetch: PoeTradeFetch;
+  readonly #rateLimits: RateLimitGate | undefined;
   readonly #userAgent: string;
 
   constructor(options: {
     baseUrl?: string;
     clock?: () => Date;
     fetch?: PoeTradeFetch;
+    rateLimits?: RateLimitGate;
     userAgent: string;
   }) {
     this.#baseUrl = new URL(options.baseUrl ?? defaultBaseUrl);
     this.#clock = options.clock ?? (() => new Date());
     this.#fetch = options.fetch ?? globalThis.fetch;
+    this.#rateLimits = options.rateLimits;
     this.#userAgent = options.userAgent.trim();
     if (this.#userAgent.length === 0) {
       throw new TypeError('userAgent must not be empty');
@@ -89,13 +94,13 @@ export class PoeTradeClient implements MarketSearchProvider {
   async search(request: MarketSearchRequest): Promise<MarketSearchResult> {
     const league = request.league.trim();
     if (league.length === 0) throw new DomainError('MARKET_QUERY_INVALID');
-    const searchBody = buildMerchantSearchBody(request.query);
+    const preparedSearch = buildSearchRequest(request.query);
     const searchUrl = new URL(
-      `/api/trade/search/${encodeURIComponent(league)}`,
+      `/api/trade/${preparedSearch.kind}/${encodeURIComponent(league)}`,
       this.#baseUrl,
     );
-    const rawSearch = await this.#request(searchUrl, {
-      body: JSON.stringify(searchBody),
+    const rawSearch = await this.#request('trade-search', searchUrl, {
+      body: JSON.stringify(preparedSearch.body),
       headers: this.#headers(true),
       method: 'POST',
     });
@@ -116,7 +121,7 @@ export class PoeTradeClient implements MarketSearchProvider {
       this.#baseUrl,
     );
     fetchUrl.searchParams.set('query', search.id);
-    const rawFetch = await this.#request(fetchUrl, {
+    const rawFetch = await this.#request('trade-fetch', fetchUrl, {
       headers: this.#headers(false),
       method: 'GET',
     });
@@ -146,7 +151,8 @@ export class PoeTradeClient implements MarketSearchProvider {
     };
   }
 
-  async #request(url: URL, init: RequestInit) {
+  async #request(endpoint: string, url: URL, init: RequestInit) {
+    await this.#rateLimits?.waitForPermit(endpoint);
     let response: Response;
     try {
       response = await this.#fetch(url, init);
@@ -154,6 +160,8 @@ export class PoeTradeClient implements MarketSearchProvider {
       if (error instanceof DomainError) throw error;
       throw new DomainError('PROVIDER_UNAVAILABLE', { cause: error });
     }
+
+    await this.#rateLimits?.observeResponse(endpoint, response);
 
     if (!response.ok) throw mapHttpError(response.status);
 
@@ -165,26 +173,42 @@ export class PoeTradeClient implements MarketSearchProvider {
   }
 }
 
-function buildMerchantSearchBody(
-  source: CanonicalJsonObject,
-): CanonicalJsonObject {
+function buildSearchRequest(source: CanonicalJsonObject): {
+  body: CanonicalJsonObject;
+  kind: 'exchange' | 'search';
+} {
   const query = source.query;
-  if (!isJsonObject(query)) {
-    throw new DomainError('MARKET_QUERY_INVALID');
+  if (isJsonObject(query)) {
+    const sort = source.sort;
+    if (sort !== undefined && !isJsonObject(sort)) {
+      throw new DomainError('MARKET_QUERY_INVALID');
+    }
+    return {
+      body: {
+        ...source,
+        query: {
+          ...query,
+          status: { option: 'securable' },
+        },
+        sort: { price: 'asc' },
+      },
+      kind: 'search',
+    };
   }
-  const sort = source.sort;
-  if (sort !== undefined && !isJsonObject(sort)) {
-    throw new DomainError('MARKET_QUERY_INVALID');
+  const exchange = source.exchange;
+  if (isJsonObject(exchange)) {
+    return {
+      body: {
+        ...source,
+        exchange: {
+          ...exchange,
+          status: { option: 'online' },
+        },
+      },
+      kind: 'exchange',
+    };
   }
-
-  return {
-    ...source,
-    query: {
-      ...query,
-      status: { option: 'securable' },
-    },
-    sort: { price: 'asc' },
-  };
+  throw new DomainError('MARKET_QUERY_INVALID');
 }
 
 function normalizeListing(

@@ -3,6 +3,8 @@ import type {
   Job,
   MarketQuery,
   RawSnapshot,
+  RateLimitState,
+  RateLimitWindow,
   Recipe,
   RecipeEvaluation,
   RefreshCycle,
@@ -41,6 +43,17 @@ type ObservationRow = typeof aggregatedObservations.$inferSelect;
 type EvaluationRow = typeof recipeEvaluations.$inferSelect;
 type CycleRow = typeof refreshCycles.$inferSelect;
 type JobRow = typeof jobs.$inferSelect;
+type RateLimitStateSqlRow = {
+  blocked_until: Date;
+  endpoints: string[];
+  last_response_at: Date | null;
+  last_status: number | null;
+  minimum_delay_ms: number;
+  next_request_at: Date;
+  policy: string;
+  updated_at: Date;
+  windows: RateLimitWindow[];
+};
 
 export function createPostgresRepositories(pool: Pool): Repositories {
   const database = drizzle({ client: pool });
@@ -152,6 +165,180 @@ export function createPostgresRepositories(pool: Pool): Repositories {
               evaluations: evaluationRows.map(mapEvaluation),
               recipes: recipeRows.map(mapRecipe),
             };
+          } catch (error) {
+            await client.query('rollback').catch(() => undefined);
+            throw error;
+          } finally {
+            client.release();
+          }
+        });
+      },
+    },
+    rateLimits: {
+      acquire(input) {
+        return mapRepositoryError('rateLimits', 'acquire', async () => {
+          assertRateLimitInput(
+            input.endpoint,
+            input.fallbackPolicy,
+            input.now,
+            input.conservativeDelayMs,
+          );
+          const client = await pool.connect();
+          try {
+            await client.query('begin');
+            await lockRateLimitEndpoint(client, input.endpoint);
+            const mapping = await client.query<{ policy: string }>(
+              `select policy
+               from rate_limit_endpoint_policies
+               where endpoint = $1
+               for update`,
+              [input.endpoint],
+            );
+            const policy =
+              mapping.rows[0]?.policy ?? input.fallbackPolicy.trim();
+            await insertRateLimitState(
+              client,
+              policy,
+              input.now,
+              input.conservativeDelayMs,
+            );
+            const locked = await selectRateLimitStateForUpdate(client, policy);
+            const retryAt = new Date(
+              Math.max(
+                locked.blocked_until.getTime(),
+                locked.next_request_at.getTime(),
+                input.now.getTime(),
+              ),
+            );
+            const acquired = retryAt <= input.now;
+            if (acquired) {
+              await client.query(
+                `update rate_limit_states
+                 set next_request_at = $2, updated_at = $1
+                 where policy = $3`,
+                [
+                  input.now,
+                  new Date(input.now.getTime() + locked.minimum_delay_ms),
+                  policy,
+                ],
+              );
+            }
+            await client.query(
+              `insert into rate_limit_endpoint_policies
+                 (endpoint, policy, updated_at)
+               values ($1, $2, $3)
+               on conflict (endpoint) do nothing`,
+              [input.endpoint, policy, input.now],
+            );
+            const state = await selectRateLimitState(client, policy);
+            await client.query('commit');
+            return { acquired, retryAt, state };
+          } catch (error) {
+            await client.query('rollback').catch(() => undefined);
+            throw error;
+          } finally {
+            client.release();
+          }
+        });
+      },
+      list() {
+        return mapRepositoryError('rateLimits', 'list', async () => {
+          const result = await pool.query<RateLimitStateSqlRow>(
+            rateLimitStateSelectSql(),
+          );
+          return result.rows.map(mapRateLimitState);
+        });
+      },
+      observe(input) {
+        return mapRepositoryError('rateLimits', 'observe', async () => {
+          assertRateLimitInput(
+            input.endpoint,
+            input.fallbackPolicy,
+            input.now,
+            input.minimumDelayMs,
+          );
+          assertRateLimitObservation(input.status, input.windows);
+          assertRateLimitInput(
+            input.endpoint,
+            input.policy,
+            input.blockedUntil,
+            input.minimumDelayMs,
+          );
+          const client = await pool.connect();
+          try {
+            await client.query('begin');
+            await lockRateLimitEndpoint(client, input.endpoint);
+            const mapping = await client.query<{ policy: string }>(
+              `select policy
+               from rate_limit_endpoint_policies
+               where endpoint = $1
+               for update`,
+              [input.endpoint],
+            );
+            const previousPolicy =
+              mapping.rows[0]?.policy ?? input.fallbackPolicy.trim();
+            const policy = input.policy.trim();
+            const policies = [...new Set([previousPolicy, policy])].sort();
+            for (const candidate of policies) {
+              await insertRateLimitState(
+                client,
+                candidate,
+                input.now,
+                input.minimumDelayMs,
+              );
+            }
+            const locked = await client.query<RateLimitStateSqlRow>(
+              `select state.*, array[]::text[] as endpoints
+               from rate_limit_states state
+               where state.policy = any($1::text[])
+               order by state.policy
+               for update`,
+              [policies],
+            );
+            const blockedUntil = new Date(
+              Math.max(
+                input.blockedUntil.getTime(),
+                ...locked.rows.map(({ blocked_until: value }) =>
+                  value.getTime(),
+                ),
+              ),
+            );
+            const nextRequestAt = new Date(
+              Math.max(
+                input.now.getTime() + input.minimumDelayMs,
+                ...locked.rows.map(({ next_request_at: value }) =>
+                  value.getTime(),
+                ),
+              ),
+            );
+            await client.query(
+              `update rate_limit_states
+               set blocked_until = $2, next_request_at = $3,
+                   minimum_delay_ms = $4, windows = $5,
+                   last_status = $6, last_response_at = $1,
+                   updated_at = $1
+               where policy = $7`,
+              [
+                input.now,
+                blockedUntil,
+                nextRequestAt,
+                input.minimumDelayMs,
+                JSON.stringify(input.windows),
+                input.status,
+                policy,
+              ],
+            );
+            await client.query(
+              `insert into rate_limit_endpoint_policies
+                 (endpoint, policy, updated_at)
+               values ($1, $2, $3)
+               on conflict (endpoint) do update
+               set policy = excluded.policy, updated_at = excluded.updated_at`,
+              [input.endpoint, policy, input.now],
+            );
+            const state = await selectRateLimitState(client, policy);
+            await client.query('commit');
+            return state;
           } catch (error) {
             await client.query('rollback').catch(() => undefined);
             throw error;
@@ -948,6 +1135,134 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
     },
   };
+}
+
+async function insertRateLimitState(
+  client: PoolClient,
+  policy: string,
+  now: Date,
+  minimumDelayMs: number,
+) {
+  await client.query(
+    `insert into rate_limit_states
+       (policy, blocked_until, next_request_at, minimum_delay_ms,
+        updated_at)
+     values ($1, $2, $2, $3, $2)
+     on conflict (policy) do nothing`,
+    [policy, now, minimumDelayMs],
+  );
+}
+
+async function lockRateLimitEndpoint(client: PoolClient, endpoint: string) {
+  await client.query(`select pg_advisory_xact_lock(hashtextextended($1, 0))`, [
+    `rate-limit:${endpoint}`,
+  ]);
+}
+
+async function selectRateLimitStateForUpdate(
+  client: PoolClient,
+  policy: string,
+) {
+  const result = await client.query<RateLimitStateSqlRow>(
+    `select state.*, array[]::text[] as endpoints
+     from rate_limit_states state
+     where state.policy = $1
+     for update`,
+    [policy],
+  );
+  const row = result.rows[0];
+  if (!row) {
+    throw new RepositoryNotFoundError('rateLimits', 'selectForUpdate');
+  }
+  return row;
+}
+
+async function selectRateLimitState(client: PoolClient, policy: string) {
+  const result = await client.query<RateLimitStateSqlRow>(
+    rateLimitStateSelectSql('where state.policy = $1'),
+    [policy],
+  );
+  const row = result.rows[0];
+  if (!row) throw new RepositoryNotFoundError('rateLimits', 'select');
+  return mapRateLimitState(row);
+}
+
+function rateLimitStateSelectSql(filter = '') {
+  return `select state.policy, state.blocked_until, state.next_request_at,
+                 state.minimum_delay_ms, state.windows, state.last_status,
+                 state.last_response_at, state.updated_at,
+                 coalesce(
+                   array_agg(mapping.endpoint order by mapping.endpoint)
+                     filter (where mapping.endpoint is not null),
+                   array[]::text[]
+                 ) as endpoints
+          from rate_limit_states state
+          left join rate_limit_endpoint_policies mapping
+            on mapping.policy = state.policy
+          ${filter}
+          group by state.policy
+          having count(mapping.endpoint) > 0
+          order by state.policy`;
+}
+
+function mapRateLimitState(row: RateLimitStateSqlRow): RateLimitState {
+  return {
+    blockedUntil: row.blocked_until,
+    endpoints: [...row.endpoints],
+    lastResponseAt: row.last_response_at,
+    lastStatus: row.last_status,
+    minimumDelayMs: row.minimum_delay_ms,
+    nextRequestAt: row.next_request_at,
+    policy: row.policy,
+    updatedAt: row.updated_at,
+    windows: row.windows.map((window) => ({ ...window })),
+  };
+}
+
+function assertRateLimitInput(
+  endpoint: string,
+  policy: string,
+  at: Date,
+  minimumDelayMs: number,
+) {
+  if (
+    endpoint.trim().length === 0 ||
+    endpoint.length > 200 ||
+    policy.trim().length === 0 ||
+    policy.length > 200 ||
+    !Number.isFinite(at.getTime()) ||
+    !Number.isInteger(minimumDelayMs) ||
+    minimumDelayMs < 1
+  ) {
+    throw new TypeError('Rate-limit input is invalid');
+  }
+}
+
+function assertRateLimitObservation(
+  status: number,
+  windows: readonly RateLimitWindow[],
+) {
+  if (
+    !Number.isInteger(status) ||
+    status < 100 ||
+    status > 599 ||
+    windows.some(
+      (window) =>
+        window.rule.length === 0 ||
+        !Number.isInteger(window.maximumHits) ||
+        window.maximumHits < 1 ||
+        !Number.isInteger(window.periodSeconds) ||
+        window.periodSeconds < 1 ||
+        !Number.isInteger(window.restrictionSeconds) ||
+        window.restrictionSeconds < 0 ||
+        !Number.isInteger(window.currentHits) ||
+        window.currentHits < 0 ||
+        !Number.isInteger(window.activeRestrictionSeconds) ||
+        window.activeRestrictionSeconds < 0,
+    )
+  ) {
+    throw new TypeError('Rate-limit observation is invalid');
+  }
 }
 
 async function incrementFailedQueries(

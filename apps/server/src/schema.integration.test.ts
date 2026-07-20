@@ -31,6 +31,8 @@ describe('migration baseline', () => {
         'jobs',
         'market_queries',
         'raw_snapshots',
+        'rate_limit_endpoint_policies',
+        'rate_limit_states',
         'recipe_evaluations',
         'recipes',
         'refresh_cycles',
@@ -42,6 +44,8 @@ describe('migration baseline', () => {
         'raw_snapshots_expires_at_idx',
         'refresh_cycles_single_running_uq',
         'jobs_pending_run_after_idx',
+        'rate_limit_states_blocked_until_idx',
+        'rate_limit_endpoint_policies_policy_idx',
       ]),
     );
   });

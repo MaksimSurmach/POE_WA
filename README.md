@@ -21,6 +21,14 @@ the production scheduling path deterministically through
 `CatalogRefreshScheduler.triggerRefresh()`; pg-boss applies the same singleton
 protection as cron delivery.
 
+Every PoE Trade request passes through a shared PostgreSQL rate-limit
+controller. It parses GGG policy/rule windows and `Retry-After`, merges endpoints
+that report the same policy, and applies conservative one-request-per-second
+pacing when headers are absent or malformed. The diagnostics endpoint
+`GET /api/diagnostics/rate-limits` exposes current windows, mapped endpoints,
+delay, status, and the effective wait deadline. Configure `POE_USER_AGENT` with
+GGG's required `OAuth client/version (contact: contact)` format.
+
 Build and run the same application in Docker with environment configuration:
 
 ```bash

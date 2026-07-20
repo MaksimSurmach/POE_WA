@@ -3,12 +3,14 @@ import { randomUUID } from 'node:crypto';
 import {
   apiErrorEnvelopeSchema,
   correlationIdSchema,
+  rateLimitDiagnosticsResponseSchema,
   refreshProgressResponseSchema,
 } from '@poe-worksmith/contracts';
 import {
   type CatalogProgress,
   type AnyDomainError,
   DomainError,
+  type RateLimitState,
   type RefreshCycle,
   serializeDomainError,
 } from '@poe-worksmith/domain';
@@ -17,11 +19,13 @@ import type { Logger } from 'pino';
 
 export type ReadinessProbe = () => Promise<void>;
 export type RefreshProgressReader = () => Promise<CatalogProgress>;
+export type RateLimitDiagnosticsReader = () => Promise<RateLimitState[]>;
 
 export function buildApi(
   logger: Logger,
   checkReadiness: ReadinessProbe,
   readRefreshProgress: RefreshProgressReader,
+  readRateLimits: RateLimitDiagnosticsReader = async () => [],
 ) {
   const api = Fastify({
     genReqId(request) {
@@ -76,6 +80,13 @@ export function buildApi(
       },
     });
   });
+  api.get('/api/diagnostics/rate-limits', async (request) => {
+    const policies = await readRateLimits();
+    return rateLimitDiagnosticsResponseSchema.parse({
+      correlationId: request.id,
+      data: { policies: policies.map(serializeRateLimitState) },
+    });
+  });
 
   return api;
 }
@@ -95,6 +106,23 @@ function serializeCycle(cycle: RefreshCycle | null) {
     status: cycle.status,
     totalQueries: cycle.totalQueries,
     totalRecipes: cycle.totalRecipes,
+  };
+}
+
+function serializeRateLimitState(state: RateLimitState) {
+  return {
+    blockedUntil: state.blockedUntil.toISOString(),
+    endpoints: state.endpoints,
+    lastResponseAt: state.lastResponseAt?.toISOString() ?? null,
+    lastStatus: state.lastStatus,
+    minimumDelayMs: state.minimumDelayMs,
+    nextRequestAt: state.nextRequestAt.toISOString(),
+    policy: state.policy,
+    updatedAt: state.updatedAt.toISOString(),
+    waitingUntil: new Date(
+      Math.max(state.blockedUntil.getTime(), state.nextRequestAt.getTime()),
+    ).toISOString(),
+    windows: state.windows,
   };
 }
 
