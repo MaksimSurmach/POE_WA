@@ -48,7 +48,7 @@ export const recipeSchema = z
     category: z.string().min(1),
     craftMethod: z.string().min(1),
     tags: z.array(z.string().min(1)),
-    minimumCapital: priceSchema,
+    minimumCapital: priceSchema.nullable(),
   })
   .strict();
 
@@ -127,8 +127,8 @@ export const recipeDetailViewSchema = z
         .object({
           name: z.string().min(1),
           quantityPerAttempt: z.number().positive(),
-          unitPrice: priceSchema,
-          costPerAttempt: priceSchema,
+          unitPrice: priceSchema.nullable(),
+          costPerAttempt: priceSchema.nullable(),
         })
         .strict(),
     ),
@@ -215,6 +215,16 @@ export const apiErrorEnvelopeSchema = z.strictObject({
 });
 
 function resourceResponseSchema<T extends z.ZodType>(dataSchema: T) {
+  const loading = z.strictObject({
+    correlationId: correlationIdSchema,
+    data: dataSchema,
+    errorCode: z.null(),
+    isStale: z.literal(false),
+    lastSuccessfulAt: z.null(),
+    publishedAt: z.null(),
+    refreshStatus: refreshStatusSchema,
+    state: z.literal('loading'),
+  });
   const success = z.strictObject({
     correlationId: correlationIdSchema,
     data: dataSchema,
@@ -265,7 +275,7 @@ function resourceResponseSchema<T extends z.ZodType>(dataSchema: T) {
       }
     });
 
-  return z.union([success, stale, partial, error]);
+  return z.union([loading, success, stale, partial, error]);
 }
 
 export const catalogResponseSchema = resourceResponseSchema(

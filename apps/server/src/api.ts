@@ -2,8 +2,12 @@ import { randomUUID } from 'node:crypto';
 
 import {
   apiErrorEnvelopeSchema,
+  type CatalogResponse,
+  catalogResponseSchema,
   correlationIdSchema,
   rateLimitDiagnosticsResponseSchema,
+  type RecipeResponse,
+  recipeResponseSchema,
   refreshProgressResponseSchema,
 } from '@poe-worksmith/contracts';
 import {
@@ -20,12 +24,19 @@ import type { Logger } from 'pino';
 export type ReadinessProbe = () => Promise<void>;
 export type RefreshProgressReader = () => Promise<CatalogProgress>;
 export type RateLimitDiagnosticsReader = () => Promise<RateLimitState[]>;
+export type CatalogReader = (correlationId: string) => Promise<CatalogResponse>;
+export type RecipeReader = (
+  correlationId: string,
+  recipeId: string,
+) => Promise<RecipeResponse>;
 
 export function buildApi(
   logger: Logger,
   checkReadiness: ReadinessProbe,
   readRefreshProgress: RefreshProgressReader,
   readRateLimits: RateLimitDiagnosticsReader = async () => [],
+  readCatalog?: CatalogReader,
+  readRecipe?: RecipeReader,
 ) {
   const api = Fastify({
     genReqId(request) {
@@ -87,6 +98,20 @@ export function buildApi(
       data: { policies: policies.map(serializeRateLimitState) },
     });
   });
+  if (readCatalog) {
+    api.get('/api/catalog', async (request) =>
+      catalogResponseSchema.parse(await readCatalog(request.id)),
+    );
+  }
+  if (readRecipe) {
+    api.get<{ Params: { recipeId: string } }>(
+      '/api/recipes/:recipeId',
+      async (request) =>
+        recipeResponseSchema.parse(
+          await readRecipe(request.id, request.params.recipeId),
+        ),
+    );
+  }
 
   return api;
 }

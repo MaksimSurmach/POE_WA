@@ -187,4 +187,46 @@ describe('health API', () => {
     });
     await api.close();
   });
+
+  it('serves catalog and recipe resource readers', async () => {
+    const timestamp = '2026-07-20T00:00:00.000Z';
+    const catalog = vi.fn(async (correlationId: string) => ({
+      correlationId,
+      data: { entries: [] },
+      errorCode: null as null,
+      isStale: false as const,
+      lastSuccessfulAt: timestamp,
+      publishedAt: timestamp,
+      refreshStatus: 'published' as const,
+      state: 'success' as const,
+    }));
+    const recipe = vi.fn(async () => {
+      throw new DomainError('PERSISTENCE_NOT_FOUND');
+    });
+    const api = buildApi(
+      pino({ level: 'silent' }),
+      vi.fn(),
+      async () => ({ active: null, published: null }),
+      async () => [],
+      catalog,
+      recipe,
+    );
+
+    const catalogResponse = await api.inject({
+      method: 'GET',
+      url: '/api/catalog',
+    });
+    const recipeResponse = await api.inject({
+      method: 'GET',
+      url: '/api/recipes/missing',
+    });
+
+    expect(catalogResponse.statusCode).toBe(200);
+    expect(catalogResponse.json()).toMatchObject({ state: 'success' });
+    expect(catalog).toHaveBeenCalledWith(
+      catalogResponse.headers['x-request-id'],
+    );
+    expect(recipeResponse.statusCode).toBe(404);
+    await api.close();
+  });
 });

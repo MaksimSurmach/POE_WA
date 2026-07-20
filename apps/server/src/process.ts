@@ -10,6 +10,7 @@ import { GggRateLimitController } from './rateLimitController.js';
 import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
 import { createPostgresRepositories } from './repositories/index.js';
 import { RetentionCleaner } from './retention.js';
+import { createResourceReaders } from './resourceViews.js';
 import { ApplicationRuntime } from './runtime.js';
 import {
   type ApplicationMode,
@@ -23,6 +24,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   const logger = pino({ level: config.logLevel, name: 'poe-worksmith' });
   const pool = createDatabasePool(config.database);
   const repositories = createPostgresRepositories(pool);
+  const resourceReaders = createResourceReaders(repositories);
   const api = modeIncludesApi(config.mode)
     ? buildApi(
         logger,
@@ -31,6 +33,8 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         },
         repositories.catalog.getProgress,
         repositories.rateLimits.list,
+        resourceReaders.readCatalog,
+        resourceReaders.readRecipe,
       )
     : undefined;
   let jobs: CatalogRefreshScheduler | undefined;

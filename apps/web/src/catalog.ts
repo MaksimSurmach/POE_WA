@@ -39,7 +39,9 @@ export function filterAndSortCatalog(
       (filters.method === 'all' || recipe.craftMethod === filters.method) &&
       (filters.tag === 'all' || recipe.tags.includes(filters.tag)) &&
       (filters.status === 'all' || evaluation.status === filters.status) &&
-      (budget === null || recipe.minimumCapital.amount <= budget)
+      (budget === null ||
+        (recipe.minimumCapital !== null &&
+          recipe.minimumCapital.amount <= budget))
     );
   });
 
@@ -48,11 +50,11 @@ export function filterAndSortCatalog(
       const leftCapital =
         left.evaluation.status === 'error'
           ? Number.POSITIVE_INFINITY
-          : left.recipe.minimumCapital.amount;
+          : (left.recipe.minimumCapital?.amount ?? Number.POSITIVE_INFINITY);
       const rightCapital =
         right.evaluation.status === 'error'
           ? Number.POSITIVE_INFINITY
-          : right.recipe.minimumCapital.amount;
+          : (right.recipe.minimumCapital?.amount ?? Number.POSITIVE_INFINITY);
 
       return leftCapital - rightCapital;
     }

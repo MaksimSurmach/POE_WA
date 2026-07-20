@@ -22,7 +22,10 @@ describe('catalog filtering and ranking', () => {
       filterAndSortCatalog(catalogFixtures, {
         ...defaultCatalogFilters,
         budget: '2',
-      }).every(({ recipe }) => recipe.minimumCapital.amount <= 2),
+      }).every(
+        ({ recipe }) =>
+          recipe.minimumCapital !== null && recipe.minimumCapital.amount <= 2,
+      ),
     ).toBe(true);
     expect(
       filterAndSortCatalog(catalogFixtures, {

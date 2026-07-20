@@ -13,44 +13,15 @@ describe('application shell', () => {
       </MemoryRouter>,
     );
     const recipe = renderToStaticMarkup(
-      <MemoryRouter initialEntries={['/recipes/profitable-cluster']}>
+      <MemoryRouter initialEntries={['/recipes/physical-large-cluster']}>
         <App />
       </MemoryRouter>,
     );
 
     expect(catalog).toContain('Craft catalog');
-    expect(recipe).toContain('Physical Large Cluster Jewel');
+    expect(catalog).toContain('Loading catalog');
+    expect(recipe).toContain('Loading recipe');
     expect(recipe).toContain('Back to catalog');
-    expect(recipe).toContain('Cost breakdown');
-    expect(recipe).toContain('Top 10 Merchant listings');
-  });
-
-  it.each([
-    ['/recipes/stale-boots', 'Market provider temporarily unavailable'],
-    ['/recipes/no-listings-bow', 'No market listings yet'],
-    ['/recipes/calculation-error-amulet', 'Calculation unavailable'],
-    ['/recipes/invalid-recipe', 'Recipe configuration is invalid'],
-    ['/recipes/loading-gloves', 'No market data yet'],
-  ])('renders the explicit detail state for %s', (route, message) => {
-    const page = renderToStaticMarkup(
-      <MemoryRouter initialEntries={[route]}>
-        <App />
-      </MemoryRouter>,
-    );
-
-    expect(page).toContain(message);
-  });
-
-  it('keeps healthy recipes visible when one recipe fails', () => {
-    const catalog = renderToStaticMarkup(
-      <MemoryRouter initialEntries={['/']}>
-        <App />
-      </MemoryRouter>,
-    );
-
-    expect(catalog).toContain('Physical Large Cluster Jewel');
-    expect(catalog).toContain('Invalid Recipe Fixture');
-    expect(catalog).toContain('evaluation-status--error');
   });
 });
 

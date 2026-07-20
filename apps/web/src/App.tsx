@@ -1,4 +1,5 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import type { CatalogEntry, CatalogResponse } from '@poe-worksmith/contracts';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, Route, Routes } from 'react-router-dom';
 
 import {
@@ -16,23 +17,10 @@ import {
   StatusPanel,
   Tag,
 } from './components.js';
-import {
-  activeCycle,
-  catalogFixtures,
-  publishedCycle,
-} from './mocks/catalog.js';
+import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
 
-const mockNow = '2026-07-20T00:04:00.000Z';
-const categories = [
-  ...new Set(catalogFixtures.map(({ recipe }) => recipe.category)),
-].sort();
-const methods = [
-  ...new Set(catalogFixtures.map(({ recipe }) => recipe.craftMethod)),
-].sort();
-const tags = [
-  ...new Set(catalogFixtures.flatMap(({ recipe }) => recipe.tags)),
-].sort();
+const apiClient = createApiClient();
 
 function AppShell() {
   return (
@@ -64,16 +52,48 @@ function AppShell() {
 
 function CatalogRoute() {
   const [filters, setFilters] = useState<CatalogFilters>(defaultCatalogFilters);
-  const entries = useMemo(
-    () => filterAndSortCatalog(catalogFixtures, filters),
-    [filters],
+  const [response, setResponse] = useState<CatalogResponse | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const catalogEntries = response?.data?.entries ?? [];
+  const categories = useMemo(
+    () =>
+      [...new Set(catalogEntries.map(({ recipe }) => recipe.category))].sort(),
+    [catalogEntries],
   );
-  const publishedAge = publishedCycle.publishedAt
-    ? Math.max(
-        0,
-        (Date.parse(mockNow) - Date.parse(publishedCycle.publishedAt)) / 1000,
-      )
-    : 0;
+  const methods = useMemo(
+    () =>
+      [
+        ...new Set(catalogEntries.map(({ recipe }) => recipe.craftMethod)),
+      ].sort(),
+    [catalogEntries],
+  );
+  const tags = useMemo(
+    () =>
+      [...new Set(catalogEntries.flatMap(({ recipe }) => recipe.tags))].sort(),
+    [catalogEntries],
+  );
+  const entries = useMemo(
+    () => filterAndSortCatalog(catalogEntries, filters),
+    [catalogEntries, filters],
+  );
+  const publishedAge = response?.publishedAt
+    ? Math.max(0, (Date.now() - Date.parse(response.publishedAt)) / 1000)
+    : null;
+
+  useEffect(() => {
+    let active = true;
+    apiClient
+      .getCatalog()
+      .then((catalog) => {
+        if (active) setResponse(catalog);
+      })
+      .catch(() => {
+        if (active) setLoadError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function updateFilter<K extends keyof CatalogFilters>(
     key: K,
@@ -82,7 +102,28 @@ function CatalogRoute() {
     setFilters((current) => ({ ...current, [key]: value }));
   }
 
-  if (catalogFixtures.length === 0) {
+  if (loadError) {
+    return (
+      <>
+        <CatalogTitle />
+        <StatusPanel tone="danger" title="Catalog unavailable">
+          The server did not return a valid catalog. Retry after the deployment
+          is healthy.
+        </StatusPanel>
+      </>
+    );
+  }
+
+  if (!response) {
+    return (
+      <>
+        <CatalogTitle />
+        <StatusPanel tone="info" title="Loading catalog" />
+      </>
+    );
+  }
+
+  if (catalogEntries.length === 0) {
     return (
       <section className="empty-state" aria-labelledby="empty-catalog-heading">
         <h1 id="empty-catalog-heading">Catalog is empty</h1>
@@ -103,25 +144,24 @@ function CatalogRoute() {
           aria-label="Catalog publication and refresh status"
         >
           <p>
-            Published <ListingAge seconds={publishedAge} />
+            {publishedAge === null ? (
+              'Awaiting first market publication'
+            ) : (
+              <>
+                Published <ListingAge seconds={publishedAge} />
+              </>
+            )}
           </p>
-          <label>
-            <span>
-              Refresh {activeCycle.completedRecipes} of{' '}
-              {activeCycle.totalRecipes}
-            </span>
-            <progress
-              aria-label="Current refresh progress"
-              max={activeCycle.totalRecipes}
-              value={activeCycle.completedRecipes}
-            />
-          </label>
+          <p>Refresh: {response.refreshStatus}</p>
         </div>
       </section>
 
-      <StatusPanel tone="warning" title="Published catalog contains stale data">
-        Previous successful values remain visible while providers recover.
-      </StatusPanel>
+      {response.state === 'loading' ? (
+        <StatusPanel tone="info" title="Market evaluation pending">
+          Recipe definitions are loaded from Git. Prices will appear after the
+          first successful refresh.
+        </StatusPanel>
+      ) : null}
 
       <details className="catalog-filters" open>
         <summary>Filters and sorting</summary>
@@ -258,6 +298,17 @@ function CatalogRoute() {
   );
 }
 
+function CatalogTitle() {
+  return (
+    <section className="catalog-heading" aria-labelledby="catalog-heading">
+      <div>
+        <h1 id="catalog-heading">Craft catalog</h1>
+        <p>Compare expected cost, sale price, and market freshness.</p>
+      </div>
+    </section>
+  );
+}
+
 function Filter({ children, label }: { children: ReactNode; label: string }) {
   return (
     <label className="filter-control">
@@ -267,9 +318,9 @@ function Filter({ children, label }: { children: ReactNode; label: string }) {
   );
 }
 
-function CatalogRow({ entry }: { entry: (typeof catalogFixtures)[number] }) {
+function CatalogRow({ entry }: { entry: CatalogEntry }) {
   const { evaluation, recipe, snapshot } = entry;
-  const ageSeconds = snapshotAgeSeconds(entry, mockNow);
+  const ageSeconds = snapshotAgeSeconds(entry, new Date().toISOString());
 
   return (
     <Link className="catalog-row" to={`/recipes/${recipe.id}`}>

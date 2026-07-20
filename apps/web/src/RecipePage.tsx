@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import type { RecipeResponse } from '@poe-worksmith/contracts';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import {
@@ -8,8 +9,10 @@ import {
   StatusPanel,
   Tag,
 } from './components.js';
+import { createApiClient } from './apiClient.js';
 import { RecipeStatePanel } from './failureStates.js';
-import { recipeDetails } from './mocks/recipeDetails.js';
+
+const apiClient = createApiClient();
 
 const listedAt = new Intl.DateTimeFormat('en', {
   day: '2-digit',
@@ -20,9 +23,31 @@ const listedAt = new Intl.DateTimeFormat('en', {
 
 export function RecipePage() {
   const { recipeId } = useParams();
-  const detail = recipeDetails.find(({ recipe }) => recipe.id === recipeId);
+  const [response, setResponse] = useState<RecipeResponse | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
-  if (!detail) {
+  useEffect(() => {
+    let active = true;
+    if (!recipeId) {
+      setLoadError(true);
+      return () => {
+        active = false;
+      };
+    }
+    apiClient
+      .getRecipe(recipeId)
+      .then((recipe) => {
+        if (active) setResponse(recipe);
+      })
+      .catch(() => {
+        if (active) setLoadError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [recipeId]);
+
+  if (loadError) {
     return (
       <>
         <Link className="back-link" to="/">
@@ -32,6 +57,30 @@ export function RecipePage() {
       </>
     );
   }
+
+  if (!response) {
+    return (
+      <>
+        <Link className="back-link" to="/">
+          Back to catalog
+        </Link>
+        <StatusPanel tone="info" title="Loading recipe" />
+      </>
+    );
+  }
+
+  if (!response.data) {
+    return (
+      <>
+        <Link className="back-link" to="/">
+          Back to catalog
+        </Link>
+        <StatusPanel tone="danger" title="Recipe unavailable" />
+      </>
+    );
+  }
+
+  const detail = response.data;
 
   const { evaluation, recipe } = detail;
 
