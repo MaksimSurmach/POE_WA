@@ -9,6 +9,11 @@
       "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
+    "./economics": {
+      "types": "./src/economics.ts",
+      "development": "./src/economics.ts",
+      "default": "./dist/economics.js"
+    },
     "./fixtures": {
       "types": "./src/fixtures/index.ts",
       "development": "./src/fixtures/index.ts",
@@ -29,6 +34,7 @@
     "vitest": "4.1.10"
   },
   "dependencies": {
+    "decimal.js": "10.6.0",
     "zod": "4.4.3"
   }
 }
