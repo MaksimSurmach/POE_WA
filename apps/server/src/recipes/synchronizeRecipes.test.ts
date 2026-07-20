@@ -43,8 +43,8 @@ describe('recipe synchronization', () => {
       repositories.recipes,
     );
 
-    expect(first.created).toEqual(['physical-large-cluster']);
-    expect(second.unchanged).toEqual(['physical-large-cluster']);
+    expect(first.created).toEqual(['physical-large-cluster-jagged']);
+    expect(second.unchanged).toEqual(['physical-large-cluster-jagged']);
   });
 
   it('hashes normalized recipe data and referenced asset bytes', async () => {

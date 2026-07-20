@@ -189,7 +189,7 @@ export function calculateRecipeEconomics(input: {
     basePrice.add(expectedMaterials).add(finishingTotal),
   );
   const profit = round(salePrice.sub(expectedCraftCost));
-  const marginPercent = round(profit.div(salePrice).mul(100));
+  const marginPercent = round(profit.div(expectedCraftCost).mul(100));
   const money = (value: Decimal): DecimalMoney => ({
     amount: format(value),
     currency,

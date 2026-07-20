@@ -14,7 +14,18 @@ import { PoeTradeClient } from './providers/poeTrade.js';
 import { GggRateLimitController } from './rateLimitController.js';
 import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
 import { refreshLeagueContext } from './refreshLeagueContext.js';
+import { createV2RecipeMarketDependencies } from './recipeMarket.js';
 import { createPostgresRepositories } from './repositories/index.js';
+import {
+  createPostgresResourceResolver,
+  createPostgresTradeMappingCatalog,
+} from './tradeMappings.js';
+import {
+  clusterJewelVariantFilter,
+  mappedTargetFilter,
+  noVariantFilter,
+  RegisteredTradeQueryGenerator,
+} from '@poe-worksmith/domain';
 import { RetentionCleaner } from './retention.js';
 import { createResourceReaders } from './resourceViews.js';
 import { ApplicationRuntime } from './runtime.js';
@@ -30,6 +41,14 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   const logger = pino({ level: config.logLevel, name: 'poe-worksmith' });
   const pool = createDatabasePool(config.database);
   const repositories = createPostgresRepositories(pool);
+  const marketDependencies = createV2RecipeMarketDependencies({
+    resolveResource: createPostgresResourceResolver(pool),
+    trade: new RegisteredTradeQueryGenerator(
+      createPostgresTradeMappingCatalog(pool),
+      [noVariantFilter, clusterJewelVariantFilter],
+      [mappedTargetFilter],
+    ),
+  });
   const resourceReaders = createResourceReaders(repositories);
   const api = modeIncludesApi(config.mode)
     ? buildApi(
@@ -96,6 +115,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         return new FullRefreshOrchestrator({
           league: refreshLeagueContext(currentLeague),
           marketJobs,
+          marketDependencies,
           repositories,
           snapshotTtlMs: config.snapshotTtlMs,
           workerId: `worker-${process.pid}`,

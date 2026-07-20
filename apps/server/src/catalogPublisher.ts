@@ -12,10 +12,14 @@ import {
   type Repositories,
   hashMarketQuery,
   transitionRefreshCycle,
-  validateRecipeV1,
+  validateRecipeDocument,
 } from '@poe-worksmith/domain';
 import { calculateRecipeEconomics } from '@poe-worksmith/domain/economics';
 import { z } from 'zod';
+import {
+  legacyRecipeMarketDependencies,
+  type RecipeMarketDependencies,
+} from './recipeMarket.js';
 
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
   z.union([
@@ -91,6 +95,7 @@ export async function evaluateAndPublishCatalog(
     league: string;
     leagueName?: string;
     now?: Date;
+    marketDependencies?: RecipeMarketDependencies;
   },
 ): Promise<CatalogPublicationReport> {
   const now = options.now ?? new Date();
@@ -154,7 +159,10 @@ export async function evaluateAndPublishCatalog(
         ])
       : [],
   );
-  const evaluateRecipe = options.evaluateRecipe ?? evaluateFreshRecipe;
+  const evaluateRecipe =
+    options.evaluateRecipe ??
+    ((recipe, context) =>
+      evaluateFreshRecipe(recipe, context, options.marketDependencies));
   const evaluations: RecipeEvaluation[] = [];
   let completedRecipes = 0;
   let failedRecipes = 0;
@@ -281,44 +289,56 @@ async function evaluateFreshRecipe(
     now: Date;
     repositories: Repositories;
   },
+  marketDependencies?: RecipeMarketDependencies,
 ): Promise<FreshEvaluation> {
-  let definition: CanonicalRecipeV1;
+  let definition;
   try {
-    definition = validateRecipeV1(recipe.definition);
+    definition = validateRecipeDocument(recipe.definition);
   } catch (cause) {
     throw new DomainError('RECIPE_INVALID', { cause });
   }
-  const base = await resolveMarket(
-    definition.baseRequirements.tradeQuery,
-    context,
-  );
+  const dependencies = marketDependencies
+    ? await marketDependencies({ league: context.league, recipe: definition })
+    : definition.schemaVersion === 1
+      ? legacyRecipeMarketDependencies({ recipe: definition })
+      : (() => {
+          throw new DomainError('RECIPE_INVALID');
+        })();
+  const baseDependency = dependencies.find(({ kind }) => kind === 'base');
+  const targetDependency = dependencies.find(({ kind }) => kind === 'target');
+  if (!baseDependency || !targetDependency)
+    throw new DomainError('RECIPE_INVALID');
+  const base = await resolveMarket(baseDependency.query, context);
   const materials = await Promise.all(
-    definition.materials.map(
-      async (material) =>
-        [
-          material.id,
-          (await resolveMarket(material.tradeQuery, context)).aggregation
-            .cheapest,
-        ] as const,
-    ),
+    dependencies
+      .filter(({ kind }) => kind === 'material')
+      .map(
+        async (material) =>
+          [
+            material.materialId!,
+            (await resolveMarket(material.query, context)).aggregation.cheapest,
+          ] as const,
+      ),
   );
   const finishing = await Promise.all(
-    definition.finishingCosts.map(
-      async (cost) =>
-        [
-          cost.id,
-          (await resolveMarket(cost.tradeQuery, context)).aggregation.cheapest,
-        ] as const,
-    ),
+    dependencies
+      .filter(({ kind }) => kind === 'finishing')
+      .map(
+        async (item) =>
+          [
+            item.materialId!,
+            (await resolveMarket(item.query, context)).aggregation.cheapest,
+          ] as const,
+      ),
   );
-  const output = await resolveMarket(definition.output.tradeQuery, context);
+  const output = await resolveMarket(targetDependency.query, context);
   const result = calculateRecipeEconomics({
     aggregation: output.aggregation,
     basePrice: base.aggregation.cheapest,
     currency: output.aggregation.currency,
     finishingPrices: Object.fromEntries(finishing),
     materialPrices: Object.fromEntries(materials),
-    recipe: definition,
+    recipe: economicsRecipe(definition),
   });
   if (!result.ok) throw new DomainError(result.errorCode);
 
@@ -340,6 +360,53 @@ async function evaluateFreshRecipe(
     observationId: observation?.id ?? null,
     profit: result.value.profit.amount,
     sourceSnapshotDedupeKey: output.snapshotDedupeKey,
+  };
+}
+
+function economicsRecipe(
+  definition: ReturnType<typeof validateRecipeDocument>,
+): CanonicalRecipeV1 {
+  if (definition.schemaVersion === 1) return definition;
+  return {
+    baseRequirements: {
+      baseType: definition.base.baseId,
+      tradeQuery: {
+        provider: 'poe-trade',
+        query: { placeholder: true },
+        schemaVersion: 1,
+      },
+    },
+    category: definition.category,
+    craftSteps: [{ id: 'craft', title: definition.craft.method.kind }],
+    estimator: { strategy: 'median_top_n', n: 10 },
+    finishingCosts: [],
+    gameVersion: definition.gameDataVersion,
+    id: definition.id,
+    materials: (definition.craft.resourceConsumption?.materials ?? []).map(
+      ({ itemId, quantity }) => ({
+        id: itemId,
+        label: itemId,
+        quantityPerAttempt: quantity,
+        tradeQuery: {
+          provider: 'poe-trade',
+          query: { placeholder: true },
+          schemaVersion: 1,
+        },
+      }),
+    ),
+    output: {
+      label: definition.title,
+      tradeQuery: {
+        provider: 'poe-trade',
+        query: { placeholder: true },
+        schemaVersion: 1,
+      },
+    },
+    schemaVersion: 1,
+    success: { mode: 'expected_attempts', expectedAttempts: 1 },
+    summary: definition.summary ?? definition.title,
+    tags: [...definition.tags],
+    title: definition.title,
   };
 }
 

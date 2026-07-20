@@ -32,6 +32,34 @@ const craftStepSchema = z.strictObject({
   title: textSchema,
 });
 
+const resourceConsumptionSchema = z.strictObject({
+  materials: z
+    .array(
+      z.strictObject({
+        itemId: textSchema,
+        quantity: z.number().int().positive(),
+      }),
+    )
+    .min(1)
+    .superRefine((materials, context) => {
+      const seen = new Set<string>();
+      materials.forEach(({ itemId }, index) => {
+        if (seen.has(itemId))
+          context.addIssue({
+            code: 'custom',
+            message: `Duplicate resource "${itemId}"`,
+            path: [index, 'itemId'],
+          });
+        seen.add(itemId);
+      });
+    }),
+  source: z.enum([
+    'authored-estimate',
+    'automatic-probability',
+    'manual-fixed-cost',
+  ]),
+});
+
 export const recipeV2Schema = z.strictObject({
   base: canonicalItemSpecSchema,
   category: slugSchema,
@@ -41,6 +69,7 @@ export const recipeV2Schema = z.strictObject({
   }),
   craft: z.strictObject({
     method: canonicalCraftMethodSchema,
+    resourceConsumption: resourceConsumptionSchema.optional(),
     startingMods: z.array(canonicalStartingModSchema).default([]),
   }),
   gameDataVersion: textSchema,

@@ -59,7 +59,7 @@ describe('recipe economics', () => {
       expected: {
         attempts: '3',
         craftCost: '57',
-        margin: '43',
+        margin: '75.43859649',
         profit: '43',
         sale: '100',
       },
@@ -72,7 +72,7 @@ describe('recipe economics', () => {
       expected: {
         attempts: '4',
         craftCost: '72',
-        margin: '28',
+        margin: '38.88888889',
         profit: '28',
         sale: '100',
       },
@@ -83,7 +83,7 @@ describe('recipe economics', () => {
       expected: {
         attempts: '6',
         craftCost: '102',
-        margin: '66',
+        margin: '194.11764706',
         profit: '198',
         sale: '300',
       },
