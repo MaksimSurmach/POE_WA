@@ -7,6 +7,7 @@ Requirements: Node.js 22, pnpm 11, and Docker Compose.
 ```bash
 cp .env.development.example .env.development
 pnpm db:up
+pnpm db:migrate
 pnpm db:check
 ```
 
@@ -24,6 +25,12 @@ pnpm test:integration
 
 Stop both services with `pnpm db:down`. Development data uses a named volume;
 test data uses a temporary filesystem and is discarded with the container.
+
+`pnpm db:setup` creates the local database and applies every migration from an
+empty volume. Migrations are forward-only in shared environments: fix a bad
+migration with a new corrective migration. During local development only,
+`pnpm db:reset` removes the local database volume, recreates PostgreSQL, and
+reapplies the full migration history. This command deletes local data.
 
 ## Supabase staging
 

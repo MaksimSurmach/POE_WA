@@ -11,7 +11,11 @@
   "scripts": {
     "build": "pnpm -r --if-present build",
     "db:check": "pnpm --filter @poe-worksmith/server build && node --env-file=.env.development apps/server/dist/checkDatabase.js",
+    "db:check:migrations": "pnpm --filter @poe-worksmith/server db:check:migrations",
     "db:down": "docker compose --profile test down",
+    "db:migrate": "pnpm --filter @poe-worksmith/server db:migrate",
+    "db:reset": "docker compose --profile test down --volumes && pnpm db:setup",
+    "db:setup": "pnpm db:up && pnpm db:migrate",
     "db:test:up": "docker compose --profile test up -d --wait postgres-test",
     "db:up": "docker compose up -d --wait postgres",
     "format": "prettier --write .",
