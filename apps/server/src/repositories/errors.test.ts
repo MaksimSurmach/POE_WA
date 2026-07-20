@@ -24,6 +24,18 @@ describe('repository errors', () => {
     });
   });
 
+  it('maps PostgreSQL constraints wrapped by Drizzle', async () => {
+    const databaseError = Object.assign(new Error('duplicate secret value'), {
+      code: '23505',
+    });
+
+    await expect(
+      mapRepositoryError('recipes', 'save', async () => {
+        throw new Error('Failed query', { cause: databaseError });
+      }),
+    ).rejects.toBeInstanceOf(RepositoryConflictError);
+  });
+
   it('maps the running-cycle guard to a domain decision', async () => {
     const databaseError = Object.assign(new Error('duplicate running cycle'), {
       code: '23505',

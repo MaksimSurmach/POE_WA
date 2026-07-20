@@ -60,13 +60,21 @@ export async function mapRepositoryError<T>(
       throw error;
     }
 
+    const databaseError =
+      typeof error === 'object' && error && 'cause' in error
+        ? error.cause
+        : error;
     const databaseCode =
-      typeof error === 'object' && error && 'code' in error
-        ? String(error.code)
+      typeof databaseError === 'object' &&
+      databaseError &&
+      'code' in databaseError
+        ? String(databaseError.code)
         : null;
     const constraint =
-      typeof error === 'object' && error && 'constraint' in error
-        ? String(error.constraint)
+      typeof databaseError === 'object' &&
+      databaseError &&
+      'constraint' in databaseError
+        ? String(databaseError.constraint)
         : null;
 
     if (constraint === 'refresh_cycles_single_running_uq') {
