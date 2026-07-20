@@ -27,8 +27,10 @@ const marketQuery: MarketQuery = {
 };
 
 const cycle: RefreshCycle = {
+  completedQueries: 1,
   completedRecipes: 1,
   errorMessage: null,
+  failedQueries: 0,
   failedRecipes: 0,
   finishedAt: null,
   id: '22222222-2222-4222-8222-222222222222',

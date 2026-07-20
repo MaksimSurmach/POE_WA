@@ -37,6 +37,18 @@ export function createInMemoryRepositories(): Repositories {
   let evaluationId = 0;
   let publishedCycleId: string | null = null;
 
+  function incrementQueryProgress(
+    cycleId: string | null,
+    field: 'completedQueries' | 'failedQueries',
+  ) {
+    if (!cycleId) return;
+    const cycle = cycles.get(cycleId);
+    if (!cycle) throw new Error(`Refresh cycle ${cycleId} does not exist`);
+    const updated = { ...cycle, [field]: cycle[field] + 1 };
+    assertRefreshCycleInvariant(updated);
+    cycles.set(cycleId, updated);
+  }
+
   return {
     recipes: {
       async findById(id) {
@@ -82,6 +94,51 @@ export function createInMemoryRepositories(): Repositories {
         const saved = existing ? { ...query, id: existing.id } : query;
         marketQueries.set(saved.id, clone(saved));
         return clone(saved);
+      },
+    },
+    marketResults: {
+      async commitSuccess(result) {
+        assertSnapshotInvariant(result.snapshot);
+        const job = jobs.get(result.jobId);
+        if (!job) throw new Error(`Job ${result.jobId} does not exist`);
+        if (job.status === 'succeeded') return { applied: false };
+        assertJobTransition(job.status, 'succeeded');
+        if (
+          job.refreshCycleId !== result.snapshot.refreshCycleId ||
+          job.refreshCycleId !== result.observation.refreshCycleId ||
+          job.marketQueryId !== result.snapshot.marketQueryId ||
+          job.marketQueryId !== result.observation.marketQueryId
+        ) {
+          throw new Error('Market result does not match its job');
+        }
+
+        const existingSnapshot = [...snapshots.values()].find(
+          (candidate) => candidate.dedupeKey === result.snapshot.dedupeKey,
+        );
+        const snapshot = existingSnapshot ?? {
+          ...clone(result.snapshot),
+          id: ++snapshotId,
+        };
+        const existingObservation = [...observations.values()].find(
+          (candidate) =>
+            candidate.marketQueryId === result.observation.marketQueryId &&
+            candidate.refreshCycleId === result.observation.refreshCycleId,
+        );
+        const observation = existingObservation ?? {
+          ...clone(result.observation),
+          id: ++observationId,
+        };
+        incrementQueryProgress(job.refreshCycleId, 'completedQueries');
+        snapshots.set(snapshot.id, snapshot);
+        observations.set(observation.id, observation);
+        jobs.set(job.id, {
+          ...job,
+          lastError: null,
+          lockedAt: null,
+          lockedBy: null,
+          status: 'succeeded',
+        });
+        return { applied: true };
       },
     },
     snapshots: {
@@ -215,11 +272,12 @@ export function createInMemoryRepositories(): Repositories {
       },
     },
     jobs: {
-      async claimNext(workerId, now) {
+      async claimNext(workerId, now, kinds) {
         const job = [...jobs.values()]
           .filter(
             (candidate) =>
               ['queued', 'retry'].includes(candidate.status) &&
+              (!kinds || kinds.includes(candidate.kind)) &&
               candidate.runAfter <= now &&
               candidate.attempts < candidate.maxAttempts,
           )
@@ -266,6 +324,9 @@ export function createInMemoryRepositories(): Repositories {
         if (!job) return;
         const status = job.attempts < job.maxAttempts ? 'retry' : 'failed';
         assertJobTransition(job.status, status);
+        if (status === 'failed' && job.kind === 'recipe_refresh') {
+          incrementQueryProgress(job.refreshCycleId, 'failedQueries');
+        }
         jobs.set(id, {
           ...job,
           lastError: error,
@@ -274,6 +335,48 @@ export function createInMemoryRepositories(): Repositories {
           runAfter: retryAt,
           status,
         });
+      },
+      async failPermanently(id, error) {
+        const job = jobs.get(id);
+        if (!job) return;
+        assertJobTransition(job.status, 'failed');
+        if (job.kind === 'recipe_refresh') {
+          incrementQueryProgress(job.refreshCycleId, 'failedQueries');
+        }
+        jobs.set(id, {
+          ...job,
+          lastError: error,
+          lockedAt: null,
+          lockedBy: null,
+          status: 'failed',
+        });
+      },
+      async recoverStale(before, retryAt) {
+        let recovered = 0;
+        for (const [id, job] of jobs) {
+          if (
+            job.status !== 'running' ||
+            !job.lockedAt ||
+            job.lockedAt > before
+          ) {
+            continue;
+          }
+          const status = job.attempts < job.maxAttempts ? 'retry' : 'failed';
+          assertJobTransition(job.status, status);
+          if (status === 'failed' && job.kind === 'recipe_refresh') {
+            incrementQueryProgress(job.refreshCycleId, 'failedQueries');
+          }
+          jobs.set(id, {
+            ...job,
+            lastError: 'worker_lease_expired',
+            lockedAt: null,
+            lockedBy: null,
+            runAfter: retryAt,
+            status,
+          });
+          recovered += 1;
+        }
+        return recovered;
       },
     },
   };

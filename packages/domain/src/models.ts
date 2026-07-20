@@ -35,7 +35,7 @@ export type NewRawSnapshot = {
 export type RawSnapshot = NewRawSnapshot & { id: number };
 
 export type NewAggregatedObservation = {
-  cheapestPrice: string;
+  cheapestPrice: string | null;
   currency: string;
   marketQueryId: string;
   medianTopNPrice: string | null;
@@ -71,8 +71,10 @@ export type RefreshCycleStatus =
   'queued' | 'running' | 'published' | 'failed' | 'superseded';
 
 export type RefreshCycle = {
+  completedQueries: number;
   completedRecipes: number;
   errorMessage: string | null;
+  failedQueries: number;
   failedRecipes: number;
   finishedAt: Date | null;
   id: string;
@@ -86,11 +88,13 @@ export type RefreshCycle = {
 
 export type JobStatus = 'queued' | 'running' | 'retry' | 'succeeded' | 'failed';
 
+export type JobKind = 'recipe_refresh' | 'catalog_publish' | 'snapshot_cleanup';
+
 export type Job = {
   attempts: number;
   dedupeKey: string;
   id: string;
-  kind: 'recipe_refresh' | 'catalog_publish' | 'snapshot_cleanup';
+  kind: JobKind;
   lastError: string | null;
   lockedAt: Date | null;
   lockedBy: string | null;

@@ -46,12 +46,17 @@ export function assertRefreshCycleInvariant(cycle: RefreshCycle) {
   if (
     !Number.isInteger(cycle.totalQueries) ||
     !Number.isInteger(cycle.totalRecipes) ||
+    !Number.isInteger(cycle.completedQueries) ||
     !Number.isInteger(cycle.completedRecipes) ||
+    !Number.isInteger(cycle.failedQueries) ||
     !Number.isInteger(cycle.failedRecipes) ||
     cycle.totalQueries < 0 ||
     cycle.totalRecipes < 0 ||
+    cycle.completedQueries < 0 ||
     cycle.completedRecipes < 0 ||
+    cycle.failedQueries < 0 ||
     cycle.failedRecipes < 0 ||
+    cycle.completedQueries + cycle.failedQueries > cycle.totalQueries ||
     cycle.completedRecipes + cycle.failedRecipes > cycle.totalRecipes
   ) {
     throw new DomainError('REFRESH_STATE_INVALID');

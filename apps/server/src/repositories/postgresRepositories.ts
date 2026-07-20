@@ -11,6 +11,7 @@ import type {
 import {
   assertNewJob,
   assertNewRefreshCycle,
+  assertJobTransition,
   assertPublicationReady,
   assertRefreshCycleInvariant,
   assertRefreshTransition,
@@ -19,7 +20,7 @@ import {
 } from '@poe-worksmith/domain';
 import { and, desc, eq, gte, lte } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 
 import {
   aggregatedObservations,
@@ -126,6 +127,132 @@ export function createPostgresRepositories(pool: Pool): Repositories {
           }
           return mapMarketQuery(row);
         });
+      },
+    },
+    marketResults: {
+      commitSuccess(result) {
+        assertSnapshotInvariant(result.snapshot);
+        return mapRepositoryError(
+          'marketResults',
+          'commitSuccess',
+          async () => {
+            const client = await pool.connect();
+            try {
+              await client.query('begin');
+              const jobResult = await client.query<{
+                market_query_id: string | null;
+                refresh_cycle_id: string | null;
+                status: string;
+              }>(
+                `select status, refresh_cycle_id, market_query_id
+                 from jobs
+                 where id = $1
+                 for update`,
+                [result.jobId],
+              );
+              const job = jobResult.rows[0];
+              if (!job) {
+                throw new RepositoryNotFoundError(
+                  'marketResults',
+                  'commitSuccess',
+                );
+              }
+              if (job.status === 'succeeded') {
+                await client.query('commit');
+                return { applied: false };
+              }
+              assertJobTransition(job.status as Job['status'], 'succeeded');
+              if (
+                job.refresh_cycle_id !== result.snapshot.refreshCycleId ||
+                job.refresh_cycle_id !== result.observation.refreshCycleId ||
+                job.market_query_id !== result.snapshot.marketQueryId ||
+                job.market_query_id !== result.observation.marketQueryId
+              ) {
+                throw new Error('Market result does not match its job');
+              }
+
+              const cycleResult = await client.query<{
+                completed_queries: number;
+                failed_queries: number;
+                total_queries: number;
+              }>(
+                `select total_queries, completed_queries, failed_queries
+                 from refresh_cycles
+                 where id = $1
+                 for update`,
+                [job.refresh_cycle_id],
+              );
+              const cycle = cycleResult.rows[0];
+              if (!cycle) {
+                throw new RepositoryNotFoundError(
+                  'marketResults',
+                  'commitSuccess',
+                );
+              }
+              if (
+                cycle.completed_queries + cycle.failed_queries >=
+                cycle.total_queries
+              ) {
+                throw new Error('Refresh query progress is already complete');
+              }
+
+              await client.query(
+                `insert into raw_snapshots
+                   (dedupe_key, market_query_id, refresh_cycle_id, captured_at,
+                    expires_at, provider_status, payload)
+                 values ($1, $2, $3, $4, $5, $6, $7)
+                 on conflict (dedupe_key) do nothing`,
+                [
+                  result.snapshot.dedupeKey,
+                  result.snapshot.marketQueryId,
+                  result.snapshot.refreshCycleId,
+                  result.snapshot.capturedAt,
+                  result.snapshot.expiresAt,
+                  result.snapshot.providerStatus,
+                  JSON.stringify(result.snapshot.payload),
+                ],
+              );
+              await client.query(
+                `insert into aggregated_observations
+                   (market_query_id, refresh_cycle_id, observed_at, sample_size,
+                    currency, cheapest_price, nth_price, median_top_n_price, summary)
+                 values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                 on conflict (market_query_id, refresh_cycle_id) do nothing`,
+                [
+                  result.observation.marketQueryId,
+                  result.observation.refreshCycleId,
+                  result.observation.observedAt,
+                  result.observation.sampleSize,
+                  result.observation.currency,
+                  result.observation.cheapestPrice,
+                  result.observation.nthPrice,
+                  result.observation.medianTopNPrice,
+                  JSON.stringify(result.observation.summary),
+                ],
+              );
+              await client.query(
+                `update refresh_cycles
+                 set completed_queries = completed_queries + 1, updated_at = $2
+                 where id = $1`,
+                [job.refresh_cycle_id, result.completedAt],
+              );
+              await client.query(
+                `update jobs
+                 set status = 'succeeded', locked_at = null, locked_by = null,
+                     last_error = null, updated_at = $2
+                 where id = $1`,
+                [result.jobId, result.completedAt],
+              );
+              await client.query('commit');
+              return { applied: true };
+            } catch (error) {
+              await client.query('rollback').catch(() => undefined);
+              throw error;
+            } finally {
+              client.release();
+            }
+          },
+        );
       },
     },
     snapshots: {
@@ -401,7 +528,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
     },
     jobs: {
-      claimNext(workerId, now) {
+      claimNext(workerId, now, kinds) {
         return mapRepositoryError('jobs', 'claimNext', async () => {
           const result = await pool.query<JobRow>(
             `update jobs
@@ -414,6 +541,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
                select id
                from jobs
                where status in ('queued', 'retry')
+                 and ($3::text[] is null or kind = any($3::text[]))
                  and run_after <= $2
                  and attempts < max_attempts
                order by priority desc, run_after, created_at
@@ -437,7 +565,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
                        payload,
                        created_at as "createdAt",
                        updated_at as "updatedAt"`,
-            [workerId, now],
+            [workerId, now, kinds ? [...kinds] : null],
           );
           const row = result.rows[0];
           return row ? mapJob(row) : null;
@@ -479,25 +607,152 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
       fail(id, error, retryAt, now) {
         return mapRepositoryError('jobs', 'fail', async () => {
-          const result = await pool.query(
-            `update jobs
-             set status = case when attempts < max_attempts then 'retry' else 'failed' end,
-                 run_after = $3,
-                 locked_at = null,
-                 locked_by = null,
-                 last_error = $2,
-                 updated_at = $4
-             where id = $1 and status = 'running'
-             returning id`,
-            [id, error, retryAt, now],
-          );
-          if (!result.rowCount) {
-            throw new RepositoryNotFoundError('jobs', 'fail');
+          const client = await pool.connect();
+          try {
+            await client.query('begin');
+            const result = await client.query<{
+              kind: string;
+              refresh_cycle_id: string | null;
+              status: string;
+            }>(
+              `update jobs
+               set status = case when attempts < max_attempts then 'retry' else 'failed' end,
+                   run_after = $3,
+                   locked_at = null,
+                   locked_by = null,
+                   last_error = $2,
+                   updated_at = $4
+               where id = $1 and status = 'running'
+               returning status, kind, refresh_cycle_id`,
+              [id, error, retryAt, now],
+            );
+            const failed = result.rows[0];
+            if (!failed) {
+              throw new RepositoryNotFoundError('jobs', 'fail');
+            }
+            if (
+              failed.status === 'failed' &&
+              failed.kind === 'recipe_refresh' &&
+              failed.refresh_cycle_id
+            ) {
+              await incrementFailedQueries(
+                client,
+                failed.refresh_cycle_id,
+                1,
+                now,
+              );
+            }
+            await client.query('commit');
+          } catch (caught) {
+            await client.query('rollback').catch(() => undefined);
+            throw caught;
+          } finally {
+            client.release();
+          }
+        });
+      },
+      failPermanently(id, error, now) {
+        return mapRepositoryError('jobs', 'failPermanently', async () => {
+          const client = await pool.connect();
+          try {
+            await client.query('begin');
+            const result = await client.query<{
+              kind: string;
+              refresh_cycle_id: string | null;
+            }>(
+              `update jobs
+               set status = 'failed', locked_at = null, locked_by = null,
+                   last_error = $2, updated_at = $3
+               where id = $1 and status = 'running'
+               returning kind, refresh_cycle_id`,
+              [id, error, now],
+            );
+            const failed = result.rows[0];
+            if (!failed) {
+              throw new RepositoryNotFoundError('jobs', 'failPermanently');
+            }
+            if (failed.kind === 'recipe_refresh' && failed.refresh_cycle_id) {
+              await incrementFailedQueries(
+                client,
+                failed.refresh_cycle_id,
+                1,
+                now,
+              );
+            }
+            await client.query('commit');
+          } catch (caught) {
+            await client.query('rollback').catch(() => undefined);
+            throw caught;
+          } finally {
+            client.release();
+          }
+        });
+      },
+      recoverStale(before, retryAt, now) {
+        return mapRepositoryError('jobs', 'recoverStale', async () => {
+          const client = await pool.connect();
+          try {
+            await client.query('begin');
+            const result = await client.query<{
+              kind: string;
+              refresh_cycle_id: string | null;
+              status: string;
+            }>(
+              `update jobs
+               set status = case when attempts < max_attempts then 'retry' else 'failed' end,
+                   run_after = $2, locked_at = null, locked_by = null,
+                   last_error = 'worker_lease_expired', updated_at = $3
+               where status = 'running' and locked_at <= $1
+               returning status, kind, refresh_cycle_id`,
+              [before, retryAt, now],
+            );
+            const failedByCycle = new Map<string, number>();
+            for (const recovered of result.rows) {
+              if (
+                recovered.status === 'failed' &&
+                recovered.kind === 'recipe_refresh' &&
+                recovered.refresh_cycle_id
+              ) {
+                failedByCycle.set(
+                  recovered.refresh_cycle_id,
+                  (failedByCycle.get(recovered.refresh_cycle_id) ?? 0) + 1,
+                );
+              }
+            }
+            for (const [cycleId, count] of failedByCycle) {
+              await incrementFailedQueries(client, cycleId, count, now);
+            }
+            await client.query('commit');
+            return result.rows.length;
+          } catch (caught) {
+            await client.query('rollback').catch(() => undefined);
+            throw caught;
+          } finally {
+            client.release();
           }
         });
       },
     },
   };
+}
+
+async function incrementFailedQueries(
+  client: PoolClient,
+  cycleId: string,
+  count: number,
+  now: Date,
+) {
+  const result = await client.query(
+    `update refresh_cycles
+     set failed_queries = failed_queries + $2, updated_at = $3
+     where id = $1
+       and completed_queries + failed_queries + $2 <= total_queries
+     returning id`,
+    [cycleId, count, now],
+  );
+  if (!result.rowCount) {
+    throw new RepositoryNotFoundError('cycles', 'incrementFailedQueries');
+  }
 }
 
 function recipeValues(recipe: Recipe) {

@@ -97,8 +97,10 @@ export async function planCatalogRefresh(
   const cycle =
     existingCycle ??
     (await repositories.cycles.save({
+      completedQueries: 0,
       completedRecipes: 0,
       errorMessage: null,
+      failedQueries: 0,
       failedRecipes: 0,
       finishedAt: null,
       id: cycleId,

@@ -14,8 +14,10 @@ import type { JobStatus, RefreshCycle, RefreshCycleStatus } from './models.js';
 
 const now = new Date('2026-07-20T00:00:00.000Z');
 const queuedCycle: RefreshCycle = {
+  completedQueries: 0,
   completedRecipes: 0,
   errorMessage: null,
+  failedQueries: 0,
   failedRecipes: 0,
   finishedAt: null,
   id: '11111111-1111-4111-8111-111111111111',

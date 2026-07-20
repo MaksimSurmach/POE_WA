@@ -31,7 +31,9 @@ export const refreshCycles = pgTable(
     status: text('status').default('queued').notNull(),
     totalRecipes: integer('total_recipes').default(0).notNull(),
     totalQueries: integer('total_queries').default(0).notNull(),
+    completedQueries: integer('completed_queries').default(0).notNull(),
     completedRecipes: integer('completed_recipes').default(0).notNull(),
+    failedQueries: integer('failed_queries').default(0).notNull(),
     failedRecipes: integer('failed_recipes').default(0).notNull(),
     requestedAt: timestamp('requested_at', { withTimezone: true })
       .defaultNow()
@@ -49,7 +51,7 @@ export const refreshCycles = pgTable(
     ),
     check(
       'refresh_cycles_counts_check',
-      sql`${table.totalRecipes} >= 0 and ${table.totalQueries} >= 0 and ${table.completedRecipes} >= 0 and ${table.failedRecipes} >= 0 and ${table.completedRecipes} + ${table.failedRecipes} <= ${table.totalRecipes}`,
+      sql`${table.totalRecipes} >= 0 and ${table.totalQueries} >= 0 and ${table.completedQueries} >= 0 and ${table.completedRecipes} >= 0 and ${table.failedQueries} >= 0 and ${table.failedRecipes} >= 0 and ${table.completedQueries} + ${table.failedQueries} <= ${table.totalQueries} and ${table.completedRecipes} + ${table.failedRecipes} <= ${table.totalRecipes}`,
     ),
     index('refresh_cycles_status_requested_at_idx').on(
       table.status,
@@ -160,7 +162,7 @@ export const aggregatedObservations = pgTable(
     cheapestPrice: numeric('cheapest_price', {
       precision: 20,
       scale: 8,
-    }).notNull(),
+    }),
     nthPrice: numeric('nth_price', { precision: 20, scale: 8 }),
     medianTopNPrice: numeric('median_top_n_price', {
       precision: 20,

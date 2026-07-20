@@ -1,6 +1,7 @@
 import type {
   AggregatedObservation,
   Job,
+  JobKind,
   MarketQuery,
   NewAggregatedObservation,
   NewRawSnapshot,
@@ -57,10 +58,25 @@ export interface CycleRepository {
 }
 
 export interface JobRepository {
-  claimNext(workerId: string, now: Date): Promise<Job | null>;
+  claimNext(
+    workerId: string,
+    now: Date,
+    kinds?: readonly JobKind[],
+  ): Promise<Job | null>;
   complete(id: string, completedAt: Date): Promise<void>;
   enqueue(job: Job): Promise<Job>;
   fail(id: string, error: string, retryAt: Date, now: Date): Promise<void>;
+  failPermanently(id: string, error: string, now: Date): Promise<void>;
+  recoverStale(before: Date, retryAt: Date, now: Date): Promise<number>;
+}
+
+export interface MarketResultRepository {
+  commitSuccess(result: {
+    completedAt: Date;
+    jobId: string;
+    observation: NewAggregatedObservation;
+    snapshot: NewRawSnapshot;
+  }): Promise<{ applied: boolean }>;
 }
 
 export type Repositories = {
@@ -68,6 +84,7 @@ export type Repositories = {
   evaluations: EvaluationRepository;
   jobs: JobRepository;
   marketQueries: MarketQueryRepository;
+  marketResults: MarketResultRepository;
   observations: ObservationRepository;
   recipes: RecipeRepository;
   snapshots: SnapshotRepository;
