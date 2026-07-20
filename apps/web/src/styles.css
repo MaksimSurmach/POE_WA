@@ -253,6 +253,16 @@ progress::-webkit-progress-value {
   color: var(--danger);
 }
 
+.failure-state {
+  min-width: 0;
+}
+
+.failure-state__timestamp {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;

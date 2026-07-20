@@ -6,6 +6,9 @@ import {
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
 
+export { domainErrorCodes, domainErrorDefinitions };
+export const domainErrorCodeSchema = z.enum(domainErrorCodes);
+
 /** A display price. Market normalization will later use chaos amounts. */
 export const priceSchema = z
   .object({
@@ -61,7 +64,7 @@ export const recipeEvaluationSchema = z
     marginPercent: z.number().finite().nullable(),
     snapshotId: z.string().min(1).nullable(),
     lastSuccessfulAt: z.iso.datetime().nullable(),
-    errorCode: z.string().min(1).nullable(),
+    errorCode: domainErrorCodeSchema.nullable(),
   })
   .strict();
 
@@ -136,7 +139,6 @@ export const recipeDetailViewSchema = z
   .strict();
 
 export const correlationIdSchema = z.uuid();
-export const domainErrorCodeSchema = z.enum(domainErrorCodes);
 export const refreshStatusSchema = z.enum([
   'idle',
   'queued',
@@ -262,6 +264,7 @@ export type RefreshCycle = z.infer<typeof refreshCycleSchema>;
 export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
 export type RecipeDetailView = z.infer<typeof recipeDetailViewSchema>;
 export type PublicDomainError = z.infer<typeof publicDomainErrorSchema>;
+export type DomainErrorCode = z.infer<typeof domainErrorCodeSchema>;
 export type ApiErrorEnvelope = z.infer<typeof apiErrorEnvelopeSchema>;
 export type RefreshStatus = z.infer<typeof refreshStatusSchema>;
 export type CatalogResponse = z.infer<typeof catalogResponseSchema>;

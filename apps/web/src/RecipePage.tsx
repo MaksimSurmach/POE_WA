@@ -1,4 +1,3 @@
-import type { RecipeDetailView } from '@poe-worksmith/contracts';
 import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -9,6 +8,7 @@ import {
   StatusPanel,
   Tag,
 } from './components.js';
+import { RecipeStatePanel } from './failureStates.js';
 import { recipeDetails } from './mocks/recipeDetails.js';
 
 const listedAt = new Intl.DateTimeFormat('en', {
@@ -83,7 +83,7 @@ export function RecipePage() {
         </DetailMetric>
       </section>
 
-      <RecipeStatePanel detail={detail} />
+      <RecipeStatePanel evaluation={evaluation} />
 
       <div className="detail-columns">
         <div>
@@ -260,42 +260,6 @@ function DetailSection({
       {children}
     </section>
   );
-}
-
-function RecipeStatePanel({ detail }: { detail: RecipeDetailView }) {
-  if (detail.evaluation.status === 'stale') {
-    return (
-      <StatusPanel tone="warning" title="Using stale market data">
-        The last successful evaluation remains visible while providers recover.
-      </StatusPanel>
-    );
-  }
-
-  if (detail.evaluation.status === 'partial') {
-    return (
-      <StatusPanel tone="warning" title="No Merchant listings found">
-        Craft cost is available, but sale price and profit cannot be estimated.
-      </StatusPanel>
-    );
-  }
-
-  if (detail.evaluation.status === 'error') {
-    return (
-      <StatusPanel tone="danger" title="Calculation unavailable">
-        Missing market data prevents a safe cost and profit result.
-      </StatusPanel>
-    );
-  }
-
-  if (detail.evaluation.status === 'loading') {
-    return (
-      <StatusPanel tone="info" title="Waiting for market data">
-        This recipe has not completed its first evaluation.
-      </StatusPanel>
-    );
-  }
-
-  return null;
 }
 
 function capitalize(value: string) {

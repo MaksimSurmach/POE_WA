@@ -4,7 +4,7 @@ import { profitableRecipeDetail, recipeDetails } from './recipeDetails.js';
 
 describe('recipe detail fixtures', () => {
   it('validates every catalog recipe and preserves all Merchant offers', () => {
-    expect(recipeDetails).toHaveLength(6);
+    expect(recipeDetails).toHaveLength(7);
     expect(profitableRecipeDetail.snapshot?.listings).toHaveLength(10);
     expect(
       profitableRecipeDetail.snapshot?.listings.filter(

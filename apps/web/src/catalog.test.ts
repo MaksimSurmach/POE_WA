@@ -37,12 +37,12 @@ describe('catalog filtering and ranking', () => {
       filterAndSortCatalog(catalogFixtures, defaultCatalogFilters)[0]?.recipe
         .id,
     ).toBe('profitable-cluster');
-    expect(
-      filterAndSortCatalog(catalogFixtures, {
-        ...defaultCatalogFilters,
-        sort: 'capital',
-      })[0]?.recipe.id,
-    ).toBe('low-margin-ring');
+    const capitalRanking = filterAndSortCatalog(catalogFixtures, {
+      ...defaultCatalogFilters,
+      sort: 'capital',
+    });
+    expect(capitalRanking[0]?.recipe.id).toBe('low-margin-ring');
+    expect(capitalRanking.at(-1)?.recipe.id).toBe('invalid-recipe');
     expect(
       filterAndSortCatalog(catalogFixtures, {
         ...defaultCatalogFilters,

@@ -98,7 +98,10 @@ export const recipeDetails = catalogFixtures.map((entry) => {
     });
   }
 
-  if (entry.recipe.id === 'calculation-error-amulet') {
+  if (
+    entry.recipe.id === 'calculation-error-amulet' ||
+    entry.recipe.id === 'invalid-recipe'
+  ) {
     return createDetail(entry, {
       confidence: null,
       costBreakdown: null,

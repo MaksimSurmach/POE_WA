@@ -45,9 +45,16 @@ export function filterAndSortCatalog(
 
   return filtered.sort((left, right) => {
     if (filters.sort === 'capital') {
-      return (
-        left.recipe.minimumCapital.amount - right.recipe.minimumCapital.amount
-      );
+      const leftCapital =
+        left.evaluation.status === 'error'
+          ? Number.POSITIVE_INFINITY
+          : left.recipe.minimumCapital.amount;
+      const rightCapital =
+        right.evaluation.status === 'error'
+          ? Number.POSITIVE_INFINITY
+          : right.recipe.minimumCapital.amount;
+
+      return leftCapital - rightCapital;
     }
 
     if (filters.sort === 'freshness') {

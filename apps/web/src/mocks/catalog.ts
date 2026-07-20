@@ -256,6 +256,30 @@ const catalogInput = [
   },
   {
     recipe: {
+      id: 'invalid-recipe',
+      title: 'Invalid Recipe Fixture',
+      summary: 'A recipe source that failed structured validation.',
+      category: 'jewel',
+      craftMethod: 'unknown',
+      tags: ['invalid', 'fixture'],
+      minimumCapital: { amount: 0, currency: 'divine' },
+    },
+    evaluation: {
+      recipeId: 'invalid-recipe',
+      status: 'error',
+      evaluatedAt: null,
+      expectedCraftCost: null,
+      estimatedSalePrice: null,
+      profit: null,
+      marginPercent: null,
+      snapshotId: null,
+      lastSuccessfulAt: null,
+      errorCode: 'RECIPE_INVALID',
+    },
+    snapshot: null,
+  },
+  {
+    recipe: {
       id: 'loading-gloves',
       title: 'Suppression Gloves',
       summary: 'A newly queued recipe waiting for its first market snapshot.',
@@ -288,8 +312,8 @@ export const publishedCycle = refreshCycleSchema.parse({
   startedAt: '2026-07-20T00:00:00.000Z',
   publishedAt: '2026-07-20T00:02:00.000Z',
   totalRecipes: catalogFixtures.length,
-  completedRecipes: 5,
-  failedRecipes: 1,
+  completedRecipes: catalogFixtures.length,
+  failedRecipes: 0,
 });
 
 export const activeCycle = refreshCycleSchema.parse({

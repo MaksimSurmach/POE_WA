@@ -26,9 +26,11 @@ describe('application shell', () => {
   });
 
   it.each([
-    ['/recipes/stale-boots', 'Using stale market data'],
-    ['/recipes/no-listings-bow', 'No Merchant listings found'],
+    ['/recipes/stale-boots', 'Market provider temporarily unavailable'],
+    ['/recipes/no-listings-bow', 'No market listings yet'],
     ['/recipes/calculation-error-amulet', 'Calculation unavailable'],
+    ['/recipes/invalid-recipe', 'Recipe configuration is invalid'],
+    ['/recipes/loading-gloves', 'No market data yet'],
   ])('renders the explicit detail state for %s', (route, message) => {
     const page = renderToStaticMarkup(
       <MemoryRouter initialEntries={[route]}>
@@ -37,6 +39,18 @@ describe('application shell', () => {
     );
 
     expect(page).toContain(message);
+  });
+
+  it('keeps healthy recipes visible when one recipe fails', () => {
+    const catalog = renderToStaticMarkup(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(catalog).toContain('Physical Large Cluster Jewel');
+    expect(catalog).toContain('Invalid Recipe Fixture');
+    expect(catalog).toContain('evaluation-status--error');
   });
 });
 
