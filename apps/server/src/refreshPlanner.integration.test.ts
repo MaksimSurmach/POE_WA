@@ -14,6 +14,12 @@ import { createPostgresRepositories } from './repositories/postgresRepositories.
 const pool = createDatabasePool(loadDatabaseConfig());
 const repositories = createPostgresRepositories(pool);
 const now = new Date('2026-07-20T00:00:00.000Z');
+const leagueId = '00000000-0000-4000-8000-000000000001';
+const refreshLeague = {
+  leagueGggId: 'Mercenaries',
+  leagueId,
+  leagueName: 'Mercenaries',
+};
 
 afterAll(async () => {
   await pool.end();
@@ -23,7 +29,12 @@ beforeEach(async () => {
   await pool.query(
     `truncate table jobs, recipe_evaluations, raw_snapshots,
        aggregated_observations, catalog_state, market_queries,
-       refresh_cycles, recipes restart identity cascade`,
+       refresh_cycles, recipes, poe_leagues restart identity cascade`,
+  );
+  await pool.query(
+    `insert into poe_leagues (id, ggg_id, name, is_current, synced_at)
+     values ($1, 'Mercenaries', 'Mercenaries', true, now())`,
+    [leagueId],
   );
 });
 
@@ -68,7 +79,7 @@ describe('catalog refresh planner with PostgreSQL', () => {
     await repositories.recipes.save(recipe('recipe-b', 'B'));
     const options = {
       cycleId: '66666666-6666-4666-8666-666666666666',
-      league: 'Mercenaries',
+      league: refreshLeague,
       now,
       snapshotTtlMs: 5 * 60 * 1000,
     };

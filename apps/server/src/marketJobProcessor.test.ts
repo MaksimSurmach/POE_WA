@@ -5,17 +5,27 @@ import {
   type RefreshCycle,
   type Repositories,
 } from '@poe-worksmith/domain';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { MarketJobProcessor } from './marketJobProcessor.js';
 
 const now = new Date('2026-07-20T00:00:00.000Z');
 const retryDelayMs = 1000;
 const leaseTimeoutMs = 10_000;
-const leagueId = '00000000-0000-4000-8000-000000000001';
 
 async function seedJobs(count: number, maxAttempts = 3) {
   const repositories = createInMemoryRepositories();
+  const league = await repositories.leagues.upsert({
+    endAt: null,
+    game: 'poe1',
+    gggId: 'Mercenaries',
+    isCurrent: true,
+    metadata: {},
+    name: 'Mercenaries',
+    realm: 'pc',
+    startAt: null,
+    syncedAt: now,
+  });
   const queued: RefreshCycle = {
     completedQueries: 0,
     completedRecipes: 0,
@@ -24,7 +34,7 @@ async function seedJobs(count: number, maxAttempts = 3) {
     failedRecipes: 0,
     finishedAt: null,
     id: 'cycle-id',
-    leagueId,
+    leagueId: league.id,
     publishedAt: null,
     requestedAt: now,
     startedAt: null,
@@ -62,7 +72,9 @@ async function seedJobs(count: number, maxAttempts = 3) {
       maxAttempts,
       payload: {
         canonicalHash,
-        league: 'Mercenaries',
+        leagueGggId: 'Mercenaries',
+        leagueId: league.id,
+        leagueName: 'Mercenaries',
         provider: 'fake-market',
         recipeIds: ['recipe-id'],
         schemaVersion: 1,
@@ -161,6 +173,37 @@ describe('market job processor', () => {
         ),
       ).toHaveLength(1);
     }
+  });
+
+  it('uses the captured GGG league after the current league rolls over', async () => {
+    const repositories = await seedJobs(1);
+    const nextLeague = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Next League',
+      isCurrent: false,
+      metadata: {},
+      name: 'Next League',
+      realm: 'pc',
+      startAt: now,
+      syncedAt: now,
+    });
+    await repositories.leagues.setCurrent(nextLeague.id, now);
+    const search = vi.fn(async () => successfulResult());
+
+    await processor(
+      repositories,
+      resultProvider(search),
+      () => now,
+      1,
+    ).runAvailable('worker-1', now);
+
+    expect((await repositories.leagues.findCurrent())?.gggId).toBe(
+      'Next League',
+    );
+    expect(search).toHaveBeenCalledWith(
+      expect.objectContaining({ league: 'Mercenaries' }),
+    );
   });
 
   it('commits a repeated delivery once without duplicate observations', async () => {

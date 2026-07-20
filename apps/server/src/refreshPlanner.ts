@@ -15,6 +15,8 @@ import {
   validateRecipeV1,
 } from '@poe-worksmith/domain';
 
+import type { RefreshLeagueContext } from './refreshLeagueContext.js';
+
 type RecipeTradeQuery = CanonicalRecipeV1['baseRequirements']['tradeQuery'];
 
 type RefreshDependency = {
@@ -63,7 +65,7 @@ export async function planCatalogRefresh(
   options: {
     createId?: () => string;
     cycleId?: string;
-    league: string;
+    league: RefreshLeagueContext;
     maxAttempts?: number;
     now?: Date;
     priority?: number;
@@ -73,7 +75,7 @@ export async function planCatalogRefresh(
   const now = options.now ?? new Date();
   const createId = options.createId ?? randomUUID;
   const cycleId = options.cycleId ?? createId();
-  const league = options.league.trim();
+  const league = options.league;
   const maxAttempts = options.maxAttempts ?? 3;
   const priority = options.priority ?? 10;
   assertPlannerOptions({
@@ -90,7 +92,7 @@ export async function planCatalogRefresh(
   );
   const { dependencies, totalDependencies } = await buildDependencies(
     recipes,
-    league,
+    league.leagueGggId,
   );
   const existingCycle = await repositories.cycles.findById(cycleId);
   if (
@@ -100,9 +102,9 @@ export async function planCatalogRefresh(
   ) {
     throw new DomainError('REFRESH_STATE_INVALID');
   }
-  const leagueId =
-    existingCycle?.leagueId ?? (await repositories.leagues.findCurrent())?.id;
-  if (!leagueId) throw new DomainError('CURRENT_LEAGUE_UNRESOLVED');
+  if (existingCycle && existingCycle.leagueId !== league.leagueId) {
+    throw new DomainError('REFRESH_STATE_INVALID');
+  }
   const resolved: ResolvedRefreshDependency[] = [];
   let cacheHits = 0;
   let cacheMisses = 0;
@@ -131,7 +133,7 @@ export async function planCatalogRefresh(
       failedRecipes: 0,
       finishedAt: null,
       id: cycleId,
-      leagueId,
+      leagueId: league.leagueId,
       publishedAt: null,
       requestedAt: now,
       startedAt: null,
@@ -169,7 +171,9 @@ export async function planCatalogRefresh(
       maxAttempts,
       payload: {
         canonicalHash: dependency.canonicalHash,
-        league,
+        leagueGggId: league.leagueGggId,
+        leagueId: league.leagueId,
+        leagueName: league.leagueName,
         provider: dependency.provider,
         recipeIds: dependency.recipeIds,
         schemaVersion: dependency.schemaVersion,
@@ -299,7 +303,7 @@ function isFreshSnapshot(
 
 function assertPlannerOptions(options: {
   cycleId: string;
-  league: string;
+  league: RefreshLeagueContext;
   maxAttempts: number;
   now: Date;
   priority: number;
@@ -307,7 +311,7 @@ function assertPlannerOptions(options: {
 }) {
   if (
     options.cycleId.trim().length === 0 ||
-    options.league.length === 0 ||
+    Object.values(options.league).some((value) => value.trim().length === 0) ||
     !Number.isFinite(options.now.getTime()) ||
     !Number.isInteger(options.maxAttempts) ||
     options.maxAttempts < 1 ||

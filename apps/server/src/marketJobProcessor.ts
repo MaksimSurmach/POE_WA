@@ -16,7 +16,9 @@ import { ProviderRetryPolicy, type RetryDecider } from './retryPolicy.js';
 
 const payloadSchema = z.strictObject({
   canonicalHash: z.string().min(1),
-  league: z.string().trim().min(1),
+  leagueGggId: z.string().trim().min(1),
+  leagueId: z.string().uuid(),
+  leagueName: z.string().trim().min(1),
   provider: z.string().trim().min(1),
   recipeIds: z.array(z.string().min(1)).min(1),
   schemaVersion: z.number().int().min(1),
@@ -94,12 +96,15 @@ export class MarketJobProcessor {
     }
     const cycle = await this.#repositories.cycles.findById(job.refreshCycleId);
     if (!cycle) throw new DomainError('PERSISTENCE_NOT_FOUND');
+    if (cycle.leagueId !== payload.leagueId) {
+      throw new DomainError('JOB_PAYLOAD_INVALID');
+    }
     const provider = this.#providers.get(payload.provider);
     if (!provider || marketQuery.provider !== provider.id) {
       throw new DomainError('MARKET_QUERY_INVALID');
     }
     const result = await provider.search({
-      league: payload.league,
+      league: payload.leagueGggId,
       query: canonicalizeMarketQuery(marketQuery.query as CanonicalJsonObject),
       schemaVersion: payload.schemaVersion,
     });
@@ -114,7 +119,7 @@ export class MarketJobProcessor {
       job,
       payload.canonicalHash,
       result,
-      cycle.leagueId,
+      payload.leagueId,
       this.#snapshotTtlMs,
     );
   }

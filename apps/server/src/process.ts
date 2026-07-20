@@ -13,6 +13,7 @@ import { MarketJobProcessor } from './marketJobProcessor.js';
 import { PoeTradeClient } from './providers/poeTrade.js';
 import { GggRateLimitController } from './rateLimitController.js';
 import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
+import { refreshLeagueContext } from './refreshLeagueContext.js';
 import { createPostgresRepositories } from './repositories/index.js';
 import { RetentionCleaner } from './retention.js';
 import { createResourceReaders } from './resourceViews.js';
@@ -93,7 +94,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         const currentLeague = await repositories.leagues.findCurrent();
         if (!currentLeague) throw new Error('CURRENT_LEAGUE_UNRESOLVED');
         return new FullRefreshOrchestrator({
-          league: currentLeague.gggId,
+          league: refreshLeagueContext(currentLeague),
           marketJobs,
           repositories,
           snapshotTtlMs: config.snapshotTtlMs,

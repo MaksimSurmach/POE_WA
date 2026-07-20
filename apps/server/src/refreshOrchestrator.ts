@@ -16,6 +16,7 @@ import {
   planCatalogRefresh,
   type RefreshPlanReport,
 } from './refreshPlanner.js';
+import type { RefreshLeagueContext } from './refreshLeagueContext.js';
 
 type MarketJobRunner = Pick<MarketJobProcessor, 'runAvailable'>;
 
@@ -27,7 +28,7 @@ export type FullRefreshReport = Readonly<{
 
 export class FullRefreshOrchestrator {
   readonly #clock: () => Date;
-  readonly #league: string;
+  readonly #league: RefreshLeagueContext;
   readonly #marketJobs: MarketJobRunner;
   readonly #repositories: Repositories;
   readonly #snapshotTtlMs: number;
@@ -35,20 +36,20 @@ export class FullRefreshOrchestrator {
 
   constructor(options: {
     clock?: () => Date;
-    league: string;
+    league: RefreshLeagueContext;
     marketJobs: MarketJobRunner;
     repositories: Repositories;
     snapshotTtlMs: number;
     workerId: string;
   }) {
     this.#clock = options.clock ?? (() => new Date());
-    this.#league = options.league.trim();
+    this.#league = Object.freeze({ ...options.league });
     this.#marketJobs = options.marketJobs;
     this.#repositories = options.repositories;
     this.#snapshotTtlMs = options.snapshotTtlMs;
     this.#workerId = options.workerId.trim();
     if (
-      this.#league.length === 0 ||
+      Object.values(this.#league).some((value) => value.trim().length === 0) ||
       this.#workerId.length === 0 ||
       !Number.isInteger(this.#snapshotTtlMs) ||
       this.#snapshotTtlMs < 1
@@ -85,7 +86,7 @@ export class FullRefreshOrchestrator {
 
     const publication = await evaluateAndPublishCatalog(this.#repositories, {
       cycleId: cycle.id,
-      league: this.#league,
+      league: this.#league.leagueGggId,
       now: this.#clock(),
     });
     return { jobs, plan: plan.report, publication };

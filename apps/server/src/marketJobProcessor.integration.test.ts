@@ -77,7 +77,9 @@ describe('market job processor with PostgreSQL', () => {
       maxAttempts: 3,
       payload: {
         canonicalHash: 'query-hash',
-        league: 'Mercenaries',
+        leagueGggId: 'Mercenaries',
+        leagueId,
+        leagueName: 'Mercenaries',
         provider: 'fake-market',
         recipeIds: [recipe.id],
         schemaVersion: 1,
