@@ -20,11 +20,17 @@ import {
 export function createResourceReaders(repositories: Repositories) {
   return {
     async readCatalog(correlationId: string): Promise<CatalogResponse> {
-      const [recipes, published, progress] = await Promise.all([
-        repositories.recipes.listActive(),
-        repositories.catalog.getPublished(),
-        repositories.catalog.getProgress(),
-      ]);
+      const [recipes, currentPublished, progress, currentLeague] =
+        await Promise.all([
+          repositories.recipes.listActive(),
+          repositories.catalog.getPublished(),
+          repositories.catalog.getProgress(),
+          repositories.leagues.findCurrent(),
+        ]);
+      const published =
+        currentPublished?.cycle.leagueId === currentLeague?.id
+          ? currentPublished
+          : null;
       const evaluations = new Map(
         published?.evaluations.map((evaluation) => [
           evaluation.recipeId,
@@ -47,11 +53,17 @@ export function createResourceReaders(repositories: Repositories) {
       correlationId: string,
       recipeId: string,
     ): Promise<RecipeResponse> {
-      const [recipe, published, progress] = await Promise.all([
-        repositories.recipes.findById(recipeId),
-        repositories.catalog.getPublished(),
-        repositories.catalog.getProgress(),
-      ]);
+      const [recipe, currentPublished, progress, currentLeague] =
+        await Promise.all([
+          repositories.recipes.findById(recipeId),
+          repositories.catalog.getPublished(),
+          repositories.catalog.getProgress(),
+          repositories.leagues.findCurrent(),
+        ]);
+      const published =
+        currentPublished?.cycle.leagueId === currentLeague?.id
+          ? currentPublished
+          : null;
       if (!recipe || !recipe.active) {
         throw new DomainError('PERSISTENCE_NOT_FOUND');
       }
@@ -227,9 +239,15 @@ function errorCode(value: string | null): DomainErrorCode | null {
 
 function refreshStatus(
   value:
-    'queued' | 'running' | 'published' | 'failed' | 'superseded' | undefined,
+    | 'queued'
+    | 'running'
+    | 'completed'
+    | 'published'
+    | 'failed'
+    | 'superseded'
+    | undefined,
 ): RefreshStatus {
-  return value ?? 'idle';
+  return value === 'completed' ? 'idle' : (value ?? 'idle');
 }
 
 function estimatorLabel(estimator: { strategy: string }) {

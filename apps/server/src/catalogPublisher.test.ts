@@ -62,13 +62,30 @@ async function seedCycle(
   cycleId: string,
   recipeCount: number,
 ) {
+  const currentLeague = await repositories.leagues.findCurrent();
+  const league =
+    currentLeague ??
+    (await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Mercenaries',
+      isCurrent: true,
+      metadata: {},
+      name: 'Mercenaries',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    }));
   for (let index = 1; index <= recipeCount; index += 1) {
     const id = `recipe-${String(index).padStart(2, '0')}`;
     if (!(await repositories.recipes.findById(id))) {
       await repositories.recipes.save(storedRecipe(id));
     }
   }
-  await repositories.cycles.save(cycle(cycleId, recipeCount));
+  await repositories.cycles.save({
+    ...cycle(cycleId, recipeCount),
+    leagueId: league.id,
+  });
 }
 
 function evaluator(failingIds: readonly string[] = []): FreshRecipeEvaluator {
@@ -157,7 +174,21 @@ describe('catalog evaluation and publication', () => {
       ...definition.finishingCosts.map(({ tradeQuery }) => tradeQuery),
       definition.output.tradeQuery,
     ];
-    const refreshCycle = cycle('cycle-fresh', 1, tradeQueries.length);
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Mercenaries',
+      isCurrent: true,
+      metadata: {},
+      name: 'Mercenaries',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
+    const refreshCycle = {
+      ...cycle('cycle-fresh', 1, tradeQueries.length),
+      leagueId: league.id,
+    };
     await repositories.cycles.save(refreshCycle);
 
     for (const [queryIndex, tradeQuery] of tradeQueries.entries()) {
@@ -196,7 +227,7 @@ describe('catalog evaluation and publication', () => {
         capturedAt: now,
         dedupeKey: `snapshot-${queryIndex}`,
         expiresAt: new Date(now.getTime() + 300_000),
-        leagueId,
+        leagueId: league.id,
         marketQueryId,
         payload: { listings, provider: 'poe-trade', totalResults: 10 },
         providerStatus: 200,
@@ -234,5 +265,74 @@ describe('catalog evaluation and publication', () => {
       status: 'success',
     });
     expect(Number(report.evaluations[0]?.profit)).toBeGreaterThan(0);
+  });
+
+  it('does not use stale evaluations from a previous league', async () => {
+    const repositories = createInMemoryRepositories();
+    await seedCycle(repositories, 'cycle-old', 1);
+    await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-old',
+      evaluateRecipe: evaluator(),
+      league: 'Mercenaries',
+      now,
+    });
+    const nextLeague = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Next',
+      isCurrent: false,
+      metadata: {},
+      name: 'Next league',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
+    await repositories.leagues.setCurrent(nextLeague.id, now);
+    await seedCycle(repositories, 'cycle-new', 1);
+
+    const report = await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-new',
+      evaluateRecipe: evaluator(['recipe-01']),
+      league: 'Next',
+      now,
+    });
+
+    expect(report).toMatchObject({ published: false, staleFallbacks: 0 });
+    expect(report.evaluations[0]).toMatchObject({ status: 'error' });
+  });
+
+  it('completes but does not publish when the league changes during evaluation', async () => {
+    const repositories = createInMemoryRepositories();
+    await seedCycle(repositories, 'cycle-rollover', 1);
+    const nextLeague = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Next',
+      isCurrent: false,
+      metadata: {},
+      name: 'Next league',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
+
+    const report = await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-rollover',
+      evaluateRecipe: async (recipe, context) => {
+        await repositories.leagues.setCurrent(nextLeague.id, now);
+        return evaluator()(recipe, context);
+      },
+      league: 'Mercenaries',
+      now,
+    });
+
+    expect(report).toMatchObject({
+      publicationDiagnostic: 'CATALOG_PUBLICATION_SKIPPED_LEAGUE_CHANGED',
+      published: false,
+    });
+    expect(await repositories.cycles.findById('cycle-rollover')).toMatchObject({
+      errorMessage: 'CATALOG_PUBLICATION_SKIPPED_LEAGUE_CHANGED',
+      status: 'completed',
+    });
   });
 });

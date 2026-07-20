@@ -4,7 +4,10 @@ import {
   catalogResponseSchema,
   recipeResponseSchema,
 } from '@poe-worksmith/contracts';
-import { createInMemoryRepositories } from '@poe-worksmith/domain';
+import {
+  createInMemoryRepositories,
+  transitionRefreshCycle,
+} from '@poe-worksmith/domain';
 import { describe, expect, it } from 'vitest';
 
 import { synchronizeRecipeCatalog } from './recipes/synchronizeRecipes.js';
@@ -49,6 +52,62 @@ describe('repository-backed resource views', () => {
         },
       ],
       recipe: { id: 'physical-large-cluster' },
+    });
+  });
+
+  it('does not present a published catalog after its league rolls over', async () => {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    const oldLeague = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Old',
+      isCurrent: true,
+      metadata: {},
+      name: 'Old',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: new Date(),
+    });
+    const queued = await repositories.cycles.save({
+      completedQueries: 0,
+      completedRecipes: 0,
+      errorMessage: null,
+      failedQueries: 0,
+      failedRecipes: 0,
+      finishedAt: null,
+      id: '11111111-1111-4111-8111-111111111111',
+      leagueId: oldLeague.id,
+      publishedAt: null,
+      requestedAt: new Date(),
+      startedAt: null,
+      status: 'queued',
+      totalQueries: 0,
+      totalRecipes: 1,
+    });
+    const running = await repositories.cycles.save({
+      ...transitionRefreshCycle(queued, 'running', new Date()),
+      completedRecipes: 1,
+    });
+    await repositories.cycles.publish(running.id, new Date());
+    const nextLeague = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Next',
+      isCurrent: false,
+      metadata: {},
+      name: 'Next',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: new Date(),
+    });
+    await repositories.leagues.setCurrent(nextLeague.id, new Date());
+
+    expect(
+      await createResourceReaders(repositories).readCatalog(correlationId),
+    ).toMatchObject({
+      publishedAt: null,
+      state: 'loading',
     });
   });
 });

@@ -48,7 +48,10 @@ export interface MarketQueryRepository {
 
 export interface SnapshotRepository {
   deleteExpired(before: Date): Promise<number>;
-  findLatest(marketQueryId: string): Promise<RawSnapshot | null>;
+  findLatest(
+    marketQueryId: string,
+    leagueId: string,
+  ): Promise<RawSnapshot | null>;
   save(snapshot: NewRawSnapshot): Promise<{
     inserted: boolean;
     snapshot: RawSnapshot;
@@ -58,6 +61,7 @@ export interface SnapshotRepository {
 export interface ObservationRepository {
   listRecent(
     marketQueryId: string,
+    leagueId: string,
     since: Date,
   ): Promise<AggregatedObservation[]>;
   save(observation: NewAggregatedObservation): Promise<AggregatedObservation>;
@@ -75,7 +79,7 @@ export interface EvaluationRepository {
 export interface CycleRepository {
   findById(id: string): Promise<RefreshCycle | null>;
   getPublishedCycleId(): Promise<string | null>;
-  publish(id: string, publishedAt: Date): Promise<void>;
+  publish(id: string, publishedAt: Date): Promise<boolean>;
   save(cycle: RefreshCycle): Promise<RefreshCycle>;
 }
 

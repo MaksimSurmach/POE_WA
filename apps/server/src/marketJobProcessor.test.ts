@@ -164,11 +164,15 @@ describe('market job processor', () => {
     });
     for (let index = 0; index < 4; index += 1) {
       expect(
-        await repositories.snapshots.findLatest(`query-${index}`),
+        await repositories.snapshots.findLatest(
+          `query-${index}`,
+          (await repositories.cycles.findById('cycle-id'))!.leagueId,
+        ),
       ).not.toBeNull();
       expect(
         await repositories.observations.listRecent(
           `query-${index}`,
+          (await repositories.cycles.findById('cycle-id'))!.leagueId,
           new Date(0),
         ),
       ).toHaveLength(1);
@@ -227,7 +231,11 @@ describe('market job processor', () => {
       completedQueries: 1,
     });
     expect(
-      await repositories.observations.listRecent('query-0', new Date(0)),
+      await repositories.observations.listRecent(
+        'query-0',
+        (await repositories.cycles.findById('cycle-id'))!.leagueId,
+        new Date(0),
+      ),
     ).toHaveLength(1);
   });
 
@@ -245,7 +253,12 @@ describe('market job processor', () => {
     ]);
     expect(abandoned).not.toBeNull();
     await firstWorker.prepare(abandoned!);
-    expect(await repositories.snapshots.findLatest('query-0')).toBeNull();
+    expect(
+      await repositories.snapshots.findLatest(
+        'query-0',
+        (await repositories.cycles.findById('cycle-id'))!.leagueId,
+      ),
+    ).toBeNull();
 
     clock = new Date(now.getTime() + leaseTimeoutMs + 1);
     const restarted = processor(repositories, provider, () => clock, 1);
@@ -253,7 +266,12 @@ describe('market job processor', () => {
 
     expect(report).toMatchObject({ claimed: 1, recovered: 1, succeeded: 1 });
     expect(calls).toBe(2);
-    expect(await repositories.snapshots.findLatest('query-0')).not.toBeNull();
+    expect(
+      await repositories.snapshots.findLatest(
+        'query-0',
+        (await repositories.cycles.findById('cycle-id'))!.leagueId,
+      ),
+    ).not.toBeNull();
     expect(await repositories.cycles.findById('cycle-id')).toMatchObject({
       completedQueries: 1,
       failedQueries: 0,

@@ -87,6 +87,7 @@ export class FullRefreshOrchestrator {
     const publication = await evaluateAndPublishCatalog(this.#repositories, {
       cycleId: cycle.id,
       league: this.#league.leagueGggId,
+      leagueName: this.#league.leagueName,
       now: this.#clock(),
     });
     return { jobs, plan: plan.report, publication };

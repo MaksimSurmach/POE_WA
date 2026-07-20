@@ -114,7 +114,10 @@ export async function planCatalogRefresh(
       dependency,
       createId,
     );
-    const snapshot = await repositories.snapshots.findLatest(marketQuery.id);
+    const snapshot = await repositories.snapshots.findLatest(
+      marketQuery.id,
+      league.leagueId,
+    );
     const cache = isFreshSnapshot(snapshot, now, options.snapshotTtlMs)
       ? 'hit'
       : 'miss';

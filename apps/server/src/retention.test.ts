@@ -9,9 +9,11 @@ import { RetentionCleaner } from './retention.js';
 
 const now = new Date('2026-07-20T00:00:00.000Z');
 const old = new Date('2026-06-01T00:00:00.000Z');
-const leagueId = '00000000-0000-4000-8000-000000000001';
-
-function queuedCycle(id: string, totalRecipes = 1): RefreshCycle {
+function queuedCycle(
+  id: string,
+  leagueId: string,
+  totalRecipes = 1,
+): RefreshCycle {
   return {
     completedQueries: 0,
     completedRecipes: 0,
@@ -33,7 +35,19 @@ function queuedCycle(id: string, totalRecipes = 1): RefreshCycle {
 describe('retention cleanup', () => {
   it('drains in batches, is idempotent and protects active and published cycles', async () => {
     const repositories = createInMemoryRepositories();
-    const published = queuedCycle('cycle-published');
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Mercenaries',
+      isCurrent: true,
+      metadata: {},
+      name: 'Mercenaries',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
+    const { id: leagueId } = league;
+    const published = queuedCycle('cycle-published', leagueId);
     await repositories.cycles.save(published);
     const publishedRunning = await repositories.cycles.save({
       ...transitionRefreshCycle(published, 'running', old),
@@ -41,7 +55,7 @@ describe('retention cleanup', () => {
     });
     await repositories.cycles.publish(publishedRunning.id, old);
 
-    const obsolete = queuedCycle('cycle-obsolete', 0);
+    const obsolete = queuedCycle('cycle-obsolete', leagueId, 0);
     await repositories.cycles.save(obsolete);
     const obsoleteRunning = await repositories.cycles.save(
       transitionRefreshCycle(obsolete, 'running', old),
@@ -50,7 +64,7 @@ describe('retention cleanup', () => {
       transitionRefreshCycle(obsoleteRunning, 'failed', old, 'obsolete'),
     );
 
-    const active = queuedCycle('cycle-active', 0);
+    const active = queuedCycle('cycle-active', leagueId, 0);
     await repositories.cycles.save(active);
     await repositories.cycles.save(
       transitionRefreshCycle(active, 'running', old),
@@ -139,13 +153,25 @@ describe('retention cleanup', () => {
       observations: 0,
       rawSnapshots: 0,
     });
-    expect(await repositories.snapshots.findLatest('query-2')).not.toBeNull();
-    expect(await repositories.snapshots.findLatest('query-3')).not.toBeNull();
     expect(
-      await repositories.observations.listRecent('query-2', new Date(0)),
+      await repositories.snapshots.findLatest('query-2', leagueId),
+    ).not.toBeNull();
+    expect(
+      await repositories.snapshots.findLatest('query-3', leagueId),
+    ).not.toBeNull();
+    expect(
+      await repositories.observations.listRecent(
+        'query-2',
+        leagueId,
+        new Date(0),
+      ),
     ).toHaveLength(1);
     expect(
-      await repositories.observations.listRecent('query-3', new Date(0)),
+      await repositories.observations.listRecent(
+        'query-3',
+        leagueId,
+        new Date(0),
+      ),
     ).toHaveLength(1);
   });
 });

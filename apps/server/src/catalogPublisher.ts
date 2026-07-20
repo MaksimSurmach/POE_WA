@@ -65,6 +65,7 @@ export type FreshRecipeEvaluator = (
   context: {
     cycleId: string;
     league: string;
+    leagueId: string;
     now: Date;
     repositories: Repositories;
   },
@@ -74,7 +75,10 @@ export type CatalogPublicationReport = Readonly<{
   completedRecipes: number;
   evaluations: readonly RecipeEvaluation[];
   failedRecipes: number;
+  leagueId: string;
+  leagueName: string;
   published: boolean;
+  publicationDiagnostic: 'CATALOG_PUBLICATION_SKIPPED_LEAGUE_CHANGED' | null;
   refreshCycleId: string;
   staleFallbacks: number;
 }>;
@@ -85,11 +89,13 @@ export async function evaluateAndPublishCatalog(
     cycleId: string;
     evaluateRecipe?: FreshRecipeEvaluator;
     league: string;
+    leagueName?: string;
     now?: Date;
   },
 ): Promise<CatalogPublicationReport> {
   const now = options.now ?? new Date();
   const league = options.league.trim();
+  const leagueName = options.leagueName?.trim() || league;
   if (
     options.cycleId.trim().length === 0 ||
     league.length === 0 ||
@@ -99,13 +105,23 @@ export async function evaluateAndPublishCatalog(
   }
   let cycle = await repositories.cycles.findById(options.cycleId);
   if (!cycle) throw new DomainError('PERSISTENCE_NOT_FOUND');
-  if (cycle.status === 'published' || cycle.status === 'failed') {
+  if (
+    cycle.status === 'completed' ||
+    cycle.status === 'published' ||
+    cycle.status === 'failed'
+  ) {
     const evaluations = await repositories.evaluations.listByCycle(cycle.id);
     return {
       completedRecipes: cycle.completedRecipes,
       evaluations,
       failedRecipes: cycle.failedRecipes,
+      leagueId: cycle.leagueId,
+      leagueName,
       published: cycle.status === 'published',
+      publicationDiagnostic:
+        cycle.errorMessage === 'CATALOG_PUBLICATION_SKIPPED_LEAGUE_CHANGED'
+          ? cycle.errorMessage
+          : null,
       refreshCycleId: cycle.id,
       staleFallbacks: evaluations.filter(({ status }) => status === 'stale')
         .length,
@@ -131,10 +147,12 @@ export async function evaluateAndPublishCatalog(
   }
   const previous = await repositories.catalog.getPublished();
   const previousByRecipe = new Map(
-    previous?.evaluations.map((evaluation) => [
-      evaluation.recipeId,
-      evaluation,
-    ]),
+    previous?.cycle.leagueId === cycle.leagueId
+      ? previous.evaluations.map((evaluation) => [
+          evaluation.recipeId,
+          evaluation,
+        ])
+      : [],
   );
   const evaluateRecipe = options.evaluateRecipe ?? evaluateFreshRecipe;
   const evaluations: RecipeEvaluation[] = [];
@@ -148,6 +166,7 @@ export async function evaluateAndPublishCatalog(
       const fresh = await evaluateRecipe(recipe, {
         cycleId: cycle.id,
         league,
+        leagueId: cycle.leagueId,
         now,
         repositories,
       });
@@ -215,7 +234,20 @@ export async function evaluateAndPublishCatalog(
     cycle.totalRecipes > 0 &&
     cycle.completedRecipes * 100 >= cycle.totalRecipes * 95;
   if (meetsThreshold) {
-    await repositories.cycles.publish(cycle.id, now);
+    const published = await repositories.cycles.publish(cycle.id, now);
+    return {
+      completedRecipes,
+      evaluations,
+      failedRecipes,
+      leagueId: cycle.leagueId,
+      leagueName,
+      published,
+      publicationDiagnostic: published
+        ? null
+        : 'CATALOG_PUBLICATION_SKIPPED_LEAGUE_CHANGED',
+      refreshCycleId: cycle.id,
+      staleFallbacks,
+    };
   } else {
     await repositories.cycles.save(
       transitionRefreshCycle(
@@ -231,7 +263,10 @@ export async function evaluateAndPublishCatalog(
     completedRecipes,
     evaluations,
     failedRecipes,
+    leagueId: cycle.leagueId,
+    leagueName,
     published: meetsThreshold,
+    publicationDiagnostic: null,
     refreshCycleId: cycle.id,
     staleFallbacks,
   };
@@ -242,6 +277,7 @@ async function evaluateFreshRecipe(
   context: {
     cycleId: string;
     league: string;
+    leagueId: string;
     now: Date;
     repositories: Repositories;
   },
@@ -288,6 +324,7 @@ async function evaluateFreshRecipe(
 
   const observations = await context.repositories.observations.listRecent(
     output.marketQueryId,
+    context.leagueId,
     new Date(0),
   );
   const observation = observations.find(
@@ -309,6 +346,7 @@ async function evaluateFreshRecipe(
 async function resolveMarket(
   tradeQuery: CanonicalRecipeV1['baseRequirements']['tradeQuery'],
   context: {
+    leagueId: string;
     league: string;
     now: Date;
     repositories: Repositories;
@@ -325,6 +363,7 @@ async function resolveMarket(
   if (!marketQuery) throw new DomainError('SNAPSHOT_MISSING');
   const snapshot = await context.repositories.snapshots.findLatest(
     marketQuery.id,
+    context.leagueId,
   );
   if (!snapshot) throw new DomainError('SNAPSHOT_MISSING');
   if (snapshot.expiresAt <= context.now) {

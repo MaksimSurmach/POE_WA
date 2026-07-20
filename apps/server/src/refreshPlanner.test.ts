@@ -185,6 +185,40 @@ describe('catalog refresh planner', () => {
     });
   });
 
+  it('does not reuse a snapshot from another league with the same query hash', async () => {
+    const repositories = await repositoriesWithSharedMaterial();
+    const first = await planCatalogRefresh(repositories, {
+      cycleId: '66666666-6666-4666-8666-666666666666',
+      league: refreshLeague,
+      now,
+      snapshotTtlMs,
+    });
+    for (const query of first.queries) {
+      await repositories.snapshots.save({
+        capturedAt: now,
+        dedupeKey: `league-one:${query.canonicalHash}`,
+        expiresAt: new Date(now.getTime() + snapshotTtlMs),
+        leagueId: first.cycle.leagueId,
+        marketQueryId: query.marketQuery.id,
+        payload: {},
+        providerStatus: 200,
+        refreshCycleId: first.cycle.id,
+      });
+    }
+
+    const isolated = await planCatalogRefresh(repositories, {
+      cycleId: '77777777-7777-4777-8777-777777777777',
+      league: {
+        ...refreshLeague,
+        leagueId: '00000000-0000-4000-8000-000000000099',
+      },
+      now,
+      snapshotTtlMs,
+    });
+
+    expect(isolated.report).toMatchObject({ cacheHits: 0, cacheMisses: 5 });
+  });
+
   it('applies the configured TTL even when a snapshot expiry is later', async () => {
     const repositories = createInMemoryRepositories();
     await seedCurrentLeague(repositories);

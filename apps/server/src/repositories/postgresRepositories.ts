@@ -872,12 +872,17 @@ export function createPostgresRepositories(pool: Pool): Repositories {
           return deleted.length;
         });
       },
-      findLatest(marketQueryId) {
+      findLatest(marketQueryId, leagueId) {
         return mapRepositoryError('snapshots', 'findLatest', async () => {
           const [row] = await database
             .select()
             .from(rawSnapshots)
-            .where(eq(rawSnapshots.marketQueryId, marketQueryId))
+            .where(
+              and(
+                eq(rawSnapshots.marketQueryId, marketQueryId),
+                eq(rawSnapshots.leagueId, leagueId),
+              ),
+            )
             .orderBy(desc(rawSnapshots.capturedAt))
             .limit(1);
           return row ? mapSnapshot(row) : null;
@@ -908,7 +913,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
     },
     observations: {
-      listRecent(marketQueryId, since) {
+      listRecent(marketQueryId, leagueId, since) {
         return mapRepositoryError('observations', 'listRecent', async () => {
           const rows = await database
             .select()
@@ -916,6 +921,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
             .where(
               and(
                 eq(aggregatedObservations.marketQueryId, marketQueryId),
+                eq(aggregatedObservations.leagueId, leagueId),
                 gte(aggregatedObservations.observedAt, since),
               ),
             )
@@ -1040,10 +1046,11 @@ export function createPostgresRepositories(pool: Pool): Repositories {
             const candidate = await client.query<{
               completed_recipes: number;
               failed_recipes: number;
+              league_id: string;
               status: string;
               total_recipes: number;
             }>(
-              `select status, total_recipes, completed_recipes, failed_recipes
+              `select status, league_id, total_recipes, completed_recipes, failed_recipes
                from refresh_cycles
                where id = $1
                for update`,
@@ -1053,7 +1060,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
             if (!row) throw new RepositoryNotFoundError('cycles', 'publish');
             if (previousCycleId === id && row.status === 'published') {
               await client.query('commit');
-              return;
+              return true;
             }
             assertPublicationReady({
               completedRecipes: row.completed_recipes,
@@ -1061,6 +1068,20 @@ export function createPostgresRepositories(pool: Pool): Repositories {
               status: row.status as RefreshCycle['status'],
               totalRecipes: row.total_recipes,
             });
+            const currentLeague = await client.query<{ id: string }>(
+              `select id from poe_leagues where is_current = true for share`,
+            );
+            if (currentLeague.rows[0]?.id !== row.league_id) {
+              await client.query(
+                `update refresh_cycles
+                 set status = 'completed', finished_at = $2,
+                     error_message = 'CATALOG_PUBLICATION_SKIPPED_LEAGUE_CHANGED', updated_at = $2
+                 where id = $1`,
+                [id, publishedAt],
+              );
+              await client.query('commit');
+              return false;
+            }
 
             if (previousCycleId && previousCycleId !== id) {
               await client.query(
@@ -1089,6 +1110,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
               [id, previousCycleId, publishedAt],
             );
             await client.query('commit');
+            return true;
           } catch (error) {
             await client.query('rollback').catch(() => undefined);
             throw error;

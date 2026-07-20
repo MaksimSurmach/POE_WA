@@ -32,7 +32,7 @@ function storedRecipe(): Recipe {
 describe('full refresh orchestrator', () => {
   it('plans, executes, evaluates and publishes one retry-safe cycle', async () => {
     const repositories = createInMemoryRepositories();
-    await repositories.leagues.upsert({
+    const league = await repositories.leagues.upsert({
       endAt: null,
       game: 'poe1',
       gggId: 'Standard',
@@ -74,9 +74,9 @@ describe('full refresh orchestrator', () => {
     const orchestrator = new FullRefreshOrchestrator({
       clock: () => now,
       league: {
-        leagueGggId: 'Mercenaries',
-        leagueId: '00000000-0000-4000-8000-000000000001',
-        leagueName: 'Mercenaries',
+        leagueGggId: league.gggId,
+        leagueId: league.id,
+        leagueName: league.name,
       },
       marketJobs,
       repositories,

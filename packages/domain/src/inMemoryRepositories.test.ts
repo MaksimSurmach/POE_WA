@@ -116,6 +116,7 @@ describe('in-memory repositories', () => {
     expect(
       await repositories.observations.listRecent(
         marketQuery.id,
+        input.leagueId,
         new Date('2026-07-19T00:00:00.000Z'),
       ),
     ).toEqual([saved]);

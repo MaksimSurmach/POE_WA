@@ -101,7 +101,7 @@ export type CatalogProgress = {
 };
 
 export type RefreshCycleStatus =
-  'queued' | 'running' | 'published' | 'failed' | 'superseded';
+  'queued' | 'running' | 'completed' | 'published' | 'failed' | 'superseded';
 
 export type RefreshCycle = {
   completedQueries: number;

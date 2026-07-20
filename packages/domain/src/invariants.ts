@@ -10,10 +10,11 @@ import type {
 export const MIN_PUBLICATION_SUCCESS_PERCENT = 95;
 
 const refreshTransitions: Record<RefreshCycleStatus, RefreshCycleStatus[]> = {
+  completed: [],
   failed: [],
   published: ['superseded'],
   queued: ['failed', 'running'],
-  running: ['failed', 'published'],
+  running: ['completed', 'failed', 'published'],
   superseded: [],
 };
 
@@ -74,6 +75,9 @@ export function assertRefreshCycleInvariant(cycle: RefreshCycle) {
     (cycle.status === 'failed' &&
       cycle.finishedAt !== null &&
       cycle.publishedAt === null) ||
+    (cycle.status === 'completed' &&
+      cycle.finishedAt !== null &&
+      cycle.publishedAt === null) ||
     (cycle.status === 'published' &&
       cycle.startedAt !== null &&
       cycle.finishedAt !== null &&
@@ -128,9 +132,14 @@ export function transitionRefreshCycle(
 
   const transitioned: RefreshCycle = {
     ...cycle,
-    errorMessage: status === 'failed' ? errorMessage : cycle.errorMessage,
+    errorMessage:
+      status === 'failed' || status === 'completed'
+        ? errorMessage
+        : cycle.errorMessage,
     finishedAt:
-      status === 'failed' || status === 'published' ? at : cycle.finishedAt,
+      status === 'completed' || status === 'failed' || status === 'published'
+        ? at
+        : cycle.finishedAt,
     publishedAt: status === 'published' ? at : cycle.publishedAt,
     startedAt: status === 'running' ? at : cycle.startedAt,
     status,
