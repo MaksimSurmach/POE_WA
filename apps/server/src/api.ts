@@ -141,11 +141,16 @@ export function buildApi(
 
 function serializeLeague(league: PoeLeague) {
   return {
-    ...league,
-    startAt: league.startAt?.toISOString() ?? null,
-    endAt: league.endAt?.toISOString() ?? null,
-    syncedAt: league.syncedAt.toISOString(),
     createdAt: league.createdAt.toISOString(),
+    endAt: league.endAt?.toISOString() ?? null,
+    game: league.game,
+    gggId: league.gggId,
+    id: league.id,
+    isCurrent: league.isCurrent,
+    name: league.name,
+    realm: league.realm,
+    startAt: league.startAt?.toISOString() ?? null,
+    syncedAt: league.syncedAt.toISOString(),
     updatedAt: league.updatedAt.toISOString(),
   };
 }
