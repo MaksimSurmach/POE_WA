@@ -1,5 +1,5 @@
 import { apiErrorEnvelopeSchema } from '@poe-worksmith/contracts';
-import { DomainError } from '@poe-worksmith/domain';
+import { DomainError, type PoeLeague } from '@poe-worksmith/domain';
 import pino from 'pino';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -228,6 +228,45 @@ describe('health API', () => {
       catalogResponse.headers['x-request-id'],
     );
     expect(recipeResponse.statusCode).toBe(404);
+    await api.close();
+  });
+
+  it('serves public league DTOs without persisted metadata', async () => {
+    const timestamp = new Date('2026-07-20T00:00:00.000Z');
+    const league: PoeLeague = {
+      createdAt: timestamp,
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Mercenaries',
+      id: '00000000-0000-4000-8000-000000000001',
+      isCurrent: true,
+      metadata: { provider: { private: true } },
+      name: 'Mercenaries',
+      realm: 'pc',
+      startAt: timestamp,
+      syncedAt: timestamp,
+      updatedAt: timestamp,
+    };
+    const api = buildApi(
+      pino({ level: 'silent' }),
+      vi.fn(),
+      async () => ({ active: null, published: null }),
+      async () => [],
+      undefined,
+      undefined,
+      async () => [league],
+      async () => league,
+    );
+
+    const [leagues, current] = await Promise.all([
+      api.inject({ method: 'GET', url: '/api/leagues' }),
+      api.inject({ method: 'GET', url: '/api/leagues/current' }),
+    ]);
+
+    expect(leagues.statusCode).toBe(200);
+    expect(current.statusCode).toBe(200);
+    expect(leagues.json().data[0]).not.toHaveProperty('metadata');
+    expect(current.json().data).not.toHaveProperty('metadata');
     await api.close();
   });
 });
