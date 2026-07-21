@@ -1,0 +1,5 @@
+{
+  "id": "fixture-search-malformed",
+  "result": [42],
+  "total": 1
+}

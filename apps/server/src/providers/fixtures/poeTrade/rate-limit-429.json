@@ -1,0 +1,10 @@
+{
+  "status": 429,
+  "headers": {
+    "retry-after": "10",
+    "x-rate-limit-client": "10:5:10",
+    "x-rate-limit-client-state": "11:5:10",
+    "x-rate-limit-policy": "fixture-trade-policy",
+    "x-rate-limit-rules": "client"
+  }
+}

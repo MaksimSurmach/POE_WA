@@ -12,6 +12,7 @@ import { z } from 'zod';
 
 import type { ProviderCircuitGate } from '../circuitBreaker.js';
 import type { RateLimitGate } from '../rateLimitController.js';
+import { ProviderContractError } from './providerContractError.js';
 
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
   z.union([
@@ -68,6 +69,18 @@ export type PoeTradeFetch = (
   init?: RequestInit,
 ) => Promise<Response>;
 
+type SchemaMismatchLogger = {
+  warn(
+    context: {
+      endpoint: string;
+      errorCode: 'PROVIDER_SCHEMA_CHANGED';
+      issuePaths: readonly string[];
+      provider: string;
+    },
+    message: string,
+  ): void;
+};
+
 export class PoeTradeClient implements MarketSearchProvider {
   readonly id = 'poe-trade';
   readonly #baseUrl: URL;
@@ -77,12 +90,14 @@ export class PoeTradeClient implements MarketSearchProvider {
   readonly #rateLimits: RateLimitGate | undefined;
   readonly #requestTimeoutMs: number;
   readonly #userAgent: string;
+  readonly #logger: SchemaMismatchLogger | undefined;
 
   constructor(options: {
     baseUrl?: string;
     circuits?: ProviderCircuitGate;
     clock?: () => Date;
     fetch?: PoeTradeFetch;
+    logger?: SchemaMismatchLogger;
     rateLimits?: RateLimitGate;
     requestTimeoutMs?: number;
     userAgent: string;
@@ -91,6 +106,7 @@ export class PoeTradeClient implements MarketSearchProvider {
     this.#circuits = options.circuits;
     this.#clock = options.clock ?? (() => new Date());
     this.#fetch = options.fetch ?? globalThis.fetch;
+    this.#logger = options.logger;
     this.#rateLimits = options.rateLimits;
     this.#requestTimeoutMs =
       options.requestTimeoutMs ?? defaultRequestTimeoutMs;
@@ -117,7 +133,13 @@ export class PoeTradeClient implements MarketSearchProvider {
       headers: this.#headers(true),
       method: 'POST',
     });
-    const search = parseProviderResponse(searchResponseSchema, rawSearch);
+    const search = parseProviderResponse(
+      searchResponseSchema,
+      rawSearch,
+      this.id,
+      'trade-search',
+      this.#logger,
+    );
     const resultIds = search.result.slice(0, maximumListings);
 
     if (resultIds.length === 0) {
@@ -138,7 +160,13 @@ export class PoeTradeClient implements MarketSearchProvider {
       headers: this.#headers(false),
       method: 'GET',
     });
-    const fetched = parseProviderResponse(fetchResponseSchema, rawFetch);
+    const fetched = parseProviderResponse(
+      fetchResponseSchema,
+      rawFetch,
+      this.id,
+      'trade-fetch',
+      this.#logger,
+    );
     const fetchedAt = this.#clock();
     const listingById = new Map(
       fetched.result.map((entry) => [entry.id, entry] as const),
@@ -263,12 +291,30 @@ function normalizeMoney(value: z.infer<typeof moneySchema>): ProviderMoney {
   };
 }
 
-function parseProviderResponse<T>(schema: z.ZodType<T>, value: unknown): T {
+function parseProviderResponse<T>(
+  schema: z.ZodType<T>,
+  value: unknown,
+  provider: string,
+  endpoint: string,
+  logger: SchemaMismatchLogger | undefined,
+): T {
   const result = schema.safeParse(value);
   if (!result.success) {
-    throw new DomainError('PROVIDER_RESPONSE_INVALID', {
-      cause: result.error,
+    const error = new ProviderContractError({
+      endpoint,
+      issuePaths: result.error.issues.map((issue) => issue.path.join('.')),
+      provider,
     });
+    logger?.warn(
+      {
+        endpoint: error.endpoint,
+        errorCode: error.code,
+        issuePaths: error.issuePaths,
+        provider: error.provider,
+      },
+      'provider schema mismatch',
+    );
+    throw error;
   }
   return result.data;
 }

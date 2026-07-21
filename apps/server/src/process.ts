@@ -94,6 +94,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       providers: [
         new PoeTradeClient({
           circuits,
+          logger,
           rateLimits,
           requestTimeoutMs: config.poeRequestTimeoutMs,
           userAgent: config.poeUserAgent,

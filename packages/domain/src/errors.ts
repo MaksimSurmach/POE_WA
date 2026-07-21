@@ -146,6 +146,12 @@ export const domainErrorDefinitions = {
     disposition: 'degraded',
     publicMessage: 'The market provider returned an invalid response.',
   },
+  PROVIDER_SCHEMA_CHANGED: {
+    category: 'market',
+    disposition: 'degraded',
+    publicMessage:
+      'The market provider returned an unsupported response format.',
+  },
   PROVIDER_UNAVAILABLE: {
     category: 'market',
     disposition: 'retryable',

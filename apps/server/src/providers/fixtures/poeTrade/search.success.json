@@ -1,0 +1,18 @@
+{
+  "id": "fixture-search-1",
+  "result": [
+    "fixture-item-1",
+    "fixture-item-2",
+    "fixture-item-3",
+    "fixture-item-4",
+    "fixture-item-5",
+    "fixture-item-6",
+    "fixture-item-7",
+    "fixture-item-8",
+    "fixture-item-9",
+    "fixture-item-10",
+    "fixture-item-11",
+    "fixture-item-12"
+  ],
+  "total": 12
+}

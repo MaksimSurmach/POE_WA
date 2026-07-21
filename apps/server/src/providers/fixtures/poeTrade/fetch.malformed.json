@@ -1,0 +1,13 @@
+{
+  "result": [
+    {
+      "id": "fixture-item-1",
+      "item": { "baseType": "Fixture Item 1" },
+      "listing": {
+        "account": { "name": "fixture-seller-1" },
+        "indexed": "2026-07-20T00:00:00.000Z",
+        "price": { "amount": 1, "currency": false }
+      }
+    }
+  ]
+}
