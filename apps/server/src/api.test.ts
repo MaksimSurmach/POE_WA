@@ -189,6 +189,50 @@ describe('health API', () => {
     await api.close();
   });
 
+  it('hides refresh diagnostics without a token and protects it when configured', async () => {
+    const diagnostics = async () => ({ cycles: [], evaluations: [], jobs: [] });
+    const hidden = buildApi(pino({ level: 'silent' }), vi.fn(), async () => ({
+      active: null,
+      published: null,
+    }));
+    const secured = buildApi(
+      pino({ level: 'silent' }),
+      vi.fn(),
+      async () => ({ active: null, published: null }),
+      async () => [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      { diagnosticsToken: 'secret', readOperationalDiagnostics: diagnostics },
+    );
+    expect(
+      (await hidden.inject({ method: 'GET', url: '/api/diagnostics/refresh' }))
+        .statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await secured.inject({
+          method: 'GET',
+          url: '/api/diagnostics/refresh',
+          headers: { authorization: 'Bearer wrong' },
+        })
+      ).statusCode,
+    ).toBe(401);
+    const response = await secured.inject({
+      method: 'GET',
+      url: '/api/diagnostics/refresh?cycles=1&failures=1',
+      headers: { authorization: 'Bearer secret' },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data).toMatchObject({
+      cycles: [],
+      evaluations: [],
+      jobs: [],
+    });
+    await Promise.all([hidden.close(), secured.close()]);
+  });
+
   it('serves catalog and recipe resource readers', async () => {
     const timestamp = '2026-07-20T00:00:00.000Z';
     const catalog = vi.fn(async (correlationId: string) => ({

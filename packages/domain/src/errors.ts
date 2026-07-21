@@ -86,6 +86,11 @@ export const domainErrorDefinitions = {
     disposition: 'degraded',
     publicMessage: 'No matching market listings are available.',
   },
+  OPERATOR_AUTH_REQUIRED: {
+    category: 'internal',
+    disposition: 'permanent',
+    publicMessage: 'Operator authentication is required.',
+  },
   PERSISTENCE_CONFLICT: {
     category: 'persistence',
     disposition: 'permanent',

@@ -37,10 +37,30 @@ import {
   modeIncludesApi,
   modeIncludesWorker,
 } from './runtimeConfig.js';
+import { Metrics } from './observability/metrics.js';
 
 export async function runProcess(forcedMode?: ApplicationMode) {
   const config = loadRuntimeConfig(process.env, forcedMode);
-  const logger = pino({ level: config.logLevel, name: 'poe-worksmith' });
+  const logger = pino({
+    level: config.logLevel,
+    name: 'poe-worksmith',
+    redact: {
+      censor: '[Redacted]',
+      paths: [
+        'req.headers.authorization',
+        'req.headers.cookie',
+        'req.headers.set-cookie',
+        'password',
+        'token',
+        'accessToken',
+        'refreshToken',
+        'payload',
+        'providerPayload',
+        'query',
+      ],
+    },
+  });
+  const metrics = new Metrics();
   const pool = createDatabasePool(config.database);
   let workerError: Error | undefined;
   const repositories = createPostgresRepositories(pool);
@@ -77,6 +97,12 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         resourceReaders.readRecipe,
         repositories.leagues.list,
         repositories.leagues.findCurrent,
+        {
+          diagnosticsToken: config.operatorDiagnosticsToken,
+          metrics: metrics.registry,
+          readCircuits: repositories.providerCircuits.list,
+          readOperationalDiagnostics: repositories.operationalDiagnostics.read,
+        },
       )
     : undefined;
   let jobs: ApplicationJobScheduler | undefined;
@@ -91,10 +117,13 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     const marketJobs = new MarketJobProcessor({
       concurrency: config.marketConcurrency,
       leaseTimeoutMs: config.jobLeaseTimeoutMs,
+      logger,
+      metrics,
       providers: [
         new PoeTradeClient({
           circuits,
           logger,
+          metrics,
           rateLimits,
           requestTimeoutMs: config.poeRequestTimeoutMs,
           userAgent: config.poeUserAgent,
@@ -135,6 +164,8 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           marketJobs,
           marketDependencies,
           repositories,
+          logger,
+          metrics,
           snapshotTtlMs: config.snapshotTtlMs,
           workerId: `worker-${process.pid}`,
         }).run(cycleId);

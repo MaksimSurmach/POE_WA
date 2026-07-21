@@ -274,6 +274,41 @@ export function createPostgresRepositories(pool: Pool): Repositories {
         });
       },
     },
+    operationalDiagnostics: {
+      read(input) {
+        return mapRepositoryError(
+          'operationalDiagnostics',
+          'read',
+          async () => {
+            if (
+              !Number.isInteger(input.recentCycles) ||
+              !Number.isInteger(input.recentFailures)
+            )
+              throw new TypeError('Diagnostic limits must be integers');
+            const [cyclesResult, evaluationsResult, jobsResult] =
+              await Promise.all([
+                pool.query(
+                  `select id as "cycleId", league_id as "leagueId", status, requested_at as "requestedAt", started_at as "startedAt", finished_at as "finishedAt", published_at as "publishedAt", error_message as "errorCode" from refresh_cycles order by requested_at desc limit $1`,
+                  [input.recentCycles],
+                ),
+                pool.query(
+                  `select refresh_cycle_id as "cycleId", league_id as "leagueId", recipe_id as "recipeId", status, error_code as "errorCode", evaluated_at as "evaluatedAt" from recipe_evaluations where status in ('stale', 'partial', 'error') order by evaluated_at desc limit $1`,
+                  [input.recentFailures],
+                ),
+                pool.query(
+                  `select id as "jobId", refresh_cycle_id as "cycleId", payload->>'provider' as provider, payload->>'canonicalHash' as "queryHash", status, attempts, last_error as "errorCode", updated_at as "updatedAt" from jobs where status in ('retry', 'failed') order by updated_at desc limit $1`,
+                  [input.recentFailures],
+                ),
+              ]);
+            return {
+              cycles: cyclesResult.rows,
+              evaluations: evaluationsResult.rows,
+              jobs: jobsResult.rows,
+            };
+          },
+        );
+      },
+    },
     providerCircuits: {
       acquire(input) {
         return mapRepositoryError('providerCircuits', 'acquire', async () => {

@@ -20,6 +20,8 @@ import {
   legacyRecipeMarketDependencies,
   type RecipeMarketDependencies,
 } from './recipeMarket.js';
+import type { Logger } from 'pino';
+import type { Metrics } from './observability/metrics.js';
 
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
   z.union([
@@ -96,6 +98,8 @@ export async function evaluateAndPublishCatalog(
     leagueName?: string;
     now?: Date;
     marketDependencies?: RecipeMarketDependencies;
+    logger?: Logger;
+    metrics?: Metrics;
   },
 ): Promise<CatalogPublicationReport> {
   const now = options.now ?? new Date();
@@ -231,6 +235,15 @@ export async function evaluateAndPublishCatalog(
       if (evaluation.status === 'stale') staleFallbacks += 1;
     }
     evaluations.push(await repositories.evaluations.save(evaluation));
+    options.logger?.info(
+      {
+        recipeId: recipe.id,
+        status: evaluation.status,
+        ...(evaluation.errorCode ? { errorCode: evaluation.errorCode } : {}),
+      },
+      'recipe.evaluated',
+    );
+    options.metrics?.recipeEvaluations.inc({ status: evaluation.status });
   }
 
   cycle = await repositories.cycles.save({
@@ -243,6 +256,12 @@ export async function evaluateAndPublishCatalog(
     cycle.completedRecipes * 100 >= cycle.totalRecipes * 95;
   if (meetsThreshold) {
     const published = await repositories.cycles.publish(cycle.id, now);
+    options.logger?.info(
+      { published },
+      published
+        ? 'publication.completed'
+        : 'publication.skipped_league_mismatch',
+    );
     return {
       completedRecipes,
       evaluations,

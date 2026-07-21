@@ -387,6 +387,46 @@ export const rateLimitDiagnosticsResponseSchema = z.strictObject({
   }),
 });
 
+const operationalCycleSchema = z.strictObject({
+  cycleId: z.string().min(1),
+  leagueId: z.string().min(1),
+  status: z.string().min(1),
+  requestedAt: z.iso.datetime(),
+  startedAt: z.iso.datetime().nullable(),
+  finishedAt: z.iso.datetime().nullable(),
+  publishedAt: z.iso.datetime().nullable(),
+  errorCode: z.string().nullable(),
+});
+const operationalEvaluationSchema = z.strictObject({
+  cycleId: z.string().min(1),
+  leagueId: z.string().min(1),
+  recipeId: z.string().min(1),
+  status: z.enum(['stale', 'partial', 'error']),
+  errorCode: z.string().nullable(),
+  evaluatedAt: z.iso.datetime(),
+});
+const operationalJobSchema = z.strictObject({
+  jobId: z.string().min(1),
+  cycleId: z.string().nullable(),
+  provider: z.string().nullable(),
+  queryHash: z.string().nullable(),
+  status: z.string().min(1),
+  attempts: z.number().int().nonnegative(),
+  errorCode: z.string().nullable(),
+  updatedAt: z.iso.datetime(),
+});
+export const refreshDiagnosticsResponseSchema = z.strictObject({
+  correlationId: correlationIdSchema,
+  data: z.strictObject({
+    serverTime: z.iso.datetime(),
+    cycles: z.array(operationalCycleSchema),
+    evaluations: z.array(operationalEvaluationSchema),
+    jobs: z.array(operationalJobSchema),
+    circuits: z.array(z.unknown()),
+    rateLimits: z.array(z.unknown()),
+  }),
+});
+
 export type Price = z.infer<typeof priceSchema>;
 export type Listing = z.infer<typeof listingSchema>;
 export type MarketSnapshot = z.infer<typeof marketSnapshotSchema>;
@@ -413,5 +453,8 @@ export type RefreshProgressResponse = z.infer<
 >;
 export type RateLimitDiagnosticsResponse = z.infer<
   typeof rateLimitDiagnosticsResponseSchema
+>;
+export type RefreshDiagnosticsResponse = z.infer<
+  typeof refreshDiagnosticsResponseSchema
 >;
 export type PoeLeague = z.infer<typeof poeLeagueSchema>;

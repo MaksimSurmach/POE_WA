@@ -199,6 +199,59 @@ export function createInMemoryRepositories(): Repositories {
         };
       },
     },
+    operationalDiagnostics: {
+      async read({ recentCycles, recentFailures }) {
+        return {
+          cycles: [...cycles.values()]
+            .sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime())
+            .slice(0, recentCycles)
+            .map((cycle) => ({
+              cycleId: cycle.id,
+              leagueId: cycle.leagueId,
+              status: cycle.status,
+              requestedAt: cycle.requestedAt,
+              startedAt: cycle.startedAt,
+              finishedAt: cycle.finishedAt,
+              publishedAt: cycle.publishedAt,
+              errorCode: cycle.errorMessage,
+            })),
+          evaluations: [...evaluations.values()]
+            .filter((evaluation) =>
+              ['stale', 'partial', 'error'].includes(evaluation.status),
+            )
+            .sort((a, b) => b.evaluatedAt.getTime() - a.evaluatedAt.getTime())
+            .slice(0, recentFailures)
+            .map((evaluation) => ({
+              cycleId: evaluation.refreshCycleId,
+              leagueId: evaluation.leagueId,
+              recipeId: evaluation.recipeId,
+              status: evaluation.status as 'stale' | 'partial' | 'error',
+              errorCode: evaluation.errorCode,
+              evaluatedAt: evaluation.evaluatedAt,
+            })),
+          jobs: [...jobs.values()]
+            .filter((job) => ['failed', 'retry'].includes(job.status))
+            .sort((a, b) => b.runAfter.getTime() - a.runAfter.getTime())
+            .slice(0, recentFailures)
+            .map((job) => ({
+              jobId: job.id,
+              cycleId: job.refreshCycleId,
+              provider:
+                typeof job.payload.provider === 'string'
+                  ? job.payload.provider
+                  : null,
+              queryHash:
+                typeof job.payload.canonicalHash === 'string'
+                  ? job.payload.canonicalHash
+                  : null,
+              status: job.status,
+              attempts: job.attempts,
+              errorCode: job.lastError,
+              updatedAt: job.runAfter,
+            })),
+        };
+      },
+    },
     recipes: {
       async findById(id) {
         const recipe = recipes.get(id);
