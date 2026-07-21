@@ -1,4 +1,5 @@
 import pino from 'pino';
+import { fileURLToPath } from 'node:url';
 
 import { buildApi } from './api.js';
 import { ProviderCircuitBreaker } from './circuitBreaker.js';
@@ -28,6 +29,7 @@ import {
 } from '@poe-worksmith/domain';
 import { RetentionCleaner } from './retention.js';
 import { createResourceReaders } from './resourceViews.js';
+import { loadItemPresentationCatalog } from './itemPresentation.js';
 import { ApplicationRuntime } from './runtime.js';
 import {
   type ApplicationMode,
@@ -50,7 +52,18 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       [mappedTargetFilter],
     ),
   });
-  const resourceReaders = createResourceReaders(repositories);
+  const presentationCatalog = await loadItemPresentationCatalog(
+    fileURLToPath(
+      new URL(
+        '../presentation/poe1/3.26.0/physical-large-cluster.json',
+        import.meta.url,
+      ),
+    ),
+  );
+  const resourceReaders = createResourceReaders(
+    repositories,
+    presentationCatalog,
+  );
   const api = modeIncludesApi(config.mode)
     ? buildApi(
         logger,

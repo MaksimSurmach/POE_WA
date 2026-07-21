@@ -16,8 +16,15 @@ import {
   type Repositories,
   validateRecipeDocument,
 } from '@poe-worksmith/domain';
+import {
+  createRecipeItemPresentation,
+  type ItemPresentationCatalog,
+} from './itemPresentation.js';
 
-export function createResourceReaders(repositories: Repositories) {
+export function createResourceReaders(
+  repositories: Repositories,
+  presentationCatalog: ItemPresentationCatalog,
+) {
   return {
     async readCatalog(correlationId: string): Promise<CatalogResponse> {
       const [recipes, currentPublished, progress, currentLeague] =
@@ -73,7 +80,7 @@ export function createResourceReaders(repositories: Repositories) {
 
       return resourceResponse(
         correlationId,
-        toRecipeDetail(recipe, evaluation),
+        toRecipeDetail(recipe, evaluation, presentationCatalog),
         published?.cycle.publishedAt ?? null,
         refreshStatus(progress.active?.status ?? progress.published?.status),
       );
@@ -173,10 +180,18 @@ function toEvaluation(
 function toRecipeDetail(
   recipe: StoredRecipe,
   evaluation?: RecipeEvaluation,
+  presentationCatalog?: ItemPresentationCatalog,
 ): RecipeDetailView {
   const definition = validateRecipeDocument(recipe.definition);
-  if (definition.schemaVersion === 2)
-    return toV2RecipeDetail(recipe, evaluation, definition);
+  if (definition.schemaVersion === 2) {
+    if (!presentationCatalog) throw new DomainError('RECIPE_INVALID');
+    return toV2RecipeDetail(
+      recipe,
+      evaluation,
+      definition,
+      presentationCatalog,
+    );
+  }
   const salePrice = price(evaluation?.estimatedSalePrice, evaluation?.currency);
   const estimatorId = estimatorLabel(definition.estimator);
   const requirements = [
@@ -211,6 +226,45 @@ function toRecipeDetail(
       unitPrice: null,
     })),
     recipe: toRecipeSummary(recipe, evaluation),
+    presentation: {
+      base: {
+        canonicalId: definition.baseRequirements.baseType,
+        iconUrl: null,
+        itemClass: definition.baseRequirements.itemClass ?? 'Unknown',
+        itemLevel: definition.baseRequirements.minItemLevel ?? null,
+        modifiers: [],
+        name: definition.baseRequirements.baseType,
+        properties: requirements.map((label) => ({
+          id: label,
+          label,
+          value: null,
+        })),
+        rarity: null,
+        role: 'base',
+      },
+      materials: definition.materials.map((material) => ({
+        canonicalId: material.label,
+        iconUrl: null,
+        itemClass: 'Unknown',
+        name: material.label,
+        quantity: material.quantityPerAttempt,
+        role: 'material',
+        totalPrice: null,
+        unitPrice: null,
+      })),
+      target: {
+        canonicalId: definition.baseRequirements.baseType,
+        iconUrl: null,
+        itemClass: definition.baseRequirements.itemClass ?? 'Unknown',
+        itemLevel: definition.baseRequirements.minItemLevel ?? null,
+        modifiers: [],
+        name: definition.baseRequirements.baseType,
+        properties: [],
+        rarity: null,
+        role: 'target',
+      },
+      version: 1,
+    },
     requiredMods: tradeStatIds(definition.output.tradeQuery.query),
     selectedEstimatorId: salePrice ? estimatorId : null,
     snapshot: null,
@@ -224,18 +278,19 @@ function toV2RecipeDetail(
     ReturnType<typeof validateRecipeDocument>,
     { schemaVersion: 2 }
   >,
+  presentationCatalog: ItemPresentationCatalog,
 ): RecipeDetailView {
   const salePrice = price(evaluation?.estimatedSalePrice, evaluation?.currency);
-  const resources = definition.craft.resourceConsumption?.materials ?? [];
+  const presentation = createRecipeItemPresentation({
+    catalog: presentationCatalog,
+    recipe: definition,
+  });
   return {
     base: {
-      name: 'Large Cluster Jewel',
-      requirements: [
-        `Item Level: ${definition.base.itemLevel}+`,
-        `Adds ${definition.base.variant.kind === 'cluster-jewel' ? definition.base.variant.passiveCount : ''} Passive Skills`,
-        '2 Added Passive Skills are Jewel Sockets',
-        'Added Small Passive Skills grant: 12% increased Physical Damage',
-      ],
+      name: presentation.base.name,
+      requirements: presentation.base.properties.map(({ label, value }) =>
+        value ? `${label}: ${value}` : label,
+      ),
     },
     confidence: evaluation?.confidence ?? null,
     costBreakdown: null,
@@ -245,21 +300,15 @@ function toV2RecipeDetail(
       : [],
     evaluation: toEvaluation(recipe.id, evaluation),
     gameVersion: definition.gameDataVersion,
-    materials: resources.map(({ itemId, quantity }) => ({
-      costPerAttempt: null,
-      name:
-        itemId === 'jagged-fossil'
-          ? 'Jagged Fossil'
-          : 'Primitive Chaotic Resonator',
-      quantityPerAttempt: quantity,
-      unitPrice: null,
+    materials: presentation.materials.map((material) => ({
+      costPerAttempt: material.totalPrice,
+      name: material.name,
+      quantityPerAttempt: material.quantity,
+      unitPrice: material.unitPrice,
     })),
+    presentation,
     recipe: toRecipeSummary(recipe, evaluation),
-    requiredMods: [
-      'Battle-Hardened',
-      'Furious Assault',
-      'Master the Fundamentals',
-    ],
+    requiredMods: presentation.target.modifiers.map(({ label }) => label),
     selectedEstimatorId: salePrice ? 'median-top-10' : null,
     snapshot: null,
   };

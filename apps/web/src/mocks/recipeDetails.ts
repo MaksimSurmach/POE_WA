@@ -17,6 +17,52 @@ const defaultGuide = {
       '12% increased Physical Damage',
     ],
   },
+  presentation: {
+    base: {
+      canonicalId: 'Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge',
+      iconUrl: null,
+      itemClass: 'Jewel',
+      itemLevel: 84,
+      modifiers: [],
+      name: 'Large Cluster Jewel',
+      properties: [
+        { id: 'item-level', label: 'Item Level', value: '84' },
+        { id: 'passive-count', label: 'Passive Skills', value: '8' },
+      ],
+      rarity: 'rare',
+      role: 'base',
+    },
+    materials: [
+      {
+        canonicalId: 'harvest-reforge-physical',
+        iconUrl: null,
+        itemClass: 'Currency',
+        name: 'Harvest: Reforge with more Physical modifiers',
+        quantity: 1,
+        role: 'material',
+        totalPrice: { amount: 0.45, currency: 'divine' },
+        unitPrice: { amount: 0.45, currency: 'divine' },
+      },
+    ],
+    target: {
+      canonicalId: 'Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge',
+      iconUrl: null,
+      itemClass: 'Jewel',
+      itemLevel: 84,
+      modifiers: [
+        {
+          canonicalId: 'notable-physical',
+          generationType: 'prefix',
+          label: 'Physical notable passive skills',
+        },
+      ],
+      name: 'Large Cluster Jewel',
+      properties: [],
+      rarity: 'rare',
+      role: 'target',
+    },
+    version: 1,
+  },
   materials: [
     {
       name: 'Harvest: Reforge with more Physical modifiers',
