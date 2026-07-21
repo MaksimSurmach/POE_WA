@@ -17,6 +17,7 @@ import {
   type RefreshPlanReport,
 } from './refreshPlanner.js';
 import type { RefreshLeagueContext } from './refreshLeagueContext.js';
+import type { RecipeMarketDependencies } from './recipeMarket.js';
 
 type MarketJobRunner = Pick<MarketJobProcessor, 'runAvailable'>;
 
@@ -31,6 +32,7 @@ export class FullRefreshOrchestrator {
   readonly #league: RefreshLeagueContext;
   readonly #marketJobs: MarketJobRunner;
   readonly #repositories: Repositories;
+  readonly #marketDependencies: RecipeMarketDependencies | undefined;
   readonly #snapshotTtlMs: number;
   readonly #workerId: string;
 
@@ -38,6 +40,7 @@ export class FullRefreshOrchestrator {
     clock?: () => Date;
     league: RefreshLeagueContext;
     marketJobs: MarketJobRunner;
+    marketDependencies?: RecipeMarketDependencies;
     repositories: Repositories;
     snapshotTtlMs: number;
     workerId: string;
@@ -45,6 +48,7 @@ export class FullRefreshOrchestrator {
     this.#clock = options.clock ?? (() => new Date());
     this.#league = Object.freeze({ ...options.league });
     this.#marketJobs = options.marketJobs;
+    this.#marketDependencies = options.marketDependencies;
     this.#repositories = options.repositories;
     this.#snapshotTtlMs = options.snapshotTtlMs;
     this.#workerId = options.workerId.trim();
@@ -64,6 +68,9 @@ export class FullRefreshOrchestrator {
       cycleId,
       league: this.#league,
       now,
+      ...(this.#marketDependencies
+        ? { marketDependencies: this.#marketDependencies }
+        : {}),
       snapshotTtlMs: this.#snapshotTtlMs,
     });
     let cycle = plan.cycle;
@@ -89,6 +96,9 @@ export class FullRefreshOrchestrator {
       league: this.#league.leagueGggId,
       leagueName: this.#league.leagueName,
       now: this.#clock(),
+      ...(this.#marketDependencies
+        ? { marketDependencies: this.#marketDependencies }
+        : {}),
     });
     return { jobs, plan: plan.report, publication };
   }

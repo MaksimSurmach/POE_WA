@@ -18,7 +18,7 @@ function storedRecipe(): Recipe {
   return {
     active: true,
     category: definition.category,
-    contentHash: 'content-physical-large-cluster',
+    contentHash: 'content-physical-large-cluster-jagged',
     craftMethod: 'harvest',
     definition: { ...definition } as JsonRecord,
     gameVersion: definition.gameVersion,

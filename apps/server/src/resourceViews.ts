@@ -14,7 +14,7 @@ import {
   type Recipe as StoredRecipe,
   type RecipeEvaluation,
   type Repositories,
-  validateRecipeV1,
+  validateRecipeDocument,
 } from '@poe-worksmith/domain';
 
 export function createResourceReaders(repositories: Repositories) {
@@ -123,13 +123,13 @@ function toCatalogEntry(
 }
 
 function toRecipeSummary(recipe: StoredRecipe, evaluation?: RecipeEvaluation) {
-  const definition = validateRecipeV1(recipe.definition);
+  const definition = validateRecipeDocument(recipe.definition);
   return {
     category: recipe.category,
     craftMethod: recipe.craftMethod,
     id: recipe.id,
     minimumCapital: price(evaluation?.expectedCraftCost, evaluation?.currency),
-    summary: definition.summary,
+    summary: definition.summary ?? recipe.title,
     tags: [...recipe.tags],
     title: recipe.title,
   };
@@ -174,7 +174,9 @@ function toRecipeDetail(
   recipe: StoredRecipe,
   evaluation?: RecipeEvaluation,
 ): RecipeDetailView {
-  const definition = validateRecipeV1(recipe.definition);
+  const definition = validateRecipeDocument(recipe.definition);
+  if (definition.schemaVersion === 2)
+    return toV2RecipeDetail(recipe, evaluation, definition);
   const salePrice = price(evaluation?.estimatedSalePrice, evaluation?.currency);
   const estimatorId = estimatorLabel(definition.estimator);
   const requirements = [
@@ -211,6 +213,54 @@ function toRecipeDetail(
     recipe: toRecipeSummary(recipe, evaluation),
     requiredMods: tradeStatIds(definition.output.tradeQuery.query),
     selectedEstimatorId: salePrice ? estimatorId : null,
+    snapshot: null,
+  };
+}
+
+function toV2RecipeDetail(
+  recipe: StoredRecipe,
+  evaluation: RecipeEvaluation | undefined,
+  definition: Extract<
+    ReturnType<typeof validateRecipeDocument>,
+    { schemaVersion: 2 }
+  >,
+): RecipeDetailView {
+  const salePrice = price(evaluation?.estimatedSalePrice, evaluation?.currency);
+  const resources = definition.craft.resourceConsumption?.materials ?? [];
+  return {
+    base: {
+      name: 'Large Cluster Jewel',
+      requirements: [
+        `Item Level: ${definition.base.itemLevel}+`,
+        `Adds ${definition.base.variant.kind === 'cluster-jewel' ? definition.base.variant.passiveCount : ''} Passive Skills`,
+        '2 Added Passive Skills are Jewel Sockets',
+        'Added Small Passive Skills grant: 12% increased Physical Damage',
+      ],
+    },
+    confidence: evaluation?.confidence ?? null,
+    costBreakdown: null,
+    craftSteps: definition.content.craftSteps.map(({ title }) => title),
+    estimators: salePrice
+      ? [{ id: 'median-top-10', label: 'median top 10', price: salePrice }]
+      : [],
+    evaluation: toEvaluation(recipe.id, evaluation),
+    gameVersion: definition.gameDataVersion,
+    materials: resources.map(({ itemId, quantity }) => ({
+      costPerAttempt: null,
+      name:
+        itemId === 'jagged-fossil'
+          ? 'Jagged Fossil'
+          : 'Primitive Chaotic Resonator',
+      quantityPerAttempt: quantity,
+      unitPrice: null,
+    })),
+    recipe: toRecipeSummary(recipe, evaluation),
+    requiredMods: [
+      'Battle-Hardened',
+      'Furious Assault',
+      'Master the Fundamentals',
+    ],
+    selectedEstimatorId: salePrice ? 'median-top-10' : null,
     snapshot: null,
   };
 }

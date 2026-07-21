@@ -23,7 +23,7 @@ const mappingPayload = z
 export type MappingInput = {
   canonicalId: string;
   discriminator?: string | undefined;
-  entityKind: 'base' | 'mod' | 'modFamily';
+  entityKind: 'base' | 'mod' | 'modFamily' | 'resource';
   externalId: string;
   payload?: Record<string, unknown> | undefined;
 };
@@ -50,7 +50,7 @@ const manifestSchema = z.strictObject({
       z.strictObject({
         canonicalId: z.string().min(1),
         discriminator: z.string().min(1).optional(),
-        entityKind: z.enum(['base', 'mod', 'modFamily']),
+        entityKind: z.enum(['base', 'mod', 'modFamily', 'resource']),
         externalId: z.string().min(1),
         payload: mappingPayload.optional(),
       }),
@@ -107,7 +107,7 @@ export async function loadAndValidateTradeMappingManifest(
   );
   for (const mapping of parsed.data.mappings) {
     const exists =
-      mapping.entityKind === 'base'
+      mapping.entityKind === 'base' || mapping.entityKind === 'resource'
         ? itemTypes.has(mapping.externalId)
         : statIds.has(mapping.externalId);
     if (!exists)
@@ -202,6 +202,18 @@ export function createPostgresTradeMappingCatalog(
         } satisfies ResolvedTradeTarget,
       };
     },
+  };
+}
+
+export function createPostgresResourceResolver(pool: Pool) {
+  return async (itemId: string, gameDataVersion: string) => {
+    const result = await pool.query<{ external_id: string }>(
+      `select pm.external_id from provider_mappings pm join game_data_versions gdv on gdv.id = pm.game_data_version_id where gdv.patch_version = $1 and pm.provider = 'poe-trade' and pm.entity_kind = 'resource' and pm.canonical_id = $2 and pm.status = 'active'`,
+      [gameDataVersion, itemId],
+    );
+    if (result.rowCount !== 1)
+      throw new Error(`TRADE_MAPPING_MISSING: ${itemId}`);
+    return result.rows[0]!.external_id;
   };
 }
 

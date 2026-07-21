@@ -29,6 +29,16 @@
       "entityKind": "mod",
       "canonicalId": "mod:master-the-fundamentals",
       "externalId": "explicit.stat_3585232432"
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "jagged-fossil",
+      "externalId": "Jagged Fossil"
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "primitive-chaotic-resonator",
+      "externalId": "Primitive Chaotic Resonator"
     }
   ]
 }

@@ -5,19 +5,20 @@ import {
   DomainError,
   hashMarketQuery,
   type CanonicalJsonObject,
-  type CanonicalRecipeV1,
   type Job,
   type MarketQuery,
   type RawSnapshot,
   type Recipe,
   type RefreshCycle,
   type Repositories,
-  validateRecipeV1,
+  validateRecipeDocument,
 } from '@poe-worksmith/domain';
 
 import type { RefreshLeagueContext } from './refreshLeagueContext.js';
-
-type RecipeTradeQuery = CanonicalRecipeV1['baseRequirements']['tradeQuery'];
+import {
+  legacyRecipeMarketDependencies,
+  type RecipeMarketDependencies,
+} from './recipeMarket.js';
 
 type RefreshDependency = {
   canonicalHash: string;
@@ -67,6 +68,7 @@ export async function planCatalogRefresh(
     cycleId?: string;
     league: RefreshLeagueContext;
     maxAttempts?: number;
+    marketDependencies?: RecipeMarketDependencies;
     now?: Date;
     priority?: number;
     snapshotTtlMs: number;
@@ -93,6 +95,7 @@ export async function planCatalogRefresh(
   const { dependencies, totalDependencies } = await buildDependencies(
     recipes,
     league.leagueGggId,
+    options.marketDependencies,
   );
   const existingCycle = await repositories.cycles.findById(cycleId);
   if (
@@ -218,19 +221,30 @@ export async function planCatalogRefresh(
   };
 }
 
-async function buildDependencies(recipes: readonly Recipe[], league: string) {
+async function buildDependencies(
+  recipes: readonly Recipe[],
+  league: string,
+  marketDependencies?: RecipeMarketDependencies,
+) {
   const dependencies = new Map<string, RefreshDependency>();
   let totalDependencies = 0;
 
   for (const recipe of recipes) {
-    let definition: CanonicalRecipeV1;
+    let definition;
     try {
-      definition = validateRecipeV1(recipe.definition);
+      definition = validateRecipeDocument(recipe.definition);
     } catch (cause) {
       throw new DomainError('RECIPE_INVALID', { cause });
     }
 
-    for (const tradeQuery of recipeTradeQueries(definition)) {
+    const queries = marketDependencies
+      ? await marketDependencies({ league, recipe: definition })
+      : definition.schemaVersion === 1
+        ? legacyRecipeMarketDependencies({ recipe: definition })
+        : (() => {
+            throw new DomainError('RECIPE_INVALID');
+          })();
+    for (const { query: tradeQuery } of queries) {
       totalDependencies += 1;
       const query = canonicalizeMarketQuery(tradeQuery.query);
       const canonicalHash = await hashMarketQuery({
@@ -263,15 +277,6 @@ async function buildDependencies(recipes: readonly Recipe[], league: string) {
     })),
     totalDependencies,
   };
-}
-
-function recipeTradeQueries(recipe: CanonicalRecipeV1): RecipeTradeQuery[] {
-  return [
-    recipe.baseRequirements.tradeQuery,
-    ...recipe.materials.map(({ tradeQuery }) => tradeQuery),
-    ...recipe.finishingCosts.map(({ tradeQuery }) => tradeQuery),
-    recipe.output.tradeQuery,
-  ];
 }
 
 async function findOrCreateMarketQuery(

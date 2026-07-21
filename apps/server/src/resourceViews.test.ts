@@ -25,7 +25,9 @@ describe('repository-backed resource views', () => {
     );
     const readers = createResourceReaders(repositories);
 
-    expect(report).toMatchObject({ created: ['physical-large-cluster'] });
+    expect(report).toMatchObject({
+      created: ['physical-large-cluster-jagged'],
+    });
     const catalog = catalogResponseSchema.parse(
       await readers.readCatalog(correlationId),
     );
@@ -34,24 +36,31 @@ describe('repository-backed resource views', () => {
     expect(catalog.data?.entries[0]).toMatchObject({
       evaluation: { status: 'loading' },
       recipe: {
-        id: 'physical-large-cluster',
+        id: 'physical-large-cluster-jagged',
         minimumCapital: null,
         title: 'Physical Large Cluster Jewel',
       },
     });
 
     const detail = recipeResponseSchema.parse(
-      await readers.readRecipe(correlationId, 'physical-large-cluster'),
+      await readers.readRecipe(correlationId, 'physical-large-cluster-jagged'),
     );
     expect(detail.data).toMatchObject({
       materials: [
         {
           costPerAttempt: null,
-          name: 'Primal Crystallised Lifeforce',
+          name: 'Jagged Fossil',
+          quantityPerAttempt: 30,
+          unitPrice: null,
+        },
+        {
+          costPerAttempt: null,
+          name: 'Primitive Chaotic Resonator',
+          quantityPerAttempt: 30,
           unitPrice: null,
         },
       ],
-      recipe: { id: 'physical-large-cluster' },
+      recipe: { id: 'physical-large-cluster-jagged' },
     });
   });
 
