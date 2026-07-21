@@ -111,11 +111,54 @@ export const catalogEntrySchema = z
   })
   .strict();
 
+export const presentedPropertySchema = z.strictObject({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  value: z.string().min(1).nullable(),
+});
+
+export const presentedModifierSchema = z.strictObject({
+  canonicalId: z.string().min(1),
+  generationType: z.enum(['prefix', 'suffix', 'implicit', 'enchant', 'other']),
+  label: z.string().min(1),
+});
+
+export const presentedItemSchema = z.strictObject({
+  canonicalId: z.string().min(1),
+  iconUrl: z.string().url().nullable(),
+  itemClass: z.string().min(1),
+  itemLevel: z.number().int().positive().nullable(),
+  modifiers: z.array(presentedModifierSchema),
+  name: z.string().min(1),
+  properties: z.array(presentedPropertySchema),
+  rarity: z.enum(['normal', 'magic', 'rare', 'unique']).nullable(),
+  role: z.enum(['base', 'target']),
+});
+
+export const presentedMaterialSchema = z.strictObject({
+  canonicalId: z.string().min(1),
+  iconUrl: z.string().url().nullable(),
+  itemClass: z.string().min(1),
+  name: z.string().min(1),
+  quantity: z.number().int().positive(),
+  role: z.literal('material'),
+  totalPrice: priceSchema.nullable(),
+  unitPrice: priceSchema.nullable(),
+});
+
+export const itemPresentationContractV1Schema = z.strictObject({
+  base: presentedItemSchema.extend({ role: z.literal('base') }),
+  materials: z.array(presentedMaterialSchema),
+  target: presentedItemSchema.extend({ role: z.literal('target') }),
+  version: z.literal(1),
+});
+
 export const recipeDetailViewSchema = z
   .object({
     recipe: recipeSchema,
     gameVersion: z.string().min(1),
     confidence: z.enum(['low', 'medium', 'high']).nullable(),
+    presentation: itemPresentationContractV1Schema,
     base: z
       .object({
         name: z.string().min(1),
@@ -351,6 +394,13 @@ export type Recipe = z.infer<typeof recipeSchema>;
 export type RecipeEvaluation = z.infer<typeof recipeEvaluationSchema>;
 export type RefreshCycle = z.infer<typeof refreshCycleSchema>;
 export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
+export type PresentedProperty = z.infer<typeof presentedPropertySchema>;
+export type PresentedModifier = z.infer<typeof presentedModifierSchema>;
+export type PresentedItem = z.infer<typeof presentedItemSchema>;
+export type PresentedMaterial = z.infer<typeof presentedMaterialSchema>;
+export type ItemPresentationContractV1 = z.infer<
+  typeof itemPresentationContractV1Schema
+>;
 export type RecipeDetailView = z.infer<typeof recipeDetailViewSchema>;
 export type PublicDomainError = z.infer<typeof publicDomainErrorSchema>;
 export type DomainErrorCode = z.infer<typeof domainErrorCodeSchema>;

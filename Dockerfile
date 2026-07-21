@@ -54,6 +54,7 @@ WORKDIR /app
 COPY --from=build --chown=node:node /opt/server ./
 COPY --from=build --chown=node:node /workspace/apps/server/drizzle ./drizzle
 COPY --from=build --chown=node:node /workspace/apps/server/mappings ./mappings
+COPY --from=build --chown=node:node /workspace/apps/server/presentation ./presentation
 COPY --from=build --chown=node:node /workspace/recipes ./recipes
 
 USER node

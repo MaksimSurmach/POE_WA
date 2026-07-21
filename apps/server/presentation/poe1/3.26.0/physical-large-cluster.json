@@ -1,0 +1,33 @@
+{
+  "gameDataVersion": "3.26.0",
+  "metadataVersion": "1",
+  "metadata": {
+    "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge": {
+      "itemClass": "Jewel",
+      "name": "Large Cluster Jewel"
+    },
+    "physical-damage": {
+      "name": "12% increased Physical Damage"
+    },
+    "mod:battle-hardened": {
+      "generationType": "prefix",
+      "name": "Battle-Hardened"
+    },
+    "mod:furious-assault": {
+      "generationType": "suffix",
+      "name": "Furious Assault"
+    },
+    "mod:master-the-fundamentals": {
+      "generationType": "prefix",
+      "name": "Master the Fundamentals"
+    },
+    "jagged-fossil": {
+      "itemClass": "Fossil",
+      "name": "Jagged Fossil"
+    },
+    "primitive-chaotic-resonator": {
+      "itemClass": "Resonator",
+      "name": "Primitive Chaotic Resonator"
+    }
+  }
+}
