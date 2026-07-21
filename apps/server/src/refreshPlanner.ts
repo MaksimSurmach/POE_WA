@@ -5,7 +5,6 @@ import {
   DomainError,
   hashMarketQuery,
   type CanonicalJsonObject,
-  type CanonicalRecipeV1,
   type Job,
   type MarketQuery,
   type RawSnapshot,
@@ -20,8 +19,6 @@ import {
   legacyRecipeMarketDependencies,
   type RecipeMarketDependencies,
 } from './recipeMarket.js';
-
-type RecipeTradeQuery = CanonicalRecipeV1['baseRequirements']['tradeQuery'];
 
 type RefreshDependency = {
   canonicalHash: string;

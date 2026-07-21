@@ -1,7 +1,6 @@
 import {
   canonicalCraftSetupFromRecipe,
   type CanonicalRecipeV1,
-  type CanonicalJsonObject,
   type GeneratedTradeQuery,
   type LoadedRecipeDefinition,
   type TradeQueryGenerator,
