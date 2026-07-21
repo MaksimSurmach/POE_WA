@@ -40,6 +40,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   const config = loadRuntimeConfig(process.env, forcedMode);
   const logger = pino({ level: config.logLevel, name: 'poe-worksmith' });
   const pool = createDatabasePool(config.database);
+  let workerError: Error | undefined;
   const repositories = createPostgresRepositories(pool);
   const marketDependencies = createV2RecipeMarketDependencies({
     resolveResource: createPostgresResourceResolver(pool),
@@ -55,6 +56,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         logger,
         async () => {
           await pool.query('select 1');
+          if (workerError) throw workerError;
         },
         repositories.catalog.getProgress,
         repositories.rateLimits.list,
@@ -104,7 +106,9 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       }),
     });
     jobs = new ApplicationJobScheduler({
-      boss: createJobBoss(pool, config.jobSchema, logger),
+      boss: createJobBoss(pool, config.jobSchema, logger, (error) => {
+        workerError ??= error;
+      }),
       cleanupCron: config.cleanupCron,
       logger,
       refreshCron: config.refreshCron,

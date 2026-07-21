@@ -1,4 +1,5 @@
 import type { PgBoss } from 'pg-boss';
+import type { Pool } from 'pg';
 import pino from 'pino';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -7,6 +8,7 @@ import {
   CATALOG_CLEANUP_QUEUE,
   CATALOG_REFRESH_QUEUE,
   CATALOG_REFRESH_SCHEDULE_KEY,
+  createJobBoss,
   LEAGUE_RESOLVE_QUEUE,
   LEAGUE_RESOLVE_SCHEDULE_KEY,
   PgBossJobRunner,
@@ -26,6 +28,21 @@ function fakeBoss() {
 }
 
 describe('pg-boss job runner', () => {
+  it('reports pg-boss errors to the runtime health signal', () => {
+    const onError = vi.fn();
+    const boss = createJobBoss(
+      { query: vi.fn() } as unknown as Pool,
+      'pgboss_test',
+      pino({ level: 'silent' }),
+      onError,
+    );
+    const error = new Error('monitor failed');
+
+    boss.emit('error', error);
+
+    expect(onError).toHaveBeenCalledWith(error);
+  });
+
   it('registers one keyed cron schedule and one worker', async () => {
     const fake = fakeBoss();
     const runner = new PgBossJobRunner(
