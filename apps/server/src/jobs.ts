@@ -30,12 +30,13 @@ export function createJobBoss(
   pool: Pool,
   schema: string,
   logger: Logger,
+  onError?: (error: Error) => void,
 ): PgBoss {
   const boss = new PgBoss({
     db: {
       async executeSql(text, values) {
         const result = await pool.query(text, values);
-        return { rows: result.rows };
+        return { rows: (Array.isArray(result) ? result.at(-1) : result).rows };
       },
     },
     migrate: true,
@@ -46,6 +47,7 @@ export function createJobBoss(
 
   boss.on('error', (error) => {
     logger.error({ err: error }, 'pg-boss error');
+    onError?.(error);
   });
   boss.on('warning', (warning) => {
     logger.warn({ warning }, 'pg-boss warning');

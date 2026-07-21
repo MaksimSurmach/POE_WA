@@ -33,6 +33,14 @@ afterAll(async () => {
 });
 
 describe('pg-boss scheduler integration', () => {
+  it('normalizes multi-statement monitor query results from pg', async () => {
+    await boss.start();
+
+    await expect(
+      boss.getDb().executeSql('select 1 as ignored; select 2 as value'),
+    ).resolves.toEqual({ rows: [{ value: 2 }] });
+  });
+
   it('upserts a singleton schedule and deduplicates its jobs', async () => {
     await boss.start();
     await ensureTestSchedule(boss, '* * * * *');
@@ -97,5 +105,20 @@ describe('pg-boss scheduler integration', () => {
     );
     expect(first).toBeTypeOf('string');
     expect(duplicate).toBeNull();
+  });
+
+  it('processes a queued job after the worker starts', async () => {
+    await boss.start();
+    await ensureTestSchedule(boss, '* * * * *');
+    const processed = new Promise<void>((resolve) => {
+      void boss.work(TEST_JOB_QUEUE, async (jobs) => {
+        expect(jobs).toHaveLength(1);
+        resolve();
+      });
+    });
+
+    await boss.send(TEST_JOB_QUEUE, { source: 'scheduler' });
+
+    await expect(processed).resolves.toBeUndefined();
   });
 });
