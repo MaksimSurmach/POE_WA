@@ -226,7 +226,7 @@ export async function importTradeMappings(
   },
 ) {
   const version = await pool.query<{ id: string }>(
-    `select id from game_data_versions where patch_version = $1 and game = 'poe1'`,
+    `select id from game_data_versions where patch_version = $1 and game = 'poe1' and status = 'active'`,
     [input.gameDataVersion],
   );
   if (version.rowCount !== 1)
