@@ -206,7 +206,7 @@ describe('PoE Trade Merchant client', () => {
     expect(error).toMatchObject({ code });
   });
 
-  it('rejects malformed provider responses at runtime', async () => {
+  it('classifies malformed provider schemas separately at runtime', async () => {
     const client = new PoeTradeClient({
       baseUrl: 'https://trade.test',
       fetch: async () => Response.json({ id: 'bad', result: [1], total: 1 }),
@@ -219,7 +219,7 @@ describe('PoE Trade Merchant client', () => {
         query: { query: { type: 'Jewel' } },
         schemaVersion: 1,
       }),
-    ).rejects.toMatchObject({ code: 'PROVIDER_RESPONSE_INVALID' });
+    ).rejects.toMatchObject({ code: 'PROVIDER_SCHEMA_CHANGED' });
   });
 
   it('does not call the provider while its endpoint circuit is open', async () => {
