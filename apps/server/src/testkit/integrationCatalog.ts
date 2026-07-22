@@ -48,6 +48,10 @@ export const expectedDefaultQueryKeys = [
 ] as const;
 
 const syntheticDirectory = new URL('./recipes/', import.meta.url);
+const sourceSyntheticDirectory = new URL(
+  '../../src/testkit/recipes/',
+  import.meta.url,
+);
 const productionRecipe = new URL(
   '../../../../recipes/physical-large-cluster/recipe.md',
   import.meta.url,
@@ -63,13 +67,14 @@ const query = (
 export async function loadIntegrationCatalog(): Promise<
   readonly LoadedRecipe[]
 > {
-  const syntheticFiles = (await readdir(syntheticDirectory))
+  const directory = await findSyntheticDirectory();
+  const syntheticFiles = (await readdir(directory))
     .filter((file) => file.endsWith('.md'))
     .sort();
-  const root = fileURLToPath(syntheticDirectory);
+  const root = fileURLToPath(directory);
   const synthetic = await Promise.all(
     syntheticFiles.map((file) =>
-      loadRecipeFile(fileURLToPath(new URL(file, syntheticDirectory)), root),
+      loadRecipeFile(fileURLToPath(new URL(file, directory)), root),
     ),
   );
   const production = await loadRecipeFile(
@@ -79,6 +84,21 @@ export async function loadIntegrationCatalog(): Promise<
   return [...synthetic, production].sort((left, right) =>
     left.definition.id.localeCompare(right.definition.id),
   );
+}
+
+async function findSyntheticDirectory() {
+  try {
+    await readdir(syntheticDirectory);
+    return syntheticDirectory;
+  } catch (error: unknown) {
+    if (
+      !(error instanceof Error) ||
+      !('code' in error) ||
+      error.code !== 'ENOENT'
+    )
+      throw error;
+    return sourceSyntheticDirectory;
+  }
 }
 
 export const integrationMarketDependencies: RecipeMarketDependencies = async ({
@@ -104,15 +124,35 @@ export const integrationMarketDependencies: RecipeMarketDependencies = async ({
           : recipe.id.includes('-c-')
             ? 'c'
             : 'd';
-  const materialKeys =
+  const materialDependencies =
     group === 'production'
       ? [
-          'fixture:material:production:jagged',
-          'fixture:material:production:resonator',
+          {
+            materialId: 'jagged-fossil',
+            queryKey: 'fixture:material:production:jagged',
+          },
+          {
+            materialId: 'primitive-chaotic-resonator',
+            queryKey: 'fixture:material:production:resonator',
+          },
         ]
       : group === 'a' || group === 'c'
-        ? ['fixture:material:jagged', 'fixture:material:resonator']
-        : ['fixture:material:lifeforce'];
+        ? [
+            {
+              materialId: 'fixture:jagged',
+              queryKey: 'fixture:material:jagged',
+            },
+            {
+              materialId: 'fixture:resonator',
+              queryKey: 'fixture:material:resonator',
+            },
+          ]
+        : [
+            {
+              materialId: 'fixture:lifeforce',
+              queryKey: 'fixture:material:lifeforce',
+            },
+          ];
   return [
     {
       kind: 'base',
@@ -120,10 +160,10 @@ export const integrationMarketDependencies: RecipeMarketDependencies = async ({
         `fixture:base:${group === 'production' ? 'production' : group === 'a' || group === 'b' ? 'a' : 'c'}`,
       ),
     },
-    ...materialKeys.map((key) => ({
+    ...materialDependencies.map(({ materialId, queryKey }) => ({
       kind: 'material' as const,
-      materialId: key,
-      query: query(key),
+      materialId,
+      query: query(queryKey),
     })),
     { kind: 'target', query: query(`fixture:output:${group}`) },
   ];

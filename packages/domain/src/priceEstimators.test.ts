@@ -24,7 +24,7 @@ function listing(
 }
 
 describe('market snapshot aggregation', () => {
-  it('calculates deterministic metrics without filtering old or duplicate-seller listings', () => {
+  it('keeps the cheapest listing for each seller', () => {
     const listings = [
       listing('outlier', 100, { ageSeconds: 8 * 24 * 60 * 60 }),
       listing('equal-b', 2, {
@@ -56,31 +56,36 @@ describe('market snapshot aggregation', () => {
     });
 
     expect(result).toEqual(reordered);
-    expect(result.listings).toHaveLength(10);
+    expect(result.listings).toHaveLength(9);
     expect(
       result.listings.filter(({ account }) => account === 'same-seller'),
-    ).toHaveLength(2);
+    ).toEqual([
+      expect.objectContaining({
+        id: 'equal-a',
+        price: { amount: '2', currency: 'chaos' },
+      }),
+    ]);
     expect(result).toMatchObject({
       ageBuckets: {
         atLeastSevenDays: 2,
-        oneDayToSevenDays: 2,
+        oneDayToSevenDays: 1,
         oneHourToOneDay: 1,
         underOneHour: 5,
       },
       cheapest: { amount: '1', currency: 'chaos' },
-      medianTopFive: { amount: '2', currency: 'chaos' },
-      medianTopTen: { amount: '4.5', currency: 'chaos' },
-      sampleSize: 10,
+      medianTopFive: { amount: '3', currency: 'chaos' },
+      medianTopTen: null,
+      sampleSize: 9,
       secondCheapest: { amount: '2', currency: 'chaos' },
-      thirdCheapest: { amount: '2', currency: 'chaos' },
+      thirdCheapest: { amount: '3', currency: 'chaos' },
       totalListings: 42,
     });
     expect(
       result.estimators.find(({ id }) => id === 'mean-top-5'),
-    ).toMatchObject({ price: { amount: '2.4' }, reason: null });
+    ).toMatchObject({ price: { amount: '3' }, reason: null });
     expect(
       result.estimators.find(({ id }) => id === 'percentile-50'),
-    ).toMatchObject({ price: { amount: '4.5' }, reason: null });
+    ).toMatchObject({ price: { amount: '5' }, reason: null });
   });
 
   it('keeps an old cheapest listing in estimator calculations', () => {

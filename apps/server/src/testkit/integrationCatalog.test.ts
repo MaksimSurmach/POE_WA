@@ -63,7 +63,7 @@ describe('integration catalog', () => {
   });
   it.each([
     [12, [null, null, null, null]],
-    [10, [null, null, null, 'insufficient_listings']],
+    [10, [null, null, 'insufficient_listings', 'insufficient_listings']],
     [9, [null, null, 'insufficient_listings', 'insufficient_listings']],
   ] as const)(
     'uses estimator listing thresholds for %i listings',

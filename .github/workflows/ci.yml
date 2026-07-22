@@ -43,6 +43,7 @@ jobs:
       - run: pnpm db:check:migrations
       - run: pnpm db:migrate
       - run: pnpm test:integration
+      - run: pnpm test:e2e:backend
       - run: pnpm build
       - name: Validate and preview recipe catalog
         run: |

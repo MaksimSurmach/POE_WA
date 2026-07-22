@@ -36,7 +36,7 @@ const prices: Record<string, readonly number[]> = {
   'fixture:output:c': [150],
   'fixture:output:d': [180],
   'fixture:output:production': [100],
-  'fixture:output:legacy': [70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92],
+  'fixture:output:legacy': [70, 71, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92],
 };
 export async function integrationScenario(
   name: IntegrationScenarioName,
@@ -64,11 +64,11 @@ export async function integrationScenario(
   };
   if (name === 'publish-at-95')
     set('fixture:output:legacy', [
-      { type: 'success', result: result('fixture:output:legacy', 10) },
+      { type: 'success', result: result('fixture:output:legacy', 11) },
     ]);
   if (name === 'reject-below-95')
     set('fixture:output:legacy', [
-      { type: 'success', result: result('fixture:output:legacy', 9) },
+      { type: 'success', result: result('fixture:output:legacy', 10) },
     ]);
   if (name === 'retry-429-then-success')
     set('fixture:material:lifeforce', [
@@ -89,7 +89,7 @@ export async function integrationScenario(
 }
 function result(
   key: string,
-  count = key === 'fixture:output:legacy' ? 12 : 10,
+  count = key === 'fixture:output:legacy' ? 13 : 11,
 ): MarketSearchResult {
   const values = prices[key] ?? [1];
   const listings = Array.from({ length: count }, (_, index) => ({
