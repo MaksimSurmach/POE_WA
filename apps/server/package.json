@@ -15,6 +15,7 @@
     "trade-mappings:import": "node --env-file-if-exists=../../.env.development dist/entrypoints/tradeMappings.js",
     "recipes:validate": "node dist/recipes/validateCatalog.js ../../recipes",
     "recipes:sync": "node --env-file-if-exists=../../.env.development dist/recipes/syncCatalog.js ../../recipes",
+    "fixtures:seed-integration": "node --env-file-if-exists=../../.env.development dist/entrypoints/integrationFixtures.js",
     "start": "node --env-file-if-exists=../../.env.development dist/index.js",
     "start:all": "node --env-file-if-exists=../../.env.development dist/entrypoints/all.js",
     "start:api": "node --env-file-if-exists=../../.env.development dist/entrypoints/api.js",

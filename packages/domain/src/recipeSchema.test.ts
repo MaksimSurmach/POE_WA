@@ -114,7 +114,7 @@ describe('recipe schema v1', () => {
     });
     const invalidEstimator = validationError({
       ...validRecipeV1Fixture,
-      estimator: { n: 11, strategy: 'nth_cheapest' },
+      estimator: { n: 12, strategy: 'nth_cheapest' },
     });
 
     expect(mixedSuccess.issues).toEqual(

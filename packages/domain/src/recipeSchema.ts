@@ -104,15 +104,15 @@ const successSchema = z.discriminatedUnion('mode', [
 const estimatorSchema = z.discriminatedUnion('strategy', [
   z.strictObject({ strategy: z.literal('cheapest') }),
   z.strictObject({
-    n: z.number().int().min(1).max(10),
+    n: z.number().int().min(1).max(11),
     strategy: z.literal('nth_cheapest'),
   }),
   z.strictObject({
-    n: z.number().int().min(1).max(10),
+    n: z.number().int().min(1).max(11),
     strategy: z.literal('median_top_n'),
   }),
   z.strictObject({
-    n: z.number().int().min(1).max(10),
+    n: z.number().int().min(1).max(11),
     strategy: z.literal('mean_top_n'),
   }),
   z.strictObject({
