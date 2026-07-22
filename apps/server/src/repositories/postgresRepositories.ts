@@ -162,7 +162,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
           try {
             await client.query('begin');
             const selected = await client.query<LeagueRow>(
-              'select * from poe_leagues where id = $1 for update',
+              'select id, game, realm, ggg_id as "gggId", name, start_at as "startAt", end_at as "endAt", is_current as "isCurrent", synced_at as "syncedAt", metadata, created_at as "createdAt", updated_at as "updatedAt" from poe_leagues where id = $1 for update',
               [leagueId],
             );
             const row = selected.rows[0];
@@ -173,7 +173,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
               return mapLeague(row);
             }
             const current = await client.query<LeagueRow>(
-              'select * from poe_leagues where game = $1 and realm = $2 and is_current = true for update',
+              'select id, game, realm, ggg_id as "gggId", name, start_at as "startAt", end_at as "endAt", is_current as "isCurrent", synced_at as "syncedAt", metadata, created_at as "createdAt", updated_at as "updatedAt" from poe_leagues where game = $1 and realm = $2 and is_current = true for update',
               [row.game, row.realm],
             );
             if (current.rows[0] && !current.rows[0].endAt && row.startAt)
@@ -187,7 +187,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
                 [row.game, switchedAt, row.realm],
               );
             const updated = await client.query<LeagueRow>(
-              'update poe_leagues set is_current = true, updated_at = $2 where id = $1 returning *',
+              'update poe_leagues set is_current = true, updated_at = $2 where id = $1 returning id, game, realm, ggg_id as "gggId", name, start_at as "startAt", end_at as "endAt", is_current as "isCurrent", synced_at as "syncedAt", metadata, created_at as "createdAt", updated_at as "updatedAt"',
               [leagueId, switchedAt],
             );
             await client.query('commit');

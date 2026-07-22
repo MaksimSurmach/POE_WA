@@ -33,6 +33,7 @@
     "test": "pnpm -r --if-present test",
     "test:contracts": "pnpm --filter @poe-worksmith/server test:contracts",
     "test:integration": "pnpm -r --if-present test:integration",
+    "test:e2e:backend": "pnpm --filter @poe-worksmith/server test:e2e:backend",
     "typecheck": "pnpm -r --if-present typecheck"
   },
   "devDependencies": {

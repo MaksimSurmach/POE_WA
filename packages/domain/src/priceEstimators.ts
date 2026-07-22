@@ -115,7 +115,9 @@ export function aggregateMarketListings(input: {
   if (currency.length === 0) {
     throw new DomainError('CALCULATION_INPUT_INVALID');
   }
-  const listings = [...input.listings].sort(compareListings);
+  const listings = deduplicateSellers(
+    [...input.listings].sort(compareListings),
+  );
   const prices = listings.map((listing) => parseListing(listing, currency));
   const totalListings = input.totalListings ?? listings.length;
   if (
@@ -218,6 +220,15 @@ function compareListings(left: MarketListing, right: MarketListing) {
     : left.account > right.account
       ? 1
       : 0;
+}
+
+function deduplicateSellers(listings: readonly MarketListing[]) {
+  const sellers = new Set<string>();
+  return listings.filter((listing) => {
+    if (sellers.has(listing.account)) return false;
+    sellers.add(listing.account);
+    return true;
+  });
 }
 
 function parseListing(listing: MarketListing, currency: string) {
