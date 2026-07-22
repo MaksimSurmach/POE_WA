@@ -1039,6 +1039,16 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
     },
     cycles: {
+      findLatestAttempt() {
+        return mapRepositoryError('cycles', 'findLatestAttempt', async () => {
+          const [cycle] = await database
+            .select()
+            .from(refreshCycles)
+            .orderBy(desc(refreshCycles.requestedAt))
+            .limit(1);
+          return cycle ? mapCycle(cycle) : null;
+        });
+      },
       findById(id) {
         return mapRepositoryError('cycles', 'findById', async () => {
           const [row] = await database

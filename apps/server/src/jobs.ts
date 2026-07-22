@@ -77,7 +77,11 @@ export async function ensureTestSchedule(boss: PgBoss, cron: string) {
 
 export async function ensureCatalogSchedules(
   boss: PgBoss,
-  options: { cleanupCron: string; refreshCron: string },
+  options: {
+    cleanupCron: string;
+    refreshCron: string;
+    refreshTimezone?: string;
+  },
 ) {
   await boss.createQueue(CATALOG_REFRESH_QUEUE, {
     deleteAfterSeconds: 7 * 24 * 60 * 60,
@@ -103,7 +107,7 @@ export async function ensureCatalogSchedules(
       key: CATALOG_REFRESH_SCHEDULE_KEY,
       singletonKey: CATALOG_REFRESH_SINGLETON_KEY,
       singletonSeconds: 60,
-      tz: 'UTC',
+      tz: options.refreshTimezone ?? 'UTC',
     },
   );
   await boss.schedule(
@@ -149,6 +153,7 @@ export class ApplicationJobScheduler implements JobRunner {
   readonly #cleanupCron: string;
   readonly #logger: Logger;
   readonly #refreshCron: string;
+  readonly #refreshTimezone: string;
   readonly #runCleanup: () => Promise<unknown>;
   readonly #runRefresh: (cycleId: string) => Promise<unknown>;
   readonly #leagueCron: string;
@@ -161,6 +166,7 @@ export class ApplicationJobScheduler implements JobRunner {
     cleanupCron: string;
     logger: Logger;
     refreshCron: string;
+    refreshTimezone?: string;
     runCleanup: () => Promise<unknown>;
     runRefresh: (cycleId: string) => Promise<unknown>;
     leagueCron?: string;
@@ -171,6 +177,7 @@ export class ApplicationJobScheduler implements JobRunner {
     this.#cleanupCron = options.cleanupCron;
     this.#logger = options.logger;
     this.#refreshCron = options.refreshCron;
+    this.#refreshTimezone = options.refreshTimezone ?? 'UTC';
     this.#runCleanup = options.runCleanup;
     this.#runRefresh = options.runRefresh;
     this.#leagueCron = options.leagueCron ?? '0 23 * * *';
@@ -186,6 +193,7 @@ export class ApplicationJobScheduler implements JobRunner {
       await ensureCatalogSchedules(this.#boss, {
         cleanupCron: this.#cleanupCron,
         refreshCron: this.#refreshCron,
+        refreshTimezone: this.#refreshTimezone,
       });
       await ensureLeagueSchedule(this.#boss, {
         cron: this.#leagueCron,

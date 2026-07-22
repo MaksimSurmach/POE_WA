@@ -36,6 +36,7 @@ describe('runtime configuration', () => {
       poeRequestTimeoutMs: 15_000,
       port: 4100,
       refreshCron: '0 */4 * * *',
+      refreshTimezone: 'UTC',
       retentionBatchSize: 500,
       shutdownTimeoutMs: 30_000,
       snapshotTtlMs: 1_800_000,
@@ -55,6 +56,15 @@ describe('runtime configuration', () => {
   it('requires GGG-compliant OAuth user-agent identification', () => {
     expect(() =>
       loadRuntimeConfig({ ...environment, POE_USER_AGENT: 'anonymous-client' }),
+    ).toThrow(RuntimeConfigurationError);
+  });
+
+  it('rejects invalid refresh cron and timezone values', () => {
+    expect(() =>
+      loadRuntimeConfig({ ...environment, REFRESH_CRON: 'wrong' }),
+    ).toThrow(RuntimeConfigurationError);
+    expect(() =>
+      loadRuntimeConfig({ ...environment, REFRESH_TIMEZONE: 'Mars/Olympus' }),
     ).toThrow(RuntimeConfigurationError);
   });
 

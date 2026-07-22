@@ -80,7 +80,14 @@ export const refreshCycleSchema = z
     publishedAt: z.iso.datetime().nullable(),
     requestedAt: z.iso.datetime(),
     startedAt: z.iso.datetime().nullable(),
-    status: z.enum(['queued', 'running', 'published', 'failed', 'superseded']),
+    status: z.enum([
+      'queued',
+      'running',
+      'completed',
+      'published',
+      'failed',
+      'superseded',
+    ]),
     totalQueries: z.number().int().nonnegative(),
     totalRecipes: z.number().int().nonnegative(),
   })
@@ -329,11 +336,34 @@ export const recipeResponseSchema = resourceResponseSchema(
   recipeDetailViewSchema,
 );
 
+export const refreshFreshnessStateSchema = z.enum([
+  'never-published',
+  'scheduled',
+  'queued',
+  'running',
+  'failed',
+  'published',
+]);
+
 export const refreshProgressResponseSchema = z.strictObject({
   correlationId: correlationIdSchema,
   data: z.strictObject({
+    serverTime: z.iso.datetime(),
+    state: refreshFreshnessStateSchema,
+    schedule: z.strictObject({
+      cron: z.string().min(1),
+      timezone: z.string().min(1),
+      nextScheduledAt: z.iso.datetime(),
+    }),
     active: refreshCycleSchema.nullable(),
     published: refreshCycleSchema.nullable(),
+    lastAttempt: refreshCycleSchema.nullable(),
+    lastSuccessful: z
+      .strictObject({
+        cycleId: z.string().min(1),
+        publishedAt: z.iso.datetime(),
+      })
+      .nullable(),
   }),
 });
 export const poeLeagueSchema = z.strictObject({
@@ -446,6 +476,7 @@ export type PublicDomainError = z.infer<typeof publicDomainErrorSchema>;
 export type DomainErrorCode = z.infer<typeof domainErrorCodeSchema>;
 export type ApiErrorEnvelope = z.infer<typeof apiErrorEnvelopeSchema>;
 export type RefreshStatus = z.infer<typeof refreshStatusSchema>;
+export type RefreshFreshnessState = z.infer<typeof refreshFreshnessStateSchema>;
 export type CatalogResponse = z.infer<typeof catalogResponseSchema>;
 export type RecipeResponse = z.infer<typeof recipeResponseSchema>;
 export type RefreshProgressResponse = z.infer<

@@ -38,6 +38,7 @@ import {
   modeIncludesWorker,
 } from './runtimeConfig.js';
 import { Metrics } from './observability/metrics.js';
+import { createRefreshFreshnessReader } from './freshness.js';
 
 export async function runProcess(forcedMode?: ApplicationMode) {
   const config = loadRuntimeConfig(process.env, forcedMode);
@@ -102,6 +103,12 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           metrics: metrics.registry,
           readCircuits: repositories.providerCircuits.list,
           readOperationalDiagnostics: repositories.operationalDiagnostics.read,
+          readRefreshFreshness: createRefreshFreshnessReader({
+            cron: config.refreshCron,
+            findLatestAttempt: repositories.cycles.findLatestAttempt,
+            getProgress: repositories.catalog.getProgress,
+            timezone: config.refreshTimezone,
+          }),
         },
       )
     : undefined;
@@ -155,6 +162,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       cleanupCron: config.cleanupCron,
       logger,
       refreshCron: config.refreshCron,
+      refreshTimezone: config.refreshTimezone,
       runCleanup: () => retention.run(),
       runRefresh: async (cycleId) => {
         const currentLeague = await repositories.leagues.findCurrent();

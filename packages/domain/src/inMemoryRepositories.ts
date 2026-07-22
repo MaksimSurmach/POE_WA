@@ -630,6 +630,13 @@ export function createInMemoryRepositories(): Repositories {
       },
     },
     cycles: {
+      async findLatestAttempt() {
+        const latest = [...cycles.values()].sort(
+          (left, right) =>
+            right.requestedAt.getTime() - left.requestedAt.getTime(),
+        )[0];
+        return latest ? clone(latest) : null;
+      },
       async findById(id) {
         const cycle = cycles.get(id);
         return cycle ? clone(cycle) : null;

@@ -5,6 +5,8 @@ import {
   catalogResponseSchema,
   type RecipeResponse,
   recipeResponseSchema,
+  type RefreshProgressResponse,
+  refreshProgressResponseSchema,
 } from '@poe-worksmith/contracts';
 
 type Contract<T> = {
@@ -49,6 +51,9 @@ export function createApiClient(
         `/api/recipes/${encodeURIComponent(id)}`,
         recipeResponseSchema,
       );
+    },
+    getRefreshFreshness(): Promise<RefreshProgressResponse> {
+      return request('/api/refresh', refreshProgressResponseSchema);
     },
   };
 }

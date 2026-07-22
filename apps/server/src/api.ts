@@ -26,9 +26,14 @@ import {
 } from '@poe-worksmith/domain';
 import Fastify from 'fastify';
 import type { Logger } from 'pino';
+import {
+  createRefreshFreshnessReader,
+  type RefreshFreshness,
+} from './freshness.js';
 
 export type ReadinessProbe = () => Promise<void>;
 export type RefreshProgressReader = () => Promise<CatalogProgress>;
+export type RefreshFreshnessReader = () => Promise<RefreshFreshness>;
 export type RateLimitDiagnosticsReader = () => Promise<RateLimitState[]>;
 export type CatalogReader = (correlationId: string) => Promise<CatalogResponse>;
 export type RecipeReader = (
@@ -56,6 +61,7 @@ export function buildApi(
     readCircuits?: (() => Promise<ProviderCircuitState[]>) | undefined;
     readOperationalDiagnostics?: OperationalDiagnosticsReader | undefined;
     metrics?: { contentType: string; metrics(): Promise<string> } | undefined;
+    readRefreshFreshness?: RefreshFreshnessReader | undefined;
   } = {},
 ) {
   const api = Fastify({
@@ -102,12 +108,32 @@ export function buildApi(
     }
   });
   api.get('/api/refresh', async (request) => {
-    const progress = await readRefreshProgress();
+    const freshness = await (
+      options.readRefreshFreshness ??
+      createRefreshFreshnessReader({
+        getProgress: readRefreshProgress,
+        findLatestAttempt: async () => null,
+        cron: '0 */4 * * *',
+        timezone: 'UTC',
+      })
+    )();
     return refreshProgressResponseSchema.parse({
       correlationId: request.id,
       data: {
-        active: serializeCycle(progress.active),
-        published: serializeCycle(progress.published),
+        active: serializeCycle(freshness.active),
+        lastAttempt: serializeCycle(freshness.lastAttempt),
+        lastSuccessful: freshness.lastSuccessful && {
+          cycleId: freshness.lastSuccessful.cycleId,
+          publishedAt: freshness.lastSuccessful.publishedAt.toISOString(),
+        },
+        published: serializeCycle(freshness.published),
+        schedule: {
+          cron: freshness.schedule.cron,
+          nextScheduledAt: freshness.schedule.nextScheduledAt.toISOString(),
+          timezone: freshness.schedule.timezone,
+        },
+        serverTime: freshness.serverTime.toISOString(),
+        state: freshness.state,
       },
     });
   });

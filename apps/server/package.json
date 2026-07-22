@@ -27,6 +27,7 @@
   "dependencies": {
     "@poe-worksmith/contracts": "workspace:*",
     "@poe-worksmith/domain": "workspace:*",
+    "cron-parser": "5.4.0",
     "drizzle-orm": "0.45.2",
     "fastify": "5.10.0",
     "gray-matter": "4.0.3",

@@ -152,7 +152,19 @@ describe('HTTP API contracts', () => {
     expect(
       refreshProgressResponseSchema.parse({
         correlationId,
-        data: { active: cycle, published: null },
+        data: {
+          active: cycle,
+          lastAttempt: cycle,
+          lastSuccessful: null,
+          published: null,
+          schedule: {
+            cron: '0 */4 * * *',
+            nextScheduledAt: timestamp,
+            timezone: 'UTC',
+          },
+          serverTime: timestamp,
+          state: 'running',
+        },
       }),
     ).toMatchObject({ data: { active: { completedQueries: 8 } } });
     expect(() =>
@@ -160,7 +172,16 @@ describe('HTTP API contracts', () => {
         correlationId,
         data: {
           active: { ...cycle, completedQueries: 12, failedQueries: 1 },
+          lastAttempt: cycle,
+          lastSuccessful: null,
           published: null,
+          schedule: {
+            cron: '0 */4 * * *',
+            nextScheduledAt: timestamp,
+            timezone: 'UTC',
+          },
+          serverTime: timestamp,
+          state: 'running',
         },
       }),
     ).toThrow();

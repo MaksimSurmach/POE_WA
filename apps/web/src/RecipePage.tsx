@@ -11,6 +11,7 @@ import {
 } from './components.js';
 import { createApiClient } from './apiClient.js';
 import { RecipeStatePanel } from './failureStates.js';
+import { RefreshFreshness } from './refreshFreshness.js';
 
 const apiClient = createApiClient();
 
@@ -103,6 +104,7 @@ export function RecipePage() {
             <span>{detail.gameVersion}</span>
           </div>
         </div>
+        <RefreshFreshness />
       </header>
 
       <section className="detail-metrics" aria-label="Recipe economics summary">

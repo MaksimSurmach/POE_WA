@@ -78,6 +78,7 @@ export interface EvaluationRepository {
 
 export interface CycleRepository {
   findById(id: string): Promise<RefreshCycle | null>;
+  findLatestAttempt(): Promise<RefreshCycle | null>;
   getPublishedCycleId(): Promise<string | null>;
   publish(id: string, publishedAt: Date): Promise<boolean>;
   save(cycle: RefreshCycle): Promise<RefreshCycle>;
