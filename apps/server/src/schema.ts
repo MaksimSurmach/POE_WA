@@ -558,3 +558,24 @@ export const providerMappings = pgTable(
     ),
   ],
 );
+
+export const craftProbabilityResults = pgTable('craft_probability_results', {
+  cacheKey: text('cache_key').primaryKey(),
+  setupHash: text('setup_hash').notNull(),
+  gameDataVersion: text('game_data_version').notNull(),
+  rulesetId: text('ruleset_id').notNull(),
+  engineId: text('engine_id').notNull(),
+  engineVersion: text('engine_version').notNull(),
+  calculatorContractVersion: integer('calculator_contract_version').notNull(),
+  probabilityNumerator: text('probability_numerator').notNull(),
+  probabilityDenominator: text('probability_denominator').notNull(),
+  expectedAttemptsNumerator: text('expected_attempts_numerator').notNull(),
+  expectedAttemptsDenominator: text('expected_attempts_denominator').notNull(),
+  probabilityDecimal: text('probability_decimal').notNull(),
+  expectedAttemptsDecimal: text('expected_attempts_decimal').notNull(),
+  diagnostics: jsonb('diagnostics').$type<unknown[]>().notNull(),
+  calculatedAt: timestamp('calculated_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});

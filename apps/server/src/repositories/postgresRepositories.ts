@@ -12,8 +12,10 @@ import type {
   RefreshCycle,
   PoeLeague,
   Repositories,
+  StoredCraftProbability,
 } from '@poe-worksmith/domain';
 import {
+  DomainError,
   assertNewJob,
   assertNewRefreshCycle,
   assertJobTransition,
@@ -30,6 +32,7 @@ import type { Pool, PoolClient } from 'pg';
 import {
   aggregatedObservations,
   catalogState,
+  craftProbabilityResults,
   jobs,
   marketQueries,
   poeLeagues,
@@ -48,6 +51,7 @@ type EvaluationRow = typeof recipeEvaluations.$inferSelect;
 type CycleRow = typeof refreshCycles.$inferSelect;
 type JobRow = typeof jobs.$inferSelect;
 type LeagueRow = typeof poeLeagues.$inferSelect;
+type CraftProbabilityRow = typeof craftProbabilityResults.$inferSelect;
 type RateLimitStateSqlRow = {
   blocked_until: Date;
   endpoints: string[];
@@ -75,6 +79,44 @@ export function createPostgresRepositories(pool: Pool): Repositories {
   const database = drizzle({ client: pool });
 
   return {
+    craftProbabilities: {
+      findByCacheKey(cacheKey) {
+        return mapRepositoryError(
+          'craftProbabilities',
+          'findByCacheKey',
+          async () => {
+            const [row] = await database
+              .select()
+              .from(craftProbabilityResults)
+              .where(eq(craftProbabilityResults.cacheKey, cacheKey))
+              .limit(1);
+            return row ? mapCraftProbability(row) : null;
+          },
+        );
+      },
+      save(result) {
+        return mapRepositoryError('craftProbabilities', 'save', async () => {
+          const [inserted] = await database
+            .insert(craftProbabilityResults)
+            .values(craftProbabilityValues(result))
+            .onConflictDoNothing()
+            .returning();
+          if (inserted) return mapCraftProbability(inserted);
+          const [existing] = await database
+            .select()
+            .from(craftProbabilityResults)
+            .where(eq(craftProbabilityResults.cacheKey, result.cacheKey))
+            .limit(1);
+          if (!existing)
+            throw new Error('Probability result disappeared after conflict');
+          const stored = mapCraftProbability(existing);
+          if (JSON.stringify(stored) !== JSON.stringify(result)) {
+            throw new DomainError('PERSISTENCE_CONFLICT');
+          }
+          return stored;
+        });
+      },
+    },
     leagues: {
       list() {
         return mapRepositoryError('leagues', 'list', async () =>
@@ -1806,4 +1848,51 @@ function mapJob(row: JobRow): Job {
 
 function mapLeague(row: LeagueRow): PoeLeague {
   return { ...row, metadata: row.metadata };
+}
+
+function craftProbabilityValues(result: StoredCraftProbability) {
+  return {
+    cacheKey: result.cacheKey,
+    setupHash: result.setupHash,
+    gameDataVersion: result.gameDataVersion,
+    rulesetId: result.rulesetId,
+    engineId: result.engineId,
+    engineVersion: result.engineVersion,
+    calculatorContractVersion: result.calculatorContractVersion,
+    probabilityNumerator: result.probability.numerator,
+    probabilityDenominator: result.probability.denominator,
+    expectedAttemptsNumerator: result.expectedAttempts.numerator,
+    expectedAttemptsDenominator: result.expectedAttempts.denominator,
+    probabilityDecimal: result.probabilityDecimal,
+    expectedAttemptsDecimal: result.expectedAttemptsDecimal,
+    diagnostics: [...result.diagnostics],
+    calculatedAt: result.calculatedAt,
+    createdAt: result.createdAt,
+  };
+}
+
+function mapCraftProbability(row: CraftProbabilityRow): StoredCraftProbability {
+  return {
+    cacheKey: row.cacheKey,
+    setupHash: row.setupHash,
+    gameDataVersion: row.gameDataVersion,
+    rulesetId: row.rulesetId,
+    engineId: row.engineId,
+    engineVersion: row.engineVersion,
+    calculatorContractVersion: row.calculatorContractVersion,
+    calculatorVersion: String(row.calculatorContractVersion),
+    probability: {
+      numerator: row.probabilityNumerator,
+      denominator: row.probabilityDenominator,
+    },
+    probabilityDecimal: row.probabilityDecimal,
+    expectedAttempts: {
+      numerator: row.expectedAttemptsNumerator,
+      denominator: row.expectedAttemptsDenominator,
+    },
+    expectedAttemptsDecimal: row.expectedAttemptsDecimal,
+    diagnostics: row.diagnostics as StoredCraftProbability['diagnostics'],
+    calculatedAt: row.calculatedAt,
+    createdAt: row.createdAt,
+  };
 }
