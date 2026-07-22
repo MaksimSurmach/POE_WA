@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   aggregatedObservations,
   catalogState,
+  craftProbabilityResults,
   jobs,
   marketQueries,
   poeLeagues,
@@ -29,6 +30,7 @@ const tables = [
   rateLimitStates,
   rateLimitEndpointPolicies,
   providerCircuits,
+  craftProbabilityResults,
 ];
 
 describe('PostgreSQL schema', () => {
@@ -46,6 +48,7 @@ describe('PostgreSQL schema', () => {
       'rate_limit_states',
       'rate_limit_endpoint_policies',
       'provider_circuits',
+      'craft_probability_results',
     ]);
   });
 

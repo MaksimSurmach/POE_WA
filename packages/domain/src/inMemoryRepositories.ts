@@ -10,6 +10,7 @@ import type {
   RecipeEvaluation,
   RefreshCycle,
 } from './models.js';
+import { DomainError } from './errors.js';
 import {
   assertJobTransition,
   assertNewJob,
@@ -21,6 +22,7 @@ import {
   assertSingleRunningCycle,
   transitionRefreshCycle,
 } from './invariants.js';
+import type { StoredCraftProbability } from './probability/types.js';
 import type { Repositories } from './repositories.js';
 
 function clone<T>(value: T): T {
@@ -39,6 +41,7 @@ export function createInMemoryRepositories(): Repositories {
   const endpointPolicies = new Map<string, string>();
   const rateLimitStates = new Map<string, RateLimitState>();
   const providerCircuits = new Map<string, ProviderCircuitState>();
+  const craftProbabilities = new Map<string, StoredCraftProbability>();
   let snapshotId = 0;
   let observationId = 0;
   let evaluationId = 0;
@@ -97,6 +100,20 @@ export function createInMemoryRepositories(): Repositories {
   }
 
   return {
+    craftProbabilities: {
+      async findByCacheKey(cacheKey) {
+        const result = craftProbabilities.get(cacheKey);
+        return result ? clone(result) : null;
+      },
+      async save(result) {
+        const existing = craftProbabilities.get(result.cacheKey);
+        if (existing && JSON.stringify(existing) !== JSON.stringify(result)) {
+          throw new DomainError('PERSISTENCE_CONFLICT');
+        }
+        craftProbabilities.set(result.cacheKey, clone(existing ?? result));
+        return clone(existing ?? result);
+      },
+    },
     leagues: {
       async list() {
         return [...leagues.values()]
