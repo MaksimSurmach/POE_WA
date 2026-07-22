@@ -77,7 +77,7 @@ try {
   await repositories.cycles.save(
     transitionRefreshCycle(plan.cycle, 'running', clock.now()),
   );
-  for (let attempt = 0; attempt < 4; attempt += 1) {
+  for (let attempt = 0; attempt < 32; attempt += 1) {
     await processor.runAvailable('fixture-seed', clock.now());
     clock.advanceMilliseconds(1_000);
   }

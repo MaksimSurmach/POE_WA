@@ -47,13 +47,15 @@ export const expectedDefaultQueryKeys = [
   'fixture:output:production',
 ] as const;
 
-const syntheticDirectory = new URL('./recipes/', import.meta.url);
-const sourceSyntheticDirectory = new URL(
-  '../../src/testkit/recipes/',
+const compiled = import.meta.url.includes('/dist/');
+const syntheticDirectory = new URL(
+  compiled ? './recipe-assets/synthetic/' : './recipes/',
   import.meta.url,
 );
 const productionRecipe = new URL(
-  '../../../../recipes/physical-large-cluster/recipe.md',
+  compiled
+    ? './recipe-assets/production/physical-large-cluster/recipe.md'
+    : '../../../../recipes/physical-large-cluster/recipe.md',
   import.meta.url,
 );
 const query = (
@@ -67,38 +69,29 @@ const query = (
 export async function loadIntegrationCatalog(): Promise<
   readonly LoadedRecipe[]
 > {
-  const directory = await findSyntheticDirectory();
-  const syntheticFiles = (await readdir(directory))
+  const syntheticFiles = (await readdir(syntheticDirectory))
     .filter((file) => file.endsWith('.md'))
     .sort();
-  const root = fileURLToPath(directory);
+  const root = fileURLToPath(syntheticDirectory);
   const synthetic = await Promise.all(
     syntheticFiles.map((file) =>
-      loadRecipeFile(fileURLToPath(new URL(file, directory)), root),
+      loadRecipeFile(fileURLToPath(new URL(file, syntheticDirectory)), root),
     ),
   );
   const production = await loadRecipeFile(
     fileURLToPath(productionRecipe),
-    fileURLToPath(new URL('../../../../recipes/', import.meta.url)),
+    fileURLToPath(
+      new URL(
+        compiled
+          ? './recipe-assets/production/physical-large-cluster/'
+          : '../../../../recipes/',
+        import.meta.url,
+      ),
+    ),
   );
   return [...synthetic, production].sort((left, right) =>
     left.definition.id.localeCompare(right.definition.id),
   );
-}
-
-async function findSyntheticDirectory() {
-  try {
-    await readdir(syntheticDirectory);
-    return syntheticDirectory;
-  } catch (error: unknown) {
-    if (
-      !(error instanceof Error) ||
-      !('code' in error) ||
-      error.code !== 'ENOENT'
-    )
-      throw error;
-    return sourceSyntheticDirectory;
-  }
 }
 
 export const integrationMarketDependencies: RecipeMarketDependencies = async ({
