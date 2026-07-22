@@ -109,6 +109,44 @@ export interface ProviderCircuitRepository {
   ): Promise<ProviderCircuitState>;
 }
 
+export type OperationalDiagnosticsSnapshot = {
+  cycles: Array<{
+    cycleId: string;
+    leagueId: string;
+    status: string;
+    requestedAt: Date;
+    startedAt: Date | null;
+    finishedAt: Date | null;
+    publishedAt: Date | null;
+    errorCode: string | null;
+  }>;
+  evaluations: Array<{
+    cycleId: string;
+    leagueId: string;
+    recipeId: string;
+    status: 'stale' | 'partial' | 'error';
+    errorCode: string | null;
+    evaluatedAt: Date;
+  }>;
+  jobs: Array<{
+    jobId: string;
+    cycleId: string | null;
+    provider: string | null;
+    queryHash: string | null;
+    status: string;
+    attempts: number;
+    errorCode: string | null;
+    updatedAt: Date;
+  }>;
+};
+
+export interface OperationalDiagnosticsRepository {
+  read(input: {
+    recentCycles: number;
+    recentFailures: number;
+  }): Promise<OperationalDiagnosticsSnapshot>;
+}
+
 export interface JobRepository {
   claimNext(
     workerId: string,
@@ -140,6 +178,7 @@ export type Repositories = {
   marketQueries: MarketQueryRepository;
   marketResults: MarketResultRepository;
   observations: ObservationRepository;
+  operationalDiagnostics: OperationalDiagnosticsRepository;
   providerCircuits: ProviderCircuitRepository;
   rateLimits: RateLimitRepository;
   recipes: RecipeRepository;

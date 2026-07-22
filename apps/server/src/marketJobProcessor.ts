@@ -11,8 +11,11 @@ import {
   type Repositories,
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
+import type { Logger } from 'pino';
 
 import { ProviderRetryPolicy, type RetryDecider } from './retryPolicy.js';
+import { operationLogger } from './observability/operationContext.js';
+import type { Metrics } from './observability/metrics.js';
 
 const payloadSchema = z.strictObject({
   canonicalHash: z.string().min(1),
@@ -46,11 +49,15 @@ export class MarketJobProcessor {
   readonly #repositories: Repositories;
   readonly #retryPolicy: RetryDecider;
   readonly #snapshotTtlMs: number;
+  readonly #logger: Logger | undefined;
+  readonly #metrics: Metrics | undefined;
 
   constructor(options: {
     clock?: () => Date;
     concurrency: number;
     leaseTimeoutMs: number;
+    logger?: Logger;
+    metrics?: Metrics;
     providers: readonly MarketSearchProvider[];
     repositories: Repositories;
     retryDelayMs: number;
@@ -76,6 +83,8 @@ export class MarketJobProcessor {
       options.retryPolicy ??
       new ProviderRetryPolicy({ baseDelayMs: options.retryDelayMs });
     this.#snapshotTtlMs = options.snapshotTtlMs;
+    this.#logger = options.logger;
+    this.#metrics = options.metrics;
   }
 
   async prepare(job: Job): Promise<PreparedMarketJob> {
@@ -103,11 +112,25 @@ export class MarketJobProcessor {
     if (!provider || marketQuery.provider !== provider.id) {
       throw new DomainError('MARKET_QUERY_INVALID');
     }
-    const result = await provider.search({
-      league: payload.leagueGggId,
-      query: canonicalizeMarketQuery(marketQuery.query as CanonicalJsonObject),
-      schemaVersion: payload.schemaVersion,
-    });
+    const logger =
+      this.#logger && operationLogger(this.#logger, jobContext(job));
+    logger?.info({ endpoint: 'trade' }, 'provider.request.started');
+    let result: MarketSearchResult;
+    try {
+      result = await provider.search({
+        league: payload.leagueGggId,
+        query: canonicalizeMarketQuery(
+          marketQuery.query as CanonicalJsonObject,
+        ),
+        schemaVersion: payload.schemaVersion,
+      });
+      logger?.info({ endpoint: 'trade' }, 'provider.request.completed');
+    } catch (error) {
+      const errorCode =
+        error instanceof DomainError ? error.code : 'INTERNAL_ERROR';
+      logger?.warn({ endpoint: 'trade', errorCode }, 'provider.request.failed');
+      throw error;
+    }
     if (
       result.provider !== provider.id ||
       !Number.isFinite(result.fetchedAt.getTime())
@@ -160,6 +183,10 @@ export class MarketJobProcessor {
             'recipe_refresh',
           ]);
           if (!job) return;
+          if (this.#logger)
+            operationLogger(this.#logger, jobContext(job)).info(
+              'market_job.claimed',
+            );
           report.claimed += 1;
           const outcome = await this.#processClaimed(job);
           report[outcome] += 1;
@@ -170,9 +197,17 @@ export class MarketJobProcessor {
   }
 
   async #processClaimed(job: Job): Promise<'failed' | 'retried' | 'succeeded'> {
+    const started = performance.now();
+    const context = jobContext(job);
+    const logger = this.#logger && operationLogger(this.#logger, context);
     try {
       const prepared = await this.prepare(job);
       await this.commit(prepared);
+      logger?.info('market_job.completed');
+      this.#metrics?.marketJobDuration.observe(
+        { provider: context.provider ?? 'unknown', outcome: 'success' },
+        (performance.now() - started) / 1000,
+      );
       return 'succeeded';
     } catch (cause) {
       const error =
@@ -193,6 +228,18 @@ export class MarketJobProcessor {
           retryAt,
           failedAt,
         );
+        logger?.warn(
+          { endpoint: 'trade', errorCode: error.code },
+          'market_job.retry_scheduled',
+        );
+        this.#metrics?.marketJobRetries.inc({
+          provider: context.provider ?? 'unknown',
+          error_code: error.code,
+        });
+        this.#metrics?.marketJobDuration.observe(
+          { provider: context.provider ?? 'unknown', outcome: 'retry' },
+          (performance.now() - started) / 1000,
+        );
         return 'retried';
       }
       await this.#repositories.jobs.failPermanently(
@@ -200,9 +247,26 @@ export class MarketJobProcessor {
         error.code,
         failedAt,
       );
+      logger?.error({ errorCode: error.code }, 'market_job.completed');
+      this.#metrics?.marketJobDuration.observe(
+        { provider: context.provider ?? 'unknown', outcome: 'failed' },
+        (performance.now() - started) / 1000,
+      );
       return 'failed';
     }
   }
+}
+
+function jobContext(job: Job) {
+  const payload = payloadSchema.safeParse(job.payload);
+  return {
+    cycleId: job.refreshCycleId ?? undefined,
+    jobId: job.id,
+    provider: payload.success ? payload.data.provider : undefined,
+    queryHash: payload.success ? payload.data.canonicalHash : undefined,
+    leagueId: payload.success ? payload.data.leagueId : undefined,
+    leagueGggId: payload.success ? payload.data.leagueGggId : undefined,
+  };
 }
 
 function parsePayload(payload: Job['payload']) {

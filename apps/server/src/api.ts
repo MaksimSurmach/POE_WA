@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 
 import {
   apiErrorEnvelopeSchema,
@@ -8,6 +8,7 @@ import {
   rateLimitDiagnosticsResponseSchema,
   leaguesResponseSchema,
   currentLeagueResponseSchema,
+  refreshDiagnosticsResponseSchema,
   type RecipeResponse,
   recipeResponseSchema,
   refreshProgressResponseSchema,
@@ -17,6 +18,8 @@ import {
   type AnyDomainError,
   DomainError,
   type RateLimitState,
+  type ProviderCircuitState,
+  type OperationalDiagnosticsSnapshot,
   type RefreshCycle,
   type PoeLeague,
   serializeDomainError,
@@ -34,6 +37,10 @@ export type RecipeReader = (
 ) => Promise<RecipeResponse>;
 export type LeagueReader = () => Promise<PoeLeague[]>;
 export type CurrentLeagueReader = () => Promise<PoeLeague | null>;
+export type OperationalDiagnosticsReader = (input: {
+  recentCycles: number;
+  recentFailures: number;
+}) => Promise<OperationalDiagnosticsSnapshot>;
 
 export function buildApi(
   logger: Logger,
@@ -44,6 +51,12 @@ export function buildApi(
   readRecipe?: RecipeReader,
   readLeagues?: LeagueReader,
   readCurrentLeague?: CurrentLeagueReader,
+  options: {
+    diagnosticsToken?: string | undefined;
+    readCircuits?: (() => Promise<ProviderCircuitState[]>) | undefined;
+    readOperationalDiagnostics?: OperationalDiagnosticsReader | undefined;
+    metrics?: { contentType: string; metrics(): Promise<string> } | undefined;
+  } = {},
 ) {
   const api = Fastify({
     genReqId(request) {
@@ -105,6 +118,41 @@ export function buildApi(
       data: { policies: policies.map(serializeRateLimitState) },
     });
   });
+  if (options.diagnosticsToken && options.readOperationalDiagnostics) {
+    api.get('/api/diagnostics/refresh', async (request) => {
+      const authorization = request.headers.authorization;
+      if (!isOperatorAuthorized(authorization, options.diagnosticsToken!))
+        throw new DomainError('OPERATOR_AUTH_REQUIRED');
+      const query = request.query as { cycles?: string; failures?: string };
+      const cycles = boundedQueryValue(query.cycles, 10, 1, 50);
+      const failures = boundedQueryValue(query.failures, 50, 1, 200);
+      const [snapshot, circuits, rateLimits] = await Promise.all([
+        options.readOperationalDiagnostics!({
+          recentCycles: cycles,
+          recentFailures: failures,
+        }),
+        options.readCircuits?.() ?? [],
+        readRateLimits(),
+      ]);
+      return refreshDiagnosticsResponseSchema.parse({
+        correlationId: request.id,
+        data: {
+          serverTime: new Date().toISOString(),
+          cycles: snapshot.cycles.map(serializeDiagnosticCycle),
+          evaluations: snapshot.evaluations.map(serializeDiagnosticEvaluation),
+          jobs: snapshot.jobs.map(serializeDiagnosticJob),
+          circuits,
+          rateLimits: rateLimits.map(serializeRateLimitState),
+        },
+      });
+    });
+  }
+  if (options.metrics)
+    api.get('/metrics', async (_request, reply) =>
+      reply
+        .type(options.metrics!.contentType)
+        .send(await options.metrics!.metrics()),
+    );
   if (readCatalog) {
     api.get('/api/catalog', async (request) =>
       catalogResponseSchema.parse(await readCatalog(request.id)),
@@ -194,6 +242,7 @@ function httpStatus(error: AnyDomainError) {
   if (error.code === 'INTERNAL_ERROR') return 500;
   if (error.code === 'PERSISTENCE_NOT_FOUND') return 404;
   if (error.code === 'ROUTE_NOT_FOUND') return 404;
+  if (error.code === 'OPERATOR_AUTH_REQUIRED') return 401;
   if (
     error.code === 'JOB_CONFLICT' ||
     error.code === 'PERSISTENCE_CONFLICT' ||
@@ -203,4 +252,47 @@ function httpStatus(error: AnyDomainError) {
     return 409;
   }
   return error.disposition === 'retryable' ? 503 : 400;
+}
+
+function isOperatorAuthorized(header: string | undefined, token: string) {
+  const supplied = header?.startsWith('Bearer ') ? header.slice(7) : '';
+  const length = Math.max(supplied.length, token.length, 1);
+  const left = Buffer.alloc(length);
+  const right = Buffer.alloc(length);
+  left.write(supplied);
+  right.write(token);
+  return supplied.length === token.length && timingSafeEqual(left, right);
+}
+function boundedQueryValue(
+  value: string | undefined,
+  fallback: number,
+  min: number,
+  max: number,
+) {
+  if (value === undefined) return fallback;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < min || parsed > max)
+    throw new DomainError('MARKET_QUERY_INVALID');
+  return parsed;
+}
+function serializeDiagnosticCycle(
+  value: OperationalDiagnosticsSnapshot['cycles'][number],
+) {
+  return {
+    ...value,
+    requestedAt: value.requestedAt.toISOString(),
+    startedAt: value.startedAt?.toISOString() ?? null,
+    finishedAt: value.finishedAt?.toISOString() ?? null,
+    publishedAt: value.publishedAt?.toISOString() ?? null,
+  };
+}
+function serializeDiagnosticEvaluation(
+  value: OperationalDiagnosticsSnapshot['evaluations'][number],
+) {
+  return { ...value, evaluatedAt: value.evaluatedAt.toISOString() };
+}
+function serializeDiagnosticJob(
+  value: OperationalDiagnosticsSnapshot['jobs'][number],
+) {
+  return { ...value, updatedAt: value.updatedAt.toISOString() };
 }

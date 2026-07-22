@@ -19,6 +19,8 @@ import {
   legacyRecipeMarketDependencies,
   type RecipeMarketDependencies,
 } from './recipeMarket.js';
+import type { Logger } from 'pino';
+import type { Metrics } from './observability/metrics.js';
 
 type RefreshDependency = {
   canonicalHash: string;
@@ -72,6 +74,8 @@ export async function planCatalogRefresh(
     now?: Date;
     priority?: number;
     snapshotTtlMs: number;
+    logger?: Logger;
+    metrics?: Metrics;
   },
 ): Promise<CatalogRefreshPlan> {
   const now = options.now ?? new Date();
@@ -205,6 +209,18 @@ export async function planCatalogRefresh(
     });
   }
 
+  options.logger?.info(
+    {
+      cacheHits,
+      cacheMisses,
+      cycleId,
+      leagueId: league.leagueId,
+      leagueGggId: league.leagueGggId,
+    },
+    'refresh.planned',
+  );
+  options.metrics?.snapshotCache.inc({ result: 'hit' }, cacheHits);
+  options.metrics?.snapshotCache.inc({ result: 'miss' }, cacheMisses);
   return {
     cycle,
     queries,

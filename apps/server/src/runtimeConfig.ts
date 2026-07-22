@@ -18,6 +18,10 @@ const runtimeEnvironmentSchema = z.object({
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info'),
   MARKET_CONCURRENCY: z.coerce.number().int().min(1).max(20).default(4),
+  OPERATOR_DIAGNOSTICS_TOKEN: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().trim().min(1).optional(),
+  ),
   MARKET_RETRY_DELAY_MS: z.coerce.number().int().min(1000).default(60_000),
   PG_BOSS_SCHEMA: z
     .string()
@@ -52,6 +56,7 @@ export type RuntimeConfig = {
   leagueResolveTimezone: string;
   logLevel: z.infer<typeof runtimeEnvironmentSchema>['LOG_LEVEL'];
   marketConcurrency: number;
+  operatorDiagnosticsToken: string | undefined;
   marketRetryDelayMs: number;
   mode: ApplicationMode;
   poeUserAgent: string;
@@ -95,6 +100,7 @@ export function loadRuntimeConfig(
     leagueResolveTimezone: result.data.LEAGUE_RESOLVE_TIMEZONE,
     logLevel: result.data.LOG_LEVEL,
     marketConcurrency: result.data.MARKET_CONCURRENCY,
+    operatorDiagnosticsToken: result.data.OPERATOR_DIAGNOSTICS_TOKEN,
     marketRetryDelayMs: result.data.MARKET_RETRY_DELAY_MS,
     mode: forcedMode ?? result.data.APP_MODE,
     poeUserAgent: result.data.POE_USER_AGENT,

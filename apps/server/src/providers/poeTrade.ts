@@ -13,6 +13,7 @@ import { z } from 'zod';
 import type { ProviderCircuitGate } from '../circuitBreaker.js';
 import type { RateLimitGate } from '../rateLimitController.js';
 import { ProviderContractError } from './providerContractError.js';
+import type { Metrics } from '../observability/metrics.js';
 
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
   z.union([
@@ -63,23 +64,15 @@ const fetchResponseSchema = z
 const defaultBaseUrl = 'https://www.pathofexile.com';
 const defaultRequestTimeoutMs = 15_000;
 const maximumListings = 10;
+type ProviderLogger = {
+  warn(context: unknown, message: string): void;
+  info?(context: unknown, message: string): void;
+};
 
 export type PoeTradeFetch = (
   input: string | URL,
   init?: RequestInit,
 ) => Promise<Response>;
-
-type SchemaMismatchLogger = {
-  warn(
-    context: {
-      endpoint: string;
-      errorCode: 'PROVIDER_SCHEMA_CHANGED';
-      issuePaths: readonly string[];
-      provider: string;
-    },
-    message: string,
-  ): void;
-};
 
 export class PoeTradeClient implements MarketSearchProvider {
   readonly id = 'poe-trade';
@@ -90,14 +83,16 @@ export class PoeTradeClient implements MarketSearchProvider {
   readonly #rateLimits: RateLimitGate | undefined;
   readonly #requestTimeoutMs: number;
   readonly #userAgent: string;
-  readonly #logger: SchemaMismatchLogger | undefined;
+  readonly #logger: ProviderLogger | undefined;
+  readonly #metrics: Metrics | undefined;
 
   constructor(options: {
     baseUrl?: string;
     circuits?: ProviderCircuitGate;
     clock?: () => Date;
     fetch?: PoeTradeFetch;
-    logger?: SchemaMismatchLogger;
+    logger?: ProviderLogger;
+    metrics?: Metrics;
     rateLimits?: RateLimitGate;
     requestTimeoutMs?: number;
     userAgent: string;
@@ -107,6 +102,7 @@ export class PoeTradeClient implements MarketSearchProvider {
     this.#clock = options.clock ?? (() => new Date());
     this.#fetch = options.fetch ?? globalThis.fetch;
     this.#logger = options.logger;
+    this.#metrics = options.metrics;
     this.#rateLimits = options.rateLimits;
     this.#requestTimeoutMs =
       options.requestTimeoutMs ?? defaultRequestTimeoutMs;
@@ -193,6 +189,11 @@ export class PoeTradeClient implements MarketSearchProvider {
   }
 
   async #request(endpoint: string, url: URL, init: RequestInit) {
+    const started = performance.now();
+    this.#logger?.info?.(
+      { endpoint, provider: this.id },
+      'provider.request.started',
+    );
     await this.#circuits?.beforeRequest(endpoint);
     await this.#rateLimits?.waitForPermit(endpoint);
     let response: Response;
@@ -207,6 +208,19 @@ export class PoeTradeClient implements MarketSearchProvider {
           ? error
           : new DomainError('PROVIDER_UNAVAILABLE', { cause: error });
       await this.#circuits?.recordFailure(endpoint, providerError);
+      this.#logger?.warn(
+        { endpoint, provider: this.id, errorCode: providerError.code },
+        'provider.request.failed',
+      );
+      this.#metrics?.providerRequests.inc({
+        provider: this.id,
+        endpoint,
+        outcome: 'failed',
+      });
+      this.#metrics?.providerRequestDuration.observe(
+        { provider: this.id, endpoint, outcome: 'failed' },
+        (performance.now() - started) / 1000,
+      );
       throw providerError;
     }
 
@@ -215,9 +229,35 @@ export class PoeTradeClient implements MarketSearchProvider {
     if (!response.ok) {
       const providerError = mapHttpError(response.status);
       await this.#circuits?.recordFailure(endpoint, providerError);
+      this.#logger?.warn(
+        { endpoint, provider: this.id, errorCode: providerError.code },
+        'provider.request.failed',
+      );
+      this.#metrics?.providerRequests.inc({
+        provider: this.id,
+        endpoint,
+        outcome: 'failed',
+      });
+      this.#metrics?.providerRequestDuration.observe(
+        { provider: this.id, endpoint, outcome: 'failed' },
+        (performance.now() - started) / 1000,
+      );
       throw providerError;
     }
     await this.#circuits?.recordSuccess(endpoint);
+    this.#logger?.info?.(
+      { endpoint, provider: this.id, statusCode: response.status },
+      'provider.request.completed',
+    );
+    this.#metrics?.providerRequests.inc({
+      provider: this.id,
+      endpoint,
+      outcome: 'success',
+    });
+    this.#metrics?.providerRequestDuration.observe(
+      { provider: this.id, endpoint, outcome: 'success' },
+      (performance.now() - started) / 1000,
+    );
 
     try {
       return (await response.json()) as unknown;
@@ -296,7 +336,7 @@ function parseProviderResponse<T>(
   value: unknown,
   provider: string,
   endpoint: string,
-  logger: SchemaMismatchLogger | undefined,
+  logger: ProviderLogger | undefined,
 ): T {
   const result = schema.safeParse(value);
   if (!result.success) {
