@@ -11,7 +11,6 @@ import {
 import {
   EvaluationStatus,
   FreshnessIndicator,
-  ListingAge,
   Money,
   ProfitBadge,
   StatusPanel,
@@ -19,6 +18,7 @@ import {
 } from './components.js';
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
+import { RefreshFreshness } from './refreshFreshness.js';
 
 const apiClient = createApiClient();
 
@@ -76,9 +76,6 @@ function CatalogRoute() {
     () => filterAndSortCatalog(catalogEntries, filters),
     [catalogEntries, filters],
   );
-  const publishedAge = response?.publishedAt
-    ? Math.max(0, (Date.now() - Date.parse(response.publishedAt)) / 1000)
-    : null;
 
   useEffect(() => {
     let active = true;
@@ -143,16 +140,7 @@ function CatalogRoute() {
           className="catalog-meta"
           aria-label="Catalog publication and refresh status"
         >
-          <p>
-            {publishedAge === null ? (
-              'Awaiting first market publication'
-            ) : (
-              <>
-                Published <ListingAge seconds={publishedAge} />
-              </>
-            )}
-          </p>
-          <p>Refresh: {response.refreshStatus}</p>
+          <RefreshFreshness />
         </div>
       </section>
 

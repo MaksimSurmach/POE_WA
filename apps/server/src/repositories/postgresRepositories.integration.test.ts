@@ -262,6 +262,20 @@ describe('PostgreSQL repositories', () => {
     });
   });
 
+  it('finds the latest persisted refresh attempt after a restart', async () => {
+    await repositories.cycles.save(queuedCycle);
+    const latest = {
+      ...queuedCycle,
+      id: '88888888-8888-4888-8888-888888888888',
+      requestedAt: new Date(now.getTime() + 1000),
+    };
+    await repositories.cycles.save(latest);
+
+    expect(
+      await createPostgresRepositories(pool).cycles.findLatestAttempt(),
+    ).toMatchObject(latest);
+  });
+
   it('rejects a second running refresh cycle', async () => {
     await repositories.cycles.save(queuedCycle);
     await repositories.cycles.save(cycle);

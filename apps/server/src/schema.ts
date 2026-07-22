@@ -62,6 +62,7 @@ export const refreshCycles = pgTable(
       table.status,
       table.requestedAt,
     ),
+    index('refresh_cycles_requested_at_idx').on(table.requestedAt),
     uniqueIndex('refresh_cycles_single_running_uq')
       .on(table.status)
       .where(sql`${table.status} = 'running'`),
