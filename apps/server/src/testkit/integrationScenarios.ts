@@ -93,13 +93,20 @@ function result(
 ): MarketSearchResult {
   const values = prices[key] ?? [1];
   const listings = Array.from({ length: count }, (_, index) => ({
-    account: index < 2 ? 'fixture-seller-0' : `fixture-seller-${index}`,
+    account: index === 1 ? 'fixture-seller-0' : `fixture-seller-${index}`,
     ageSeconds: 60 + index,
     fee: null,
     id: `fixture-${key.replaceAll(':', '-')}-${index}`,
     indexedAt: new Date(FIXTURE_NOW.getTime() - (60 + index) * 1000),
     item: { fixtureKey: key },
-    price: { amount: String(values[index] ?? values[0]), currency: 'chaos' },
+    price: {
+      amount: String(
+        index === 1 && values.length === 1
+          ? values[0]! + 1
+          : (values[index] ?? values[0]),
+      ),
+      currency: 'chaos',
+    },
   }));
   return {
     fetchedAt: new Date(FIXTURE_NOW),
