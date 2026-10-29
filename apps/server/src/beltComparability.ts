@@ -99,7 +99,7 @@ export function analyzeBeltSnapshot(
           ),
       );
     if (rules) {
-      if (rules.version === 2) {
+      if (rules.version !== 1 && rules.totalElementalResistanceMin !== null) {
         const res = item.elementalResistances;
         if (!res)
           unknown.push('total elemental resistance: all three values required');
@@ -109,19 +109,22 @@ export function analyzeBeltSnapshot(
         )
           rejected.push('total elemental resistance: below threshold');
       }
-      check(
-        'item level',
-        item.itemLevel,
-        item.itemLevel !== undefined && item.itemLevel >= rules.minItemLevel,
-      );
-      check('corruption', item.corrupted, item.corrupted === rules.corrupted);
-      check(
-        'influences',
-        item.influences,
-        item.influences !== undefined &&
-          [...item.influences].sort().join('|') ===
-            [...rules.influences].sort().join('|'),
-      );
+      if (rules.minItemLevel !== null)
+        check(
+          'item level',
+          item.itemLevel,
+          item.itemLevel !== undefined && item.itemLevel >= rules.minItemLevel,
+        );
+      if (rules.corrupted !== null)
+        check('corruption', item.corrupted, item.corrupted === rules.corrupted);
+      if (rules.influences !== null)
+        check(
+          'influences',
+          item.influences,
+          item.influences !== undefined &&
+            [...item.influences].sort().join('|') ===
+              [...rules.influences].sort().join('|'),
+        );
       for (const mod of rules.mods) {
         if (!item.mods) {
           unknown.push(`${mod.id}: mods unknown`);
@@ -176,9 +179,11 @@ export function analyzeBeltSnapshot(
     now - Date.parse(snapshot.capturedAt) <= 24 * 60 * 60 * 1000;
   return {
     algorithm:
-      target.beltRules?.version === 2
-        ? ('belt-comparability-v2' as const)
-        : ('belt-comparability-v1' as const),
+      target.beltRules?.version === 3
+        ? ('belt-comparability-v3' as const)
+        : target.beltRules?.version === 2
+          ? ('belt-comparability-v2' as const)
+          : ('belt-comparability-v1' as const),
     targetDigest: target.digest,
     snapshotId: snapshot.id,
     dataKind: snapshot.dataKind,

@@ -306,12 +306,21 @@ export function MarketPage() {
                       {targets
                         .find((item) => item.id === opportunity.targetId)
                         ?.baseTypes.join(', ')}
-                      , уровень {opportunity.rules.minItemLevel}+,{' '}
-                      {opportunity.rules.corrupted
-                        ? 'осквернён'
-                        : 'не осквернён'}
+                      , уровень{' '}
+                      {opportunity.rules.minItemLevel == null
+                        ? 'любой'
+                        : `${opportunity.rules.minItemLevel}+`}
+                      ,{' '}
+                      {opportunity.rules.corrupted == null
+                        ? 'осквернение любое'
+                        : opportunity.rules.corrupted
+                          ? 'осквернён'
+                          : 'не осквернён'}
                       ; влияния:{' '}
-                      {opportunity.rules.influences.join(', ') || 'нет'}.
+                      {opportunity.rules.influences == null
+                        ? 'любые'
+                        : opportunity.rules.influences.join(', ') || 'нет'}
+                      .
                     </p>
                     <ul>
                       {opportunity.rules.mods.map((mod) => (
@@ -321,12 +330,13 @@ export function MarketPage() {
                         </li>
                       ))}
                     </ul>
-                    {opportunity.rules.version === 2 && (
-                      <p>
-                        Сумма сопротивлений стихиям: минимум{' '}
-                        {opportunity.rules.totalElementalResistanceMin}%.
-                      </p>
-                    )}
+                    {opportunity.rules.version !== 1 &&
+                      opportunity.rules.totalElementalResistanceMin != null && (
+                        <p>
+                          Сумма сопротивлений стихиям: минимум{' '}
+                          {opportunity.rules.totalElementalResistanceMin}%.
+                        </p>
+                      )}
                   </div>
                 )}
                 {opportunity.method && (
@@ -939,11 +949,24 @@ function TargetPanel({
         )}
       </dl>
       <h3>Обязательные свойства</h3>
-      {target.requiredMods.length ? (
+      {target.requiredMods.length || target.beltRules ? (
         <ul className="market-mods">
           {target.requiredMods.map((mod, index) => (
             <li key={index}>{mod}</li>
           ))}
+          {target.beltRules?.mods.map((mod) => (
+            <li key={mod.id}>
+              {mod.id}: минимум {mod.minValue}
+            </li>
+          ))}
+          {target.beltRules &&
+            target.beltRules.version !== 1 &&
+            target.beltRules.totalElementalResistanceMin != null && (
+              <li>
+                Сумма сопротивлений стихиям: минимум{' '}
+                {target.beltRules.totalElementalResistanceMin}%
+              </li>
+            )}
         </ul>
       ) : (
         <p className="market-footnote">Требования пока не указаны.</p>
@@ -1185,34 +1208,31 @@ function TargetForm({
             ? { maxTier: Number(value(`ruleTier${i}`)) }
             : {}),
         }));
-      if (
-        wantsRules &&
-        (!value('ilevel') ||
-          value('corrupted') === 'any' ||
-          ruleMods.length === 0)
-      )
-        throw new Error(
-          'Для правил укажите item level, осквернение и хотя бы один модификатор.',
-        );
-      if (wantsRules && !value('influences') && !form.has('noInfluences'))
-        throw new Error('Укажите влияния или явно подтвердите их отсутствие.');
+      if (wantsRules && ruleMods.length === 0)
+        throw new Error('Для правил укажите хотя бы один модификатор.');
+      if (value('influences') && form.has('noInfluences'))
+        throw new Error('Укажите влияния или выберите их отсутствие.');
       const ruleBase = {
-        minItemLevel: Number(value('ilevel')),
-        influences: value('influences')
-          .split(',')
-          .map((v) => v.trim())
-          .filter(Boolean),
-        corrupted: value('corrupted') === 'yes',
+        minItemLevel: value('ilevel') ? Number(value('ilevel')) : null,
+        influences:
+          value('influences') || form.has('noInfluences')
+            ? value('influences')
+                .split(',')
+                .map((v) => v.trim())
+                .filter(Boolean)
+            : null,
+        corrupted:
+          value('corrupted') === 'any' ? null : value('corrupted') === 'yes',
         mods: ruleMods,
       };
       const rules = wantsRules
-        ? value('totalRes')
-          ? {
-              version: 2,
-              ...ruleBase,
-              totalElementalResistanceMin: Number(value('totalRes')),
-            }
-          : { version: 1, ...ruleBase }
+        ? {
+            version: 3,
+            ...ruleBase,
+            totalElementalResistanceMin: value('totalRes')
+              ? Number(value('totalRes'))
+              : null,
+          }
         : undefined;
       const wantsMethod = form.has('useMethod');
       if (wantsMethod && !form.has('sameBaseConfirmed'))
@@ -1411,7 +1431,7 @@ function TargetForm({
         <legend>Правила пояса</legend>
         <label>
           <input type="checkbox" name="useBeltRules" /> Включить проверку правил
-          (требуются item level и осквернение выше)
+          (незаполненные ограничения не применяются)
         </label>
         {[0, 1, 2].map((i) => (
           <div className="market-form-grid" key={i}>
@@ -2062,16 +2082,18 @@ function ManualSnapshotForm({
               </label>
             </div>
           ))}
-          {target.beltRules?.version === 2 && (
-            <div className="market-form-grid">
-              {['fire', 'cold', 'lightning'].map((element) => (
-                <label key={element}>
-                  {element} сопротивление
-                  <input type="number" step="any" name={`${element}-${i}`} />
-                </label>
-              ))}
-            </div>
-          )}
+          {target.beltRules &&
+            target.beltRules.version !== 1 &&
+            target.beltRules.totalElementalResistanceMin != null && (
+              <div className="market-form-grid">
+                {['fire', 'cold', 'lightning'].map((element) => (
+                  <label key={element}>
+                    {element} сопротивление
+                    <input type="number" step="any" name={`${element}-${i}`} />
+                  </label>
+                ))}
+              </div>
+            )}
           <label>
             Исходный текст предмета (необязательно)
             <textarea name={`raw-${i}`} />

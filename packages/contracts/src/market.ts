@@ -39,6 +39,14 @@ export const beltRulesSchema = z.discriminatedUnion('version', [
     ...beltRuleFields,
     totalElementalResistanceMin: z.number().finite().nonnegative(),
   }),
+  z.strictObject({
+    version: z.literal(3),
+    ...beltRuleFields,
+    minItemLevel: beltRuleFields.minItemLevel.nullable(),
+    influences: beltRuleFields.influences.nullable(),
+    corrupted: beltRuleFields.corrupted.nullable(),
+    totalElementalResistanceMin: z.number().finite().nonnegative().nullable(),
+  }),
 ]);
 
 export const beltPriceEvidenceSchema = z.discriminatedUnion('source', [
@@ -384,7 +392,11 @@ export type MarketEconomyOverviewResponse = z.infer<
 >;
 
 export const beltAnalysisSchema = z.strictObject({
-  algorithm: z.enum(['belt-comparability-v1', 'belt-comparability-v2']),
+  algorithm: z.enum([
+    'belt-comparability-v1',
+    'belt-comparability-v2',
+    'belt-comparability-v3',
+  ]),
   targetDigest: z.string(),
   snapshotId: z.uuid(),
   dataKind: z.enum(['observed', 'demo']),

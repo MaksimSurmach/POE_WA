@@ -73,7 +73,7 @@ export const marketClient = {
       await request('/api/market/snapshots/import', input),
     ).data;
   },
-  async analyzeBelt(id: string, version: 1 | 2 = 1) {
+  async analyzeBelt(id: string, version: 1 | 2 | 3 = 1) {
     return beltAnalysisResponseSchema.parse(
       await request(
         `/api/market/snapshots/${encodeURIComponent(id)}/belt-analysis/v${version}`,

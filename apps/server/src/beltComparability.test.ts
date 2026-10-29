@@ -135,4 +135,40 @@ describe('belt comparability v1', () => {
       'PARTIAL',
     ]);
   });
+  it('v3 ignores only explicitly unneeded filters and still rejects unknown required stats', () => {
+    const v3 = {
+      ...target,
+      beltRules: {
+        version: 3 as const,
+        minItemLevel: null,
+        influences: null,
+        corrupted: null,
+        totalElementalResistanceMin: 80,
+        mods: [{ id: 'life', minValue: 80 }],
+      },
+    };
+    const withoutFilters = {
+      baseType: item.baseType,
+      rarity: item.rarity,
+      league: item.league,
+      patch: item.patch,
+      currency: item.currency,
+      seller: item.seller,
+      status: item.status,
+      mods: item.mods,
+    };
+    const rows = snapshot([
+      {
+        ...withoutFilters,
+        elementalResistances: { fire: 40, cold: 20, lightning: 20 },
+      },
+      { ...withoutFilters },
+    ]);
+    const result = analyzeBeltSnapshot(v3, rows, now.getTime());
+    expect(result.algorithm).toBe('belt-comparability-v3');
+    expect(result.rows.map((row) => row.status)).toEqual(['MATCH', 'PARTIAL']);
+    expect(
+      analyzeBeltSnapshot(target, rows, now.getTime()).rows[0]?.status,
+    ).toBe('PARTIAL');
+  });
 });
