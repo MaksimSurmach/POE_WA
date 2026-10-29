@@ -1,11 +1,14 @@
 import {
   beltAnalysisResponseSchema,
   beltOpportunitiesResponseSchema,
+  beltPriceUpdateSchema,
+  beltPriceUpdatesResponseSchema,
   marketWorkbenchResponseSchema,
   marketTargetResponseSchema,
   marketResearchSnapshotResponseSchema,
   type MarketTargetInput,
   type MarketSnapshotImport,
+  type BeltPriceUpdateInput,
 } from '@poe-worksmith/contracts';
 
 async function request(path: string, body?: unknown): Promise<unknown> {
@@ -38,6 +41,19 @@ async function request(path: string, body?: unknown): Promise<unknown> {
 }
 
 export const marketClient = {
+  async priceHistory(id: string) {
+    return beltPriceUpdatesResponseSchema.parse(
+      await request(
+        `/api/market/targets/${encodeURIComponent(id)}/belt-prices`,
+      ),
+    ).data;
+  },
+  async savePrices(input: BeltPriceUpdateInput) {
+    const response = await request('/api/market/belt-prices', input);
+    if (!response || typeof response !== 'object' || !('data' in response))
+      throw new Error('Не удалось сохранить цены');
+    return beltPriceUpdateSchema.parse(response.data);
+  },
   async opportunities(kind: 'observed' | 'demo') {
     return beltOpportunitiesResponseSchema.parse(
       await request(`/api/market/belt-opportunities?kind=${kind}`),
@@ -57,10 +73,10 @@ export const marketClient = {
       await request('/api/market/snapshots/import', input),
     ).data;
   },
-  async analyzeBelt(id: string) {
+  async analyzeBelt(id: string, version: 1 | 2 = 1) {
     return beltAnalysisResponseSchema.parse(
       await request(
-        `/api/market/snapshots/${encodeURIComponent(id)}/belt-analysis/v1`,
+        `/api/market/snapshots/${encodeURIComponent(id)}/belt-analysis/v${version}`,
       ),
     ).data;
   },

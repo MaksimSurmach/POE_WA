@@ -1,36 +1,48 @@
-# MAX-1287: belt opportunity demo
+# MAX-1287: belt research and evidence
 
-## What is real
+## Two real research profiles
 
-`pnpm market:seed-library` adds three source-linked rare Stygian Vise research profiles alongside the existing catalog. The guides describe Lacerate Gladiator, Spectre Summoner, and Flicker Strike Slayer. The first two do not give quantitative thresholds; the third includes life, total elemental resistances and attack elemental damage, but does not establish item level, influence or quality. Their executable rules and craft probabilities therefore remain unverified. These are research leads, not proven opportunities.
+- **Flicker Strike Slayer, Stygian Vise, Allflame 3.29**: [guide](https://odealo.com/articles/trinity-flicker-strike-slayer-build-1) specifies at least 100 life, 80 total elemental resistance and 30% elemental damage with attacks. Item level, influence and corruption requirements are not stated. On 2026-10-29 at 20:34:59 UTC, an Instant Buyout search showed five selected listings at 1 divine each. Two cheaper matches in chaos were not mixed with these. [Manual observation](evidence/max-1287-flicker-trade-2026-10-29.json) records the exact selected rows, search, seller, visible stats, gold fee and relative listing age. Prices are asks, not sales.
+- **Winter Orb Elementalist, Stygian Vise, Allflame 3.29**: [PoB](https://pobb.in/W4yCI3RRdniV) describes 110+ life, 26–30% chaos resistance from Essence of Envy and additional resistances without a numeric threshold. Five selected Instant Buyout listings with life >=110, chaos resistance >=26 and at least one other resistance were visible at 60–120 chaos on 2026-10-29 at 20:33:56 UTC. [Manual observation](evidence/max-1287-winter-orb-trade-2026-10-29.json) contains the selected raw transcriptions and scope.
 
-Manual rare-listing imports preserve raw payloads. Analysis v1 records MATCH/PARTIAL/REJECT and reasons. Unknown properties are not a match. Listings marked delisted are not sales. The opportunity endpoint considers only confirmed listings from one snapshot, deduplicates sellers, requires at least five and a snapshot no older than 24 hours. It uses the cheapest confirmed independent seller as a conservative **asking price**, not a sale price. Samples are manually selected and may be biased.
+These are manually selected snapshots, not market-wide representative samples. Trade listing age is not sale velocity, and Instant Buyout may charge a gold fee. The records deliberately do not infer influence, corruption or missing resistances. They are not proof of full comparability: executable target rules and the remaining build requirements have not been verified. The application reports `PARTIAL` and `INSUFFICIENT_DATA` rather than ranking these offers.
 
-## Reproducible synthetic demo
+The Winter Orb method uses the Allflame mechanic and instructs replacement of a base after excess Intangibility. Success probability and replacement cost are unknown; the current economics engine assumes repeated attempts on a reusable base, so it must not calculate this method. The Flicker guide describes desired gear but does not establish a complete reproducible crafting method or probability. No real expected craft cost or potential spread is asserted for either profile.
 
-With the configured PostgreSQL database and app (see README):
+To load these dated observations into the configured PostgreSQL database without modifying existing records:
 
 ```sh
 pnpm market:seed-library
-pnpm market:seed-belt-demo
+pnpm market:import-belt-evidence
 ```
 
-The second command creates an explicitly marked DEMO target and five synthetic listings. It is idempotent within a UTC day and never deletes prior records. Start the app, select **DEMO · синтетические данные** in the belt panel and open the result. The synthetic method assumes independent 25% success, repeats on one reusable base, uses one fixture orb per attempt and has no recovery, fees or finishing cost. The synthetic input prices are 10 chaos for the base, 2 chaos per orb and 40–60 chaos for five offers. Existing recipe economics produces 4 expected attempts, 18 chaos expected cost, 40 chaos conservative asking price and 22 chaos indicative spread. None of these values are real market data or a profit guarantee. Open the evidence details and snapshot to inspect the assumptions and row-level matching.
+The second command is idempotent for the same target and observation. These observations are historical after their capture time and the freshness gate will eventually prevent valuation. They are never merged with demo data.
 
-The target form accepts `beltRules` and `beltCraftMethod` as JSON. The schema is in `packages/contracts/src/market.ts`; the complete fixture is in `apps/server/src/beltDemoFixture.ts`. Target rules, craft method and price assumptions are immutable parts of the saved profile. A changed assumption creates a new versioned profile, not a reinterpretation of old observations. Existing snapshot summaries remain user-selected, while `belt-comparability-v1` is a separately requested interpretation.
+## Product workflow
 
-A method must describe a source, steps, full-rule confirmation, probability or expected attempts, and explicitly use the same reusable base for all failed attempts. Its manual base and material estimates must carry league, patch, currency, timestamp, provenance URL, notes, and observed/demo designation. Alternatively, material prices can reference a saved economy snapshot and exact line. League, material identity, time and currency are checked; economy data lacks a patch field, so the profile must declare the matching patch. BaseType aggregates cannot establish item level or influence and are rejected as base prices. No foreign-exchange conversion is performed. Listing and input timestamps must be within 24 hours, and demo and observed inputs cannot mix. The result remains `INSUFFICIENT_DATA` when a gate fails. Manual confirmations and prices are user assertions and require independent review.
+The target form accepts explicit modifier thresholds, optional total elemental resistance, method steps, a probability or expected attempts, and dated manual base/material prices without JSON. The matching v2 sums three explicit per-element values and treats missing values as unknown. Version 1 retains its original behavior. The form supports methods only when the operator confirms that all attempts use the same base with no replacement, recovery or finishing costs. Other methods remain uncalculated.
 
-## Verified checks
+The snapshot form accepts individual user-entered listings and optional original text without JSON. Raw saved item payloads remain unchanged. Each snapshot uses one currency; there is no invented exchange rate. The analysis records per-row reasons, excludes nonmatches and deduplicates sellers. A fresh sample requires at least five confirmed independent sellers; the conservative asking estimate uses the cheapest confirmed offer. User confirmations and manual prices are assertions, not automatic source verification.
 
-- Workspace unit suite: domain 68, contracts 10, server 161, web 23; typecheck, lint and production build passed under local Node 24 (the supported CI runtime is Node 22).
-- Isolated PostgreSQL 17: all 38 integration tests passed. Seeding the demo twice returned the same target and snapshot.
-- Browser smoke with the bundled Playwright runtime: DEMO ranking, expected values, detail disclosure and MATCH rows passed; repeated successfully after restarting the API. No page errors observed.
-- Comparison tests cover mod mismatch, missing tier, duplicate seller, currencies and stale/sparse samples. Opportunity tests cover missing or mismatched prices, invalid probability, incomplete rules and isolation of DEMO versus observed records.
+New price observations are stored separately from immutable target profiles, with source, time, league, patch, currency and data kind. Their history is visible in the price dialog. The latest matching-kind update is used, with no fallback for missing material prices; stale or incompatible prices block calculation. A valid calculation is `CALCULATED` with `POSITIVE` or `NON_POSITIVE` as a separate economic conclusion. No calculation is a guarantee of a sale.
 
-## External blockers and remaining work
+## Reproducible checks
 
-- The public Trade page returned HTTP 403 on 2026-10-29. There is no permissioned real rare listing in this environment; no live import-to-analysis acceptance or real actionable target is claimed. Supply an authorized observation with original item properties and seller, or approved public-stash access. Do not scrape undocumented endpoints or use cookies.
-- The three guide-backed profiles need independently verified, complete executable requirements and supported, reproducible craft methods with probability evidence. In particular, total elemental resistance is not yet represented as a composite rule. No guide-backed target currently has a fully validated cost breakdown.
-- Economy prices do not provide item-level/influence-specific base quotes; obtain a dated authorized manual base quote. Validate probability and any recovery/finishing assumptions before making a real decision.
-- This remains partial MAX-1287 until at least one real authorized rare observation flows through the UI and the target, method and costs are verified. Two real actionable targets remain the commercial goal. CI for the current PR head must pass separately.
+The separate `pnpm market:seed-belt-demo` remains a synthetic test, explicitly marked DEMO. Its inputs are 10 chaos base, 2 chaos per attempt and a synthetic 25% chance, giving 10 + 4 × 2 = 18 chaos expected cost; the selected cheapest asking price is 40 chaos, yielding an illustrative 22 chaos difference. Updating the synthetic base to 40 gives 40 + 4 × 2 = 48 chaos and a negative 8 chaos difference. These are regression checks only, not real market or probability evidence.
+
+Local checks on Node 24: workspace unit suite, typecheck, lint and build; isolated PostgreSQL 17 integration and migration checks; UI forms, manual demo import and price history, and API restart. Refer to PR CI for supported Node 22.
+
+## Blockers
+
+- Obtain and independently validate the exact crafting recipe and probability, including base replacement, recovery and finishing operations, for each profile. The present calculator cannot model the Winter Orb Allflame replacement process.
+- Obtain a dated, genuinely comparable craftable base quote and same-currency material observations. BaseType aggregates do not establish the required item level/influence. No FX rate is assumed.
+- Verify complete requirements and listing properties before confirming comparable matches. The observed Trade records are available but currently partial. Independently recalculate a **real** complete example once those missing inputs exist.
+- OAuth or a password does not supply a documented Trade-search API. The user signed in normally and the observations were read from the official UI; no cookies, credentials, undocumented API or trade action were used. New OAuth application registrations were previously reported paused; verify directly with GGG before planning a Public Stash integration.
+
+Do not close MAX-1287 until two real end-to-end outcomes are supported by evidence; a negative outcome is a valid outcome.
+
+## Additional real input observations
+
+At 2026-10-29 20:36:51 UTC, the documented poe.ninja Allflame Essence overview returned **3.33 chaos** for `Shrieking Essence of Envy`. [PoE Wiki](https://www.poewiki.net/wiki/Shrieking_Essence_of_Envy) identifies its belt modifier as 26–30% chaos resistance. This is a public economy estimate, not a captured individual offer; the full raw economy response was not saved. [Source](https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Essence).
+
+At 2026-10-29 20:37:32 UTC, a [Trade Instant Buyout search](https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAE1VOSwqDMBC9SnnrbAsl1yh0U6RMNZaBmEhmLIjM3SWWQlzNPN53gyjpIvAb8qycEzwk9EuhdwwwB13nAI-7rh-mdHmwBLjDJfDP7c9TGuAwctRQKtFZ18Cf7NXg5i1UWNfTgpTLRBFm5jCx9K1zYKnbBviRooRTC8dvrHfiBH-7mkOfS1lmrfIm_3DWeLMdbyrkhQIBAAA) for normal, uncorrupted Stygian Vise, item level 85+, showed a verified ilvl 85 base for **3 chaos**, seller Гуган#4837, listed 20 hours earlier, and another for **5 chaos**, seller Horatio_Kain#2571, listed 4 hours earlier; each displayed a 1,358 gold fee. The search does not establish whether those bases satisfy every method-specific condition, including initial Intangibility or influence. These individual observations do not establish expected crafting cost, and item level 85 is an explicit research filter rather than a claimed guide requirement.

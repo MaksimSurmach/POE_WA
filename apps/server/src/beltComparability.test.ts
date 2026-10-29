@@ -110,4 +110,29 @@ describe('belt comparability v1', () => {
         ?.status,
     ).toBe('PARTIAL');
   });
+  it('v2 sums all three explicit elemental resistance values and preserves unknowns', () => {
+    const v2 = {
+      ...target,
+      beltRules: {
+        version: 2 as const,
+        minItemLevel: 84,
+        influences: [],
+        corrupted: false,
+        mods: [{ id: 'life', minValue: 80 }],
+        totalElementalResistanceMin: 80,
+      },
+    };
+    const rows = snapshot([
+      { ...item, elementalResistances: { fire: 40, cold: 20, lightning: 20 } },
+      { ...item, elementalResistances: { fire: 40, cold: 20, lightning: 19 } },
+      { ...item, elementalResistances: { fire: 40, cold: 20 } },
+    ]);
+    const result = analyzeBeltSnapshot(v2, rows, now.getTime());
+    expect(result.algorithm).toBe('belt-comparability-v2');
+    expect(result.rows.map((row) => row.status)).toEqual([
+      'MATCH',
+      'REJECT',
+      'PARTIAL',
+    ]);
+  });
 });

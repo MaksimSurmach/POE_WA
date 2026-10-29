@@ -1,0 +1,104 @@
+{
+  "capturedAt": "2026-10-29T20:33:56.000Z",
+  "sourceUrl": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAE22QUQuCQBCE_0rM8xF6muX9jaCXELl0jYVL5e6MRO6_h0lg5D7tMsw3w05wXvvBQU3oes9dCwVH1WD1zRCCgB97gsLZj3fW7e7CjiA-Lgd1nb66bmsINGw82UXgGgr06g1X7PezoUxknifpMUoTCDy1GWjOfXALFcdREKjZzbk1VKONoyA2MTKXSXrK5CH_w8hsg1KEYlVtqVyu7tVqtWU__nzDaksI87wBFhdEry0BAAA",
+  "notes": "Manual transcription from visible Trade UI: Instant Buyout, Rare Stygian Vise, explicit life >=110 and chaos resistance >=26. Five selected rows have at least one additional elemental resistance. Currency values are asking prices, not sales. No conclusion about influence, corruption, modifier origin or item quality is inferred from absence of a label. Remaining build resistance needs and crafting probability are unspecified. User logged in; no private endpoint, credentials or cookies were collected.",
+  "currency": "chaos",
+  "dataKind": "observed",
+  "listings": [
+    {
+      "price": 60,
+      "item": {
+        "name": "Sol Twine",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "chaos",
+        "seller": "MightyHigh#2904",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          { "id": "life", "value": 138 },
+          { "id": "chaos_resistance", "value": 27 }
+        ],
+        "rawText": "Verified; Item Level 85; Has 1 Abyssal Socket; +138 maximum Life (P1); +30 maximum Mana (P8); +19% Cold Resistance (S6); +27% Chaos Resistance (S2); 16% increased Stun and Block Recovery (S5); asking 60 chaos; fee 3867; listed 7 days ago; Instant Buyout."
+      }
+    },
+    {
+      "price": 100,
+      "item": {
+        "name": "Eagle Snare",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "chaos",
+        "seller": "Tigralla#2993",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          { "id": "life", "value": 118 },
+          { "id": "chaos_resistance", "value": 28 }
+        ],
+        "rawText": "Verified; Item Level 85; Has 1 Abyssal Socket; 10% reduced Enemy Stun Threshold (S3); +19 maximum Energy Shield (P8); +118 maximum Life (P2); +51 maximum Mana (P4); +12% Cold Resistance (S7); +28% Chaos Resistance (S2); asking 100 chaos; fee 4243; listed 2 months ago; Instant Buyout."
+      }
+    },
+    {
+      "price": 100,
+      "item": {
+        "name": "Bramble Lash",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "chaos",
+        "seller": "HINTAIROO#7140",
+        "status": "listed",
+        "itemLevel": 84,
+        "mods": [
+          { "id": "life", "value": 113 },
+          { "id": "chaos_resistance", "value": 27 }
+        ],
+        "rawText": "Verified; Item Level 84; Has 1 Abyssal Socket; +113 maximum Life (P3); +44% Lightning Resistance (S2); +27% Chaos Resistance (S2); 21% increased Stun and Block Recovery (S3); 16% increased Flask Mana Recovery rate (P5); Flasks applied to you have 6% increased Effect (P3); asking 100 chaos; fee 4368; listed 4 weeks ago; Instant Buyout."
+      }
+    },
+    {
+      "price": 100,
+      "item": {
+        "name": "Corpse Thread",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "chaos",
+        "seller": "Dangun575#0400",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          { "id": "life", "value": 118 },
+          { "id": "chaos_resistance", "value": 29 }
+        ],
+        "rawText": "Verified; Item Level 85; Has 1 Abyssal Socket; 10% reduced Enemy Stun Threshold (S3); +118 maximum Life (P2); +61 maximum Mana (P2); +33% Lightning Resistance (S4); +29% Chaos Resistance (S2); 28% increased Flask Life Recovery rate (P3); asking 100 chaos; fee 4628; listed 3 months ago; Instant Buyout."
+      }
+    },
+    {
+      "price": 120,
+      "item": {
+        "name": "Vengeance Clasp",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "chaos",
+        "seller": "Snôwden#4227",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          { "id": "life", "value": 140 },
+          { "id": "chaos_resistance", "value": 28 }
+        ],
+        "rawText": "Verified; Item Level 85; Has 1 Abyssal Socket; +141 Armour (P4); +42 maximum Energy Shield (P3); +140 maximum Life (P1); regenerate 7.5 Life per second (S8); +23% Lightning Resistance (S6); +28% Chaos Resistance (S2); asking 120 chaos; fee 4636; listed 2 months ago; Instant Buyout."
+      }
+    }
+  ]
+}

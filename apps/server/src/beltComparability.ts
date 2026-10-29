@@ -13,6 +13,13 @@ const evidence = z
     patch: z.string().optional(),
     quality: z.number().int().optional(),
     modsComplete: z.boolean().optional(),
+    elementalResistances: z
+      .object({
+        fire: z.number().finite(),
+        cold: z.number().finite(),
+        lightning: z.number().finite(),
+      })
+      .optional(),
     currency: z.string().optional(),
     itemLevel: z.number().int().optional(),
     corrupted: z.boolean().optional(),
@@ -92,6 +99,16 @@ export function analyzeBeltSnapshot(
           ),
       );
     if (rules) {
+      if (rules.version === 2) {
+        const res = item.elementalResistances;
+        if (!res)
+          unknown.push('total elemental resistance: all three values required');
+        else if (
+          res.fire + res.cold + res.lightning <
+          rules.totalElementalResistanceMin
+        )
+          rejected.push('total elemental resistance: below threshold');
+      }
       check(
         'item level',
         item.itemLevel,
@@ -158,7 +175,10 @@ export function analyzeBeltSnapshot(
     now >= Date.parse(snapshot.capturedAt) &&
     now - Date.parse(snapshot.capturedAt) <= 24 * 60 * 60 * 1000;
   return {
-    algorithm: 'belt-comparability-v1',
+    algorithm:
+      target.beltRules?.version === 2
+        ? ('belt-comparability-v2' as const)
+        : ('belt-comparability-v1' as const),
     targetDigest: target.digest,
     snapshotId: snapshot.id,
     dataKind: snapshot.dataKind,

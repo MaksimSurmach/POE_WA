@@ -10,8 +10,8 @@ import { marketStarterLibrary } from '../marketStarterLibrary.js';
 import { createMarketResearchRepository } from '../repositories/marketResearchRepository.js';
 
 const builds = new Set(marketStarterLibrary.flatMap(({ builds }) => builds));
-assert.equal(marketStarterLibrary.length, 13);
-assert.equal(builds.size, 8);
+assert.equal(marketStarterLibrary.length, 14);
+assert.equal(builds.size, 9);
 
 const pool = createDatabasePool(loadDatabaseConfig());
 try {

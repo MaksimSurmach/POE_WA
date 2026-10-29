@@ -1,6 +1,7 @@
 import type {
   MarketResearchSnapshot,
   MarketTarget,
+  BeltPriceUpdate,
 } from '@poe-worksmith/contracts';
 import {
   aggregateMarketListings,
@@ -23,6 +24,7 @@ async function resolvePrice(input: {
   snapshot: MarketResearchSnapshot;
   economy?: Pick<MarketEconomyRepository, 'find'> | undefined;
   base: boolean;
+  now: number;
 }) {
   const { evidence, target, snapshot } = input;
   if (evidence.source === 'manual') {
@@ -33,9 +35,15 @@ async function resolvePrice(input: {
       evidence.dataKind !== snapshot.dataKind
     )
       return null;
-    const age =
-      Date.parse(snapshot.capturedAt) - Date.parse(evidence.capturedAt);
-    if (age < 0 || age > DAY) return null;
+    const age = input.now - Date.parse(evidence.capturedAt);
+    if (
+      age < 0 ||
+      age > DAY ||
+      Math.abs(
+        Date.parse(snapshot.capturedAt) - Date.parse(evidence.capturedAt),
+      ) > DAY
+    )
+      return null;
     return {
       money: { amount: String(evidence.amount), currency: evidence.currency },
       evidence,
@@ -56,8 +64,14 @@ async function resolvePrice(input: {
     !['Currency', 'Essence', 'Fossil', 'Resonator'].includes(stored.category)
   )
     return null;
-  const age = Date.parse(snapshot.capturedAt) - Date.parse(stored.capturedAt);
-  if (age < 0 || age > DAY) return null;
+  const age = input.now - Date.parse(stored.capturedAt);
+  if (
+    age < 0 ||
+    age > DAY ||
+    Math.abs(Date.parse(snapshot.capturedAt) - Date.parse(stored.capturedAt)) >
+      DAY
+  )
+    return null;
   const line = stored.lines.find(
     (candidate) => candidate.id === evidence.lineId,
   );
@@ -88,6 +102,7 @@ export async function evaluateBeltOpportunity(
   snapshot: MarketResearchSnapshot | null,
   economy?: Pick<MarketEconomyRepository, 'find'>,
   now = Date.now(),
+  priceUpdate?: BeltPriceUpdate,
 ) {
   const reasons: string[] = [];
   const method = target.beltCraftMethod;
@@ -131,7 +146,8 @@ export async function evaluateBeltOpportunity(
       breakdown: unknown;
     },
     status: 'INSUFFICIENT_DATA' as
-      'INSUFFICIENT_DATA' | 'RESEARCH' | 'ACTIONABLE',
+      'INSUFFICIENT_DATA' | 'RESEARCH' | 'CALCULATED',
+    economicConclusion: null as null | 'POSITIVE' | 'NON_POSITIVE',
     reasons,
   };
   if (!snapshot || !comparison || !method)
@@ -141,24 +157,30 @@ export async function evaluateBeltOpportunity(
         'RESEARCH' | 'INSUFFICIENT_DATA',
     };
   const base = await resolvePrice({
-    evidence: method.basePrice,
+    evidence: priceUpdate?.basePrice ?? method.basePrice,
     label: target.baseTypes[0] ?? '',
     target,
     snapshot,
     economy,
     base: true,
+    now,
   });
   const materials = await Promise.all(
-    method.materials.map((material) =>
-      resolvePrice({
-        evidence: material.price,
+    method.materials.map((material) => {
+      const price = priceUpdate
+        ? priceUpdate.materialPrices[material.id]
+        : material.price;
+      if (!price) return Promise.resolve(null);
+      return resolvePrice({
+        evidence: price,
         label: material.label,
         target,
         snapshot,
         economy,
         base: false,
-      }),
-    ),
+        now,
+      });
+    }),
   );
   if (!base)
     reasons.push(
@@ -241,7 +263,11 @@ export async function evaluateBeltOpportunity(
     };
   return {
     ...empty,
-    status: 'ACTIONABLE' as const,
+    status: 'CALCULATED' as const,
+    economicConclusion:
+      Number(result.value.profit.amount) > 0
+        ? ('POSITIVE' as const)
+        : ('NON_POSITIVE' as const),
     priceEvidence,
     calculation: {
       expectedCraftCost: result.value.breakdown.expectedCraftCost.amount,

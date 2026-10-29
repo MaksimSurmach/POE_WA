@@ -62,6 +62,23 @@ const sources = {
 
 export const marketStarterLibrary: MarketTargetInput[] = [
   profile(
+    'Winter Orb Elementalist — Stygian Vise (исследование)',
+    'Winter Orb Elementalist',
+    'Belt',
+    ['Stygian Vise'],
+    [
+      'Максимальная жизнь 110+',
+      'Сопротивление хаосу 26–30% от Essence of Envy',
+      'Другие сопротивления по потребности',
+    ],
+    {
+      title: 'Winter Orb Elementalist PoB (3.29)',
+      url: 'https://pobb.in/W4yCI3RRdniV',
+      notes:
+        'Источник описывает Essence of Envy и механику Allflame, с заменой базы при Intangibility выше 25%. Вероятность и стоимость замены не указаны; существующая модель повторов на одной базе неприменима. Количественные требования к остальным сопротивлениям не заданы. Не рассчитывать до проверки метода.',
+    },
+  ),
+  profile(
     'Flicker Strike Slayer — редкий Stygian Vise (исследование)',
     'Flicker Strike Slayer',
     'Belt',

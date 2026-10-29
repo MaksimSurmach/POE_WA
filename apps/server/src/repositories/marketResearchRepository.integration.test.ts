@@ -1,4 +1,8 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { marketStarterLibrary } from '../marketStarterLibrary.js';
+import { beltDemoFixture } from '../beltDemoFixture.js';
 
 import { analyzeBeltSnapshot } from '../beltComparability.js';
 import { loadDatabaseConfig } from '../config.js';
@@ -30,10 +34,84 @@ afterAll(async () => {
   await pool.end();
 });
 beforeEach(async () => {
-  await pool.query('truncate market_research_snapshots, market_targets');
+  await pool.query(
+    'truncate belt_price_updates, market_research_snapshots, market_targets',
+  );
 });
 
 describe('persistent market research', () => {
+  it('preserves the manually observed Trade rows and refuses an unverified match after repository restart', async () => {
+    const definition = marketStarterLibrary.find((item) =>
+      item.name.startsWith('Winter Orb Elementalist — Stygian'),
+    );
+    if (!definition) throw new Error('Missing sourced target');
+    const target = await repository.saveTarget(
+      createMarketTarget(definition, now),
+    );
+    const content: unknown = JSON.parse(
+      await readFile(
+        '../../docs/evidence/max-1287-winter-orb-trade-2026-10-29.json',
+        'utf8',
+      ),
+    );
+    if (!content || typeof content !== 'object' || Array.isArray(content))
+      throw new Error('Invalid observation');
+    const saved = await repository.saveSnapshot(
+      createImportedMarketSnapshot(
+        { ...content, targetId: target.id },
+        target,
+        new Date('2026-10-29T21:00:00Z'),
+      ),
+    );
+    const restored = await createMarketResearchRepository(pool).findSnapshot(
+      saved.id,
+    );
+    expect(restored).toEqual(saved);
+    if (!restored) throw new Error('Missing saved observation');
+    expect(restored.dataKind).toBe('observed');
+    expect(
+      analyzeBeltSnapshot(
+        target,
+        restored,
+        Date.parse(restored.capturedAt),
+      ).rows.map((row) => row.status),
+    ).toEqual(['PARTIAL', 'PARTIAL', 'PARTIAL', 'PARTIAL', 'PARTIAL']);
+  });
+
+  it('persists distinct price observations without mutating the target', async () => {
+    const fixture = beltDemoFixture(now);
+    const target = await repository.saveTarget(
+      createMarketTarget(fixture.target, now),
+    );
+    const method = target.beltCraftMethod;
+    if (!method || method.basePrice.source !== 'manual' || !method.materials[0])
+      throw new Error('invalid demo');
+    const first = {
+      id: randomUUID(),
+      targetId: target.id,
+      targetDigest: target.digest,
+      digest: 'a'.repeat(64),
+      createdAt: now.toISOString(),
+      dataKind: 'demo' as const,
+      basePrice: method.basePrice,
+      materialPrices: { [method.materials[0].id]: method.materials[0].price },
+    };
+    const second = {
+      ...first,
+      id: randomUUID(),
+      digest: 'b'.repeat(64),
+      createdAt: new Date(now.getTime() + 1000).toISOString(),
+      basePrice: { ...method.basePrice, amount: 22 },
+    };
+    if (!repository.savePriceUpdate) throw new Error('Repository lacks prices');
+    await repository.savePriceUpdate(first);
+    await repository.savePriceUpdate(second);
+    const reopened = createMarketResearchRepository(pool);
+    if (!reopened.listPriceUpdates) throw new Error('Repository lacks prices');
+    expect(await reopened.listPriceUpdates(target.id)).toEqual([second, first]);
+    expect(await reopened.findTarget(target.id)).toEqual(target);
+  });
+
   it('retains a synthetic belt and its versioned rules for later analysis', async () => {
     const target = await repository.saveTarget(
       createMarketTarget(

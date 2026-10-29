@@ -17,8 +17,7 @@ export const marketSourceEvidenceSchema = z.strictObject({
 });
 
 /** Explicit, versioned rules; free-form guide text is never treated as a matcher. */
-export const beltRulesSchema = z.strictObject({
-  version: z.literal(1),
+const beltRuleFields = {
   minItemLevel: z.number().int().min(1).max(100),
   influences: z.array(text(100)).max(10),
   corrupted: z.boolean(),
@@ -32,9 +31,17 @@ export const beltRulesSchema = z.strictObject({
     )
     .min(1)
     .max(30),
-});
+};
+export const beltRulesSchema = z.discriminatedUnion('version', [
+  z.strictObject({ version: z.literal(1), ...beltRuleFields }),
+  z.strictObject({
+    version: z.literal(2),
+    ...beltRuleFields,
+    totalElementalResistanceMin: z.number().finite().nonnegative(),
+  }),
+]);
 
-const beltPriceEvidenceSchema = z.discriminatedUnion('source', [
+export const beltPriceEvidenceSchema = z.discriminatedUnion('source', [
   z.strictObject({
     source: z.literal('manual'),
     amount: z.number().finite().positive(),
@@ -53,6 +60,25 @@ const beltPriceEvidenceSchema = z.discriminatedUnion('source', [
     patch: text(50),
   }),
 ]);
+
+export const beltPriceUpdateInputSchema = z.strictObject({
+  targetId: z.uuid(),
+  dataKind: z.enum(['observed', 'demo']),
+  basePrice: beltPriceEvidenceSchema,
+  materialPrices: z.record(z.string(), beltPriceEvidenceSchema),
+});
+export const beltPriceUpdateSchema = beltPriceUpdateInputSchema.extend({
+  id: z.uuid(),
+  targetDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  digest: z.string().regex(/^[a-f0-9]{64}$/),
+  createdAt: z.iso.datetime(),
+});
+export const beltPriceUpdatesResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: z.array(beltPriceUpdateSchema),
+});
+export type BeltPriceUpdate = z.infer<typeof beltPriceUpdateSchema>;
+export type BeltPriceUpdateInput = z.infer<typeof beltPriceUpdateInputSchema>;
 
 export const beltCraftMethodSchema = z
   .strictObject({
@@ -358,7 +384,7 @@ export type MarketEconomyOverviewResponse = z.infer<
 >;
 
 export const beltAnalysisSchema = z.strictObject({
-  algorithm: z.literal('belt-comparability-v1'),
+  algorithm: z.enum(['belt-comparability-v1', 'belt-comparability-v2']),
   targetDigest: z.string(),
   snapshotId: z.uuid(),
   dataKind: z.enum(['observed', 'demo']),
@@ -412,7 +438,8 @@ export const beltOpportunitySchema = z.strictObject({
       breakdown: z.json(),
     })
     .nullable(),
-  status: z.enum(['RESEARCH', 'INSUFFICIENT_DATA', 'ACTIONABLE']),
+  status: z.enum(['RESEARCH', 'INSUFFICIENT_DATA', 'CALCULATED']),
+  economicConclusion: z.enum(['POSITIVE', 'NON_POSITIVE']).nullable(),
   reasons: z.array(z.string()),
 });
 export const beltOpportunitiesResponseSchema = z.strictObject({

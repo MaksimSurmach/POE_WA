@@ -28,7 +28,7 @@ describe('belt opportunity', () => {
       now.getTime(),
     );
     expect(result).toMatchObject({
-      status: 'ACTIONABLE',
+      status: 'CALCULATED',
       dataKind: 'demo',
       calculation: {
         expectedCraftCost: '18',
@@ -39,6 +39,26 @@ describe('belt opportunity', () => {
       },
     });
     expect(result.comparison?.independentSellers).toBe(5);
+  });
+  it('separates calculation readiness from a positive, zero or negative spread', async () => {
+    const { target, snapshot } = fixture();
+    for (const [price, expected] of [
+      [40, 'POSITIVE'],
+      [18, 'NON_POSITIVE'],
+      [12, 'NON_POSITIVE'],
+    ] as const) {
+      const result = await evaluateBeltOpportunity(
+        target,
+        {
+          ...snapshot,
+          listings: snapshot.listings.map((entry) => ({ ...entry, price })),
+        },
+        undefined,
+        now.getTime(),
+      );
+      expect(result.status).toBe('CALCULATED');
+      expect(result.economicConclusion).toBe(expected);
+    }
   });
   it('blocks stale, sparse, missing, mixed currency or mixed provenance', async () => {
     const { target, snapshot } = fixture();

@@ -62,6 +62,7 @@ export function MarketPage() {
   );
   const [opportunityError, setOpportunityError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<'target' | 'snapshot' | null>(null);
+  const [priceTarget, setPriceTarget] = useState<MarketTarget | null>(null);
   const [rawSnapshot, setRawSnapshot] = useState<unknown | null>(null);
   const [beltAnalysis, setBeltAnalysis] = useState<
     import('@poe-worksmith/contracts').BeltAnalysis | null
@@ -130,7 +131,11 @@ export function MarketPage() {
     try {
       const [raw, analysis] = await Promise.all([
         marketClient.getSnapshot(snapshot.id),
-        marketClient.analyzeBelt(snapshot.id),
+        marketClient.analyzeBelt(
+          snapshot.id,
+          targets.find((entry) => entry.id === snapshot.targetId)?.beltRules
+            ?.version ?? 1,
+        ),
       ]);
       setRawSnapshot(raw);
       setBeltAnalysis(analysis);
@@ -227,6 +232,11 @@ export function MarketPage() {
             <article key={opportunity.targetId}>
               <h3>
                 {opportunity.name} · {opportunity.status}{' '}
+                {opportunity.economicConclusion === 'POSITIVE'
+                  ? '· Положительная разница'
+                  : opportunity.economicConclusion === 'NON_POSITIVE'
+                    ? '· Нулевая или отрицательная разница'
+                    : ''}{' '}
                 {opportunityKind === 'demo' ? '· DEMO' : ''}
               </h3>
               <p>
@@ -254,6 +264,20 @@ export function MarketPage() {
                 {opportunity.reasons.join(' ') ||
                   'Риск: ручная выборка и заявленные допущения метода.'}
               </p>
+              {opportunity.method && (
+                <button
+                  type="button"
+                  className="market-button"
+                  onClick={() => {
+                    const selectedTarget = targets.find(
+                      (entry) => entry.id === opportunity.targetId,
+                    );
+                    if (selectedTarget) setPriceTarget(selectedTarget);
+                  }}
+                >
+                  Обновить цены
+                </button>
+              )}
               <details>
                 <summary>Источники, правила и расчёт</summary>
                 <ul>
@@ -274,6 +298,61 @@ export function MarketPage() {
                   >
                     Источник снимка
                   </a>
+                )}
+                {opportunity.rules && (
+                  <div>
+                    <p>
+                      Правила v{opportunity.rules.version}: база{' '}
+                      {targets
+                        .find((item) => item.id === opportunity.targetId)
+                        ?.baseTypes.join(', ')}
+                      , уровень {opportunity.rules.minItemLevel}+,{' '}
+                      {opportunity.rules.corrupted
+                        ? 'осквернён'
+                        : 'не осквернён'}
+                      ; влияния:{' '}
+                      {opportunity.rules.influences.join(', ') || 'нет'}.
+                    </p>
+                    <ul>
+                      {opportunity.rules.mods.map((mod) => (
+                        <li key={mod.id}>
+                          {mod.id}: минимум {mod.minValue}
+                          {mod.maxTier ? `, tier ${mod.maxTier} или лучше` : ''}
+                        </li>
+                      ))}
+                    </ul>
+                    {opportunity.rules.version === 2 && (
+                      <p>
+                        Сумма сопротивлений стихиям: минимум{' '}
+                        {opportunity.rules.totalElementalResistanceMin}%.
+                      </p>
+                    )}
+                  </div>
+                )}
+                {opportunity.method && (
+                  <div>
+                    <p>
+                      Метод:{' '}
+                      <a
+                        href={opportunity.method.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {opportunity.method.name}
+                      </a>{' '}
+                      · {opportunity.method.assumptions}
+                    </p>
+                    <ol>
+                      {opportunity.method.steps.map((step, index) => (
+                        <li key={index}>{step}</li>
+                      ))}
+                    </ol>
+                    <p>
+                      {opportunity.method.success.mode === 'probability'
+                        ? `Вероятность: ${opportunity.method.success.probability}`
+                        : `Ожидаемые попытки: ${opportunity.method.success.expectedAttempts}`}
+                    </p>
+                  </div>
                 )}
                 {opportunity.snapshotId && (
                   <button
@@ -687,6 +766,20 @@ export function MarketPage() {
           />
         </Dialog>
       )}
+      {priceTarget && (
+        <Dialog
+          title={`Цены: ${priceTarget.name}`}
+          onClose={() => setPriceTarget(null)}
+        >
+          <BeltPriceForm
+            target={priceTarget}
+            onSaved={async () => {
+              setPriceTarget(null);
+              await reload();
+            }}
+          />
+        </Dialog>
+      )}
       {dialog === 'snapshot' && selected && (
         <Dialog
           title={`Импорт: ${selected.name}`}
@@ -1052,6 +1145,7 @@ function TargetForm({
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [materialCount, setMaterialCount] = useState(1);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -1065,6 +1159,105 @@ function TargetForm({
     setPending(true);
     setError(null);
     try {
+      const manualPrice = (amount: string, time: string, url: string) => ({
+        source: 'manual',
+        amount: Number(amount),
+        currency: value('methodCurrency'),
+        league: value('league'),
+        patch: value('patch'),
+        capturedAt: new Date(time).toISOString(),
+        dataKind: value('priceKind'),
+        url,
+        notes: value('priceNotes'),
+      });
+      const wantsRules = form.has('useBeltRules');
+      if (
+        wantsRules &&
+        [0, 1, 2].some((i) => value(`ruleId${i}`) && !value(`ruleMin${i}`))
+      )
+        throw new Error('Укажите числовой порог для каждого модификатора.');
+      const ruleMods = [0, 1, 2]
+        .filter((i) => value(`ruleId${i}`))
+        .map((i) => ({
+          id: value(`ruleId${i}`),
+          minValue: Number(value(`ruleMin${i}`)),
+          ...(value(`ruleTier${i}`)
+            ? { maxTier: Number(value(`ruleTier${i}`)) }
+            : {}),
+        }));
+      if (
+        wantsRules &&
+        (!value('ilevel') ||
+          value('corrupted') === 'any' ||
+          ruleMods.length === 0)
+      )
+        throw new Error(
+          'Для правил укажите item level, осквернение и хотя бы один модификатор.',
+        );
+      if (wantsRules && !value('influences') && !form.has('noInfluences'))
+        throw new Error('Укажите влияния или явно подтвердите их отсутствие.');
+      const ruleBase = {
+        minItemLevel: Number(value('ilevel')),
+        influences: value('influences')
+          .split(',')
+          .map((v) => v.trim())
+          .filter(Boolean),
+        corrupted: value('corrupted') === 'yes',
+        mods: ruleMods,
+      };
+      const rules = wantsRules
+        ? value('totalRes')
+          ? {
+              version: 2,
+              ...ruleBase,
+              totalElementalResistanceMin: Number(value('totalRes')),
+            }
+          : { version: 1, ...ruleBase }
+        : undefined;
+      const wantsMethod = form.has('useMethod');
+      if (wantsMethod && !form.has('sameBaseConfirmed'))
+        throw new Error(
+          'Подтвердите применимость метода с одной базой и без дополнительных расходов.',
+        );
+      const materialInputs = !wantsMethod
+        ? []
+        : Array.from({ length: materialCount }, (_, i) => ({
+            id: value(`materialId${i}`),
+            label: value(`materialLabel${i}`),
+            quantityPerAttempt: Number(value(`materialQuantity${i}`)),
+            price: manualPrice(
+              value(`materialPrice${i}`),
+              value(`materialTime${i}`),
+              value(`materialURL${i}`),
+            ),
+          }));
+      const method = wantsMethod
+        ? {
+            version: 1,
+            name: value('methodName'),
+            sourceUrl: value('methodURL'),
+            assumptions: value('methodAssumptions'),
+            steps: lines('methodSteps'),
+            rulesComplete: form.has('rulesComplete'),
+            repeatOnSameBase: true,
+            success:
+              value('successMode') === 'probability'
+                ? {
+                    mode: 'probability',
+                    probability: Number(value('successValue')),
+                  }
+                : {
+                    mode: 'expected_attempts',
+                    expectedAttempts: Number(value('successValue')),
+                  },
+            basePrice: manualPrice(
+              value('basePrice'),
+              value('priceTime'),
+              value('priceURL'),
+            ),
+            materials: materialInputs,
+          }
+        : undefined;
       const input = marketTargetInputSchema.parse({
         name: value('name'),
         game: 'poe1',
@@ -1089,12 +1282,8 @@ function TargetForm({
           .split(',')
           .map((influence) => influence.trim())
           .filter(Boolean),
-        ...(value('beltCraftMethod')
-          ? { beltCraftMethod: JSON.parse(value('beltCraftMethod')) }
-          : {}),
-        ...(value('beltRules')
-          ? { beltRules: JSON.parse(value('beltRules')) }
-          : {}),
+        ...(method ? { beltCraftMethod: method } : {}),
+        ...(rules ? { beltRules: rules } : {}),
         sources: sourceUrls.map((url) => {
           const parsed = new URL(url);
           const kind = /(^|\.)(youtube\.com|youtu\.be)$/.test(parsed.hostname)
@@ -1215,27 +1404,151 @@ function TargetForm({
         <input name="influences" placeholder="Если важны для цели" />
       </label>
       <label>
-        Правила сопоставления пояса (JSON, необязательно)
-        <textarea
-          name="beltRules"
-          rows={4}
-          placeholder={
-            '{"version":1,"minItemLevel":84,"influences":[],"corrupted":false,"mods":[{"id":"life","minValue":80}]}'
-          }
-        />
-        <small>
-          Только явно проверенные правила; названия свойств в импорте должны
-          совпадать. Пустое поле отключает подтверждение совпадений.
-        </small>
+        <input type="checkbox" name="noInfluences" /> Для правил пояса
+        подтверждаю отсутствие влияний
       </label>
-      <label>
-        Метод и цены (JSON, необязательно)
-        <textarea name="beltCraftMethod" rows={4} />
-        <small>
-          Укажите источник метода, вероятность, допущения и датированные цены.
-          Пример в docs/max-1287-demo.md.
-        </small>
-      </label>
+      <fieldset>
+        <legend>Правила пояса</legend>
+        <label>
+          <input type="checkbox" name="useBeltRules" /> Включить проверку правил
+          (требуются item level и осквернение выше)
+        </label>
+        {[0, 1, 2].map((i) => (
+          <div className="market-form-grid" key={i}>
+            <label>
+              Идентификатор мода {i + 1}
+              <input
+                name={`ruleId${i}`}
+                placeholder="life или elemental_attack_damage"
+              />
+            </label>
+            <label>
+              Минимум
+              <input type="number" name={`ruleMin${i}`} />
+            </label>
+            <label>
+              Максимальный номер tier (если известен)
+              <input type="number" name={`ruleTier${i}`} min="1" />
+            </label>
+          </div>
+        ))}
+        <label>
+          Минимум суммы fire + cold + lightning resistance
+          <input type="number" name="totalRes" min="0" />
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Метод и исходные цены</legend>
+        <label>
+          <input type="checkbox" name="useMethod" /> Рассчитывать метод
+        </label>
+        <p>
+          Поддерживается повтор на одной неизменной базе, без завершающих затрат
+          или восстановления. Иные методы оставьте нерассчитанными.
+        </p>
+        <label>
+          <input type="checkbox" name="sameBaseConfirmed" /> Подтверждаю: каждая
+          попытка сохраняет ту же базу; восстановление, замена и завершающие
+          операции не нужны.
+        </label>
+        <label>
+          Название метода
+          <input name="methodName" />
+        </label>
+        <label>
+          Источник метода
+          <input name="methodURL" type="url" />
+        </label>
+        <label>
+          Шаги, по одному на строку
+          <textarea name="methodSteps" />
+        </label>
+        <label>
+          Допущения, вероятность и источник оценки
+          <textarea name="methodAssumptions" />
+        </label>
+        <label>
+          <input type="checkbox" name="rulesComplete" /> Правила покрывают все
+          обязательные требования и метод применим
+        </label>
+        <label>
+          Вид оценки
+          <select name="successMode">
+            <option value="probability">
+              Вероятность за попытку от 0 до 1
+            </option>
+            <option value="expected_attempts">Ожидаемое число попыток</option>
+          </select>
+        </label>
+        <label>
+          Значение оценки
+          <input type="number" step="any" name="successValue" />
+        </label>
+        <label>
+          Валюта
+          <select name="methodCurrency">
+            <option value="chaos">chaos</option>
+            <option value="divine">divine</option>
+          </select>
+        </label>
+        <label>
+          Вид данных
+          <select name="priceKind">
+            <option value="observed">Реальные</option>
+            <option value="demo">DEMO</option>
+          </select>
+        </label>
+        <label>
+          Время цен
+          <input type="datetime-local" name="priceTime" />
+        </label>
+        <label>
+          Источник цен
+          <input type="url" name="priceURL" />
+        </label>
+        <label>
+          Примечание к ценам
+          <input name="priceNotes" />
+        </label>
+        <label>
+          Цена базы
+          <input type="number" step="any" min="0" name="basePrice" />
+        </label>
+        {Array.from({ length: materialCount }, (_, i) => (
+          <div className="market-form-grid" key={i}>
+            <label>
+              ID материала
+              <input name={`materialId${i}`} placeholder="essence-of-greed" />
+            </label>
+            <label>
+              Название
+              <input name={`materialLabel${i}`} />
+            </label>
+            <label>
+              На попытку
+              <input type="number" step="any" name={`materialQuantity${i}`} />
+            </label>
+            <label>
+              Цена за единицу
+              <input type="number" step="any" name={`materialPrice${i}`} />
+            </label>
+            <label>
+              Время цены материала
+              <input type="datetime-local" name={`materialTime${i}`} />
+            </label>
+            <label>
+              Источник материала
+              <input type="url" name={`materialURL${i}`} />
+            </label>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => setMaterialCount((count) => Math.min(20, count + 1))}
+        >
+          Добавить материал
+        </button>
+      </fieldset>
       <label>
         Ссылки на источники, каждая с новой строки
         <textarea name="sources" rows={3} placeholder="https://…" />
@@ -1306,75 +1619,473 @@ function SnapshotForm({
     }
   }
   return (
+    <>
+      <ManualSnapshotForm target={target} onSaved={onSaved} />
+      <details>
+        <summary>Дополнительно: импорт JSON</summary>
+        <form className="market-form" onSubmit={(event) => void submit(event)}>
+          <p>
+            Импортируйте выбранные сопоставимые объявления. В одном снимке —
+            одна валюта и до 1000 предложений. Цена объявления не означает
+            состоявшуюся продажу.
+          </p>
+          <div className="market-import-context">
+            <strong>{target.league}</strong>
+            <span>
+              Патч {target.patch} · профиль v{target.version}
+            </span>
+          </div>
+          <div className="market-import-actions">
+            <button
+              type="button"
+              className="market-button"
+              onClick={() => setJson(JSON.stringify(template(), null, 2))}
+            >
+              Вставить учебный шаблон
+            </button>
+            <label className="market-file-label">
+              Загрузить JSON
+              <input
+                type="file"
+                accept=".json,application/json"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 2 * 1024 * 1024) {
+                    setError('Максимальный размер файла — 2 МБ.');
+                    return;
+                  }
+                  void file
+                    .text()
+                    .then(setJson)
+                    .catch((cause) => setError(errorMessage(cause)));
+                }}
+              />
+            </label>
+          </div>
+          <label>
+            Снимок в формате JSON
+            <textarea
+              className="market-json-input"
+              required
+              value={json}
+              rows={14}
+              onChange={(event) => setJson(event.target.value)}
+              spellCheck={false}
+            />
+          </label>
+          <p className="market-footnote">
+            capturedAt — время наблюдения. Для настоящих данных укажите
+            dataKind: observed; учебные demo не участвуют в аналитике. Для
+            успешно проверенного поиска без предложений передайте listings: [] и
+            emptyResult: true.
+          </p>
+          {error && (
+            <div className="market-notice market-notice--warning" role="alert">
+              {error}
+            </div>
+          )}
+          <button
+            type="submit"
+            className="market-button market-button--primary"
+            disabled={pending}
+          >
+            {pending ? 'Сохраняем…' : 'Сохранить снимок'}
+          </button>
+        </form>
+      </details>
+    </>
+  );
+}
+
+function BeltPriceForm({
+  target,
+  onSaved,
+}: {
+  target: MarketTarget;
+  onSaved: () => Promise<void>;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<
+    import('@poe-worksmith/contracts').BeltPriceUpdate[]
+  >([]);
+  useEffect(() => {
+    void marketClient
+      .priceHistory(target.id)
+      .then(setHistory)
+      .catch((cause: unknown) => setError(errorMessage(cause)));
+  }, [target.id]);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      const form = new FormData(event.currentTarget);
+      const value = (name: string) => String(form.get(name) ?? '').trim();
+      const dataKind =
+        value('kind') === 'demo' ? ('demo' as const) : ('observed' as const);
+      const currency =
+        value('currency') === 'divine'
+          ? ('divine' as const)
+          : ('chaos' as const);
+      const makePrice = (amount: string, time: string, url: string) => ({
+        source: 'manual' as const,
+        amount: Number(amount),
+        currency,
+        league: target.league,
+        patch: target.patch,
+        capturedAt: new Date(time).toISOString(),
+        dataKind,
+        url,
+        notes: value('notes'),
+      });
+      const method = target.beltCraftMethod;
+      if (!method) throw new Error('Сначала укажите метод крафта.');
+      await marketClient.savePrices({
+        targetId: target.id,
+        dataKind,
+        basePrice: makePrice(value('base'), value('time'), value('url')),
+        materialPrices: Object.fromEntries(
+          method.materials.map((m) => [
+            m.id,
+            makePrice(
+              value(`material-${m.id}`),
+              value(`material-time-${m.id}`),
+              value(`material-url-${m.id}`),
+            ),
+          ]),
+        ),
+      });
+      await onSaved();
+    } catch (cause) {
+      setError(errorMessage(cause));
+    }
+  }
+  return (
     <form className="market-form" onSubmit={(event) => void submit(event)}>
       <p>
-        Импортируйте выбранные сопоставимые объявления. В одном снимке — одна
-        валюта и до 1000 предложений. Цена объявления не означает состоявшуюся
-        продажу.
+        Новое наблюдение сохраняется отдельно; исходная цель и история не
+        изменяются. Укажите реальные или DEMO-данные.
       </p>
-      <div className="market-import-context">
-        <strong>{target.league}</strong>
-        <span>
-          Патч {target.patch} · профиль v{target.version}
-        </span>
-      </div>
-      <div className="market-import-actions">
-        <button
-          type="button"
-          className="market-button"
-          onClick={() => setJson(JSON.stringify(template(), null, 2))}
-        >
-          Вставить учебный шаблон
-        </button>
-        <label className="market-file-label">
-          Загрузить JSON
-          <input
-            type="file"
-            accept=".json,application/json"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
-              if (file.size > 2 * 1024 * 1024) {
-                setError('Максимальный размер файла — 2 МБ.');
-                return;
-              }
-              void file
-                .text()
-                .then(setJson)
-                .catch((cause) => setError(errorMessage(cause)));
-            }}
-          />
-        </label>
-      </div>
       <label>
-        Снимок в формате JSON
-        <textarea
-          className="market-json-input"
-          required
-          value={json}
-          rows={14}
-          onChange={(event) => setJson(event.target.value)}
-          spellCheck={false}
-        />
+        Вид данных
+        <select name="kind">
+          <option value="observed">Реальные</option>
+          <option value="demo">DEMO</option>
+        </select>
       </label>
-      <p className="market-footnote">
-        capturedAt — время наблюдения. Для настоящих данных укажите dataKind:
-        observed; учебные demo не участвуют в аналитике. Для успешно
-        проверенного поиска без предложений передайте listings: [] и
-        emptyResult: true.
+      <label>
+        Валюта
+        <select name="currency">
+          <option value="chaos">chaos</option>
+          <option value="divine">divine</option>
+        </select>
+      </label>
+      <label>
+        Время цен
+        <input required type="datetime-local" name="time" />
+      </label>
+      <label>
+        Источник цен
+        <input required type="url" name="url" />
+      </label>
+      <label>
+        Основание оценки
+        <input required name="notes" />
+      </label>
+      <label>
+        Цена подходящей базы
+        <input required type="number" step="any" min="0.00000001" name="base" />
+      </label>
+      {target.beltCraftMethod?.materials.map((material) => (
+        <fieldset key={material.id}>
+          <legend>{material.label}</legend>
+          <label>
+            Цена
+            <input
+              required
+              type="number"
+              step="any"
+              min="0.00000001"
+              name={`material-${material.id}`}
+            />
+          </label>
+          <label>
+            Время наблюдения
+            <input
+              required
+              type="datetime-local"
+              name={`material-time-${material.id}`}
+            />
+          </label>
+          <label>
+            Источник
+            <input required type="url" name={`material-url-${material.id}`} />
+          </label>
+        </fieldset>
+      ))}
+      {error && <p role="alert">{error}</p>}
+      <button type="submit">Сохранить цены</button>
+      <details>
+        <summary>История цен ({history.length})</summary>
+        <ul>
+          {history.map((item) => (
+            <li key={item.id}>
+              {displayDate(item.createdAt)} · {item.dataKind} ·{' '}
+              {item.basePrice.source === 'manual'
+                ? `${item.basePrice.amount} ${item.basePrice.currency}`
+                : 'economy'}
+              {item.basePrice.source === 'manual' && (
+                <>
+                  {' '}
+                  · данные на {displayDate(item.basePrice.capturedAt)} ·{' '}
+                  <a href={item.basePrice.url} target="_blank" rel="noreferrer">
+                    источник
+                  </a>{' '}
+                  · {item.basePrice.notes}
+                </>
+              )}
+              <ul>
+                {Object.entries(item.materialPrices).map(([id, price]) => (
+                  <li key={id}>
+                    {id}:{' '}
+                    {price.source === 'manual'
+                      ? `${price.amount} ${price.currency}`
+                      : `economy ${price.snapshotId} / ${price.lineId}`}
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </form>
+  );
+}
+
+function ManualSnapshotForm({
+  target,
+  onSaved,
+}: {
+  target: MarketTarget;
+  onSaved: () => Promise<void>;
+}) {
+  const [count, setCount] = useState(1);
+  const [error, setError] = useState<string | null>(null);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      const form = new FormData(event.currentTarget);
+      const v = (name: string) => String(form.get(name) ?? '').trim();
+      const currency =
+        v('currency') === 'divine' ? ('divine' as const) : ('chaos' as const);
+      const dataKind =
+        v('kind') === 'demo' ? ('demo' as const) : ('observed' as const);
+      const listings = Array.from({ length: count }, (_, i) => {
+        const get = (field: string) => v(`${field}-${i}`);
+        const mods = (target.beltRules?.mods ?? []).flatMap((mod) =>
+          get(`mod-${mod.id}`)
+            ? [
+                {
+                  id: mod.id,
+                  value: Number(get(`mod-${mod.id}`)),
+                  ...(get(`tier-${mod.id}`)
+                    ? { tier: Number(get(`tier-${mod.id}`)) }
+                    : {}),
+                },
+              ]
+            : [],
+        );
+        const res = ['fire', 'cold', 'lightning'].map(get);
+        const item = {
+          baseType: get('base'),
+          league: target.league,
+          patch: target.patch,
+          currency,
+          seller: get('seller'),
+          status: get('status'),
+          ...(get('rarity') ? { rarity: get('rarity') } : {}),
+          ...(get('ilevel') ? { itemLevel: Number(get('ilevel')) } : {}),
+          ...(get('quality') ? { quality: Number(get('quality')) } : {}),
+          ...(get('corrupted')
+            ? { corrupted: get('corrupted') === 'yes' }
+            : {}),
+          ...(get('influences') !== '' && get('influences') !== 'unknown'
+            ? {
+                influences:
+                  get('influences') === 'none'
+                    ? []
+                    : get('influences')
+                        .split(',')
+                        .map((value) => value.trim())
+                        .filter(Boolean),
+              }
+            : {}),
+          mods,
+          ...(res.every((value) => value !== '')
+            ? {
+                elementalResistances: {
+                  fire: Number(res[0]),
+                  cold: Number(res[1]),
+                  lightning: Number(res[2]),
+                },
+              }
+            : {}),
+          ...(get('raw') ? { rawText: get('raw') } : {}),
+          ...(get('listingURL') ? { listingUrl: get('listingURL') } : {}),
+        };
+        return {
+          ...(get('id') ? { externalId: get('id') } : {}),
+          price: Number(get('price')),
+          item,
+        };
+      });
+      const input = marketSnapshotImportSchema.parse({
+        targetId: target.id,
+        capturedAt: new Date(v('time')).toISOString(),
+        sourceUrl: v('url'),
+        currency,
+        dataKind,
+        listings,
+      });
+      await marketClient.importSnapshot(input);
+      await onSaved();
+    } catch (cause) {
+      setError(errorMessage(cause));
+    }
+  }
+  return (
+    <form className="market-form" onSubmit={(event) => void submit(event)}>
+      <p>
+        Введите объявления вручную из разрешённого источника. Пустые свойства
+        останутся неизвестными; сумма сопротивлений считается только при наличии
+        всех трёх значений.
       </p>
-      {error && (
-        <div className="market-notice market-notice--warning" role="alert">
-          {error}
-        </div>
-      )}
+      <label>
+        Источник
+        <input required type="url" name="url" />
+      </label>
+      <label>
+        Время наблюдения
+        <input required type="datetime-local" name="time" />
+      </label>
+      <label>
+        Валюта
+        <select name="currency">
+          <option value="chaos">chaos</option>
+          <option value="divine">divine</option>
+        </select>
+      </label>
+      <label>
+        Тип данных
+        <select name="kind">
+          <option value="observed">Реальные</option>
+          <option value="demo">DEMO</option>
+        </select>
+      </label>
+      <label>
+        <input required type="checkbox" /> Подтверждаю, что объявления относятся
+        к {target.league} и патчу {target.patch}
+      </label>
+      {Array.from({ length: count }, (_, i) => (
+        <fieldset key={i}>
+          <legend>Объявление {i + 1}</legend>
+          <label>
+            Идентификатор
+            <input name={`id-${i}`} />
+          </label>
+          <label>
+            Продавец
+            <input required name={`seller-${i}`} />
+          </label>
+          <label>
+            Ссылка на объявление
+            <input type="url" name={`listingURL-${i}`} />
+          </label>
+          <label>
+            Цена предложения
+            <input
+              required
+              type="number"
+              min="0.00000001"
+              step="any"
+              name={`price-${i}`}
+            />
+          </label>
+          <label>
+            База
+            <input required name={`base-${i}`} />
+          </label>
+          <label>
+            Редкость
+            <select name={`rarity-${i}`} defaultValue="">
+              <option value="">Неизвестно</option>
+              <option value="rare">Rare</option>
+              <option value="unique">Unique</option>
+            </select>
+          </label>
+          <label>
+            Item level
+            <input type="number" min="1" max="100" name={`ilevel-${i}`} />
+          </label>
+          <label>
+            Качество, %
+            <input type="number" min="0" max="100" name={`quality-${i}`} />
+          </label>
+          <label>
+            Осквернение
+            <select name={`corrupted-${i}`} defaultValue="">
+              <option value="">Неизвестно</option>
+              <option value="no">Нет</option>
+              <option value="yes">Да</option>
+            </select>
+          </label>
+          <label>
+            Влияния (введите none для отсутствия)
+            <input name={`influences-${i}`} defaultValue="unknown" />
+          </label>
+          <label>
+            Статус
+            <select name={`status-${i}`}>
+              <option value="unknown">Неизвестно</option>
+              <option value="listed">В продаже</option>
+              <option value="delisted">Снято</option>
+            </select>
+          </label>
+          {target.beltRules?.mods.map((mod) => (
+            <div className="market-form-grid" key={mod.id}>
+              <label>
+                {mod.id}
+                <input type="number" step="any" name={`mod-${mod.id}-${i}`} />
+              </label>
+              <label>
+                Tier {mod.id}
+                <input type="number" min="1" name={`tier-${mod.id}-${i}`} />
+              </label>
+            </div>
+          ))}
+          {target.beltRules?.version === 2 && (
+            <div className="market-form-grid">
+              {['fire', 'cold', 'lightning'].map((element) => (
+                <label key={element}>
+                  {element} сопротивление
+                  <input type="number" step="any" name={`${element}-${i}`} />
+                </label>
+              ))}
+            </div>
+          )}
+          <label>
+            Исходный текст предмета (необязательно)
+            <textarea name={`raw-${i}`} />
+          </label>
+        </fieldset>
+      ))}
       <button
-        type="submit"
-        className="market-button market-button--primary"
-        disabled={pending}
+        type="button"
+        onClick={() => setCount((value) => Math.min(100, value + 1))}
       >
-        {pending ? 'Сохраняем…' : 'Сохранить снимок'}
+        Добавить объявление
       </button>
+      {error && <p role="alert">{error}</p>}
+      <button type="submit">Сохранить объявления</button>
     </form>
   );
 }

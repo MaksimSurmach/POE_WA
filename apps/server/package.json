@@ -27,7 +27,8 @@
     "test:integration": "vitest run src/*.integration.test.ts src/repositories/*.integration.test.ts --no-file-parallelism",
     "test:e2e:backend": "vitest run src/fullRefresh.e2e.integration.test.ts --no-file-parallelism",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "market:seed-belt-demo": "node --env-file-if-exists=../../.env.development dist/entrypoints/seedBeltDemo.js"
+    "market:seed-belt-demo": "node --env-file-if-exists=../../.env.development dist/entrypoints/seedBeltDemo.js",
+    "market:import-belt-evidence": "node --env-file-if-exists=../../.env.development dist/entrypoints/importBeltEvidence.js"
   },
   "dependencies": {
     "@poe-worksmith/contracts": "workspace:*",
