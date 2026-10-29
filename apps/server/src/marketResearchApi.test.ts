@@ -6,6 +6,7 @@ import pino from 'pino';
 import { describe, expect, it } from 'vitest';
 
 import { buildApi } from './api.js';
+import { beltDemoFixture } from './beltDemoFixture.js';
 import {
   type MarketResearchRepository,
   summarizeMarketSnapshot,
@@ -65,6 +66,49 @@ function testApi(repository?: MarketResearchRepository) {
 }
 
 describe('market workbench API', () => {
+  it('ranks synthetic evidence through import and opportunity endpoint', async () => {
+    const api = testApi(inMemoryTestRepository());
+    try {
+      const fixture = beltDemoFixture();
+      const created = await api.inject({
+        method: 'POST',
+        url: '/api/market/targets',
+        payload: fixture.target,
+      });
+      expect(created.statusCode).toBe(201);
+      const imported = await api.inject({
+        method: 'POST',
+        url: '/api/market/snapshots/import',
+        payload: fixture.observation(created.json().data.id),
+      });
+      expect(imported.statusCode).toBe(201);
+      const response = await api.inject({
+        method: 'GET',
+        url: '/api/market/belt-opportunities?kind=demo',
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().data[0]).toMatchObject({
+        status: 'ACTIONABLE',
+        dataKind: 'demo',
+        calculation: {
+          expectedCraftCost: '18',
+          askingPrice: '40',
+          spread: '22',
+        },
+      });
+      const live = await api.inject({
+        method: 'GET',
+        url: '/api/market/belt-opportunities?kind=observed',
+      });
+      expect(live.json().data[0]).toMatchObject({
+        status: 'INSUFFICIENT_DATA',
+        calculation: null,
+      });
+    } finally {
+      await api.close();
+    }
+  });
+
   it('imports and analyzes a synthetic belt through the API without changing its raw payload', async () => {
     const api = testApi(inMemoryTestRepository());
     try {

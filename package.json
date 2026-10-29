@@ -36,7 +36,8 @@
     "test:contracts": "pnpm --filter @poe-worksmith/server test:contracts",
     "test:integration": "pnpm -r --if-present test:integration",
     "test:e2e:backend": "pnpm --filter @poe-worksmith/server test:e2e:backend",
-    "typecheck": "pnpm -r --if-present typecheck"
+    "typecheck": "pnpm -r --if-present typecheck",
+    "market:seed-belt-demo": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:seed-belt-demo"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

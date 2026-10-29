@@ -134,6 +134,7 @@ export function buildApi(
     api,
     options.marketResearch,
     Boolean(options.marketEconomy?.client),
+    options.marketEconomy?.repository,
   );
   registerMarketEconomyRoutes(api, options.marketEconomy);
 

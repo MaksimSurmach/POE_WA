@@ -1,4 +1,5 @@
 import {
+  beltOpportunitiesResponseSchema,
   marketResearchSnapshotResponseSchema,
   marketSnapshotImportSchema,
   marketTargetResponseSchema,
@@ -15,6 +16,8 @@ import type { Logger } from 'pino';
 import { z } from 'zod';
 
 import { analyzeBeltSnapshot } from './beltComparability.js';
+import { evaluateBeltOpportunity } from './beltOpportunity.js';
+import type { MarketEconomyRepository } from './marketEconomy.js';
 
 import {
   createImportedMarketSnapshot,
@@ -33,6 +36,7 @@ export function registerMarketResearchRoutes(
   >,
   repository?: MarketResearchRepository,
   economyConfigured = false,
+  economyRepository?: MarketEconomyRepository,
 ) {
   const sources = marketSourceCapabilities.map((source) =>
     source.id === 'poe_ninja_economy' && economyConfigured
@@ -78,6 +82,50 @@ export function registerMarketResearchRoutes(
       return unavailable();
     }
   });
+
+  api.get<{ Querystring: { kind?: string } }>(
+    '/api/market/belt-opportunities',
+    async (request) => {
+      const kind = request.query.kind === 'demo' ? 'demo' : 'observed';
+      const repo = requireRepository(repository);
+      const [targets, summaries] = await persist(() =>
+        Promise.all([repo.listTargets(), repo.listSnapshots()]),
+      );
+      const beltTargets = targets
+        .filter((target) => target.slot.toLowerCase() === 'belt')
+        .slice(0, 100);
+      const opportunities = await persist(() =>
+        Promise.all(
+          beltTargets.map(async (target) => {
+            const latest = summaries
+              .filter(
+                (snapshot) =>
+                  snapshot.targetId === target.id &&
+                  snapshot.targetDigest === target.digest &&
+                  snapshot.dataKind === kind,
+              )
+              .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))[0];
+            const snapshot = latest ? await repo.findSnapshot(latest.id) : null;
+            if (latest && !snapshot) throw new Error('Snapshot unavailable');
+            return evaluateBeltOpportunity(target, snapshot, economyRepository);
+          }),
+        ),
+      );
+      opportunities.sort((a, b) =>
+        a.calculation && b.calculation
+          ? Number(b.calculation.spread) - Number(a.calculation.spread)
+          : a.calculation
+            ? -1
+            : b.calculation
+              ? 1
+              : a.name.localeCompare(b.name),
+      );
+      return beltOpportunitiesResponseSchema.parse({
+        correlationId: request.id,
+        data: opportunities,
+      });
+    },
+  );
 
   api.post(
     '/api/market/targets',

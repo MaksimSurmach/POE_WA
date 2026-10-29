@@ -1,5 +1,6 @@
 import {
   beltAnalysisResponseSchema,
+  beltOpportunitiesResponseSchema,
   marketWorkbenchResponseSchema,
   marketTargetResponseSchema,
   marketResearchSnapshotResponseSchema,
@@ -37,6 +38,11 @@ async function request(path: string, body?: unknown): Promise<unknown> {
 }
 
 export const marketClient = {
+  async opportunities(kind: 'observed' | 'demo') {
+    return beltOpportunitiesResponseSchema.parse(
+      await request(`/api/market/belt-opportunities?kind=${kind}`),
+    ).data;
+  },
   async load() {
     return marketWorkbenchResponseSchema.parse(await request('/api/market'))
       .data;

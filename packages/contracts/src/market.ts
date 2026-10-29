@@ -34,6 +34,70 @@ export const beltRulesSchema = z.strictObject({
     .max(30),
 });
 
+const beltPriceEvidenceSchema = z.discriminatedUnion('source', [
+  z.strictObject({
+    source: z.literal('manual'),
+    amount: z.number().finite().positive(),
+    currency: z.enum(['chaos', 'divine']),
+    league: text(100),
+    patch: text(50),
+    capturedAt: z.iso.datetime(),
+    dataKind: z.enum(['observed', 'demo']),
+    url: httpsUrl,
+    notes: text(1000),
+  }),
+  z.strictObject({
+    source: z.literal('economy'),
+    snapshotId: z.uuid(),
+    lineId: text(500),
+    patch: text(50),
+  }),
+]);
+
+export const beltCraftMethodSchema = z
+  .strictObject({
+    version: z.literal(1),
+    name: text(),
+    sourceUrl: httpsUrl,
+    assumptions: text(2000),
+    steps: z.array(text(500)).min(1).max(20),
+    rulesComplete: z.boolean(),
+    repeatOnSameBase: z.literal(true),
+    success: z.discriminatedUnion('mode', [
+      z.strictObject({
+        mode: z.literal('probability'),
+        probability: z.number().gt(0).lte(1),
+      }),
+      z.strictObject({
+        mode: z.literal('expected_attempts'),
+        expectedAttempts: z.number().gte(1).finite(),
+      }),
+    ]),
+    basePrice: beltPriceEvidenceSchema,
+    materials: z
+      .array(
+        z.strictObject({
+          id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+          label: text(),
+          quantityPerAttempt: z.number().finite().positive(),
+          price: beltPriceEvidenceSchema,
+        }),
+      )
+      .min(1)
+      .max(20),
+  })
+  .superRefine((method, context) => {
+    if (
+      new Set(method.materials.map((material) => material.id)).size !==
+      method.materials.length
+    )
+      context.addIssue({
+        code: 'custom',
+        path: ['materials'],
+        message: 'Duplicate material IDs',
+      });
+  });
+
 /** A user-curated demand hypothesis. Mod text is not an executable trade query. */
 export const marketTargetInputSchema = z.strictObject({
   name: text(),
@@ -51,6 +115,7 @@ export const marketTargetInputSchema = z.strictObject({
   corrupted: z.boolean().nullable().optional(),
   sources: z.array(marketSourceEvidenceSchema).max(30),
   beltRules: beltRulesSchema.optional(),
+  beltCraftMethod: beltCraftMethodSchema.optional(),
 });
 
 export const marketTargetSchema = marketTargetInputSchema.extend({
@@ -321,3 +386,37 @@ export const beltAnalysisResponseSchema = z.strictObject({
   data: beltAnalysisSchema,
 });
 export type BeltAnalysis = z.infer<typeof beltAnalysisSchema>;
+
+export const beltOpportunitySchema = z.strictObject({
+  targetId: z.uuid(),
+  targetDigest: z.string(),
+  name: z.string(),
+  league: z.string(),
+  patch: z.string(),
+  builds: z.array(z.string()),
+  sources: z.array(marketSourceEvidenceSchema),
+  rules: beltRulesSchema.nullable(),
+  method: beltCraftMethodSchema.nullable(),
+  snapshotId: z.uuid().nullable(),
+  dataKind: z.enum(['observed', 'demo']).nullable(),
+  capturedAt: z.iso.datetime().nullable(),
+  sourceUrl: httpsUrl.nullable(),
+  comparison: beltAnalysisSchema.nullable(),
+  priceEvidence: z.array(z.json()),
+  calculation: z
+    .strictObject({
+      expectedCraftCost: z.string(),
+      askingPrice: z.string(),
+      spread: z.string(),
+      currency: z.string(),
+      breakdown: z.json(),
+    })
+    .nullable(),
+  status: z.enum(['RESEARCH', 'INSUFFICIENT_DATA', 'ACTIONABLE']),
+  reasons: z.array(z.string()),
+});
+export const beltOpportunitiesResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: z.array(beltOpportunitySchema),
+});
+export type BeltOpportunity = z.infer<typeof beltOpportunitySchema>;

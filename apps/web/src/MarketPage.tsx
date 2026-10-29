@@ -8,6 +8,7 @@ import {
 import {
   marketSnapshotImportSchema,
   marketTargetInputSchema,
+  type BeltOpportunity,
   type MarketTarget,
   type MarketWorkbenchResponse,
   type MarketResearchSnapshotSummary,
@@ -55,6 +56,11 @@ export function MarketPage() {
   const [search, setSearch] = useState('');
   const [league, setLeague] = useState('all');
   const [selectedId, setSelectedId] = useState('');
+  const [opportunities, setOpportunities] = useState<BeltOpportunity[]>([]);
+  const [opportunityKind, setOpportunityKind] = useState<'observed' | 'demo'>(
+    'observed',
+  );
+  const [opportunityError, setOpportunityError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<'target' | 'snapshot' | null>(null);
   const [rawSnapshot, setRawSnapshot] = useState<unknown | null>(null);
   const [beltAnalysis, setBeltAnalysis] = useState<
@@ -75,6 +81,23 @@ export function MarketPage() {
   useEffect(() => {
     void reload();
   }, []);
+
+  useEffect(() => {
+    if (!data || data.storage !== 'postgres') return;
+    let active = true;
+    setOpportunityError(null);
+    void marketClient
+      .opportunities(opportunityKind)
+      .then((value) => {
+        if (active) setOpportunities(value);
+      })
+      .catch((cause: unknown) => {
+        if (active) setOpportunityError(errorMessage(cause));
+      });
+    return () => {
+      active = false;
+    };
+  }, [data, opportunityKind]);
 
   const workbench = demo ? marketDemo : data;
   const kind = demo ? 'demo' : 'observed';
@@ -169,6 +192,121 @@ export function MarketPage() {
           интерфейса.
         </div>
       ) : null}
+
+      {!demo && data?.storage === 'postgres' && (
+        <section aria-label="Пояса для крафта" className="market-notice">
+          <h2>Пояса для крафта</h2>
+          <p>
+            Цена предложения не означает продажу. Числовой разрыв не гарантирует
+            прибыль. Расчёт использует один и тот же базовый предмет при
+            повторах.
+          </p>
+          <label>
+            Данные:{' '}
+            <select
+              value={opportunityKind}
+              onChange={(event) =>
+                setOpportunityKind(
+                  event.target.value === 'demo' ? 'demo' : 'observed',
+                )
+              }
+            >
+              <option value="observed">Реальные наблюдения</option>
+              <option value="demo">DEMO · синтетические данные</option>
+            </select>
+          </label>
+          {opportunityError && (
+            <p role="alert">Не удалось загрузить анализ: {opportunityError}</p>
+          )}
+          {opportunities.length === 0 && !opportunityError && (
+            <p>
+              Нет сохранённых целей для поясов. Запустите импорт библиотеки.
+            </p>
+          )}
+          {opportunities.map((opportunity) => (
+            <article key={opportunity.targetId}>
+              <h3>
+                {opportunity.name} · {opportunity.status}{' '}
+                {opportunityKind === 'demo' ? '· DEMO' : ''}
+              </h3>
+              <p>
+                {opportunity.league} · {opportunity.patch} ·{' '}
+                {opportunity.builds.join(', ')} ·{' '}
+                {opportunity.capturedAt
+                  ? displayDate(opportunity.capturedAt)
+                  : 'нет наблюдений'}
+              </p>
+              <p>
+                Затраты:{' '}
+                {opportunity.calculation
+                  ? `${opportunity.calculation.expectedCraftCost} ${opportunity.calculation.currency}`
+                  : '—'}{' '}
+                · Цена предложения:{' '}
+                {opportunity.calculation
+                  ? `${opportunity.calculation.askingPrice} ${opportunity.calculation.currency}`
+                  : '—'}{' '}
+                · Разрыв:{' '}
+                {opportunity.calculation
+                  ? `${opportunity.calculation.spread} ${opportunity.calculation.currency}`
+                  : '—'}
+              </p>
+              <p>
+                {opportunity.reasons.join(' ') ||
+                  'Риск: ручная выборка и заявленные допущения метода.'}
+              </p>
+              <details>
+                <summary>Источники, правила и расчёт</summary>
+                <ul>
+                  {opportunity.sources.map((source) => (
+                    <li key={source.url}>
+                      <a href={source.url} target="_blank" rel="noreferrer">
+                        {source.title}
+                      </a>{' '}
+                      {source.notes}
+                    </li>
+                  ))}
+                </ul>
+                {opportunity.sourceUrl && (
+                  <a
+                    href={opportunity.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Источник снимка
+                  </a>
+                )}
+                {opportunity.snapshotId && (
+                  <button
+                    type="button"
+                    className="market-link-button"
+                    onClick={() => {
+                      const snapshot = snapshots.find(
+                        (entry) => entry.id === opportunity.snapshotId,
+                      );
+                      if (snapshot) void showSnapshot(snapshot);
+                    }}
+                  >
+                    Объявления и причины
+                  </button>
+                )}
+                <pre className="market-json">
+                  {JSON.stringify(
+                    {
+                      rules: opportunity.rules,
+                      method: opportunity.method,
+                      priceEvidence: opportunity.priceEvidence,
+                      calculation: opportunity.calculation,
+                      comparison: opportunity.comparison,
+                    },
+                    null,
+                    2,
+                  )}
+                </pre>
+              </details>
+            </article>
+          ))}
+        </section>
+      )}
 
       <section className="market-metrics" aria-label="Состояние исследования">
         <Metric
@@ -572,21 +710,24 @@ export function MarketPage() {
           </p>
           {beltAnalysis && (
             <section>
-              <h3>Сопоставимость · {beltAnalysis.status}</h3>
+              <h3>Сопоставимость объявлений</h3>
               <p>
                 Версия: {beltAnalysis.algorithm}; независимых продавцов:{' '}
                 {beltAnalysis.independentSellers}; подтверждено:{' '}
                 {beltAnalysis.confirmedListings}.
               </p>
               <p>
-                Оценка цены предложения:{' '}
+                Нижний квартиль цены предложения:{' '}
                 {displayPrice(
                   beltAnalysis.conservativeAskingPrice,
                   beltAnalysis.currency,
                 )}
                 . {beltAnalysis.selectionBias}
               </p>
-              <p>{beltAnalysis.reasons.join(' ')}</p>
+              <p>
+                Сравнение показывает только объявления; расчёт метода находится
+                в панели поясов.
+              </p>
               <ul>
                 {beltAnalysis.rows.map((row) => (
                   <li key={row.index}>
@@ -948,6 +1089,9 @@ function TargetForm({
           .split(',')
           .map((influence) => influence.trim())
           .filter(Boolean),
+        ...(value('beltCraftMethod')
+          ? { beltCraftMethod: JSON.parse(value('beltCraftMethod')) }
+          : {}),
         ...(value('beltRules')
           ? { beltRules: JSON.parse(value('beltRules')) }
           : {}),
@@ -1082,6 +1226,14 @@ function TargetForm({
         <small>
           Только явно проверенные правила; названия свойств в импорте должны
           совпадать. Пустое поле отключает подтверждение совпадений.
+        </small>
+      </label>
+      <label>
+        Метод и цены (JSON, необязательно)
+        <textarea name="beltCraftMethod" rows={4} />
+        <small>
+          Укажите источник метода, вероятность, допущения и датированные цены.
+          Пример в docs/max-1287-demo.md.
         </small>
       </label>
       <label>

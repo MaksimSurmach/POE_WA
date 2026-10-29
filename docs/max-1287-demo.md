@@ -1,47 +1,36 @@
-# MAX-1287: partial belt research demo
+# MAX-1287: belt opportunity demo
 
-Two guide-backed Stygian Vise research profiles are available through `pnpm market:seed-library`. Their guides do not specify all thresholds, so they have no executable belt rules. They cannot produce confirmed matches until a user creates a separately sourced, explicit target. Original catalog entries and stored snapshots are preserved.
+## What is real
 
-## Synthetic import walkthrough
+`pnpm market:seed-library` adds three source-linked rare Stygian Vise research profiles alongside the existing catalog. The guides describe Lacerate Gladiator, Spectre Summoner, and Flicker Strike Slayer. The first two do not give quantitative thresholds; the third includes life, total elemental resistances and attack elemental damage, but does not establish item level, influence or quality. Their executable rules and craft probabilities therefore remain unverified. These are research leads, not proven opportunities.
 
-Start the app with PostgreSQL (see README), create a Belt target, and set league `Demo`, patch `fixture`, base `Stygian Vise`. The following **synthetic** rules can be pasted into the optional rules field:
+Manual rare-listing imports preserve raw payloads. Analysis v1 records MATCH/PARTIAL/REJECT and reasons. Unknown properties are not a match. Listings marked delisted are not sales. The opportunity endpoint considers only confirmed listings from one snapshot, deduplicates sellers, requires at least five and a snapshot no older than 24 hours. It uses the cheapest confirmed independent seller as a conservative **asking price**, not a sale price. Samples are manually selected and may be biased.
 
-```json
-{
-  "version": 1,
-  "minItemLevel": 84,
-  "influences": [],
-  "corrupted": false,
-  "mods": [{ "id": "life", "minValue": 80, "maxTier": 2 }]
-}
+## Reproducible synthetic demo
+
+With the configured PostgreSQL database and app (see README):
+
+```sh
+pnpm market:seed-library
+pnpm market:seed-belt-demo
 ```
 
-Open the target's import dialog. Replace the sample rows with the example below, retain the target ID and current captured time supplied by the form, and keep `dataKind` as `demo`. Neither the rule nor the prices are a real build or market observation.
+The second command creates an explicitly marked DEMO target and five synthetic listings. It is idempotent within a UTC day and never deletes prior records. Start the app, select **DEMO · синтетические данные** in the belt panel and open the result. The synthetic method assumes independent 25% success, repeats on one reusable base, uses one fixture orb per attempt and has no recovery, fees or finishing cost. The synthetic input prices are 10 chaos for the base, 2 chaos per orb and 40–60 chaos for five offers. Existing recipe economics produces 4 expected attempts, 18 chaos expected cost, 40 chaos conservative asking price and 22 chaos indicative spread. None of these values are real market data or a profit guarantee. Open the evidence details and snapshot to inspect the assumptions and row-level matching.
 
-```json
-{
-  "externalId": "fixture-1",
-  "price": 10,
-  "item": {
-    "baseType": "Stygian Vise",
-    "rarity": "rare",
-    "league": "Demo",
-    "patch": "fixture",
-    "currency": "chaos",
-    "itemLevel": 84,
-    "corrupted": false,
-    "influences": [],
-    "seller": "fixture-seller",
-    "status": "listed",
-    "mods": [{ "id": "life", "value": 90, "tier": 2 }]
-  }
-}
-```
+The target form accepts `beltRules` and `beltCraftMethod` as JSON. The schema is in `packages/contracts/src/market.ts`; the complete fixture is in `apps/server/src/beltDemoFixture.ts`. Target rules, craft method and price assumptions are immutable parts of the saved profile. A changed assumption creates a new versioned profile, not a reinterpretation of old observations. Existing snapshot summaries remain user-selected, while `belt-comparability-v1` is a separately requested interpretation.
 
-Use `currency: "chaos"` in the import. Open the resulting snapshot to see `MATCH` and `INSUFFICIENT_DATA`. Remove `tier` to see `PARTIAL`, or lower `value` to see `REJECT`. Unknown fields cannot establish a match; `modsComplete: true` is required before an absent required modifier is treated as a mismatch. Raw item JSON is preserved. The v1 endpoint computes a separate interpretation; existing snapshot summaries remain user-selected, not verified.
+A method must describe a source, steps, full-rule confirmation, probability or expected attempts, and explicitly use the same reusable base for all failed attempts. Its manual base and material estimates must carry league, patch, currency, timestamp, provenance URL, notes, and observed/demo designation. Alternatively, material prices can reference a saved economy snapshot and exact line. League, material identity, time and currency are checked; economy data lacks a patch field, so the profile must declare the matching patch. BaseType aggregates cannot establish item level or influence and are rejected as base prices. No foreign-exchange conversion is performed. Listing and input timestamps must be within 24 hours, and demo and observed inputs cannot mix. The result remains `INSUFFICIENT_DATA` when a gate fails. Manual confirmations and prices are user assertions and require independent review.
 
-The conservative asking-price indicator requires five distinct sellers and an observation at most 24 hours old. It is an asking price, not a sale, and uses the lowest observed price per seller. Demo and observed data must not be mixed. Craft cost and profit are unavailable: probability, base and materials have not been validated. No live rare observation was supplied, so the real-data gate remains blocked.
+## Verified checks
 
-## Remaining work
+- Workspace unit suite: domain 68, contracts 10, server 161, web 23; typecheck, lint and production build passed under local Node 24 (the supported CI runtime is Node 22).
+- Isolated PostgreSQL 17: all 38 integration tests passed. Seeding the demo twice returned the same target and snapshot.
+- Browser smoke with the bundled Playwright runtime: DEMO ranking, expected values, detail disclosure and MATCH rows passed; repeated successfully after restarting the API. No page errors observed.
+- Comparison tests cover mod mismatch, missing tier, duplicate seller, currencies and stale/sparse samples. Opportunity tests cover missing or mismatched prices, invalid probability, incomplete rules and isolation of DEMO versus observed records.
 
-Add at least one more genuinely sourced belt target and verify quantitative rules, source a permitted real rare listing, connect dated base/material prices and a reproducible method to the existing economics model, implement the ranking and calculation drill-down, then run browser, process-restart and CI acceptance. The present slice is not completion of MAX-1287.
+## External blockers and remaining work
+
+- The public Trade page returned HTTP 403 on 2026-10-29. There is no permissioned real rare listing in this environment; no live import-to-analysis acceptance or real actionable target is claimed. Supply an authorized observation with original item properties and seller, or approved public-stash access. Do not scrape undocumented endpoints or use cookies.
+- The three guide-backed profiles need independently verified, complete executable requirements and supported, reproducible craft methods with probability evidence. In particular, total elemental resistance is not yet represented as a composite rule. No guide-backed target currently has a fully validated cost breakdown.
+- Economy prices do not provide item-level/influence-specific base quotes; obtain a dated authorized manual base quote. Validate probability and any recovery/finishing assumptions before making a real decision.
+- This remains partial MAX-1287 until at least one real authorized rare observation flows through the UI and the target, method and costs are verified. Two real actionable targets remain the commercial goal. CI for the current PR head must pass separately.

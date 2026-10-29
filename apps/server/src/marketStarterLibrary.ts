@@ -62,6 +62,23 @@ const sources = {
 
 export const marketStarterLibrary: MarketTargetInput[] = [
   profile(
+    'Flicker Strike Slayer — редкий Stygian Vise (исследование)',
+    'Flicker Strike Slayer',
+    'Belt',
+    ['Stygian Vise'],
+    [
+      '+100 к максимальной жизни',
+      '+80% суммарных элементальных сопротивлений',
+      '30% увеличенного урона стихий атаками',
+    ],
+    {
+      title: 'Flicker Strike Slayer gear (3.29)',
+      url: 'https://odealo.com/articles/trinity-flicker-strike-slayer-build-1',
+      notes:
+        'Гайд указывает редкую альтернативу и пороги; качество, влияния и item level не указаны. Суммарные сопротивления требуют проверяемого правила, поэтому профиль пока исследовательский.',
+    },
+  ),
+  profile(
     'Lacerate Gladiator — редкий Stygian Vise (исследование)',
     'Lacerate Gladiator',
     'Belt',
