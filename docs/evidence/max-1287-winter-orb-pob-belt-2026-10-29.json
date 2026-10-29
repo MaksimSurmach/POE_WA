@@ -14,5 +14,31 @@
     "ChaosResist": "75",
     "ChaosResistOverCap": "2"
   },
-  "playerStatsSource": "Build/PlayerStat entries in the same publicly displayed PoB build code"
+  "playerStatsSource": "Build/PlayerStat entries in the same publicly displayed PoB build code",
+  "pobReplacementCheck": {
+    "checkedAt": "2026-10-29T22:33:14Z",
+    "viewer": "https://pob.cool/#build=https://pobb.in/W4yCI3RRdniV",
+    "version": "2.67.2",
+    "treeVersion": "3.29",
+    "method": "Create custom items by copying the equipped belt and changing only fire and chaos resistance. Equip each belt in the same saved setup, preserving the abyss jewel.",
+    "cases": [
+      {
+        "beltFire": 37,
+        "beltChaos": 27,
+        "observedFire": 76,
+        "observedCold": 76,
+        "observedLightning": 76,
+        "observedChaos": 75
+      },
+      {
+        "beltFire": 36,
+        "beltChaos": 26,
+        "observedFire": 75,
+        "observedCold": 76,
+        "observedLightning": 76,
+        "observedChaos": 74
+      }
+    ],
+    "caveat": "These are controlled PoB comparison items, not real market listings or verified craft outputs. Other original belt modifiers remain unchanged."
+  }
 }
