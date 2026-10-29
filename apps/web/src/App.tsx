@@ -19,6 +19,7 @@ import {
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
 import { RefreshFreshness } from './refreshFreshness.js';
+import { MarketPage } from './MarketPage.js';
 
 const apiClient = createApiClient();
 
@@ -38,7 +39,15 @@ function AppShell() {
               to="/"
               end
             >
-              Catalog
+              Рынок
+            </NavLink>
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? 'nav-link is-active' : 'nav-link'
+              }
+              to="/catalog"
+            >
+              Рецепты
             </NavLink>
           </nav>
         </div>
@@ -382,7 +391,8 @@ export function App() {
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Route index element={<CatalogRoute />} />
+        <Route index element={<MarketPage />} />
+        <Route path="catalog" element={<CatalogRoute />} />
         <Route path="recipes/:recipeId" element={<RecipePage />} />
       </Route>
     </Routes>

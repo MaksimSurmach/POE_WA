@@ -76,6 +76,40 @@ export const domainErrorDefinitions = {
     disposition: 'permanent',
     publicMessage: 'The market query is invalid.',
   },
+  MARKET_TARGET_INVALID: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage:
+      'The target profile is invalid. Check its league, patch, bases and source URLs.',
+  },
+  ECONOMY_NOT_CONFIGURED: {
+    category: 'market',
+    disposition: 'retryable',
+    publicMessage:
+      'Configure NINJA_USER_AGENT with an application name and contact to enable public economy collection.',
+  },
+  ECONOMY_ARCHIVE_DISALLOWED: {
+    category: 'market',
+    disposition: 'degraded',
+    publicMessage:
+      'The provider returned Cache-Control: no-store. This response was not archived.',
+  },
+  MARKET_TARGET_NOT_FOUND: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage: 'The target profile does not exist.',
+  },
+  MARKET_IMPORT_INVALID: {
+    category: 'snapshot',
+    disposition: 'permanent',
+    publicMessage:
+      'The snapshot import is invalid. Use one currency, positive prices and an observation time in the past. Confirm emptyResult for an empty observation.',
+  },
+  MARKET_SNAPSHOT_NOT_FOUND: {
+    category: 'snapshot',
+    disposition: 'permanent',
+    publicMessage: 'The imported snapshot does not exist.',
+  },
   MATERIAL_PRICE_MISSING: {
     category: 'market',
     disposition: 'degraded',

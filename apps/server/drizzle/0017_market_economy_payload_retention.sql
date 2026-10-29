@@ -1,0 +1,1 @@
+ALTER TABLE "market_economy_snapshots" ALTER COLUMN "payload" DROP NOT NULL;

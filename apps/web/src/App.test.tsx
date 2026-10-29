@@ -8,7 +8,7 @@ import { formatAge, Money } from './components.js';
 describe('application shell', () => {
   it('renders catalog and recipe routes inside the shared shell', () => {
     const catalog = renderToStaticMarkup(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/catalog']}>
         <App />
       </MemoryRouter>,
     );

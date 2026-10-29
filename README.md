@@ -1,5 +1,71 @@
 # POE Worksmith Automator
 
+## Crafter market workbench
+
+The primary UI now investigates **what to craft**: build-linked target profiles,
+observations of comparable asking prices, source provenance and snapshot history.
+The previous recipe catalogue remains at `/catalog`.
+
+Requirements remain Node 22 and pnpm 11. After installing dependencies:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm build
+pnpm start:market
+```
+
+In another terminal, start the UI:
+
+```bash
+pnpm --filter @poe-worksmith/web dev
+```
+
+Vite proxies `/api` to the API on `127.0.0.1:3000`. `start:market` starts only the
+API; it does not launch the old trade worker. With no PostgreSQL configuration,
+the UI explicitly shows unavailable storage and offers a clearly labelled,
+local-only demonstration. It never pretends that changes were persisted.
+
+To save targets and observations, configure the local database using the
+instructions below and apply all migrations. The new research tables are
+additive and are not subject to the old recipe retention policy. The Sources
+panel records economy collection attempts, including provider errors and cache
+reuse. Open the main page, create a target with its league/patch and source
+links, and import a JSON snapshot. See [observation format](docs/market-observation-format.md),
+[data source capabilities](docs/market-data-sources.md), and the
+[M1 implementation plan](docs/plans/2026-10-29-crafter-market-intelligence.md).
+
+This is the first delivery within M1. Automated rare-listing access, PoB parsing,
+structured mod matching and a crafting-profit model are not complete. Asking
+prices, base estimates and completed transactions are different evidence types.
+
+### Public economy collection
+
+Set `NINJA_USER_AGENT` in your local environment file to identify your application
+and a real contact, for example:
+
+```dotenv
+NINJA_USER_AGENT="POEWorksmith/0.1 (contact: https://github.com/MaksimSurmach/POE_WA/issues)"
+```
+
+After applying migrations, restart `start:market`, open **Источники**, fetch the
+league list, select a category and collect a snapshot. No game password or API
+key is required for this public economy source. PostgreSQL must be ready before
+collection starts. The UI previews up to 200 rows; the full response is retained
+in the economy snapshot table. A cache hit or `304` reuses the same observation.
+The Sources panel keeps a separate journal of each collection attempt.
+
+Raw economy payloads are retained for 90 days and snapshot summaries for 730
+days by default. Set `MARKET_ECONOMY_RAW_RETENTION_DAYS` and
+`MARKET_ECONOMY_SUMMARY_RETENTION_DAYS` to positive day counts to change the
+policy. Expired raw payloads remain visible as summaries but cannot be opened;
+expired summaries are removed when the Sources overview loads. Seed the reviewed guide-based profiles
+after migrations with `pnpm market:seed-library`; the command is safe to rerun.
+
+The API is intended for one trusted operator on loopback or behind a private
+access boundary. It is not yet a public multi-user service.
+
+See [validation evidence and remaining gates](docs/market-validation.md).
+
 ## Backend runtime
 
 The server has dedicated API, worker, and combined entrypoints. After building,
