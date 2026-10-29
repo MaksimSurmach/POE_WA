@@ -3,5 +3,16 @@
   "extraction": "Path of Building buildcode textarea; base64url decoded and zlib decompressed XML; Items/Item id=12, Items/ItemSet/Slot name=Belt itemId=12",
   "itemText": "Rarity: RARE\nPlague Thread\nStygian Vise\nUnique ID: 48e0a88a8543c7779a94835cfc0ebddc2a58fb3b2a8dab3e06bb690facd4fe39\nItem Level: 80\nSockets: A\nImplicits: 1\nHas 1 Abyssal Socket\n+51 to maximum Energy Shield\n+139 to maximum Life\n+48 to maximum Mana\n+38% to Fire Resistance\n+29% to Chaos Resistance\n31% increased Flask Charges gained",
   "interpretation": "The equipped example is not a universal minimum and does not provide numerical requirements for other resistances.",
-  "observedDate": "2026-10-29"
+  "observedDate": "2026-10-29",
+  "playerStats": {
+    "FireResist": "76",
+    "FireResistOverCap": "1",
+    "ColdResist": "76",
+    "ColdResistOverCap": "4",
+    "LightningResist": "76",
+    "LightningResistOverCap": "18",
+    "ChaosResist": "75",
+    "ChaosResistOverCap": "2"
+  },
+  "playerStatsSource": "Build/PlayerStat entries in the same publicly displayed PoB build code"
 }
