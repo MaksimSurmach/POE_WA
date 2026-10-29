@@ -38,7 +38,7 @@ export const marketSourceCapabilities: MarketSourceCapability[] = [
     name: 'poe.ninja economy',
     status: 'planned',
     description:
-      'Public economy overviews for materials and bases. This workbench does not fetch them yet. Aggregate base prices do not price arbitrary rare items.',
+      'Configured public economy overviews for supported materials and bases. Aggregate base prices do not price arbitrary rare items.',
     documentationUrl: 'https://poe.ninja/docs/api',
   },
   {

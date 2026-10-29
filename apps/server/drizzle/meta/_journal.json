@@ -113,6 +113,20 @@
       "when": 1793233238292,
       "tag": "0015_market_economy",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793258897474,
+      "tag": "0016_market_economy_attempts",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793259705581,
+      "tag": "0017_market_economy_payload_retention",
+      "breakpoints": true
     }
   ]
 }

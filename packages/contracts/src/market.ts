@@ -215,6 +215,18 @@ export const marketEconomySummarySchema = z.strictObject({
   sourceUpdatedAt: z.null(),
   priceBasis: z.enum(['stash-estimate', 'currency-exchange']),
   lineCount: z.number().int().nonnegative().max(100_000),
+  payloadAvailable: z.boolean(),
+});
+export const marketEconomyAttemptSchema = z.strictObject({
+  id: z.uuid(),
+  league: text(100),
+  category: marketEconomyCategorySchema,
+  startedAt: z.iso.datetime(),
+  completedAt: z.iso.datetime().nullable(),
+  status: z.enum(['running', 'succeeded', 'failed', 'interrupted']),
+  cacheStatus: z.enum(['fetched', 'hit', 'revalidated']).nullable(),
+  errorCode: text(100).nullable(),
+  snapshotId: z.uuid().nullable(),
 });
 export const marketEconomyDetailSchema = marketEconomySummarySchema.extend({
   lines: z.array(marketEconomyLineSchema).max(200),
@@ -226,6 +238,7 @@ export const marketEconomyOverviewResponseSchema = z.strictObject({
     configured: z.boolean(),
     storage: z.enum(['postgres', 'unavailable']),
     snapshots: z.array(marketEconomySummarySchema).max(100),
+    attempts: z.array(marketEconomyAttemptSchema).max(100),
     limit: z.literal(100),
   }),
 });
@@ -254,6 +267,7 @@ export const marketEconomyDetailResponseSchema = z.strictObject({
 });
 export type MarketEconomyCategory = z.infer<typeof marketEconomyCategorySchema>;
 export type MarketEconomySummary = z.infer<typeof marketEconomySummarySchema>;
+export type MarketEconomyAttempt = z.infer<typeof marketEconomyAttemptSchema>;
 export type MarketEconomyDetail = z.infer<typeof marketEconomyDetailSchema>;
 export type MarketEconomyOverviewResponse = z.infer<
   typeof marketEconomyOverviewResponseSchema

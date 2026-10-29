@@ -27,9 +27,10 @@ local-only demonstration. It never pretends that changes were persisted.
 
 To save targets and observations, configure the local database using the
 instructions below and apply all migrations. The new research tables are
-additive and are not subject to the old recipe retention policy. Open the main
-page, create a target with its league/patch and source links, and import a JSON
-snapshot. See [observation format](docs/market-observation-format.md),
+additive and are not subject to the old recipe retention policy. The Sources
+panel records economy collection attempts, including provider errors and cache
+reuse. Open the main page, create a target with its league/patch and source
+links, and import a JSON snapshot. See [observation format](docs/market-observation-format.md),
 [data source capabilities](docs/market-data-sources.md), and the
 [M1 implementation plan](docs/plans/2026-10-29-crafter-market-intelligence.md).
 
@@ -51,6 +52,14 @@ league list, select a category and collect a snapshot. No game password or API
 key is required for this public economy source. PostgreSQL must be ready before
 collection starts. The UI previews up to 200 rows; the full response is retained
 in the economy snapshot table. A cache hit or `304` reuses the same observation.
+The Sources panel keeps a separate journal of each collection attempt.
+
+Raw economy payloads are retained for 90 days and snapshot summaries for 730
+days by default. Set `MARKET_ECONOMY_RAW_RETENTION_DAYS` and
+`MARKET_ECONOMY_SUMMARY_RETENTION_DAYS` to positive day counts to change the
+policy. Expired raw payloads remain visible as summaries but cannot be opened;
+expired summaries are removed when the Sources overview loads. Seed the reviewed guide-based profiles
+after migrations with `pnpm market:seed-library`; the command is safe to rerun.
 
 The API is intended for one trusted operator on loopback or behind a private
 access boundary. It is not yet a public multi-user service.

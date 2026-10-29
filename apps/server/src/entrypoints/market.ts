@@ -24,6 +24,12 @@ const hasDatabase =
 const pool = hasDatabase
   ? createDatabasePool(loadDatabaseConfig(environment))
   : undefined;
+function retentionDays(name: string, fallback: number) {
+  const value = Number(process.env[name] ?? fallback);
+  if (!Number.isSafeInteger(value) || value < 1 || value > 36_500)
+    throw new Error(`${name} must be an integer between 1 and 36500`);
+  return value;
+}
 const api = buildApi(
   logger,
   async () => {
@@ -43,6 +49,11 @@ const api = buildApi(
     marketResearch: pool ? createMarketResearchRepository(pool) : undefined,
     marketEconomy: {
       repository: pool ? createMarketEconomyRepository(pool) : undefined,
+      rawRetentionDays: retentionDays('MARKET_ECONOMY_RAW_RETENTION_DAYS', 90),
+      summaryRetentionDays: retentionDays(
+        'MARKET_ECONOMY_SUMMARY_RETENTION_DAYS',
+        730,
+      ),
       client: process.env.NINJA_USER_AGENT
         ? new NinjaEconomyClient({ userAgent: process.env.NINJA_USER_AGENT })
         : undefined,

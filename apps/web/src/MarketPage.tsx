@@ -409,7 +409,19 @@ export function MarketPage() {
                         <td>
                           {displayPrice(snapshot.median, snapshot.currency)}
                         </td>
-                        <td>{demo ? 'Учебный пример' : 'Ручной импорт'}</td>
+                        <td>
+                          {demo ? (
+                            'Учебный пример'
+                          ) : (
+                            <a
+                              href={snapshot.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {new URL(snapshot.sourceUrl).hostname}
+                            </a>
+                          )}
+                        </td>
                         <td>
                           <button
                             type="button"
@@ -492,7 +504,12 @@ export function MarketPage() {
                     <a href={source.url} target="_blank" rel="noreferrer">
                       {source.title} ↗
                     </a>
-                    <span>{target.name}</span>
+                    <span className="market-source-target">{target.name}</span>
+                    {source.notes && (
+                      <small className="market-source-notes">
+                        {source.notes}
+                      </small>
+                    )}
                   </div>
                 )),
               )

@@ -102,6 +102,7 @@ export function EconomyPanel({ demo }: { demo: boolean }) {
       setError(
         cause instanceof Error ? cause.message : 'Не удалось получить данные.',
       );
+      await load().catch(() => {});
     } finally {
       setPending(false);
     }
@@ -202,7 +203,7 @@ export function EconomyPanel({ demo }: { demo: boolean }) {
             <button
               type="button"
               key={snapshot.id}
-              disabled={pending}
+              disabled={pending || !snapshot.payloadAvailable}
               onClick={() => void perform(snapshot.id)}
             >
               <span>
@@ -210,6 +211,8 @@ export function EconomyPanel({ demo }: { demo: boolean }) {
               </span>
               <span>
                 {snapshot.lineCount} строк · {displayDate(snapshot.capturedAt)}
+                {!snapshot.payloadAvailable &&
+                  ' · подробности удалены по сроку хранения'}
               </span>
             </button>
           ))}
@@ -217,6 +220,24 @@ export function EconomyPanel({ demo }: { demo: boolean }) {
             Показано до {overview.limit} последних снимков. Повторное чтение
             кеша не создаёт новую точку истории.
           </p>
+        </div>
+      )}
+      {overview && overview.attempts.length > 0 && (
+        <div className="market-economy-history">
+          <h4>Журнал попыток сбора</h4>
+          {overview.attempts.map((attempt) => (
+            <p key={attempt.id}>
+              {attempt.league} · {attempt.category} ·{' '}
+              {displayDate(attempt.startedAt)} ·{' '}
+              {attempt.status === 'succeeded'
+                ? `успешно (${attempt.cacheStatus}; снимок ${attempt.snapshotId})`
+                : attempt.status === 'running'
+                  ? 'выполняется'
+                  : attempt.status === 'interrupted'
+                    ? 'прервано'
+                    : `ошибка ${attempt.errorCode ?? 'UNKNOWN'}`}
+            </p>
+          ))}
         </div>
       )}
       {detail && (

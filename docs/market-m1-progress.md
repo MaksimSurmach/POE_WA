@@ -2,21 +2,23 @@
 
 ## Verified in this checkout
 
-- PR #22 is open on `work/market-intelligence-2026-10-29`; CI run 40830963475 is green.
-- `pnpm test`: 254 unit tests passed (68 domain, 10 contracts, 153 server, 23 web).
-- `pnpm build` and `pnpm lint` passed. Local Node is 24.17.0; the supported range is Node 22.12–22.x.
-- `pnpm start:market` starts on `http://127.0.0.1:3000`; `GET /api/market` returns 200 and explicit `storage: unavailable` without PostgreSQL.
-- The live API reports poe.ninja as planned and league discovery returns `ECONOMY_NOT_CONFIGURED` because `NINJA_USER_AGENT` is absent. The source client and collection flow exist; live collection is not verified in this environment.
-- `pnpm db:up` could not connect: Docker daemon is not running. PostgreSQL persistence/restart and browser E2E were not run.
+- PR #22 is open on `work/market-intelligence-2026-10-29`; do not merge before review.
+- API, UI and local PostgreSQL 17.11 are running from `.env.development`; migrations through 0017 are applied.
+- Real poe.ninja Allflame / BaseType capture persisted in PostgreSQL: snapshot `11a7536e-24f8-4ae4-baf4-a35f485a678b`, 9,334 rows, captured `2026-10-29T07:35:51.467Z`; attempt journal marks it `fetched` and successful.
+- UI reads the persisted snapshot and journal after API restart. Browser screenshot: [economy and guide library](../output/playwright/market-economy-desktop.png).
+- Seed command persists ten checked guide-based targets across five builds and is idempotent by target digest. Guide recommendations are explicitly not market-demand evidence and are tagged for PoE 1 patch 3.29.
+- Manual rare-item import remains user-selected. A demo-only empty import was deduplicated and removed; no rare prices were fabricated. The actual rare-item import/history workflow still needs a real, permissioned observation to qualify as live-data acceptance.
+- Raw economy payload retention defaults to 90 days; summaries to 730 days. Both are configurable with `MARKET_ECONOMY_RAW_RETENTION_DAYS` and `MARKET_ECONOMY_SUMMARY_RETENTION_DAYS`. Overview applies cleanup; expired payload summaries remain visible and disabled.
+- `pnpm build`, `pnpm test` (254), `pnpm lint`, and `pnpm db:check:migrations` passed. Integration tests are rerunning against sourced `.env.test` after an initial invocation omitted the required environment.
+- Local Node is 24.17.0, outside the supported Node 22 range. Fresh CI on the pushed head is required.
 
-## Remaining M1 criteria
+## Remaining acceptance gates
 
-- Enable poe.ninja with an identifying user agent and persist a real economy capture to PostgreSQL.
-- Complete user-verified starter library (about 5 builds / 10 item targets) with evidence links and patch applicability.
-- Add collection-attempt journal and configurable retention policy.
-- Run PostgreSQL integration and restart durability checks, then the full browser flow at desktop and narrow widths, including empty/error/stale cases and screenshots.
-- Independently review the final changes and update Linear to match verified delivery.
+- Finish the current isolated PostgreSQL integration run and browser checks for import/history, stale/minimum sample, source failure, and unavailable DB.
+- Review screenshots at desktop and narrow widths after the source-library layout fix.
+- Push the completed changes, verify fresh PR CI, inspect review comments, and sync Linear to evidence.
+- M1 is not complete until the remaining live rare-item path is validated with a real permissioned comparable observation and all required UI states are checked.
 
-## Current blocker and next step
+## Next step
 
-Local verification is blocked on Docker and a real contact value for `NINJA_USER_AGENT`. Continue independent source/UI work where possible; when the database and contact are available, run the real capture, persistence/restart and browser acceptance flow. Do not mark M1 complete before those gates pass.
+Commit and push the verified changes, wait for fresh CI on PR #22, review comments, and sync Linear. Keep M1 marked in progress until the real rare-item path and remaining UI states pass.

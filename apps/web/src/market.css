@@ -669,10 +669,10 @@
   font-size: 12px;
 }
 .market-source-library > div {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) minmax(180px, auto);
   align-items: baseline;
-  gap: 12px;
+  column-gap: 12px;
   padding: 12px 0;
   border-top: 1px solid #23313b;
   font-size: 11px;
@@ -680,10 +680,16 @@
 .market-source-library a {
   color: #c4b38f;
   overflow-wrap: anywhere;
-  flex: 1;
+  min-width: 0;
 }
-.market-source-library > div > span:last-child {
+.market-source-target {
   color: #8098a8;
+}
+.market-source-notes {
+  grid-column: 2 / -1;
+  color: #92a3b0;
+  line-height: 1.6;
+  margin-top: 6px;
 }
 .market-source-kind {
   font-size: 9px;
@@ -953,6 +959,13 @@
   }
   .market-source-grid {
     grid-template-columns: 1fr;
+  }
+  .market-source-library > div {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+  .market-source-target,
+  .market-source-notes {
+    grid-column: 2;
   }
   .market-section-heading {
     align-items: flex-start;

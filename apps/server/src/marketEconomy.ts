@@ -2,6 +2,9 @@ import { randomUUID } from 'node:crypto';
 import {
   marketEconomySummarySchema,
   marketEconomyDetailSchema,
+  marketEconomyAttemptSchema,
+  type MarketEconomyAttempt,
+  type MarketEconomyCategory,
   type MarketEconomySummary,
 } from '@poe-worksmith/contracts';
 import type {
@@ -19,16 +22,41 @@ export interface MarketEconomyRepository {
     snapshot: StoredMarketEconomySnapshot,
   ): Promise<StoredMarketEconomySnapshot>;
   find(id: string): Promise<StoredMarketEconomySnapshot | null>;
+  listAttempts(): Promise<MarketEconomyAttempt[]>;
+  saveAttempt(attempt: MarketEconomyAttempt): Promise<void>;
+  cleanup?(input: {
+    payloadBefore: Date;
+    snapshotsBefore: Date;
+  }): Promise<void>;
 }
 export type MarketEconomyOptions = {
   client?:
     Pick<NinjaEconomyClient, 'discoverLeagues' | 'fetchSnapshot'> | undefined;
   repository?: MarketEconomyRepository | undefined;
+  rawRetentionDays?: number;
+  summaryRetentionDays?: number;
 };
 export function newStoredEconomySnapshot(
   snapshot: NinjaEconomySnapshot,
 ): StoredMarketEconomySnapshot {
   return { ...snapshot, id: randomUUID() };
+}
+export function newEconomyAttempt(input: {
+  league: string;
+  category: MarketEconomyCategory;
+  startedAt?: Date;
+}): MarketEconomyAttempt {
+  return marketEconomyAttemptSchema.parse({
+    id: randomUUID(),
+    league: input.league,
+    category: input.category,
+    startedAt: (input.startedAt ?? new Date()).toISOString(),
+    completedAt: null,
+    status: 'running',
+    cacheStatus: null,
+    errorCode: null,
+    snapshotId: null,
+  });
 }
 export function summarizeEconomy(
   snapshot: StoredMarketEconomySnapshot,
@@ -46,6 +74,7 @@ export function summarizeEconomy(
     sourceUpdatedAt: snapshot.sourceUpdatedAt,
     priceBasis: snapshot.priceBasis,
     lineCount: snapshot.lines.length,
+    payloadAvailable: true,
   });
 }
 export function previewEconomy(snapshot: StoredMarketEconomySnapshot) {

@@ -11,6 +11,10 @@ import { NinjaEconomyClient } from './providers/ninjaEconomy.js';
 
 function repository(): MarketEconomyRepository {
   const snapshots = new Map<string, StoredMarketEconomySnapshot>();
+  const attempts = new Map<
+    string,
+    import('@poe-worksmith/contracts').MarketEconomyAttempt
+  >();
   return {
     assertReady: async () => {},
     list: async () => [...snapshots.values()].map(summarizeEconomy),
@@ -22,6 +26,10 @@ function repository(): MarketEconomyRepository {
     },
     find: async (id) =>
       [...snapshots.values()].find((snapshot) => snapshot.id === id) ?? null,
+    listAttempts: async () => [...attempts.values()],
+    saveAttempt: async (attempt) => {
+      attempts.set(attempt.id, attempt);
+    },
   };
 }
 
@@ -126,6 +134,9 @@ describe('public economy collection API', () => {
       expect(validated.snapshot.capturedAt).toBe('2026-10-01T00:00:00.000Z');
       expect(validated.checkedAt).toBe('2026-10-01T00:05:00.000Z');
       expect(await storage.list()).toHaveLength(1);
+      expect(
+        (await storage.listAttempts()).map(({ status }) => status),
+      ).toEqual(['succeeded', 'succeeded', 'succeeded']);
       expect((await storage.find(first.snapshot.id))?.raw).toEqual(overview);
       const list = (await api.inject('/api/market/economy')).json().data;
       expect(list).toMatchObject({
@@ -191,6 +202,10 @@ describe('public economy collection API', () => {
         if (expectedCode === 'PROVIDER_RATE_LIMITED')
           expect(result.headers['retry-after']).toBeTruthy();
         expect(await storage.list()).toHaveLength(0);
+        expect((await storage.listAttempts())[0]).toMatchObject({
+          status: 'failed',
+          errorCode: expectedCode,
+        });
       } finally {
         await api.close();
       }

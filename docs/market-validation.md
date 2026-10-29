@@ -20,7 +20,7 @@ The live response was a connector smoke test, not a persisted PostgreSQL snapsho
 or a recommendation about any item. High or sparse quotes are not evidence of
 profitable crafting.
 
-## Environment and remaining gates
+## Earlier environment record
 
 GitHub Actions [run 40830702147](https://github.com/MaksimSurmach/POE_WA/actions/runs/40830702147)
 validated implementation commit `64fa15636200e225a7065cb2e9c9adf690b3cb29`
@@ -50,4 +50,43 @@ keyboard and mobile end-to-end inspection are not claimed as complete.
 
 No Path of Exile password, session cookie or user account token was used. No
 internal Trade Search or Ninja builds endpoint was called. Existing databases
-were not migrated or reset.
+were not migrated or reset in that earlier run.
+
+## Verification this turn — 2026-10-29 (latest)
+
+- Started Docker Desktop and PostgreSQL 17.11. Applied migrations through 0017
+  to the local dev database and isolated test database.
+- Through the browser UI, saved a real poe.ninja Allflame / BaseType snapshot
+  in PostgreSQL: 9,334 normalized rows, `stash-estimate` basis, captured at
+  `2026-10-29T07:35:51.467Z`, id
+  `11a7536e-24f8-4ae4-baf4-a35f485a678b`. The attempt journal links it as a
+  successful `fetched` collection. API restart retained it. This is a base
+  estimate, not a rare-item price.
+- Seeded the reviewed guide library: ten profiles across five builds. Sources
+  include publication/update dates, check date, patch 3.29 and an explicit
+  note that guide recommendations do not establish demand or price. Rerunning
+  the seed command is digest-idempotent.
+- Added configurable economy retention: raw payload 90 days and summary 730
+  days by default; summaries remain visible after raw payload expiry.
+- Browser confirmed saved economy summary, collection attempt and seeded guide
+  links/notes. At 390px, viewport, document and body widths all measured 390px.
+  Screenshots: [economy desktop](../output/playwright/market-economy-desktop.png),
+  [guide library desktop](../output/playwright/market-library-desktop.png),
+  [guide library mobile](../output/playwright/market-library-mobile.png),
+  [economy mobile](../output/playwright/market-economy-mobile.png),
+  [main desktop](../output/playwright/market-main-desktop.png),
+  [main mobile](../output/playwright/market-main-mobile.png).
+- `pnpm build`, `pnpm test` (254 tests), `pnpm lint`, migration consistency,
+  and isolated PostgreSQL integration (37 tests) passed on local Node 24.17.0,
+  outside the repository's Node 22 engine range. A fresh CI run on the pushed
+  head is still required. An earlier integration attempt exposed that the test
+  DB lacked migration 0017; after applying it, all 37 tests passed.
+- The prior smoke demo import was removed after confirming PostgreSQL
+  idempotency and API-restart persistence. No rare-item price was fabricated.
+
+## Remaining acceptance gates
+
+- Complete browser checks for real rare-item import/history, source failure,
+  stale/minimum samples, unavailable storage, and updated desktop/narrow UI.
+- Run final CI on the pushed head, review outstanding PR comments, and sync
+  Linear to the verified delivery.

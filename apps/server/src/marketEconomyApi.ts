@@ -17,6 +17,7 @@ import type { Logger } from 'pino';
 import { z } from 'zod';
 import { NinjaEconomyError } from './providers/ninjaEconomy.js';
 import {
+  newEconomyAttempt,
   newStoredEconomySnapshot,
   previewEconomy,
   type MarketEconomyOptions,
@@ -36,9 +37,23 @@ export function registerMarketEconomyRoutes(
     let snapshots: Awaited<
       ReturnType<NonNullable<MarketEconomyOptions['repository']>['list']>
     > = [];
+    let attempts: Awaited<
+      ReturnType<
+        NonNullable<MarketEconomyOptions['repository']>['listAttempts']
+      >
+    > = [];
     if (options.repository) {
       try {
+        await options.repository.cleanup?.({
+          payloadBefore: new Date(
+            Date.now() - (options.rawRetentionDays ?? 90) * 86_400_000,
+          ),
+          snapshotsBefore: new Date(
+            Date.now() - (options.summaryRetentionDays ?? 730) * 86_400_000,
+          ),
+        });
         snapshots = await options.repository.list();
+        attempts = await options.repository.listAttempts();
         storage = 'postgres';
       } catch (error) {
         request.log.warn(
@@ -53,6 +68,7 @@ export function registerMarketEconomyRoutes(
         configured: Boolean(options.client),
         storage,
         snapshots,
+        attempts,
         limit: 100,
       },
     });
@@ -83,24 +99,56 @@ export function registerMarketEconomyRoutes(
       if (!options.client) throw new DomainError('ECONOMY_NOT_CONFIGURED');
       if (!options.repository) throw new DomainError('PERSISTENCE_UNAVAILABLE');
       await storageCall(() => options.repository!.assertReady());
-      const result = await providerCall(
-        () => options.client!.fetchSnapshot(parsed.data),
-        reply,
-      );
-      if (!result.archiveAllowed)
-        throw new DomainError('ECONOMY_ARCHIVE_DISALLOWED');
-      const stored = await storageCall(() =>
-        options.repository!.save(newStoredEconomySnapshot(result.snapshot)),
-      );
-      return marketEconomyCollectResponseSchema.parse({
-        correlationId: request.id,
-        data: {
-          snapshot: previewEconomy(stored),
-          cacheStatus: result.cacheStatus,
-          checkedAt: result.checkedAt,
-          nextRefreshAt: result.nextRefreshAt,
-        },
-      });
+      const attempt = newEconomyAttempt(parsed.data);
+      await storageCall(() => options.repository!.saveAttempt(attempt));
+      try {
+        const result = await providerCall(
+          () => options.client!.fetchSnapshot(parsed.data),
+          reply,
+        );
+        if (!result.archiveAllowed)
+          throw new DomainError('ECONOMY_ARCHIVE_DISALLOWED');
+        const stored = await storageCall(() =>
+          options.repository!.save(newStoredEconomySnapshot(result.snapshot)),
+        );
+        await storageCall(() =>
+          options.repository!.saveAttempt({
+            ...attempt,
+            completedAt: new Date().toISOString(),
+            status: 'succeeded',
+            cacheStatus: result.cacheStatus,
+            snapshotId: stored.id,
+          }),
+        );
+        return marketEconomyCollectResponseSchema.parse({
+          correlationId: request.id,
+          data: {
+            snapshot: previewEconomy(stored),
+            cacheStatus: result.cacheStatus,
+            checkedAt: result.checkedAt,
+            nextRefreshAt: result.nextRefreshAt,
+          },
+        });
+      } catch (cause) {
+        const errorCode =
+          cause instanceof DomainError ? cause.code : 'INTERNAL_ERROR';
+        try {
+          await options.repository.saveAttempt({
+            ...attempt,
+            completedAt: new Date().toISOString(),
+            status: 'failed',
+            cacheStatus: null,
+            errorCode,
+            snapshotId: null,
+          });
+        } catch (journalError) {
+          request.log.error(
+            { err: journalError },
+            'Could not finish economy attempt journal',
+          );
+        }
+        throw cause;
+      }
     },
   );
   api.get<{ Params: { id: string } }>(

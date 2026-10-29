@@ -648,7 +648,7 @@ export const marketEconomySnapshots = pgTable(
     payloadHash: text('payload_hash').notNull(),
     capturedAt: timestamp('captured_at', { withTimezone: true }).notNull(),
     summary: jsonb('summary').$type<MarketEconomySummary>().notNull(),
-    payload: jsonb('payload').$type<unknown>().notNull(),
+    payload: jsonb('payload').$type<unknown>(),
   },
   (table) => [
     uniqueIndex('market_economy_snapshots_observation_uq').on(
@@ -661,6 +661,35 @@ export const marketEconomySnapshots = pgTable(
     check(
       'market_economy_snapshots_category_check',
       sql`${table.category} in ('BaseType', 'Currency', 'Essence', 'Fossil', 'Resonator')`,
+    ),
+  ],
+);
+
+export const marketEconomyAttempts = pgTable(
+  'market_economy_attempts',
+  {
+    id: uuid('id').primaryKey(),
+    league: text('league').notNull(),
+    category: text('category').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    status: text('status').notNull(),
+    cacheStatus: text('cache_status'),
+    errorCode: text('error_code'),
+    snapshotId: uuid('snapshot_id').references(
+      () => marketEconomySnapshots.id,
+      { onDelete: 'set null' },
+    ),
+  },
+  (table) => [
+    index('market_economy_attempts_time_idx').on(table.startedAt),
+    check(
+      'market_economy_attempts_status_check',
+      sql`${table.status} in ('running', 'succeeded', 'failed')`,
+    ),
+    check(
+      'market_economy_attempts_cache_check',
+      sql`${table.cacheStatus} is null or ${table.cacheStatus} in ('fetched', 'hit', 'revalidated')`,
     ),
   ],
 );
