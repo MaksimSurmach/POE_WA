@@ -14,6 +14,8 @@ import type {
 import type { Logger } from 'pino';
 import { z } from 'zod';
 
+import { analyzeBeltSnapshot } from './beltComparability.js';
+
 import {
   createImportedMarketSnapshot,
   createMarketTarget,
@@ -115,6 +117,27 @@ export function registerMarketResearchRoutes(
           data: stored,
         }),
       );
+    },
+  );
+
+  api.get<{ Params: { id: string } }>(
+    '/api/market/snapshots/:id/belt-analysis/v1',
+    async (request) => {
+      if (!z.uuid().safeParse(request.params.id).success)
+        throw new DomainError('MARKET_SNAPSHOT_NOT_FOUND');
+      const snapshot = await persist(() =>
+        requireRepository(repository).findSnapshot(request.params.id),
+      );
+      if (!snapshot) throw new DomainError('MARKET_SNAPSHOT_NOT_FOUND');
+      const target = await persist(() =>
+        requireRepository(repository).findTarget(snapshot.targetId),
+      );
+      if (!target || target.digest !== snapshot.targetDigest)
+        throw new DomainError('MARKET_TARGET_NOT_FOUND');
+      return {
+        correlationId: request.id,
+        data: analyzeBeltSnapshot(target, snapshot),
+      };
     },
   );
 

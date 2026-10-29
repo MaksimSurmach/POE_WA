@@ -62,6 +62,35 @@ const sources = {
 
 export const marketStarterLibrary: MarketTargetInput[] = [
   profile(
+    'Lacerate Gladiator — редкий Stygian Vise (исследование)',
+    'Lacerate Gladiator',
+    'Belt',
+    ['Stygian Vise'],
+    ['Элементальные сопротивления по потребности', 'Максимальная жизнь'],
+    {
+      title: 'Lacerate Gladiator gear (3.29)',
+      url: 'https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks',
+      notes:
+        'Редкий пояс — альтернатива уникальному. Порогов, уровня предмета и влияний источник не задаёт; правила сопоставления требуют уточнения.',
+    },
+  ),
+  profile(
+    'Spectre Summoner — бюджетный Stygian Vise (исследование)',
+    'Spectre Summoner Necromancer',
+    'Belt',
+    ['Stygian Vise'],
+    [
+      'Высокая максимальная жизнь',
+      'Сопротивления и характеристики по потребности',
+    ],
+    {
+      title: 'Spectre Summoner gear (3.29)',
+      url: 'https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks',
+      notes:
+        'Бюджетная редкая альтернатива; основной рекомендованный пояс уникальный. Количественные пороги и параметры базы не указаны; правила сопоставления требуют уточнения.',
+    },
+  ),
+  profile(
     'RF Chieftain — шлем Fire Trap',
     'Pohx RF Chieftain',
     'Шлем',

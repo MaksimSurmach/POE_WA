@@ -65,6 +65,63 @@ function testApi(repository?: MarketResearchRepository) {
 }
 
 describe('market workbench API', () => {
+  it('imports and analyzes a synthetic belt through the API without changing its raw payload', async () => {
+    const api = testApi(inMemoryTestRepository());
+    try {
+      const created = await api.inject({
+        method: 'POST',
+        url: '/api/market/targets',
+        payload: {
+          ...targetInput,
+          beltRules: {
+            version: 1,
+            minItemLevel: 84,
+            influences: [],
+            corrupted: false,
+            mods: [{ id: 'life', minValue: 80 }],
+          },
+        },
+      });
+      const target = created.json().data;
+      const item = {
+        baseType: 'Stygian Vise',
+        rarity: 'rare',
+        league: 'Standard',
+        patch: '3.29',
+        currency: 'chaos',
+        itemLevel: 84,
+        corrupted: false,
+        influences: [],
+        seller: 'fixture',
+        status: 'listed',
+        mods: [{ id: 'life', value: 90 }],
+      };
+      const imported = await api.inject({
+        method: 'POST',
+        url: '/api/market/snapshots/import',
+        payload: {
+          targetId: target.id,
+          capturedAt: new Date().toISOString(),
+          sourceUrl: 'https://example.com/demo',
+          currency: 'chaos',
+          dataKind: 'demo',
+          listings: [{ price: 10, item }],
+        },
+      });
+      expect(imported.statusCode).toBe(201);
+      expect(imported.json().data.listings[0].item).toEqual(item);
+      const analysis = await api.inject({
+        method: 'GET',
+        url: `/api/market/snapshots/${imported.json().data.id}/belt-analysis/v1`,
+      });
+      expect(analysis.statusCode).toBe(200);
+      expect(analysis.json().data.rows[0].status).toBe('MATCH');
+      expect(analysis.json().data.status).toBe('INSUFFICIENT_DATA');
+    } finally {
+      await api.close();
+    }
+  });
+
   it('creates a target, imports evidence idempotently and serves summaries separately from raw rows', async () => {
     const api = testApi(inMemoryTestRepository());
     try {

@@ -57,6 +57,9 @@ export function MarketPage() {
   const [selectedId, setSelectedId] = useState('');
   const [dialog, setDialog] = useState<'target' | 'snapshot' | null>(null);
   const [rawSnapshot, setRawSnapshot] = useState<unknown | null>(null);
+  const [beltAnalysis, setBeltAnalysis] = useState<
+    import('@poe-worksmith/contracts').BeltAnalysis | null
+  >(null);
 
   async function reload() {
     setLoading(true);
@@ -84,6 +87,7 @@ export function MarketPage() {
     null;
   const leagues = [...new Set(targets.map((target) => target.league))].sort();
   const observed = snapshots.filter((snapshot) => snapshot.dataKind === kind);
+  const historySnapshots = demo ? observed : snapshots;
   const lastObservation = observed
     .map((snapshot) => snapshot.capturedAt)
     .sort()
@@ -95,12 +99,18 @@ export function MarketPage() {
   const sourceRows = workbench?.sources ?? marketDemo.sources;
 
   async function showSnapshot(snapshot: MarketResearchSnapshotSummary) {
+    setBeltAnalysis(null);
     if (demo) {
       setRawSnapshot(snapshot);
       return;
     }
     try {
-      setRawSnapshot(await marketClient.getSnapshot(snapshot.id));
+      const [raw, analysis] = await Promise.all([
+        marketClient.getSnapshot(snapshot.id),
+        marketClient.analyzeBelt(snapshot.id),
+      ]);
+      setRawSnapshot(raw);
+      setBeltAnalysis(analysis);
     } catch (cause) {
       setError(errorMessage(cause));
     }
@@ -372,7 +382,7 @@ export function MarketPage() {
               Импорт снимка
             </button>
           </div>
-          {observed.length === 0 ? (
+          {historySnapshots.length === 0 ? (
             <Empty title="Снимков пока нет">
               <p>Выберите цель и импортируйте первое наблюдение рынка.</p>
             </Empty>
@@ -392,7 +402,7 @@ export function MarketPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[...observed]
+                  {[...historySnapshots]
                     .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))
                     .map((snapshot) => (
                       <tr key={snapshot.id}>
@@ -402,7 +412,8 @@ export function MarketPage() {
                             (target) => target.id === snapshot.targetId,
                           )?.name ?? 'Цель'}
                           <small>
-                            {snapshot.league} · {snapshot.patch}
+                            {snapshot.league} · {snapshot.patch} ·{' '}
+                            {snapshot.dataKind === 'demo' ? 'DEMO' : 'observed'}
                           </small>
                         </td>
                         <td>{snapshot.count}</td>
@@ -440,8 +451,8 @@ export function MarketPage() {
           {!demo &&
             snapshots.some((snapshot) => snapshot.dataKind === 'demo') && (
               <p className="market-footnote">
-                Импортированные тестовые снимки исключены из рыночных
-                показателей.
+                Импортированные тестовые снимки показаны в истории с пометкой
+                DEMO и исключены из рыночных показателей.
               </p>
             )}
         </section>
@@ -559,6 +570,34 @@ export function MarketPage() {
               ? 'Синтетический пример. Это не ответ рыночного API.'
               : 'Исходные строки, происхождение и версия профиля для проверки расчёта.'}
           </p>
+          {beltAnalysis && (
+            <section>
+              <h3>Сопоставимость · {beltAnalysis.status}</h3>
+              <p>
+                Версия: {beltAnalysis.algorithm}; независимых продавцов:{' '}
+                {beltAnalysis.independentSellers}; подтверждено:{' '}
+                {beltAnalysis.confirmedListings}.
+              </p>
+              <p>
+                Оценка цены предложения:{' '}
+                {displayPrice(
+                  beltAnalysis.conservativeAskingPrice,
+                  beltAnalysis.currency,
+                )}
+                . {beltAnalysis.selectionBias}
+              </p>
+              <p>{beltAnalysis.reasons.join(' ')}</p>
+              <ul>
+                {beltAnalysis.rows.map((row) => (
+                  <li key={row.index}>
+                    #{row.index + 1}: {row.status} · {row.price}{' '}
+                    {beltAnalysis.currency} ·{' '}
+                    {row.reasons.join('; ') || 'совпадает'}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <button
             type="button"
             className="market-button"
@@ -909,6 +948,9 @@ function TargetForm({
           .split(',')
           .map((influence) => influence.trim())
           .filter(Boolean),
+        ...(value('beltRules')
+          ? { beltRules: JSON.parse(value('beltRules')) }
+          : {}),
         sources: sourceUrls.map((url) => {
           const parsed = new URL(url);
           const kind = /(^|\.)(youtube\.com|youtu\.be)$/.test(parsed.hostname)
@@ -1027,6 +1069,20 @@ function TargetForm({
       <label>
         Влияния, через запятую
         <input name="influences" placeholder="Если важны для цели" />
+      </label>
+      <label>
+        Правила сопоставления пояса (JSON, необязательно)
+        <textarea
+          name="beltRules"
+          rows={4}
+          placeholder={
+            '{"version":1,"minItemLevel":84,"influences":[],"corrupted":false,"mods":[{"id":"life","minValue":80}]}'
+          }
+        />
+        <small>
+          Только явно проверенные правила; названия свойств в импорте должны
+          совпадать. Пустое поле отключает подтверждение совпадений.
+        </small>
       </label>
       <label>
         Ссылки на источники, каждая с новой строки

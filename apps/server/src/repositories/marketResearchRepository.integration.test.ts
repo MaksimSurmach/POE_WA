@@ -1,5 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { analyzeBeltSnapshot } from '../beltComparability.js';
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
 import {
@@ -33,6 +34,72 @@ beforeEach(async () => {
 });
 
 describe('persistent market research', () => {
+  it('retains a synthetic belt and its versioned rules for later analysis', async () => {
+    const target = await repository.saveTarget(
+      createMarketTarget(
+        {
+          name: 'Fixture',
+          game: 'poe1',
+          realm: 'pc',
+          league: 'Fixture',
+          patch: 'fixture',
+          slot: 'Belt',
+          baseTypes: ['Stygian Vise'],
+          builds: [],
+          requiredMods: [],
+          sources: [],
+          beltRules: {
+            version: 1,
+            minItemLevel: 84,
+            influences: [],
+            corrupted: false,
+            mods: [{ id: 'life', minValue: 80 }],
+          },
+        },
+        now,
+      ),
+    );
+    const item = {
+      baseType: 'Stygian Vise',
+      rarity: 'rare',
+      league: 'Fixture',
+      patch: 'fixture',
+      currency: 'chaos',
+      itemLevel: 84,
+      corrupted: false,
+      influences: [],
+      seller: 'demo',
+      status: 'listed',
+      mods: [{ id: 'life', value: 90 }],
+    };
+    const snapshot = await repository.saveSnapshot(
+      createImportedMarketSnapshot(
+        {
+          targetId: target.id,
+          capturedAt: now.toISOString(),
+          sourceUrl: 'https://example.com/demo',
+          currency: 'chaos',
+          dataKind: 'demo',
+          listings: [{ price: 10, item }],
+        },
+        target,
+        now,
+      ),
+    );
+    const reloaded = createMarketResearchRepository(pool);
+    const persistedTarget = await reloaded.findTarget(target.id);
+    const persisted = await reloaded.findSnapshot(snapshot.id);
+    expect(persistedTarget).not.toBeNull();
+    expect(persisted).not.toBeNull();
+    if (!persistedTarget || !persisted)
+      throw new Error('Missing stored evidence');
+    expect(persisted.listings[0]?.item).toEqual(item);
+    expect(
+      analyzeBeltSnapshot(persistedTarget, persisted, now.getTime()).rows[0]
+        ?.status,
+    ).toBe('MATCH');
+  });
+
   it('preserves immutable evidence across repository instances and concurrent repeated imports', async () => {
     const input = {
       name: 'Crafting target',

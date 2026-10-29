@@ -1,4 +1,5 @@
 import {
+  beltAnalysisResponseSchema,
   marketWorkbenchResponseSchema,
   marketTargetResponseSchema,
   marketResearchSnapshotResponseSchema,
@@ -48,6 +49,13 @@ export const marketClient = {
   async importSnapshot(input: MarketSnapshotImport) {
     return marketResearchSnapshotResponseSchema.parse(
       await request('/api/market/snapshots/import', input),
+    ).data;
+  },
+  async analyzeBelt(id: string) {
+    return beltAnalysisResponseSchema.parse(
+      await request(
+        `/api/market/snapshots/${encodeURIComponent(id)}/belt-analysis/v1`,
+      ),
     ).data;
   },
   async getSnapshot(id: string) {

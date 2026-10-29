@@ -16,6 +16,24 @@ export const marketSourceEvidenceSchema = z.strictObject({
   notes: z.string().trim().max(4000).optional(),
 });
 
+/** Explicit, versioned rules; free-form guide text is never treated as a matcher. */
+export const beltRulesSchema = z.strictObject({
+  version: z.literal(1),
+  minItemLevel: z.number().int().min(1).max(100),
+  influences: z.array(text(100)).max(10),
+  corrupted: z.boolean(),
+  mods: z
+    .array(
+      z.strictObject({
+        id: text(200),
+        minValue: z.number().finite(),
+        maxTier: z.number().int().positive().optional(),
+      }),
+    )
+    .min(1)
+    .max(30),
+});
+
 /** A user-curated demand hypothesis. Mod text is not an executable trade query. */
 export const marketTargetInputSchema = z.strictObject({
   name: text(),
@@ -32,6 +50,7 @@ export const marketTargetInputSchema = z.strictObject({
   influences: z.array(text(100)).max(10).optional(),
   corrupted: z.boolean().nullable().optional(),
   sources: z.array(marketSourceEvidenceSchema).max(30),
+  beltRules: beltRulesSchema.optional(),
 });
 
 export const marketTargetSchema = marketTargetInputSchema.extend({
@@ -272,3 +291,33 @@ export type MarketEconomyDetail = z.infer<typeof marketEconomyDetailSchema>;
 export type MarketEconomyOverviewResponse = z.infer<
   typeof marketEconomyOverviewResponseSchema
 >;
+
+export const beltAnalysisSchema = z.strictObject({
+  algorithm: z.literal('belt-comparability-v1'),
+  targetDigest: z.string(),
+  snapshotId: z.uuid(),
+  dataKind: z.enum(['observed', 'demo']),
+  capturedAt: z.iso.datetime(),
+  currency: z.enum(['chaos', 'divine']),
+  status: z.literal('INSUFFICIENT_DATA'),
+  reasons: z.array(z.string()),
+  selectionBias: z.string(),
+  independentSellers: z.number().int().nonnegative(),
+  confirmedListings: z.number().int().nonnegative(),
+  conservativeAskingPrice: z.number().positive().nullable(),
+  rows: z.array(
+    z.strictObject({
+      index: z.number().int().nonnegative(),
+      externalId: z.string().nullable(),
+      price: z.number().positive(),
+      seller: z.string().nullable(),
+      status: z.enum(['MATCH', 'PARTIAL', 'REJECT']),
+      reasons: z.array(z.string()),
+    }),
+  ),
+});
+export const beltAnalysisResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: beltAnalysisSchema,
+});
+export type BeltAnalysis = z.infer<typeof beltAnalysisSchema>;
