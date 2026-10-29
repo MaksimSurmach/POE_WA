@@ -22,6 +22,16 @@ profitable crafting.
 
 ## Environment and remaining gates
 
+GitHub Actions [run 40830702147](https://github.com/MaksimSurmach/POE_WA/actions/runs/40830702147)
+validated implementation commit `64fa15636200e225a7065cb2e9c9adf690b3cb29`
+on the repository's Node 22 / pnpm 11.8 runtime with PostgreSQL 17. Migration
+application, all repository integration tests (including both new market
+repositories), the existing backend end-to-end suite, and the production build
+passed. The market integration tests verify concurrent import deduplication,
+raw-payload preservation, separate later observations and reading through a new
+repository instance. They do not perform a full API-process restart or a browser
+workflow.
+
 The local runtime was Node 24.22.1 / pnpm 11.25.0; the repository's supported
 runtime remains Node 22 / package manager pnpm 11.8.0. Dependencies were not
 downgraded or replaced in manifests. Behind this executor's configured proxy,
@@ -29,9 +39,9 @@ the Node smoke test used `NODE_USE_ENV_PROXY=1`; direct Node fetch could not
 reach the network.
 
 PostgreSQL/Docker are unavailable locally. The new repository integration tests
-are present and guarded to run only against the isolated `poe_worksmith_test`
-database. Actual migration application, concurrent persistence and restart
-durability remain to be executed in that environment or the existing CI job.
+are guarded to run only against the isolated `poe_worksmith_test` database and
+have now passed in CI. A full API-process restart followed by the complete
+market UI workflow remains an acceptance gate.
 
 The local browser plugin had no originating browser context. The separate cloud
 browser could not access the development server; a browser policy gate blocked
