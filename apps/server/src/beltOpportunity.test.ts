@@ -19,6 +19,35 @@ function fixture() {
   return { definition, target, snapshot };
 }
 describe('belt opportunity', () => {
+  it('calculates the sampled Harvest material estimate with synthetic base and listings', async () => {
+    const { target, snapshot } = fixture();
+    const method = target.beltCraftMethod;
+    const material = method?.materials[0];
+    if (!method || !material || material.price.source !== 'manual')
+      throw new Error('Invalid fixture');
+    const result = await evaluateBeltOpportunity(
+      {
+        ...target,
+        beltCraftMethod: {
+          ...method,
+          success: { mode: 'expected_attempts', expectedAttempts: 13736 },
+          materials: [
+            {
+              ...material,
+              quantityPerAttempt: 75,
+              price: { ...material.price, amount: 0.01764 },
+            },
+          ],
+        },
+      },
+      snapshot,
+      undefined,
+      now.getTime(),
+    );
+    expect(result.calculation?.expectedCraftCost).toBe('18182.728');
+    expect(result.calculation?.spread).toBe('-18142.728');
+    expect(result.economicConclusion).toBe('NON_POSITIVE');
+  });
   it('uses existing economics for a clearly synthetic, fully traceable example', async () => {
     const { target, snapshot } = fixture();
     const result = await evaluateBeltOpportunity(
