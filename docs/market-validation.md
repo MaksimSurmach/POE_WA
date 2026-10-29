@@ -56,12 +56,13 @@ were not migrated or reset in that earlier run.
 
 - Started Docker Desktop and PostgreSQL 17.11. Applied migrations through 0017
   to the local dev database and isolated test database.
-- Through the browser UI, saved a real poe.ninja Allflame / BaseType snapshot
-  in PostgreSQL: 9,334 normalized rows, `stash-estimate` basis, captured at
-  `2026-10-29T07:35:51.467Z`, id
-  `11a7536e-24f8-4ae4-baf4-a35f485a678b`. The attempt journal links it as a
-  successful `fetched` collection. API restart retained it. This is a base
-  estimate, not a rare-item price.
+- Through the browser UI, saved two real poe.ninja Allflame / BaseType snapshots
+  in PostgreSQL, each with 9,334 normalized rows and `stash-estimate` basis:
+  `11a7536e-24f8-4ae4-baf4-a35f485a678b` at
+  `2026-10-29T07:35:51.467Z` and `5d8fbe07-83ae-4f4a-a9d6-f4a6bb1ec501` at
+  `2026-10-29T07:51:18.540Z`. The attempt journal links both as successful
+  `fetched` collections. API restart retained the first; the second was fetched
+  later through the UI. These are base estimates, not rare-item prices.
 - Seeded the reviewed guide library: ten profiles across five builds. Sources
   include publication/update dates, check date, patch 3.29 and an explicit
   note that guide recommendations do not establish demand or price. Rerunning
@@ -70,12 +71,18 @@ were not migrated or reset in that earlier run.
   days by default; summaries remain visible after raw payload expiry.
 - Browser confirmed saved economy summary, collection attempt and seeded guide
   links/notes. At 390px, viewport, document and body widths all measured 390px.
-  Screenshots: [economy desktop](../output/playwright/market-economy-desktop.png),
+  Screenshots: [economy desktop with two snapshots](../output/playwright/market-economy-desktop.png),
   [guide library desktop](../output/playwright/market-library-desktop.png),
   [guide library mobile](../output/playwright/market-library-mobile.png),
   [economy mobile](../output/playwright/market-economy-mobile.png),
   [main desktop](../output/playwright/market-main-desktop.png),
   [main mobile](../output/playwright/market-main-mobile.png).
+- Started the API with database persistence disabled. The UI displayed
+  “collection paused until storage is connected” and disabled collection
+  actions; API reported `storage: unavailable`. Screenshot:
+  [unavailable storage](../output/playwright/market-storage-unavailable-mobile.png).
+- The official PoE Trade search UI returned HTTP 403 before loading. No
+  alternate Trade endpoint or authentication workaround was used.
 - `pnpm build`, `pnpm test` (254 tests), `pnpm lint`, migration consistency,
   and isolated PostgreSQL integration (37 tests) passed on local Node 24.17.0,
   outside the repository's Node 22 engine range. A fresh CI run on the pushed
@@ -87,6 +94,7 @@ were not migrated or reset in that earlier run.
 ## Remaining acceptance gates
 
 - Complete browser checks for real rare-item import/history, source failure,
-  stale/minimum samples, unavailable storage, and updated desktop/narrow UI.
+  and stale/minimum samples. Storage-unavailable and desktop/narrow UI states
+  are now checked. The official Trade UI was inaccessible from this environment.
 - Run final CI on the pushed head, review outstanding PR comments, and sync
   Linear to the verified delivery.
