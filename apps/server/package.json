@@ -19,6 +19,7 @@
     "start": "node --env-file-if-exists=../../.env.development dist/index.js",
     "start:all": "node --env-file-if-exists=../../.env.development dist/entrypoints/all.js",
     "start:api": "node --env-file-if-exists=../../.env.development dist/entrypoints/api.js",
+    "start:market": "node --env-file-if-exists=../../.env.development dist/entrypoints/market.js",
     "start:worker": "node --env-file-if-exists=../../.env.development dist/entrypoints/worker.js",
     "test": "vitest run --passWithNoTests --exclude '**/*.integration.test.ts' --exclude 'dist/**'",
     "test:contracts": "vitest run src/providers/*.contract.test.ts src/providers/fixtureSafety.test.ts",

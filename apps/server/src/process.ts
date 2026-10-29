@@ -39,6 +39,9 @@ import {
 } from './runtimeConfig.js';
 import { Metrics } from './observability/metrics.js';
 import { createRefreshFreshnessReader } from './freshness.js';
+import { createMarketResearchRepository } from './repositories/marketResearchRepository.js';
+import { createMarketEconomyRepository } from './repositories/marketEconomyRepository.js';
+import { NinjaEconomyClient } from './providers/ninjaEconomy.js';
 
 export async function runProcess(forcedMode?: ApplicationMode) {
   const config = loadRuntimeConfig(process.env, forcedMode);
@@ -101,6 +104,15 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         {
           diagnosticsToken: config.operatorDiagnosticsToken,
           metrics: metrics.registry,
+          marketResearch: createMarketResearchRepository(pool),
+          marketEconomy: {
+            repository: createMarketEconomyRepository(pool),
+            client: process.env.NINJA_USER_AGENT
+              ? new NinjaEconomyClient({
+                  userAgent: process.env.NINJA_USER_AGENT,
+                })
+              : undefined,
+          },
           readCircuits: repositories.providerCircuits.list,
           readOperationalDiagnostics: repositories.operationalDiagnostics.read,
           readRefreshFreshness: createRefreshFreshnessReader({

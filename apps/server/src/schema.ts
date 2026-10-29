@@ -1,4 +1,10 @@
 import type { RateLimitWindow } from '@poe-worksmith/domain';
+import type {
+  MarketTarget,
+  MarketResearchSnapshotSummary,
+  MarketImportListing,
+  MarketEconomySummary,
+} from '@poe-worksmith/contracts';
 import { sql } from 'drizzle-orm';
 import {
   bigint,
@@ -579,3 +585,82 @@ export const craftProbabilityResults = pgTable('craft_probability_results', {
     .defaultNow()
     .notNull(),
 });
+
+export const marketTargets = pgTable(
+  'market_targets',
+  {
+    id: uuid('id').primaryKey(),
+    digest: text('digest').notNull(),
+    profile: jsonb('profile').$type<MarketTarget>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex('market_targets_digest_uq').on(table.digest),
+    check(
+      'market_targets_profile_object',
+      sql`jsonb_typeof(${table.profile}) = 'object'`,
+    ),
+  ],
+);
+
+export const marketResearchSnapshots = pgTable(
+  'market_research_snapshots',
+  {
+    id: uuid('id').primaryKey(),
+    targetId: uuid('target_id')
+      .notNull()
+      .references(() => marketTargets.id, { onDelete: 'restrict' }),
+    digest: text('digest').notNull(),
+    capturedAt: timestamp('captured_at', { withTimezone: true }).notNull(),
+    retrievedAt: timestamp('retrieved_at', { withTimezone: true }).notNull(),
+    dataKind: text('data_kind').notNull(),
+    currency: text('currency').notNull(),
+    summary: jsonb('summary').$type<MarketResearchSnapshotSummary>().notNull(),
+    listings: jsonb('listings').$type<MarketImportListing[]>().notNull(),
+  },
+  (table) => [
+    uniqueIndex('market_research_snapshots_digest_uq').on(table.digest),
+    index('market_research_snapshots_target_time_idx').on(
+      table.targetId,
+      table.capturedAt,
+    ),
+    check(
+      'market_research_snapshots_kind_check',
+      sql`${table.dataKind} in ('observed', 'demo')`,
+    ),
+    check(
+      'market_research_snapshots_currency_check',
+      sql`${table.currency} in ('chaos', 'divine')`,
+    ),
+    check(
+      'market_research_snapshots_count_check',
+      sql`jsonb_typeof(${table.listings}) = 'array' and jsonb_array_length(${table.listings}) <= 1000`,
+    ),
+  ],
+);
+
+export const marketEconomySnapshots = pgTable(
+  'market_economy_snapshots',
+  {
+    id: uuid('id').primaryKey(),
+    league: text('league').notNull(),
+    category: text('category').notNull(),
+    payloadHash: text('payload_hash').notNull(),
+    capturedAt: timestamp('captured_at', { withTimezone: true }).notNull(),
+    summary: jsonb('summary').$type<MarketEconomySummary>().notNull(),
+    payload: jsonb('payload').$type<unknown>().notNull(),
+  },
+  (table) => [
+    uniqueIndex('market_economy_snapshots_observation_uq').on(
+      table.league,
+      table.category,
+      table.payloadHash,
+      table.capturedAt,
+    ),
+    index('market_economy_snapshots_time_idx').on(table.capturedAt),
+    check(
+      'market_economy_snapshots_category_check',
+      sql`${table.category} in ('BaseType', 'Currency', 'Essence', 'Fossil', 'Resonator')`,
+    ),
+  ],
+);

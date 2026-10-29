@@ -6,6 +6,8 @@ import {
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
 
+export * from './market.js';
+
 export { domainErrorCodes, domainErrorDefinitions };
 export const domainErrorCodeSchema = z.enum(domainErrorCodes);
 

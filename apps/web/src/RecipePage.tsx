@@ -51,7 +51,7 @@ export function RecipePage() {
   if (loadError) {
     return (
       <>
-        <Link className="back-link" to="/">
+        <Link className="back-link" to="/catalog">
           Back to catalog
         </Link>
         <StatusPanel tone="danger" title="Recipe not found" />
@@ -62,7 +62,7 @@ export function RecipePage() {
   if (!response) {
     return (
       <>
-        <Link className="back-link" to="/">
+        <Link className="back-link" to="/catalog">
           Back to catalog
         </Link>
         <StatusPanel tone="info" title="Loading recipe" />
@@ -73,7 +73,7 @@ export function RecipePage() {
   if (!response.data) {
     return (
       <>
-        <Link className="back-link" to="/">
+        <Link className="back-link" to="/catalog">
           Back to catalog
         </Link>
         <StatusPanel tone="danger" title="Recipe unavailable" />
@@ -87,7 +87,7 @@ export function RecipePage() {
 
   return (
     <article className="recipe-detail">
-      <Link className="back-link" to="/">
+      <Link className="back-link" to="/catalog">
         ‹ Back to catalog
       </Link>
 

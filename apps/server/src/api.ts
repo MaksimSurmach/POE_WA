@@ -30,6 +30,10 @@ import {
   createRefreshFreshnessReader,
   type RefreshFreshness,
 } from './freshness.js';
+import { registerMarketResearchRoutes } from './marketResearchApi.js';
+import type { MarketResearchRepository } from './marketResearch.js';
+import { registerMarketEconomyRoutes } from './marketEconomyApi.js';
+import type { MarketEconomyOptions } from './marketEconomy.js';
 
 export type ReadinessProbe = () => Promise<void>;
 export type RefreshProgressReader = () => Promise<CatalogProgress>;
@@ -62,6 +66,8 @@ export function buildApi(
     readOperationalDiagnostics?: OperationalDiagnosticsReader | undefined;
     metrics?: { contentType: string; metrics(): Promise<string> } | undefined;
     readRefreshFreshness?: RefreshFreshnessReader | undefined;
+    marketResearch?: MarketResearchRepository | undefined;
+    marketEconomy?: MarketEconomyOptions | undefined;
   } = {},
 ) {
   const api = Fastify({
@@ -80,6 +86,28 @@ export function buildApi(
   });
 
   api.setErrorHandler((error, request, reply) => {
+    if (
+      request.url.startsWith('/api/market') &&
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      [
+        'FST_ERR_CTP_BODY_TOO_LARGE',
+        'FST_ERR_CTP_INVALID_JSON_BODY',
+        'FST_ERR_CTP_EMPTY_JSON_BODY',
+        'FST_ERR_CTP_INVALID_MEDIA_TYPE',
+      ].includes(String(error.code))
+    ) {
+      const invalid = new DomainError('MARKET_IMPORT_INVALID');
+      return reply
+        .code(error.code === 'FST_ERR_CTP_BODY_TOO_LARGE' ? 413 : 400)
+        .send(
+          apiErrorEnvelopeSchema.parse({
+            correlationId: request.id,
+            error: serializeDomainError(invalid),
+          }),
+        );
+    }
     const domainError =
       error instanceof DomainError
         ? (error as AnyDomainError)
@@ -89,11 +117,25 @@ export function buildApi(
       correlationId: request.id,
       error: serializeDomainError(domainError),
     });
-    return reply.code(httpStatus(domainError)).send(envelope);
+    return reply
+      .code(
+        request.url.startsWith('/api/market/economy') &&
+          domainError.code === 'PROVIDER_RATE_LIMITED'
+          ? 429
+          : httpStatus(domainError),
+      )
+      .send(envelope);
   });
   api.setNotFoundHandler(async () => {
     throw new DomainError('ROUTE_NOT_FOUND');
   });
+
+  registerMarketResearchRoutes(
+    api,
+    options.marketResearch,
+    Boolean(options.marketEconomy?.client),
+  );
+  registerMarketEconomyRoutes(api, options.marketEconomy);
 
   api.get('/health/live', async (request) => ({
     correlationId: request.id,
@@ -268,6 +310,11 @@ function httpStatus(error: AnyDomainError) {
   if (error.code === 'INTERNAL_ERROR') return 500;
   if (error.code === 'PERSISTENCE_NOT_FOUND') return 404;
   if (error.code === 'ROUTE_NOT_FOUND') return 404;
+  if (
+    error.code === 'MARKET_TARGET_NOT_FOUND' ||
+    error.code === 'MARKET_SNAPSHOT_NOT_FOUND'
+  )
+    return 404;
   if (error.code === 'OPERATOR_AUTH_REQUIRED') return 401;
   if (
     error.code === 'JOB_CONFLICT' ||

@@ -99,6 +99,20 @@
       "when": 1784698916104,
       "tag": "0013_vengeful_namor",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793232205977,
+      "tag": "0014_market_research",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793233238292,
+      "tag": "0015_market_economy",
+      "breakpoints": true
     }
   ]
 }

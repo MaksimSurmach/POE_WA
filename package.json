@@ -29,6 +29,7 @@
     "recipes:sync": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server recipes:sync",
     "start": "pnpm --filter @poe-worksmith/server start",
     "start:api": "pnpm --filter @poe-worksmith/server start:api",
+    "start:market": "pnpm --filter @poe-worksmith/server start:market",
     "start:worker": "pnpm --filter @poe-worksmith/server start:worker",
     "test": "pnpm -r --if-present test",
     "test:contracts": "pnpm --filter @poe-worksmith/server test:contracts",
