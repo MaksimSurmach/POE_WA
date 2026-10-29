@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "apps/web/src/styles.css"
+        ],
+        "createdAt": "2026-10-29T07:56:30.769Z",
+        "reason": "StatusPanel applies the rail by semantic tone (success, info, warning, danger) to distinguish operational outcomes."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "apps/web/src/market.css"
+        ],
+        "createdAt": "2026-10-29T07:56:30.785Z",
+        "reason": "Market notices use a muted rail for status and an amber rail for warning states; this is an intentional severity cue."
+      }
+    ]
+  }
+}
