@@ -4,6 +4,7 @@ import type {
   MarketResearchSnapshotSummary,
   MarketImportListing,
   MarketEconomySummary,
+  BeltPriceUpdate,
 } from '@poe-worksmith/contracts';
 import { sql } from 'drizzle-orm';
 import {
@@ -635,6 +636,35 @@ export const marketResearchSnapshots = pgTable(
     check(
       'market_research_snapshots_count_check',
       sql`jsonb_typeof(${table.listings}) = 'array' and jsonb_array_length(${table.listings}) <= 1000`,
+    ),
+  ],
+);
+
+export const beltPriceUpdates = pgTable(
+  'belt_price_updates',
+  {
+    id: uuid('id').primaryKey(),
+    targetId: uuid('target_id')
+      .notNull()
+      .references(() => marketTargets.id, { onDelete: 'restrict' }),
+    digest: text('digest').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    dataKind: text('data_kind').notNull(),
+    payload: jsonb('payload').$type<BeltPriceUpdate>().notNull(),
+  },
+  (table) => [
+    uniqueIndex('belt_price_updates_digest_uq').on(table.digest),
+    index('belt_price_updates_target_time_idx').on(
+      table.targetId,
+      table.createdAt,
+    ),
+    check(
+      'belt_price_updates_kind_check',
+      sql`${table.dataKind} in ('observed', 'demo')`,
+    ),
+    check(
+      'belt_price_updates_payload_object',
+      sql`jsonb_typeof(${table.payload}) = 'object'`,
     ),
   ],
 );

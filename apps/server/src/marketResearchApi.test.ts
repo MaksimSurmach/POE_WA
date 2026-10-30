@@ -1,4 +1,5 @@
 import type {
+  BeltPriceUpdate,
   MarketResearchSnapshot,
   MarketTarget,
 } from '@poe-worksmith/contracts';
@@ -6,6 +7,7 @@ import pino from 'pino';
 import { describe, expect, it } from 'vitest';
 
 import { buildApi } from './api.js';
+import { beltDemoFixture } from './beltDemoFixture.js';
 import {
   type MarketResearchRepository,
   summarizeMarketSnapshot,
@@ -25,9 +27,20 @@ const targetInput = {
 };
 
 function inMemoryTestRepository(): MarketResearchRepository {
+  const prices = new Map<string, BeltPriceUpdate>();
   const targets = new Map<string, MarketTarget>();
   const snapshots = new Map<string, MarketResearchSnapshot>();
   return {
+    listPriceUpdates: async (id) =>
+      [...prices.values()]
+        .filter((row) => row.targetId === id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    savePriceUpdate: async (row) => {
+      const old = prices.get(row.digest);
+      if (old) return old;
+      prices.set(row.digest, row);
+      return row;
+    },
     listTargets: async () => [...targets.values()],
     findTarget: async (id) =>
       [...targets.values()].find((target) => target.id === id) ?? null,
@@ -65,6 +78,174 @@ function testApi(repository?: MarketResearchRepository) {
 }
 
 describe('market workbench API', () => {
+  it('updates prices without changing target or historical snapshots', async () => {
+    const repo = inMemoryTestRepository();
+    const api = testApi(repo);
+    try {
+      const fixture = beltDemoFixture();
+      const created = await api.inject({
+        method: 'POST',
+        url: '/api/market/targets',
+        payload: fixture.target,
+      });
+      const target = created.json().data;
+      const imported = await api.inject({
+        method: 'POST',
+        url: '/api/market/snapshots/import',
+        payload: fixture.observation(target.id),
+      });
+      const method = fixture.target.beltCraftMethod;
+      if (
+        !method ||
+        method.basePrice.source !== 'manual' ||
+        !method.materials[0]
+      )
+        throw new Error('invalid fixture');
+      const payload = {
+        targetId: target.id,
+        dataKind: 'demo',
+        basePrice: { ...method.basePrice, amount: 40 },
+        materialPrices: { [method.materials[0].id]: method.materials[0].price },
+      };
+      const first = await api.inject({
+        method: 'POST',
+        url: '/api/market/belt-prices',
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+      const repeated = await api.inject({
+        method: 'POST',
+        url: '/api/market/belt-prices',
+        payload,
+      });
+      expect(repeated.statusCode).toBe(200);
+      const calculated = await api.inject({
+        method: 'GET',
+        url: '/api/market/belt-opportunities?kind=demo',
+      });
+      expect(calculated.json().data[0]).toMatchObject({
+        targetId: target.id,
+        snapshotId: imported.json().data.id,
+        status: 'CALCULATED',
+        economicConclusion: 'NON_POSITIVE',
+        calculation: { expectedCraftCost: '48', spread: '-8' },
+      });
+      expect(
+        (
+          await api.inject({
+            method: 'GET',
+            url: `/api/market/targets/${target.id}/belt-prices`,
+          })
+        ).json().data,
+      ).toHaveLength(1);
+      expect(await repo.findTarget(target.id)).toEqual(target);
+      expect(
+        (await repo.findSnapshot(imported.json().data.id))?.listings,
+      ).toEqual(imported.json().data.listings);
+    } finally {
+      await api.close();
+    }
+  });
+  it('ranks synthetic evidence through import and opportunity endpoint', async () => {
+    const api = testApi(inMemoryTestRepository());
+    try {
+      const fixture = beltDemoFixture();
+      const created = await api.inject({
+        method: 'POST',
+        url: '/api/market/targets',
+        payload: fixture.target,
+      });
+      expect(created.statusCode).toBe(201);
+      const imported = await api.inject({
+        method: 'POST',
+        url: '/api/market/snapshots/import',
+        payload: fixture.observation(created.json().data.id),
+      });
+      expect(imported.statusCode).toBe(201);
+      const response = await api.inject({
+        method: 'GET',
+        url: '/api/market/belt-opportunities?kind=demo',
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().data[0]).toMatchObject({
+        status: 'CALCULATED',
+        dataKind: 'demo',
+        calculation: {
+          expectedCraftCost: '18',
+          askingPrice: '40',
+          spread: '22',
+        },
+      });
+      const live = await api.inject({
+        method: 'GET',
+        url: '/api/market/belt-opportunities?kind=observed',
+      });
+      expect(live.json().data[0]).toMatchObject({
+        status: 'INSUFFICIENT_DATA',
+        calculation: null,
+      });
+    } finally {
+      await api.close();
+    }
+  });
+
+  it('imports and analyzes a synthetic belt through the API without changing its raw payload', async () => {
+    const api = testApi(inMemoryTestRepository());
+    try {
+      const created = await api.inject({
+        method: 'POST',
+        url: '/api/market/targets',
+        payload: {
+          ...targetInput,
+          beltRules: {
+            version: 1,
+            minItemLevel: 84,
+            influences: [],
+            corrupted: false,
+            mods: [{ id: 'life', minValue: 80 }],
+          },
+        },
+      });
+      const target = created.json().data;
+      const item = {
+        baseType: 'Stygian Vise',
+        rarity: 'rare',
+        league: 'Standard',
+        patch: '3.29',
+        currency: 'chaos',
+        itemLevel: 84,
+        corrupted: false,
+        influences: [],
+        seller: 'fixture',
+        status: 'listed',
+        mods: [{ id: 'life', value: 90 }],
+      };
+      const imported = await api.inject({
+        method: 'POST',
+        url: '/api/market/snapshots/import',
+        payload: {
+          targetId: target.id,
+          capturedAt: new Date().toISOString(),
+          sourceUrl: 'https://example.com/demo',
+          currency: 'chaos',
+          dataKind: 'demo',
+          listings: [{ price: 10, item }],
+        },
+      });
+      expect(imported.statusCode).toBe(201);
+      expect(imported.json().data.listings[0].item).toEqual(item);
+      const analysis = await api.inject({
+        method: 'GET',
+        url: `/api/market/snapshots/${imported.json().data.id}/belt-analysis/v1`,
+      });
+      expect(analysis.statusCode).toBe(200);
+      expect(analysis.json().data.rows[0].status).toBe('MATCH');
+      expect(analysis.json().data.status).toBe('INSUFFICIENT_DATA');
+    } finally {
+      await api.close();
+    }
+  });
+
   it('creates a target, imports evidence idempotently and serves summaries separately from raw rows', async () => {
     const api = testApi(inMemoryTestRepository());
     try {

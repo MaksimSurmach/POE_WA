@@ -2,6 +2,7 @@ import {
   marketResearchSnapshotSchema,
   marketResearchSnapshotSummarySchema,
   marketTargetSchema,
+  beltPriceUpdateSchema,
 } from '@poe-worksmith/contracts';
 import type { Pool } from 'pg';
 
@@ -15,6 +16,27 @@ export function createMarketResearchRepository(
   pool: Pool,
 ): MarketResearchRepository {
   return {
+    async listPriceUpdates(targetId) {
+      const result = await pool.query<{ payload: unknown }>(
+        'select payload from belt_price_updates where target_id = $1 order by created_at desc, id',
+        [targetId],
+      );
+      return result.rows.map((row) => beltPriceUpdateSchema.parse(row.payload));
+    },
+    async savePriceUpdate(update) {
+      const result = await pool.query<{ payload: unknown }>(
+        `insert into belt_price_updates (id, target_id, digest, created_at, data_kind, payload) values ($1, $2, $3, $4, $5, $6::jsonb) on conflict (digest) do update set digest = excluded.digest returning payload`,
+        [
+          update.id,
+          update.targetId,
+          update.digest,
+          update.createdAt,
+          update.dataKind,
+          JSON.stringify(update),
+        ],
+      );
+      return beltPriceUpdateSchema.parse(result.rows[0]?.payload);
+    },
     async listTargets() {
       const result = await pool.query<{ profile: unknown }>(
         'select profile from market_targets order by created_at desc, id',

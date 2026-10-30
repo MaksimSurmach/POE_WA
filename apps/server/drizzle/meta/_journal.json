@@ -127,6 +127,13 @@
       "when": 1793259705581,
       "tag": "0017_market_economy_payload_retention",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793305490578,
+      "tag": "0018_cute_lockjaw",
+      "breakpoints": true
     }
   ]
 }

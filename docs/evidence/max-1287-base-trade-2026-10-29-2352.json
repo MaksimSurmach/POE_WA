@@ -1,0 +1,35 @@
+{
+  "capturedAt": "2026-10-29T23:52:54.000Z",
+  "league": "Allflame",
+  "patch": "3.29",
+  "sourceUrl": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAE3VOywrCMBD8FZlzroLkNwQvUmRtt7KQJmWzFUrZfy9VhPbgaWaYB7OgGtlUEReU0aRkRFRuJ6VnYniAzSMj4mrzSyifblIZ4dOqiPfl51PuENBLMtbNaLzZyW_ssdM7qqRi8-FBLjpQgrsHDFLbP01J77ThIBnxcvaAtqhOo3F3mOspVd7W3Fd0iYSO8QAAAA",
+  "notes": "Manual transcription of visible Instant Buyout search for normal, uncorrupted ilvl 85+ Stygian Vise. Influence and other method restrictions were not independently confirmed; asking price is not a sale.",
+  "listings": [
+    {
+      "baseType": "Stygian Vise",
+      "itemLevel": 85,
+      "rarity": "normal",
+      "corrupted": false,
+      "seller": "Гуган#4837",
+      "askingPrice": {
+        "amount": 3,
+        "currency": "chaos"
+      },
+      "goldFee": 1358,
+      "rawText": "Verified; Stygian Vise; Item Level 85; Has 1 Abyssal Socket; asking 3 chaos; fee 1358 gold; listed 23 hours ago; Instant Buyout."
+    },
+    {
+      "baseType": "Stygian Vise",
+      "itemLevel": 85,
+      "rarity": "normal",
+      "corrupted": false,
+      "seller": "Horatio_Kain#2571",
+      "askingPrice": {
+        "amount": 5,
+        "currency": "chaos"
+      },
+      "goldFee": 1358,
+      "rawText": "Verified; Stygian Vise; Item Level 85; Has 1 Abyssal Socket; asking 5 chaos; fee 1358 gold; listed 7 hours ago; Instant Buyout."
+    }
+  ]
+}

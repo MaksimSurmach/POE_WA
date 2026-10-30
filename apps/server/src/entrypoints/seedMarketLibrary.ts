@@ -10,18 +10,20 @@ import { marketStarterLibrary } from '../marketStarterLibrary.js';
 import { createMarketResearchRepository } from '../repositories/marketResearchRepository.js';
 
 const builds = new Set(marketStarterLibrary.flatMap(({ builds }) => builds));
-assert.equal(marketStarterLibrary.length, 10);
-assert.equal(builds.size, 5);
+assert.equal(marketStarterLibrary.length, 14);
+assert.equal(builds.size, 9);
 
 const pool = createDatabasePool(loadDatabaseConfig());
 try {
   const repository: MarketResearchRepository =
     createMarketResearchRepository(pool);
+  const seeded = [];
   for (const input of marketStarterLibrary)
-    await repository.saveTarget(createMarketTarget(input));
-  const saved = await repository.listTargets();
-  const seeded = saved.filter((target) => builds.has(target.builds[0] ?? ''));
-  assert.equal(seeded.length, 10);
+    seeded.push(await repository.saveTarget(createMarketTarget(input)));
+  assert.equal(
+    new Set(seeded.map((target) => target.digest)).size,
+    marketStarterLibrary.length,
+  );
   console.log(
     `Market starter library ready: ${seeded.length} profiles across ${builds.size} builds.`,
   );
