@@ -3,10 +3,12 @@ import {
   marketResearchSnapshotSummarySchema,
   marketTargetSchema,
   beltPriceUpdateSchema,
+  marketCollectionRunSchema,
 } from '@poe-worksmith/contracts';
 import type { Pool } from 'pg';
 
 import {
+  marketDigest,
   type MarketResearchRepository,
   summarizeMarketSnapshot,
 } from '../marketResearch.js';
@@ -87,32 +89,97 @@ export function createMarketResearchRepository(
         : null;
     },
     async saveSnapshot(snapshot) {
-      const result = await pool.query<{
-        summary: Record<string, unknown>;
-        listings: unknown;
-      }>(
-        `insert into market_research_snapshots
-          (id, target_id, digest, captured_at, retrieved_at, data_kind, currency, summary, listings)
-         values ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb)
-         on conflict (digest) do update set digest = excluded.digest
-         returning summary, listings`,
-        [
-          snapshot.id,
-          snapshot.targetId,
-          snapshot.digest,
-          snapshot.capturedAt,
-          snapshot.retrievedAt,
-          snapshot.dataKind,
-          snapshot.currency,
-          JSON.stringify(summarizeMarketSnapshot(snapshot)),
-          JSON.stringify(snapshot.listings),
-        ],
-      );
-      const row = result.rows[0]!;
-      return marketResearchSnapshotSchema.parse({
-        ...row.summary,
-        listings: row.listings,
-      });
+      const client = await pool.connect();
+      try {
+        await client.query('begin');
+        const result = await client.query<{
+          summary: Record<string, unknown>;
+          listings: unknown;
+        }>(
+          `insert into market_research_snapshots
+            (id, target_id, digest, captured_at, retrieved_at, data_kind, currency, summary, listings)
+           values ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb)
+           on conflict (digest) do update set digest = excluded.digest
+           returning summary, listings`,
+          [
+            snapshot.id,
+            snapshot.targetId,
+            snapshot.digest,
+            snapshot.capturedAt,
+            snapshot.retrievedAt,
+            snapshot.dataKind,
+            snapshot.currency,
+            JSON.stringify(summarizeMarketSnapshot(snapshot)),
+            JSON.stringify(snapshot.listings),
+          ],
+        );
+        const row = result.rows[0]!;
+        const persisted = marketResearchSnapshotSchema.parse({
+          ...row.summary,
+          listings: row.listings,
+        });
+        const queryDigest = marketDigest({
+          schemaVersion: 1,
+          targetDigest: persisted.targetDigest,
+          sourceUrl: persisted.sourceUrl,
+        });
+        const run = marketCollectionRunSchema.parse({
+          id: persisted.id,
+          targetId: persisted.targetId,
+          targetDigest: persisted.targetDigest,
+          league: persisted.league,
+          patch: persisted.patch,
+          sourceId: 'manual-import',
+          queryDigest,
+          dataKind: persisted.dataKind,
+          trigger: 'manual',
+          status: 'partial',
+          coverage: 'partial',
+          reportedTotal: null,
+          returnedCount: persisted.listings.length,
+          fetchedCount: persisted.listings.length,
+          cached: false,
+          currency: persisted.currency,
+          listings: persisted.listings.map((listing) => ({
+            ...listing,
+            fingerprint: marketDigest(listing),
+          })),
+          startedAt: persisted.retrievedAt,
+          capturedAt: persisted.capturedAt,
+          completedAt: persisted.retrievedAt,
+          batchCount: 0,
+          listingCount: persisted.listings.length,
+          errorCode: null,
+          retryAt: null,
+          snapshotId: persisted.id,
+          cancelRequested: false,
+        });
+        await client.query(
+          `insert into market_collection_runs
+            (id, target_id, target_digest, league, patch, status, trigger, started_at, heartbeat_at, completed_at, payload)
+           values ($1, $2, $3, $4, $5, $6, $7, $8, $8, $9, $10::jsonb)
+           on conflict (id) do nothing`,
+          [
+            run.id,
+            run.targetId,
+            run.targetDigest,
+            run.league,
+            run.patch,
+            run.status,
+            run.trigger,
+            run.startedAt,
+            run.completedAt,
+            JSON.stringify(run),
+          ],
+        );
+        await client.query('commit');
+        return persisted;
+      } catch (error) {
+        await client.query('rollback');
+        throw error;
+      } finally {
+        client.release();
+      }
     },
   };
 }

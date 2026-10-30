@@ -5,6 +5,7 @@ import { marketStarterLibrary } from '../marketStarterLibrary.js';
 import { beltDemoFixture } from '../beltDemoFixture.js';
 
 import { analyzeBeltSnapshot } from '../beltComparability.js';
+import { evaluateBeltOpportunity } from '../beltOpportunity.js';
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
 import {
@@ -40,6 +41,69 @@ beforeEach(async () => {
 });
 
 describe('persistent market research', () => {
+  it('routes a manual import through the collection record, matcher and ranking', async () => {
+    const fixture = beltDemoFixture(now);
+    const sourceUrl = 'https://example.com/manual-observation-fixture';
+    const price = (evidence: NonNullable<typeof fixture.target.beltCraftMethod>['basePrice']) => ({
+      ...evidence,
+      dataKind: 'observed' as const,
+      capturedAt: now.toISOString(),
+      url: sourceUrl,
+      notes: 'Integration fixture only.',
+    });
+    const method = fixture.target.beltCraftMethod;
+    if (!method) throw new Error('invalid fixture');
+    const target = await repository.saveTarget(
+      createMarketTarget(
+        {
+          ...fixture.target,
+          beltCraftMethod: {
+            ...method,
+            basePrice: price(method.basePrice),
+            materials: method.materials.map((material) => ({
+              ...material,
+              price: price(material.price),
+            })),
+          },
+        },
+        now,
+      ),
+    );
+    const imported = await repository.saveSnapshot(
+      createImportedMarketSnapshot(
+        {
+          ...fixture.observation(target.id),
+          sourceUrl,
+          dataKind: 'observed',
+          notes: 'Integration fixture only; verifies the manual import path.',
+        },
+        target,
+        now,
+      ),
+    );
+    const stored = await createMarketResearchRepository(pool).findSnapshot(
+      imported.id,
+    );
+    if (!stored) throw new Error('Missing imported snapshot');
+    const run = await pool.query<{ payload: { sourceId: string } }>(
+      'select payload from market_collection_runs where id = $1',
+      [imported.id],
+    );
+    const ranked = await evaluateBeltOpportunity(
+      target,
+      stored,
+      undefined,
+      now.getTime(),
+    );
+    expect(run.rows[0]?.payload.sourceId).toBe('manual-import');
+    expect(analyzeBeltSnapshot(target, stored, now.getTime()).confirmedListings).toBe(5);
+    expect(ranked).toMatchObject({
+      snapshotId: imported.id,
+      status: 'CALCULATED',
+      economicConclusion: 'POSITIVE',
+    });
+  });
+
   it('preserves the manually observed Trade rows and refuses an unverified match after repository restart', async () => {
     const definition = marketStarterLibrary.find((item) =>
       item.name.startsWith('Winter Orb Elementalist — Stygian'),
@@ -69,6 +133,22 @@ describe('persistent market research', () => {
     expect(restored).toEqual(saved);
     if (!restored) throw new Error('Missing saved observation');
     expect(restored.dataKind).toBe('observed');
+    const collection = await pool.query<{ payload: unknown }>(
+      'select payload from market_collection_runs where id = $1',
+      [saved.id],
+    );
+    expect(collection.rows[0]?.payload).toMatchObject({
+      id: saved.id,
+      snapshotId: saved.id,
+      sourceId: 'manual-import',
+      status: 'partial',
+      coverage: 'partial',
+      queryDigest: expect.stringMatching(/^[a-f0-9]{64}$/),
+      listings: saved.listings.map((listing) => ({
+        ...listing,
+        fingerprint: expect.stringMatching(/^[a-f0-9]{64}$/),
+      })),
+    });
     expect(
       analyzeBeltSnapshot(
         target,
@@ -76,6 +156,19 @@ describe('persistent market research', () => {
         Date.parse(restored.capturedAt),
       ).rows.map((row) => row.status),
     ).toEqual(['PARTIAL', 'PARTIAL', 'PARTIAL', 'PARTIAL', 'PARTIAL']);
+    const ranked = await evaluateBeltOpportunity(
+      target,
+      restored,
+      undefined,
+      Date.parse(restored.capturedAt),
+    );
+    expect(ranked).toMatchObject({
+      snapshotId: saved.id,
+      comparison: {
+        snapshotId: saved.id,
+        confirmedListings: 0,
+      },
+    });
   });
 
   it('persists distinct price observations without mutating the target', async () => {
@@ -239,6 +332,42 @@ describe('persistent market research', () => {
       ),
     );
     expect(demo.id).not.toBe(first.id);
-    expect(await repository.listSnapshots()).toHaveLength(2);
+    const later = await repository.saveSnapshot(
+      createImportedMarketSnapshot(
+        { ...imported, capturedAt: '2026-10-28T01:00:00.000Z' },
+        target,
+        now,
+      ),
+    );
+    const otherSearch = await repository.saveSnapshot(
+      createImportedMarketSnapshot(
+        {
+          ...imported,
+          sourceUrl: 'https://example.com/another-search',
+        },
+        target,
+        now,
+      ),
+    );
+    expect(await repository.listSnapshots()).toHaveLength(4);
+    const savedRuns = await pool.query<{
+      id: string;
+      payload: { queryDigest: string };
+    }>(
+      'select id, payload from market_collection_runs where id = any($1::uuid[])',
+      [[first.id, later.id, otherSearch.id]],
+    );
+    expect(savedRuns.rows).toHaveLength(3);
+    const queryDigests = new Map(
+      savedRuns.rows.map(({ id, payload }) => [id, payload.queryDigest]),
+    );
+    expect(queryDigests.get(first.id)).toBe(queryDigests.get(later.id));
+    expect(queryDigests.get(otherSearch.id)).not.toBe(
+      queryDigests.get(first.id),
+    );
+    const manualRuns = await pool.query<{ count: string }>(
+      "select count(*)::text as count from market_collection_runs where payload->>'sourceId' = 'manual-import'",
+    );
+    expect(manualRuns.rows[0]?.count).toBe('4');
   });
 });

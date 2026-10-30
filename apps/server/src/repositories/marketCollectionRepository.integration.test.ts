@@ -8,6 +8,7 @@ import {
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
 import { createMarketTarget } from '../marketResearch.js';
+import { compareMarketObservations } from '../marketCollection.js';
 import { createMarketResearchRepository } from './marketResearchRepository.js';
 import { createMarketCollectionRepository } from './marketCollectionRepository.js';
 
@@ -91,6 +92,42 @@ function makeRun(
 }
 
 describe('persistent managed market collection', () => {
+  it('retains per-listing currency for same-currency analytics after repository reload', async () => {
+    const target = await targets.saveTarget(makeTarget());
+    const base = makeRun(target.digest, target.id, 'partial');
+    const run = marketCollectionRunSchema.parse({
+      ...base,
+      coverage: 'partial',
+      currency: 'divine',
+      returnedCount: 2,
+      fetchedCount: 2,
+      listingCount: 2,
+      listings: [
+        {
+          externalId: 'chaos-listing',
+          price: 100,
+          currency: 'chaos',
+          item: {},
+          fingerprint: 'a'.repeat(64),
+        },
+        {
+          externalId: 'divine-listing',
+          price: 2,
+          currency: 'divine',
+          item: {},
+          fingerprint: 'b'.repeat(64),
+        },
+      ],
+    });
+    await repository.saveRun(run);
+    const observations = await createMarketCollectionRepository(pool).listObservations(target.id);
+    expect(observations[0]?.listings.map(({ currency }) => currency)).toEqual([
+      'chaos',
+      'divine',
+    ]);
+    expect(compareMarketObservations(observations)[0]?.median).toBe(2);
+  });
+
   it('keeps each run, survives repository recreation and recovers abandoned work', async () => {
     const target = await targets.saveTarget(makeTarget());
     const settings = {

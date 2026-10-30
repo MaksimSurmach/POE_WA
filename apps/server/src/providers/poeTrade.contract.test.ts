@@ -147,7 +147,7 @@ describe('PoE Trade provider contracts', () => {
     });
     await expect(repositories.rateLimits.list()).resolves.toMatchObject([
       {
-        endpoints: ['trade-search'],
+        endpoints: ['trade'],
         lastStatus: 429,
         policy: 'fixture-trade-policy',
       },

@@ -1,6 +1,6 @@
 # Market data sources
 
-Reviewed against primary documentation on 2026-10-29.
+Reviewed against primary documentation on 2026-10-30.
 
 ## Public economy data
 
@@ -40,15 +40,32 @@ account features are added later, use GGG's documented OAuth flow. Keep client
 secrets and tokens on the backend. A new token does not grant an undocumented
 trade scope.
 
-MAX-1287 now has persisted per-profile collection settings and run history,
-sequential detail batches of 10, a 1,000-listing cap, cancellation, restart
-recovery and per-query snapshot comparison. Authorized transports must use the
-shared PostgreSQL rate gate. The production adapter remains blocked because no
-supported profile-query access is configured. Run records distinguish blocked
-access, rate limits, failures, partial coverage and complete empty results.
-Only fresh complete observations can mark a listing as missing or returned;
-neither state proves a sale. Replay fixtures exercise the bounded pipeline but
-remain demo-only and are not wired as a production source.
+`MARKET_COLLECTION_SOURCE` selects `manual-import` (the default) or `disabled`.
+No automatic Trade transport is available: the existing `PoeTradeClient` calls
+the undocumented Trade endpoints, so the collection path does not reuse it for
+network access. It does not copy Awakened PoE Trade's session proxy or cookies.
+
+User imports are saved transactionally to both `market_research_snapshots` and
+`market_collection_runs`. The ranking and matcher continue to use the same
+immutable snapshot and analyzer. Manual observations are marked partial: they
+contribute compatible priced rows and positive ID changes, but cannot prove
+that absent listing IDs disappeared. The first observation is a baseline.
+Unpriced and differently denominated listings remain in raw history and do not
+contribute to price estimates. The importer retains listing currency, fee,
+listing time and an optional raw listing envelope alongside original item JSON
+and capture time. The query digest includes the immutable target and exact
+source URL, which normally contains the saved Trade search identity. Use the
+same saved search URL when comparing observations. The UI keeps missing
+properties unknown.
+
+The bounded detail seam accepts null response slots and missing prices. Such
+slots reduce fetched coverage and remain partial; they are not schema errors or
+evidence that an offer was sold.
+
+The bounded 10-ID transport adapter remains an internal seam for a future
+supported, authorized source. It is not enabled by either configuration value.
+Replay fixtures remain demo-only. Never use an undocumented endpoint or copied
+desktop identity to enable it.
 
 GGG's separate public Currency Exchange CDN provides historical hourly digests
 without an OAuth key. It can inform crafting-input costs; its historical data

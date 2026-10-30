@@ -161,7 +161,11 @@ export const marketTargetSchema = marketTargetInputSchema.extend({
 
 export const marketImportListingSchema = z.strictObject({
   externalId: text(256).optional(),
-  price: z.number().finite().positive().max(1_000_000_000),
+  price: z.number().finite().positive().max(1_000_000_000).nullable().default(null),
+  currency: text(100).optional(),
+  fee: z.number().finite().optional(),
+  listedAt: z.iso.datetime().optional(),
+  rawListing: z.record(z.string(), z.json()).optional(),
   item: z.record(z.string(), z.json()),
 });
 
@@ -277,6 +281,7 @@ export type MarketSourceEvidence = z.infer<typeof marketSourceEvidenceSchema>;
 export type MarketTargetInput = z.infer<typeof marketTargetInputSchema>;
 export type MarketTarget = z.infer<typeof marketTargetSchema>;
 export type MarketImportListing = z.infer<typeof marketImportListingSchema>;
+export type MarketImportListingInput = z.input<typeof marketImportListingSchema>;
 export type MarketSnapshotImport = z.infer<typeof marketSnapshotImportSchema>;
 export type MarketResearchSnapshotSummary = z.infer<
   typeof marketResearchSnapshotSummarySchema

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   compareMarketObservations,
+  configuredMarketCollectionSource,
   createBatchedMarketCollectionSource,
   createReplayMarketCollectionSource,
   MarketCollectionManager,
@@ -56,6 +57,16 @@ const listing = (externalId: string, price: number) => ({
 });
 
 describe('managed market observation comparison', () => {
+  it('selects only configured supported collection modes', () => {
+    expect(configuredMarketCollectionSource().descriptor.id).toBe('manual-import');
+    expect(configuredMarketCollectionSource('disabled').descriptor.id).toBe(
+      'ggg-public-trade',
+    );
+    expect(() => configuredMarketCollectionSource('poe-trade')).toThrow(
+      'MARKET_COLLECTION_SOURCE',
+    );
+  });
+
   it('separates first-seen, changed, missing and returned listings', () => {
     const points = compareMarketObservations([
       observation('1', '2026-10-30T10:00:00.000Z', [
@@ -81,7 +92,7 @@ describe('managed market observation comparison', () => {
         restored,
       })),
     ).toEqual([
-      { newCount: 2, changedCount: 0, missing: [], restored: [] },
+      { newCount: 0, changedCount: 0, missing: [], restored: [] },
       {
         newCount: 1,
         changedCount: 1,
@@ -105,13 +116,39 @@ describe('managed market observation comparison', () => {
       observation('4', '2026-10-30T10:10:00.000Z', [listing('alpha', 10)]),
     ]);
 
-    expect(points[1]).toMatchObject({ newCount: 0, missingCount: 0 });
+    expect(points[1]).toMatchObject({ newCount: 1, missingCount: 0 });
     expect(points[2]).toMatchObject({
       capturedAt: '2026-10-30T10:05:00.000Z',
       newCount: 0,
       missingCount: 0,
     });
     expect(points[3]).toMatchObject({ newCount: 0, restored: [] });
+  });
+
+  it('counts IDs first seen after an empty baseline', () => {
+    const points = compareMarketObservations([
+      observation('1', '2026-10-30T10:00:00.000Z', []),
+      observation('2', '2026-10-30T10:05:00.000Z', [listing('alpha', 10)]),
+    ]);
+    expect(points.map(({ newCount }) => newCount)).toEqual([0, 1]);
+  });
+
+  it('does not let a failed empty attempt establish the baseline', () => {
+    const points = compareMarketObservations([
+      observation('1', '2026-10-30T10:00:00.000Z', [], { status: 'failed' }),
+      observation('2', '2026-10-30T10:05:00.000Z', [listing('alpha', 10)]),
+      observation('3', '2026-10-30T10:10:00.000Z', [listing('alpha', 10), listing('beta', 12)]),
+    ]);
+    expect(points.map(({ newCount }) => newCount)).toEqual([0, 0, 1]);
+  });
+
+  it('keeps differently denominated prices out of the observation estimate', () => {
+    const points = compareMarketObservations([
+      observation('1', '2026-10-30T10:00:00.000Z', [
+        { ...listing('alpha', 10), currency: 'chaos' },
+      ], { currency: 'divine' }),
+    ]);
+    expect(points[0]).toMatchObject({ count: 1, median: null });
   });
 
   it('rejects cross-query comparisons', () => {
@@ -337,6 +374,136 @@ describe('managed collection runner', () => {
       listings: expect.arrayContaining([
         expect.objectContaining({ externalId: 'listing-999' }),
       ]),
+    });
+  });
+
+  it('requests 25 detail IDs as ordered 10+10+5 batches', async () => {
+    const ids = Array.from({ length: 25 }, (_, index) => `twenty-five-${index}`);
+    const batchSizes: number[] = [];
+    const source = createBatchedMarketCollectionSource({
+      descriptor: {
+        id: 'batch-shape',
+        name: 'fixture',
+        access: 'authorized',
+        dataKind: 'observed',
+        reason: null,
+      },
+      rateLimits: {
+        async waitForPermit() {
+          return {};
+        },
+        async observeResponse() {
+          return {};
+        },
+      } as unknown as RateLimitGate,
+      transport: {
+        async search() {
+          return {
+            cached: false,
+            data: {
+              capturedAt: '2026-10-30T10:00:00.000Z',
+              coverage: 'complete',
+              currency: 'chaos',
+              ids,
+              queryId: 'twenty-five-query',
+              reportedTotal: 25,
+            },
+            headers: new Headers(),
+            status: 200,
+          };
+        },
+        async fetchDetails({ ids: batch }) {
+          batchSizes.push(batch.length);
+          return {
+            cached: false,
+            data: batch.map((externalId) => ({
+              externalId,
+              price: 10,
+              item: { name: externalId },
+            })),
+            headers: new Headers(),
+            status: 200,
+          };
+        },
+      },
+    });
+
+    const result = await source.collect({
+      target,
+      signal: new AbortController().signal,
+    });
+
+    expect(batchSizes).toEqual([10, 10, 5]);
+    expect(result).toMatchObject({
+      batchCount: 3,
+      coverage: 'complete',
+      fetchedCount: 25,
+      returnedCount: 25,
+    });
+  });
+
+  it('keeps null detail slots partial and normalizes absent or null prices', async () => {
+    const ids = ['priced-unknown', 'explicit-unpriced', 'null-detail'];
+    const source = createBatchedMarketCollectionSource({
+      descriptor: {
+        id: 'nullable-details',
+        name: 'fixture',
+        access: 'authorized',
+        dataKind: 'observed',
+        reason: null,
+      },
+      rateLimits: {
+        async waitForPermit() {
+          return {};
+        },
+        async observeResponse() {
+          return {};
+        },
+      } as unknown as RateLimitGate,
+      transport: {
+        async search() {
+          return {
+            cached: false,
+            data: {
+              capturedAt: '2026-10-30T10:00:00.000Z',
+              coverage: 'complete',
+              currency: 'chaos',
+              ids,
+              queryId: 'nullable-details-query',
+              reportedTotal: ids.length,
+            },
+            headers: new Headers(),
+            status: 200,
+          };
+        },
+        async fetchDetails() {
+          return {
+            cached: false,
+            data: [
+              { externalId: ids[0], item: { name: 'missing price' } },
+              { externalId: ids[1], price: null, item: { name: 'no price' } },
+              null,
+            ],
+            headers: new Headers(),
+            status: 200,
+          };
+        },
+      },
+    });
+
+    const result = await source.collect({
+      target,
+      signal: new AbortController().signal,
+    });
+
+    expect(result).toMatchObject({
+      coverage: 'partial',
+      fetchedCount: 2,
+      returnedCount: 3,
+      listings: [
+        { externalId: ids[0], price: null },
+        { externalId: ids[1], price: null },
+      ],
     });
   });
 

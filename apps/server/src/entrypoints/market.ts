@@ -8,7 +8,7 @@ import { createMarketEconomyRepository } from '../repositories/marketEconomyRepo
 import { createMarketCollectionRepository } from '../repositories/marketCollectionRepository.js';
 import { NinjaEconomyClient } from '../providers/ninjaEconomy.js';
 import {
-  disabledMarketCollectionSource,
+  configuredMarketCollectionSource,
   MarketCollectionManager,
 } from '../marketCollection.js';
 
@@ -34,7 +34,9 @@ const collectionStore = pool
   : undefined;
 const collectionManager = collectionStore
   ? new MarketCollectionManager({
-      adapter: disabledMarketCollectionSource,
+      adapter: configuredMarketCollectionSource(
+        process.env.MARKET_COLLECTION_SOURCE,
+      ),
       store: collectionStore,
     })
   : undefined;

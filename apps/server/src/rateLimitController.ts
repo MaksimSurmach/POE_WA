@@ -288,6 +288,8 @@ function secondsToMilliseconds(seconds: number) {
 function normalizeEndpoint(value: string) {
   const normalized = normalizeIdentifier(value, '');
   if (!normalized) throw new TypeError('Rate-limit endpoint is invalid');
+  if (normalized === 'trade-search' || normalized === 'trade-fetch')
+    return 'trade';
   return normalized;
 }
 

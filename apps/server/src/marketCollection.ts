@@ -5,6 +5,7 @@ import type {
   MarketCollectionSettingsInput,
   MarketCollectionSource,
   MarketImportListing,
+  MarketImportListingInput,
   MarketTarget,
 } from '@poe-worksmith/contracts';
 import {
@@ -69,7 +70,9 @@ export interface MarketCollectionTransport {
     ids: string[];
     queryId: string | null;
     signal: AbortSignal;
-  }): Promise<MarketCollectionTransportResponse<MarketImportListing[]>>;
+  }): Promise<
+    MarketCollectionTransportResponse<Array<MarketImportListingInput | null>>
+  >;
 }
 
 export interface MarketCollectionStore {
@@ -136,6 +139,33 @@ export const disabledMarketCollectionSource: MarketCollectionAdapter = {
   },
 };
 
+export const manualImportMarketCollectionSource: MarketCollectionAdapter = {
+  descriptor: {
+    id: 'manual-import',
+    name: 'Ручной импорт объявлений',
+    access: 'blocked',
+    dataKind: 'observed',
+    reason:
+      'Автоматический Trade endpoint не поддерживается документацией GGG. Импортируйте выбранные объявления из пользовательской сессии.',
+  },
+  async collect() {
+    throw new DomainError('MARKET_ACCESS_BLOCKED');
+  },
+};
+
+export function configuredMarketCollectionSource(value?: string) {
+  switch (value?.trim() || 'manual-import') {
+    case 'manual-import':
+      return manualImportMarketCollectionSource;
+    case 'disabled':
+      return disabledMarketCollectionSource;
+    default:
+      throw new TypeError(
+        'MARKET_COLLECTION_SOURCE must be manual-import or disabled',
+      );
+  }
+}
+
 /** Runs one search then fetches at most 1,000 details in sequential groups of 10. */
 export function createBatchedMarketCollectionSource(options: {
   descriptor: MarketCollectionSource;
@@ -193,22 +223,26 @@ export function createBatchedMarketCollectionSource(options: {
               accessBlocked = true;
             },
           );
-          const details = marketImportListingSchema
+          const detailResponse = marketImportListingSchema
+            .nullable()
             .array()
             .max(batchIds.length)
             .safeParse(response.data);
-          if (!details.success)
+          if (!detailResponse.success)
             throw new DomainError('PROVIDER_RESPONSE_INVALID');
-          const returnedIds = details.data.flatMap((listing) =>
+          const details = detailResponse.data.filter(
+            (listing): listing is MarketImportListing => listing !== null,
+          );
+          const returnedIds = details.flatMap((listing) =>
             listing.externalId ? [listing.externalId] : [],
           );
           if (
-            returnedIds.length !== details.data.length ||
+            returnedIds.length !== details.length ||
             new Set(returnedIds).size !== returnedIds.length ||
             returnedIds.some((id) => !batchIds.includes(id))
           )
             throw new DomainError('PROVIDER_RESPONSE_INVALID');
-          listings.push(...details.data);
+          listings.push(...details);
           cached ||= response.cached;
           batchCount += 1;
         } catch (error) {
@@ -710,8 +744,8 @@ function validateCollectionBatch(batch: MarketCollectionBatch) {
     (batch.errorCode != null && batch.errorCode.length > 100) ||
     batch.listings.some(
       (listing) =>
-        !Number.isFinite(listing.price) ||
-        listing.price <= 0 ||
+        (listing.price !== null &&
+          (!Number.isFinite(listing.price) || listing.price <= 0)) ||
         (listing.externalId !== undefined && listing.externalId.length > 256),
     )
   )
@@ -747,12 +781,13 @@ export type MarketCollectionObservation = Omit<
   listings: Array<{
     externalId?: string;
     fingerprint?: string;
+    currency?: string;
     item?: MarketCollectionRun['listings'][number]['item'];
-    price: number;
+    price: number | null;
   }>;
 };
 
-/** Compares only complete, fresh observations from one immutable profile scope. */
+/** Compares positive IDs in fresh observations; only complete rows infer absences. */
 export function compareMarketObservations(
   observations: readonly MarketCollectionObservation[],
 ): MarketCollectionPoint[] {
@@ -776,6 +811,8 @@ export function compareMarketObservations(
     a.startedAt.localeCompare(b.startedAt),
   );
   const seen = new Map<string, string>();
+  const missingSinceComplete = new Set<string>();
+  let hasBaseline = false;
   let previousComplete = new Map<string, string>();
 
   return ordered.map((observation) => {
@@ -783,6 +820,7 @@ export function compareMarketObservations(
       observation.status === 'succeeded' || observation.status === 'empty';
     const complete = comparable && observation.coverage === 'complete';
     const listings = observation.listings;
+    const usable = comparable || listings.length > 0;
     const current = new Map(
       listings.flatMap((listing) =>
         listing.externalId
@@ -797,7 +835,12 @@ export function compareMarketObservations(
     );
     const capturedAt = observation.capturedAt ?? observation.startedAt;
     const prices = listings
-      .map((listing) => listing.price)
+      .flatMap((listing) =>
+        listing.price === null ||
+        (listing.currency !== undefined && listing.currency !== observation.currency)
+          ? []
+          : [listing.price],
+      )
       .sort((a, b) => a - b);
     const point: MarketCollectionPoint = {
       snapshotId: observation.id,
@@ -817,25 +860,26 @@ export function compareMarketObservations(
       changed: [],
     };
 
-    // Cached or partial responses are attempts, not independent market observations.
-    if (!complete || observation.cached) return point;
+    // Cached responses do not advance history; partial responses can prove positive identity changes only.
+    if (observation.cached || !usable) return point;
 
     const newIds: string[] = [];
     const persistedIds: string[] = [];
     const changedIds: string[] = [];
     const restoredIds: string[] = [];
+    const hadBaseline = hasBaseline;
     for (const [id, digest] of current) {
-      const oldDigest = previousComplete.get(id);
+      const oldDigest = seen.get(id);
       if (oldDigest !== undefined) {
         if (oldDigest === digest) persistedIds.push(id);
         else changedIds.push(id);
-      } else if (seen.has(id)) restoredIds.push(id);
-      else newIds.push(id);
+      } else if (hadBaseline) newIds.push(id);
+      if (missingSinceComplete.delete(id)) restoredIds.push(id);
       seen.set(id, digest);
     }
-    const missingIds = [...previousComplete.keys()].filter(
-      (id) => !current.has(id),
-    );
+    const missingIds = complete
+      ? [...previousComplete.keys()].filter((id) => !current.has(id))
+      : [];
     point.newCount = newIds.length;
     point.persistedCount = persistedIds.length;
     point.changed = changedIds.slice(0, 50);
@@ -844,7 +888,11 @@ export function compareMarketObservations(
     point.missingCount = missingIds.length;
     point.restored = restoredIds.slice(0, 50);
     point.restoredCount = restoredIds.length;
-    previousComplete = current;
+    if (complete) {
+      missingIds.forEach((id) => missingSinceComplete.add(id));
+      previousComplete = current;
+    }
+    hasBaseline = true;
     return point;
   });
 }

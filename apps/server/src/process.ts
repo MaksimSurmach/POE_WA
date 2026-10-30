@@ -44,7 +44,7 @@ import { createMarketEconomyRepository } from './repositories/marketEconomyRepos
 import { createMarketCollectionRepository } from './repositories/marketCollectionRepository.js';
 import { NinjaEconomyClient } from './providers/ninjaEconomy.js';
 import {
-  disabledMarketCollectionSource,
+  configuredMarketCollectionSource,
   MarketCollectionManager,
 } from './marketCollection.js';
 
@@ -98,7 +98,9 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     : undefined;
   const collectionManager = collectionStore
     ? new MarketCollectionManager({
-        adapter: disabledMarketCollectionSource,
+        adapter: configuredMarketCollectionSource(
+          process.env.MARKET_COLLECTION_SOURCE,
+        ),
         store: collectionStore,
       })
     : undefined;

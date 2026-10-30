@@ -695,6 +695,7 @@ export function MarketPage() {
               key={selected.id}
               target={selected}
               canWrite={canWrite}
+              onManualImport={() => setDialog('snapshot')}
             />
           ) : (
             <Empty title="Сначала выберите профиль предмета" />
@@ -898,9 +899,11 @@ function Metric({
 function MarketCollectionPanel({
   target,
   canWrite,
+  onManualImport,
 }: {
   target: MarketTarget;
   canWrite: boolean;
+  onManualImport: () => void;
 }) {
   const [data, setData] = useState<Awaited<
     ReturnType<typeof marketClient.collection>
@@ -992,6 +995,7 @@ function MarketCollectionPanel({
   }
 
   const activeRun = data?.runs.find((run) => run.status === 'running');
+  const automaticUnavailable = !data || data.source.access === 'blocked';
   const statusLabel: Record<string, string> = {
     running: 'Выполняется',
     succeeded: 'Завершён',
@@ -1016,8 +1020,17 @@ function MarketCollectionPanel({
       {data?.source.access === 'blocked' && (
         <div className="market-notice market-notice--warning" role="status">
           <strong>Автоматический источник не подключён.</strong>{' '}
-          {data.source.reason} Пароль и cookies не используются. Run now запишет
-          блокировку без сетевого запроса.
+          {data.source.reason} Пароль и cookies не используются. Импортируйте
+          реальные выбранные объявления вручную: снимок попадёт и в историю
+          collection, и в тот же анализатор рейтинга.{' '}
+          <button
+            type="button"
+            className="market-button"
+            disabled={!canWrite}
+            onClick={onManualImport}
+          >
+            Импортировать наблюдение
+          </button>
         </div>
       )}
       {!canWrite && (
@@ -1035,7 +1048,7 @@ function MarketCollectionPanel({
           <input
             type="checkbox"
             checked={enabled}
-            disabled={!canWrite || pending}
+            disabled={!canWrite || pending || automaticUnavailable}
             onChange={(event) => void update({ enabled: event.target.checked })}
           />{' '}
           Сбор включён
@@ -1048,7 +1061,7 @@ function MarketCollectionPanel({
             max={1440}
             step={5}
             value={intervalMinutes}
-            disabled={!canWrite || pending}
+            disabled={!canWrite || pending || automaticUnavailable}
             onChange={(event) => {
               intervalDirty.current = true;
               setIntervalMinutes(Number(event.target.value));
@@ -1058,7 +1071,7 @@ function MarketCollectionPanel({
         <button
           type="button"
           className="market-button"
-          disabled={!canWrite || pending}
+          disabled={!canWrite || pending || automaticUnavailable}
           onClick={() => void update({ enabled, paused, intervalMinutes })}
         >
           Сохранить настройки
@@ -1066,7 +1079,9 @@ function MarketCollectionPanel({
         <button
           type="button"
           className="market-button market-button--primary"
-          disabled={!canWrite || pending || Boolean(activeRun)}
+          disabled={
+            !canWrite || pending || automaticUnavailable || Boolean(activeRun)
+          }
           onClick={() => void runNow()}
         >
           Запустить сейчас
@@ -1111,6 +1126,7 @@ function MarketCollectionPanel({
                   <th>Изменены</th>
                   <th>Нет в охвате</th>
                   <th>Вернулись</th>
+                  <th>Медиана выборки</th>
                 </tr>
               </thead>
               <tbody>
@@ -1124,6 +1140,7 @@ function MarketCollectionPanel({
                     <td>{point.changedCount}</td>
                     <td>{point.missingCount}</td>
                     <td>{point.restoredCount}</td>
+                    <td>{displayPrice(point.median, series.currency)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -2217,12 +2234,12 @@ function ManualSnapshotForm({
         );
         const res = ['fire', 'cold', 'lightning'].map(get);
         const item = {
-          baseType: get('base'),
           league: target.league,
           patch: target.patch,
           currency,
-          seller: get('seller'),
-          status: get('status'),
+          ...(get('base') ? { baseType: get('base') } : {}),
+          ...(get('seller') ? { seller: get('seller') } : {}),
+          status: get('status') || 'unknown',
           ...(get('rarity') ? { rarity: get('rarity') } : {}),
           ...(get('ilevel') ? { itemLevel: Number(get('ilevel')) } : {}),
           ...(get('quality') ? { quality: Number(get('quality')) } : {}),
@@ -2253,9 +2270,23 @@ function ManualSnapshotForm({
           ...(get('raw') ? { rawText: get('raw') } : {}),
           ...(get('listingURL') ? { listingUrl: get('listingURL') } : {}),
         };
+        const rawListing = get('rawListing');
+        const fee = get('fee');
+        const listedAt = get('listedAt');
+        let rawEnvelope: Record<string, unknown> | undefined;
+        if (rawListing) {
+          const parsed = JSON.parse(rawListing);
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+            throw new Error('Исходные данные объявления должны быть JSON-объектом');
+          rawEnvelope = parsed as Record<string, unknown>;
+        }
         return {
           ...(get('id') ? { externalId: get('id') } : {}),
-          price: Number(get('price')),
+          price: get('price') ? Number(get('price')) : null,
+          ...(get('listingCurrency') ? { currency: get('listingCurrency') } : {}),
+          ...(fee ? { fee: Number(fee) } : {}),
+          ...(listedAt ? { listedAt: new Date(listedAt).toISOString() } : {}),
+          ...(rawEnvelope ? { rawListing: rawEnvelope } : {}),
           item,
         };
       });
@@ -2278,7 +2309,9 @@ function ManualSnapshotForm({
       <p>
         Введите объявления вручную из разрешённого источника. Пустые свойства
         останутся неизвестными; сумма сопротивлений считается только при наличии
-        всех трёх значений.
+        всех трёх значений. Исходный JSON сохраняется отдельно; заполните
+        структурированные свойства ниже для сопоставления. Неизвестные моды не
+        распознаются автоматически.
       </p>
       <label>
         Источник
@@ -2315,7 +2348,7 @@ function ManualSnapshotForm({
           </label>
           <label>
             Продавец
-            <input required name={`seller-${i}`} />
+            <input name={`seller-${i}`} />
           </label>
           <label>
             Ссылка на объявление
@@ -2324,7 +2357,6 @@ function ManualSnapshotForm({
           <label>
             Цена предложения
             <input
-              required
               type="number"
               min="0.00000001"
               step="any"
@@ -2332,8 +2364,24 @@ function ManualSnapshotForm({
             />
           </label>
           <label>
+            Валюта предложения
+            <input name={`listingCurrency-${i}`} />
+          </label>
+          <label>
+            Комиссия объявления
+            <input type="number" step="any" name={`fee-${i}`} />
+          </label>
+          <label>
+            Время объявления
+            <input type="datetime-local" name={`listedAt-${i}`} />
+          </label>
+          <label>
+            Исходные данные объявления JSON
+            <textarea name={`rawListing-${i}`} rows={3} />
+          </label>
+          <label>
             База
-            <input required name={`base-${i}`} />
+            <input name={`base-${i}`} />
           </label>
           <label>
             Редкость

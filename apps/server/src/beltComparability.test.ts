@@ -83,6 +83,26 @@ describe('belt comparability v1', () => {
     expect(result.rows[1]?.reasons).toContain('life: tier unknown');
     expect(JSON.stringify(snap)).toBe(original);
   });
+
+  it('keeps unpriced items in the snapshot but excludes them from priced matcher rows', () => {
+    const snap = createImportedMarketSnapshot(
+      {
+        targetId: target.id,
+        capturedAt: now.toISOString(),
+        sourceUrl: 'https://example.com/unpriced',
+        currency: 'chaos',
+        dataKind: 'observed',
+        listings: [
+          { externalId: 'priced', price: 10, item },
+          { externalId: 'unpriced', price: null, item },
+        ],
+      },
+      target,
+      now,
+    );
+    expect(snap.listings).toHaveLength(2);
+    expect(analyzeBeltSnapshot(target, snap, now.getTime()).rows).toHaveLength(1);
+  });
   it('deduplicates sellers, requires a fresh sample and never claims profit', () => {
     const snap = snapshot([
       item,

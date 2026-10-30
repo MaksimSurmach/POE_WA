@@ -89,7 +89,7 @@ describe('GGG rate-limit controller', () => {
     expect(await repositories.rateLimits.list()).toMatchObject([
       {
         blockedUntil: new Date(start.getTime() + 10_000),
-        endpoints: ['trade-search'],
+        endpoints: ['trade'],
         lastStatus: 429,
         policy: 'trade-policy',
       },
@@ -117,7 +117,7 @@ describe('GGG rate-limit controller', () => {
 
     expect(await repositories.rateLimits.list()).toMatchObject([
       {
-        endpoints: ['trade-search', 'trade-fetch'],
+        endpoints: ['trade'],
         policy: 'trade-policy',
       },
     ]);

@@ -559,11 +559,21 @@ export function createPostgresRepositories(pool: Pool): Repositories {
             await client.query('begin');
             await lockRateLimitEndpoint(client, input.endpoint);
             const mapping = await client.query<{ policy: string }>(
-              `select policy
-               from rate_limit_endpoint_policies
-               where endpoint = $1
-               for update`,
-              [input.endpoint],
+              `select mapping.policy
+               from rate_limit_endpoint_policies mapping
+               left join rate_limit_states state on state.policy = mapping.policy
+               where mapping.endpoint = $1
+                  or ($1 = 'trade' and mapping.endpoint in ('trade-search', 'trade-fetch'))
+               order by case when mapping.endpoint = $1 then 0 else 1 end,
+                 greatest(
+                   state.blocked_until,
+                   state.next_request_at,
+                   $2::timestamptz + state.minimum_delay_ms * interval '1 millisecond'
+                 ) desc nulls last,
+                 mapping.updated_at desc
+               limit 1
+               for update of mapping`,
+              [input.endpoint, input.now],
             );
             const policy =
               mapping.rows[0]?.policy ?? input.fallbackPolicy.trim();
