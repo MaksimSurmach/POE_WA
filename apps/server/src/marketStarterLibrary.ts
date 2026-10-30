@@ -92,7 +92,7 @@ export const marketStarterLibrary: MarketTargetInput[] = [
       title: 'Flicker Strike Slayer gear (3.29)',
       url: 'https://odealo.com/articles/trinity-flicker-strike-slayer-build-1',
       notes:
-        'Гайд указывает редкую альтернативу и пороги; качество, влияния и item level не указаны. Суммарные сопротивления требуют проверяемого правила, поэтому профиль пока исследовательский.',
+        'Гайд указывает редкую альтернативу, но его PoB использует Arn’s Anguish. При замене на Vengeance Tether без самоцвета PoB показывает 62% огненного сопротивления и снижение DPS примерно на 31%. Редкий пояс требует адаптации остальной сборки; профиль остаётся исследовательским.',
     },
   ),
   profile(
