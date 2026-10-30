@@ -27,7 +27,7 @@ import {
 } from './marketWorkbench.js';
 import './market.css';
 
-type Tab = 'targets' | 'snapshots' | 'sources';
+type Tab = 'targets' | 'snapshots' | 'sources' | 'collection';
 type Workbench = MarketWorkbenchResponse['data'];
 
 function errorMessage(error: unknown) {
@@ -427,6 +427,7 @@ export function MarketPage() {
             [
               ['targets', 'Возможности'],
               ['snapshots', 'Снимки'],
+              ['collection', 'Сбор'],
               ['sources', 'Источники'],
             ] as const
           ).map(([id, label]) => (
@@ -683,6 +684,22 @@ export function MarketPage() {
               </p>
             )}
         </section>
+      ) : tab === 'collection' ? (
+        <section
+          role="tabpanel"
+          id="market-panel-collection"
+          aria-labelledby="market-tab-collection"
+        >
+          {selected ? (
+            <MarketCollectionPanel
+              key={selected.id}
+              target={selected}
+              canWrite={canWrite}
+            />
+          ) : (
+            <Empty title="Сначала выберите профиль предмета" />
+          )}
+        </section>
       ) : (
         <section
           role="tabpanel"
@@ -875,6 +892,290 @@ function Metric({
       <strong className={small ? 'market-metric-small' : ''}>{value}</strong>
       <small>{detail}</small>
     </div>
+  );
+}
+
+function MarketCollectionPanel({
+  target,
+  canWrite,
+}: {
+  target: MarketTarget;
+  canWrite: boolean;
+}) {
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof marketClient.collection>
+  > | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [enabled, setEnabled] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [intervalMinutes, setIntervalMinutes] = useState(60);
+  const intervalDirty = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    let loading = false;
+    intervalDirty.current = false;
+    async function reload() {
+      if (loading) return;
+      loading = true;
+      try {
+        const result = await marketClient.collection(target.id);
+        if (!active) return;
+        setData(result);
+        setEnabled(result.settings?.enabled ?? false);
+        setPaused(result.settings?.paused ?? false);
+        if (!intervalDirty.current)
+          setIntervalMinutes(result.settings?.intervalMinutes ?? 60);
+        setError(null);
+      } catch (cause) {
+        if (active) setError(errorMessage(cause));
+      } finally {
+        loading = false;
+      }
+    }
+    void reload();
+    const timer = window.setInterval(() => void reload(), 4000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [target.id]);
+
+  async function update(patch: {
+    enabled?: boolean;
+    paused?: boolean;
+    intervalMinutes?: number;
+  }) {
+    setPending(true);
+    setError(null);
+    try {
+      const settings = await marketClient.updateCollection(target.id, patch);
+      setEnabled(settings.enabled);
+      setPaused(settings.paused);
+      if (patch.intervalMinutes !== undefined) {
+        intervalDirty.current = false;
+        setIntervalMinutes(settings.intervalMinutes);
+      }
+      setData(await marketClient.collection(target.id));
+    } catch (cause) {
+      setError(errorMessage(cause));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function runNow() {
+    setPending(true);
+    setError(null);
+    try {
+      await marketClient.runCollection(target.id);
+      setData(await marketClient.collection(target.id));
+    } catch (cause) {
+      setError(errorMessage(cause));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function cancel(runId: string) {
+    setPending(true);
+    setError(null);
+    try {
+      await marketClient.cancelCollection(runId);
+      setData(await marketClient.collection(target.id));
+    } catch (cause) {
+      setError(errorMessage(cause));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  const activeRun = data?.runs.find((run) => run.status === 'running');
+  const statusLabel: Record<string, string> = {
+    running: 'Выполняется',
+    succeeded: 'Завершён',
+    empty: 'Выдача пуста',
+    partial: 'Частичный охват',
+    blocked: 'Доступ заблокирован',
+    rate_limited: 'Ожидание лимита',
+    failed: 'Ошибка',
+    cancelled: 'Отменён',
+  };
+
+  return (
+    <>
+      <div className="market-section-heading">
+        <div>
+          <h2>Сбор по профилю: {target.name}</h2>
+          <p>
+            {target.league} · {target.patch} · {target.baseTypes.join(', ')}
+          </p>
+        </div>
+      </div>
+      {data?.source.access === 'blocked' && (
+        <div className="market-notice market-notice--warning" role="status">
+          <strong>Автоматический источник не подключён.</strong>{' '}
+          {data.source.reason} Пароль и cookies не используются. Run now запишет
+          блокировку без сетевого запроса.
+        </div>
+      )}
+      {!canWrite && (
+        <div className="market-notice" role="status">
+          Для управления сбором требуется подключённый PostgreSQL.
+        </div>
+      )}
+      {error && (
+        <div className="market-notice market-notice--warning" role="alert">
+          {error}
+        </div>
+      )}
+      <div className="market-notice">
+        <label>
+          <input
+            type="checkbox"
+            checked={enabled}
+            disabled={!canWrite || pending}
+            onChange={(event) => void update({ enabled: event.target.checked })}
+          />{' '}
+          Сбор включён
+        </label>
+        <label>
+          Интервал, минут{' '}
+          <input
+            type="number"
+            min={5}
+            max={1440}
+            step={5}
+            value={intervalMinutes}
+            disabled={!canWrite || pending}
+            onChange={(event) => {
+              intervalDirty.current = true;
+              setIntervalMinutes(Number(event.target.value));
+            }}
+          />
+        </label>
+        <button
+          type="button"
+          className="market-button"
+          disabled={!canWrite || pending}
+          onClick={() => void update({ enabled, paused, intervalMinutes })}
+        >
+          Сохранить настройки
+        </button>
+        <button
+          type="button"
+          className="market-button market-button--primary"
+          disabled={!canWrite || pending || Boolean(activeRun)}
+          onClick={() => void runNow()}
+        >
+          Запустить сейчас
+        </button>
+        {enabled && (
+          <button
+            type="button"
+            className="market-button"
+            disabled={!canWrite || pending}
+            onClick={() => void update({ paused: !paused })}
+          >
+            {paused ? 'Продолжить расписание' : 'Пауза'}
+          </button>
+        )}
+        {activeRun && (
+          <button
+            type="button"
+            className="market-button"
+            disabled={!canWrite || pending}
+            onClick={() => void cancel(activeRun.id)}
+          >
+            Отменить текущий запуск
+          </button>
+        )}
+        <p>
+          В одном снимке сохраняется до 1 000 объявлений. Фактический охват
+          определяет источник; частичный ответ не считается всем рынком.
+        </p>
+      </div>
+      {data?.series.map((series) => (
+        <section key={`${series.dataKind}:${series.currency}`}>
+          <h3>
+            Новые и изменившиеся объявления · {series.currency} ·{' '}
+            {series.dataKind}
+          </h3>
+          <div className="market-table-scroll">
+            <table className="market-snapshot-table">
+              <thead>
+                <tr>
+                  <th>Наблюдение</th>
+                  <th>Новые</th>
+                  <th>Изменены</th>
+                  <th>Нет в охвате</th>
+                  <th>Вернулись</th>
+                </tr>
+              </thead>
+              <tbody>
+                {series.points.map((point) => (
+                  <tr key={point.snapshotId}>
+                    <td>
+                      {point.cached ? 'Кешированный · ' : ''}
+                      {displayDate(point.capturedAt)}
+                    </td>
+                    <td>{point.newCount}</td>
+                    <td>{point.changedCount}</td>
+                    <td>{point.missingCount}</td>
+                    <td>{point.restoredCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="market-footnote">
+            «Нет в охвате» означает отсутствие при полном повторном наблюдении;
+            это не подтверждённая продажа.
+          </p>
+        </section>
+      ))}
+      <section>
+        <h3>Запуски и охват</h3>
+        {!data?.runs.length ? (
+          <p>Истории управляемого сбора пока нет.</p>
+        ) : (
+          <div className="market-table-scroll">
+            <table className="market-snapshot-table">
+              <thead>
+                <tr>
+                  <th>Начат</th>
+                  <th>Статус</th>
+                  <th>Охват</th>
+                  <th>Подробности</th>
+                  <th>Источник</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.runs.map((run) => (
+                  <tr key={run.id}>
+                    <td>{displayDate(run.startedAt)}</td>
+                    <td>
+                      {statusLabel[run.status] ?? run.status}
+                      {run.cached ? ' · кеш' : ''}
+                    </td>
+                    <td>{run.coverage ?? 'не получен'}</td>
+                    <td>
+                      {run.listingCount}
+                      {run.reportedTotal === null
+                        ? ''
+                        : ` из ${run.reportedTotal}`}
+                      {run.cached ? ' · кеш' : ''}
+                    </td>
+                    <td>{run.errorCode ?? run.sourceId}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </>
   );
 }
 

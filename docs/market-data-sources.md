@@ -40,6 +40,16 @@ account features are added later, use GGG's documented OAuth flow. Keep client
 secrets and tokens on the backend. A new token does not grant an undocumented
 trade scope.
 
+MAX-1287 now has persisted per-profile collection settings and run history,
+sequential detail batches of 10, a 1,000-listing cap, cancellation, restart
+recovery and per-query snapshot comparison. Authorized transports must use the
+shared PostgreSQL rate gate. The production adapter remains blocked because no
+supported profile-query access is configured. Run records distinguish blocked
+access, rate limits, failures, partial coverage and complete empty results.
+Only fresh complete observations can mark a listing as missing or returned;
+neither state proves a sale. Replay fixtures exercise the bounded pipeline but
+remain demo-only and are not wired as a production source.
+
 GGG's separate public Currency Exchange CDN provides historical hourly digests
 without an OAuth key. It can inform crafting-input costs; its historical data
 and currency semantics must not be interpreted as current rare-item prices.

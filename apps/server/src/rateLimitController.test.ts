@@ -84,7 +84,7 @@ describe('GGG rate-limit controller', () => {
     await second.waitForPermit('trade-search');
 
     expect(sleep).toHaveBeenCalledOnce();
-    expect(sleep).toHaveBeenCalledWith(10_000);
+    expect(sleep).toHaveBeenCalledWith(10_000, undefined);
     expect(now).toEqual(new Date(start.getTime() + 10_000));
     expect(await repositories.rateLimits.list()).toMatchObject([
       {
@@ -154,5 +154,23 @@ describe('GGG rate-limit controller', () => {
     );
 
     expect(parsed.blockedForMs).toBe(5000);
+  });
+
+  it('cancels a cooldown wait without acquiring a request permit', async () => {
+    const repositories = createInMemoryRepositories();
+    const controller = new GggRateLimitController({
+      repository: repositories.rateLimits,
+    });
+    await controller.observeResponse('trade-search', {
+      headers: new Headers({ 'Retry-After': '60' }),
+      status: 429,
+    });
+    const abortController = new AbortController();
+    const waiting = controller.waitForPermit(
+      'trade-search',
+      abortController.signal,
+    );
+    abortController.abort();
+    await expect(waiting).rejects.toMatchObject({ name: 'AbortError' });
   });
 });

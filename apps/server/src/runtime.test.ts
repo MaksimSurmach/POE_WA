@@ -31,6 +31,9 @@ describe('application runtime', () => {
     const runtime = new ApplicationRuntime({
       api,
       host: '127.0.0.1',
+      afterApiClose: async () => {
+        order.push('collection:stop');
+      },
       jobs,
       logger: pino({ level: 'silent' }),
       mode: 'all',
@@ -46,6 +49,7 @@ describe('application runtime', () => {
       'jobs:start',
       'api:start',
       'api:stop',
+      'collection:stop',
       'jobs:stop',
       'pool:stop',
     ]);

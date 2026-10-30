@@ -53,7 +53,7 @@ describe('PostgreSQL GGG rate-limit coordination', () => {
       status: 200,
     });
 
-    expect(sleep).toHaveBeenCalledWith(10_000);
+    expect(sleep).toHaveBeenCalledWith(10_000, undefined);
     expect(await repositories.rateLimits.list()).toMatchObject([
       {
         endpoints: ['trade-fetch', 'trade-search'],

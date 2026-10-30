@@ -459,3 +459,160 @@ export const beltOpportunitiesResponseSchema = z.strictObject({
   data: z.array(beltOpportunitySchema),
 });
 export type BeltOpportunity = z.infer<typeof beltOpportunitySchema>;
+
+/** Hard per-run limits. A source that exceeds them yields a partial or failed run, never a complete observation. */
+export const marketCollectionBounds = {
+  maxBatches: 100,
+  maxRunListings: 1000,
+  minIntervalMinutes: 5,
+  maxIntervalMinutes: 1440,
+} as const;
+
+export const marketCollectionSettingsSchema = z.strictObject({
+  targetId: z.uuid(),
+  enabled: z.boolean(),
+  paused: z.boolean(),
+  intervalMinutes: z
+    .number()
+    .int()
+    .min(marketCollectionBounds.minIntervalMinutes)
+    .max(marketCollectionBounds.maxIntervalMinutes),
+  nextRunAt: z.iso.datetime().nullable(),
+  updatedAt: z.iso.datetime(),
+});
+
+export const marketCollectionSettingsInputSchema = z
+  .strictObject({
+    enabled: z.boolean().optional(),
+    paused: z.boolean().optional(),
+    intervalMinutes:
+      marketCollectionSettingsSchema.shape.intervalMinutes.optional(),
+  })
+  .refine((input) => Object.keys(input).length > 0, 'Provide a setting');
+
+/** blocked = no authorized source; rate_limited = source asked us to wait; empty/succeeded = complete observation. */
+export const marketCollectionRunStatusSchema = z.enum([
+  'running',
+  'succeeded',
+  'empty',
+  'partial',
+  'blocked',
+  'rate_limited',
+  'failed',
+  'cancelled',
+]);
+
+export const marketCollectionListingSchema = marketImportListingSchema.extend({
+  fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+});
+
+export const marketCollectionRunSchema = z.strictObject({
+  id: z.uuid(),
+  targetId: z.uuid(),
+  targetDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  league: text(100),
+  patch: text(50),
+  sourceId: text(100),
+  queryDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  dataKind: z.enum(['observed', 'demo']),
+  trigger: z.enum(['manual', 'scheduled']),
+  status: marketCollectionRunStatusSchema,
+  coverage: z.enum(['complete', 'partial', 'unknown']).nullable(),
+  reportedTotal: z.number().int().min(0).nullable(),
+  returnedCount: z.number().int().min(0),
+  fetchedCount: z.number().int().min(0),
+  cached: z.boolean(),
+  currency: z.enum(['chaos', 'divine']).nullable(),
+  listings: z
+    .array(marketCollectionListingSchema)
+    .max(marketCollectionBounds.maxRunListings),
+  startedAt: z.iso.datetime(),
+  capturedAt: z.iso.datetime().nullable(),
+  completedAt: z.iso.datetime().nullable(),
+  batchCount: z.number().int().min(0).max(marketCollectionBounds.maxBatches),
+  listingCount: z
+    .number()
+    .int()
+    .min(0)
+    .max(marketCollectionBounds.maxRunListings),
+  errorCode: z.string().max(100).nullable(),
+  retryAt: z.iso.datetime().nullable(),
+  snapshotId: z.uuid().nullable(),
+  cancelRequested: z.boolean(),
+});
+
+export const marketCollectionSourceSchema = z.strictObject({
+  id: text(100),
+  name: text(),
+  access: z.enum(['blocked', 'replay', 'authorized']),
+  dataKind: z.enum(['observed', 'demo']),
+  reason: z.string().max(1500).nullable(),
+});
+
+const idList = z.array(text(256)).max(50);
+export const marketCollectionPointSchema = z.strictObject({
+  snapshotId: z.uuid(),
+  queryDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  capturedAt: z.iso.datetime(),
+  cached: z.boolean(),
+  count: z.number().int().min(0),
+  median: z.number().finite().positive().nullable(),
+  untracked: z.number().int().min(0),
+  newCount: z.number().int().min(0),
+  persistedCount: z.number().int().min(0),
+  missingCount: z.number().int().min(0),
+  restoredCount: z.number().int().min(0),
+  missing: idList,
+  restored: idList,
+  changedCount: z.number().int().min(0),
+  changed: idList,
+});
+
+/** One series per data kind and currency, strictly within one target id, digest, league and patch. */
+export const marketCollectionSeriesSchema = z.strictObject({
+  dataKind: z.enum(['observed', 'demo']),
+  currency: z.enum(['chaos', 'divine']),
+  queryDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  points: z.array(marketCollectionPointSchema),
+});
+
+export const marketCollectionResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: z.strictObject({
+    source: marketCollectionSourceSchema,
+    settings: marketCollectionSettingsSchema.nullable(),
+    runs: z.array(marketCollectionRunSchema).max(25),
+    series: z.array(marketCollectionSeriesSchema),
+    note: z.string(),
+  }),
+});
+
+export const marketCollectionSettingsResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: marketCollectionSettingsSchema,
+});
+export const marketCollectionRunResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: marketCollectionRunSchema,
+});
+
+export type MarketCollectionSettings = z.infer<
+  typeof marketCollectionSettingsSchema
+>;
+export type MarketCollectionSettingsInput = z.infer<
+  typeof marketCollectionSettingsInputSchema
+>;
+export type MarketCollectionRun = z.infer<typeof marketCollectionRunSchema>;
+export type MarketCollectionRunStatus = z.infer<
+  typeof marketCollectionRunStatusSchema
+>;
+export type MarketCollectionSource = z.infer<
+  typeof marketCollectionSourceSchema
+>;
+export type MarketCollectionSeries = z.infer<
+  typeof marketCollectionSeriesSchema
+>;
+export type MarketCollectionPoint = z.infer<typeof marketCollectionPointSchema>;
+export type MarketCollectionResponse = z.infer<
+  typeof marketCollectionResponseSchema
+>;

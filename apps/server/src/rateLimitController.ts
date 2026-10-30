@@ -22,8 +22,16 @@ export interface RateLimitGate {
     endpoint: string,
     response: RateLimitedResponse,
   ): Promise<RateLimitState>;
-  waitForPermit(endpoint: string): Promise<RateLimitState>;
+  waitForPermit(
+    endpoint: string,
+    signal?: AbortSignal,
+  ): Promise<RateLimitState>;
 }
+
+type RateLimitSleep = (
+  milliseconds: number,
+  signal?: AbortSignal,
+) => Promise<void>;
 
 export type ParsedRateLimitHeaders = {
   blockedForMs: number;
@@ -39,7 +47,7 @@ export class GggRateLimitController implements RateLimitGate {
   readonly #fallbackPolicy: string;
   readonly #repository: RateLimitRepository;
   readonly #safetyFactor: number;
-  readonly #sleep: (milliseconds: number) => Promise<void>;
+  readonly #sleep: RateLimitSleep;
 
   constructor(options: {
     clock?: () => Date;
@@ -48,7 +56,7 @@ export class GggRateLimitController implements RateLimitGate {
     fallbackPolicy?: string;
     repository: RateLimitRepository;
     safetyFactor?: number;
-    sleep?: (milliseconds: number) => Promise<void>;
+    sleep?: RateLimitSleep;
   }) {
     this.#clock = options.clock ?? (() => new Date());
     this.#conservativeBlockMs =
@@ -61,10 +69,7 @@ export class GggRateLimitController implements RateLimitGate {
     );
     this.#repository = options.repository;
     this.#safetyFactor = options.safetyFactor ?? defaultSafetyFactor;
-    this.#sleep =
-      options.sleep ??
-      ((milliseconds) =>
-        new Promise((resolve) => setTimeout(resolve, milliseconds)));
+    this.#sleep = options.sleep ?? sleepWithSignal;
     if (
       !Number.isInteger(this.#conservativeBlockMs) ||
       this.#conservativeBlockMs < 1 ||
@@ -77,9 +82,13 @@ export class GggRateLimitController implements RateLimitGate {
     }
   }
 
-  async waitForPermit(endpoint: string): Promise<RateLimitState> {
+  async waitForPermit(
+    endpoint: string,
+    signal?: AbortSignal,
+  ): Promise<RateLimitState> {
     const normalizedEndpoint = normalizeEndpoint(endpoint);
     for (;;) {
+      throwIfAborted(signal);
       const now = this.#clock();
       const permit = await this.#repository.acquire({
         conservativeDelayMs: this.#conservativeDelayMs,
@@ -88,7 +97,10 @@ export class GggRateLimitController implements RateLimitGate {
         now,
       });
       if (permit.acquired) return permit.state;
-      await this.#sleep(Math.max(1, permit.retryAt.getTime() - now.getTime()));
+      await this.#sleep(
+        Math.max(1, permit.retryAt.getTime() - now.getTime()),
+        signal,
+      );
     }
   }
 
@@ -121,6 +133,27 @@ export class GggRateLimitController implements RateLimitGate {
       windows: parsed.windows,
     });
   }
+}
+
+function throwIfAborted(signal?: AbortSignal) {
+  if (signal?.aborted)
+    throw signal.reason ?? new DOMException('Aborted', 'AbortError');
+}
+
+function sleepWithSignal(milliseconds: number, signal?: AbortSignal) {
+  throwIfAborted(signal);
+  return new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      signal?.removeEventListener('abort', abort);
+      resolve();
+    }, milliseconds);
+    const abort = () => {
+      clearTimeout(timeout);
+      signal?.removeEventListener('abort', abort);
+      reject(signal?.reason ?? new DOMException('Aborted', 'AbortError'));
+    };
+    signal?.addEventListener('abort', abort, { once: true });
+  });
 }
 
 export function parseRateLimitHeaders(

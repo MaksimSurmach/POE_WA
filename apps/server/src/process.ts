@@ -41,7 +41,12 @@ import { Metrics } from './observability/metrics.js';
 import { createRefreshFreshnessReader } from './freshness.js';
 import { createMarketResearchRepository } from './repositories/marketResearchRepository.js';
 import { createMarketEconomyRepository } from './repositories/marketEconomyRepository.js';
+import { createMarketCollectionRepository } from './repositories/marketCollectionRepository.js';
 import { NinjaEconomyClient } from './providers/ninjaEconomy.js';
+import {
+  disabledMarketCollectionSource,
+  MarketCollectionManager,
+} from './marketCollection.js';
 
 export async function runProcess(forcedMode?: ApplicationMode) {
   const config = loadRuntimeConfig(process.env, forcedMode);
@@ -88,6 +93,15 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     repositories,
     presentationCatalog,
   );
+  const collectionStore = modeIncludesApi(config.mode)
+    ? createMarketCollectionRepository(pool)
+    : undefined;
+  const collectionManager = collectionStore
+    ? new MarketCollectionManager({
+        adapter: disabledMarketCollectionSource,
+        store: collectionStore,
+      })
+    : undefined;
   const api = modeIncludesApi(config.mode)
     ? buildApi(
         logger,
@@ -105,6 +119,10 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           diagnosticsToken: config.operatorDiagnosticsToken,
           metrics: metrics.registry,
           marketResearch: createMarketResearchRepository(pool),
+          marketCollection:
+            collectionStore && collectionManager
+              ? { manager: collectionManager, store: collectionStore }
+              : undefined,
           marketEconomy: {
             repository: createMarketEconomyRepository(pool),
             client: process.env.NINJA_USER_AGENT
@@ -197,6 +215,9 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   }
   const runtime = new ApplicationRuntime({
     ...(api ? { api } : {}),
+    afterApiClose: async () => {
+      await collectionManager?.stop();
+    },
     host: config.host,
     ...(jobs ? { jobs } : {}),
     logger,
@@ -208,8 +229,15 @@ export async function runProcess(forcedMode?: ApplicationMode) {
 
   try {
     await runtime.start();
+    await collectionManager?.start();
   } catch (error) {
     logger.fatal({ err: error }, 'application startup failed');
+    await collectionManager?.stop().catch((cleanupError: unknown) => {
+      logger.error({ err: cleanupError }, 'market collection cleanup failed');
+    });
+    await runtime.stop().catch((cleanupError: unknown) => {
+      logger.error({ err: cleanupError }, 'application startup cleanup failed');
+    });
     process.exitCode = 1;
     return;
   }

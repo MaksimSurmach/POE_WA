@@ -134,6 +134,20 @@
       "when": 1793305490578,
       "tag": "0018_cute_lockjaw",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793320442715,
+      "tag": "0019_colorful_glorian",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793322233970,
+      "tag": "0020_heavy_maginty",
+      "breakpoints": true
     }
   ]
 }
