@@ -131,7 +131,7 @@ export class GggRateLimitController implements RateLimitGate {
     });
     return this.#repository.observe({
       blockedUntil: new Date(now.getTime() + parsed.blockedForMs),
-      endpoint: normalizedEndpoint,
+      endpoint: normalizeIdentifier(endpoint, normalizedEndpoint),
       fallbackPolicy: this.#fallbackPolicy,
       minimumDelayMs: parsed.minimumDelayMs,
       now,
@@ -225,7 +225,11 @@ export function parseRateLimitHeaders(
           proactiveRestrictionMs,
           retryAfterMs ?? conservativeBlockMs,
         )
-      : Math.max(activeRestrictionMs, proactiveRestrictionMs);
+      : Math.max(
+          activeRestrictionMs,
+          proactiveRestrictionMs,
+          retryAfterMs ?? 0,
+        );
 
   return { blockedForMs, minimumDelayMs, policy, windows };
 }

@@ -1143,7 +1143,9 @@ function MarketCollectionPanel({
         </p>
       </div>
       {data?.series.map((series) => (
-        <section key={`${series.dataKind}:${series.currency}`}>
+        <section
+          key={`${series.dataKind}:${series.currency}:${series.queryDigest}`}
+        >
           <h3>
             Новые и изменившиеся объявления · {series.currency} ·{' '}
             {series.dataKind}
@@ -2316,7 +2318,9 @@ function ManualSnapshotForm({
         return {
           ...(get('id') ? { externalId: get('id') } : {}),
           price: get('price') ? Number(get('price')) : null,
-          ...(get('listingCurrency') ? { currency: get('listingCurrency') } : {}),
+          ...(get('listingCurrency')
+            ? { currency: get('listingCurrency') }
+            : {}),
           ...(fee ? { fee: Number(fee) } : {}),
           ...(listedAt ? { listedAt: new Date(listedAt).toISOString() } : {}),
           ...(rawEnvelope ? { rawListing: rawEnvelope } : {}),

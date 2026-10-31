@@ -70,7 +70,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     },
   });
   const metrics = new Metrics();
-  const pool = createDatabasePool(config.database);
+  const pool = createDatabasePool(config.database, logger);
   let workerError: Error | undefined;
   const repositories = createPostgresRepositories(pool);
   const marketDependencies = createV2RecipeMarketDependencies({

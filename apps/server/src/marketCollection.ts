@@ -19,7 +19,10 @@ import { randomUUID } from 'node:crypto';
 import { DomainError, type CanonicalJsonValue } from '@poe-worksmith/domain';
 
 import { canonicalMarketJson, marketDigest } from './marketResearch.js';
-import type { RateLimitGate } from './rateLimitController.js';
+import {
+  parseRateLimitHeaders,
+  type RateLimitGate,
+} from './rateLimitController.js';
 
 const detailBatchSize = 10;
 
@@ -335,27 +338,50 @@ async function rateLimitedRequest<T>(
   blockAccess: () => void,
   beforeRequest?: () => Promise<void>,
 ) {
-  throwIfAborted(signal);
-  await rateLimits.waitForPermit(endpoint, signal);
-  throwIfAborted(signal);
-  if (accessBlocked()) throw new DomainError('MARKET_ACCESS_BLOCKED');
-  await beforeRequest?.();
-  throwIfAborted(signal);
-  const response = await request();
-  if (response.status === 401 || response.status === 403) blockAccess();
-  await rateLimits.observeResponse(endpoint, response);
-  if (response.status === 401) throw new DomainError('PROVIDER_AUTH_FAILED');
-  if (response.status === 403)
-    throw new DomainError(
-      response.headers.get('cf-mitigated') === 'challenge'
-        ? 'PROVIDER_CHALLENGE'
-        : 'PROVIDER_ACCESS_DENIED',
-    );
-  if (response.status === 429) throw new DomainError('PROVIDER_RATE_LIMITED');
-  if (response.status >= 400 && response.status < 500)
-    throw new DomainError('MARKET_QUERY_INVALID');
-  if (response.status >= 500) throw new DomainError('PROVIDER_UNAVAILABLE');
-  return response;
+  // Every retry re-enters the shared durable gate and checks current cancellation/settings.
+  for (let attempt = 0; ; attempt += 1) {
+    throwIfAborted(signal);
+    await rateLimits.waitForPermit(endpoint, signal);
+    throwIfAborted(signal);
+    if (accessBlocked()) throw new DomainError('MARKET_ACCESS_BLOCKED');
+    await beforeRequest?.();
+    throwIfAborted(signal);
+    const response = await request();
+    if (response.status === 401 || response.status === 403) blockAccess();
+    const retryable =
+      response.status === 429 || [500, 502, 503, 504].includes(response.status);
+    if (retryable) {
+      const delay = parseRateLimitHeaders(response.headers, {
+        status: response.status,
+      }).blockedForMs;
+      const retrySeconds =
+        Math.ceil(delay / 1000) + 2 ** attempt + Math.floor(Math.random() * 3);
+      await rateLimits.observeResponse(endpoint, {
+        status: response.status,
+        headers: {
+          get: (name) =>
+            name.toLowerCase() === 'retry-after'
+              ? String(retrySeconds)
+              : response.headers.get(name),
+        },
+      });
+      if (attempt < 2) continue;
+    } else {
+      await rateLimits.observeResponse(endpoint, response);
+    }
+    if (response.status === 401) throw new DomainError('PROVIDER_AUTH_FAILED');
+    if (response.status === 403)
+      throw new DomainError(
+        response.headers.get('cf-mitigated') === 'challenge'
+          ? 'PROVIDER_CHALLENGE'
+          : 'PROVIDER_ACCESS_DENIED',
+      );
+    if (response.status === 429) throw new DomainError('PROVIDER_RATE_LIMITED');
+    if (response.status >= 400 && response.status < 500)
+      throw new DomainError('MARKET_QUERY_INVALID');
+    if (response.status >= 500) throw new DomainError('PROVIDER_UNAVAILABLE');
+    return response;
+  }
 }
 
 /** Replays explicit fixtures as demo data; repeated calls retain the original capture time. */
@@ -939,8 +965,13 @@ export function compareMarketObservations(
     throw new TypeError('Market observations must share one profile scope');
   }
 
-  const ordered = [...observations].sort((a, b) =>
-    a.startedAt.localeCompare(b.startedAt),
+  const ordered = [...observations].sort(
+    (a, b) =>
+      (a.capturedAt ?? a.startedAt).localeCompare(
+        b.capturedAt ?? b.startedAt,
+      ) ||
+      a.startedAt.localeCompare(b.startedAt) ||
+      a.id.localeCompare(b.id),
   );
   const seen = new Map<string, string>();
   const missingSinceComplete = new Set<string>();

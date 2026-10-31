@@ -21,6 +21,110 @@ beforeEach(async () => {
 });
 
 describe('PostgreSQL GGG rate-limit coordination', () => {
+  it('retains all trade policies and known windows through headerless responses', async () => {
+    let now = start;
+    const repository = repositories.rateLimits;
+    const sleep = vi.fn(async (milliseconds: number) => {
+      now = new Date(now.getTime() + milliseconds);
+    });
+    const gate = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      sleep,
+    });
+    const strict = new Headers({
+      'X-Rate-Limit-Policy': 'strict-search',
+      'X-Rate-Limit-Rules': 'client',
+      'X-Rate-Limit-Client': '1:10:10',
+      'X-Rate-Limit-Client-State': '0:10:0',
+    });
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: strict,
+    });
+    await gate.observeResponse('trade-fetch', {
+      status: 200,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'fast-fetch',
+        'X-Rate-Limit-Rules': 'client',
+        'X-Rate-Limit-Client': '10:1:1',
+        'X-Rate-Limit-Client-State': '0:1:0',
+      }),
+    });
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: new Headers(),
+    });
+    const reopened = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      sleep,
+    });
+    await reopened.waitForPermit('trade-fetch');
+    await reopened.waitForPermit('trade-search');
+    expect(now.getTime() - start.getTime()).toBe(22_000);
+    expect(
+      (await repository.list()).find(
+        ({ policy }) => policy === 'strict-search',
+      ),
+    ).toMatchObject({
+      minimumDelayMs: 11_000,
+      windows: [{ maximumHits: 1, periodSeconds: 10 }],
+    });
+    strict.set('X-Rate-Limit-Client', '10:1:1');
+    strict.set('X-Rate-Limit-Client-State', '0:1:0');
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: strict,
+    });
+    expect(
+      (await repository.list()).find(({ policy }) => policy === 'strict-search')
+        ?.minimumDelayMs,
+    ).toBe(1000);
+  });
+
+  it('retains a denial after a late successful response and policy change', async () => {
+    const repository = repositories.rateLimits;
+    const gate = new GggRateLimitController({ repository });
+    await gate.observeResponse('trade-search', {
+      status: 403,
+      headers: new Headers(),
+    });
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'new-policy',
+        'X-Rate-Limit-Rules': 'client',
+        'X-Rate-Limit-Client': '10:1:1',
+        'X-Rate-Limit-Client-State': '0:1:0',
+      }),
+    });
+    await expect(
+      new GggRateLimitController({ repository }).waitForPermit('trade-fetch'),
+    ).rejects.toMatchObject({ code: 'MARKET_ACCESS_BLOCKED' });
+  });
+
+  it('persists Retry-After on a 503 across controllers', async () => {
+    const repository = repositories.rateLimits;
+    let now = start;
+    await new GggRateLimitController({
+      repository,
+      clock: () => now,
+    }).observeResponse('trade-search', {
+      status: 503,
+      headers: new Headers({ 'Retry-After': '120' }),
+    });
+    const gate = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      sleep: async (milliseconds) => {
+        now = new Date(now.getTime() + milliseconds);
+      },
+    });
+    await gate.waitForPermit('trade-fetch');
+    expect(now.getTime() - start.getTime()).toBe(120_000);
+  });
+
   it.each([401, 403])(
     'keeps denial %s across a new pool and controller',
     async (status) => {
@@ -81,7 +185,7 @@ describe('PostgreSQL GGG rate-limit coordination', () => {
     expect(sleep).toHaveBeenCalledWith(10_000, undefined);
     expect(await repositories.rateLimits.list()).toMatchObject([
       {
-        endpoints: ['trade'],
+        endpoints: ['trade-fetch', 'trade-search'],
         policy: 'trade-policy',
         windows: [
           {
@@ -128,7 +232,7 @@ describe('PostgreSQL GGG rate-limit coordination', () => {
       })),
     ).toEqual([
       { policy: 'legacy-fetch-policy', endpoints: ['trade-fetch'] },
-      { policy: 'legacy-search-policy', endpoints: ['trade', 'trade-search'] },
+      { policy: 'legacy-search-policy', endpoints: ['trade-search'] },
     ]);
   });
 
@@ -188,7 +292,10 @@ describe('PostgreSQL GGG rate-limit coordination', () => {
       Number(stdout.match(/permit-delay-ms=(\d+)/)?.[1]),
     ).toBeGreaterThanOrEqual(1_700);
     expect(await repositories.rateLimits.list()).toMatchObject([
-      { policy: 'process-shared-policy', endpoints: ['trade'] },
+      {
+        policy: 'process-shared-policy',
+        endpoints: ['trade-fetch', 'trade-search'],
+      },
     ]);
   }, 15_000);
 });

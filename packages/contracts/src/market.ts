@@ -161,7 +161,13 @@ export const marketTargetSchema = marketTargetInputSchema.extend({
 
 export const marketImportListingSchema = z.strictObject({
   externalId: text(256).optional(),
-  price: z.number().finite().positive().max(1_000_000_000).nullable().default(null),
+  price: z
+    .number()
+    .finite()
+    .positive()
+    .max(1_000_000_000)
+    .nullable()
+    .default(null),
   currency: text(100).optional(),
   fee: z.number().finite().optional(),
   listedAt: z.iso.datetime().optional(),
@@ -287,7 +293,9 @@ export type MarketSourceEvidence = z.infer<typeof marketSourceEvidenceSchema>;
 export type MarketTargetInput = z.infer<typeof marketTargetInputSchema>;
 export type MarketTarget = z.infer<typeof marketTargetSchema>;
 export type MarketImportListing = z.infer<typeof marketImportListingSchema>;
-export type MarketImportListingInput = z.input<typeof marketImportListingSchema>;
+export type MarketImportListingInput = z.input<
+  typeof marketImportListingSchema
+>;
 export type MarketSnapshotImport = z.infer<typeof marketSnapshotImportSchema>;
 export type MarketResearchSnapshotSummary = z.infer<
   typeof marketResearchSnapshotSummarySchema
@@ -536,6 +544,12 @@ export const marketCollectionRunSchema = z.strictObject({
   dataKind: z.enum(['observed', 'demo']),
   trigger: z.enum(['manual', 'scheduled']),
   status: marketCollectionRunStatusSchema,
+  publicationResult: z
+    .strictObject({
+      status: marketCollectionRunStatusSchema,
+      errorCode: z.string().max(100).nullable(),
+    })
+    .optional(),
   coverage: z.enum(['complete', 'partial', 'unknown']).nullable(),
   reportedTotal: z.number().int().min(0).nullable(),
   returnedCount: z.number().int().min(0),

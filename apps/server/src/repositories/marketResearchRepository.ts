@@ -106,6 +106,7 @@ export function createMarketResearchRepository(
           league: persisted.league,
           patch: persisted.patch,
           sourceId: 'manual-import',
+          sourceUrl: persisted.sourceUrl,
           queryDigest,
           dataKind: persisted.dataKind,
           trigger: 'manual',

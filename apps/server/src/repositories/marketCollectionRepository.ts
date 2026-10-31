@@ -213,26 +213,38 @@ export function createMarketCollectionRepository(
             JSON.stringify(parsed),
           ],
         );
+        let persisted: MarketCollectionRun;
         if (!result.rows[0]) {
           const existing = await client.query<{ payload: unknown }>(
-            'select payload from market_collection_runs where id = $1',
+            'select payload from market_collection_runs where id = $1 for update',
             [parsed.id],
           );
           if (!existing.rows[0])
             throw new Error('Market collection run was not persisted');
-          await client.query('commit');
-          return marketCollectionRunSchema.parse(existing.rows[0].payload);
+          // Retry publication from durable raw, never from a stale redelivery.
+          persisted = marketCollectionRunSchema.parse(existing.rows[0].payload);
+        } else {
+          persisted = marketCollectionRunSchema.parse(result.rows[0].payload);
         }
-        let persisted = marketCollectionRunSchema.parse(result.rows[0].payload);
         if (
           persisted.status !== 'running' &&
+          !persisted.snapshotId &&
           !persisted.cached &&
           persisted.sourceUrl &&
           persisted.capturedAt &&
           persisted.currency &&
-          (persisted.listings.length > 0 || persisted.status === 'empty')
+          (persisted.listings.length > 0 ||
+            persisted.status === 'empty' ||
+            persisted.publicationResult?.status === 'empty' ||
+            (persisted.errorCode === 'MARKET_COLLECTION_PUBLICATION_FAILED' &&
+              persisted.coverage === 'complete' &&
+              persisted.returnedCount === 0))
         ) {
           // Keep the terminal raw run if projection fails; publish snapshot and link together.
+          const publicationResult = persisted.publicationResult ?? {
+            status: persisted.status,
+            errorCode: persisted.errorCode,
+          };
           await client.query('savepoint collection_publication');
           try {
             const targetResult = await client.query<{ profile: unknown }>(
@@ -276,10 +288,15 @@ export function createMarketCollectionRepository(
                 queryDigest: persisted.queryDigest,
               }),
             });
-            persisted = { ...persisted, snapshotId: snapshot.id };
+            persisted = {
+              ...persisted,
+              snapshotId: snapshot.id,
+              ...publicationResult,
+              publicationResult: undefined,
+            };
             await client.query(
-              'update market_collection_runs set payload = $2::jsonb where id = $1',
-              [persisted.id, JSON.stringify(persisted)],
+              'update market_collection_runs set payload = $2::jsonb, status = $3 where id = $1',
+              [persisted.id, JSON.stringify(persisted), persisted.status],
             );
             await client.query('release savepoint collection_publication');
           } catch {
@@ -292,6 +309,7 @@ export function createMarketCollectionRepository(
                   ? persisted.errorCode
                   : 'MARKET_COLLECTION_PUBLICATION_FAILED',
               snapshotId: null,
+              publicationResult,
             };
             await client.query(
               'update market_collection_runs set status = $3, payload = $2::jsonb where id = $1',
@@ -347,7 +365,7 @@ export function createMarketCollectionRepository(
       await pool.query(
         `update market_collection_runs
          set status = 'failed', completed_at = $1::timestamptz,
-             payload = jsonb_set(
+             payload = jsonb_set(jsonb_set(
                jsonb_set(
                  jsonb_set(payload, '{status}', '"failed"'::jsonb),
                  '{completedAt}', to_jsonb(to_char(
@@ -356,12 +374,20 @@ export function createMarketCollectionRepository(
                  ))
                ),
                '{errorCode}', '"MARKET_COLLECTION_INTERRUPTED"'::jsonb
-             )
+             ), '{coverage}', '"partial"'::jsonb)
          where status = 'running'
            and heartbeat_at < $1::timestamptz - interval '30 minutes'
            and not (id = any($2::uuid[]))`,
         [at, activeRunIds],
       );
+      const pending = await pool.query<{ payload: unknown }>(
+        `select payload from market_collection_runs
+         where payload->>'snapshotId' is null
+           and (payload->>'errorCode' in ('MARKET_COLLECTION_PUBLICATION_FAILED', 'MARKET_COLLECTION_INTERRUPTED')
+             or payload->'publicationResult' is not null)`,
+      );
+      for (const row of pending.rows)
+        await this.saveRun(marketCollectionRunSchema.parse(row.payload));
       return cancelled.rows.map((row) => row.id);
     },
   };

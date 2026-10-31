@@ -12,9 +12,12 @@ import {
   type MarketCollectionStore,
 } from './marketCollection.js';
 import { createMarketTarget } from './marketResearch.js';
-import { DomainError } from '@poe-worksmith/domain';
+import { DomainError, createInMemoryRepositories } from '@poe-worksmith/domain';
 import pino from 'pino';
-import type { RateLimitGate } from './rateLimitController.js';
+import {
+  GggRateLimitController,
+  type RateLimitGate,
+} from './rateLimitController.js';
 import { buildApi } from './api.js';
 import type {
   MarketCollectionRun,
@@ -102,6 +105,28 @@ describe('managed market observation comparison', () => {
         restored: [],
       },
       { newCount: 0, changedCount: 0, missing: [], restored: ['alpha'] },
+    ]);
+  });
+
+  it('orders late manual imports by observation time rather than upload time', () => {
+    const early = observation(
+      '1',
+      '2026-10-30T10:00:00.000Z',
+      [listing('alpha', 40)],
+      {
+        startedAt: '2026-10-30T12:00:00.000Z',
+      },
+    );
+    const later = observation('2', '2026-10-30T11:00:00.000Z', [
+      listing('alpha', 50),
+    ]);
+    expect(
+      compareMarketObservations([later, early]).map(
+        ({ median, changedCount }) => ({ median, changedCount }),
+      ),
+    ).toEqual([
+      { median: 40, changedCount: 0 },
+      { median: 50, changedCount: 1 },
     ]);
   });
 
@@ -827,7 +852,7 @@ describe('managed collection runner', () => {
         },
         async fetchDetails({ ids: page }) {
           fetchCount += 1;
-          if (fetchCount === 2)
+          if (fetchCount >= 2)
             return {
               cached: false,
               data: [],
@@ -859,6 +884,77 @@ describe('managed collection runner', () => {
       errorCode: 'PROVIDER_RATE_LIMITED',
     });
   });
+
+  it.each([429, 503])(
+    'retries %s at most twice through the durable gate with jitter and fresh guards',
+    async (status) => {
+      let now = new Date('2026-10-30T10:00:00Z');
+      const delays: number[] = [];
+      let attempts = 0;
+      let guards = 0;
+      const repository = createInMemoryRepositories().rateLimits;
+      const gate = new GggRateLimitController({
+        repository,
+        clock: () => now,
+        sleep: async (ms) => {
+          delays.push(ms);
+          now = new Date(now.getTime() + ms);
+        },
+      });
+      const source = createBatchedMarketCollectionSource({
+        descriptor: {
+          id: 'retry-test',
+          name: 'test',
+          access: 'replay',
+          dataKind: 'demo',
+          reason: null,
+        },
+        rateLimits: gate,
+        transport: {
+          async search() {
+            attempts += 1;
+            return {
+              cached: false,
+              data: {
+                capturedAt: now.toISOString(),
+                currency: 'chaos',
+                coverage: 'complete',
+                ids: [],
+                queryId: null,
+                reportedTotal: 0,
+              },
+              status,
+              headers: new Headers({ 'Retry-After': '10' }),
+            };
+          },
+          async fetchDetails() {
+            throw new Error('No details expected');
+          },
+        },
+      });
+      await expect(
+        source.collect({
+          target,
+          signal: new AbortController().signal,
+          beforeRequest: async () => {
+            guards += 1;
+          },
+        }),
+      ).rejects.toMatchObject({
+        code: status === 429 ? 'PROVIDER_RATE_LIMITED' : 'PROVIDER_UNAVAILABLE',
+      });
+      expect(attempts).toBe(3);
+      expect(guards).toBe(3);
+      expect(delays).toHaveLength(2);
+      expect(delays[0]).toBeGreaterThanOrEqual(11_000);
+      expect(delays[0]).toBeLessThanOrEqual(13_000);
+      expect(delays[1]).toBeGreaterThanOrEqual(12_000);
+      expect(delays[1]).toBeLessThanOrEqual(14_000);
+      expect(
+        (await repository.list())[0]?.blockedUntil.getTime(),
+      ).toBeGreaterThan(now.getTime());
+    },
+  );
 
   it('rejects detail rows whose identifiers were not requested', async () => {
     const store = makeStore();

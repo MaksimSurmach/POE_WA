@@ -44,7 +44,9 @@ describe('persistent market research', () => {
   it('routes a manual import through the collection record, matcher and ranking', async () => {
     const fixture = beltDemoFixture(now);
     const sourceUrl = 'https://example.com/manual-observation-fixture';
-    const price = (evidence: NonNullable<typeof fixture.target.beltCraftMethod>['basePrice']) => ({
+    const price = (
+      evidence: NonNullable<typeof fixture.target.beltCraftMethod>['basePrice'],
+    ) => ({
       ...evidence,
       dataKind: 'observed' as const,
       capturedAt: now.toISOString(),
@@ -96,7 +98,9 @@ describe('persistent market research', () => {
       now.getTime(),
     );
     expect(run.rows[0]?.payload.sourceId).toBe('manual-import');
-    expect(analyzeBeltSnapshot(target, stored, now.getTime()).confirmedListings).toBe(5);
+    expect(
+      analyzeBeltSnapshot(target, stored, now.getTime()).confirmedListings,
+    ).toBe(5);
     expect(ranked).toMatchObject({
       snapshotId: imported.id,
       status: 'CALCULATED',
@@ -141,6 +145,7 @@ describe('persistent market research', () => {
       id: saved.id,
       snapshotId: saved.id,
       sourceId: 'manual-import',
+      sourceUrl: saved.sourceUrl,
       status: 'partial',
       coverage: 'partial',
       queryDigest: expect.stringMatching(/^[a-f0-9]{64}$/),

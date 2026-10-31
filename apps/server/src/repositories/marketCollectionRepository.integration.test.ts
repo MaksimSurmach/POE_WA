@@ -259,51 +259,104 @@ describe('persistent managed market collection', () => {
     }
   });
 
-  it('retains terminal raw rows when snapshot publication rolls back', async () => {
-    const now = new Date();
-    const fixture = beltDemoFixture(now);
-    const target = await targets.saveTarget(
-      createMarketTarget(fixture.target, now),
-    );
-    const input = fixture.observation(target.id);
-    const run = marketCollectionRunSchema.parse({
-      ...makeRun(target.digest, target.id, 'succeeded'),
-      league: target.league,
-      patch: target.patch,
-      currency: input.currency,
-      capturedAt: input.capturedAt,
-      sourceUrl: input.sourceUrl,
-      listings: input.listings.map((listing) => ({
-        ...listing,
-        fingerprint: 'f'.repeat(64),
-      })),
-      listingCount: input.listings.length,
-      returnedCount: input.listings.length,
-      fetchedCount: input.listings.length,
-    });
-    await pool.query(`create function reject_collection_snapshot_test() returns trigger language plpgsql as $$
-      begin raise exception 'synthetic publication failure'; end $$`);
-    await pool.query(`create trigger reject_collection_snapshot_test before insert on market_research_snapshots
-      for each row execute function reject_collection_snapshot_test()`);
-    try {
-      const saved = await repository.saveRun(run);
-      expect(saved).toMatchObject({
-        status: 'failed',
-        errorCode: 'MARKET_COLLECTION_PUBLICATION_FAILED',
-        snapshotId: null,
-        listings: run.listings,
-      });
-      expect(
-        await createMarketCollectionRepository(pool).findRun(run.id),
-      ).toEqual(saved);
-      expect(await targets.listSnapshots()).toHaveLength(0);
-    } finally {
-      await pool.query(
-        'drop trigger reject_collection_snapshot_test on market_research_snapshots',
+  it.each([
+    'succeeded',
+    'empty',
+    'cancelled',
+    'rate_limited',
+    'failed',
+    'blocked',
+  ] as const)(
+    'recovers %s raw rows after snapshot publication rolls back',
+    async (status) => {
+      const now = new Date();
+      const fixture = beltDemoFixture(now);
+      const target = await targets.saveTarget(
+        createMarketTarget(fixture.target, now),
       );
-      await pool.query('drop function reject_collection_snapshot_test()');
-    }
-  });
+      const input = {
+        ...fixture.observation(target.id),
+        listings:
+          status === 'empty' ? [] : fixture.observation(target.id).listings,
+      };
+      const run = marketCollectionRunSchema.parse({
+        ...makeRun(target.digest, target.id, status),
+        coverage:
+          status === 'succeeded' || status === 'empty' ? 'complete' : 'partial',
+        errorCode:
+          status === 'rate_limited'
+            ? 'PROVIDER_RATE_LIMITED'
+            : status === 'failed'
+              ? 'PROVIDER_RESPONSE_INVALID'
+              : status === 'blocked'
+                ? 'PROVIDER_ACCESS_DENIED'
+                : null,
+        cancelRequested: status === 'cancelled',
+        league: target.league,
+        patch: target.patch,
+        currency: input.currency,
+        capturedAt: input.capturedAt,
+        sourceUrl: input.sourceUrl,
+        listings: input.listings.map((listing) => ({
+          ...listing,
+          fingerprint: 'f'.repeat(64),
+        })),
+        listingCount: input.listings.length,
+        returnedCount: input.listings.length,
+        fetchedCount: input.listings.length,
+        reportedTotal: input.listings.length,
+      });
+      await pool.query(`create function reject_collection_snapshot_test() returns trigger language plpgsql as $$
+      begin raise exception 'synthetic publication failure'; end $$`);
+      await pool.query(`create trigger reject_collection_snapshot_test before insert on market_research_snapshots
+      for each row execute function reject_collection_snapshot_test()`);
+      try {
+        const saved = await repository.saveRun(run);
+        expect(saved).toMatchObject({
+          status: status === 'blocked' ? 'blocked' : 'failed',
+          errorCode:
+            status === 'blocked'
+              ? run.errorCode
+              : 'MARKET_COLLECTION_PUBLICATION_FAILED',
+          publicationResult: { status, errorCode: run.errorCode },
+          snapshotId: null,
+          listings: run.listings,
+        });
+        expect(
+          await createMarketCollectionRepository(pool).findRun(run.id),
+        ).toEqual(saved);
+        expect(await targets.listSnapshots()).toHaveLength(0);
+      } finally {
+        await pool.query(
+          'drop trigger reject_collection_snapshot_test on market_research_snapshots',
+        );
+        await pool.query('drop function reject_collection_snapshot_test()');
+      }
+      const reopenedPool = createDatabasePool(config);
+      try {
+        const reopened = createMarketCollectionRepository(reopenedPool);
+        await Promise.all([
+          reopened.recoverRunningRuns(new Date().toISOString()),
+          repository.saveRun({ ...run, listings: [] }),
+        ]);
+        const restored = await reopened.findRun(run.id);
+        expect(restored).toMatchObject({
+          status,
+          errorCode: run.errorCode,
+          cancelRequested: run.cancelRequested,
+          listings: run.listings,
+        });
+        expect(restored?.snapshotId).toBeTruthy();
+        expect(
+          (await targets.findSnapshot(restored!.snapshotId!))?.listings,
+        ).toEqual(input.listings);
+        await reopened.recoverRunningRuns(new Date().toISOString());
+        expect(await targets.listSnapshots()).toHaveLength(1);
+      } finally {
+        await reopenedPool.end();
+      }
+    },
+  );
 
   it('does not publish a collected row against a different profile digest', async () => {
     const now = new Date();
@@ -578,9 +631,15 @@ describe('persistent managed market collection', () => {
       completedAt: '2026-10-30T10:10:00.000Z',
       listings: checkpoint.listings,
       searchEvidence: checkpoint.searchEvidence,
-      snapshotId: null,
+      snapshotId: expect.any(String),
+      coverage: 'partial',
     });
-    expect(await targets.listSnapshots()).toHaveLength(0);
+    const recovered = await reopened.findRun(abandoned.id);
+    expect(
+      (await targets.findSnapshot(recovered!.snapshotId!))?.listings[0]
+        ?.rawListing,
+    ).toEqual(checkpoint.listings[0]?.rawListing);
+    expect(await targets.listSnapshots()).toHaveLength(1);
     await expect(
       reopened.saveRun({
         ...abandoned,

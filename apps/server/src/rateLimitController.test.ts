@@ -9,6 +9,110 @@ import {
 const start = new Date('2026-07-20T00:00:00.000Z');
 
 describe('GGG rate-limit controller', () => {
+  it('retains all trade policies and known windows through headerless responses', async () => {
+    let now = start;
+    const repository = createInMemoryRepositories().rateLimits;
+    const sleep = vi.fn(async (milliseconds: number) => {
+      now = new Date(now.getTime() + milliseconds);
+    });
+    const gate = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      sleep,
+    });
+    const strict = new Headers({
+      'X-Rate-Limit-Policy': 'strict-search',
+      'X-Rate-Limit-Rules': 'client',
+      'X-Rate-Limit-Client': '1:10:10',
+      'X-Rate-Limit-Client-State': '0:10:0',
+    });
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: strict,
+    });
+    await gate.observeResponse('trade-fetch', {
+      status: 200,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'fast-fetch',
+        'X-Rate-Limit-Rules': 'client',
+        'X-Rate-Limit-Client': '10:1:1',
+        'X-Rate-Limit-Client-State': '0:1:0',
+      }),
+    });
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: new Headers(),
+    });
+    const reopened = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      sleep,
+    });
+    await reopened.waitForPermit('trade-fetch');
+    await reopened.waitForPermit('trade-search');
+    expect(now.getTime() - start.getTime()).toBe(22_000);
+    expect(
+      (await repository.list()).find(
+        ({ policy }) => policy === 'strict-search',
+      ),
+    ).toMatchObject({
+      minimumDelayMs: 11_000,
+      windows: [{ maximumHits: 1, periodSeconds: 10 }],
+    });
+    strict.set('X-Rate-Limit-Client', '10:1:1');
+    strict.set('X-Rate-Limit-Client-State', '0:1:0');
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: strict,
+    });
+    expect(
+      (await repository.list()).find(({ policy }) => policy === 'strict-search')
+        ?.minimumDelayMs,
+    ).toBe(1000);
+  });
+
+  it('retains a denial after a late successful response and policy change', async () => {
+    const repository = createInMemoryRepositories().rateLimits;
+    const gate = new GggRateLimitController({ repository });
+    await gate.observeResponse('trade-search', {
+      status: 403,
+      headers: new Headers(),
+    });
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'new-policy',
+        'X-Rate-Limit-Rules': 'client',
+        'X-Rate-Limit-Client': '10:1:1',
+        'X-Rate-Limit-Client-State': '0:1:0',
+      }),
+    });
+    await expect(
+      new GggRateLimitController({ repository }).waitForPermit('trade-fetch'),
+    ).rejects.toMatchObject({ code: 'MARKET_ACCESS_BLOCKED' });
+  });
+
+  it('persists Retry-After on a 503 across controllers', async () => {
+    const repository = createInMemoryRepositories().rateLimits;
+    let now = start;
+    await new GggRateLimitController({
+      repository,
+      clock: () => now,
+    }).observeResponse('trade-search', {
+      status: 503,
+      headers: new Headers({ 'Retry-After': '120' }),
+    });
+    const gate = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      sleep: async (milliseconds) => {
+        now = new Date(now.getTime() + milliseconds);
+      },
+    });
+    await gate.waitForPermit('trade-fetch');
+    expect(now.getTime() - start.getTime()).toBe(120_000);
+  });
+
   it.each([401, 403])(
     'retains access denial %s across controller restarts and endpoints',
     async (status) => {
@@ -105,7 +209,7 @@ describe('GGG rate-limit controller', () => {
     expect(await repositories.rateLimits.list()).toMatchObject([
       {
         blockedUntil: new Date(start.getTime() + 10_000),
-        endpoints: ['trade'],
+        endpoints: ['trade-search'],
         lastStatus: 429,
         policy: 'trade-policy',
       },
@@ -133,7 +237,7 @@ describe('GGG rate-limit controller', () => {
 
     expect(await repositories.rateLimits.list()).toMatchObject([
       {
-        endpoints: ['trade'],
+        endpoints: ['trade-search', 'trade-fetch'],
         policy: 'trade-policy',
       },
     ]);

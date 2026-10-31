@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import type { Logger } from 'pino';
 
 import type { DatabaseConfig } from './config.js';
 
@@ -17,8 +18,11 @@ export class DatabaseConnectionError extends Error {
   }
 }
 
-export function createDatabasePool(config: DatabaseConfig) {
-  return new Pool({
+export function createDatabasePool(
+  config: DatabaseConfig,
+  logger?: Pick<Logger, 'warn'>,
+) {
+  const pool = new Pool({
     application_name: `poe-worksmith-${config.environment}`,
     connectionString: config.connectionString,
     connectionTimeoutMillis: config.connectionTimeoutMillis,
@@ -26,6 +30,11 @@ export function createDatabasePool(config: DatabaseConfig) {
     max: config.maxConnections,
     ssl: config.ssl,
   });
+  // pg removes broken idle clients; active-query errors still reject their caller.
+  pool.on('error', () =>
+    logger?.warn('Idle PostgreSQL connection lost; pool will reconnect'),
+  );
+  return pool;
 }
 
 export async function verifyDatabaseConnection(
