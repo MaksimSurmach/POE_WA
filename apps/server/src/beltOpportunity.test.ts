@@ -19,6 +19,21 @@ function fixture() {
   return { definition, target, snapshot };
 }
 describe('belt opportunity', () => {
+  it('keeps partial asking prices usable and visibly preliminary', async () => {
+    const { target, snapshot } = fixture();
+    const result = await evaluateBeltOpportunity(
+      target,
+      { ...snapshot, coverage: 'partial', inexact: true },
+      undefined,
+      now.getTime(),
+    );
+    expect(result.status).toBe('CALCULATED');
+    expect(result.calculation?.askingPrice).toBe('40');
+    expect(result.reasons).toEqual([
+      expect.stringContaining('Preliminary asking prices'),
+    ]);
+  });
+
   it('calculates the sampled Harvest material estimate with synthetic base and listings', async () => {
     const { target, snapshot } = fixture();
     const method = target.beltCraftMethod;

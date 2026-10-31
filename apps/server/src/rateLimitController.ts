@@ -3,6 +3,7 @@ import type {
   RateLimitState,
   RateLimitWindow,
 } from '@poe-worksmith/domain';
+import { DomainError } from '@poe-worksmith/domain';
 
 const defaultConservativeDelayMs = 1000;
 const defaultConservativeBlockMs = 60_000;
@@ -96,6 +97,12 @@ export class GggRateLimitController implements RateLimitGate {
         fallbackPolicy: this.#fallbackPolicy,
         now,
       });
+      throwIfAborted(signal);
+      if (
+        normalizedEndpoint === 'trade' &&
+        (permit.state.lastStatus === 401 || permit.state.lastStatus === 403)
+      )
+        throw new DomainError('MARKET_ACCESS_BLOCKED');
       if (permit.acquired) return permit.state;
       await this.#sleep(
         Math.max(1, permit.retryAt.getTime() - now.getTime()),

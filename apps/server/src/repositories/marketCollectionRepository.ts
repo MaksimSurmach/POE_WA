@@ -1,5 +1,6 @@
 import {
   marketCollectionRunSchema,
+  marketImportListingSchema,
   marketCollectionSettingsSchema,
   marketTargetSchema,
   type MarketCollectionRun,
@@ -7,6 +8,12 @@ import {
 } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
 import type { Pool } from 'pg';
+
+import {
+  createImportedMarketSnapshot,
+  marketDigest,
+} from '../marketResearch.js';
+import { insertMarketResearchSnapshot } from './marketResearchRepository.js';
 
 import type {
   MarketCollectionObservation,
@@ -17,6 +24,17 @@ export function createMarketCollectionRepository(
   pool: Pool,
 ): MarketCollectionStore {
   return {
+    async isSourceBlocked(sourceId) {
+      const result = await pool.query<{ blocked: boolean }>(
+        `select exists (
+           select 1 from market_collection_runs
+           where payload->>'sourceId' = $1
+             and payload->>'errorCode' in ('PROVIDER_AUTH_FAILED', 'PROVIDER_ACCESS_DENIED', 'PROVIDER_CHALLENGE')
+         ) as blocked`,
+        [sourceId],
+      );
+      return result.rows[0]?.blocked ?? false;
+    },
     async findTarget(id) {
       const result = await pool.query<{ profile: unknown }>(
         'select profile from market_targets where id = $1',
@@ -69,7 +87,10 @@ export function createMarketCollectionRepository(
       );
       return marketCollectionSettingsSchema.parse(result.rows[0]?.payload);
     },
-    async claimScheduledSettings(settings: MarketCollectionSettings, dueAt: string) {
+    async claimScheduledSettings(
+      settings: MarketCollectionSettings,
+      dueAt: string,
+    ) {
       const parsed = marketCollectionSettingsSchema.parse(settings);
       const result = await pool.query(
         `update market_collection_settings
@@ -105,7 +126,9 @@ export function createMarketCollectionRepository(
       );
     },
     async listObservations(targetId) {
-      const result = await pool.query<{ observation: MarketCollectionObservation }>(
+      const result = await pool.query<{
+        observation: MarketCollectionObservation;
+      }>(
         `select jsonb_build_object(
            'id', payload->'id',
            'targetId', payload->'targetId',
@@ -116,6 +139,7 @@ export function createMarketCollectionRepository(
            'patch', payload->'patch',
            'status', payload->'status',
            'coverage', payload->'coverage',
+           'inexact', coalesce(payload->'inexact', 'false'::jsonb),
            'currency', payload->'currency',
            'startedAt', payload->'startedAt',
            'capturedAt', payload->'capturedAt',
@@ -123,10 +147,9 @@ export function createMarketCollectionRepository(
            'listings', coalesce((
              select jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
                'externalId', listing->'externalId',
-               'price', listing->'price',
                'currency', listing->'currency',
                'fingerprint', listing->'fingerprint'
-             )))
+             )) || jsonb_build_object('price', listing->'price'))
              from jsonb_array_elements(payload->'listings') listing
            ), '[]'::jsonb)
          ) as observation
@@ -137,9 +160,14 @@ export function createMarketCollectionRepository(
       return result.rows.map((row) => row.observation);
     },
     async saveRun(run: MarketCollectionRun) {
-      const parsed = marketCollectionRunSchema.parse(run);
+      const parsed = marketCollectionRunSchema.parse({
+        ...run,
+        snapshotId: null,
+      });
+      const client = await pool.connect();
       try {
-        const result = await pool.query<{ payload: unknown }>(
+        await client.query('begin');
+        const result = await client.query<{ payload: unknown }>(
           `insert into market_collection_runs
             (id, target_id, target_digest, league, patch, status, trigger, started_at, heartbeat_at, completed_at, payload)
            values ($1, $2, $3, $4, $5, $6, $7, $8, $8, $9, $10::jsonb)
@@ -185,16 +213,96 @@ export function createMarketCollectionRepository(
             JSON.stringify(parsed),
           ],
         );
-        if (result.rows[0])
-          return marketCollectionRunSchema.parse(result.rows[0].payload);
-        const existing = await pool.query<{ payload: unknown }>(
-          'select payload from market_collection_runs where id = $1',
-          [parsed.id],
-        );
-        if (existing.rows[0])
+        if (!result.rows[0]) {
+          const existing = await client.query<{ payload: unknown }>(
+            'select payload from market_collection_runs where id = $1',
+            [parsed.id],
+          );
+          if (!existing.rows[0])
+            throw new Error('Market collection run was not persisted');
+          await client.query('commit');
           return marketCollectionRunSchema.parse(existing.rows[0].payload);
-        throw new Error('Market collection run was not persisted');
+        }
+        let persisted = marketCollectionRunSchema.parse(result.rows[0].payload);
+        if (
+          persisted.status !== 'running' &&
+          !persisted.cached &&
+          persisted.sourceUrl &&
+          persisted.capturedAt &&
+          persisted.currency &&
+          (persisted.listings.length > 0 || persisted.status === 'empty')
+        ) {
+          // Keep the terminal raw run if projection fails; publish snapshot and link together.
+          await client.query('savepoint collection_publication');
+          try {
+            const targetResult = await client.query<{ profile: unknown }>(
+              'select profile from market_targets where id = $1',
+              [persisted.targetId],
+            );
+            const target = marketTargetSchema.parse(
+              targetResult.rows[0]?.profile,
+            );
+            if (
+              target.digest !== persisted.targetDigest ||
+              target.league !== persisted.league ||
+              target.patch !== persisted.patch
+            )
+              throw new Error('Collection profile scope changed');
+            const imported = createImportedMarketSnapshot(
+              {
+                targetId: target.id,
+                capturedAt: persisted.capturedAt,
+                sourceUrl: persisted.sourceUrl,
+                currency: persisted.currency,
+                dataKind: persisted.dataKind,
+                notes: `Collection ${persisted.sourceId}; coverage=${persisted.coverage}; inexact=${persisted.inexact ?? false}. Asking prices, not confirmed sales.`,
+                emptyResult: persisted.listings.length === 0,
+                listings: persisted.listings.map((listing) =>
+                  marketImportListingSchema.strip().parse(listing),
+                ),
+              },
+              target,
+              new Date(persisted.completedAt ?? persisted.startedAt),
+            );
+            const snapshot = await insertMarketResearchSnapshot(client, {
+              ...imported,
+              provenance: 'collection',
+              coverage: persisted.coverage ?? 'unknown',
+              inexact: persisted.inexact ?? false,
+              queryDigest: persisted.queryDigest,
+              digest: marketDigest({
+                snapshotDigest: imported.digest,
+                provenance: 'collection',
+                queryDigest: persisted.queryDigest,
+              }),
+            });
+            persisted = { ...persisted, snapshotId: snapshot.id };
+            await client.query(
+              'update market_collection_runs set payload = $2::jsonb where id = $1',
+              [persisted.id, JSON.stringify(persisted)],
+            );
+            await client.query('release savepoint collection_publication');
+          } catch {
+            await client.query('rollback to savepoint collection_publication');
+            persisted = {
+              ...persisted,
+              status: persisted.status === 'blocked' ? 'blocked' : 'failed',
+              errorCode:
+                persisted.status === 'blocked'
+                  ? persisted.errorCode
+                  : 'MARKET_COLLECTION_PUBLICATION_FAILED',
+              snapshotId: null,
+            };
+            await client.query(
+              'update market_collection_runs set status = $3, payload = $2::jsonb where id = $1',
+              [persisted.id, JSON.stringify(persisted), persisted.status],
+            );
+          }
+        }
+        await client.query('commit');
+        return persisted;
       } catch (error) {
+        await client.query('rollback').catch(() => undefined);
         if (
           error &&
           typeof error === 'object' &&
@@ -203,6 +311,8 @@ export function createMarketCollectionRepository(
         )
           throw new DomainError('MARKET_COLLECTION_BUSY', { cause: error });
         throw error;
+      } finally {
+        client.release();
       }
     },
     async requestCancel(runId) {

@@ -4,8 +4,9 @@ import {
   marketTargetSchema,
   beltPriceUpdateSchema,
   marketCollectionRunSchema,
+  type MarketResearchSnapshot,
 } from '@poe-worksmith/contracts';
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 
 import {
   marketDigest,
@@ -92,32 +93,7 @@ export function createMarketResearchRepository(
       const client = await pool.connect();
       try {
         await client.query('begin');
-        const result = await client.query<{
-          summary: Record<string, unknown>;
-          listings: unknown;
-        }>(
-          `insert into market_research_snapshots
-            (id, target_id, digest, captured_at, retrieved_at, data_kind, currency, summary, listings)
-           values ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb)
-           on conflict (digest) do update set digest = excluded.digest
-           returning summary, listings`,
-          [
-            snapshot.id,
-            snapshot.targetId,
-            snapshot.digest,
-            snapshot.capturedAt,
-            snapshot.retrievedAt,
-            snapshot.dataKind,
-            snapshot.currency,
-            JSON.stringify(summarizeMarketSnapshot(snapshot)),
-            JSON.stringify(snapshot.listings),
-          ],
-        );
-        const row = result.rows[0]!;
-        const persisted = marketResearchSnapshotSchema.parse({
-          ...row.summary,
-          listings: row.listings,
-        });
+        const persisted = await insertMarketResearchSnapshot(client, snapshot);
         const queryDigest = marketDigest({
           schemaVersion: 1,
           targetDigest: persisted.targetDigest,
@@ -182,4 +158,38 @@ export function createMarketResearchRepository(
       }
     },
   };
+}
+
+/** Shared immutable snapshot write; the caller owns its transaction and publication link. */
+export async function insertMarketResearchSnapshot(
+  client: PoolClient,
+  snapshot: MarketResearchSnapshot,
+): Promise<MarketResearchSnapshot> {
+  const result = await client.query<{
+    summary: Record<string, unknown>;
+    listings: unknown;
+  }>(
+    `insert into market_research_snapshots
+      (id, target_id, digest, captured_at, retrieved_at, data_kind, currency, summary, listings)
+     values ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb)
+     on conflict (digest) do update set digest = excluded.digest
+     returning summary, listings`,
+    [
+      snapshot.id,
+      snapshot.targetId,
+      snapshot.digest,
+      snapshot.capturedAt,
+      snapshot.retrievedAt,
+      snapshot.dataKind,
+      snapshot.currency,
+      JSON.stringify(summarizeMarketSnapshot(snapshot)),
+      JSON.stringify(snapshot.listings),
+    ],
+  );
+  const row = result.rows[0]!;
+  const persisted = marketResearchSnapshotSchema.parse({
+    ...row.summary,
+    listings: row.listings,
+  });
+  return persisted;
 }

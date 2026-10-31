@@ -226,7 +226,13 @@ export const marketResearchSnapshotSummarySchema = z.strictObject({
   retrievedAt: z.iso.datetime(),
   sourceUrl: httpsUrl,
   notes: z.string().max(4000).optional(),
-  provenance: z.literal('manual_import'),
+  provenance: z.enum(['manual_import', 'collection']),
+  coverage: z.enum(['complete', 'partial', 'unknown']).optional(),
+  inexact: z.boolean().optional(),
+  queryDigest: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .optional(),
   comparability: z.literal('user_selected'),
   currency: z.enum(['chaos', 'divine']),
   dataKind: z.enum(['observed', 'demo']),
@@ -511,6 +517,14 @@ export const marketCollectionListingSchema = marketImportListingSchema.extend({
   fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
 });
 
+export const marketCollectionSearchEvidenceSchema = z.strictObject({
+  ids: z.array(text(256)).max(100_000),
+  queryId: text(256).nullable(),
+  reportedTotal: z.number().int().nonnegative().nullable(),
+  request: z.record(z.string(), z.json()).optional(),
+  raw: z.record(z.string(), z.json()).optional(),
+});
+
 export const marketCollectionRunSchema = z.strictObject({
   id: z.uuid(),
   targetId: z.uuid(),
@@ -527,6 +541,9 @@ export const marketCollectionRunSchema = z.strictObject({
   returnedCount: z.number().int().min(0),
   fetchedCount: z.number().int().min(0),
   cached: z.boolean(),
+  inexact: z.boolean().optional(),
+  sourceUrl: httpsUrl.optional(),
+  searchEvidence: marketCollectionSearchEvidenceSchema.optional(),
   currency: z.enum(['chaos', 'divine']).nullable(),
   listings: z
     .array(marketCollectionListingSchema)
@@ -552,6 +569,10 @@ export const marketCollectionSourceSchema = z.strictObject({
   access: z.enum(['blocked', 'replay', 'authorized']),
   dataKind: z.enum(['observed', 'demo']),
   reason: z.string().max(1500).nullable(),
+  implementation: z.enum(['manual', 'not_connected', 'replay']).optional(),
+  authorization: z
+    .enum(['user_supplied', 'unverified', 'test_only'])
+    .optional(),
 });
 
 const idList = z.array(text(256)).max(50);

@@ -13,9 +13,10 @@ import {
   marketCollectionRunSchema,
   marketCollectionSettingsInputSchema,
   marketCollectionSettingsSchema,
+  marketCollectionSearchEvidenceSchema,
 } from '@poe-worksmith/contracts';
 import { randomUUID } from 'node:crypto';
-import { DomainError } from '@poe-worksmith/domain';
+import { DomainError, type CanonicalJsonValue } from '@poe-worksmith/domain';
 
 import { canonicalMarketJson, marketDigest } from './marketResearch.js';
 import type { RateLimitGate } from './rateLimitController.js';
@@ -35,6 +36,9 @@ export type MarketCollectionBatch = {
   reportedTotal: number | null;
   retryAt?: string | null;
   returnedCount: number;
+  inexact?: boolean;
+  sourceUrl?: string;
+  searchEvidence?: MarketCollectionRun['searchEvidence'];
 };
 
 export interface MarketCollectionAdapter {
@@ -42,6 +46,8 @@ export interface MarketCollectionAdapter {
   collect(input: {
     target: MarketTarget;
     signal: AbortSignal;
+    beforeRequest?: () => Promise<void>;
+    onProgress?: (batch: MarketCollectionBatch) => Promise<void>;
   }): Promise<MarketCollectionBatch>;
 }
 
@@ -53,10 +59,7 @@ export type MarketCollectionTransportResponse<T> = {
 };
 
 export interface MarketCollectionTransport {
-  search(input: {
-    signal: AbortSignal;
-    target: MarketTarget;
-  }): Promise<
+  search(input: { signal: AbortSignal; target: MarketTarget }): Promise<
     MarketCollectionTransportResponse<{
       capturedAt: string | null;
       coverage: MarketCollectionBatch['coverage'];
@@ -64,6 +67,10 @@ export interface MarketCollectionTransport {
       ids: string[];
       queryId: string | null;
       reportedTotal: number | null;
+      inexact?: boolean;
+      sourceUrl?: string;
+      request?: Record<string, CanonicalJsonValue>;
+      raw?: Record<string, CanonicalJsonValue>;
     }>
   >;
   fetchDetails(input: {
@@ -76,6 +83,7 @@ export interface MarketCollectionTransport {
 }
 
 export interface MarketCollectionStore {
+  isSourceBlocked(sourceId: string): Promise<boolean>;
   findTarget(id: string): Promise<MarketTarget | null>;
   findSettings(targetId: string): Promise<MarketCollectionSettings | null>;
   listSettings(): Promise<MarketCollectionSettings[]>;
@@ -130,6 +138,8 @@ export const disabledMarketCollectionSource: MarketCollectionAdapter = {
     id: 'ggg-public-trade',
     name: 'Официальный источник объявлений GGG',
     access: 'blocked',
+    implementation: 'not_connected',
+    authorization: 'unverified',
     dataKind: 'observed',
     reason:
       'GGG не документирует Trade search/fetch как API; источник не подключён. Включите только после явного разрешения поддерживаемого доступа.',
@@ -144,6 +154,8 @@ export const manualImportMarketCollectionSource: MarketCollectionAdapter = {
     id: 'manual-import',
     name: 'Ручной импорт объявлений',
     access: 'blocked',
+    implementation: 'manual',
+    authorization: 'user_supplied',
     dataKind: 'observed',
     reason:
       'Автоматический Trade endpoint не поддерживается документацией GGG. Импортируйте выбранные объявления из пользовательской сессии.',
@@ -175,7 +187,9 @@ export function createBatchedMarketCollectionSource(options: {
   let accessBlocked = false;
   return {
     descriptor: options.descriptor,
-    async collect({ target, signal }) {
+    async collect({ target, signal, beforeRequest, onProgress }) {
+      if (options.descriptor.access === 'blocked')
+        throw new DomainError('MARKET_ACCESS_BLOCKED');
       const search = await rateLimitedRequest(
         'trade-search',
         signal,
@@ -185,6 +199,7 @@ export function createBatchedMarketCollectionSource(options: {
         () => {
           accessBlocked = true;
         },
+        beforeRequest,
       );
       if (
         !search.data ||
@@ -194,6 +209,15 @@ export function createBatchedMarketCollectionSource(options: {
       )
         throw new DomainError('PROVIDER_RESPONSE_INVALID');
       const ids = [...new Set(search.data.ids)];
+      const evidence = marketCollectionSearchEvidenceSchema.safeParse({
+        ids,
+        queryId: search.data.queryId,
+        reportedTotal: search.data.reportedTotal,
+        ...(search.data.request ? { request: search.data.request } : {}),
+        ...(search.data.raw ? { raw: search.data.raw } : {}),
+      });
+      if (!evidence.success) throw new DomainError('PROVIDER_RESPONSE_INVALID');
+      const searchEvidence = evidence.data;
       if (
         ids.length !== search.data.ids.length ||
         ids.some((id) => id.trim().length === 0 || id.length > 256)
@@ -205,7 +229,41 @@ export function createBatchedMarketCollectionSource(options: {
       let batchCount = 0;
       let errorCode: string | null = null;
       let cancelled = false;
-      for (let index = 0; index < selectedIds.length; index += detailBatchSize) {
+      function buildBatch(): MarketCollectionBatch {
+        const partial =
+          cancelled ||
+          errorCode !== null ||
+          ids.length > selectedIds.length ||
+          search.data.coverage !== 'complete' ||
+          search.data.inexact === true ||
+          (search.data.reportedTotal !== null &&
+            ids.length < search.data.reportedTotal) ||
+          listings.length !== selectedIds.length;
+        return {
+          batchCount,
+          cached,
+          capturedAt: search.data.capturedAt,
+          coverage: partial ? 'partial' : 'complete',
+          currency: search.data.currency,
+          fetchedCount: listings.length,
+          listings,
+          reportedTotal: search.data.reportedTotal,
+          returnedCount: ids.length,
+          inexact: search.data.inexact ?? false,
+          searchEvidence,
+          ...(search.data.sourceUrl
+            ? { sourceUrl: search.data.sourceUrl }
+            : {}),
+          ...(cancelled ? { cancelled: true } : {}),
+          ...(errorCode ? { errorCode } : {}),
+        };
+      }
+      await onProgress?.(buildBatch());
+      for (
+        let index = 0;
+        index < selectedIds.length;
+        index += detailBatchSize
+      ) {
         const batchIds = selectedIds.slice(index, index + detailBatchSize);
         try {
           const response = await rateLimitedRequest(
@@ -222,6 +280,7 @@ export function createBatchedMarketCollectionSource(options: {
             () => {
               accessBlocked = true;
             },
+            beforeRequest,
           );
           const detailResponse = marketImportListingSchema
             .nullable()
@@ -245,13 +304,16 @@ export function createBatchedMarketCollectionSource(options: {
           listings.push(...details);
           cached ||= response.cached;
           batchCount += 1;
+          await onProgress?.(buildBatch());
         } catch (error) {
           if (
             signal.aborted ||
             (error instanceof Error && error.name === 'AbortError')
           )
             cancelled = true;
-          else
+          if (error instanceof DomainError && isAccessError(error.code))
+            errorCode = error.code;
+          else if (!cancelled)
             errorCode =
               error instanceof DomainError
                 ? error.code
@@ -259,27 +321,7 @@ export function createBatchedMarketCollectionSource(options: {
           break;
         }
       }
-      const partial =
-        cancelled ||
-        errorCode !== null ||
-        ids.length > selectedIds.length ||
-        search.data.coverage !== 'complete' ||
-        (search.data.reportedTotal !== null &&
-          ids.length < search.data.reportedTotal) ||
-        listings.length !== selectedIds.length;
-      return {
-        batchCount,
-        cached,
-        capturedAt: search.data.capturedAt,
-        coverage: partial ? 'partial' : 'complete',
-        currency: search.data.currency,
-        fetchedCount: listings.length,
-        listings,
-        reportedTotal: search.data.reportedTotal,
-        returnedCount: ids.length,
-        ...(cancelled ? { cancelled: true } : {}),
-        ...(errorCode ? { errorCode } : {}),
-      };
+      return buildBatch();
     },
   };
 }
@@ -291,22 +333,28 @@ async function rateLimitedRequest<T>(
   request: () => Promise<MarketCollectionTransportResponse<T>>,
   accessBlocked: () => boolean,
   blockAccess: () => void,
+  beforeRequest?: () => Promise<void>,
 ) {
   throwIfAborted(signal);
   await rateLimits.waitForPermit(endpoint, signal);
   throwIfAborted(signal);
   if (accessBlocked()) throw new DomainError('MARKET_ACCESS_BLOCKED');
+  await beforeRequest?.();
+  throwIfAborted(signal);
   const response = await request();
   if (response.status === 401 || response.status === 403) blockAccess();
   await rateLimits.observeResponse(endpoint, response);
-  if (response.status === 401 || response.status === 403)
-    throw new DomainError('PROVIDER_AUTH_FAILED');
-  if (response.status === 429)
-    throw new DomainError('PROVIDER_RATE_LIMITED');
+  if (response.status === 401) throw new DomainError('PROVIDER_AUTH_FAILED');
+  if (response.status === 403)
+    throw new DomainError(
+      response.headers.get('cf-mitigated') === 'challenge'
+        ? 'PROVIDER_CHALLENGE'
+        : 'PROVIDER_ACCESS_DENIED',
+    );
+  if (response.status === 429) throw new DomainError('PROVIDER_RATE_LIMITED');
   if (response.status >= 400 && response.status < 500)
     throw new DomainError('MARKET_QUERY_INVALID');
-  if (response.status >= 500)
-    throw new DomainError('PROVIDER_UNAVAILABLE');
+  if (response.status >= 500) throw new DomainError('PROVIDER_UNAVAILABLE');
   return response;
 }
 
@@ -344,6 +392,8 @@ export function createReplayMarketCollectionSource(
           ids,
           queryId,
           reportedTotal: batch.reportedTotal,
+          inexact: batch.inexact ?? false,
+          sourceUrl: batch.sourceUrl ?? 'https://example.com/fixture-replay',
         },
         headers: new Headers(),
         status: 200,
@@ -379,6 +429,8 @@ export function createReplayMarketCollectionSource(
       id: 'fixture-replay',
       name: 'Локальный replay fixtures',
       access: 'replay',
+      implementation: 'replay',
+      authorization: 'test_only',
       dataKind: 'demo',
       reason: 'Учебные данные для проверки последовательных снимков; не рынок.',
     },
@@ -434,13 +486,17 @@ export class MarketCollectionManager {
       ? {
           ...this.#adapter.descriptor,
           access: 'blocked' as const,
-          reason: 'Источник заблокирован после отказа доступа; повторные запросы отключены.',
+          reason:
+            'Источник заблокирован после отказа доступа; повторные запросы отключены.',
         }
       : this.#adapter.descriptor;
   }
 
   async start(intervalMs = 30_000) {
     if (this.#timer) return;
+    this.#accessBlocked = await this.#store.isSourceBlocked(
+      this.#adapter.descriptor.id,
+    );
     await this.#recoverRunningRuns();
     this.#timer = setInterval(() => this.#track(this.tick()), intervalMs);
     await this.tick();
@@ -466,7 +522,18 @@ export class MarketCollectionManager {
       previous,
       this.#clock(),
     );
-    return this.#store.saveSettings(settings);
+    const saved = await this.#store.saveSettings(settings);
+    if (
+      saved.paused ||
+      (patch as MarketCollectionSettingsInput).enabled === false
+    ) {
+      for (const [runId, activeTargetId] of this.#activeRunIds)
+        if (activeTargetId === targetId) {
+          await this.#store.requestCancel(runId);
+          this.#active.get(targetId)?.abort();
+        }
+    }
+    return saved;
   }
 
   runNow(targetId: string, trigger: 'manual' | 'scheduled' = 'manual') {
@@ -481,18 +548,14 @@ export class MarketCollectionManager {
     return request;
   }
 
-  async #runNow(
-    targetId: string,
-    trigger: 'manual' | 'scheduled' = 'manual',
-  ) {
+  async #runNow(targetId: string, trigger: 'manual' | 'scheduled' = 'manual') {
     const target = await this.#store.findTarget(targetId);
     if (!target) throw new DomainError('MARKET_TARGET_NOT_FOUND');
     const settings = await this.#store.findSettings(targetId);
+    if (await this.#store.isSourceBlocked(this.#adapter.descriptor.id))
+      this.#accessBlocked = true;
     if (settings?.paused) throw new DomainError('MARKET_COLLECTION_PAUSED');
-    if (
-      trigger === 'scheduled' &&
-      (!settings?.enabled || settings.paused)
-    )
+    if (trigger === 'scheduled' && (!settings?.enabled || settings.paused))
       throw new DomainError('MARKET_COLLECTION_PAUSED');
     if (this.#active.has(targetId))
       throw new DomainError('MARKET_COLLECTION_BUSY');
@@ -538,7 +601,9 @@ export class MarketCollectionManager {
     const controller = new AbortController();
     this.#active.set(targetId, controller);
     this.#activeRunIds.set(stored.id, targetId);
-    this.#track(this.#execute(target, stored, controller));
+    this.#track(
+      this.#execute(target, stored, controller, settings?.enabled ?? false),
+    );
     return stored;
   }
 
@@ -554,6 +619,9 @@ export class MarketCollectionManager {
 
   async tick() {
     await this.#recoverRunningRuns();
+    this.#accessBlocked ||= await this.#store.isSourceBlocked(
+      this.#adapter.descriptor.id,
+    );
     if (this.source.access === 'blocked') return;
     const now = this.#clock();
     const settings = await this.#store.listSettings();
@@ -568,13 +636,16 @@ export class MarketCollectionManager {
         continue;
       const target = await this.#store.findTarget(setting.targetId);
       if (!target) continue;
-      const claimed = await this.#store.claimScheduledSettings({
-        ...setting,
-        nextRunAt: new Date(
-          now.getTime() + setting.intervalMinutes * 60_000,
-        ).toISOString(),
-        updatedAt: now.toISOString(),
-      }, setting.nextRunAt);
+      const claimed = await this.#store.claimScheduledSettings(
+        {
+          ...setting,
+          nextRunAt: new Date(
+            now.getTime() + setting.intervalMinutes * 60_000,
+          ).toISOString(),
+          updatedAt: now.toISOString(),
+        },
+        setting.nextRunAt,
+      );
       if (!claimed) continue;
       await this.runNow(target.id, 'scheduled').catch(() => undefined);
     }
@@ -601,8 +672,10 @@ export class MarketCollectionManager {
     target: MarketTarget,
     initial: MarketCollectionRun,
     controller: AbortController,
+    enabledAtStart: boolean,
   ) {
     let result: MarketCollectionRun;
+    let checkpoint = initial;
     try {
       if (this.source.access === 'blocked') {
         result = this.#finish(initial, 'blocked', {
@@ -612,12 +685,34 @@ export class MarketCollectionManager {
         const batch = await this.#adapter.collect({
           target,
           signal: controller.signal,
+          onProgress: async (batch) => {
+            validateCollectionBatch(batch);
+            checkpoint = await this.#store.saveRun(
+              this.#withBatch(initial, { ...batch, coverage: 'partial' }),
+            );
+          },
+          beforeRequest: async () => {
+            const [settings, run, accessBlocked] = await Promise.all([
+              this.#store.findSettings(target.id),
+              this.#store.findRun(initial.id),
+              this.#store.isSourceBlocked(this.#adapter.descriptor.id),
+            ]);
+            if (accessBlocked) throw new DomainError('MARKET_ACCESS_BLOCKED');
+            if (
+              run?.status !== 'running' ||
+              run.cancelRequested ||
+              settings?.paused ||
+              (initial.trigger === 'scheduled' && !settings?.enabled) ||
+              (enabledAtStart && !settings?.enabled)
+            ) {
+              controller.abort();
+            }
+            throwIfAborted(controller.signal);
+          },
         });
         validateCollectionBatch(batch);
         const cappedListings = batch.listings.slice(0, 1000);
-        const accessDenied =
-          batch.errorCode === 'PROVIDER_AUTH_FAILED' ||
-          batch.errorCode === 'MARKET_ACCESS_BLOCKED';
+        const accessDenied = isAccessError(batch.errorCode);
         if (accessDenied) {
           this.#accessBlocked = true;
           for (const active of this.#active.values())
@@ -627,6 +722,7 @@ export class MarketCollectionManager {
           batch.cancelled === true ||
           batch.errorCode != null ||
           batch.coverage !== 'complete' ||
+          batch.inexact === true ||
           batch.batchCount > 100 ||
           batch.returnedCount > 1000 ||
           batch.listings.length > 1000 ||
@@ -634,45 +730,30 @@ export class MarketCollectionManager {
           batch.listings.length !== batch.fetchedCount ||
           (batch.reportedTotal !== null &&
             batch.returnedCount < batch.reportedTotal);
-        const status =
-          batch.cancelled
-            ? 'cancelled'
-            : accessDenied
-              ? 'blocked'
-              : batch.errorCode === 'PROVIDER_RATE_LIMITED'
-                ? 'rate_limited'
-                : batch.errorCode
-                  ? 'failed'
-                  : partial
-                    ? 'partial'
-                    : cappedListings.length === 0
-                      ? 'empty'
-                      : 'succeeded';
+        const status = batch.cancelled
+          ? 'cancelled'
+          : accessDenied
+            ? 'blocked'
+            : batch.errorCode === 'PROVIDER_RATE_LIMITED'
+              ? 'rate_limited'
+              : batch.errorCode
+                ? 'failed'
+                : partial
+                  ? 'partial'
+                  : cappedListings.length === 0
+                    ? 'empty'
+                    : 'succeeded';
         result = marketCollectionRunSchema.parse({
-          ...initial,
+          ...this.#withBatch(initial, batch),
           status,
           coverage: partial ? 'partial' : 'complete',
-          reportedTotal: batch.reportedTotal,
-          returnedCount: batch.returnedCount,
-          fetchedCount: batch.fetchedCount,
-          cached: batch.cached,
-          currency: batch.currency,
-          listings: cappedListings.map((listing) => ({
-            ...listing,
-            fingerprint: marketDigest(listing),
-          })),
-          capturedAt: batch.capturedAt,
           completedAt: this.#clock().toISOString(),
           snapshotId: initial.id,
-          batchCount: Math.min(batch.batchCount, 100),
-          listingCount: cappedListings.length,
-          errorCode: batch.errorCode ?? null,
-          retryAt: batch.retryAt ?? null,
         });
       }
     } catch (error) {
       const accessDenied =
-        error instanceof DomainError && error.code === 'PROVIDER_AUTH_FAILED';
+        error instanceof DomainError && isAccessError(error.code);
       if (accessDenied) {
         this.#accessBlocked = true;
         for (const active of this.#active.values()) active.abort();
@@ -687,8 +768,14 @@ export class MarketCollectionManager {
         controller.signal.aborted ||
         (error instanceof Error && error.name === 'AbortError');
       result = this.#finish(
-        initial,
-        blocked ? 'blocked' : rateLimited ? 'rate_limited' : cancelled ? 'cancelled' : 'failed',
+        checkpoint,
+        blocked
+          ? 'blocked'
+          : rateLimited
+            ? 'rate_limited'
+            : cancelled
+              ? 'cancelled'
+              : 'failed',
         {
           errorCode:
             error instanceof DomainError
@@ -707,7 +794,9 @@ export class MarketCollectionManager {
         await this.#store.saveRun(
           this.#finish(result, 'cancelled', {
             coverage: 'partial',
-            errorCode: null,
+            errorCode: isAccessError(result.errorCode)
+              ? result.errorCode
+              : null,
           }),
         );
     } finally {
@@ -715,6 +804,39 @@ export class MarketCollectionManager {
       if (this.#active.get(target.id) === controller)
         this.#active.delete(target.id);
     }
+  }
+
+  #withBatch(initial: MarketCollectionRun, batch: MarketCollectionBatch) {
+    const listings = batch.listings.slice(0, 1000);
+    return marketCollectionRunSchema.parse({
+      ...initial,
+      queryDigest: batch.searchEvidence?.request
+        ? marketDigest({
+            version: 2,
+            scope: initial.queryDigest,
+            request: batch.searchEvidence.request,
+          })
+        : initial.queryDigest,
+      coverage: batch.coverage,
+      reportedTotal: batch.reportedTotal,
+      returnedCount: batch.returnedCount,
+      fetchedCount: batch.fetchedCount,
+      cached: batch.cached,
+      ...(batch.inexact !== undefined ? { inexact: batch.inexact } : {}),
+      ...(batch.sourceUrl ? { sourceUrl: batch.sourceUrl } : {}),
+      ...(batch.searchEvidence ? { searchEvidence: batch.searchEvidence } : {}),
+      currency: batch.currency,
+      listings: listings.map((listing) => ({
+        ...listing,
+        fingerprint: marketDigest(listing),
+      })),
+      capturedAt: batch.capturedAt,
+      snapshotId: null,
+      batchCount: Math.min(batch.batchCount, 100),
+      listingCount: listings.length,
+      errorCode: batch.errorCode ?? null,
+      retryAt: batch.retryAt ?? null,
+    });
   }
 
   #finish(
@@ -759,6 +881,15 @@ function validateCollectionBatch(batch: MarketCollectionBatch) {
     throw new DomainError('PROVIDER_RESPONSE_INVALID');
 }
 
+function isAccessError(code?: string | null) {
+  return (
+    code === 'PROVIDER_AUTH_FAILED' ||
+    code === 'PROVIDER_ACCESS_DENIED' ||
+    code === 'PROVIDER_CHALLENGE' ||
+    code === 'MARKET_ACCESS_BLOCKED'
+  );
+}
+
 export type MarketCollectionObservation = Omit<
   Pick<
     MarketCollectionRun,
@@ -775,6 +906,7 @@ export type MarketCollectionObservation = Omit<
     | 'capturedAt'
     | 'cached'
     | 'dataKind'
+    | 'inexact'
   >,
   'listings'
 > & {
@@ -813,12 +945,12 @@ export function compareMarketObservations(
   const seen = new Map<string, string>();
   const missingSinceComplete = new Set<string>();
   let hasBaseline = false;
-  let previousComplete = new Map<string, string>();
 
   return ordered.map((observation) => {
     const comparable =
       observation.status === 'succeeded' || observation.status === 'empty';
-    const complete = comparable && observation.coverage === 'complete';
+    const complete =
+      comparable && observation.coverage === 'complete' && !observation.inexact;
     const listings = observation.listings;
     const usable = comparable || listings.length > 0;
     const current = new Map(
@@ -837,7 +969,8 @@ export function compareMarketObservations(
     const prices = listings
       .flatMap((listing) =>
         listing.price === null ||
-        (listing.currency !== undefined && listing.currency !== observation.currency)
+        (listing.currency !== undefined &&
+          listing.currency !== observation.currency)
           ? []
           : [listing.price],
       )
@@ -878,7 +1011,9 @@ export function compareMarketObservations(
       seen.set(id, digest);
     }
     const missingIds = complete
-      ? [...previousComplete.keys()].filter((id) => !current.has(id))
+      ? [...seen.keys()].filter(
+          (id) => !current.has(id) && !missingSinceComplete.has(id),
+        )
       : [];
     point.newCount = newIds.length;
     point.persistedCount = persistedIds.length;
@@ -890,7 +1025,6 @@ export function compareMarketObservations(
     point.restoredCount = restoredIds.length;
     if (complete) {
       missingIds.forEach((id) => missingSinceComplete.add(id));
-      previousComplete = current;
     }
     hasBaseline = true;
     return point;

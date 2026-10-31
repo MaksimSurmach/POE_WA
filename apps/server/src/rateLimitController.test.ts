@@ -9,6 +9,22 @@ import {
 const start = new Date('2026-07-20T00:00:00.000Z');
 
 describe('GGG rate-limit controller', () => {
+  it.each([401, 403])(
+    'retains access denial %s across controller restarts and endpoints',
+    async (status) => {
+      const repository = createInMemoryRepositories().rateLimits;
+      const first = new GggRateLimitController({ repository });
+      await first.observeResponse('trade-search', {
+        status,
+        headers: new Headers(),
+      });
+      const reopened = new GggRateLimitController({ repository });
+      await expect(reopened.waitForPermit('trade-fetch')).rejects.toMatchObject(
+        { code: 'MARKET_ACCESS_BLOCKED' },
+      );
+    },
+  );
+
   it('parses multiple rules and policy windows into conservative pacing', () => {
     const headers = new Headers({
       'X-Rate-Limit-Client': '10:10:30',

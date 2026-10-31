@@ -187,6 +187,17 @@ export const domainErrorDefinitions = {
     disposition: 'permanent',
     publicMessage: 'The market provider rejected authentication.',
   },
+  PROVIDER_ACCESS_DENIED: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage: 'The market provider denied access.',
+  },
+  PROVIDER_CHALLENGE: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage:
+      'The market provider requires a challenge. Automated access is paused.',
+  },
   POE_NINJA_LEAGUES_INVALID: {
     category: 'market',
     disposition: 'degraded',

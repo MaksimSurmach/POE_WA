@@ -58,7 +58,9 @@ const listing = (externalId: string, price: number) => ({
 
 describe('managed market observation comparison', () => {
   it('selects only configured supported collection modes', () => {
-    expect(configuredMarketCollectionSource().descriptor.id).toBe('manual-import');
+    expect(configuredMarketCollectionSource().descriptor.id).toBe(
+      'manual-import',
+    );
     expect(configuredMarketCollectionSource('disabled').descriptor.id).toBe(
       'ggg-public-trade',
     );
@@ -137,16 +139,22 @@ describe('managed market observation comparison', () => {
     const points = compareMarketObservations([
       observation('1', '2026-10-30T10:00:00.000Z', [], { status: 'failed' }),
       observation('2', '2026-10-30T10:05:00.000Z', [listing('alpha', 10)]),
-      observation('3', '2026-10-30T10:10:00.000Z', [listing('alpha', 10), listing('beta', 12)]),
+      observation('3', '2026-10-30T10:10:00.000Z', [
+        listing('alpha', 10),
+        listing('beta', 12),
+      ]),
     ]);
     expect(points.map(({ newCount }) => newCount)).toEqual([0, 0, 1]);
   });
 
   it('keeps differently denominated prices out of the observation estimate', () => {
     const points = compareMarketObservations([
-      observation('1', '2026-10-30T10:00:00.000Z', [
-        { ...listing('alpha', 10), currency: 'chaos' },
-      ], { currency: 'divine' }),
+      observation(
+        '1',
+        '2026-10-30T10:00:00.000Z',
+        [{ ...listing('alpha', 10), currency: 'chaos' }],
+        { currency: 'divine' },
+      ),
     ]);
     expect(points[0]).toMatchObject({ count: 1, median: null });
   });
@@ -160,6 +168,23 @@ describe('managed market observation comparison', () => {
         }),
       ]),
     ).toThrow('Market observations must share one profile scope');
+  });
+
+  it('tracks absences after positive partial observations and repeated returns', () => {
+    const points = compareMarketObservations([
+      observation('1', '2026-10-30T10:00:00.000Z', [listing('a', 1)]),
+      observation('2', '2026-10-30T10:05:00.000Z', []),
+      observation(
+        '3',
+        '2026-10-30T10:10:00.000Z',
+        [listing('a', 1), listing('b', 2)],
+        { status: 'partial', coverage: 'partial' },
+      ),
+      observation('4', '2026-10-30T10:15:00.000Z', []),
+      observation('5', '2026-10-30T10:20:00.000Z', []),
+    ]);
+    expect(points.map((point) => point.missingCount)).toEqual([0, 1, 0, 2, 0]);
+    expect(points[2]?.restored).toEqual(['a']);
   });
 });
 
@@ -184,6 +209,16 @@ describe('managed collection runner', () => {
     let settings: MarketCollectionSettings | null = null;
     return {
       runs,
+      isSourceBlocked: async (sourceId) =>
+        [...runs.values()].some(
+          (run) =>
+            run.sourceId === sourceId &&
+            [
+              'PROVIDER_AUTH_FAILED',
+              'PROVIDER_ACCESS_DENIED',
+              'PROVIDER_CHALLENGE',
+            ].includes(run.errorCode ?? ''),
+        ),
       findTarget: async (id) => (id === target.id ? target : null),
       findSettings: async () => settings,
       listSettings: async () => (settings ? [settings] : []),
@@ -220,7 +255,10 @@ describe('managed collection runner', () => {
         if (
           row.status === 'running' &&
           [...runs.values()].some(
-            (run) => run.targetId === row.targetId && run.status === 'running',
+            (run) =>
+              run.id !== row.id &&
+              run.targetId === row.targetId &&
+              run.status === 'running',
           )
         )
           throw new Error('active run conflict');
@@ -274,6 +312,64 @@ describe('managed collection runner', () => {
     returnedCount: 1,
   };
 
+  it.each([
+    [401, false, 'PROVIDER_AUTH_FAILED'],
+    [403, false, 'PROVIDER_ACCESS_DENIED'],
+    [403, true, 'PROVIDER_CHALLENGE'],
+  ] as const)(
+    'classifies access status %s challenge=%s without retry',
+    async (status, challenge, code) => {
+      let requests = 0;
+      const source = createBatchedMarketCollectionSource({
+        descriptor: {
+          id: 'access-fixture',
+          name: 'fixture',
+          access: 'replay',
+          dataKind: 'demo',
+          reason: null,
+        },
+        rateLimits: {
+          async waitForPermit() {
+            return {};
+          },
+          async observeResponse() {
+            return {};
+          },
+        } as unknown as RateLimitGate,
+        transport: {
+          async search() {
+            requests += 1;
+            return {
+              cached: false,
+              status,
+              headers: new Headers(
+                challenge ? { 'cf-mitigated': 'challenge' } : {},
+              ),
+              data: {
+                ids: [],
+                queryId: null,
+                reportedTotal: 0,
+                currency: null,
+                capturedAt: null,
+                coverage: 'unknown',
+              },
+            };
+          },
+          async fetchDetails() {
+            throw new Error('must not request');
+          },
+        },
+      });
+      await expect(
+        source.collect({ target, signal: new AbortController().signal }),
+      ).rejects.toMatchObject({ code });
+      await expect(
+        source.collect({ target, signal: new AbortController().signal }),
+      ).rejects.toMatchObject({ code: 'MARKET_ACCESS_BLOCKED' });
+      expect(requests).toBe(1);
+    },
+  );
+
   it('stores sequential replay snapshots and marks a repeated response as cached', async () => {
     const store = makeStore();
     const manager = new MarketCollectionManager({
@@ -298,6 +394,102 @@ describe('managed collection runner', () => {
       fixture.capturedAt,
     ]);
     expect(store.runs.size).toBe(2);
+  });
+
+  it('retains the last durable raw checkpoint when the adapter later throws', async () => {
+    const store = makeStore();
+    const manager = new MarketCollectionManager({
+      store,
+      adapter: {
+        descriptor: {
+          id: 'checkpoint-fixture',
+          name: 'fixture',
+          access: 'replay',
+          dataKind: 'demo',
+          reason: null,
+        },
+        async collect({ onProgress }) {
+          await onProgress?.(fixture);
+          throw new Error('synthetic failure after a persisted page');
+        },
+      },
+    });
+    const run = await manager.runNow(target.id);
+    expect(await waitUntilDone(store, run.id)).toMatchObject({
+      status: 'failed',
+      coverage: 'partial',
+      listingCount: 1,
+      listings: [
+        expect.objectContaining({
+          externalId: 'alpha',
+          item: { name: 'alpha' },
+        }),
+      ],
+    });
+    await manager.stop();
+  });
+
+  it('retains access denial when cancellation races a denied detail response', async () => {
+    const store = makeStore();
+    const source = createBatchedMarketCollectionSource({
+      descriptor: {
+        id: 'cancel-denial-fixture',
+        name: 'fixture',
+        access: 'replay',
+        dataKind: 'demo',
+        reason: null,
+      },
+      rateLimits: {
+        async waitForPermit() {
+          return {};
+        },
+        async observeResponse() {
+          return {};
+        },
+      } as unknown as RateLimitGate,
+      transport: {
+        async search() {
+          return {
+            status: 200,
+            cached: false,
+            headers: new Headers(),
+            data: {
+              capturedAt: fixture.capturedAt,
+              coverage: 'complete',
+              currency: 'chaos',
+              ids: ['a'],
+              queryId: 'q',
+              reportedTotal: 1,
+            },
+          };
+        },
+        async fetchDetails() {
+          const running = [...store.runs.values()].find(
+            (run) => run.status === 'running',
+          );
+          if (!running) throw new Error('missing run');
+          await manager.cancel(running.id);
+          return {
+            status: 403,
+            cached: false,
+            headers: new Headers(),
+            data: [],
+          };
+        },
+      },
+    });
+    const manager = new MarketCollectionManager({ adapter: source, store });
+    const run = await manager.runNow(target.id);
+    expect(await waitUntilDone(store, run.id)).toMatchObject({
+      status: 'cancelled',
+      errorCode: 'PROVIDER_ACCESS_DENIED',
+    });
+    expect(await store.isSourceBlocked(source.descriptor.id)).toBe(true);
+    const reopened = new MarketCollectionManager({ adapter: source, store });
+    const next = await reopened.runNow(target.id);
+    expect((await waitUntilDone(store, next.id)).status).toBe('blocked');
+    await manager.stop();
+    await reopened.stop();
   });
 
   it('fetches detail pages sequentially through the shared rate gate and caps at 1,000', async () => {
@@ -377,70 +569,160 @@ describe('managed collection runner', () => {
     });
   });
 
-  it('requests 25 detail IDs as ordered 10+10+5 batches', async () => {
-    const ids = Array.from({ length: 25 }, (_, index) => `twenty-five-${index}`);
-    const batchSizes: number[] = [];
-    const source = createBatchedMarketCollectionSource({
-      descriptor: {
-        id: 'batch-shape',
-        name: 'fixture',
-        access: 'authorized',
-        dataKind: 'observed',
-        reason: null,
-      },
-      rateLimits: {
-        async waitForPermit() {
-          return {};
+  it.each([false, true])(
+    'requests 25 IDs as 10+10+5, inexact=%s',
+    async (inexact) => {
+      const ids = Array.from(
+        { length: 25 },
+        (_, index) => `twenty-five-${index}`,
+      );
+      const batchSizes: number[] = [];
+      const source = createBatchedMarketCollectionSource({
+        descriptor: {
+          id: 'batch-shape',
+          name: 'fixture',
+          access: 'authorized',
+          dataKind: 'observed',
+          reason: null,
         },
-        async observeResponse() {
-          return {};
+        rateLimits: {
+          async waitForPermit() {
+            return {};
+          },
+          async observeResponse() {
+            return {};
+          },
+        } as unknown as RateLimitGate,
+        transport: {
+          async search() {
+            return {
+              cached: false,
+              data: {
+                capturedAt: '2026-10-30T10:00:00.000Z',
+                coverage: 'complete',
+                currency: 'chaos',
+                ids,
+                queryId: 'twenty-five-query',
+                reportedTotal: 25,
+                inexact,
+                request: { sort: { price: 'asc' } },
+                raw: { total: 25, result: ids, inexact },
+              },
+              headers: new Headers(),
+              status: 200,
+            };
+          },
+          async fetchDetails({ ids: batch }) {
+            batchSizes.push(batch.length);
+            return {
+              cached: false,
+              data: batch.map((externalId) => ({
+                externalId,
+                price: 10,
+                item: { name: externalId },
+              })),
+              headers: new Headers(),
+              status: 200,
+            };
+          },
         },
-      } as unknown as RateLimitGate,
-      transport: {
-        async search() {
-          return {
-            cached: false,
-            data: {
-              capturedAt: '2026-10-30T10:00:00.000Z',
-              coverage: 'complete',
-              currency: 'chaos',
-              ids,
-              queryId: 'twenty-five-query',
-              reportedTotal: 25,
-            },
-            headers: new Headers(),
-            status: 200,
-          };
-        },
-        async fetchDetails({ ids: batch }) {
-          batchSizes.push(batch.length);
-          return {
-            cached: false,
-            data: batch.map((externalId) => ({
-              externalId,
-              price: 10,
-              item: { name: externalId },
-            })),
-            headers: new Headers(),
-            status: 200,
-          };
-        },
-      },
-    });
+      });
 
-    const result = await source.collect({
-      target,
-      signal: new AbortController().signal,
-    });
+      const result = await source.collect({
+        target,
+        signal: new AbortController().signal,
+      });
 
-    expect(batchSizes).toEqual([10, 10, 5]);
-    expect(result).toMatchObject({
-      batchCount: 3,
-      coverage: 'complete',
-      fetchedCount: 25,
-      returnedCount: 25,
-    });
-  });
+      expect(batchSizes).toEqual([10, 10, 5]);
+      expect(result).toMatchObject({
+        batchCount: 3,
+        coverage: inexact ? 'partial' : 'complete',
+        fetchedCount: 25,
+        returnedCount: 25,
+        inexact,
+        searchEvidence: {
+          ids,
+          request: { sort: { price: 'asc' } },
+          raw: { total: 25, result: ids, inexact },
+        },
+      });
+    },
+  );
+
+  it.each(['pause', 'disable', 'cancel'] as const)(
+    'rechecks durable %s after a detail permit wait',
+    async (action) => {
+      const store = makeStore();
+      let release!: () => void;
+      let waiting!: () => void;
+      const permit = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const entered = new Promise<void>((resolve) => {
+        waiting = resolve;
+      });
+      let requests = 0;
+      const source = createBatchedMarketCollectionSource({
+        descriptor: {
+          id: 'guard-fixture',
+          name: 'fixture',
+          access: 'replay',
+          dataKind: 'demo',
+          reason: null,
+        },
+        rateLimits: {
+          async waitForPermit(endpoint: string) {
+            if (endpoint === 'trade-fetch') {
+              waiting();
+              await permit;
+            }
+            return {};
+          },
+          async observeResponse() {
+            return {};
+          },
+        } as unknown as RateLimitGate,
+        transport: {
+          async search() {
+            return {
+              cached: false,
+              status: 200,
+              headers: new Headers(),
+              data: {
+                capturedAt: fixture.capturedAt,
+                coverage: 'complete',
+                currency: 'chaos',
+                ids: ['a'],
+                queryId: 'q',
+                reportedTotal: 1,
+              },
+            };
+          },
+          async fetchDetails() {
+            requests += 1;
+            throw new Error('must not request');
+          },
+        },
+      });
+      const manager = new MarketCollectionManager({ adapter: source, store });
+      await manager.updateSettings(target.id, { enabled: true });
+      const run = await manager.runNow(target.id, 'scheduled');
+      await entered;
+      const settings = await store.findSettings(target.id);
+      if (!settings) throw new Error('missing settings');
+      if (action === 'cancel') await store.requestCancel(run.id);
+      else
+        await store.saveSettings({
+          ...settings,
+          paused: action === 'pause',
+          enabled: action !== 'disable',
+        });
+      release();
+      expect((await waitUntilDone(store, run.id)).status).toBe('cancelled');
+      expect(requests).toBe(0);
+      await manager.stop();
+    },
+  );
 
   it('keeps null detail slots partial and normalizes absent or null prices', async () => {
     const ids = ['priced-unknown', 'explicit-unpriced', 'null-detail'];

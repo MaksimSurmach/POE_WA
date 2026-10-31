@@ -692,6 +692,7 @@ export function MarketPage() {
         >
           {selected ? (
             <MarketCollectionPanel
+              onObservation={reload}
               key={selected.id}
               target={selected}
               canWrite={canWrite}
@@ -900,10 +901,12 @@ function MarketCollectionPanel({
   target,
   canWrite,
   onManualImport,
+  onObservation,
 }: {
   target: MarketTarget;
   canWrite: boolean;
   onManualImport: () => void;
+  onObservation: () => Promise<void>;
 }) {
   const [data, setData] = useState<Awaited<
     ReturnType<typeof marketClient.collection>
@@ -914,6 +917,17 @@ function MarketCollectionPanel({
   const [paused, setPaused] = useState(false);
   const [intervalMinutes, setIntervalMinutes] = useState(60);
   const intervalDirty = useRef(false);
+  const lastSnapshot = useRef<string | null>(null);
+
+  useEffect(() => {
+    const latest = data?.runs.find(
+      (run) => !run.cached && run.snapshotId,
+    )?.snapshotId;
+    if (latest && latest !== lastSnapshot.current) {
+      lastSnapshot.current = latest;
+      void onObservation();
+    }
+  }, [data, onObservation]);
 
   useEffect(() => {
     let active = true;
@@ -1032,6 +1046,23 @@ function MarketCollectionPanel({
             Импортировать наблюдение
           </button>
         </div>
+      )}
+      {data?.source.implementation && (
+        <p>
+          Режим:{' '}
+          {data.source.implementation === 'manual'
+            ? 'ручной импорт'
+            : data.source.implementation === 'replay'
+              ? 'тестовый replay'
+              : 'источник не подключён'}
+          . Разрешение:{' '}
+          {data.source.authorization === 'user_supplied'
+            ? 'ответственность импортирующего пользователя'
+            : data.source.authorization === 'test_only'
+              ? 'только тестовые данные'
+              : 'автоматический доступ не подтверждён'}
+          .
+        </p>
       )}
       {!canWrite && (
         <div className="market-notice" role="status">
@@ -2277,7 +2308,9 @@ function ManualSnapshotForm({
         if (rawListing) {
           const parsed = JSON.parse(rawListing);
           if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
-            throw new Error('Исходные данные объявления должны быть JSON-объектом');
+            throw new Error(
+              'Исходные данные объявления должны быть JSON-объектом',
+            );
           rawEnvelope = parsed as Record<string, unknown>;
         }
         return {

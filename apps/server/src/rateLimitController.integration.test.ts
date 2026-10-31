@@ -21,6 +21,30 @@ beforeEach(async () => {
 });
 
 describe('PostgreSQL GGG rate-limit coordination', () => {
+  it.each([401, 403])(
+    'keeps denial %s across a new pool and controller',
+    async (status) => {
+      const first = new GggRateLimitController({
+        repository: repositories.rateLimits,
+      });
+      await first.observeResponse('trade-search', {
+        status,
+        headers: new Headers(),
+      });
+      const reopenedPool = createDatabasePool(loadDatabaseConfig());
+      try {
+        const reopened = new GggRateLimitController({
+          repository: createPostgresRepositories(reopenedPool).rateLimits,
+        });
+        await expect(
+          reopened.waitForPermit('trade-fetch'),
+        ).rejects.toMatchObject({ code: 'MARKET_ACCESS_BLOCKED' });
+      } finally {
+        await reopenedPool.end();
+      }
+    },
+  );
+
   it('blocks a second controller and shares one policy across endpoints', async () => {
     let now = start;
     const sleep = vi.fn(async (milliseconds: number) => {
@@ -112,19 +136,16 @@ describe('PostgreSQL GGG rate-limit coordination', () => {
     const controller = new GggRateLimitController({
       repository: repositories.rateLimits,
     });
-    await controller.observeResponse(
-      'trade-search',
-      {
-        headers: new Headers({
-          'Retry-After': '2',
-          'X-Rate-Limit-Client': '10:5:2',
-          'X-Rate-Limit-Client-State': '11:5:2',
-          'X-Rate-Limit-Policy': 'process-shared-policy',
-          'X-Rate-Limit-Rules': 'client',
-        }),
-        status: 429,
-      },
-    );
+    await controller.observeResponse('trade-search', {
+      headers: new Headers({
+        'Retry-After': '2',
+        'X-Rate-Limit-Client': '10:5:2',
+        'X-Rate-Limit-Client-State': '11:5:2',
+        'X-Rate-Limit-Policy': 'process-shared-policy',
+        'X-Rate-Limit-Rules': 'client',
+      }),
+      status: 429,
+    });
     const script = `
       import { loadDatabaseConfig } from './dist/config.js';
       import { createDatabasePool } from './dist/database.js';
@@ -148,7 +169,11 @@ describe('PostgreSQL GGG rate-limit coordination', () => {
     const child = spawn(
       process.execPath,
       ['--input-type=module', '--eval', script],
-      { cwd: process.cwd(), env: process.env, stdio: ['ignore', 'pipe', 'pipe'] },
+      {
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
     );
     let stdout = '';
     let stderr = '';
@@ -159,7 +184,9 @@ describe('PostgreSQL GGG rate-limit coordination', () => {
       child.once('close', (exitCode) => resolve([exitCode]));
     });
     expect(code, stderr).toBe(0);
-    expect(Number(stdout.match(/permit-delay-ms=(\d+)/)?.[1])).toBeGreaterThanOrEqual(1_700);
+    expect(
+      Number(stdout.match(/permit-delay-ms=(\d+)/)?.[1]),
+    ).toBeGreaterThanOrEqual(1_700);
     expect(await repositories.rateLimits.list()).toMatchObject([
       { policy: 'process-shared-policy', endpoints: ['trade'] },
     ]);
