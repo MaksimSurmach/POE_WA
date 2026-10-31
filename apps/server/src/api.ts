@@ -34,6 +34,10 @@ import { registerMarketResearchRoutes } from './marketResearchApi.js';
 import type { MarketResearchRepository } from './marketResearch.js';
 import { registerMarketEconomyRoutes } from './marketEconomyApi.js';
 import type { MarketEconomyOptions } from './marketEconomy.js';
+import type {
+  MarketCollectionManager,
+  MarketCollectionStore,
+} from './marketCollection.js';
 
 export type ReadinessProbe = () => Promise<void>;
 export type RefreshProgressReader = () => Promise<CatalogProgress>;
@@ -67,6 +71,9 @@ export function buildApi(
     metrics?: { contentType: string; metrics(): Promise<string> } | undefined;
     readRefreshFreshness?: RefreshFreshnessReader | undefined;
     marketResearch?: MarketResearchRepository | undefined;
+    marketCollection?:
+      | { manager: MarketCollectionManager; store: MarketCollectionStore }
+      | undefined;
     marketEconomy?: MarketEconomyOptions | undefined;
   } = {},
 ) {
@@ -135,6 +142,7 @@ export function buildApi(
     options.marketResearch,
     Boolean(options.marketEconomy?.client),
     options.marketEconomy?.repository,
+    options.marketCollection,
   );
   registerMarketEconomyRoutes(api, options.marketEconomy);
 
@@ -321,7 +329,10 @@ function httpStatus(error: AnyDomainError) {
     error.code === 'JOB_CONFLICT' ||
     error.code === 'PERSISTENCE_CONFLICT' ||
     error.code === 'PUBLICATION_CONFLICT' ||
-    error.code === 'REFRESH_ALREADY_RUNNING'
+    error.code === 'REFRESH_ALREADY_RUNNING' ||
+    error.code === 'MARKET_COLLECTION_BUSY' ||
+    error.code === 'MARKET_COLLECTION_PAUSED' ||
+    error.code === 'MARKET_COLLECTION_NOT_RUNNING'
   ) {
     return 409;
   }

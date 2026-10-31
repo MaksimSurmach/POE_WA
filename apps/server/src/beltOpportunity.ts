@@ -264,6 +264,15 @@ export async function evaluateBeltOpportunity(
   return {
     ...empty,
     status: 'CALCULATED' as const,
+    reasons:
+      snapshot.coverage === 'partial' ||
+      snapshot.coverage === 'unknown' ||
+      snapshot.inexact
+        ? [
+            ...reasons,
+            'Preliminary asking prices: partial or inexact market coverage; absence does not prove a sale.',
+          ]
+        : reasons,
     economicConclusion:
       Number(result.value.profit.amount) > 0
         ? ('POSITIVE' as const)

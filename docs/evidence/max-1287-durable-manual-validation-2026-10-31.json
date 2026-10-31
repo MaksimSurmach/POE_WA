@@ -1,0 +1,28 @@
+{
+  "mode": "historical-user-import",
+  "sourceEvidence": "docs/evidence/max-1287-winter-orb-trade-2026-10-29.json",
+  "capturedAt": "2026-10-29T20:33:56.000Z",
+  "targetId": "d118dca7-1592-4e31-9bf2-94daf598df69",
+  "snapshotId": "374b8aff-5307-4b03-91ce-768677f7b622",
+  "digest": "beb83255c79dc49ba15e15dbf0171e55dec00fbb2bb4abae1857e702d39bd5c2",
+  "rowCount": 5,
+  "rawRowsEqual": true,
+  "duplicateImportHTTPStatus": 200,
+  "snapshotCountBefore": 3,
+  "snapshotCountAfter": 3,
+  "collectionRunCount": 1,
+  "median": 100,
+  "currency": "chaos",
+  "coverage": "partial",
+  "rankingStatus": "INSUFFICIENT_DATA",
+  "newLiveObservations": 0,
+  "matcherStatuses": [
+    "PARTIAL",
+    "PARTIAL",
+    "PARTIAL",
+    "PARTIAL",
+    "PARTIAL"
+  ],
+  "confirmedListings": 0,
+  "verifiedAgainAfterRestore": true
+}

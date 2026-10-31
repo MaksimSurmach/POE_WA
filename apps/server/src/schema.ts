@@ -4,6 +4,8 @@ import type {
   MarketResearchSnapshotSummary,
   MarketImportListing,
   MarketEconomySummary,
+  MarketCollectionSettings,
+  MarketCollectionRun,
   BeltPriceUpdate,
 } from '@poe-worksmith/contracts';
 import { sql } from 'drizzle-orm';
@@ -636,6 +638,72 @@ export const marketResearchSnapshots = pgTable(
     check(
       'market_research_snapshots_count_check',
       sql`jsonb_typeof(${table.listings}) = 'array' and jsonb_array_length(${table.listings}) <= 1000`,
+    ),
+  ],
+);
+
+export const marketCollectionSettings = pgTable(
+  'market_collection_settings',
+  {
+    targetId: uuid('target_id')
+      .primaryKey()
+      .references(() => marketTargets.id, { onDelete: 'cascade' }),
+    enabled: boolean('enabled').notNull().default(false),
+    paused: boolean('paused').notNull().default(false),
+    intervalMinutes: integer('interval_minutes').notNull().default(60),
+    nextRunAt: timestamp('next_run_at', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+    payload: jsonb('payload').$type<MarketCollectionSettings>().notNull(),
+  },
+  (table) => [
+    check(
+      'market_collection_settings_interval_check',
+      sql`${table.intervalMinutes} between 5 and 1440`,
+    ),
+    check(
+      'market_collection_settings_payload_object',
+      sql`jsonb_typeof(${table.payload}) = 'object'`,
+    ),
+    index('market_collection_settings_due_idx').on(
+      table.enabled,
+      table.paused,
+      table.nextRunAt,
+    ),
+  ],
+);
+
+export const marketCollectionRuns = pgTable(
+  'market_collection_runs',
+  {
+    id: uuid('id').primaryKey(),
+    targetId: uuid('target_id')
+      .notNull()
+      .references(() => marketTargets.id, { onDelete: 'restrict' }),
+    targetDigest: text('target_digest').notNull(),
+    league: text('league').notNull(),
+    patch: text('patch').notNull(),
+    status: text('status').notNull(),
+    trigger: text('trigger').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    heartbeatAt: timestamp('heartbeat_at', { withTimezone: true }).notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    payload: jsonb('payload').$type<MarketCollectionRun>().notNull(),
+  },
+  (table) => [
+    index('market_collection_runs_target_time_idx').on(
+      table.targetId,
+      table.startedAt,
+    ),
+    uniqueIndex('market_collection_runs_single_active_uq')
+      .on(table.targetId)
+      .where(sql`${table.status} = 'running'`),
+    check(
+      'market_collection_runs_status_check',
+      sql`${table.status} in ('running', 'succeeded', 'empty', 'partial', 'blocked', 'rate_limited', 'failed', 'cancelled')`,
+    ),
+    check(
+      'market_collection_runs_payload_object',
+      sql`jsonb_typeof(${table.payload}) = 'object'`,
     ),
   ],
 );

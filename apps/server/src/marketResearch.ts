@@ -140,7 +140,12 @@ export function createImportedMarketSnapshot(
     throw new DomainError('MARKET_IMPORT_INVALID');
   }
   const prices = parsed.listings
-    .map((listing) => listing.price)
+    .flatMap((listing) =>
+      listing.price === null ||
+      (listing.currency !== undefined && listing.currency !== parsed.currency)
+        ? []
+        : [listing.price],
+    )
     .sort((a, b) => a - b);
   const capturedAt = new Date(parsed.capturedAt).toISOString();
   const digest = marketDigest({
@@ -174,7 +179,7 @@ export function createImportedMarketSnapshot(
     comparability: 'user_selected',
     currency: parsed.currency,
     dataKind: parsed.dataKind,
-    outcome: prices.length === 0 ? 'no_listings' : 'observed',
+    outcome: parsed.listings.length === 0 ? 'no_listings' : 'observed',
     count: prices.length,
     rejectedCount: 0,
     p25: quantile(prices, 0.25),

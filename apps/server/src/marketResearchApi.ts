@@ -5,6 +5,10 @@ import {
   beltOpportunitiesResponseSchema,
   marketResearchSnapshotResponseSchema,
   marketSnapshotImportSchema,
+  marketCollectionResponseSchema,
+  marketCollectionSettingsInputSchema,
+  marketCollectionSettingsResponseSchema,
+  marketCollectionRunResponseSchema,
   marketTargetResponseSchema,
   marketWorkbenchResponseSchema,
 } from '@poe-worksmith/contracts';
@@ -22,6 +26,12 @@ import { randomUUID } from 'node:crypto';
 import { analyzeBeltSnapshot } from './beltComparability.js';
 import { evaluateBeltOpportunity } from './beltOpportunity.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
+import {
+  compareMarketObservations,
+  disabledMarketCollectionSource,
+  type MarketCollectionManager,
+  type MarketCollectionStore,
+} from './marketCollection.js';
 
 import {
   createImportedMarketSnapshot,
@@ -42,6 +52,10 @@ export function registerMarketResearchRoutes(
   repository?: MarketResearchRepository,
   economyConfigured = false,
   economyRepository?: MarketEconomyRepository,
+  collection?: {
+    manager: MarketCollectionManager;
+    store: MarketCollectionStore;
+  },
 ) {
   const sources = marketSourceCapabilities.map((source) =>
     source.id === 'poe_ninja_economy' && economyConfigured
@@ -291,6 +305,129 @@ export function registerMarketResearchRoutes(
       });
     },
   );
+
+  api.get<{ Params: { id: string } }>(
+    '/api/market/targets/:id/collection',
+    async (request) => {
+      const targetId = request.params.id;
+      if (!z.uuid().safeParse(targetId).success)
+        throw new DomainError('MARKET_TARGET_NOT_FOUND');
+      const store = requireCollectionStore(collection?.store);
+      const [settings, runs, observations] = await Promise.all([
+        persist(() => store.findSettings(targetId)),
+        persist(() => store.listRuns(targetId, 25)),
+        persist(() => store.listObservations(targetId)),
+      ]);
+      const groups = new Map<string, typeof observations>();
+      for (const run of observations) {
+        if (!run.currency) continue;
+        const key = `${run.dataKind}:${run.currency}:${run.queryDigest}`;
+        const group = groups.get(key) ?? [];
+        group.push(run);
+        groups.set(key, group);
+      }
+      for (const run of observations) {
+        if (run.currency || run.status !== 'empty') continue;
+        for (const [key, group] of groups) {
+          if (
+            key.startsWith(`${run.dataKind}:`) &&
+            key.endsWith(`:${run.queryDigest}`)
+          )
+            group.push(run);
+        }
+      }
+      return marketCollectionResponseSchema.parse({
+        correlationId: request.id,
+        data: {
+          source:
+            collection?.manager.source ??
+            disabledMarketCollectionSource.descriptor,
+          settings,
+          runs,
+          series: [...groups].map(([key, observations]) => {
+            const [dataKind, currency, queryDigest] = key.split(':') as [
+              'observed' | 'demo',
+              'chaos' | 'divine',
+              string,
+            ];
+            return {
+              dataKind,
+              currency,
+              queryDigest,
+              points: compareMarketObservations(observations),
+            };
+          }),
+          note: 'Снимок описывает только охват конкретного запроса. Исчезновение означает отсутствие в полном наблюдении, а не подтверждённую продажу.',
+        },
+      });
+    },
+  );
+
+  api.put<{ Params: { id: string } }>(
+    '/api/market/targets/:id/collection/settings',
+    async (request) => {
+      if (!z.uuid().safeParse(request.params.id).success)
+        throw new DomainError('MARKET_TARGET_NOT_FOUND');
+      const input = marketCollectionSettingsInputSchema.safeParse(request.body);
+      if (!input.success)
+        throw new DomainError('MARKET_COLLECTION_INVALID', {
+          cause: input.error,
+        });
+      const manager = requireCollectionManager(collection?.manager);
+      return marketCollectionSettingsResponseSchema.parse({
+        correlationId: request.id,
+        data: await persist(() =>
+          manager.updateSettings(request.params.id, input.data),
+        ),
+      });
+    },
+  );
+
+  api.post<{ Params: { id: string } }>(
+    '/api/market/targets/:id/collection/run',
+    async (request, reply) => {
+      if (!z.uuid().safeParse(request.params.id).success)
+        throw new DomainError('MARKET_TARGET_NOT_FOUND');
+      const run = await persist(() =>
+        requireCollectionManager(collection?.manager).runNow(request.params.id),
+      );
+      return reply.code(202).send(
+        marketCollectionRunResponseSchema.parse({
+          correlationId: request.id,
+          data: run,
+        }),
+      );
+    },
+  );
+
+  api.post<{ Params: { id: string } }>(
+    '/api/market/collection/runs/:id/cancel',
+    async (request) => {
+      if (!z.uuid().safeParse(request.params.id).success)
+        throw new DomainError('MARKET_COLLECTION_NOT_RUNNING');
+      const run = await persist(() =>
+        requireCollectionManager(collection?.manager).cancel(request.params.id),
+      );
+      return marketCollectionRunResponseSchema.parse({
+        correlationId: request.id,
+        data: run,
+      });
+    },
+  );
+}
+
+function requireCollectionStore(
+  store: MarketCollectionStore | undefined,
+): MarketCollectionStore {
+  if (!store) throw new DomainError('PERSISTENCE_UNAVAILABLE');
+  return store;
+}
+
+function requireCollectionManager(
+  manager: MarketCollectionManager | undefined,
+): MarketCollectionManager {
+  if (!manager) throw new DomainError('PERSISTENCE_UNAVAILABLE');
+  return manager;
 }
 
 function requireRepository(
