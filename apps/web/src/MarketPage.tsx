@@ -244,7 +244,12 @@ export function MarketPage() {
           <MarketOpportunities
             rows={opportunities}
             selectedId={opportunityTargetId || opportunities[0]?.targetId || ''}
-            onSelect={setOpportunityTargetId}
+            onSelect={(id) => {
+              setOpportunityTargetId(id);
+              setSelectedId(id);
+              setSearch('');
+              setLeague('all');
+            }}
           />
           {opportunities
             .filter(
@@ -305,8 +310,8 @@ export function MarketPage() {
                 <details>
                   <summary>Источники, правила и расчёт</summary>
                   <ul>
-                    {opportunity.sources.map((source) => (
-                      <li key={source.url}>
+                    {opportunity.sources.map((source, index) => (
+                      <li key={`${source.url}:${index}`}>
                         <a href={source.url} target="_blank" rel="noreferrer">
                           {source.title}
                         </a>{' '}
