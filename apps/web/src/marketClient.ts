@@ -8,6 +8,8 @@ import {
   marketCollectionSettingsResponseSchema,
   marketCollectionRunResponseSchema,
   marketTargetResponseSchema,
+  marketTradeQueryResponseSchema,
+  marketCatalogImportResponseSchema,
   marketResearchSnapshotResponseSchema,
   type MarketTargetInput,
   type MarketSnapshotImport,
@@ -49,6 +51,18 @@ async function request(
 }
 
 export const marketClient = {
+  async importCatalog(input: unknown, dryRun: boolean) {
+    return marketCatalogImportResponseSchema.parse(
+      await request(`/api/market/catalog/import?dryRun=${dryRun}`, input),
+    ).data;
+  },
+  async tradeQuery(id: string, scope: 'strict' | 'broad') {
+    return marketTradeQueryResponseSchema.parse(
+      await request(
+        `/api/market/targets/${encodeURIComponent(id)}/trade-query?scope=${scope}`,
+      ),
+    ).data;
+  },
   async priceHistory(id: string) {
     return beltPriceUpdatesResponseSchema.parse(
       await request(

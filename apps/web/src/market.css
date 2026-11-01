@@ -1025,3 +1025,29 @@
     grid-template-columns: 1fr;
   }
 }
+
+.market-row-meta {
+  display: block;
+  margin-top: 0.35rem;
+  max-width: 32rem;
+  overflow-wrap: anywhere;
+}
+
+.market-snapshot-table tr[aria-selected='true'] {
+  background: var(--surface-raised, #1e293b);
+}
+
+.market-opportunity-table {
+  min-width: 1350px;
+  font-size: 12px;
+}
+
+.market-opportunity-table th:first-child {
+  min-width: 200px;
+}
+
+.market-opportunity-table td:nth-child(2),
+.market-opportunity-table td:nth-child(3),
+.market-opportunity-table td:nth-child(4) {
+  white-space: nowrap;
+}

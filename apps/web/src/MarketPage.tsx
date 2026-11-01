@@ -17,6 +17,9 @@ import {
 import { marketClient } from './marketClient.js';
 import { marketDemo } from './marketDemo.js';
 import { EconomyPanel } from './EconomyPanel.js';
+import { MarketOpportunities } from './MarketOpportunities.js';
+import { MarketCatalogImport } from './MarketCatalogImport.js';
+import { MarketTradeQuery } from './MarketTradeQuery.js';
 import {
   displayDate,
   displayPrice,
@@ -61,7 +64,10 @@ export function MarketPage() {
     'observed',
   );
   const [opportunityError, setOpportunityError] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<'target' | 'snapshot' | null>(null);
+  const [dialog, setDialog] = useState<
+    'target' | 'snapshot' | 'catalog' | null
+  >(null);
+  const [opportunityTargetId, setOpportunityTargetId] = useState('');
   const [priceTarget, setPriceTarget] = useState<MarketTarget | null>(null);
   const [rawSnapshot, setRawSnapshot] = useState<unknown | null>(null);
   const [beltAnalysis, setBeltAnalysis] = useState<
@@ -167,6 +173,14 @@ export function MarketPage() {
           <button
             type="button"
             className="market-button"
+            disabled={!canWrite}
+            onClick={() => setDialog('catalog')}
+          >
+            Импорт каталога JSON
+          </button>
+          <button
+            type="button"
+            className="market-button"
             onClick={() => {
               setDemo(!demo);
               setLeague('all');
@@ -199,12 +213,11 @@ export function MarketPage() {
       ) : null}
 
       {!demo && data?.storage === 'postgres' && (
-        <section aria-label="Пояса для крафта" className="market-notice">
-          <h2>Пояса для крафта</h2>
+        <section aria-label="Возможности крафта" className="market-notice">
+          <h2>Возможности крафта</h2>
           <p>
             Цена предложения не означает продажу. Числовой разрыв не гарантирует
-            прибыль. Расчёт использует один и тот же базовый предмет при
-            повторах.
+            прибыль. Расчёт использует явно указанные допущения метода.
           </p>
           <label>
             Данные:{' '}
@@ -228,172 +241,186 @@ export function MarketPage() {
               Нет сохранённых целей для поясов. Запустите импорт библиотеки.
             </p>
           )}
-          {opportunities.map((opportunity) => (
-            <article key={opportunity.targetId}>
-              <h3>
-                {opportunity.name} · {opportunity.status}{' '}
-                {opportunity.economicConclusion === 'POSITIVE'
-                  ? '· Положительная разница'
-                  : opportunity.economicConclusion === 'NON_POSITIVE'
-                    ? '· Нулевая или отрицательная разница'
-                    : ''}{' '}
-                {opportunityKind === 'demo' ? '· DEMO' : ''}
-              </h3>
-              <p>
-                {opportunity.league} · {opportunity.patch} ·{' '}
-                {opportunity.builds.join(', ')} ·{' '}
-                {opportunity.capturedAt
-                  ? displayDate(opportunity.capturedAt)
-                  : 'нет наблюдений'}
-              </p>
-              <p>
-                Затраты:{' '}
-                {opportunity.calculation
-                  ? `${opportunity.calculation.expectedCraftCost} ${opportunity.calculation.currency}`
-                  : '—'}{' '}
-                · Цена предложения:{' '}
-                {opportunity.calculation
-                  ? `${opportunity.calculation.askingPrice} ${opportunity.calculation.currency}`
-                  : '—'}{' '}
-                · Разрыв:{' '}
-                {opportunity.calculation
-                  ? `${opportunity.calculation.spread} ${opportunity.calculation.currency}`
-                  : '—'}
-              </p>
-              <p>
-                {opportunity.reasons.join(' ') ||
-                  'Риск: ручная выборка и заявленные допущения метода.'}
-              </p>
-              {opportunity.method && (
-                <button
-                  type="button"
-                  className="market-button"
-                  onClick={() => {
-                    const selectedTarget = targets.find(
-                      (entry) => entry.id === opportunity.targetId,
-                    );
-                    if (selectedTarget) setPriceTarget(selectedTarget);
-                  }}
-                >
-                  Обновить цены
-                </button>
-              )}
-              <details>
-                <summary>Источники, правила и расчёт</summary>
-                <ul>
-                  {opportunity.sources.map((source) => (
-                    <li key={source.url}>
-                      <a href={source.url} target="_blank" rel="noreferrer">
-                        {source.title}
-                      </a>{' '}
-                      {source.notes}
-                    </li>
-                  ))}
-                </ul>
-                {opportunity.sourceUrl && (
-                  <a
-                    href={opportunity.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Источник снимка
-                  </a>
-                )}
-                {opportunity.rules && (
-                  <div>
-                    <p>
-                      Правила v{opportunity.rules.version}: база{' '}
-                      {targets
-                        .find((item) => item.id === opportunity.targetId)
-                        ?.baseTypes.join(', ')}
-                      , уровень{' '}
-                      {opportunity.rules.minItemLevel == null
-                        ? 'любой'
-                        : `${opportunity.rules.minItemLevel}+`}
-                      ,{' '}
-                      {opportunity.rules.corrupted == null
-                        ? 'осквернение любое'
-                        : opportunity.rules.corrupted
-                          ? 'осквернён'
-                          : 'не осквернён'}
-                      ; влияния:{' '}
-                      {opportunity.rules.influences == null
-                        ? 'любые'
-                        : opportunity.rules.influences.join(', ') || 'нет'}
-                      .
-                    </p>
-                    <ul>
-                      {opportunity.rules.mods.map((mod) => (
-                        <li key={mod.id}>
-                          {mod.id}: минимум {mod.minValue}
-                          {mod.maxTier ? `, tier ${mod.maxTier} или лучше` : ''}
-                        </li>
-                      ))}
-                    </ul>
-                    {opportunity.rules.version !== 1 &&
-                      opportunity.rules.totalElementalResistanceMin != null && (
-                        <p>
-                          Сумма сопротивлений стихиям: минимум{' '}
-                          {opportunity.rules.totalElementalResistanceMin}%.
-                        </p>
-                      )}
-                  </div>
-                )}
+          <MarketOpportunities
+            rows={opportunities}
+            selectedId={opportunityTargetId || opportunities[0]?.targetId || ''}
+            onSelect={setOpportunityTargetId}
+          />
+          {opportunities
+            .filter(
+              (row) =>
+                row.targetId ===
+                (opportunityTargetId || opportunities[0]?.targetId),
+            )
+            .map((opportunity) => (
+              <article key={opportunity.targetId}>
+                <h3>
+                  {opportunity.name} · {opportunity.status}{' '}
+                  {opportunity.economicConclusion === 'POSITIVE'
+                    ? '· Положительная разница'
+                    : opportunity.economicConclusion === 'NON_POSITIVE'
+                      ? '· Нулевая или отрицательная разница'
+                      : ''}{' '}
+                  {opportunityKind === 'demo' ? '· DEMO' : ''}
+                </h3>
+                <p>
+                  {opportunity.league} · {opportunity.patch} ·{' '}
+                  {opportunity.builds.join(', ')} ·{' '}
+                  {opportunity.capturedAt
+                    ? displayDate(opportunity.capturedAt)
+                    : 'нет наблюдений'}
+                </p>
+                <p>
+                  Затраты:{' '}
+                  {opportunity.calculation
+                    ? `${opportunity.calculation.expectedCraftCost} ${opportunity.calculation.currency}`
+                    : '—'}{' '}
+                  · Цена предложения:{' '}
+                  {opportunity.calculation
+                    ? `${opportunity.calculation.askingPrice} ${opportunity.calculation.currency}`
+                    : '—'}{' '}
+                  · Разрыв:{' '}
+                  {opportunity.calculation
+                    ? `${opportunity.calculation.spread} ${opportunity.calculation.currency}`
+                    : '—'}
+                </p>
+                <p>
+                  {opportunity.reasons.join(' ') ||
+                    'Риск: ручная выборка и заявленные допущения метода.'}
+                </p>
                 {opportunity.method && (
-                  <div>
-                    <p>
-                      Метод:{' '}
-                      <a
-                        href={opportunity.method.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {opportunity.method.name}
-                      </a>{' '}
-                      · {opportunity.method.assumptions}
-                    </p>
-                    <ol>
-                      {opportunity.method.steps.map((step, index) => (
-                        <li key={index}>{step}</li>
-                      ))}
-                    </ol>
-                    <p>
-                      {opportunity.method.success.mode === 'probability'
-                        ? `Вероятность: ${opportunity.method.success.probability}`
-                        : `Ожидаемые попытки: ${opportunity.method.success.expectedAttempts}`}
-                    </p>
-                  </div>
-                )}
-                {opportunity.snapshotId && (
                   <button
                     type="button"
-                    className="market-link-button"
+                    className="market-button"
                     onClick={() => {
-                      const snapshot = snapshots.find(
-                        (entry) => entry.id === opportunity.snapshotId,
+                      const selectedTarget = targets.find(
+                        (entry) => entry.id === opportunity.targetId,
                       );
-                      if (snapshot) void showSnapshot(snapshot);
+                      if (selectedTarget) setPriceTarget(selectedTarget);
                     }}
                   >
-                    Объявления и причины
+                    Обновить цены
                   </button>
                 )}
-                <pre className="market-json">
-                  {JSON.stringify(
-                    {
-                      rules: opportunity.rules,
-                      method: opportunity.method,
-                      priceEvidence: opportunity.priceEvidence,
-                      calculation: opportunity.calculation,
-                      comparison: opportunity.comparison,
-                    },
-                    null,
-                    2,
+                <details>
+                  <summary>Источники, правила и расчёт</summary>
+                  <ul>
+                    {opportunity.sources.map((source) => (
+                      <li key={source.url}>
+                        <a href={source.url} target="_blank" rel="noreferrer">
+                          {source.title}
+                        </a>{' '}
+                        {source.notes}
+                      </li>
+                    ))}
+                  </ul>
+                  {opportunity.sourceUrl && (
+                    <a
+                      href={opportunity.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Источник снимка
+                    </a>
                   )}
-                </pre>
-              </details>
-            </article>
-          ))}
+                  {opportunity.rules && (
+                    <div>
+                      <p>
+                        Правила v{opportunity.rules.version}: база{' '}
+                        {targets
+                          .find((item) => item.id === opportunity.targetId)
+                          ?.baseTypes.join(', ')}
+                        , уровень{' '}
+                        {opportunity.rules.minItemLevel == null
+                          ? 'любой'
+                          : `${opportunity.rules.minItemLevel}+`}
+                        ,{' '}
+                        {opportunity.rules.corrupted == null
+                          ? 'осквернение любое'
+                          : opportunity.rules.corrupted
+                            ? 'осквернён'
+                            : 'не осквернён'}
+                        ; влияния:{' '}
+                        {opportunity.rules.influences == null
+                          ? 'любые'
+                          : opportunity.rules.influences.join(', ') || 'нет'}
+                        .
+                      </p>
+                      <ul>
+                        {opportunity.rules.mods.map((mod) => (
+                          <li key={mod.id}>
+                            {mod.id}: минимум {mod.minValue}
+                            {mod.maxTier
+                              ? `, tier ${mod.maxTier} или лучше`
+                              : ''}
+                          </li>
+                        ))}
+                      </ul>
+                      {opportunity.rules.version !== 1 &&
+                        opportunity.rules.totalElementalResistanceMin !=
+                          null && (
+                          <p>
+                            Сумма сопротивлений стихиям: минимум{' '}
+                            {opportunity.rules.totalElementalResistanceMin}%.
+                          </p>
+                        )}
+                    </div>
+                  )}
+                  {opportunity.method && (
+                    <div>
+                      <p>
+                        Метод:{' '}
+                        <a
+                          href={opportunity.method.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {opportunity.method.name}
+                        </a>{' '}
+                        · {opportunity.method.assumptions}
+                      </p>
+                      <ol>
+                        {opportunity.method.steps.map((step, index) => (
+                          <li key={index}>{step}</li>
+                        ))}
+                      </ol>
+                      <p>
+                        {opportunity.method.success.mode === 'probability'
+                          ? `Вероятность: ${opportunity.method.success.probability}`
+                          : `Ожидаемые попытки: ${opportunity.method.success.expectedAttempts}`}
+                      </p>
+                    </div>
+                  )}
+                  {opportunity.snapshotId && (
+                    <button
+                      type="button"
+                      className="market-link-button"
+                      onClick={() => {
+                        const snapshot = snapshots.find(
+                          (entry) => entry.id === opportunity.snapshotId,
+                        );
+                        if (snapshot) void showSnapshot(snapshot);
+                      }}
+                    >
+                      Объявления и причины
+                    </button>
+                  )}
+                  <pre className="market-json">
+                    {JSON.stringify(
+                      {
+                        rules: opportunity.rules,
+                        method: opportunity.method,
+                        priceEvidence: opportunity.priceEvidence,
+                        calculation: opportunity.calculation,
+                        comparison: opportunity.comparison,
+                      },
+                      null,
+                      2,
+                    )}
+                  </pre>
+                </details>
+              </article>
+            ))}
         </section>
       )}
 
@@ -779,7 +806,7 @@ export function MarketPage() {
         <strong>Как читать оценку.</strong> Медиана и диапазон p25–p75 описывают
         импортированную выборку. Пометки «малая выборка» (&lt; 5) и «старше 24
         часов» помогают проверять данные. Они не оценивают вероятность продажи;
-        доходность появится после модели стоимости крафта.
+        расчёт доходности доступен при достаточных данных о крафте.
       </footer>
 
       {dialog === 'target' && (
@@ -791,6 +818,15 @@ export function MarketPage() {
               setSearch('');
               setLeague('all');
               await reload();
+            }}
+          />
+        </Dialog>
+      )}
+      {dialog === 'catalog' && (
+        <Dialog title="Импорт каталога" onClose={() => setDialog(null)}>
+          <MarketCatalogImport
+            onImported={() => {
+              void reload();
             }}
           />
         </Dialog>
@@ -1034,9 +1070,9 @@ function MarketCollectionPanel({
       {data?.source.access === 'blocked' && (
         <div className="market-notice market-notice--warning" role="status">
           <strong>Автоматический источник не подключён.</strong>{' '}
-          {data.source.reason} Пароль и cookies не используются. Импортируйте
-          реальные выбранные объявления вручную: снимок попадёт и в историю
-          collection, и в тот же анализатор рейтинга.{' '}
+          {data.source.reason} Секреты не передаются в браузер приложения.
+          Импортируйте реальные выбранные объявления вручную: снимок попадёт и в
+          историю collection, и в тот же анализатор рейтинга.{' '}
           <button
             type="button"
             className="market-button"
@@ -1049,12 +1085,14 @@ function MarketCollectionPanel({
       )}
       {data?.source.implementation && (
         <p>
-          Режим:{' '}
+          Подключение: {data.source.connectionStatus ?? 'UNAVAILABLE'}. Режим:{' '}
           {data.source.implementation === 'manual'
             ? 'ручной импорт'
             : data.source.implementation === 'replay'
               ? 'тестовый replay'
-              : 'источник не подключён'}
+              : data.source.implementation === 'trade_compatible'
+                ? 'Trade-compatible'
+                : 'источник не подключён'}
           . Разрешение:{' '}
           {data.source.authorization === 'user_supplied'
             ? 'ответственность импортирующего пользователя'
@@ -1142,6 +1180,25 @@ function MarketCollectionPanel({
           определяет источник; частичный ответ не считается всем рынком.
         </p>
       </div>
+      <p>
+        Последний запуск:{' '}
+        {data?.runs[0] ? displayDate(data.runs[0].startedAt) : '—'} · Следующий:{' '}
+        {data?.settings?.nextRunAt
+          ? displayDate(data.settings.nextRunAt)
+          : 'выключен'}{' '}
+        · Последний успешный из 25:{' '}
+        {data?.runs.find(
+          (run) => run.status === 'succeeded' || run.status === 'empty',
+        )?.completedAt
+          ? displayDate(
+              data.runs.find(
+                (run) => run.status === 'succeeded' || run.status === 'empty',
+              )!.completedAt!,
+            )
+          : '—'}{' '}
+        · Кулдаун:{' '}
+        {data?.cooldownUntil ? displayDate(data.cooldownUntil) : 'нет'}
+      </p>
       {data?.series.map((series) => (
         <section
           key={`${series.dataKind}:${series.currency}:${series.queryDigest}`}
@@ -1159,6 +1216,9 @@ function MarketCollectionPanel({
                   <th>Изменены</th>
                   <th>Нет в охвате</th>
                   <th>Вернулись</th>
+                  <th>Остались</th>
+                  <th>Цены ↑ / ↓</th>
+                  <th>Продавцы</th>
                   <th>Медиана выборки</th>
                 </tr>
               </thead>
@@ -1173,6 +1233,11 @@ function MarketCollectionPanel({
                     <td>{point.changedCount}</td>
                     <td>{point.missingCount}</td>
                     <td>{point.restoredCount}</td>
+                    <td>{point.persistedCount}</td>
+                    <td>
+                      {point.increasedCount ?? 0} / {point.decreasedCount ?? 0}
+                    </td>
+                    <td>{point.independentSellers ?? 0}</td>
                     <td>{displayPrice(point.median, series.currency)}</td>
                   </tr>
                 ))}
@@ -1300,6 +1365,26 @@ function TargetPanel({
         )}
       </dl>
       <h3>Обязательные свойства</h3>
+      <MarketTradeQuery target={target} />
+      {target.catalog && (
+        <details>
+          <summary>
+            Каталог · ревизия {target.catalog.revision} ·{' '}
+            {target.catalog.verification}
+          </summary>
+          <p>Этап: {target.catalog.progression ?? 'неизвестен'}</p>
+          <ul>
+            {target.catalog.unknowns.map((unknown, index) => (
+              <li key={index}>{unknown}</li>
+            ))}
+          </ul>
+          {target.catalog.evidence && (
+            <pre className="market-json">
+              {JSON.stringify(target.catalog.evidence, null, 2)}
+            </pre>
+          )}
+        </details>
+      )}
       {target.requiredMods.length || target.beltRules ? (
         <ul className="market-mods">
           {target.requiredMods.map((mod, index) => (
@@ -1392,7 +1477,7 @@ function TargetPanel({
         + Импортировать наблюдение
       </button>
       <p className="market-footnote market-unknown">
-        Стоимость крафта и ожидаемая прибыль ещё не рассчитаны.
+        Стоимость и разрыв с ценой предложения смотрите в рейтинге выше.
       </p>
     </aside>
   );
@@ -2086,6 +2171,25 @@ function BeltPriceForm({
       .then(setHistory)
       .catch((cause: unknown) => setError(errorMessage(cause)));
   }, [target.id]);
+  const costs = [
+    ...(target.beltCraftMethod?.materials ?? []).map((entry) => ({
+      ...entry,
+      prefix: 'material',
+    })),
+    ...(target.beltCraftMethod?.finishing ?? []).map((entry) => ({
+      ...entry,
+      prefix: 'finishing',
+    })),
+    ...(target.beltCraftMethod?.baseFailurePolicy?.recoveryPrice
+      ? [
+          {
+            id: 'base',
+            label: 'Возврат за заменённую базу',
+            prefix: 'recovery',
+          },
+        ]
+      : []),
+  ];
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
@@ -2114,6 +2218,29 @@ function BeltPriceForm({
         targetId: target.id,
         dataKind,
         basePrice: makePrice(value('base'), value('time'), value('url')),
+        ...(method.finishing?.length
+          ? {
+              finishingPrices: Object.fromEntries(
+                method.finishing.map((entry) => [
+                  entry.id,
+                  makePrice(
+                    value(`finishing-${entry.id}`),
+                    value(`finishing-time-${entry.id}`),
+                    value(`finishing-url-${entry.id}`),
+                  ),
+                ]),
+              ),
+            }
+          : {}),
+        ...(method.baseFailurePolicy?.recoveryPrice
+          ? {
+              recoveryPrice: makePrice(
+                value('recovery-base'),
+                value('recovery-time-base'),
+                value('recovery-url-base'),
+              ),
+            }
+          : {}),
         materialPrices: Object.fromEntries(
           method.materials.map((m) => [
             m.id,
@@ -2166,8 +2293,8 @@ function BeltPriceForm({
         Цена подходящей базы
         <input required type="number" step="any" min="0.00000001" name="base" />
       </label>
-      {target.beltCraftMethod?.materials.map((material) => (
-        <fieldset key={material.id}>
+      {costs.map((material) => (
+        <fieldset key={`${material.prefix}-${material.id}`}>
           <legend>{material.label}</legend>
           <label>
             Цена
@@ -2176,7 +2303,7 @@ function BeltPriceForm({
               type="number"
               step="any"
               min="0.00000001"
-              name={`material-${material.id}`}
+              name={`${material.prefix}-${material.id}`}
             />
           </label>
           <label>
@@ -2184,12 +2311,16 @@ function BeltPriceForm({
             <input
               required
               type="datetime-local"
-              name={`material-time-${material.id}`}
+              name={`${material.prefix}-time-${material.id}`}
             />
           </label>
           <label>
             Источник
-            <input required type="url" name={`material-url-${material.id}`} />
+            <input
+              required
+              type="url"
+              name={`${material.prefix}-url-${material.id}`}
+            />
           </label>
         </fieldset>
       ))}
@@ -2215,7 +2346,13 @@ function BeltPriceForm({
                 </>
               )}
               <ul>
-                {Object.entries(item.materialPrices).map(([id, price]) => (
+                {Object.entries({
+                  ...item.materialPrices,
+                  ...item.finishingPrices,
+                  ...(item.recoveryPrice
+                    ? { recovery: item.recoveryPrice }
+                    : {}),
+                }).map(([id, price]) => (
                   <li key={id}>
                     {id}:{' '}
                     {price.source === 'manual'
