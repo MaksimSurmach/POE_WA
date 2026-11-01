@@ -7,10 +7,10 @@ import { createMarketResearchRepository } from '../repositories/marketResearchRe
 import { createMarketEconomyRepository } from '../repositories/marketEconomyRepository.js';
 import { createMarketCollectionRepository } from '../repositories/marketCollectionRepository.js';
 import { NinjaEconomyClient } from '../providers/ninjaEconomy.js';
-import {
-  configuredMarketCollectionSource,
-  MarketCollectionManager,
-} from '../marketCollection.js';
+import { MarketCollectionManager } from '../marketCollection.js';
+import { configuredCollectionSource } from '../marketCollectionSource.js';
+import { GggRateLimitController } from '../rateLimitController.js';
+import { createPostgresRepositories } from '../repositories/index.js';
 
 // An explicit API-only entrypoint. It never initializes the legacy Trade worker.
 const logger = pino({
@@ -34,8 +34,10 @@ const collectionStore = pool
   : undefined;
 const collectionManager = collectionStore
   ? new MarketCollectionManager({
-      adapter: configuredMarketCollectionSource(
-        process.env.MARKET_COLLECTION_SOURCE,
+      adapter: configuredCollectionSource(
+        new GggRateLimitController({
+          repository: createPostgresRepositories(pool!).rateLimits,
+        }),
       ),
       store: collectionStore,
     })

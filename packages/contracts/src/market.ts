@@ -132,7 +132,55 @@ export const beltCraftMethodSchema = z
       });
   });
 
-/** A user-curated demand hypothesis. Mod text is not an executable trade query. */
+export const tradeStatRuleSchema = z
+  .strictObject({
+    id: text(200).regex(
+      /^(explicit|implicit|crafted|fractured|pseudo)\.[a-z0-9_]+$/,
+    ),
+    key: text(200).optional(),
+    min: z.number().finite().optional(),
+    max: z.number().finite().optional(),
+    maxTier: z.number().int().positive().optional(),
+  })
+  .refine(
+    (rule) =>
+      rule.min === undefined || rule.max === undefined || rule.min <= rule.max,
+    'Invalid stat range',
+  );
+
+export const tradeSearchSchema = z.strictObject({
+  version: z.literal(1),
+  scope: z.enum(['strict', 'broad']),
+  status: z.enum(['available', 'securable', 'online', 'any']),
+  currency: z.enum(['chaos', 'divine']),
+  rarity: z.enum(['normal', 'magic', 'rare', 'unique']),
+  fractured: z.boolean().optional(),
+  groups: z
+    .array(
+      z
+        .strictObject({
+          type: z.enum(['and', 'count']),
+          min: z.number().int().positive().optional(),
+          filters: z.array(tradeStatRuleSchema).min(1).max(30),
+        })
+        .superRefine((group, ctx) => {
+          if (
+            (group.type === 'count' &&
+              (!group.min || group.min > group.filters.length)) ||
+            (group.type === 'and' && group.min !== undefined)
+          )
+            ctx.addIssue({
+              code: 'custom',
+              message:
+                'Count groups require a valid minimum; AND groups have no minimum',
+            });
+        }),
+    )
+    .min(1)
+    .max(10),
+});
+
+/** A user-curated demand hypothesis. Free text is never parsed into stat IDs. */
 export const marketTargetInputSchema = z.strictObject({
   name: text(),
   game: z.literal('poe1'),
@@ -150,6 +198,16 @@ export const marketTargetInputSchema = z.strictObject({
   sources: z.array(marketSourceEvidenceSchema).max(30),
   beltRules: beltRulesSchema.optional(),
   beltCraftMethod: beltCraftMethodSchema.optional(),
+  tradeSearch: tradeSearchSchema.optional(),
+  catalog: z
+    .strictObject({
+      key: text(200),
+      revision: z.number().int().positive(),
+      progression: text(200).nullable(),
+      verification: z.enum(['unverified', 'research', 'verified']),
+      unknowns: z.array(text(1000)).max(30),
+    })
+    .optional(),
 });
 
 export const marketTargetSchema = marketTargetInputSchema.extend({
@@ -583,7 +641,18 @@ export const marketCollectionSourceSchema = z.strictObject({
   access: z.enum(['blocked', 'replay', 'authorized']),
   dataKind: z.enum(['observed', 'demo']),
   reason: z.string().max(1500).nullable(),
-  implementation: z.enum(['manual', 'not_connected', 'replay']).optional(),
+  implementation: z
+    .enum(['manual', 'not_connected', 'replay', 'trade_compatible'])
+    .optional(),
+  connectionStatus: z
+    .enum([
+      'CONNECTED',
+      'AUTH_REQUIRED',
+      'ACCESS_DENIED',
+      'RATE_LIMITED',
+      'UNAVAILABLE',
+    ])
+    .optional(),
   authorization: z
     .enum(['user_supplied', 'unverified', 'test_only'])
     .optional(),

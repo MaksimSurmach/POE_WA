@@ -77,6 +77,7 @@ export interface MarketCollectionTransport {
     }>
   >;
   fetchDetails(input: {
+    target?: MarketTarget;
     ids: string[];
     queryId: string | null;
     signal: AbortSignal;
@@ -275,6 +276,7 @@ export function createBatchedMarketCollectionSource(options: {
             options.rateLimits,
             () =>
               options.transport.fetchDetails({
+                target,
                 ids: batchIds,
                 queryId: search.data.queryId,
                 signal,
