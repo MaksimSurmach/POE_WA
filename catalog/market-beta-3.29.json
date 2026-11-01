@@ -49,7 +49,7 @@
       },
       "catalog": {
         "key": "flicker-elemental-belt",
-        "revision": 1,
+        "revision": 2,
         "progression": null,
         "verification": "research",
         "unknowns": [
@@ -74,7 +74,7 @@
         {
           "title": "Winter Orb Elementalist 3.29",
           "url": "https://pobb.in/W4yCI3RRdniV",
-          "kind": "guide",
+          "kind": "pob",
           "notes": "Curated belt pilot; dated manual observations exist in docs/evidence. No inferred profit."
         }
       ],
@@ -102,7 +102,7 @@
       },
       "catalog": {
         "key": "winter-orb-envy-belt",
-        "revision": 1,
+        "revision": 2,
         "progression": null,
         "verification": "research",
         "unknowns": [
@@ -132,25 +132,25 @@
           "title": "Pohx RF Chieftain",
           "url": "https://mobalytics.gg/poe/builds/pohx-righteous-fire-chieftain",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25."
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: guide; source ID: S10."
         },
         {
           "title": "HS04",
           "url": "https://pohx.net/crafts/elder-ft-helmet/",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25."
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: primary_craft_guide; source ID: HS04."
         },
         {
           "title": "HS08",
           "url": "https://repoe-fork.github.io/poe1.html",
-          "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25."
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: datamined_game_data; source ID: HS08."
         },
         {
           "title": "BC07",
           "url": "https://pohx.net/crafts/elder-ft-helmet/",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25."
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: primary_craft_guide; source ID: HS04."
         }
       ],
       "tradeSearch": {
@@ -183,7 +183,7 @@
       },
       "catalog": {
         "key": "rf-fire-trap-helmet",
-        "revision": 1,
+        "revision": 2,
         "progression": "upgrade",
         "verification": "research",
         "unknowns": [
@@ -312,55 +312,55 @@
           "title": "Spectre Summoner gear",
           "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction."
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: guide; source ID: S12."
         },
         {
           "title": "Spectre PoB links",
           "url": "https://www.poe-vault.com/guides/the-spectre-summoner-pob-passive-skill-tree-gem-links",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction."
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: guide; source ID: S18."
         },
         {
           "title": "Spectre shared PoB",
           "url": "https://pobb.in/0rBi20lhVp9l",
-          "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction."
+          "kind": "pob",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: pob; source ID: S19."
         },
         {
           "title": "HS02",
           "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction."
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: guide; source ID: S12."
         },
         {
           "title": "HS08",
           "url": "https://repoe-fork.github.io/poe1.html",
-          "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction."
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: datamined_game_data; source ID: HS08."
         },
         {
           "title": "HS12",
           "url": "https://poedb.tw/us/The_Dark_Monarch",
-          "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction."
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: item_reference; source ID: HS12."
         },
         {
           "title": "HS13",
           "url": "https://poedb.tw/us/Wraithlord",
-          "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction."
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: item_reference; source ID: HS13."
         },
         {
           "title": "HS15",
           "url": "https://pobarchives.com/craft/poe/hhJbX69b",
-          "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction."
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: simulated_craft_example; source ID: HS15."
         },
         {
           "title": "BC02",
           "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction."
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: guide; source ID: S12."
         }
       ],
       "tradeSearch": {
@@ -390,7 +390,7 @@
       },
       "catalog": {
         "key": "spectre-minion-helmet",
-        "revision": 1,
+        "revision": 2,
         "progression": "budget/upgrade",
         "verification": "research",
         "unknowns": [
@@ -504,49 +504,49 @@
           "title": "Lacerate Gladiator gear",
           "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield."
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: guide; source ID: S11."
         },
         {
           "title": "Lacerate PoB links",
           "url": "https://www.poe-vault.com/guides/lacerate-gladiator-passive-skill-tree-gem-links",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield."
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: guide; source ID: S16."
         },
         {
           "title": "Lacerate shared low-budget PoB",
           "url": "https://pobb.in/i8A9gJKkJ8TR",
-          "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield."
+          "kind": "pob",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: pob; source ID: S17."
         },
         {
           "title": "HS01",
           "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield."
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: guide; source ID: S11."
         },
         {
           "title": "HS08",
           "url": "https://repoe-fork.github.io/poe1.html",
-          "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield."
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: datamined_game_data; source ID: HS08."
         },
         {
           "title": "HS09",
           "url": "https://www.poe-vault.com/guides/crafting-basic-shields",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield."
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: older_craft_guide; source ID: HS09."
         },
         {
           "title": "HS10",
           "url": "https://poedb.tw/us/The_Surrender",
-          "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield."
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: item_reference; source ID: HS10."
         },
         {
           "title": "BC03",
           "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
           "kind": "guide",
-          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield."
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: guide; source ID: S11."
         }
       ],
       "tradeSearch": {
@@ -571,7 +571,7 @@
       },
       "catalog": {
         "key": "lacerate-block-shield",
-        "revision": 1,
+        "revision": 2,
         "progression": "intermediate rare upgrade",
         "verification": "research",
         "unknowns": [

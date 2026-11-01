@@ -123,14 +123,19 @@ describe('Trade-compatible queries and transport', () => {
   });
 
   it('bounds a timed-out request and does not retain transport error details', async () => {
-    const fetcher: typeof fetch = async (_, init) =>
-      new Promise((_, reject) => {
-        init?.signal?.addEventListener(
+    const requestSignals: AbortSignal[] = [];
+    const fetcher: typeof fetch = async (_, init) => {
+      const signal = init?.signal;
+      if (!signal) throw new Error('Missing request signal');
+      requestSignals.push(signal);
+      return new Promise((_, reject) => {
+        signal.addEventListener(
           'abort',
           () => reject(new Error('private-session')),
           { once: true },
         );
       });
+    };
     const transport = new TradeCompatibleTransport(
       { ...config, timeoutMs: 100 },
       { fetcher },
@@ -142,6 +147,7 @@ describe('Trade-compatible queries and transport', () => {
       }),
     ).rejects.toMatchObject({ code: 'PROVIDER_UNAVAILABLE', cause: undefined });
     expect(transport.connectionStatus).toBe('UNAVAILABLE');
+    expect(requestSignals[0]?.aborted).toBe(true);
   });
   it('generates deterministic strict/broad requests and rejects unknown mappings', () => {
     const target = tradeTarget();
