@@ -33,7 +33,8 @@ const evidence = z
         z.object({
           id: z.string(),
           value: z.number().finite().optional(),
-          tier: z.number().int().positive().optional(),
+          // Legacy normalized bench mods used zero; it carries no affix-tier evidence.
+          tier: z.number().int().nonnegative().optional(),
         }),
       )
       .optional(),
@@ -140,7 +141,7 @@ export function analyzeBeltSnapshot(
             (stat.max !== undefined && entry.value! > stat.max)
           )
             continue;
-          if (stat.maxTier !== undefined && entry.tier === undefined) {
+          if (stat.maxTier !== undefined && !entry.tier) {
             uncertain++;
             continue;
           }
@@ -211,8 +212,7 @@ export function analyzeBeltSnapshot(
         else if (entry.value < mod.minValue)
           rejected.push(`${mod.id}: below threshold`);
         if (mod.maxTier !== undefined) {
-          if (entry?.tier === undefined)
-            unknown.push(`${mod.id}: tier unknown`);
+          if (!entry?.tier) unknown.push(`${mod.id}: tier unknown`);
           else if (entry.tier > mod.maxTier)
             rejected.push(`${mod.id}: tier mismatch`);
         }
@@ -268,6 +268,16 @@ export function analyzeBeltSnapshot(
         ? 'Bounded Trade asking-price sample; delisting is not a sale.'
         : 'Manually selected asking prices; delisting is not a sale.',
     independentSellers: prices.length,
+    askingDistribution: prices.length
+      ? {
+          min: prices[0]!,
+          median:
+            (prices[Math.floor((prices.length - 1) / 2)]! +
+              prices[Math.ceil((prices.length - 1) / 2)]!) /
+            2,
+          max: prices.at(-1)!,
+        }
+      : null,
     confirmedListings: rows.filter((row) => row.status === 'MATCH').length,
     conservativeAskingPrice:
       fresh && prices.length >= 5

@@ -105,7 +105,7 @@ export function registerMarketResearchRoutes(
     }
   });
 
-  api.get<{ Querystring: { kind?: string } }>(
+  api.get<{ Querystring: { kind?: string; league?: string } }>(
     '/api/market/belt-opportunities',
     async (request) => {
       const kind = request.query.kind === 'demo' ? 'demo' : 'observed';
@@ -116,7 +116,8 @@ export function registerMarketResearchRoutes(
       const beltTargets = activeCatalogTargets(targets)
         .filter(
           (target) =>
-            target.slot.toLowerCase() === 'belt' || target.tradeSearch,
+            (target.slot.toLowerCase() === 'belt' || target.tradeSearch) &&
+            (!request.query.league || target.league === request.query.league),
         )
         .slice(0, 100);
       const opportunities = await persist(() =>
@@ -154,7 +155,10 @@ export function registerMarketResearchRoutes(
                 run.targetDigest === target.digest &&
                 run.queryDigest === snapshot?.queryDigest,
             );
-            const point = compareMarketObservations(compatible).at(-1);
+            const point =
+              compatible.length >= 2
+                ? compareMarketObservations(compatible).at(-1)
+                : undefined;
             return {
               ...opportunity,
               supply: point
@@ -187,7 +191,9 @@ export function registerMarketResearchRoutes(
             ? -1
             : b.calculation
               ? 1
-              : a.name.localeCompare(b.name),
+              : (b.comparison?.independentSellers ?? 0) -
+                  (a.comparison?.independentSellers ?? 0) ||
+                a.name.localeCompare(b.name),
       );
       return beltOpportunitiesResponseSchema.parse({
         correlationId: request.id,

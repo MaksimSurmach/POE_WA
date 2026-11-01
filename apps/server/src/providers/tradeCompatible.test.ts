@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { readFile } from 'node:fs/promises';
 import { beltDemoFixture } from '../beltDemoFixture.js';
 import {
   createMarketTarget,
@@ -75,6 +76,37 @@ const config = loadTradeCompatibleConfig({
 });
 
 describe('Trade-compatible queries and transport', () => {
+  it('normalizes the sanitized November 1 object-mod response and preserves crafted origin', async () => {
+    const raw = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    ) as { result: unknown[] };
+    const row = normalizeTradeCompatibleListing(raw.result[0], tradeTarget());
+    expect(row.item.corrupted).toBe(false);
+    expect(row.item.fractured).toBe(false);
+    expect(row.item.mods).toContainEqual({
+      id: 'explicit.stat_3299347043',
+      value: 128,
+      tier: 2,
+    });
+    expect(row.item.mods).toContainEqual({
+      id: 'crafted.stat_387439868',
+      value: 32,
+    });
+    expect(row.item.mods).not.toContainEqual(
+      expect.objectContaining({ id: 'explicit.stat_387439868' }),
+    );
+    expect(row.item.mods).toContainEqual({
+      id: 'pseudo.pseudo_total_elemental_resistance',
+      value: 80,
+    });
+    expect(row.rawListing?.item).toHaveProperty('explicitMods.0.description');
+  });
   it('matches count groups, enforces actual tiers and keeps missing tier evidence partial', () => {
     const target = tradeTarget();
     const search = target.tradeSearch!;
@@ -123,11 +155,16 @@ describe('Trade-compatible queries and transport', () => {
   });
 
   it('bounds a timed-out request and does not retain transport error details', async () => {
+    const timeout = new AbortController();
+    const timeoutSpy = vi
+      .spyOn(AbortSignal, 'timeout')
+      .mockReturnValue(timeout.signal);
     const requestSignals: AbortSignal[] = [];
     const fetcher: typeof fetch = async (_, init) => {
       const signal = init?.signal;
       if (!signal) throw new Error('Missing request signal');
       requestSignals.push(signal);
+      signal.throwIfAborted();
       return new Promise((_, reject) => {
         signal.addEventListener(
           'abort',
@@ -140,14 +177,22 @@ describe('Trade-compatible queries and transport', () => {
       { ...config, timeoutMs: 100 },
       { fetcher },
     );
-    await expect(
-      transport.search({
+    try {
+      const request = transport.search({
         target: tradeTarget(),
         signal: new AbortController().signal,
-      }),
-    ).rejects.toMatchObject({ code: 'PROVIDER_UNAVAILABLE', cause: undefined });
-    expect(transport.connectionStatus).toBe('UNAVAILABLE');
-    expect(requestSignals[0]?.aborted).toBe(true);
+      });
+      timeout.abort();
+      await expect(request).rejects.toMatchObject({
+        code: 'PROVIDER_UNAVAILABLE',
+        cause: undefined,
+      });
+      expect(timeoutSpy).toHaveBeenCalledWith(100);
+      expect(transport.connectionStatus).toBe('UNAVAILABLE');
+      expect(requestSignals[0]?.aborted).toBe(true);
+    } finally {
+      timeoutSpy.mockRestore();
+    }
   });
   it('generates deterministic strict/broad requests and rejects unknown mappings', () => {
     const target = tradeTarget();
@@ -203,6 +248,10 @@ describe('Trade-compatible queries and transport', () => {
       'extended.mods.explicit.0.magnitudes',
     );
     const malformed = rawTradeListing();
+    malformed.item.extended.mods.explicit[0]!.tier = 'S0';
+    expect(
+      normalizeTradeCompatibleListing(malformed, tradeTarget()).item.mods,
+    ).toContainEqual({ id: 'explicit.stat_3299347043', value: 90 });
     malformed.item.explicitMods = ['unexpected life format'];
     expect(
       normalizeTradeCompatibleListing(malformed, tradeTarget()).item.mods,
@@ -217,12 +266,14 @@ describe('Trade-compatible queries and transport', () => {
 
   it('uses POST search and batches of ten through the existing collection adapter', async () => {
     const ids = Array.from({ length: 13 }, (_, i) => `listing-${i}`);
+    const queryId = 'H4sI' + 'a'.repeat(304);
     const fetcher = vi.fn<typeof fetch>(async (url, init) => {
       expect(init?.headers).toMatchObject({
         Cookie: 'POESESSID=private-session',
       });
       if (String(url).includes('/search/'))
-        return Response.json({ id: 'query-1', total: 13, result: ids });
+        return Response.json({ id: queryId, total: 13, result: ids });
+      expect(new URL(String(url)).searchParams.get('query')).toBe(queryId);
       const batch =
         new URL(String(url)).pathname.split('/').at(-1)?.split(',') ?? [];
       return Response.json({ result: batch.map((id) => rawTradeListing(id)) });

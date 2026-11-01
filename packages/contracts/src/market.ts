@@ -243,6 +243,29 @@ export const tradeSearchSchema = z.strictObject({
 /** A user-curated demand hypothesis. Free text is never parsed into stat IDs. */
 export const marketTargetInputSchema = z.strictObject({
   name: text(),
+  description: text(4000).optional(),
+  craftVariants: z
+    .array(
+      z.strictObject({
+        id: text(100),
+        name: text(),
+        description: text(2000),
+        steps: z.array(text(2000)).min(1).max(20),
+        assumptions: z.array(text(2000)).max(20),
+        craftOfExileUrl: httpsUrl.refine(
+          (value) =>
+            [
+              'craftofexile.com',
+              'www.craftofexile.com',
+              'beta.craftofexile.com',
+            ].includes(new URL(value).hostname),
+          'Use a Craft of Exile configuration URL',
+        ),
+        verification: z.enum(['unverified', 'research', 'verified']),
+      }),
+    )
+    .max(10)
+    .optional(),
   game: z.literal('poe1'),
   realm: z.literal('pc'),
   league: text(100),
@@ -566,6 +589,14 @@ export const beltAnalysisSchema = z.strictObject({
   independentSellers: z.number().int().nonnegative(),
   confirmedListings: z.number().int().nonnegative(),
   conservativeAskingPrice: z.number().positive().nullable(),
+  askingDistribution: z
+    .strictObject({
+      min: z.number().positive(),
+      median: z.number().positive(),
+      max: z.number().positive(),
+    })
+    .nullable()
+    .optional(),
   rows: z.array(
     z.strictObject({
       index: z.number().int().nonnegative(),
@@ -689,7 +720,7 @@ export const marketCollectionListingSchema = marketImportListingSchema.extend({
 
 export const marketCollectionSearchEvidenceSchema = z.strictObject({
   ids: z.array(text(256)).max(100_000),
-  queryId: text(256).nullable(),
+  queryId: text(4096).nullable(),
   reportedTotal: z.number().int().nonnegative().nullable(),
   request: z.record(z.string(), z.json()).optional(),
   raw: z.record(z.string(), z.json()).optional(),

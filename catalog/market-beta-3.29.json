@@ -11,7 +11,9 @@
       "baseTypes": ["Stygian Vise"],
       "builds": ["Flicker Strike Slayer"],
       "requiredMods": [
-        "Structured query thresholds; research hypothesis, not verified demand."
+        "Жизнь ≥100",
+        "Сумма сопротивлений стихиям ≥80%",
+        "Урон атак стихиями ≥30%: естественный или верстачный мод"
       ],
       "sources": [
         {
@@ -38,9 +40,19 @@
               {
                 "id": "pseudo.pseudo_total_elemental_resistance",
                 "min": 80
-              },
+              }
+            ]
+          },
+          {
+            "type": "count",
+            "min": 1,
+            "filters": [
               {
                 "id": "explicit.stat_387439868",
+                "min": 30
+              },
+              {
+                "id": "crafted.stat_387439868",
                 "min": 30
               }
             ]
@@ -49,14 +61,33 @@
       },
       "catalog": {
         "key": "flicker-elemental-belt",
-        "revision": 2,
+        "revision": 3,
         "progression": null,
         "verification": "research",
         "unknowns": [
           "Rare belt needs character adaptation; planned PoB uses Arn’s Anguish.",
           "No fresh recipe prices or validated full cost model."
         ]
-      }
+      },
+      "description": "Редкий пояс с жизнью, сопротивлениями и уроном атак стихиями. Гипотеза для адаптированного Flicker Strike; не прямая замена Arn’s Anguish из сохранённого PoB.",
+      "craftVariants": [
+        {
+          "id": "harvest-attack",
+          "name": "Harvest · Reforge Attack",
+          "description": "Узкий вариант: жизнь ≥100, cold ≥42%, lightning ≥42%, урон атак стихиями ≥31%.",
+          "steps": [
+            "Купить неосквернённую Stygian Vise ilvl 85 без влияния и fracture; подготовить редкую базу.",
+            "Повторять Reforge Attack до четырёх заданных модов. Неудачи оплачиваются; база используется повторно."
+          ],
+          "assumptions": [
+            "Ссылка задаёт более узкий результат, чем рыночный профиль.",
+            "Историческая оценка CoE не является текущей ценой или гарантией.",
+            "Нужна адаптация персонажа: исходный PoB использует Arn’s Anguish."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=5%2C3%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMV1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&class=98&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM5IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDQwIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDMyIiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verification": "research"
+        }
+      ]
     },
     {
       "name": "Winter Orb Elementalist — Stygian Vise",
@@ -68,7 +99,9 @@
       "baseTypes": ["Stygian Vise"],
       "builds": ["Winter Orb Elementalist"],
       "requiredMods": [
-        "Structured query thresholds; research hypothesis, not verified demand."
+        "Жизнь ≥110",
+        "Chaos resistance ≥26%",
+        "Хотя бы одно сопротивление стихиям"
       ],
       "sources": [
         {
@@ -97,19 +130,53 @@
                 "min": 26
               }
             ]
+          },
+          {
+            "type": "count",
+            "min": 1,
+            "filters": [
+              {
+                "id": "explicit.stat_3372524247"
+              },
+              {
+                "id": "explicit.stat_4220027924"
+              },
+              {
+                "id": "explicit.stat_1671376347"
+              }
+            ]
           }
         ]
       },
       "catalog": {
         "key": "winter-orb-envy-belt",
-        "revision": 2,
+        "revision": 3,
         "progression": null,
         "verification": "research",
         "unknowns": [
           "Other resistance needs and Allflame base replacement are unquantified.",
           "No fresh recipe prices or validated full cost model."
         ]
-      }
+      },
+      "description": "Stygian Vise для Winter Orb с жизнью, chaos resistance и дополнительным сопротивлением стихиям. Полная замена исходного пояса требует проверки характеристик персонажа и Abyss jewel.",
+      "craftVariants": [
+        {
+          "id": "envy",
+          "name": "Deafening Essence of Envy",
+          "description": "Узкий вариант: жизнь 130–144, fire resistance ≥42%, chaos resistance 31–35%.",
+          "steps": [
+            "Купить неосквернённую Stygian Vise ilvl 85 без влияния и fracture.",
+            "Повторять Deafening Essence of Envy до жизни T1 и fire resistance T2 или лучше."
+          ],
+          "assumptions": [
+            "Этот вариант строже рыночного профиля.",
+            "Другие характеристики исходного пояса и jewel не гарантируются.",
+            "Нужны свежие цены базы, материалов и оценка попыток."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=3%2C19%2C99&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoibm9ybWFsIiwiaWYiOltdLCJpcCI6W1sxXV0sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&class=98&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM4IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verification": "research"
+        }
+      ]
     },
     {
       "name": "RF: шлем под Fire Trap",
@@ -183,7 +250,7 @@
       },
       "catalog": {
         "key": "rf-fire-trap-helmet",
-        "revision": 2,
+        "revision": 3,
         "progression": "upgrade",
         "verification": "research",
         "unknowns": [
@@ -292,7 +359,44 @@
             "final-decisions.json": "faa8a70509b813ec42a5656b11b49c01d4d2f04f040d3c7ff4776872b6a0cbd0"
           }
         }
-      }
+      },
+      "description": "Elder Archdemon Crown под Fire Trap или Searing Bond of Detonation в RF Chieftain: два встроенных support и верстачный AoE. Не шлем для размещения самого RF.",
+      "craftVariants": [
+        {
+          "id": "fire-reforge",
+          "name": "Harvest · Reforge Fire",
+          "description": "Любые уровни Burning Damage и Concentrated Effect + свободный префикс.",
+          "steps": [
+            "From acquired rare Elder83: Harvest Reforge Fire until Conc AND Burning AND open prefix. Reject all other rolls, including a desired pair with no bench slot.",
+            "Bench8-10% AoE/+1 socketed AoE gems for4Chaos. Stop."
+          ],
+          "assumptions": [
+            "Direct Fire reforge consumes50Wild and rerolls all explicits, including bench; retains Elder and native implicit. No Scour needed per failure.",
+            "If acquired magic/normal, use appropriate rarity preparation first; selected priced input is rare. No donor/Awakener/influence addition assumed free.",
+            "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+            "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODM5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&game=poe1&class=73",
+          "verification": "research"
+        },
+        {
+          "id": "fire-reforge-20",
+          "name": "Harvest · уровни 20/20",
+          "description": "Более строгий результат, чем профиль рынка: оба support уровня 20.",
+          "steps": [
+            "Редкая Elder Archdemon Crown ilvl 83 без fracture и corruption.",
+            "Reforge Fire до обоих support уровня 20 и свободного префикса.",
+            "Верстак: +1 socketed AoE gems / 8–10% AoE."
+          ],
+          "assumptions": [
+            "Не используйте цену общей выборки как оценку результата 20/20.",
+            "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+            "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODM5IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyODQ0IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tcHJlZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+          "verification": "research"
+        }
+      ]
     },
     {
       "name": "Spectre: редкий шлем с уровнями приспешников",
@@ -390,7 +494,7 @@
       },
       "catalog": {
         "key": "spectre-minion-helmet",
-        "revision": 2,
+        "revision": 3,
         "progression": "budget/upgrade",
         "verification": "research",
         "unknowns": [
@@ -484,7 +588,26 @@
             "final-decisions.json": "faa8a70509b813ec42a5656b11b49c01d4d2f04f040d3c7ff4776872b6a0cbd0"
           }
         }
-      }
+      },
+      "description": "Bone Helmet для раннего life-based Spectre: +2 ко всем minion gems, жизнь и природный minion damage implicit. Не точная копия Praetor из PoB.",
+      "craftVariants": [
+        {
+          "id": "greed",
+          "name": "Deafening Essence of Greed",
+          "description": "Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction.",
+          "steps": [
+            "Deafening Greed until+2 all minion skill gems AND an open suffix. Life91-105.",
+            "Bench a compatible elemental resistance29-35 for3Chaos. Stop."
+          ],
+          "assumptions": [
+            "If+2 or suffix missing, pay another Greed and discard all prior explicits.",
+            "Fresh real failure: life100 and3 full suffixes but no+2; paid Scour removed all explicits and retained Bone16% implicit and75.",
+            "92life is accepted only where current author does not require100. No100 guarantee, exact Praetor defence/gem/bench replication, Wraithlord/Dark Monarch replacement or current character-cap claim."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltbMThdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoyMTEsImVuZXJneXNoaWVsZCI6NDV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&class=73",
+          "verification": "research"
+        }
+      ]
     },
     {
       "name": "Lacerate: восстановление жизни при блоке",
@@ -571,7 +694,7 @@
       },
       "catalog": {
         "key": "lacerate-block-shield",
-        "revision": 2,
+        "revision": 3,
         "progression": "intermediate rare upgrade",
         "verification": "research",
         "unknowns": [
@@ -669,7 +792,27 @@
             "final-decisions.json": "faa8a70509b813ec42a5656b11b49c01d4d2f04f040d3c7ff4776872b6a0cbd0"
           }
         }
-      }
+      },
+      "description": "Промежуточный Shaper щит для Lacerate: восстановление жизни при блоке и высокая плоская жизнь. Не замена конечного Synthesised щита.",
+      "craftVariants": [
+        {
+          "id": "greed",
+          "name": "Deafening Essence of Greed",
+          "description": "Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield.",
+          "steps": [
+            "Deafening Greed until recovery4-5% AND an open suffix. Greed guarantees130-144 explicit life.",
+            "Bench compatible elemental resistance29-35 in open suffix for3Chaos. Stop."
+          ],
+          "assumptions": [
+            "Reject numeric3% even if recovery affix exists; repeat Greed, paying each essence.",
+            "Real Greed retry discarded recovery and bench; paid Scour retained Shaper, natural21life, ilvl70 and base. Reuse normal result with Deafening Greed.",
+            "No armour, suppression, resistance-cap or endgame Synthesised replacement claim. Shaper acquired-input market price not measured here.",
+            "Ссылка открывает сохранённый законченный пример; это не оценка попыток."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?game=poe1&group=16&item=926&method=12&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9TaGllbGRzL1NoaWVsZFN0cjE3IiwibSI6W3siayI6IkluY3JlYXNlZExpZmU5IiwidiI6WzEzOV0sImYiOlsiZSJdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZFBoeXNpY2FsRGFtYWdlUmVkdWN0aW9uUmF0aW5nUGVyY2VudDUiLCJ2IjpbNzldLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQWxsUmVzaXN0YW5jZXM1IiwidiI6WzE2XSwiZiI6W10sInAiOm51bGx9LHsiayI6IlJlY292ZXJMaWZlUGVyY2VudE9uQmxvY2tVYmVyMV8iLCJ2IjpbNV0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJFaW5oYXJNYXN0ZXJGaXJlUmVzaXN0M18iLCJ2IjpbMzNdLCJmIjpbXSwicCI6bnVsbH1dLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3MCwiciI6InJhcmUiLCJpZiI6WzBdLCJpcCI6W1syMV1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjUwM30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&influences=0&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxODY3IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoic3BlY2lhbDpvcGVuLXN1ZmZpeCIsInQiOiIxIiwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&ilvl=70&class=114",
+          "verification": "research"
+        }
+      ]
     }
   ]
 }

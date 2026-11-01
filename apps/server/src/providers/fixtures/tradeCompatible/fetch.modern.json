@@ -1,0 +1,201 @@
+{
+  "result": [
+    {
+      "id": "fixture-modern-1",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-09-04T15:36:42Z",
+        "price": {
+          "type": "~b/o",
+          "amount": 100,
+          "currency": "chaos"
+        },
+        "fee": 4363,
+        "account": {
+          "name": "fixture-seller-1",
+          "online": null
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 2,
+        "h": 1,
+        "league": "Allflame",
+        "sockets": [
+          {
+            "group": 0,
+            "attr": "A",
+            "sColour": "A"
+          }
+        ],
+        "typeLine": "Stygian Vise",
+        "baseType": "Stygian Vise",
+        "rarity": "Rare",
+        "ilvl": 84,
+        "identified": true,
+        "note": "~b/o 100 chaos",
+        "properties": [
+          {
+            "name": "[Intangibility|Intangibility]",
+            "values": [["36%", 0]],
+            "displayMode": 0,
+            "type": 110
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [["57", 0]],
+            "displayMode": 0,
+            "type": 62
+          }
+        ],
+        "implicitMods": [
+          {
+            "description": "Has 1 Abyssal Socket",
+            "domain": "implicit",
+            "hash": "stat.implicit.stat_3527617737",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "1",
+                    "max": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "+128 to maximum Life",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3299347043",
+            "mods": [
+              {
+                "name": "Athlete's",
+                "tier": "P2",
+                "level": 54,
+                "magnitudes": [
+                  {
+                    "min": "115",
+                    "max": "129"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+45% to Cold Resistance",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_4220027924",
+            "mods": [
+              {
+                "name": "of the Ice",
+                "tier": "S2",
+                "level": 72,
+                "magnitudes": [
+                  {
+                    "min": "42",
+                    "max": "45"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "+35% to Lightning Resistance",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1671376347",
+            "mods": [
+              {
+                "name": "of the Tempest",
+                "tier": "S4",
+                "level": 49,
+                "magnitudes": [
+                  {
+                    "min": "30",
+                    "max": "35"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "30% increased Stun Duration on Enemies",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_2517001139",
+            "mods": [
+              {
+                "name": "of Slamming",
+                "tier": "S2",
+                "level": 44,
+                "magnitudes": [
+                  {
+                    "min": "26",
+                    "max": "30"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "17% increased Flask Life Recovery rate",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_51994685",
+            "mods": [
+              {
+                "name": "Renewing",
+                "tier": "P4",
+                "level": 35,
+                "magnitudes": [
+                  {
+                    "min": "17",
+                    "max": "22"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "32% increased Elemental Damage with Attack Skills",
+            "flags": {
+              "crafted": true
+            },
+            "domain": "crafted",
+            "hash": "stat.crafted.stat_387439868",
+            "mods": [
+              {
+                "name": "Upgraded",
+                "tier": "R2",
+                "level": 50,
+                "magnitudes": [
+                  {
+                    "min": "24",
+                    "max": "32"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "frameType": 2,
+        "frameTypeId": "Rare",
+        "extended": {
+          "hashes": {
+            "explicit": [
+              ["explicit.stat_3299347043", [0]],
+              ["explicit.stat_4220027924", [1]],
+              ["explicit.stat_1671376347", [2]],
+              ["explicit.stat_2517001139", [4]],
+              ["explicit.stat_51994685", [3]]
+            ],
+            "implicit": [["implicit.stat_3527617737", [0]]],
+            "crafted": [["crafted.stat_387439868", [0]]]
+          }
+        }
+      }
+    }
+  ]
+}

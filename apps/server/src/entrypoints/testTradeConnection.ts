@@ -33,7 +33,7 @@ try {
   const gate = new GggRateLimitController({
     repository: createPostgresRepositories(pool).rateLimits,
   });
-  const signal = AbortSignal.timeout(30_000);
+  const signal = AbortSignal.timeout(90_000);
   let connected = false;
   try {
     await gate.waitForPermit('trade-search', signal);

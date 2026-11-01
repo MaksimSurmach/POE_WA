@@ -1,63 +1,65 @@
+import { Fragment, type ReactNode } from 'react';
 import type { BeltOpportunity } from '@poe-worksmith/contracts';
-import { displayDate } from './marketWorkbench.js';
+import { displayDate, displayPrice } from './marketWorkbench.js';
 
 export function MarketOpportunities({
   rows,
   selectedId,
   onSelect,
+  renderDetails,
 }: {
   rows: BeltOpportunity[];
   selectedId: string;
   onSelect: (id: string) => void;
+  renderDetails: (row: BeltOpportunity) => ReactNode;
 }) {
   return (
-    <>
-      <p className="market-footnote">
-        Порядок: доступный расчёт, уверенность, ROI, число независимых
-        продавцов; при равенстве — меньший приток предложений. Исчезновение
-        объявления не означает продажу.
-      </p>
-      <div className="market-table-scroll">
-        <table
-          className="market-snapshot-table market-opportunity-table"
-          aria-label="Рейтинг возможностей крафта"
-        >
-          <thead>
-            <tr>
-              <th>Предмет / билд</th>
-              <th>Затраты / диапазон</th>
-              <th>Цена предложения</th>
-              <th>Разрыв / ROI</th>
-              <th>Объявления / продавцы</th>
-              <th>Изменение предложения</th>
-              <th>Последняя проверка</th>
-              <th>Уверенность / пробелы</th>
-              <th>Доказательства</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => {
-              const calc = row.calculation;
-              return (
-                <tr
-                  key={row.targetId}
-                  aria-selected={row.targetId === selectedId}
-                >
+    <div className="market-table-scroll">
+      <table
+        className="market-snapshot-table market-opportunity-table"
+        aria-label="Рейтинг возможностей крафта"
+      >
+        <thead>
+          <tr>
+            <th>Предмет / билд</th>
+            <th>Крафт</th>
+            <th>Рынок · медиана</th>
+            <th>Разница / ROI</th>
+            <th>Объявления / продавцы</th>
+            <th>Проверено</th>
+            <th>Trade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => {
+            const calc = row.calculation;
+            const distribution = row.comparison?.askingDistribution;
+            const expanded = selectedId === row.targetId;
+            return (
+              <Fragment key={row.targetId}>
+                <tr className={expanded ? 'is-expanded' : undefined}>
                   <td>
                     <button
-                      className="market-link-button"
-                      onClick={() => onSelect(row.targetId)}
+                      type="button"
+                      className="market-opportunity-title"
+                      aria-expanded={expanded}
+                      aria-controls={`opportunity-${row.targetId}`}
+                      onClick={() => onSelect(expanded ? '' : row.targetId)}
                     >
+                      <span aria-hidden="true">{expanded ? '−' : '+'}</span>
                       {row.name}
                     </button>
                     <small className="market-row-meta">
-                      {row.league} · {row.patch} · {row.builds.join(', ')}
+                      {row.builds.join(', ')} · {row.patch}
                     </small>
                   </td>
                   <td>
                     {calc
-                      ? `${calc.expectedCraftCost} ${calc.currency}`
-                      : 'Нет расчёта'}
+                      ? displayPrice(
+                          Number(calc.expectedCraftCost),
+                          calc.currency as 'chaos' | 'divine',
+                        )
+                      : 'Нет оценки'}
                     {calc?.costRange && (
                       <small className="market-row-meta">
                         {calc.costRange.min}–{calc.costRange.max}
@@ -65,91 +67,103 @@ export function MarketOpportunities({
                     )}
                   </td>
                   <td>
-                    {calc ? `${calc.askingPrice} ${calc.currency}` : '—'}
-                    {calc?.askingRange && (
+                    {distribution && row.comparison
+                      ? displayPrice(
+                          distribution.median,
+                          row.comparison.currency,
+                        )
+                      : calc
+                        ? `${calc.askingPrice} ${calc.currency}`
+                        : '—'}
+                    {distribution && row.comparison && (
                       <small className="market-row-meta">
-                        {calc.askingRange.min}–{calc.askingRange.max}
+                        {displayPrice(
+                          distribution.min,
+                          row.comparison.currency,
+                        )}{' '}
+                        –{' '}
+                        {displayPrice(
+                          distribution.max,
+                          row.comparison.currency,
+                        )}
                       </small>
                     )}
                   </td>
-                  <td>
-                    {calc ? (
-                      <>
-                        <strong>
-                          {calc.spread} {calc.currency}
-                        </strong>
-                        <small className="market-row-meta">
-                          {calc.roiPercent
-                            ? Number(calc.roiPercent).toFixed(1) + '%'
-                            : '—'}{' '}
-                          ·{' '}
-                          {row.economicConclusion === 'POSITIVE'
-                            ? 'положительный'
-                            : 'неположительный'}
-                        </small>
-                      </>
-                    ) : (
-                      '—'
+                  <td
+                    className={
+                      row.economicConclusion === 'POSITIVE'
+                        ? 'market-positive'
+                        : row.economicConclusion === 'NON_POSITIVE'
+                          ? 'market-negative'
+                          : undefined
+                    }
+                  >
+                    {calc ? `${calc.spread} ${calc.currency}` : '—'}
+                    {calc && (
+                      <small className="market-row-meta">
+                        {calc.roiPercent === undefined
+                          ? '—'
+                          : `${Number(calc.roiPercent).toFixed(1)}%`}
+                      </small>
                     )}
                   </td>
                   <td>
                     {row.comparison?.confirmedListings ?? 0} /{' '}
                     {row.comparison?.independentSellers ?? 0}
-                  </td>
-                  <td>
-                    {row.supply ? (
-                      <>
-                        +{row.supply.newCount} новых · {row.supply.missingCount}{' '}
-                        отсутствуют
-                        <small className="market-row-meta">
-                          {row.supply.coverage} · ↑{row.supply.increasedCount} /
-                          ↓{row.supply.decreasedCount} цен
-                        </small>
-                      </>
-                    ) : (
-                      'Нет совместимых повторов'
-                    )}
+                    <small className="market-row-meta">
+                      {row.supply
+                        ? `+${row.supply.newCount} новых · ${row.supply.missingCount} отсутствуют`
+                        : 'Нет повторной выборки'}
+                    </small>
                   </td>
                   <td>
                     {row.capturedAt
                       ? displayDate(row.capturedAt)
                       : 'Нет наблюдения'}
                     <small className="market-row-meta">
-                      {row.freshness === 'FRESH'
-                        ? 'свежие'
-                        : row.freshness === 'STALE'
-                          ? 'устарели'
-                          : 'нет данных'}{' '}
-                      ·{' '}
-                      {row.dataKind === 'demo' ? 'DEMO' : (row.dataKind ?? '—')}
+                      {row.dataKind === 'demo'
+                        ? 'DEMO'
+                        : row.freshness === 'FRESH'
+                          ? 'Свежие данные'
+                          : row.freshness === 'STALE'
+                            ? 'Старше 24 ч'
+                            : 'Нужна проверка'}
                     </small>
                   </td>
                   <td>
-                    {row.confidence === 'MEDIUM' ? 'Средняя' : 'Низкая'}
-                    <small className="market-row-meta">
-                      {row.reasons.join(' ') ||
-                        'Расчёт по заявленным допущениям; цена предложения не гарантирует продажу.'}
-                    </small>
-                  </td>
-                  <td>
-                    {row.queryUrl && (
-                      <a href={row.queryUrl} target="_blank" rel="noreferrer">
+                    {row.queryUrl ? (
+                      <a
+                        className="market-trade-link"
+                        href={row.queryUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`Trade: ${row.name}`}
+                      >
                         Trade ↗
                       </a>
+                    ) : (
+                      '—'
                     )}
-                    <button
-                      className="market-link-button"
-                      onClick={() => onSelect(row.targetId)}
-                    >
-                      Расчёт и наблюдения
-                    </button>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </>
+                {expanded && (
+                  <tr className="market-opportunity-detail">
+                    <td colSpan={7}>
+                      <div
+                        id={`opportunity-${row.targetId}`}
+                        role="region"
+                        aria-label={`Детали: ${row.name}`}
+                      >
+                        {renderDetails(row)}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }

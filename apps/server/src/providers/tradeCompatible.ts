@@ -75,14 +75,37 @@ const identifier = z
   .string()
   .regex(/^[a-zA-Z0-9_-]+$/)
   .max(256);
+// Trade also returns compressed queries as IDs, longer than listing hashes.
+const queryIdentifier = z
+  .string()
+  .regex(/^[a-zA-Z0-9_-]+$/)
+  .max(4096);
 const searchSchema = z.object({
-  id: identifier,
+  id: queryIdentifier,
   result: z.array(identifier).max(100_000),
   total: z.number().int().nonnegative(),
   inexact: z.boolean().optional(),
 });
+const modifierSchema = z.union([
+  z.string(),
+  z
+    .object({
+      description: z.string(),
+      domain: z.string(),
+      hash: z.string(),
+      flags: z
+        .object({
+          crafted: z.boolean().optional(),
+          fractured: z.boolean().optional(),
+        })
+        .optional(),
+      mods: z.array(z.object({ tier: z.string().optional() })).optional(),
+    })
+    .passthrough(),
+]);
 const itemSchema = z
   .object({
+    verified: z.boolean().optional(),
     baseType: z.string().optional(),
     typeLine: z.string().optional(),
     league: z.string().optional(),
@@ -92,10 +115,10 @@ const itemSchema = z
     corrupted: z.boolean().optional(),
     fractured: z.boolean().optional(),
     influences: z.record(z.string(), z.boolean()).optional(),
-    explicitMods: z.array(z.string()).optional(),
-    implicitMods: z.array(z.string()).optional(),
-    craftedMods: z.array(z.string()).optional(),
-    fracturedMods: z.array(z.string()).optional(),
+    explicitMods: z.array(modifierSchema).optional(),
+    implicitMods: z.array(modifierSchema).optional(),
+    craftedMods: z.array(modifierSchema).optional(),
+    fracturedMods: z.array(modifierSchema).optional(),
     properties: z
       .array(
         z.object({
@@ -156,16 +179,30 @@ const fetchSchema = z.object({
 });
 const jsonRecord = z.record(z.string(), z.json());
 
+const origins = ['explicit', 'implicit', 'crafted', 'fractured'] as const;
+function modifierLines(item: z.infer<typeof itemSchema>) {
+  return origins.flatMap((origin) =>
+    (item[`${origin}Mods`] ?? []).map((mod) =>
+      typeof mod === 'string'
+        ? { origin, description: mod, hash: undefined, tier: undefined }
+        : {
+            origin: mod.flags?.fractured
+              ? 'fractured'
+              : mod.flags?.crafted
+                ? 'crafted'
+                : mod.domain,
+            description: mod.description,
+            hash: mod.hash.replace(/^stat\./, ''),
+            tier: mod.mods?.length === 1 ? mod.mods[0]?.tier : undefined,
+          },
+    ),
+  );
+}
+
 function normalizedMods(item: z.infer<typeof itemSchema>) {
   const mods: Array<{ id: string; value: number; tier?: number }> = [];
-  for (const origin of [
-    'explicit',
-    'implicit',
-    'crafted',
-    'fractured',
-  ] as const) {
-    const lines = item[`${origin}Mods`];
-    if (!lines) continue;
+  for (const origin of origins) {
+    const lines = modifierLines(item).filter((line) => line.origin === origin);
     for (const [id, mapping] of Object.entries(tradeStatMappings)) {
       if (!id.startsWith(`${origin}.`)) continue;
       const pattern =
@@ -176,7 +213,8 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
           .join('(-?\\d+(?:\\.\\d+)?)') +
         '$';
       for (const line of lines) {
-        const match = new RegExp(pattern).exec(line);
+        if (line.hash !== undefined && line.hash !== id) continue;
+        const match = new RegExp(pattern).exec(line.description);
         if (!match?.[1]) continue;
         const indexes =
           item.extended?.hashes?.[origin]?.find(([hash]) => hash === id)?.[1] ??
@@ -184,10 +222,11 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
         const tiers = indexes.map(
           (index) => item.extended?.mods?.[origin]?.[index]?.tier,
         );
-        const tier =
-          tiers.length === 1 && /^[PS]\d+$/.test(tiers[0] ?? '')
-            ? Number(tiers[0]?.slice(1))
-            : undefined;
+        const rawTier =
+          line.tier ?? (tiers.length === 1 ? tiers[0] : undefined);
+        const tier = /^[PS][1-9]\d*$/.test(rawTier ?? '')
+          ? Number(rawTier?.slice(1))
+          : undefined;
         mods.push({
           id,
           value: Number(match[1]),
@@ -211,12 +250,7 @@ export function normalizeTradeCompatibleListing(
   const elementalResistances = { fire: 0, cold: 0, lightning: 0 };
   // shortcut: hybrid/conditional resistances remain unknown; add exact mappings before pricing those profiles.
   let resistanceEvidenceComplete = item.explicitMods !== undefined;
-  for (const line of [
-    ...(item.explicitMods ?? []),
-    ...(item.implicitMods ?? []),
-    ...(item.craftedMods ?? []),
-    ...(item.fracturedMods ?? []),
-  ]) {
+  for (const { description: line } of modifierLines(item)) {
     if (!/Resistance/i.test(line) || /^\+?\d+% to Chaos Resistance$/.test(line))
       continue;
     const match = /^([+-]?\d+)% to (Fire|Cold|Lightning) Resistance$/.exec(
@@ -255,7 +289,10 @@ export function normalizeTradeCompatibleListing(
   const verifiedAbsentStats = configured.flatMap((stat) => {
     const origin = stat.id.split('.')[0] ?? '';
     const hashes = item.extended?.hashes?.[origin];
-    return hashes && !hashes.some(([id]) => id === stat.id)
+    return (hashes && !hashes.some(([id]) => id === stat.id)) ||
+      (item.verified !== undefined &&
+        !modifierLines(item).some((line) => line.hash === stat.id) &&
+        !mods.some((mod) => mod.id === stat.id))
       ? [stat.id, stat.key ?? tradeStatMappings[stat.id]?.key ?? stat.id]
       : [];
   });
@@ -272,6 +309,15 @@ export function normalizeTradeCompatibleListing(
     rawListing: jsonRecord.parse(raw),
     item: jsonRecord.parse({
       ...item,
+      // Full Trade items omit false flags; incomplete legacy imports retain unknown flags.
+      ...(item.verified !== undefined
+        ? {
+            corrupted: item.corrupted ?? false,
+            fractured:
+              item.fractured ??
+              modifierLines(item).some((line) => line.origin === 'fractured'),
+          }
+        : {}),
       ...((item.baseType ?? item.typeLine)
         ? { baseType: item.baseType ?? item.typeLine }
         : {}),
@@ -282,7 +328,7 @@ export function normalizeTradeCompatibleListing(
         : {}),
       // Patch comes from the explicitly configured search scope, not from an inferred current league.
       patch: target.patch,
-      normalizationVersion: 'trade-compatible-v1',
+      normalizationVersion: 'trade-compatible-v2',
       seller: listing.account.name,
       status: 'listed',
       ...(listing.price ? { currency: listing.price.currency } : {}),
@@ -535,7 +581,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     if (
       !target ||
       !queryId ||
-      !identifier.safeParse(queryId).success ||
+      !queryIdentifier.safeParse(queryId).success ||
       ids.length < 1 ||
       ids.length > 10 ||
       ids.some((id) => !identifier.safeParse(id).success)

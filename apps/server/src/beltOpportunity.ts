@@ -139,7 +139,9 @@ export async function evaluateBeltOpportunity(
   if (!target.beltRules && !target.tradeSearch)
     reasons.push('Executable target rules are missing.');
   if (!method)
-    reasons.push('Craft method, probability and prices are missing.');
+    reasons.push(
+      'Craft cost model, expected attempts and dated prices are missing.',
+    );
   if (method && !method.rulesComplete)
     reasons.push('Rules are not confirmed to cover the build requirements.');
   if (!snapshot) reasons.push('No imported rare listing observation.');

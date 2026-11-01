@@ -325,6 +325,13 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
           (row) => row.queryUrl && row.calculation?.roiPercent,
         ),
       ).toBe(true);
+      const anotherLeague = await api.inject({
+        method: 'GET',
+        url: '/api/market/belt-opportunities?kind=demo&league=Other',
+      });
+      expect(
+        beltOpportunitiesResponseSchema.parse(anotherLeague.json()).data,
+      ).toEqual([]);
       const dry = await api.inject({
         method: 'POST',
         url: '/api/market/catalog/import?dryRun=true',

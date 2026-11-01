@@ -4,6 +4,7 @@ import {
   beltPriceUpdateSchema,
   beltPriceUpdatesResponseSchema,
   marketWorkbenchResponseSchema,
+  marketEconomyLeaguesResponseSchema,
   marketCollectionResponseSchema,
   marketCollectionSettingsResponseSchema,
   marketCollectionRunResponseSchema,
@@ -51,6 +52,11 @@ async function request(
 }
 
 export const marketClient = {
+  async leagues() {
+    return marketEconomyLeaguesResponseSchema.parse(
+      await request('/api/market/economy/leagues'),
+    ).data;
+  },
   async importCatalog(input: unknown, dryRun: boolean) {
     return marketCatalogImportResponseSchema.parse(
       await request(`/api/market/catalog/import?dryRun=${dryRun}`, input),
@@ -76,9 +82,11 @@ export const marketClient = {
       throw new Error('Не удалось сохранить цены');
     return beltPriceUpdateSchema.parse(response.data);
   },
-  async opportunities(kind: 'observed' | 'demo') {
+  async opportunities(kind: 'observed' | 'demo', league = 'all') {
     return beltOpportunitiesResponseSchema.parse(
-      await request(`/api/market/belt-opportunities?kind=${kind}`),
+      await request(
+        `/api/market/belt-opportunities?kind=${kind}${league && league !== 'all' ? `&league=${encodeURIComponent(league)}` : ''}`,
+      ),
     ).data;
   },
   async load() {

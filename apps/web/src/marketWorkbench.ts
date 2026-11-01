@@ -3,6 +3,18 @@ import type {
   MarketTarget,
 } from '@poe-worksmith/contracts';
 
+/** A fallback observation is not proof that this is still the newest league. */
+export function lastObservedLeague(
+  snapshots: readonly MarketResearchSnapshotSummary[],
+) {
+  return (
+    snapshots
+      .filter((snapshot) => snapshot.dataKind === 'observed')
+      .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))[0]?.league ??
+    null
+  );
+}
+
 export function snapshotsForTarget(
   target: MarketTarget,
   snapshots: readonly MarketResearchSnapshotSummary[],
