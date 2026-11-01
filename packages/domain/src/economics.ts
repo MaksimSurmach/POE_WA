@@ -44,6 +44,11 @@ export type CostLine = Readonly<{
 
 export type EconomicsBreakdown = Readonly<{
   base: CostLine;
+  baseReplacement?: {
+    expectedReplacements: string;
+    netCost: DecimalMoney;
+    recoveryPerBase: DecimalMoney;
+  };
   expectedAttempts: string;
   expectedCraftCost: DecimalMoney;
   expectedMaterials: DecimalMoney;
@@ -72,6 +77,10 @@ export type EconomicsCalculationResult =
 export function calculateRecipeEconomics(input: {
   aggregation: MarketAggregation | null;
   basePrice: DecimalMoney | null;
+  baseFailurePolicy?: {
+    replacementProbabilityPerFailure: number;
+    recoveryPrice: DecimalMoney | null;
+  };
   currency: string;
   finishingPrices: Readonly<Record<string, DecimalMoney | null | undefined>>;
   materialPrices: Readonly<Record<string, DecimalMoney | null | undefined>>;
@@ -104,6 +113,31 @@ export function calculateRecipeEconomics(input: {
       reasons,
     }),
   }));
+  const recoveryPrice = input.baseFailurePolicy?.recoveryPrice
+    ? readRequiredPrice({
+        currency,
+        id: 'base-recovery',
+        missingCode: 'base_price_missing',
+        money: input.baseFailurePolicy.recoveryPrice,
+        reasons,
+      })
+    : decimal(0);
+  if (
+    input.baseFailurePolicy &&
+    (!Number.isFinite(
+      input.baseFailurePolicy.replacementProbabilityPerFailure,
+    ) ||
+      input.baseFailurePolicy.replacementProbabilityPerFailure < 0 ||
+      input.baseFailurePolicy.replacementProbabilityPerFailure > 1 ||
+      !recoveryPrice ||
+      (basePrice && recoveryPrice.gt(basePrice)))
+  )
+    reasons.push({
+      code: 'invalid_price',
+      id: 'base-recovery',
+      message:
+        'Invalid replacement probability or recovery exceeds base price.',
+    });
   const finishingInputs = input.recipe.finishingCosts.map((finishing) => ({
     finishing,
     price: readRequiredPrice({
@@ -179,6 +213,12 @@ export function calculateRecipeEconomics(input: {
     materials.map(({ total }) => decimal(total.amount)),
   );
   const expectedMaterials = round(materialsPerAttempt.mul(expectedAttempts));
+  const expectedReplacements = expectedAttempts
+    .sub(1)
+    .mul(input.baseFailurePolicy?.replacementProbabilityPerFailure ?? 0);
+  const replacementCost = round(
+    basePrice.sub(recoveryPrice ?? 0).mul(expectedReplacements),
+  );
   const finishing = finishingInputs.map(({ finishing: item, price }) =>
     costLine(item.id, item.label, decimal(item.quantity), price!, currency),
   );
@@ -186,7 +226,7 @@ export function calculateRecipeEconomics(input: {
     finishing.map(({ total }) => decimal(total.amount)),
   );
   const expectedCraftCost = round(
-    basePrice.add(expectedMaterials).add(finishingTotal),
+    basePrice.add(replacementCost).add(expectedMaterials).add(finishingTotal),
   );
   const profit = round(salePrice.sub(expectedCraftCost));
   const marginPercent = round(profit.div(expectedCraftCost).mul(100));
@@ -207,6 +247,15 @@ export function calculateRecipeEconomics(input: {
           currency,
         ),
         expectedAttempts: format(expectedAttempts),
+        ...(input.baseFailurePolicy
+          ? {
+              baseReplacement: {
+                expectedReplacements: format(expectedReplacements),
+                netCost: money(replacementCost),
+                recoveryPerBase: money(recoveryPrice ?? decimal(0)),
+              },
+            }
+          : {}),
         expectedCraftCost: money(expectedCraftCost),
         expectedMaterials: money(expectedMaterials),
         finishing,
@@ -219,6 +268,34 @@ export function calculateRecipeEconomics(input: {
       profit: money(profit),
       selectedEstimatorId,
     },
+  };
+}
+
+/** Arithmetic only; the caller must validate the exchange observation's league and time. */
+export function convertChaosDivineQuote(
+  money: DecimalMoney,
+  currency: 'chaos' | 'divine',
+  chaosPerDivine: number,
+): DecimalMoney {
+  if (
+    !['chaos', 'divine'].includes(money.currency) ||
+    !Number.isFinite(chaosPerDivine) ||
+    chaosPerDivine <= 0 ||
+    !decimal(money.amount).isFinite() ||
+    decimal(money.amount).lte(0)
+  )
+    throw new TypeError('Invalid currency quote');
+  return {
+    amount: format(
+      round(
+        money.currency === currency
+          ? decimal(money.amount)
+          : currency === 'chaos'
+            ? decimal(money.amount).mul(chaosPerDivine)
+            : decimal(money.amount).div(chaosPerDivine),
+      ),
+    ),
+    currency,
   };
 }
 

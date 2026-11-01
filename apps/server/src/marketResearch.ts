@@ -65,7 +65,7 @@ export const marketSourceCapabilities: MarketSourceCapability[] = [
     name: 'PoE Trade',
     status: 'manual_only',
     description:
-      'Open saved searches yourself and import observations. The workbench does not call undocumented Trade endpoints or collect account passwords or browser cookies.',
+      'Manual imports work by default. A separately configured Trade-compatible website provider supports owner-permitted access; search/fetch is not a documented GGG developer API. Session credentials stay on the server.',
     documentationUrl: 'https://www.pathofexile.com/developer/docs',
   },
   {

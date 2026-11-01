@@ -98,6 +98,8 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     ? new MarketCollectionManager({
         adapter: configuredCollectionSource(
           new GggRateLimitController({ repository: repositories.rateLimits }),
+          process.env,
+          createMarketEconomyRepository(pool),
         ),
         store: collectionStore,
       })

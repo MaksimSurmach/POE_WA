@@ -143,6 +143,7 @@ export function buildApi(
     Boolean(options.marketEconomy?.client),
     options.marketEconomy?.repository,
     options.marketCollection,
+    readRateLimits,
   );
   registerMarketEconomyRoutes(api, options.marketEconomy);
 

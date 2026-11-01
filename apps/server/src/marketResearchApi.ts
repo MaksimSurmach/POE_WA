@@ -12,7 +12,7 @@ import {
   marketTargetResponseSchema,
   marketWorkbenchResponseSchema,
 } from '@poe-worksmith/contracts';
-import { DomainError } from '@poe-worksmith/domain';
+import { DomainError, type RateLimitState } from '@poe-worksmith/domain';
 import type {
   FastifyInstance,
   RawServerDefault,
@@ -24,6 +24,8 @@ import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
 
 import { analyzeBeltSnapshot } from './beltComparability.js';
+import { activeCatalogTargets, importMarketCatalog } from './marketCatalog.js';
+import { generateMarketTradeQuery } from './marketTradeQuery.js';
 import { evaluateBeltOpportunity } from './beltOpportunity.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
 import {
@@ -56,6 +58,7 @@ export function registerMarketResearchRoutes(
     manager: MarketCollectionManager;
     store: MarketCollectionStore;
   },
+  readRateLimits: () => Promise<RateLimitState[]> = async () => [],
 ) {
   const sources = marketSourceCapabilities.map((source) =>
     source.id === 'poe_ninja_economy' && economyConfigured
@@ -110,8 +113,11 @@ export function registerMarketResearchRoutes(
       const [targets, summaries] = await persist(() =>
         Promise.all([repo.listTargets(), repo.listSnapshots()]),
       );
-      const beltTargets = targets
-        .filter((target) => target.slot.toLowerCase() === 'belt')
+      const beltTargets = activeCatalogTargets(targets)
+        .filter(
+          (target) =>
+            target.slot.toLowerCase() === 'belt' || target.tradeSearch,
+        )
         .slice(0, 100);
       const opportunities = await persist(() =>
         Promise.all(
@@ -131,19 +137,52 @@ export function registerMarketResearchRoutes(
               (entry) =>
                 entry.targetDigest === target.digest && entry.dataKind === kind,
             );
-            return evaluateBeltOpportunity(
+            const opportunity = await evaluateBeltOpportunity(
               target,
               snapshot,
               economyRepository,
               Date.now(),
               update,
             );
+            const observations = collection
+              ? await collection.store.listObservations(target.id)
+              : [];
+            const compatible = observations.filter(
+              (run) =>
+                run.dataKind === kind &&
+                run.currency === snapshot?.currency &&
+                run.targetDigest === target.digest &&
+                run.queryDigest === snapshot?.queryDigest,
+            );
+            const point = compareMarketObservations(compatible).at(-1);
+            return {
+              ...opportunity,
+              supply: point
+                ? {
+                    newCount: point.newCount,
+                    missingCount: point.missingCount,
+                    restoredCount: point.restoredCount,
+                    increasedCount: point.increasedCount ?? 0,
+                    decreasedCount: point.decreasedCount ?? 0,
+                    coverage: point.coverage ?? null,
+                  }
+                : null,
+            };
           }),
         ),
       );
       opportunities.sort((a, b) =>
         a.calculation && b.calculation
-          ? Number(b.calculation.spread) - Number(a.calculation.spread)
+          ? (a.confidence === b.confidence
+              ? 0
+              : a.confidence === 'MEDIUM'
+                ? -1
+                : 1) ||
+            Number(b.calculation.roiPercent) -
+              Number(a.calculation.roiPercent) ||
+            (b.comparison?.independentSellers ?? 0) -
+              (a.comparison?.independentSellers ?? 0) ||
+            (a.supply?.newCount ?? 0) - (b.supply?.newCount ?? 0)
           : a.calculation
             ? -1
             : b.calculation
@@ -154,6 +193,40 @@ export function registerMarketResearchRoutes(
         correlationId: request.id,
         data: opportunities,
       });
+    },
+  );
+
+  api.post<{ Querystring: { dryRun?: string } }>(
+    '/api/market/catalog/import',
+    { bodyLimit: MARKET_IMPORT_BODY_LIMIT },
+    async (request) => ({
+      correlationId: request.id,
+      data: await persist(() =>
+        importMarketCatalog(
+          request.body,
+          requireRepository(repository),
+          request.query.dryRun === 'true',
+        ),
+      ),
+    }),
+  );
+
+  api.get<{ Params: { id: string }; Querystring: { scope?: string } }>(
+    '/api/market/targets/:id/trade-query',
+    async (request) => {
+      const target = await persist(() =>
+        requireRepository(repository).findTarget(request.params.id),
+      );
+      if (!target) throw new DomainError('MARKET_TARGET_NOT_FOUND');
+      const scope = z
+        .enum(['strict', 'broad'])
+        .optional()
+        .safeParse(request.query.scope);
+      if (!scope.success) throw new DomainError('MARKET_QUERY_INVALID');
+      return {
+        correlationId: request.id,
+        data: generateMarketTradeQuery(target, scope.data),
+      };
     },
   );
 
@@ -193,9 +266,22 @@ export function registerMarketResearchRoutes(
             .join('|')
       )
         throw new DomainError('MARKET_IMPORT_INVALID');
+      if (
+        parsed.data.finishingPrices &&
+        Object.keys(parsed.data.finishingPrices).sort().join('|') !==
+          (method.finishing ?? [])
+            .map((entry) => entry.id)
+            .sort()
+            .join('|')
+      )
+        throw new DomainError('MARKET_IMPORT_INVALID');
+      if (parsed.data.recoveryPrice && !method.baseFailurePolicy?.recoveryPrice)
+        throw new DomainError('MARKET_IMPORT_INVALID');
       const entries = [
         parsed.data.basePrice,
         ...Object.values(parsed.data.materialPrices),
+        ...Object.values(parsed.data.finishingPrices ?? {}),
+        ...(parsed.data.recoveryPrice ? [parsed.data.recoveryPrice] : []),
       ];
       if (
         entries.some(
@@ -231,6 +317,7 @@ export function registerMarketResearchRoutes(
     { bodyLimit: MARKET_IMPORT_BODY_LIMIT },
     async (request, reply) => {
       const target = createMarketTarget(request.body);
+      if (target.tradeSearch) generateMarketTradeQuery(target);
       const stored = await persist(() =>
         requireRepository(repository).saveTarget(target),
       );
@@ -318,6 +405,21 @@ export function registerMarketResearchRoutes(
         persist(() => store.listRuns(targetId, 25)),
         persist(() => store.listObservations(targetId)),
       ]);
+      const limits = await persist(readRateLimits);
+      const cooldown = Math.max(
+        0,
+        ...limits
+          .filter((limit) =>
+            limit.endpoints.some(
+              (endpoint) =>
+                endpoint === 'trade-search' || endpoint === 'trade-fetch',
+            ),
+          )
+          .flatMap((limit) => [
+            limit.blockedUntil.getTime(),
+            limit.nextRequestAt.getTime(),
+          ]),
+      );
       const groups = new Map<string, typeof observations>();
       for (const run of observations) {
         if (!run.currency) continue;
@@ -343,6 +445,8 @@ export function registerMarketResearchRoutes(
             collection?.manager.source ??
             disabledMarketCollectionSource.descriptor,
           settings,
+          cooldownUntil:
+            cooldown > Date.now() ? new Date(cooldown).toISOString() : null,
           runs,
           series: [...groups].map(([key, observations]) => {
             const [dataKind, currency, queryDigest] = key.split(':') as [

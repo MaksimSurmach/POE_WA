@@ -1,4 +1,5 @@
 import type { MarketTarget } from '@poe-worksmith/contracts';
+import { gzipSync } from 'node:zlib';
 import { DomainError } from '@poe-worksmith/domain';
 import { marketDigest } from './marketResearch.js';
 import { tradeMappingVersion, tradeStatMappings } from './tradeStatMappings.js';
@@ -13,7 +14,10 @@ export function generateMarketTradeQuery(
     throw new DomainError('MARKET_QUERY_INVALID');
   for (const group of search.groups)
     for (const rule of group.filters)
-      if (!tradeStatMappings[rule.id])
+      if (
+        !tradeStatMappings[rule.id] ||
+        (rule.key && rule.key !== tradeStatMappings[rule.id]?.key)
+      )
         throw new DomainError('MARKET_QUERY_INVALID');
   const rules = target.beltRules;
   // Strict queries must cover every executable belt rule; tiers are verified locally.
@@ -34,6 +38,22 @@ export function generateMarketTradeQuery(
     )
   )
     throw new DomainError('MARKET_QUERY_INVALID');
+  if (
+    rules &&
+    rules.version !== 1 &&
+    rules.totalElementalResistanceMin != null
+  ) {
+    const minimum = rules.totalElementalResistanceMin;
+    if (
+      !configured.some(
+        (stat) =>
+          stat.id === 'pseudo.pseudo_total_elemental_resistance' &&
+          stat.min !== undefined &&
+          stat.min >= minimum,
+      )
+    )
+      throw new DomainError('MARKET_QUERY_INVALID');
+  }
   const influences = rules?.influences ?? target.influences;
   if (
     influences?.some(
@@ -70,10 +90,20 @@ export function generateMarketTradeQuery(
       id: stat.id,
       value: {
         ...(stat.min !== undefined
-          ? { min: scope === 'broad' ? stat.min * 0.8 : stat.min }
+          ? {
+              min:
+                scope === 'broad'
+                  ? stat.min - Math.abs(stat.min) * 0.2
+                  : stat.min,
+            }
           : {}),
         ...(stat.max !== undefined
-          ? { max: scope === 'broad' ? stat.max * 1.2 : stat.max }
+          ? {
+              max:
+                scope === 'broad'
+                  ? stat.max + Math.abs(stat.max) * 0.2
+                  : stat.max,
+            }
           : {}),
       },
     })),
@@ -108,6 +138,16 @@ export function generateMarketTradeQuery(
     },
     sort: { price: 'asc' },
   };
+  if (
+    stats.some((group) =>
+      group.filters.some(
+        (stat) =>
+          stat.value &&
+          Object.values(stat.value).some((value) => !Number.isFinite(value)),
+      ),
+    )
+  )
+    throw new DomainError('MARKET_QUERY_INVALID');
   const version = `market-trade-v1:${tradeMappingVersion}`;
   return {
     version,
@@ -122,6 +162,6 @@ export function generateMarketTradeQuery(
       request,
     }),
     // The website accepts the encoded query directly; no search request is needed to inspect it.
-    url: `https://www.pathofexile.com/trade/search/${encodeURIComponent(target.league)}?q=${encodeURIComponent(JSON.stringify(request))}`,
+    url: `https://www.pathofexile.com/trade/search/${encodeURIComponent(target.league)}/${gzipSync(JSON.stringify(request)).toString('base64url')}`,
   };
 }

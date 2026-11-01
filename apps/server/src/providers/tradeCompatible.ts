@@ -10,6 +10,8 @@ import type {
 } from '../marketCollection.js';
 import { generateMarketTradeQuery } from '../marketTradeQuery.js';
 import { tradeStatMappings } from '../tradeStatMappings.js';
+import { convertMarketQuote } from '../marketCurrency.js';
+import type { MarketEconomyRepository } from '../marketEconomy.js';
 
 const configSchema = z.object({
   POE_TRADE_BASE_URL: z.url().default('https://www.pathofexile.com'),
@@ -135,7 +137,15 @@ const listingSchema = z
             currency: z.string().min(1),
           })
           .optional(),
-        fee: z.number().finite().optional(),
+        fee: z
+          .union([
+            z.number().finite().nonnegative(),
+            z.object({
+              amount: z.number().finite().nonnegative(),
+              currency: z.string(),
+            }),
+          ])
+          .optional(),
       })
       .passthrough(),
     item: itemSchema,
@@ -198,6 +208,36 @@ export function normalizeTradeCompatibleListing(
   if (!parsed.success) throw new DomainError('PROVIDER_RESPONSE_INVALID');
   const { item, listing, id } = parsed.data;
   const mods = normalizedMods(item);
+  const elementalResistances = { fire: 0, cold: 0, lightning: 0 };
+  // shortcut: hybrid/conditional resistances remain unknown; add exact mappings before pricing those profiles.
+  let resistanceEvidenceComplete = item.explicitMods !== undefined;
+  for (const line of [
+    ...(item.explicitMods ?? []),
+    ...(item.implicitMods ?? []),
+    ...(item.craftedMods ?? []),
+    ...(item.fracturedMods ?? []),
+  ]) {
+    if (!/Resistance/i.test(line) || /^\+?\d+% to Chaos Resistance$/.test(line))
+      continue;
+    const match = /^([+-]?\d+)% to (Fire|Cold|Lightning) Resistance$/.exec(
+      line,
+    );
+    if (!match) {
+      resistanceEvidenceComplete = false;
+      continue;
+    }
+    const key = match[2]?.toLowerCase();
+    if (key === 'fire' || key === 'cold' || key === 'lightning')
+      elementalResistances[key] += Number(match[1]);
+  }
+  if (resistanceEvidenceComplete)
+    mods.push({
+      id: 'pseudo.pseudo_total_elemental_resistance',
+      value:
+        elementalResistances.fire +
+        elementalResistances.cold +
+        elementalResistances.lightning,
+    });
   const configured =
     target.tradeSearch?.groups.flatMap((group) => group.filters) ?? [];
   const aliases = mods.flatMap((mod) => {
@@ -224,7 +264,11 @@ export function normalizeTradeCompatibleListing(
     price: listing.price?.amount ?? null,
     ...(listing.price ? { currency: listing.price.currency } : {}),
     ...(listing.indexed ? { listedAt: listing.indexed } : {}),
-    ...(listing.fee !== undefined ? { fee: listing.fee } : {}),
+    ...(typeof listing.fee === 'number'
+      ? { fee: listing.fee }
+      : listing.fee?.currency === 'gold'
+        ? { fee: listing.fee.amount }
+        : {}),
     rawListing: jsonRecord.parse(raw),
     item: jsonRecord.parse({
       ...item,
@@ -245,6 +289,7 @@ export function normalizeTradeCompatibleListing(
       mods: [...mods, ...aliases],
       modsComplete: false,
       verifiedAbsentStats,
+      ...(resistanceEvidenceComplete ? { elementalResistances } : {}),
       ...(modArraysPresent
         ? {
             influences: Object.entries(item.influences ?? {})
@@ -271,17 +316,23 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     }
   >();
   readonly #clock: () => Date;
+  readonly #economy: Pick<MarketEconomyRepository, 'find'> | undefined;
   #denied = false;
   connectionStatus: NonNullable<MarketCollectionSource['connectionStatus']> =
     'UNAVAILABLE';
 
   constructor(
     config: TradeCompatibleConfig,
-    options: { fetcher?: typeof fetch; clock?: () => Date } = {},
+    options: {
+      fetcher?: typeof fetch;
+      clock?: () => Date;
+      economy?: Pick<MarketEconomyRepository, 'find'>;
+    } = {},
   ) {
     this.#config = config;
     this.#fetch = options.fetcher ?? fetch;
     this.#clock = options.clock ?? (() => new Date());
+    this.#economy = options.economy;
   }
 
   async #request(
@@ -500,11 +551,43 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
       this.connectionStatus = 'UNAVAILABLE';
       throw new DomainError('PROVIDER_RESPONSE_INVALID');
     }
-    return {
-      ...response,
-      data: parsed.data.result.map((entry) =>
-        entry === null ? null : normalizeTradeCompatibleListing(entry, target),
-      ),
-    };
+    const rawResults = jsonRecord.parse(response.data).result;
+    if (!Array.isArray(rawResults))
+      throw new DomainError('PROVIDER_RESPONSE_INVALID');
+    const listings = await Promise.all(
+      rawResults.map(async (entry) => {
+        if (entry === null) return null;
+        const row = normalizeTradeCompatibleListing(entry, target);
+        if (row.price === null || !row.currency || !target.tradeSearch)
+          return row;
+        const converted = await convertMarketQuote({
+          money: { amount: String(row.price), currency: row.currency },
+          currency: target.tradeSearch.currency,
+          target,
+          capturedAt: response.capturedAt,
+          now: this.#clock().getTime(),
+          dataKind: 'observed',
+          ...(this.#economy ? { economy: this.#economy } : {}),
+          ...(target.tradeSearch.exchangeSnapshotId
+            ? { exchangeSnapshotId: target.tradeSearch.exchangeSnapshotId }
+            : {}),
+        });
+        return converted?.exchange
+          ? {
+              ...row,
+              price: Number(converted.money.amount),
+              currency: converted.money.currency,
+              item: {
+                ...row.item,
+                currency: converted.money.currency,
+                originalPrice: row.price,
+                originalCurrency: row.currency,
+                exchange: converted.exchange,
+              },
+            }
+          : row;
+      }),
+    );
+    return { ...response, data: listings };
   }
 }

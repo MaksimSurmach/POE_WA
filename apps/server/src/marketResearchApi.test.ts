@@ -78,6 +78,62 @@ function testApi(repository?: MarketResearchRepository) {
 }
 
 describe('market workbench API', () => {
+  it('rejects unsearchable profiles and invalid cost scenarios before persistence', async () => {
+    const repo = inMemoryTestRepository();
+    const api = testApi(repo);
+    const profile = beltDemoFixture().target;
+    const method = profile.beltCraftMethod!;
+    const price = method.basePrice;
+    try {
+      for (const input of [
+        {
+          ...profile,
+          tradeSearch: {
+            version: 1,
+            scope: 'strict',
+            status: 'available',
+            currency: 'chaos',
+            rarity: 'rare',
+            groups: [
+              {
+                type: 'and',
+                filters: [{ id: 'explicit.unsupported', min: 80 }],
+              },
+            ],
+          },
+        },
+        {
+          ...profile,
+          beltCraftMethod: {
+            ...method,
+            finishing: [
+              { id: 'not a slug', label: 'finish', quantity: 1, price },
+            ],
+          },
+        },
+        {
+          ...profile,
+          beltCraftMethod: { ...method, attemptsRange: { min: 10, max: 20 } },
+        },
+      ]) {
+        const response = await api.inject({
+          method: 'POST',
+          url: '/api/market/targets',
+          payload: input,
+        });
+        expect(response.statusCode).toBe(400);
+      }
+      expect(await repo.listTargets()).toHaveLength(0);
+      const valid = await api.inject({
+        method: 'POST',
+        url: '/api/market/targets',
+        payload: profile,
+      });
+      expect(valid.statusCode).toBe(201);
+    } finally {
+      await api.close();
+    }
+  });
   it('updates prices without changing target or historical snapshots', async () => {
     const repo = inMemoryTestRepository();
     const api = testApi(repo);

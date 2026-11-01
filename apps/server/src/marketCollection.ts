@@ -514,6 +514,14 @@ export class MarketCollectionManager {
       ? {
           ...this.#adapter.descriptor,
           access: 'blocked' as const,
+          ...(this.#adapter.descriptor.connectionStatus
+            ? {
+                connectionStatus:
+                  this.#adapter.descriptor.connectionStatus === 'AUTH_REQUIRED'
+                    ? ('AUTH_REQUIRED' as const)
+                    : ('ACCESS_DENIED' as const),
+              }
+            : {}),
           reason:
             'Источник заблокирован после отказа доступа; повторные запросы отключены.',
         }
@@ -565,7 +573,7 @@ export class MarketCollectionManager {
   }
 
   runNow(targetId: string, trigger: 'manual' | 'scheduled' = 'manual') {
-    if (this.#stopping)
+    if (this.#stopping || this.#requests.size + this.#active.size >= 4)
       return Promise.reject(new DomainError('MARKET_COLLECTION_BUSY'));
     const request = this.#runNow(targetId, trigger);
     this.#requests.add(request);
@@ -654,6 +662,7 @@ export class MarketCollectionManager {
     const now = this.#clock();
     const settings = await this.#store.listSettings();
     for (const setting of settings) {
+      if (this.#requests.size + this.#active.size >= 4) break;
       if (
         !setting.enabled ||
         setting.paused ||
@@ -941,6 +950,7 @@ export type MarketCollectionObservation = Omit<
   listings: Array<{
     externalId?: string;
     fingerprint?: string;
+    seller?: string;
     currency?: string;
     item?: MarketCollectionRun['listings'][number]['item'];
     price: number | null;
@@ -976,6 +986,10 @@ export function compareMarketObservations(
       a.id.localeCompare(b.id),
   );
   const seen = new Map<string, string>();
+  const seenPrices = new Map<
+    string,
+    { amount: number; currency: string | undefined }
+  >();
   const missingSinceComplete = new Set<string>();
   let hasBaseline = false;
 
@@ -1024,6 +1038,16 @@ export function compareMarketObservations(
       restored: [],
       changedCount: 0,
       changed: [],
+      increasedCount: 0,
+      decreasedCount: 0,
+      independentSellers: new Set(
+        listings.flatMap((listing) =>
+          typeof (listing.seller ?? listing.item?.seller) === 'string'
+            ? [String(listing.seller ?? listing.item?.seller).toLowerCase()]
+            : [],
+        ),
+      ).size,
+      coverage: observation.coverage,
     };
 
     // Cached responses do not advance history; partial responses can prove positive identity changes only.
@@ -1042,6 +1066,18 @@ export function compareMarketObservations(
       } else if (hadBaseline) newIds.push(id);
       if (missingSinceComplete.delete(id)) restoredIds.push(id);
       seen.set(id, digest);
+    }
+    for (const listing of listings) {
+      if (!listing.externalId || listing.price === null) continue;
+      const currency = listing.currency ?? observation.currency ?? undefined;
+      const previous = seenPrices.get(listing.externalId);
+      if (previous && previous.currency === currency) {
+        if (listing.price > previous.amount)
+          point.increasedCount = (point.increasedCount ?? 0) + 1;
+        if (listing.price < previous.amount)
+          point.decreasedCount = (point.decreasedCount ?? 0) + 1;
+      }
+      seenPrices.set(listing.externalId, { amount: listing.price, currency });
     }
     const missingIds = complete
       ? [...seen.keys()].filter(

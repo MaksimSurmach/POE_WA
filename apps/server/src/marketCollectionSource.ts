@@ -4,6 +4,7 @@ import {
   createBatchedMarketCollectionSource,
 } from './marketCollection.js';
 import type { RateLimitGate } from './rateLimitController.js';
+import type { MarketEconomyRepository } from './marketEconomy.js';
 import {
   TradeCompatibleTransport,
   loadTradeCompatibleConfig,
@@ -13,6 +14,7 @@ import {
 export function configuredCollectionSource(
   rateLimits: RateLimitGate,
   environment: Record<string, string | undefined> = process.env,
+  economy?: Pick<MarketEconomyRepository, 'find'>,
 ) {
   if (environment.MARKET_COLLECTION_SOURCE !== 'trade-compatible')
     return configuredMarketCollectionSource(
@@ -40,6 +42,7 @@ export function configuredCollectionSource(
     };
   const transport = new TradeCompatibleTransport(
     loadTradeCompatibleConfig(environment),
+    economy ? { economy } : {},
   );
   const source = createBatchedMarketCollectionSource({
     descriptor,

@@ -19,6 +19,71 @@ function fixture() {
   return { definition, target, snapshot };
 }
 describe('belt opportunity', () => {
+  it('includes finishing, expected base replacement/recovery and an entered attempts range', async () => {
+    const { target, snapshot } = fixture();
+    const method = target.beltCraftMethod!;
+    const result = await evaluateBeltOpportunity(
+      {
+        ...target,
+        beltCraftMethod: {
+          ...method,
+          repeatOnSameBase: false,
+          success: { mode: 'expected_attempts', expectedAttempts: 4 },
+          attemptsRange: { min: 2, max: 6 },
+          baseFailurePolicy: {
+            replacementProbabilityPerFailure: 0.5,
+            recoveryPrice: {
+              ...method.basePrice,
+              source: 'manual',
+              amount: 4,
+              currency: 'chaos',
+              league: target.league,
+              patch: target.patch,
+              capturedAt: snapshot.capturedAt,
+              dataKind: 'demo',
+              url: 'https://example.com/recovery',
+              notes: 'Synthetic recovery assumption',
+            },
+          },
+          finishing: [
+            {
+              id: 'finish',
+              label: 'Finish',
+              quantity: 2,
+              price: {
+                ...method.basePrice,
+                source: 'manual',
+                amount: 3,
+                currency: 'chaos',
+                league: target.league,
+                patch: target.patch,
+                capturedAt: snapshot.capturedAt,
+                dataKind: 'demo',
+                url: 'https://example.com/finish',
+                notes: 'Synthetic finish price',
+              },
+            },
+          ],
+        },
+      },
+      snapshot,
+      undefined,
+      now.getTime(),
+    );
+    expect(result.status).toBe('CALCULATED');
+    expect(result.calculation).toMatchObject({
+      expectedCraftCost: '33',
+      spread: '7',
+      costRange: { min: '23', max: '43' },
+      breakdown: {
+        baseReplacement: {
+          expectedReplacements: '1.5',
+          netCost: { amount: '9' },
+        },
+        finishingTotal: { amount: '6' },
+      },
+    });
+  });
   it('keeps partial asking prices usable and visibly preliminary', async () => {
     const { target, snapshot } = fixture();
     const result = await evaluateBeltOpportunity(

@@ -110,6 +110,14 @@ export function analyzeBeltSnapshot(
           ),
       );
     if (target.tradeSearch) {
+      if (target.influences !== undefined)
+        check(
+          'exact influences',
+          item.influences,
+          item.influences !== undefined &&
+            [...item.influences].sort().join('|') ===
+              [...target.influences].sort().join('|'),
+        );
       if (target.tradeSearch.fractured !== undefined)
         check(
           'fracture',
@@ -237,8 +245,9 @@ export function analyzeBeltSnapshot(
     now >= Date.parse(snapshot.capturedAt) &&
     now - Date.parse(snapshot.capturedAt) <= 24 * 60 * 60 * 1000;
   return {
-    algorithm:
-      target.beltRules?.version === 3
+    algorithm: target.tradeSearch
+      ? ('trade-comparability-v1' as const)
+      : target.beltRules?.version === 3
         ? ('belt-comparability-v3' as const)
         : target.beltRules?.version === 2
           ? ('belt-comparability-v2' as const)

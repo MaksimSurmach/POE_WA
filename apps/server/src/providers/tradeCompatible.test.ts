@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { beltDemoFixture } from '../beltDemoFixture.js';
-import { createMarketTarget } from '../marketResearch.js';
+import {
+  createMarketTarget,
+  createImportedMarketSnapshot,
+} from '../marketResearch.js';
+import { analyzeBeltSnapshot } from '../beltComparability.js';
 import { generateMarketTradeQuery } from '../marketTradeQuery.js';
 import {
   TradeCompatibleTransport,
@@ -71,6 +75,74 @@ const config = loadTradeCompatibleConfig({
 });
 
 describe('Trade-compatible queries and transport', () => {
+  it('matches count groups, enforces actual tiers and keeps missing tier evidence partial', () => {
+    const target = tradeTarget();
+    const search = target.tradeSearch!;
+    const grouped = {
+      ...target,
+      tradeSearch: {
+        ...search,
+        groups: [
+          {
+            type: 'count' as const,
+            min: 1,
+            filters: [
+              { id: 'explicit.stat_3299347043', min: 80, maxTier: 2 },
+              { id: 'explicit.stat_2923486259', min: 26 },
+            ],
+          },
+        ],
+      },
+    };
+    const raw = rawTradeListing();
+    const status = () =>
+      analyzeBeltSnapshot(
+        grouped,
+        createImportedMarketSnapshot(
+          {
+            targetId: grouped.id,
+            capturedAt: at.toISOString(),
+            sourceUrl: 'https://example.com/demo',
+            currency: 'chaos',
+            dataKind: 'demo',
+            listings: [normalizeTradeCompatibleListing(raw, grouped)],
+          },
+          grouped,
+          at,
+        ),
+        at.getTime(),
+      ).rows[0]?.status;
+    expect(status()).toBe('MATCH');
+    expect(
+      generateMarketTradeQuery(grouped).request.query.stats[0],
+    ).toMatchObject({ type: 'count', value: { min: 1 } });
+    raw.item.extended.mods.explicit[0]!.tier = 'P3';
+    expect(status()).toBe('REJECT');
+    raw.item.extended.mods.explicit = [];
+    expect(status()).toBe('PARTIAL');
+  });
+
+  it('bounds a timed-out request and does not retain transport error details', async () => {
+    const fetcher: typeof fetch = async (_, init) =>
+      new Promise((_, reject) => {
+        init?.signal?.addEventListener(
+          'abort',
+          () => reject(new Error('private-session')),
+          { once: true },
+        );
+      });
+    const transport = new TradeCompatibleTransport(
+      { ...config, timeoutMs: 100 },
+      { fetcher },
+    );
+    await expect(
+      transport.search({
+        target: tradeTarget(),
+        signal: new AbortController().signal,
+      }),
+    ).rejects.toMatchObject({ code: 'PROVIDER_UNAVAILABLE', cause: undefined });
+    expect(transport.connectionStatus).toBe('UNAVAILABLE');
+  });
   it('generates deterministic strict/broad requests and rejects unknown mappings', () => {
     const target = tradeTarget();
     const strict = generateMarketTradeQuery(target);
@@ -109,6 +181,18 @@ describe('Trade-compatible queries and transport', () => {
     );
     expect(row.item.mods).toContainEqual({ id: 'life', value: 90, tier: 2 });
     expect(row.item.itemLevel).toBe(84);
+    expect(
+      normalizeTradeCompatibleListing(
+        {
+          ...rawTradeListing(),
+          listing: {
+            ...rawTradeListing().listing,
+            fee: { amount: 4104, currency: 'gold' },
+          },
+        },
+        tradeTarget(),
+      ).fee,
+    ).toBe(4104);
     expect(row.rawListing?.item).toHaveProperty(
       'extended.mods.explicit.0.magnitudes',
     );
@@ -116,7 +200,7 @@ describe('Trade-compatible queries and transport', () => {
     malformed.item.explicitMods = ['unexpected life format'];
     expect(
       normalizeTradeCompatibleListing(malformed, tradeTarget()).item.mods,
-    ).toEqual([]);
+    ).not.toContainEqual(expect.objectContaining({ id: 'life' }));
     expect(
       normalizeTradeCompatibleListing(
         { ...rawTradeListing(), listing: { account: { name: 'seller' } } },
