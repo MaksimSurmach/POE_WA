@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { BeltOpportunity } from '@poe-worksmith/contracts';
 import { MarketOpportunities } from './MarketOpportunities.js';
+import { MarketCraftCosts } from './MarketCraftCosts.js';
 
 const row: BeltOpportunity = {
   targetId: 'profile',
@@ -44,6 +45,72 @@ const row: BeltOpportunity = {
 };
 
 describe('opportunity rows', () => {
+  it('renders readable cost components and safe dated sources, with a fallback for legacy JSON', () => {
+    const money = (amount: string) => ({ amount, currency: 'chaos' });
+    const calculation = {
+      expectedCraftCost: '342.736',
+      askingPrice: '250',
+      spread: '-92.736',
+      currency: 'chaos',
+      breakdown: {
+        base: {
+          id: 'base',
+          label: 'Archdemon Crown',
+          quantity: '1',
+          total: money('250'),
+        },
+        expectedAttempts: '94',
+        expectedMaterials: money('88.736'),
+        finishingTotal: money('4'),
+        materials: [
+          {
+            id: 'wild',
+            label: 'Wild Lifeforce',
+            quantity: '50',
+            total: money('0.944'),
+          },
+        ],
+        baseReplacement: { expectedReplacements: '0', netCost: money('0') },
+      },
+    };
+    const html = renderToStaticMarkup(
+      <MarketCraftCosts
+        opportunity={{
+          ...row,
+          calculation,
+          priceEvidence: [
+            null,
+            { url: 'javascript:bad' },
+            {
+              url: 'https://poe.ninja/quote',
+              name: 'Wild',
+              capturedAt: '2026-11-02T00:00:00Z',
+            },
+          ],
+        }}
+      />,
+    );
+    for (const text of [
+      'Archdemon Crown',
+      '250 chaos',
+      '94',
+      '50 за попытку',
+      '88,74 chaos',
+      '4 chaos',
+      '342,74 chaos',
+      'Замены базы',
+      'https://poe.ninja/quote',
+      '2026-11-02T00:00:00Z',
+    ])
+      expect(html).toContain(text);
+    expect(html).not.toContain('javascript:');
+    const legacy = renderToStaticMarkup(
+      <MarketCraftCosts
+        opportunity={{ ...row, calculation: { ...calculation, breakdown: {} } }}
+      />,
+    );
+    expect(legacy).toContain('Подробный состав затрат недоступен.');
+  });
   it('shows the calculation price separately from the displayed market median', () => {
     const calculated: BeltOpportunity = {
       ...row,

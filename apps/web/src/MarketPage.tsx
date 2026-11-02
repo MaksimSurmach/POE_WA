@@ -18,6 +18,7 @@ import { marketClient } from './marketClient.js';
 import { marketDemo } from './marketDemo.js';
 import { EconomyPanel } from './EconomyPanel.js';
 import { MarketOpportunities } from './MarketOpportunities.js';
+import { MarketCraftCosts } from './MarketCraftCosts.js';
 import { MarketCatalogImport } from './MarketCatalogImport.js';
 import { MarketTradeQuery } from './MarketTradeQuery.js';
 import {
@@ -1380,16 +1381,7 @@ function TargetPanel({
           {opportunity.calculation && (
             <details>
               <summary>Состав затрат и ценовые источники</summary>
-              <pre className="market-json">
-                {JSON.stringify(
-                  {
-                    calculation: opportunity.calculation,
-                    priceEvidence: opportunity.priceEvidence,
-                  },
-                  null,
-                  2,
-                )}
-              </pre>
+              <MarketCraftCosts opportunity={opportunity} />
             </details>
           )}
           {opportunity.comparison && (

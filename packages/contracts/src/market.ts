@@ -614,6 +614,31 @@ export const beltAnalysisResponseSchema = z.strictObject({
 });
 export type BeltAnalysis = z.infer<typeof beltAnalysisSchema>;
 
+const craftCostMoneySchema = z.object({
+  amount: z.string().regex(/^-?\d+(\.\d+)?$/),
+  currency: z.enum(['chaos', 'divine']),
+});
+const craftCostLineSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  quantity: z.string(),
+  total: craftCostMoneySchema,
+});
+// The historical opportunity payload permits arbitrary breakdown JSON.
+export const craftCostBreakdownSchema = z.object({
+  base: craftCostLineSchema,
+  expectedAttempts: z.string(),
+  expectedMaterials: craftCostMoneySchema,
+  finishingTotal: craftCostMoneySchema,
+  materials: z.array(craftCostLineSchema),
+  baseReplacement: z
+    .object({
+      expectedReplacements: z.string(),
+      netCost: craftCostMoneySchema,
+    })
+    .optional(),
+});
+
 export const beltOpportunitySchema = z.strictObject({
   targetId: z.uuid(),
   targetDigest: z.string(),
