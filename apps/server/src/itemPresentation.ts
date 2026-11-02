@@ -104,7 +104,7 @@ export function createRecipeItemPresentation(input: {
   return {
     base: {
       canonicalId: recipe.base.baseId,
-      iconUrl: base.iconUrl ?? null,
+      iconUrl: recipe.imageUrl ?? base.iconUrl ?? null,
       itemClass: base.itemClass ?? invalid(),
       itemLevel: recipe.base.itemLevel,
       modifiers: [],
@@ -116,7 +116,7 @@ export function createRecipeItemPresentation(input: {
     materials,
     target: {
       canonicalId: recipe.base.baseId,
-      iconUrl: base.iconUrl ?? null,
+      iconUrl: recipe.imageUrl ?? base.iconUrl ?? null,
       itemClass: base.itemClass ?? invalid(),
       itemLevel: recipe.base.itemLevel,
       modifiers,

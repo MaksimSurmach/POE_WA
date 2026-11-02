@@ -57,6 +57,53 @@ describe('recipe schema v2', () => {
     });
   });
 
+  it('validates sourced variant steps and rejects dangling execution evidence', () => {
+    const evidence = {
+      method: 'Craft of Exile simulation',
+      patch: '3.26',
+      url: 'https://www.craftofexile.com/',
+      verifiedAt: '2026-11-02',
+    };
+    const variant = {
+      id: 'fossil-spam',
+      name: 'Jagged Fossils',
+      steps: [
+        {
+          action: 'Use the fossil in a resonator',
+          continueWhen: 'Target modifiers are present',
+          failureAction: 'Repeat on the same base',
+          id: 'roll',
+          materials: [{ itemId: 'jagged-fossil', quantity: 1 }],
+          success: { evidence, probability: 0.1 },
+          title: 'Roll the item',
+        },
+      ],
+      expectedExecutions: [{ count: 10, evidence, stepId: 'roll' }],
+    };
+    expect(
+      validateRecipeV2({
+        ...validRecipe,
+        craft: { ...validRecipe.craft, variants: [variant] },
+      }).craft.variants?.[0]?.expectedExecutions?.[0]?.count,
+    ).toBe(10);
+    expect(() =>
+      validateRecipeV2({
+        ...validRecipe,
+        craft: {
+          ...validRecipe.craft,
+          variants: [
+            {
+              ...variant,
+              expectedExecutions: [
+                { ...variant.expectedExecutions[0], stepId: 'missing' },
+              ],
+            },
+          ],
+        },
+      }),
+    ).toThrow(/expectedExecutions\[0\]\.stepId/);
+  });
+
   it('rejects invalid item variants, item levels, targets, and craft methods with paths', () => {
     expect(() =>
       validateRecipeV2({

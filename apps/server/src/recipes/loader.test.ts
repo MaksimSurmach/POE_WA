@@ -45,6 +45,49 @@ function expectCatalogError(error: unknown) {
 }
 
 describe('Markdown recipe loader', () => {
+  it('loads manual JSON recipes from the same catalog without a parallel loader', async () => {
+    const catalog = await createCatalog();
+    const directory = path.join(catalog, 'cluster-jewel');
+    await mkdir(directory, { recursive: true });
+    await writeFile(
+      path.join(directory, 'physical.json'),
+      JSON.stringify({
+        base: {
+          baseId: 'Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge',
+          influences: [],
+          itemLevel: 84,
+          rarity: 'rare',
+          state: { corrupted: false, fractured: false, synthesised: false },
+          variant: {
+            kind: 'cluster-jewel',
+            passiveCount: 8,
+            smallPassiveStatId: 'physical-damage',
+          },
+        },
+        category: 'cluster-jewel',
+        content: { craftSteps: [] },
+        craft: {
+          method: { kind: 'harvest-reforge', tag: 'physical' },
+          startingMods: [],
+        },
+        gameDataVersion: '3.26.0',
+        id: 'physical-json',
+        schemaVersion: 2,
+        tags: ['physical'],
+        target: { allOf: [], anyOf: [], minimumMatched: null },
+        title: 'Physical JSON Recipe',
+      }),
+    );
+
+    await expect(loadRecipeCatalog(catalog)).resolves.toMatchObject([
+      {
+        definition: { id: 'physical-json' },
+        markdown: '',
+        sourcePath: 'cluster-jewel/physical.json',
+      },
+    ]);
+  });
+
   it('keeps v1 compatibility and returns v2 through a separate loader path', async () => {
     const catalog = await createCatalog();
     await writeRecipe(catalog, 'legacy', validRecipeV1Fixture);

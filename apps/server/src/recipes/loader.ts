@@ -130,32 +130,31 @@ export async function loadRecipeFile(
     ]);
   }
 
-  if (!matter.test(source)) {
-    throw new RecipeCatalogError([
-      {
-        file: sourcePath,
-        message: 'Missing YAML front matter',
-        path: 'frontMatter',
-      },
-    ]);
-  }
-
-  let parsed: ReturnType<typeof matter>;
+  const isJson = path.extname(absoluteFile).toLowerCase() === '.json';
+  let document: unknown;
+  let body = '';
   try {
-    parsed = matter(source);
+    if (isJson) {
+      document = JSON.parse(source);
+    } else {
+      if (!matter.test(source)) throw new Error('Missing YAML front matter');
+      const parsed = matter(source);
+      document = parsed.data;
+      body = parsed.content;
+    }
   } catch (error) {
     throw new RecipeCatalogError([
       {
         file: sourcePath,
         message: safeErrorMessage(error),
-        path: 'frontMatter',
+        path: isJson ? '$json' : 'frontMatter',
       },
     ]);
   }
 
   let definition: LoadedRecipeDefinition;
   try {
-    definition = validateRecipeDocument(parsed.data);
+    definition = validateRecipeDocument(document);
   } catch (error) {
     if (error instanceof RecipeValidationError) {
       throw new RecipeCatalogError(
@@ -169,8 +168,8 @@ export async function loadRecipeFile(
     throw error;
   }
 
-  const markdown = normalizeMarkdown(parsed.content);
-  if (!markdown) {
+  const markdown = normalizeMarkdown(body);
+  if (!isJson && !markdown) {
     throw new RecipeCatalogError([
       {
         file: sourcePath,
@@ -180,12 +179,14 @@ export async function loadRecipeFile(
     ]);
   }
 
-  const assets = await validateMarkdown(
-    markdown,
-    path.dirname(absoluteFile),
-    catalogRoot,
-    sourcePath,
-  );
+  const assets = markdown
+    ? await validateMarkdown(
+        markdown,
+        path.dirname(absoluteFile),
+        catalogRoot,
+        sourcePath,
+      )
+    : [];
 
   return { assets, definition, markdown, sourcePath };
 }
@@ -200,7 +201,10 @@ async function findRecipeFiles(directory: string): Promise<string[]> {
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
       files.push(...(await findRecipeFiles(entryPath)));
-    } else if (entry.isFile() && entry.name === 'recipe.md') {
+    } else if (
+      entry.isFile() &&
+      (entry.name === 'recipe.md' || entry.name.endsWith('.json'))
+    ) {
       files.push(entryPath);
     }
   }

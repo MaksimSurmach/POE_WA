@@ -32,6 +32,83 @@ const craftStepSchema = z.strictObject({
   title: textSchema,
 });
 
+const evidenceSchema = z.strictObject({
+  method: textSchema,
+  patch: textSchema,
+  url: z.string().url(),
+  verifiedAt: z.iso.date(),
+});
+
+const variantMaterialSchema = z.strictObject({
+  itemId: textSchema,
+  quantity: z.number().positive(),
+});
+
+const variantStepSchema = z.strictObject({
+  action: textSchema,
+  continueWhen: textSchema,
+  failureAction: textSchema,
+  id: slugSchema,
+  materials: z.array(variantMaterialSchema).default([]),
+  success: z
+    .strictObject({
+      evidence: evidenceSchema,
+      probability: z.number().gt(0).lte(1),
+    })
+    .optional(),
+  title: textSchema,
+});
+
+const craftVariantSchema = z
+  .strictObject({
+    evidence: evidenceSchema.optional(),
+    id: slugSchema,
+    name: textSchema,
+    steps: z.array(variantStepSchema).min(1),
+    // Expected material usage is entered per completed item so conditional stages
+    // are never priced by multiplying all step costs by 1 / probability.
+    expectedExecutions: z
+      .array(
+        z.strictObject({
+          count: z.number().positive(),
+          evidence: evidenceSchema,
+          stepId: slugSchema,
+        }),
+      )
+      .optional(),
+  })
+  .superRefine((variant, context) => {
+    const stepIds = new Set<string>();
+    variant.steps.forEach((step, index) => {
+      if (stepIds.has(step.id)) {
+        context.addIssue({
+          code: 'custom',
+          message: `Duplicate step id "${step.id}"`,
+          path: ['steps', index, 'id'],
+        });
+      }
+      stepIds.add(step.id);
+    });
+    const executionIds = new Set<string>();
+    variant.expectedExecutions?.forEach((execution, index) => {
+      if (!stepIds.has(execution.stepId)) {
+        context.addIssue({
+          code: 'custom',
+          message: `Unknown step id "${execution.stepId}"`,
+          path: ['expectedExecutions', index, 'stepId'],
+        });
+      }
+      if (executionIds.has(execution.stepId)) {
+        context.addIssue({
+          code: 'custom',
+          message: `Duplicate execution count for "${execution.stepId}"`,
+          path: ['expectedExecutions', index, 'stepId'],
+        });
+      }
+      executionIds.add(execution.stepId);
+    });
+  });
+
 const resourceConsumptionSchema = z.strictObject({
   materials: z
     .array(
@@ -71,8 +148,10 @@ export const recipeV2Schema = z.strictObject({
     method: canonicalCraftMethodSchema,
     resourceConsumption: resourceConsumptionSchema.optional(),
     startingMods: z.array(canonicalStartingModSchema).default([]),
+    variants: z.array(craftVariantSchema).min(1).optional(),
   }),
   gameDataVersion: textSchema,
+  imageUrl: z.string().url().optional(),
   id: slugSchema,
   schemaVersion: z.literal(2),
   summary: textSchema.optional(),
