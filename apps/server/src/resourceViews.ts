@@ -1,3 +1,4 @@
+import { gzipSync } from 'node:zlib';
 import {
   type CatalogEntry,
   type CatalogResponse,
@@ -16,6 +17,8 @@ import {
   type RecipeEvaluation,
   type Repositories,
   validateRecipeDocument,
+  canonicalCraftSetupFromRecipe,
+  type TradeQueryGenerator,
 } from '@poe-worksmith/domain';
 import {
   createRecipeItemPresentation,
@@ -25,6 +28,7 @@ import {
 export function createResourceReaders(
   repositories: Repositories,
   presentationCatalog: ItemPresentationCatalog,
+  trade?: TradeQueryGenerator,
 ) {
   return {
     async readCatalog(correlationId: string): Promise<CatalogResponse> {
@@ -81,13 +85,33 @@ export function createResourceReaders(
       if (!recipe || !recipe.active) {
         throw new DomainError('PERSISTENCE_NOT_FOUND');
       }
+      const definition = validateRecipeDocument(recipe.definition);
+      const generatedBase =
+        trade && currentLeague && definition.schemaVersion === 2
+          ? await trade
+              .generate({
+                league: currentLeague.gggId,
+                setup: {
+                  ...canonicalCraftSetupFromRecipe(definition),
+                  target: { allOf: [], anyOf: [], minimumMatched: null },
+                },
+              })
+              .catch(() => null)
+          : null;
+      const baseTradeUrl =
+        generatedBase?.ok && currentLeague
+          ? `https://www.pathofexile.com/trade/search/${encodeURIComponent(currentLeague.gggId)}/${gzipSync(JSON.stringify({ ...generatedBase.value.query, sort: { price: 'asc' } })).toString('base64url')}`
+          : null;
       const evaluation = published?.evaluations.find(
         (candidate) => candidate.recipeId === recipe.id,
       );
 
       return resourceResponse(
         correlationId,
-        toRecipeDetail(recipe, evaluation, presentationCatalog),
+        {
+          ...toRecipeDetail(recipe, evaluation, presentationCatalog),
+          baseTradeUrl,
+        },
         published?.cycle.publishedAt ?? null,
         refreshStatus(progress.active?.status ?? progress.published?.status),
       );
@@ -234,6 +258,7 @@ function toRecipeDetail(
   ].filter((value): value is string => value !== null);
 
   return {
+    baseTradeUrl: null,
     base: {
       name: definition.baseRequirements.baseType,
       requirements,
@@ -366,6 +391,7 @@ function toV2RecipeDetail(
     return cost.data;
   });
   return {
+    baseTradeUrl: null,
     base: {
       name: presentation.base.name,
       requirements: presentation.base.properties.map(({ label, value }) =>

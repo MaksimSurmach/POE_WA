@@ -213,6 +213,7 @@ export const recipeDetailViewSchema = z
   .object({
     recipe: recipeSchema,
     gameVersion: z.string().min(1),
+    baseTradeUrl: z.url().nullable(),
     confidence: z.enum(['low', 'medium', 'high']).nullable(),
     presentation: itemPresentationContractV1Schema,
     base: z

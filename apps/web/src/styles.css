@@ -882,6 +882,217 @@ progress::-webkit-progress-value {
   }
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+.handbook-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.catalog-search {
+  flex: 1 1 220px;
+}
+.catalog-search input {
+  width: 100%;
+}
+.catalog-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.catalog-tags button {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.76rem;
+}
+.catalog-tags button[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.cluster-table-wrap {
+  overflow-x: auto;
+}
+.cluster-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  white-space: nowrap;
+}
+.cluster-table th {
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cluster-table td {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+}
+.cluster-table tbody tr:hover {
+  background: var(--surface);
+}
+.cluster-table__identity {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.cluster-table__identity .item-preview__trigger {
+  width: 34px;
+  height: 34px;
+}
+.cluster-table__identity a {
+  text-decoration: none;
+}
+.cluster-table__tags {
+  display: flex;
+  gap: 4px;
+}
+.cluster-table__tags .tag {
+  padding: 2px 6px;
+  font-size: 0.66rem;
+}
+.recipe-detail--compact {
+  max-width: 900px;
+  gap: 10px;
+}
+.recipe-detail--compact .back-link {
+  margin-bottom: 0;
+}
+.recipe-detail--compact .recipe-detail__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.recipe-detail--compact .recipe-detail__identity {
+  gap: 10px;
+}
+.recipe-detail--compact .item-preview__trigger {
+  width: 44px;
+  height: 44px;
+}
+.recipe-detail--compact .recipe-detail__identity h1 {
+  margin-bottom: 4px;
+  font-size: clamp(1.25rem, 2.5vw, 1.7rem);
+}
+.buy-base {
+  padding: 8px 11px;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+.recipe-economics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.recipe-economics strong {
+  margin-left: 5px;
+  color: var(--text);
+}
+.recipe-detail--compact .detail-section > h2 {
+  padding: 8px 11px;
+}
+.recipe-detail--compact .detail-section > p,
+.recipe-detail--compact .detail-section > small,
+.recipe-detail--compact .detail-section > ul {
+  margin: 0;
+  padding: 7px 11px;
+}
+.recipe-detail--compact .variant-tabs {
+  margin: 8px 10px 0;
+}
+.recipe-detail--compact .variant-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 14px;
+  font-size: 0.78rem;
+}
+.recipe-detail--compact .craft-steps {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 8px 30px 5px;
+  font-size: 0.82rem;
+}
+.craft-steps li span,
+.craft-steps li small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.craft-note,
+.craft-evidence {
+  display: block;
+  margin: 0 11px 8px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.craft-evidence {
+  color: var(--accent);
+}
+.recipe-detail--compact .base-requirements {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.recipe-detail--compact .target-modifier-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  list-style: none;
+}
+.recipe-detail--compact .target-modifier-list li {
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 0.76rem;
+}
+
+@media (max-width: 600px) {
+  .cluster-table {
+    min-width: 620px;
+  }
+  .recipe-detail--compact .recipe-detail__identity {
+    align-items: center;
+  }
+  .recipe-economics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 420px) {
   .brand {
     max-width: 145px;

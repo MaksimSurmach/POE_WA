@@ -1,79 +1,32 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  defaultCatalogFilters,
-  filterAndSortCatalog,
-  snapshotAgeSeconds,
-} from './catalog.js';
+import { defaultCatalogFilters, filterCatalog } from './catalog.js';
 import { catalogFixtures } from './mocks/catalog.js';
 
-describe('catalog filtering and ranking', () => {
-  it('filters every supported dimension and keeps no-results distinct', () => {
+describe('cluster jewel catalog search', () => {
+  it('searches recipe names, base names, summaries, and tags', () => {
+    for (const search of ['physical', 'large cluster jewel', 'cluster']) {
+      expect(
+        filterCatalog(catalogFixtures, {
+          ...defaultCatalogFilters,
+          search,
+        }).map(({ recipe }) => recipe.id),
+      ).toContain('profitable-cluster');
+    }
+  });
+
+  it('filters by the selected tag and returns no matches plainly', () => {
     expect(
-      filterAndSortCatalog(catalogFixtures, {
+      filterCatalog(catalogFixtures, {
         ...defaultCatalogFilters,
-        category: 'weapon',
-        method: 'fossil',
-        status: 'partial',
         tag: 'bow',
       }).map(({ recipe }) => recipe.id),
     ).toEqual(['no-listings-bow']);
     expect(
-      filterAndSortCatalog(catalogFixtures, {
-        ...defaultCatalogFilters,
-        budget: '2',
-      }).every(
-        ({ recipe }) =>
-          recipe.minimumCapital !== null && recipe.minimumCapital.amount <= 2,
-      ),
-    ).toBe(true);
-    expect(
-      filterAndSortCatalog(catalogFixtures, {
+      filterCatalog(catalogFixtures, {
         ...defaultCatalogFilters,
         search: 'not a recipe',
       }),
     ).toEqual([]);
-  });
-
-  it('sorts profit, capital, and freshness deterministically', () => {
-    expect(
-      filterAndSortCatalog(catalogFixtures, defaultCatalogFilters)[0]?.recipe
-        .id,
-    ).toBe('profitable-cluster');
-    const capitalRanking = filterAndSortCatalog(catalogFixtures, {
-      ...defaultCatalogFilters,
-      sort: 'capital',
-    });
-    expect(capitalRanking[0]?.recipe.id).toBe('low-margin-ring');
-    expect(capitalRanking.at(-1)?.recipe.id).toBe('invalid-recipe');
-    expect(
-      filterAndSortCatalog(catalogFixtures, {
-        ...defaultCatalogFilters,
-        sort: 'freshness',
-      })[0]?.recipe.id,
-    ).toBe('profitable-cluster');
-    expect(
-      snapshotAgeSeconds(catalogFixtures[0]!, '2026-07-20T00:02:00.000Z'),
-    ).toBe(120);
-  });
-
-  it('filters profitability and confidence and sorts confidence', () => {
-    expect(
-      filterAndSortCatalog(catalogFixtures, {
-        ...defaultCatalogFilters,
-        profitability: 'unknown',
-      }).map(({ recipe }) => recipe.id),
-    ).toContain('no-listings-bow');
-    expect(
-      filterAndSortCatalog(catalogFixtures, {
-        ...defaultCatalogFilters,
-        confidence: 'high',
-      }).every(({ evaluation }) => evaluation.confidence === 'high'),
-    ).toBe(true);
-    const confidenceRanking = filterAndSortCatalog(catalogFixtures, {
-      ...defaultCatalogFilters,
-      sort: 'confidence',
-    });
-    expect(confidenceRanking[0]?.recipe.id).toBe('profitable-cluster');
   });
 });

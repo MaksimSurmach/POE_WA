@@ -75,13 +75,14 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   const pool = createDatabasePool(config.database, logger);
   let workerError: Error | undefined;
   const repositories = createPostgresRepositories(pool);
+  const trade = new RegisteredTradeQueryGenerator(
+    createPostgresTradeMappingCatalog(pool),
+    [noVariantFilter, clusterJewelVariantFilter],
+    [mappedTargetFilter],
+  );
   const marketDependencies = createV2RecipeMarketDependencies({
     resolveResource: createPostgresResourceResolver(pool),
-    trade: new RegisteredTradeQueryGenerator(
-      createPostgresTradeMappingCatalog(pool),
-      [noVariantFilter, clusterJewelVariantFilter],
-      [mappedTargetFilter],
-    ),
+    trade,
   });
   const presentationCatalog = await loadItemPresentationCatalog(
     fileURLToPath(
@@ -94,6 +95,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   const resourceReaders = createResourceReaders(
     repositories,
     presentationCatalog,
+    trade,
   );
   let jobs: ApplicationJobScheduler | undefined;
   const refreshProducer =

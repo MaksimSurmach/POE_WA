@@ -84,7 +84,12 @@ describe('Trade query generation', () => {
           query: {
             filters: {
               misc_filters: {
-                filters: { ilvl: { min: 84 }, 'enchant.stat_3086156145': 8 },
+                filters: {
+                  ilvl: { min: 84 },
+                  'enchant.stat_3086156145': 8,
+                  'enchant.stat_3948993189': 12,
+                  'enchant.stat_4079888060': 2,
+                },
               },
             },
             stats: [{ type: 'and' }, { type: 'count', value: { min: 1 } }],

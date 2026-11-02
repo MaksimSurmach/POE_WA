@@ -7,6 +7,7 @@ import {
 import { catalogFixtures } from './catalog.js';
 
 const defaultGuide = {
+  baseTradeUrl: null,
   gameVersion: 'Settlers 3.25',
   confidence: 'medium',
   base: {

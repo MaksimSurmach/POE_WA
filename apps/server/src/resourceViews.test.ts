@@ -1,3 +1,4 @@
+import { gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 import {
@@ -7,6 +8,7 @@ import {
 import {
   createInMemoryRepositories,
   transitionRefreshCycle,
+  type TradeQueryGenerator,
 } from '@poe-worksmith/domain';
 import { describe, expect, it } from 'vitest';
 
@@ -116,6 +118,84 @@ describe('repository-backed resource views', () => {
       await readers.readCatalog(correlationId),
     );
     expect(catalog.data?.entries[0]).not.toHaveProperty('itemPreview');
+  });
+
+  it('links the recipe base to a league-specific PoE Trade search', async () => {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Mercenaries',
+      isCurrent: true,
+      metadata: {},
+      name: 'Mercenaries',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: new Date('2026-11-02T00:00:00.000Z'),
+    });
+    const trade: TradeQueryGenerator = {
+      generate: async ({ league, setup }) => {
+        expect(league).toBe('Mercenaries');
+        expect(setup.target).toEqual({
+          allOf: [],
+          anyOf: [],
+          minimumMatched: null,
+        });
+        expect(setup.base.itemLevel).toBe(83);
+        expect(setup.base.variant).toMatchObject({
+          kind: 'cluster-jewel',
+          passiveCount: 8,
+          smallPassiveStatId: 'physical-damage',
+        });
+        return {
+          diagnostics: [],
+          ok: true,
+          value: {
+            diagnostics: { gameDataVersion: '3.26.0', mappingVersion: 'test' },
+            hash: 'base-query',
+            query: {
+              query: {
+                type: 'Large Cluster Jewel',
+                filters: { misc_filters: { filters: { ilvl: { min: 83 } } } },
+              },
+            },
+          },
+        };
+      },
+    };
+    const readers = createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+      trade,
+    );
+    const detail = recipeResponseSchema.parse(
+      await readers.readRecipe(correlationId, 'physical-large-cluster-jagged'),
+    );
+    const url = new URL(detail.data!.baseTradeUrl!);
+    expect(url.pathname).toContain('/trade/search/Mercenaries/');
+    const encoded = url.pathname.split('/').at(-1)!;
+    expect(
+      JSON.parse(gunzipSync(Buffer.from(encoded, 'base64url')).toString()),
+    ).toMatchObject({
+      query: {
+        type: 'Large Cluster Jewel',
+        filters: { misc_filters: { filters: { ilvl: { min: 83 } } } },
+      },
+      sort: { price: 'asc' },
+    });
+    const unavailable = await createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+      {
+        generate: async () => {
+          throw new Error('mapping store unavailable');
+        },
+      },
+    ).readRecipe(correlationId, 'physical-large-cluster-jagged');
+    expect(
+      recipeResponseSchema.parse(unavailable).data?.baseTradeUrl,
+    ).toBeNull();
   });
 
   it('converts persisted variant price strings into response contract prices', async () => {
