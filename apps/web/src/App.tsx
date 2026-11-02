@@ -63,6 +63,14 @@ function CatalogRoute() {
   const [loadError, setLoadError] = useState(false);
   const entries = response?.data?.entries ?? [];
   const targets = marketTargets ?? [];
+  const marketUpdatedAt =
+    [
+      ...entries.map(({ snapshot }) => snapshot?.capturedAt),
+      ...targets.map(({ marketSnapshot }) => marketSnapshot?.capturedAt),
+    ]
+      .filter((timestamp): timestamp is string => Boolean(timestamp))
+      .sort()
+      .at(-1) ?? response?.publishedAt;
   const categories = useMemo(
     () =>
       [
@@ -121,14 +129,14 @@ function CatalogRoute() {
       <section className="catalog-heading" aria-labelledby="catalog-heading">
         <div>
           <h1 id="catalog-heading">Crafting Targets</h1>
-          {response?.publishedAt ? (
+          {marketUpdatedAt ? (
             <p>
               Market updated{' '}
-              <time dateTime={response.publishedAt}>
+              <time dateTime={marketUpdatedAt}>
                 {new Intl.DateTimeFormat(undefined, {
                   dateStyle: 'medium',
                   timeStyle: 'short',
-                }).format(new Date(response.publishedAt))}
+                }).format(new Date(marketUpdatedAt))}
               </time>
             </p>
           ) : null}
