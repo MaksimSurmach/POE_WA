@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-01T23:57:55.218701+00:00",
+  "checkedAt": "2026-11-02T00:42:21.081334+00:00",
   "environment": {
     "node": "22.13.0",
     "pnpm": "11.8.0",
@@ -15,6 +15,127 @@
     "officialDeveloperApiAuthorizationClaimed": false
   },
   "profiles": [
+    {
+      "targetId": "bec3a7e2-bc87-4511-83d6-01d76aabea5c",
+      "name": "RF: шлем под Fire Trap",
+      "league": "Allflame",
+      "patch": "3.29",
+      "targetDigest": "563a5c722f4c1156e2b56e870a9a69f93cc96208e0ad98b0cc66ace0534bd3ea",
+      "matchedListings": 6,
+      "independentSellers": 6,
+      "askingDistribution": {
+        "min": 250,
+        "median": 345,
+        "max": 600
+      },
+      "askingCurrency": "chaos",
+      "outcomes": [
+        {
+          "id": "fb0ee5ca-27ba-4926-b7bb-8030464e4971",
+          "status": "succeeded",
+          "queryDigest": "05cb490ce60d9d4e6aea75dd8275ad57128519bf33bf739115286502c08b7518",
+          "capturedAt": "2026-11-02T00:35:05.350Z",
+          "completedAt": "2026-11-02T00:35:45.426Z",
+          "snapshotId": "84316740-7ab7-4d1d-a4f3-6ea8fbbf5ccc",
+          "coverage": "complete",
+          "reportedTotal": 6,
+          "returnedCount": 6,
+          "fetchedCount": 6,
+          "cached": false,
+          "errorCode": null
+        },
+        {
+          "id": "689d6eb5-3b9d-47c4-9803-8b025b318afa",
+          "status": "succeeded",
+          "queryDigest": "05cb490ce60d9d4e6aea75dd8275ad57128519bf33bf739115286502c08b7518",
+          "capturedAt": "2026-11-02T00:32:10.951Z",
+          "completedAt": "2026-11-02T00:32:51.010Z",
+          "snapshotId": "6b4a75b1-6d91-4b35-a7fd-59cc8e8d5e09",
+          "coverage": "complete",
+          "reportedTotal": 6,
+          "returnedCount": 6,
+          "fetchedCount": 6,
+          "cached": false,
+          "errorCode": null
+        }
+      ],
+      "calculation": {
+        "expectedCraftCost": "342.736",
+        "askingPrice": "250",
+        "spread": "-92.736",
+        "roiPercent": "-27.05756034",
+        "costRange": null,
+        "askingRange": {
+          "min": 250,
+          "max": 600
+        },
+        "currency": "chaos",
+        "breakdown": {
+          "base": {
+            "id": "base",
+            "label": "Archdemon Crown",
+            "quantity": "1",
+            "total": {
+              "amount": "250",
+              "currency": "chaos"
+            },
+            "unitPrice": {
+              "amount": "250",
+              "currency": "chaos"
+            }
+          },
+          "expectedAttempts": "94",
+          "expectedCraftCost": {
+            "amount": "342.736",
+            "currency": "chaos"
+          },
+          "expectedMaterials": {
+            "amount": "88.736",
+            "currency": "chaos"
+          },
+          "finishing": [
+            {
+              "id": "bench-aoe",
+              "label": "Chaos Orb",
+              "quantity": "4",
+              "total": {
+                "amount": "4",
+                "currency": "chaos"
+              },
+              "unitPrice": {
+                "amount": "1",
+                "currency": "chaos"
+              }
+            }
+          ],
+          "finishingTotal": {
+            "amount": "4",
+            "currency": "chaos"
+          },
+          "materials": [
+            {
+              "id": "wild-lifeforce",
+              "label": "Wild Crystallised Lifeforce",
+              "quantity": "50",
+              "total": {
+                "amount": "0.944",
+                "currency": "chaos"
+              },
+              "unitPrice": {
+                "amount": "0.01888",
+                "currency": "chaos"
+              }
+            }
+          ],
+          "materialsPerAttempt": {
+            "amount": "0.944",
+            "currency": "chaos"
+          }
+        }
+      },
+      "confidence": "LOW",
+      "economicConclusion": "NON_POSITIVE"
+    },
     {
       "targetId": "bedec0da-c9f7-4761-b36c-8452ea1be935",
       "name": "Winter Orb Elementalist — Stygian Vise",
@@ -106,6 +227,84 @@
       ]
     },
     {
+      "targetId": "7245333d-e107-42a5-baf6-0a6c58406a51",
+      "name": "Lacerate: восстановление жизни при блоке",
+      "league": "Allflame",
+      "patch": "3.29",
+      "targetDigest": "63b87545b4bca3e778cc73e7475475c22a7f4449d9c665f1b9ff27b4af9b136f",
+      "matchedListings": 0,
+      "independentSellers": 0,
+      "askingDistribution": null,
+      "askingCurrency": "chaos",
+      "outcomes": [
+        {
+          "id": "4f29fba7-d107-461b-874c-a3fe5f7a7a41",
+          "status": "empty",
+          "queryDigest": "289747c5ca7e651dac344f353b7e1f15f1440bd4541027d97c1b923a6744e695",
+          "capturedAt": "2026-11-02T00:33:30.636Z",
+          "completedAt": "2026-11-02T00:33:30.657Z",
+          "snapshotId": "a73ae42a-c28c-4694-a3e6-9e477b0ade28",
+          "coverage": "complete",
+          "reportedTotal": 0,
+          "returnedCount": 0,
+          "fetchedCount": 0,
+          "cached": false,
+          "errorCode": null
+        }
+      ]
+    },
+    {
+      "targetId": "1f4c4338-69b2-4b8a-9025-deeec534d912",
+      "name": "Spectre: редкий шлем с уровнями приспешников",
+      "league": "Allflame",
+      "patch": "3.29",
+      "targetDigest": "6bce18599c962de4f93ee0da7f76a489d334fa5564c9231774affb276af4e499",
+      "matchedListings": 0,
+      "independentSellers": 0,
+      "askingDistribution": null,
+      "askingCurrency": "chaos",
+      "outcomes": [
+        {
+          "id": "6269d224-89bf-4a74-be70-86021747bd32",
+          "status": "empty",
+          "queryDigest": "ac33f1ee51a2ad10fb94fe5b6df22bc1bf03ae3e03146686f9e959537b29f7e5",
+          "capturedAt": "2026-11-01T23:44:53.446Z",
+          "completedAt": "2026-11-01T23:44:53.457Z",
+          "snapshotId": "70fd9b24-ed4d-4145-b601-eb6e57e32d9c",
+          "coverage": "complete",
+          "reportedTotal": 0,
+          "returnedCount": 0,
+          "fetchedCount": 0,
+          "cached": false,
+          "errorCode": null
+        },
+        {
+          "id": "abc49aca-7a28-4791-9051-b686e58a919c",
+          "status": "empty",
+          "queryDigest": "ac33f1ee51a2ad10fb94fe5b6df22bc1bf03ae3e03146686f9e959537b29f7e5",
+          "capturedAt": "2026-11-01T23:36:15.942Z",
+          "completedAt": "2026-11-01T23:36:15.954Z",
+          "snapshotId": "0df81be1-d377-42b5-885b-eda687b14509",
+          "coverage": "complete",
+          "reportedTotal": 0,
+          "returnedCount": 0,
+          "fetchedCount": 0,
+          "cached": false,
+          "errorCode": null
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Asking prices are not completed sales.",
+    "The dated RF revision 5 scenario is an approximate LOW-confidence cost estimate; gold and alternative base preparation are excluded. Other profiles lack complete current cost models.",
+    "Empty searches are successful zero-result observations. Historical revisions and their observations are preserved.",
+    "These receipts refer to the local review database; raw immutable observations remain there."
+  ],
+  "rareSnapshots": 12,
+  "pricedProfilesWithTwoIndependentObservations": 3,
+  "retiredProfiles": [
+    {
       "targetId": "bf245f4f-2715-4219-9359-b1b1cfe9bc59",
       "name": "RF: шлем под Fire Trap",
       "league": "Allflame",
@@ -176,55 +375,8 @@
           "errorCode": null
         }
       ]
-    },
-    {
-      "targetId": "1f4c4338-69b2-4b8a-9025-deeec534d912",
-      "name": "Spectre: редкий шлем с уровнями приспешников",
-      "league": "Allflame",
-      "patch": "3.29",
-      "targetDigest": "6bce18599c962de4f93ee0da7f76a489d334fa5564c9231774affb276af4e499",
-      "matchedListings": 0,
-      "independentSellers": 0,
-      "askingDistribution": null,
-      "askingCurrency": "chaos",
-      "outcomes": [
-        {
-          "id": "6269d224-89bf-4a74-be70-86021747bd32",
-          "status": "empty",
-          "queryDigest": "ac33f1ee51a2ad10fb94fe5b6df22bc1bf03ae3e03146686f9e959537b29f7e5",
-          "capturedAt": "2026-11-01T23:44:53.446Z",
-          "completedAt": "2026-11-01T23:44:53.457Z",
-          "snapshotId": "70fd9b24-ed4d-4145-b601-eb6e57e32d9c",
-          "coverage": "complete",
-          "reportedTotal": 0,
-          "returnedCount": 0,
-          "fetchedCount": 0,
-          "cached": false,
-          "errorCode": null
-        },
-        {
-          "id": "abc49aca-7a28-4791-9051-b686e58a919c",
-          "status": "empty",
-          "queryDigest": "ac33f1ee51a2ad10fb94fe5b6df22bc1bf03ae3e03146686f9e959537b29f7e5",
-          "capturedAt": "2026-11-01T23:36:15.942Z",
-          "completedAt": "2026-11-01T23:36:15.954Z",
-          "snapshotId": "0df81be1-d377-42b5-885b-eda687b14509",
-          "coverage": "complete",
-          "reportedTotal": 0,
-          "returnedCount": 0,
-          "fetchedCount": 0,
-          "cached": false,
-          "errorCode": null
-        }
-      ]
     }
   ],
-  "limits": [
-    "Asking prices are not completed sales.",
-    "Current prices and expected attempts for complete craft scenarios are not established for these research profiles.",
-    "Two empty Spectre searches and one empty Lacerate search are successful zero-result observations.",
-    "These receipts refer to the local review database; raw immutable observations remain there."
-  ],
-  "rareSnapshots": 9,
-  "pricedProfilesWithTwoIndependentObservations": 3
+  "activeProfileSnapshots": 9,
+  "retiredProfileSnapshots": 3
 }

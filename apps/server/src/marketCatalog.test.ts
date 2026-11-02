@@ -1,9 +1,49 @@
 import { describe, expect, it, vi } from 'vitest';
+import { readFile } from 'node:fs/promises';
 import { beltDemoFixture } from './beltDemoFixture.js';
-import { activeCatalogTargets, importMarketCatalog } from './marketCatalog.js';
+import {
+  activeCatalogTargets,
+  importMarketCatalog,
+  marketCatalogImportSchema,
+} from './marketCatalog.js';
 import type { MarketTarget } from '@poe-worksmith/contracts';
 
 describe('versioned JSON catalog', () => {
+  it('keeps checked CoE support and recovery requirements rather than the stale unrelated IDs', async () => {
+    const catalog = marketCatalogImportSchema.parse(
+      JSON.parse(
+        await readFile(
+          new URL('../../../catalog/market-beta-3.29.json', import.meta.url),
+          'utf8',
+        ),
+      ),
+    );
+    const requirements = (url: string) =>
+      JSON.parse(
+        Buffer.from(new URL(url).searchParams.get('reqs')!, 'base64').toString(
+          'utf8',
+        ),
+      ) as Array<{ e: Array<{ i: string; t: string | null }> }>;
+    const rf = catalog.profiles.find(
+      (profile) => profile.catalog.key === 'rf-fire-trap-helmet',
+    )!;
+    expect(
+      requirements(rf.craftVariants![0]!.craftOfExileUrl)[0]!.e.map(
+        (entry) => entry.i,
+      ),
+    ).toEqual(['2840', '2845', 'special:open-prefix']);
+    expect(
+      requirements(rf.craftVariants![1]!.craftOfExileUrl)[0]!.e.every(
+        (entry) => entry.t === '1',
+      ),
+    ).toBe(true);
+    const shield = catalog.profiles.find(
+      (profile) => profile.catalog.key === 'lacerate-block-shield',
+    )!;
+    const url = shield.craftVariants![0]!.craftOfExileUrl;
+    expect(requirements(url)[0]!.e[0]!.i).toBe('1868');
+    expect(new URL(url).searchParams.get('method')).toBe('3,2,20');
+  });
   it('validates before writes, supports dry runs and preserves old revisions', async () => {
     const records: MarketTarget[] = [];
     const saveTarget = vi.fn(async (target: MarketTarget) => {

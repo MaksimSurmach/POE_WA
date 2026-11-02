@@ -60,6 +60,10 @@ export function MarketOpportunities({
                           calc.currency as 'chaos' | 'divine',
                         )
                       : 'Нет оценки'}
+                    {calc &&
+                      row.method?.success.mode === 'expected_attempts' && (
+                        <small className="market-row-meta">Сценарий</small>
+                      )}
                     {calc?.costRange && (
                       <small className="market-row-meta">
                         {calc.costRange.min}–{calc.costRange.max}
@@ -75,6 +79,11 @@ export function MarketOpportunities({
                       : calc
                         ? `${calc.askingPrice} ${calc.currency}`
                         : '—'}
+                    {calc && (
+                      <small className="market-row-meta">
+                        В расчёте: {calc.askingPrice} {calc.currency}
+                      </small>
+                    )}
                     {distribution && row.comparison && (
                       <small className="market-row-meta">
                         {displayPrice(
@@ -98,7 +107,12 @@ export function MarketOpportunities({
                           : undefined
                     }
                   >
-                    {calc ? `${calc.spread} ${calc.currency}` : '—'}
+                    {calc
+                      ? displayPrice(
+                          Number(calc.spread),
+                          calc.currency as 'chaos' | 'divine',
+                        )
+                      : '—'}
                     {calc && (
                       <small className="market-row-meta">
                         {calc.roiPercent === undefined

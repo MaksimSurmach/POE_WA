@@ -44,6 +44,32 @@ const row: BeltOpportunity = {
 };
 
 describe('opportunity rows', () => {
+  it('shows the calculation price separately from the displayed market median', () => {
+    const calculated: BeltOpportunity = {
+      ...row,
+      status: 'CALCULATED',
+      economicConclusion: 'NON_POSITIVE',
+      calculation: {
+        expectedCraftCost: '342.736',
+        askingPrice: '250',
+        spread: '-92.736',
+        roiPercent: '-27.057',
+        currency: 'chaos',
+        breakdown: {},
+      },
+    };
+    const html = renderToStaticMarkup(
+      <MarketOpportunities
+        rows={[calculated]}
+        selectedId=""
+        onSelect={() => {}}
+        renderDetails={() => null}
+      />,
+    );
+    expect(html).toContain('200 chaos');
+    expect(html).toContain('В расчёте: 250 chaos');
+    expect(html).toContain('-92,74 chaos');
+  });
   it('shows matched market prices without inventing a craft calculation, and opens only the selected details', () => {
     const render = (selectedId: string) =>
       renderToStaticMarkup(

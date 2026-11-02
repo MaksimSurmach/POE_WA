@@ -246,11 +246,12 @@
               }
             ]
           }
-        ]
+        ],
+        "fractured": false
       },
       "catalog": {
         "key": "rf-fire-trap-helmet",
-        "revision": 3,
+        "revision": 4,
         "progression": "upgrade",
         "verification": "research",
         "unknowns": [
@@ -357,6 +358,12 @@
             "catalog.reviewed.json": "86597c741f78a252c1c6204d99528b4dd251c05a681355bf724879c71307a2e6",
             "final-recipes.json": "2aea998ff77aca18908182f8ad35152458b6ee555d284ab70b8c056bad8a2cac",
             "final-decisions.json": "faa8a70509b813ec42a5656b11b49c01d4d2f04f040d3c7ff4776872b6a0cbd0"
+          },
+          "craftOfExileLinkCheck": {
+            "checkedAt": "2026-11-02T00:17:44.666Z",
+            "concentratedEffectId": "2840",
+            "burningDamageId": "2845",
+            "note": "Replaced stale calculator IDs 2839/2844 after checking rendered requirements; IDs are CoE-specific, not Trade stat IDs."
           }
         }
       },
@@ -376,7 +383,7 @@
             "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
             "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
           ],
-          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODM5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&game=poe1&class=73",
+          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&game=poe1&class=73",
           "verification": "research"
         },
         {
@@ -393,7 +400,7 @@
             "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
             "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
           ],
-          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODM5IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyODQ0IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tcHJlZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyODQ1IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tcHJlZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&game=poe1&class=73",
           "verification": "research"
         }
       ]
@@ -694,7 +701,7 @@
       },
       "catalog": {
         "key": "lacerate-block-shield",
-        "revision": 3,
+        "revision": 4,
         "progression": "intermediate rare upgrade",
         "verification": "research",
         "unknowns": [
@@ -790,6 +797,12 @@
             "catalog.reviewed.json": "86597c741f78a252c1c6204d99528b4dd251c05a681355bf724879c71307a2e6",
             "final-recipes.json": "2aea998ff77aca18908182f8ad35152458b6ee555d284ab70b8c056bad8a2cac",
             "final-decisions.json": "faa8a70509b813ec42a5656b11b49c01d4d2f04f040d3c7ff4776872b6a0cbd0"
+          },
+          "craftOfExileLinkCheck": {
+            "checkedAt": "2026-11-02T00:27:48.915Z",
+            "shaperLifeOnBlockId": "1868",
+            "method": "Deafening Essence of Greed",
+            "note": "Corrected the stale requirement that opened chance to Shock on Block. Numeric recovery >=4 is a manual acceptance check."
           }
         }
       },
@@ -807,9 +820,9 @@
             "Reject numeric3% even if recovery affix exists; repeat Greed, paying each essence.",
             "Real Greed retry discarded recovery and bench; paid Scour retained Shaper, natural21life, ilvl70 and base. Reuse normal result with Deafening Greed.",
             "No armour, suppression, resistance-cap or endgame Synthesised replacement claim. Shaper acquired-input market price not measured here.",
-            "Ссылка открывает сохранённый законченный пример; это не оценка попыток."
+            "CoE задаёт наличие recovery и свободного суффикса. Числовой roll 4–5% нужно проверять вручную; 3% не принимается и не включён в вероятность калькулятора."
           ],
-          "craftOfExileUrl": "https://beta.craftofexile.com/?game=poe1&group=16&item=926&method=12&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9TaGllbGRzL1NoaWVsZFN0cjE3IiwibSI6W3siayI6IkluY3JlYXNlZExpZmU5IiwidiI6WzEzOV0sImYiOlsiZSJdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZFBoeXNpY2FsRGFtYWdlUmVkdWN0aW9uUmF0aW5nUGVyY2VudDUiLCJ2IjpbNzldLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQWxsUmVzaXN0YW5jZXM1IiwidiI6WzE2XSwiZiI6W10sInAiOm51bGx9LHsiayI6IlJlY292ZXJMaWZlUGVyY2VudE9uQmxvY2tVYmVyMV8iLCJ2IjpbNV0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJFaW5oYXJNYXN0ZXJGaXJlUmVzaXN0M18iLCJ2IjpbMzNdLCJmIjpbXSwicCI6bnVsbH1dLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3MCwiciI6InJhcmUiLCJpZiI6WzBdLCJpcCI6W1syMV1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjUwM30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&influences=0&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxODY3IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoic3BlY2lhbDpvcGVuLXN1ZmZpeCIsInQiOiIxIiwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&ilvl=70&class=114",
+          "craftOfExileUrl": "https://beta.craftofexile.com/?game=poe1&group=16&item=926&method=3%2C2%2C20&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9TaGllbGRzL1NoaWVsZFN0cjE3IiwibSI6W3siayI6IkluY3JlYXNlZExpZmU5IiwidiI6WzEzOV0sImYiOlsiZSJdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZFBoeXNpY2FsRGFtYWdlUmVkdWN0aW9uUmF0aW5nUGVyY2VudDUiLCJ2IjpbNzldLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQWxsUmVzaXN0YW5jZXM1IiwidiI6WzE2XSwiZiI6W10sInAiOm51bGx9LHsiayI6IlJlY292ZXJMaWZlUGVyY2VudE9uQmxvY2tVYmVyMV8iLCJ2IjpbNV0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJFaW5oYXJNYXN0ZXJGaXJlUmVzaXN0M18iLCJ2IjpbMzNdLCJmIjpbXSwicCI6bnVsbH1dLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3MCwiciI6InJhcmUiLCJpZiI6WzBdLCJpcCI6W1syMV1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjUwM30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&influences=0&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxODY4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoic3BlY2lhbDpvcGVuLXN1ZmZpeCIsInQiOiIxIiwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&ilvl=70&class=114",
           "verification": "research"
         }
       ]
