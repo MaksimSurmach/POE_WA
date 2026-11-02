@@ -10,17 +10,9 @@ import {
   Tag,
 } from './components.js';
 import { createApiClient } from './apiClient.js';
-import { RecipeStatePanel } from './failureStates.js';
-import { RefreshFreshness } from './refreshFreshness.js';
+import { ItemTooltip } from './ItemTooltip.js';
 
 const apiClient = createApiClient();
-
-const listedAt = new Intl.DateTimeFormat('en', {
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  month: 'short',
-});
 
 export function RecipePage() {
   const { recipeId } = useParams();
@@ -48,85 +40,55 @@ export function RecipePage() {
     };
   }, [recipeId]);
 
-  if (loadError) {
-    return (
-      <>
-        <Link className="back-link" to="/catalog">
-          Back to catalog
-        </Link>
-        <StatusPanel tone="danger" title="Recipe not found" />
-      </>
-    );
-  }
-
-  if (!response) {
-    return (
-      <>
-        <Link className="back-link" to="/catalog">
-          Back to catalog
-        </Link>
-        <StatusPanel tone="info" title="Loading recipe" />
-      </>
-    );
-  }
-
-  if (!response.data) {
-    return (
-      <>
-        <Link className="back-link" to="/catalog">
-          Back to catalog
-        </Link>
-        <StatusPanel tone="danger" title="Recipe unavailable" />
-      </>
-    );
-  }
+  if (loadError) return <RecipeMessage title="Recipe not found" />;
+  if (!response) return <RecipeMessage title="Loading recipe" />;
+  if (!response.data) return <RecipeMessage title="Recipe unavailable" />;
 
   const detail = response.data;
-
   const { evaluation, recipe } = detail;
+  const target = detail.presentation.target;
+  const modifiers = ['implicit', 'prefix', 'suffix'] as const;
 
   return (
     <article className="recipe-detail">
-      <Link className="back-link" to="/catalog">
-        ‹ Back to catalog
+      <Link className="back-link" to="/">
+        ‹ All recipes
       </Link>
-
       <header className="recipe-detail__header">
-        <div>
-          <h1>{recipe.title}</h1>
-          <p>{recipe.summary}</p>
-          <div className="recipe-detail__metadata">
-            <span className="tag-list" aria-label="Recipe tags">
-              {recipe.tags.map((tag) => (
-                <Tag key={tag}>{tag}</Tag>
-              ))}
-            </span>
-            <span>{detail.gameVersion}</span>
+        <div className="recipe-detail__identity">
+          <ItemTooltip item={target} />
+          <div>
+            <h1>{recipe.title}</h1>
+            <p>{recipe.summary}</p>
           </div>
         </div>
-        <RefreshFreshness />
+        <div className="recipe-detail__metadata">
+          <span className="tag-list" aria-label="Recipe tags">
+            {recipe.tags.map((tag) => (
+              <Tag key={tag}>{tag}</Tag>
+            ))}
+          </span>
+          <span>{detail.gameVersion}</span>
+        </div>
       </header>
 
-      <section className="detail-metrics" aria-label="Recipe economics summary">
+      <section className="detail-metrics" aria-label="Recipe economics">
         <DetailMetric label="Expected cost">
           <Money price={evaluation.expectedCraftCost} />
         </DetailMetric>
-        <DetailMetric label="Sale estimate">
+        <DetailMetric label="Cheapest ask">
           <Money price={evaluation.estimatedSalePrice} />
         </DetailMetric>
-        <DetailMetric label="Profit">
+        <DetailMetric label="Potential profit">
           {evaluation.profit ? (
-            <ProfitBadge
-              amount={evaluation.profit.amount}
-              currency={evaluation.profit.currency}
-            />
+            <ProfitBadge {...evaluation.profit} />
           ) : (
-            '—'
+            'Not estimated'
           )}
         </DetailMetric>
-        <DetailMetric label="Margin">
+        <DetailMetric label="ROI">
           {evaluation.marginPercent === null
-            ? '—'
+            ? 'Not estimated'
             : `${evaluation.marginPercent}%`}
         </DetailMetric>
         <DetailMetric label="Confidence">
@@ -134,27 +96,42 @@ export function RecipePage() {
         </DetailMetric>
       </section>
 
-      <RecipeStatePanel evaluation={evaluation} />
-
       <div className="detail-columns">
         <div>
-          <DetailSection title="Cost breakdown">
-            {detail.costBreakdown ? (
-              <p className="cost-formula">
-                Base <Money price={detail.costBreakdown.baseCost} /> +{' '}
-                {detail.costBreakdown.expectedAttempts} attempts ×{' '}
-                <Money price={detail.costBreakdown.materialsPerAttempt} />{' '}
-                materials + <Money price={detail.costBreakdown.finishingCost} />{' '}
-                finishing ={' '}
-                <strong>
-                  <Money price={detail.costBreakdown.expectedCost} />
-                </strong>
-              </p>
-            ) : (
-              <p>Cost calculation is unavailable.</p>
-            )}
+          <DetailSection title="Target modifiers">
+            <p className="target-note">
+              Target requirements; these are not observed market rolls.
+            </p>
+            {modifiers.map((kind) => {
+              const list = target.modifiers.filter(
+                (modifier) => modifier.generationType === kind,
+              );
+              return list.length ? (
+                <div className="target-modifiers" key={kind}>
+                  <strong>
+                    {kind === 'implicit'
+                      ? 'Implicits'
+                      : `${capitalize(kind)}es`}
+                  </strong>
+                  <ul>
+                    {list.map((modifier) => (
+                      <li key={modifier.canonicalId}>{modifier.label}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null;
+            })}
+            {detail.requiredMods.length ? (
+              <div className="target-modifiers">
+                <strong>Other target conditions</strong>
+                <ul>
+                  {detail.requiredMods.map((modifier) => (
+                    <li key={modifier}>{modifier}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </DetailSection>
-
           <DetailSection title="Required base">
             <h3>{detail.base.name}</h3>
             <ul>
@@ -163,13 +140,12 @@ export function RecipePage() {
               ))}
             </ul>
           </DetailSection>
-
           <DetailSection title="Materials">
             <table className="detail-table materials-table">
               <thead>
                 <tr>
                   <th>Item</th>
-                  <th>Quantity / attempt</th>
+                  <th>Qty / attempt</th>
                   <th>Unit price</th>
                   <th>Cost / attempt</th>
                 </tr>
@@ -178,7 +154,7 @@ export function RecipePage() {
                 {detail.materials.map((material) => (
                   <tr key={material.name}>
                     <td data-label="Item">{material.name}</td>
-                    <td data-label="Quantity / attempt">
+                    <td data-label="Qty / attempt">
                       {material.quantityPerAttempt}
                     </td>
                     <td data-label="Unit price">
@@ -193,93 +169,78 @@ export function RecipePage() {
             </table>
           </DetailSection>
         </div>
-
         <div>
-          <DetailSection title="Craft steps">
+          <DetailSection title="Crafting steps">
             <ol className="craft-steps">
               {detail.craftSteps.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
           </DetailSection>
-
-          <DetailSection title="Required result mods">
-            <ul>
-              {detail.requiredMods.map((mod) => (
-                <li key={mod}>{mod}</li>
-              ))}
-            </ul>
+          <DetailSection title="Expected cost">
+            {detail.costBreakdown ? (
+              <p className="cost-formula">
+                {detail.costBreakdown.expectedAttempts} expected attempts ×{' '}
+                <Money price={detail.costBreakdown.materialsPerAttempt} /> per
+                attempt + <Money price={detail.costBreakdown.baseCost} /> base +{' '}
+                <Money price={detail.costBreakdown.finishingCost} /> finishing ={' '}
+                <strong>
+                  <Money price={detail.costBreakdown.expectedCost} />
+                </strong>
+              </p>
+            ) : (
+              <p>Expected total is not estimated.</p>
+            )}
+          </DetailSection>
+          <DetailSection title="Market comparison">
+            {detail.snapshot?.listings.length ? (
+              <table className="detail-table listings-table">
+                <thead>
+                  <tr>
+                    <th>Ask</th>
+                    <th>Price</th>
+                    <th>Age</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detail.snapshot.listings
+                    .slice(0, 5)
+                    .map((listing, index) => (
+                      <tr key={listing.id}>
+                        <td data-label="Ask">
+                          {index === 0 ? 'Cheapest' : `#${index + 1}`}
+                        </td>
+                        <td data-label="Price">
+                          <Money price={listing.price} />
+                        </td>
+                        <td data-label="Age">
+                          <ListingAge seconds={listing.ageSeconds} />
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            ) : (
+              <p>Comparable asking prices are unavailable.</p>
+            )}
           </DetailSection>
         </div>
       </div>
-
-      <DetailSection title="Price estimators">
-        {detail.estimators.length === 0 ? (
-          <p>No estimator result is available.</p>
-        ) : (
-          <div className="estimator-grid">
-            {detail.estimators.map((estimator) => (
-              <div
-                className={
-                  estimator.id === detail.selectedEstimatorId
-                    ? 'estimator estimator--selected'
-                    : 'estimator'
-                }
-                key={estimator.id}
-              >
-                <span>{estimator.label}</span>
-                <strong>
-                  <Money price={estimator.price} />
-                </strong>
-                {estimator.id === detail.selectedEstimatorId ? (
-                  <small>Recipe estimator</small>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        )}
-      </DetailSection>
-
-      <DetailSection title="Top 10 Merchant listings">
-        {detail.snapshot?.listings.length ? (
-          <table className="detail-table listings-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Price</th>
-                <th>Listed time</th>
-                <th>Age</th>
-                <th>Seller</th>
-              </tr>
-            </thead>
-            <tbody>
-              {detail.snapshot.listings.slice(0, 10).map((listing, index) => (
-                <tr
-                  className={listing.ageSeconds >= 86400 ? 'listing--old' : ''}
-                  key={listing.id}
-                >
-                  <td data-label="Rank">{index + 1}</td>
-                  <td data-label="Price">
-                    <Money price={listing.price} />
-                  </td>
-                  <td data-label="Listed time">
-                    <time dateTime={listing.indexedAt}>
-                      {listedAt.format(new Date(listing.indexedAt))}
-                    </time>
-                  </td>
-                  <td data-label="Age">
-                    <ListingAge seconds={listing.ageSeconds} />
-                  </td>
-                  <td data-label="Seller">{listing.seller}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>No Merchant listings are available for this recipe.</p>
-        )}
-      </DetailSection>
     </article>
+  );
+}
+
+function RecipeMessage({ title }: { title: string }) {
+  return (
+    <>
+      <Link className="back-link" to="/">
+        ‹ All recipes
+      </Link>
+      <StatusPanel
+        tone={title === 'Loading recipe' ? 'info' : 'danger'}
+        title={title}
+      />
+    </>
   );
 }
 

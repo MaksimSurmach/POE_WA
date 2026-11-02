@@ -1,6 +1,7 @@
 import type { CatalogEntry } from '@poe-worksmith/contracts';
 
-export type CatalogSort = 'profit' | 'margin' | 'capital' | 'freshness';
+export type CatalogSort =
+  'profit' | 'margin' | 'capital' | 'cost' | 'freshness';
 
 export interface CatalogFilters {
   budget: string;
@@ -46,6 +47,14 @@ export function filterAndSortCatalog(
   });
 
   return filtered.sort((left, right) => {
+    if (filters.sort === 'cost') {
+      return (
+        (left.evaluation.expectedCraftCost?.amount ??
+          Number.POSITIVE_INFINITY) -
+        (right.evaluation.expectedCraftCost?.amount ?? Number.POSITIVE_INFINITY)
+      );
+    }
+
     if (filters.sort === 'capital') {
       const leftCapital =
         left.evaluation.status === 'error'
