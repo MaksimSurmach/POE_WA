@@ -3,7 +3,8 @@
 Task: [MAX-1311](https://linear.app/maxsurm/issue/MAX-1311/worksmith-beta-clean-recipe-model-market-engine-tooltips-and-ui).
 PR: [26](https://github.com/MaksimSurmach/POE_WA/pull/26), draft, no merge or deployment.
 Branch: `codex/max-1311-worksmith-handbook`.
-Final implementation/tested source: `b772c0257f4897022d238772525f926ec14c52b3`.
+Final implementation/tested source: `fc655ecc485b9397093c0b3beefe8687af052e04`.
+Backend source/review: `b772c02`; final presentation-only follow-up: `fc655ec`.
 Later evidence-only commits do not change implementation.
 
 ## Local checks
@@ -12,7 +13,7 @@ Node 22.13.0, pnpm 11.8.0, PostgreSQL 17.11 on an isolated loopback runtime.
 
 | Check                                            | Result                                                                          |
 | ------------------------------------------------ | ------------------------------------------------------------------------------- |
-| Unit (`pnpm test`)                               | 366 pass: domain 64, contracts 10, server 266, web 26                           |
+| Unit (`pnpm test`)                               | 369 pass: domain 64, contracts 10, server 266, web 29                           |
 | Provider contracts (`pnpm test:contracts`)       | 7 pass; overlap with unit suite                                                 |
 | PostgreSQL integration (`pnpm test:integration`) | 72 pass in 17 files, including migration preservation and backend E2E           |
 | Explicit backend E2E (`pnpm test:e2e:backend`)   | 7 pass                                                                          |
@@ -63,6 +64,12 @@ scrollbar dragging was not established by the DOM automation surface.
 Screenshots: `desktop-list.png`, `desktop-detail.png`, `mobile-list.png`,
 `mobile-detail-tooltip.png`, `mobile-listing-tooltip.png`.
 
+These dated live captures precede the final polarity-color follow-up.
+`economics-colors-fixture.png` verifies the final real component/CSS: negative
+RGB(239,107,101), positive RGB(101,207,114), neutral RGB(169,173,178), for both
+profit and ROI. It is explicitly labelled a fixture, not live market data.
+The detail now also displays ROI using the same formatter.
+
 Real VoiceOver speech validation was attempted through native computer use;
 launch timed out (`timeoutReached`, -10005). ARIA/keyboard checks passed, but
 this is not a completed VoiceOver test. Physical mobile and Safari were not run.
@@ -90,3 +97,5 @@ no listeners. The isolated PostgreSQL data directory remains preserved at
 No user stack on 3000/5173 or other PostgreSQL runtimes was stopped or modified.
 Temporary QA/CoE tabs were closed. The next concrete action is owner review of
 PR #26 and real VoiceOver acceptance, followed by a separately authorised release.
+
+The temporary color-fixture server (3018) was also stopped and awaited.

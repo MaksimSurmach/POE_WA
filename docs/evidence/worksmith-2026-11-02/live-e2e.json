@@ -359,5 +359,7 @@
     "Mixed-currency page ordering uses Trade sorting; conversion uses contemporaneous Ninja rates.",
     "After snapshot expiry, public views withhold cost/profit/ROI.",
     "Original raw source observations remain in the isolated local PostgreSQL runtime; this receipt omits seller identities and source payloads."
-  ]
+  ],
+  "presentationFollowupCommit": "fc655ecc485b9397093c0b3beefe8687af052e04",
+  "presentationNote": "Dated live captures precede the final profit/ROI color correction. economics-colors-fixture.png is explicitly labelled static presentation verification; it is not live evidence."
 }

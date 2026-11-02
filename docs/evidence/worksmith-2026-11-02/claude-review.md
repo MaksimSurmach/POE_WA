@@ -1,6 +1,7 @@
 # Independent Claude Code review
 
-Final code commit: `b772c0257f4897022d238772525f926ec14c52b3`.
+Final code commit: `fc655ecc485b9397093c0b3beefe8687af052e04`.
+Backend review at `b772c02`; final presentation delta review below.
 Reviewer used Claude Code in read-only plan mode with Read/Grep/Glob and
 read-only Git commands. No edits, tests, processes or network were delegated.
 Review receipts are in `claude-review-receipts.json`.
@@ -63,3 +64,25 @@ No blocking findings: the prior P2 is resolved and I found no new P1 or P2 in th
   - The migration test only covers `recipe_evaluations`.
   - Handbook pricing needs both `POE_TRADE_ACCESS=owner_permitted` and an authorised Trade-compatible source.
 - **Not verified by me:** live cycle `c2ce6924` and its reported numbers, and the test and CI results you listed.
+
+## Final presentation follow-up
+
+# Presentation delta review (`91243e8..fc655ec`)
+
+No blocking findings. I read the diff and the surrounding code only; nothing was edited or run.
+
+## Checked and correct
+
+- **Classes and colours:** `economicClass` returns `economic-unknown` for null and zero, otherwise positive or negative. The global `.economic-*` rules (`styles.css:1420-1430`) colour the classes everywhere, including the recipe detail page. The compact-row rules (`.craft-target-card__metrics strong.economic-*`, `styles.css:1736`) beat the existing `.craft-target-card__metrics strong { color: var(--text) }`.
+- **`ProfitBadge`:** in a card, `.craft-target-card__metrics .profit` sets no colour, so the tone class applies. Removing `profit--positive` leaves no stale references in the code; the old CSS rule is now unused but harmless.
+- **Detail-page ROI:** uses the existing `formatMarginPercent` and shows "Not estimated" when the value is null, matching the profit cell. `marginPercent` is a finite number or null in the contract, so the formatter can't receive bad input.
+- **Accessibility:** polarity is not shown by colour alone. Negative values carry a `-` sign and positive profit a `+`. Positive ROI has no `+`, but it is told apart from negative by the missing `-`. Neutral values use `--muted`.
+- **Scope:** no data, source or economics changes.
+
+## P3 (cosmetic, not blocking)
+
+- **Coloured "0.0%":** a value that rounds to zero still gets a polarity colour. ROI -0.04 shows as "0.0%" in red, because `formatMarginPercent` normalises -0 to 0 but `economicClass` sees the raw -0.04. Profit has the same edge case with `compactNumber`. If you want the colour to match the visible number, classify the rounded value.
+
+## Remaining acceptance limits
+
+The limits listed at `b772c02` still apply; this delta doesn't change any of them.
