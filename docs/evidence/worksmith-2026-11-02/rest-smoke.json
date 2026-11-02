@@ -1,0 +1,45 @@
+{
+  "testedCommit": "b772c0257f4897022d238772525f926ec14c52b3",
+  "checkedAt": "2026-11-02T15:35:30.084Z",
+  "results": [
+    {
+      "path": "/health/live",
+      "status": 200
+    },
+    {
+      "path": "/health/ready",
+      "status": 200
+    },
+    {
+      "path": "/api/leagues/current",
+      "status": 200
+    },
+    {
+      "path": "/api/catalog",
+      "status": 200
+    },
+    {
+      "path": "/api/recipes/physical-large-cluster-jagged",
+      "status": 200
+    },
+    {
+      "path": "/api/recipes/physical-large-cluster-alteration",
+      "status": 200
+    },
+    {
+      "path": "/api/refresh",
+      "status": 200
+    },
+    {
+      "path": "/api/recipes/not-authored",
+      "status": 404
+    }
+  ],
+  "checks": {
+    "contractsParsed": true,
+    "authoredRecipeCount": 2,
+    "expiredQuoteWithheld": true,
+    "rareState": "stale"
+  },
+  "note": "Checked after live target snapshot expired naturally. Fresh publication and screenshots are recorded separately in live-e2e.json."
+}
