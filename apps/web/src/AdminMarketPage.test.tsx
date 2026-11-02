@@ -199,6 +199,28 @@ describe('market administration', () => {
     expect(planned).toContain('PROVIDER_RATE_LIMITED');
   });
 
+  it('keeps an older active run cancellable before the collapsed history', () => {
+    const completed: MarketAdminRun[] = Array.from(
+      { length: 12 },
+      (_, index) => ({
+        ...run,
+        id: `00000000-0000-4000-8000-${String(index + 10).padStart(12, '0')}`,
+        status: 'succeeded',
+      }),
+    );
+    const html = renderToStaticMarkup(
+      <MarketRunHistory
+        runs={[...completed, run]}
+        busy={false}
+        onCancel={() => {}}
+      />,
+    );
+    const cancel = html.indexOf(`aria-label="Cancel run ${run.id}"`);
+    const olderHistory = html.indexOf('More runs');
+    expect(cancel).toBeGreaterThan(-1);
+    expect(olderHistory).toBeGreaterThan(cancel);
+  });
+
   it('validates status data and fails closed on a malformed response', async () => {
     const valid = createAdminMarketClient(
       vi.fn(async () => Response.json({ correlationId: 'test', data: status })),

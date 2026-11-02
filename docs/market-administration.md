@@ -88,11 +88,16 @@ changes an observation's capture time. Shorter quote-age settings invalidate
 existing price views immediately, without deleting evaluations. Unprovable older
 legacy inputs fail closed under a stricter age policy.
 
-The admin page places current collection state and Pause/Resume first, followed by
-refresh controls and recent runs. Settings are grouped below these actions. Pause
-and compare-latest preserve unrelated unsaved edits; Discard edits removes them.
-Field errors open and focus their group. Resource failures can recover independently,
-and admin HTTP requests have a 15-second UI timeout.
+The admin page starts with scope and Run now, then compact market state and recent
+results. Select one recipe by its catalog title; manual ID entry remains available
+when catalog loading fails. Terminal rows expose details on demand, More runs keeps
+older history accessible, and active runs stay visible with Cancel available.
+
+Settings opens the complete grouped form with one disclosure. Pause and
+compare-latest preserve unrelated edits; Discard edits removes them. Dirty/error
+state opens the form; polling preserves its disclosure state and focus. Inactive
+configuration warnings stay in Settings; live operational warnings remain visible.
+Admin HTTP requests and recipe-list loading have a 15-second UI timeout.
 
 ## Runs and cancellation
 
@@ -144,7 +149,8 @@ does not run cleanup or invalidate stored historical records.
 ## Verification
 
 See [the acceptance evidence](evidence/market-admin-2026-11-02/validation.md) and
-[the UI review and correction](evidence/market-admin-ui-2026-11-02/validation.md).
+[the UI review and correction](evidence/market-admin-ui-2026-11-02/validation.md), plus
+[the UX distillation](evidence/market-admin-ux-2026-11-02/README.md).
 Live Trade collection is deployment-authorized separately and was not enabled by
 this change. Normal provider limits and independently configured profile opt-in
 still apply after an administrator enables automatic settings.

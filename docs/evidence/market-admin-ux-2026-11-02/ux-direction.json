@@ -1,0 +1,220 @@
+{
+  "direction": "Turn a four-card configuration page into a state \u2192 act \u2192 result page: a compact status strip, a refresh toolbar in the header, condensed run history as the main surface, and all configuration plus diagnostics behind two on-demand drawers. Nothing is deleted; low-value, benign-state metadata and restated prose move behind existing disclosure.",
+  "main_tradeoff": "Settings and diagnostics become one click away (slower for the rare tuning session) in exchange for the common run-and-watch workflow fitting above the fold on both widths; mitigated by auto-opening the Settings drawer whenever edits are dirty, invalid, or errored.",
+  "changes": [
+    {
+      "rank": 1,
+      "title": "Status: six symmetric cells to one decision strip",
+      "priority": "essential",
+      "evidence": "MarketConnectionStatus renders a fixed 6-cell <dl> (AdminMarketPage.tsx 813-891); adminMarket.css 48-54 forces repeat(3, minmax(0,1fr)). before-1440.png shows half the grid spent on 'Current league: Allflame \u00b7 Confirmed', 'Healthy / Healthy', 'No active run' and an absolute 'Updated 02/11/2026, 20:15:10'.",
+      "remove_from_default_view": [
+        "Current league",
+        "Worker / scheduler when both healthy",
+        "Active refresh cell when there is no active run (duplicates Recent runs)",
+        "Absolute 'Updated ...' timestamp"
+      ],
+      "relegate": [
+        "All four into the existing 'Connection details' <details>, which already carries heartbeat, settings version, cron, last successful/failed refresh"
+      ],
+      "retain": [
+        "Recipe coverage with '0 priced \u00b7 0 near expiry' sub-line",
+        "Sources row whenever trade/ninja is not OK",
+        "Next refresh",
+        "status.warnings line",
+        "Unhealthy worker/scheduler promoted to a loud visible row"
+      ],
+      "operator_benefit": "Current state is read in one glance from the two or three facts that can change a decision, instead of scanning six equal-weight cells of mostly green text.",
+      "minimal_implementation": "Render status cells conditionally in MarketConnectionStatus; move benign values into the existing diagnostics <dl>; change .market-admin__status from a 3-column grid to an auto-flow inline strip with tabular-nums retained."
+    },
+    {
+      "rank": 2,
+      "title": "Promote the refresh action into the page header toolbar",
+      "priority": "essential",
+      "evidence": "The three-sentence explanation at tsx 411-415 and the static hint 'Manual refresh is available.' (tsx 483) lead the 'Run a refresh' card; in before-390.png the Run now button sits roughly 800px down a ~2400px page.",
+      "remove_from_default_view": [
+        "'Update market observations for the selected scope. Active work finishes when paused. Cancel a run separately to request its safe stop.'",
+        "Static 'Manual refresh is available.' hint when the action is enabled",
+        "Header subtitle 'Local controls \u00b7 status updates every 3 seconds'",
+        "Separate 'Rate limits & cooldowns' disclosure in the run card"
+      ],
+      "relegate": [
+        "Pause/cancel semantics are already expressed by runDisabledReason strings (tsx 317-331) and the Cancel button's own confirmation copy",
+        "Rate limits & cooldowns merges into the single 'Connection details' drawer"
+      ],
+      "retain": [
+        "Refresh scope select",
+        "Conditional Recipe ID field with its 'Use the recipe ID from its handbook URL.' hint and maxLength validation",
+        "Run now button and its busy label",
+        "Any non-empty runDisabledReason, including paused / worker-unavailable / manual-disabled / active-run reasons"
+      ],
+      "operator_benefit": "Scope selection and Run now are immediately reachable at both widths; the safety explanation appears only when it actually blocks the operator.",
+      "minimal_implementation": "Move the existing refresh <form> into a toolbar row alongside the Pause control in .market-admin__heading; render <p id=\"admin-run-reason\"> only when runDisabledReason is truthy while keeping the element id present for aria-describedby."
+    },
+    {
+      "rank": 3,
+      "title": "Recent runs becomes the condensed result surface",
+      "priority": "essential",
+      "evidence": "tsx 1019-1031 unconditionally renders two dense metadata lines per run at 0.8rem (css 142-145). before-1440.png shows two runs filling a tall card with '0/0 queries complete \u00b7 0 failed \u00b7 Source freshness: --' and a 'Run details' toggle even for the succeeded run.",
+      "remove_from_default_view": [
+        "Query/failure/source-freshness line for terminal runs",
+        "'source \u00b7 Requested ... \u00b7 Finished \u00b7 duration unavailable' line for terminal runs",
+        "'Run details' summary on succeeded runs"
+      ],
+      "relegate": [
+        "Both metadata lines plus error code, run ID, started and finished timestamps into the existing per-run <details>"
+      ],
+      "retain": [
+        "Active or queued run rendered in full: progress bar, live query counts, Cancel run, 'Cancellation requested' state",
+        "runErrorLabel text for any failed or skipped run, visible without expansion",
+        "Cooldown-until line when present"
+      ],
+      "operator_benefit": "Five recent runs scan in the space two take today, while the run the operator just launched stays fully detailed and cancellable.",
+      "minimal_implementation": "One row per terminal run: scope strong + status badge + relative time; keep the full existing markup for queued/running/failed runs; expand details in place."
+    },
+    {
+      "rank": 4,
+      "title": "Settings collapses to a single drawer with loud draft state",
+      "priority": "essential",
+      "evidence": "Even closed, the Settings panel is roughly 360px tall at 1440 and 430px at 390 (before-1440.png, before-390.png) and ends the page with 'New requests and runs use current settings; active requests finish with their starting settings. Scheduler reconciles within 5 seconds.' The open form in before-settings.png is already a clean two-column layout.",
+      "remove_from_default_view": [
+        "The four-group settings grid",
+        "'Version 4 \u00b7 UTC' line",
+        "'Compare latest settings' button",
+        "'All changes saved' status",
+        "The settings.applies footer paragraph"
+      ],
+      "relegate": [
+        "Everything into one outer Settings <details>; version, Compare latest settings and settings.applies live in the drawer header and footer next to Save"
+      ],
+      "retain": [
+        "Every setting field, min-max hints and 'Effective:' deltas",
+        "Cron five-field validation and field-level error messages",
+        "Save settings and Discard edits with their disabled logic",
+        "'Unsaved changes' marker, mirrored on the collapsed summary, which force-opens the drawer",
+        "Compare latest settings as the 409 concurrent-edit recovery path"
+      ],
+      "operator_benefit": "The page ends with the result of the refresh rather than with configuration, while draft and concurrent-edit protection becomes more visible, not less.",
+      "minimal_implementation": "Wrap the settings <section> body in <details open={dirty || !!settingsError || Object.keys(fieldErrors).length}>; extend focusInvalidSetting (tsx 293-302) to also open the outer details before focusing."
+    },
+    {
+      "rank": 5,
+      "title": "Trim duplicated explanatory prose inside the settings form",
+      "priority": "optional taste",
+      "evidence": "tsx 736-748 always renders the Freshness and Retention .market-admin__explanation paragraphs, restating rules the validator already enforces at tsx 174-181; both are visible in before-settings.png.",
+      "remove_from_default_view": [
+        "Standing 'Reuse TTL can avoid a new request...' paragraph",
+        "Standing 'Price history must cover the raw snapshot retention period.' paragraph"
+      ],
+      "relegate": [
+        "Surface each only when the related field is invalid, next to the existing fieldErrors message"
+      ],
+      "retain": [
+        "Group summary values such as '12s timeout \u00b7 4 concurrent' and '96h raw \u00b7 14d history', which are the collapsed-state information",
+        "All per-field min-max hints"
+      ],
+      "operator_benefit": "The opened form loses about five lines of prose that only matter at the moment a constraint is violated.",
+      "minimal_implementation": "Gate the two <p class=\"market-admin__explanation\"> blocks on the presence of the corresponding fieldErrors keys."
+    },
+    {
+      "rank": 6,
+      "title": "Readable type floor and container proportion",
+      "priority": "essential",
+      "evidence": "adminMarket.css sets small at 0.78rem (31-34), run text 0.8rem (142-145), fields 0.85rem (88), explanation 0.8rem (119-122) and shrinks mobile small to 0.72rem (295-297); the 1440 shot shows long status values crowding a 3-column grid.",
+      "remove_from_default_view": [
+        "All sub-14px rendered text, including the 0.72rem mobile override"
+      ],
+      "relegate": ["Nothing; this is a scale change only"],
+      "retain": [
+        "44px minimum control heights (css 68-110) and 44px summary targets (css 212-217)",
+        "tabular-nums on status and run values",
+        "Dark/gold Worksmith palette and accent usage"
+      ],
+      "operator_benefit": "Status values, run rows and setting hints are legible at a glance; density comes from removing content, not from shrinking glyphs.",
+      "minimal_implementation": "Raise the small/hint floor to 0.875rem, body to 0.9375rem, status values to 1rem; widen the page container to about 1120px; delete the 0.72rem mobile small override."
+    }
+  ],
+  "target_topology": {
+    "desktop": [
+      "Header: back link, H1 'Market administration', collection badge, Pause/Resume",
+      "Action toolbar in the header block: Refresh scope select, conditional Recipe ID, Run now, disabled reason when present",
+      "Status strip: recipe coverage, next refresh, degraded sources, status.warnings",
+      "Recent runs, full width, active run first in full detail, terminal runs one line each",
+      "Connection details drawer (league, worker/scheduler, heartbeat, settings version, cron, last success/failure, latest snapshot, rate limits and cooldowns)",
+      "Settings drawer (four groups, Compare latest settings, Save/Discard, applies note)"
+    ],
+    "mobile": [
+      "Header with H1 and collection badge/Pause",
+      "Action toolbar directly under H1 so Run now is above the fold",
+      "Status strip, two facts per row",
+      "Recent runs, condensed single-column rows",
+      "Connection details drawer",
+      "Settings drawer, single-column groups"
+    ],
+    "primary_action": "Run now, in the header action toolbar at the top of the page on desktop and directly under the H1 on mobile, with Pause/Resume as the adjacent secondary control",
+    "default_collapsed": [
+      "Settings drawer, unless dirty, invalid or errored",
+      "Connection details drawer, including rate limits and cooldowns",
+      "Per-run details for terminal runs",
+      "Benign status facts: league, healthy worker/scheduler, absolute updated-at, idle active-refresh cell"
+    ]
+  },
+  "type_scale": [
+    {
+      "role": "Page title",
+      "recommended_size": "clamp(1.5rem, 3vw, 1.875rem)",
+      "line_height": "1.2",
+      "use": "H1 'Market administration'"
+    },
+    {
+      "role": "Section heading",
+      "recommended_size": "1.0625rem",
+      "line_height": "1.3",
+      "use": "Panel h2 and drawer summaries (Settings, Connection details)"
+    },
+    {
+      "role": "Status value",
+      "recommended_size": "1rem with tabular-nums",
+      "line_height": "1.4",
+      "use": "Coverage, next refresh, run scope titles"
+    },
+    {
+      "role": "Body",
+      "recommended_size": "0.9375rem",
+      "line_height": "1.5",
+      "use": "Run rows, field labels, feedback and error messages"
+    },
+    {
+      "role": "Meta floor",
+      "recommended_size": "0.875rem (hard minimum, no mobile override below it)",
+      "line_height": "1.45",
+      "use": "Hints, dt labels, badges, min-max ranges, effective-value deltas"
+    }
+  ],
+  "usability_hazards": [
+    "Never auto-collapse or re-mount the Settings drawer while dirty is true; unsaved operator edits are the costliest loss on this route.",
+    "Keep the 409 'Settings changed elsewhere. Compare latest settings, then retry' message and the 401/403 local-access message at top level, never inside a closed drawer.",
+    "The 3-second poll (tsx 226-256) must not re-mount <details> elements or move focus; keep them keyed and uncontrolled so an open drawer survives each refresh.",
+    "Cancel run must stay reachable without expanding per-run details, and cancelRequested must remain visible on the condensed row.",
+    "Smaller content volume must not shrink hit targets: preserve 44px minimum on buttons, selects, inputs and summaries.",
+    "Do not hide runDisabledReason, status.warnings, failed-run error labels or degraded source status; collapsing is for benign state only.",
+    "Removing the always-visible 'Manual refresh is available.' hint must not remove the aria-describedby target; keep the element rendered when a reason exists and preserve the accessible name otherwise.",
+    "Preserve the independent pause semantics comment at tsx 287: pause must continue to merge rather than discard unrelated draft edits."
+  ],
+  "acceptance_checks": [
+    "At 1440 and 390, Run now is visible without scrolling past the header block.",
+    "In an idle, healthy, unpaused state the status strip shows at most four facts plus any warnings.",
+    "The full common loop (read state, choose scope, Run now, watch progress, read result) requires zero disclosure clicks.",
+    "A succeeded run occupies one line; a failed or skipped run shows its runErrorLabel text without expansion.",
+    "Edit a setting, let a poll cycle elapse, and the Settings drawer is still open with 'Unsaved changes' shown; submitting an invalid cron opens the drawer and focuses the invalid field.",
+    "A simulated 409 on save still surfaces the concurrent-edit message and Compare latest settings preserves the draft edits.",
+    "No rendered text is below 14px at either width, and all interactive controls remain at least 44px tall.",
+    "Pause/Resume, Cancel run and their disabled reasons retain identical wording and semantics to the current build."
+  ],
+  "coverage_limits": [
+    "Only three static screenshots were available, all in one state: collections apparently accepting work, no active run, trade not configured, coverage 0/2, settings clean at version 4.",
+    "No active/queued run was observable, so the progress bar, Cancel run and cancelRequested presentation are judged from source (tsx 1032-1075), not from pixels.",
+    "Open/close behaviour of <details>, polling interaction with focus, and the dirty/Discard flow are inferred from AdminMarketPage.tsx; I did not run or drive the UI.",
+    "Error, loading, paused and unhealthy-worker renderings were not screenshotted; recommendations for them are source-derived.",
+    "Only AdminMarketPage.tsx and adminMarket.css were in scope, so shared tokens (--muted, --surface, --accent, root font size) and any global layout container were not inspected; the container-width and rem assumptions should be verified against the global stylesheet."
+  ]
+}

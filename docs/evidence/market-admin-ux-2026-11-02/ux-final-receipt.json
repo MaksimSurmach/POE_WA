@@ -1,0 +1,124 @@
+{
+  "review": "Claude final UX visual/source check",
+  "completed_at_utc": "2026-11-02T19:29:47.294344+00:00",
+  "requested": {
+    "route": "claude Code CLI",
+    "model": "claude-opus-5",
+    "effort": "medium",
+    "max_seconds": 200
+  },
+  "observed": {
+    "assistant_models": ["claude-opus-5"],
+    "served_models": [
+      {
+        "requested_model_key": "claude-opus-5",
+        "canonical_model": "claude-opus-5",
+        "provider": "firstParty"
+      }
+    ],
+    "effort_independently_attested": false
+  },
+  "terminal": {
+    "state": "done",
+    "exit_code": 0,
+    "is_error": false,
+    "terminal_reason": "completed",
+    "duration_seconds": 86.51
+  },
+  "scope": {
+    "review": "Final visual/source UX check",
+    "parent_head": "e4fe03d23141daac206b68d6207d82dace9c8139",
+    "source_sha256_as_read": {
+      "apps/web/src/AdminMarketPage.tsx": "ca1e7a9f32cc1f5890cf35f596258fd2cc4635b588d3ffdc81f5d9df33105364",
+      "apps/web/src/adminMarket.css": "e382a04cea6f93386494f595e83421183a2196fef109448d9e0e0c267afe7fae"
+    },
+    "images": {
+      "after-1440.png": {
+        "sha256": "fdcaa26bf93199df6eb02fe36f73d06aa956e24d0ad76e02d977190a17fa0a69",
+        "bytes": 69706
+      },
+      "after-390.png": {
+        "sha256": "9761d7e6740490c10ac94315c4ae5c29ffce09dc32d9024d6db56aca4a68d052",
+        "bytes": 62884
+      },
+      "after-settings.png": {
+        "sha256": "92783ef52f1ae18af37c480ccb976b22cd95381a101078974866010448c9e3b5",
+        "bytes": 156400
+      }
+    },
+    "model_requested": "claude-opus-5",
+    "effort_requested": "medium",
+    "hard_seconds": 200
+  },
+  "reads": [
+    {
+      "path": "after-1440.png",
+      "success": true,
+      "image_blocks": 1
+    },
+    {
+      "path": "after-390.png",
+      "success": true,
+      "image_blocks": 1
+    },
+    {
+      "path": "after-settings.png",
+      "success": true,
+      "image_blocks": 1
+    },
+    {
+      "path": "apps/web/src/AdminMarketPage.tsx",
+      "success": true,
+      "image_blocks": 0
+    },
+    {
+      "path": "apps/web/src/adminMarket.css",
+      "success": true,
+      "image_blocks": 0
+    }
+  ],
+  "scope_hashes_at_completion": {
+    "source": {
+      "apps/web/src/AdminMarketPage.tsx": "ca1e7a9f32cc1f5890cf35f596258fd2cc4635b588d3ffdc81f5d9df33105364",
+      "apps/web/src/adminMarket.css": "e382a04cea6f93386494f595e83421183a2196fef109448d9e0e0c267afe7fae"
+    },
+    "images": {
+      "after-1440.png": "fdcaa26bf93199df6eb02fe36f73d06aa956e24d0ad76e02d977190a17fa0a69",
+      "after-390.png": "9761d7e6740490c10ac94315c4ae5c29ffce09dc32d9024d6db56aca4a68d052",
+      "after-settings.png": "92783ef52f1ae18af37c480ccb976b22cd95381a101078974866010448c9e3b5"
+    }
+  },
+  "controls": {
+    "safe_mode": true,
+    "restricted": true,
+    "allowed_tools": ["Read", "Glob", "Grep"],
+    "mcp_servers": [],
+    "hooks_disabled_by_safe_mode": true,
+    "slash_commands_disabled": true,
+    "permission_mode": "dontAsk",
+    "permission_prompts": "none",
+    "session_persistence": false,
+    "actual_tool_names": ["Read", "StructuredOutput"],
+    "permission_denials": [],
+    "subagents_spawned": 0,
+    "repo_edits_by_reviewer": false,
+    "browser_driven_by_reviewer": false
+  },
+  "outcome": {
+    "prescriptions_delivered": [1, 2, 3, 4, 5, 6],
+    "claude_original_verdict": "material UX fixes remain",
+    "claude_reported_issue_count": 1,
+    "local_scope_disposition": "No remaining material UX defect identified. The sole Claude P2 is title-case badge text, a cosmetic product-voice preference excluded by the material-only brief; original finding and verdict preserved in ux-final.json. Parent may accept or remove text-transform as a small copy consistency fix.",
+    "final_edits_after_review_approved": false
+  },
+  "coverage_limits": [
+    "Only the three supplied PNGs were inspected; I did not drive a browser and make no claim of interactive verification. User/browser verification remains parent-owned.",
+    "Conditional states (dirty settings, validation errors, active run with progress/cancel, paused collections, catalog failure/manual-ID fallback, loading and error banners) appear in no screenshot and were judged from source only.",
+    "Intermediate viewports between 390 and 1440 (notably the 601-850px band where the overview is two columns but settings are still two columns) were not pictured.",
+    "Contrast ratios, focus-visible rings, and token values from the global theme (var(--accent)/--warning/--muted) were not measured; those files were out of scope."
+  ],
+  "scope_matches_at_completion": {
+    "sources": true,
+    "images": true
+  }
+}

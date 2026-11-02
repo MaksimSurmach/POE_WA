@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { createApiClient } from './apiClient.js';
 import './adminMarket.css';
 
 type Contract<T> = {
@@ -94,6 +95,9 @@ export function createAdminMarketClient(
 }
 
 const client = createAdminMarketClient();
+const catalogClient = createApiClient('', (url, options) =>
+  fetch(url, { ...options, signal: AbortSignal.timeout(15_000) }),
+);
 const time = (value: string | null) =>
   value ? new Date(value).toLocaleString('en-GB') : '—';
 
@@ -186,6 +190,7 @@ export function AdminMarketPage() {
   const generation = useRef(0);
   const actionPending = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const settingsRef = useRef<HTMLDetailsElement>(null);
   const [settings, setSettings] = useState<MarketAdminSettingsResponse | null>(
     null,
   );
@@ -204,10 +209,51 @@ export function AdminMarketPage() {
   const [busy, setBusy] = useState(false);
   const [scope, setScope] = useState<'all' | 'economy' | 'recipe'>('all');
   const [recipeId, setRecipeId] = useState('');
+  const [recipes, setRecipes] = useState<Array<{ id: string; title: string }>>(
+    [],
+  );
+  const [catalogState, setCatalogState] = useState<
+    'idle' | 'loading' | 'ready' | 'failed'
+  >('idle');
   const dirty =
     !!settings &&
     !!draft &&
     Object.keys(settingsChanges(settings.configured, draft)).length > 0;
+
+  useEffect(() => {
+    if (
+      dirty ||
+      settingsError ||
+      Object.keys(fieldErrors).length ||
+      (feedback.area === 'settings' && feedback.error)
+    ) {
+      if (settingsRef.current) settingsRef.current.open = true;
+    }
+  }, [dirty, settingsError, fieldErrors, feedback]);
+
+  useEffect(() => {
+    if (scope !== 'recipe') return;
+    let active = true;
+    setCatalogState('loading');
+    catalogClient
+      .getCatalog()
+      .then((result) => {
+        if (!active) return;
+        setRecipes(
+          result.data?.entries.map(({ recipe }) => ({
+            id: recipe.id,
+            title: recipe.title,
+          })) ?? [],
+        );
+        setCatalogState('ready');
+      })
+      .catch(() => {
+        if (active) setCatalogState('failed');
+      });
+    return () => {
+      active = false;
+    };
+  }, [scope]);
 
   useEffect(() => {
     let active = true;
@@ -326,9 +372,11 @@ export function AdminMarketPage() {
             ? 'Worker unavailable. Restore worker health before starting a refresh.'
             : !status.collection.manualAvailable
               ? 'Manual refresh is disabled. Enable it in Settings to run now.'
-              : scope === 'recipe' && !recipeId.trim()
-                ? 'Enter a recipe ID to continue.'
-                : '';
+              : scope === 'recipe' && ['idle', 'loading'].includes(catalogState)
+                ? 'Loading recipes…'
+                : scope === 'recipe' && !recipeId.trim()
+                  ? 'Choose a recipe to continue.'
+                  : '';
 
   return (
     <div className="market-admin" aria-busy={busy}>
@@ -338,7 +386,6 @@ export function AdminMarketPage() {
             ← Recipe handbook
           </Link>
           <h1>Market administration</h1>
-          <p>Local controls · status updates every 3 seconds</p>
         </div>
         <div className="market-admin__collection">
           <span
@@ -386,6 +433,116 @@ export function AdminMarketPage() {
           {notice('collection')}
         </div>
       </header>
+      <section
+        className="market-admin__action-bar"
+        aria-labelledby="admin-run-heading"
+      >
+        <h2 id="admin-run-heading" className="visually-hidden">
+          Run a refresh
+        </h2>
+        <form
+          className="market-admin__manual"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void act(
+              'refresh',
+              async () => {
+                const result = await client.refresh(
+                  scope === 'recipe'
+                    ? { scope, recipeId: recipeId.trim() }
+                    : { scope },
+                );
+                if (
+                  !result ||
+                  typeof result !== 'object' ||
+                  !('accepted' in result) ||
+                  result.accepted !== true
+                )
+                  throw new Error(
+                    'Refresh was not accepted. Check collection status and recent runs before retrying.',
+                  );
+              },
+              'Refresh accepted. Follow progress in recent runs.',
+            );
+          }}
+        >
+          <label className="market-admin__field">
+            Refresh scope
+            <select
+              value={scope}
+              disabled={busy}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (
+                  value === 'all' ||
+                  value === 'economy' ||
+                  value === 'recipe'
+                )
+                  setScope(value);
+              }}
+            >
+              <option value="all">All recipes</option>
+              <option value="economy">Materials only</option>
+              <option value="recipe">One recipe</option>
+            </select>
+          </label>
+          {scope === 'recipe' ? (
+            <label className="market-admin__field market-admin__recipe-field">
+              Recipe
+              {catalogState === 'loading' || catalogState === 'idle' ? (
+                <select disabled aria-label="Recipe">
+                  <option>Loading recipes…</option>
+                </select>
+              ) : recipes.length ? (
+                <select
+                  required
+                  value={recipeId}
+                  disabled={busy}
+                  onChange={(event) => setRecipeId(event.target.value)}
+                >
+                  <option value="">Choose a recipe</option>
+                  {recipes.map((recipe) => (
+                    <option value={recipe.id} key={recipe.id}>
+                      {recipe.title}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <>
+                  <input
+                    required
+                    maxLength={200}
+                    value={recipeId}
+                    disabled={busy}
+                    onChange={(event) => setRecipeId(event.target.value)}
+                  />
+                  <small>
+                    {catalogState === 'failed'
+                      ? 'Recipe list unavailable.'
+                      : 'No catalog recipes available.'}{' '}
+                    Enter the recipe ID from its handbook URL.
+                  </small>
+                </>
+              )}
+            </label>
+          ) : null}
+          <button
+            type="submit"
+            disabled={!!runDisabledReason}
+            aria-describedby={
+              runDisabledReason ? 'admin-run-reason' : undefined
+            }
+          >
+            {busy && feedback.area === 'refresh' ? 'Requesting…' : 'Run now'}
+          </button>
+          {runDisabledReason ? (
+            <p id="admin-run-reason" className="market-admin__hint">
+              {runDisabledReason}
+            </p>
+          ) : null}
+          {notice('refresh')}
+        </form>
+      </section>
       {statusError ? (
         <p className="market-admin__error" role="alert">
           Status unavailable: {statusError} Retrying automatically; displayed
@@ -397,366 +554,263 @@ export function AdminMarketPage() {
       ) : !statusError ? (
         <p role="status">Loading market controls…</p>
       ) : null}
-      {status?.warnings.map((warning) => (
-        <p className="market-admin__warning market-admin__alert" key={warning}>
-          {warning}
-        </p>
-      ))}
-      <div className="market-admin__columns">
-        <section
-          className="market-admin__panel"
-          aria-labelledby="admin-run-heading"
-        >
-          <h2 id="admin-run-heading">Run a refresh</h2>
-          <p>
-            Update market observations for the selected scope. Active work
-            finishes when paused. Cancel a run separately to request its safe
-            stop.
+      {status?.warnings
+        .filter(
+          (warning) =>
+            status.scheduler.enabled || !settings?.warnings.includes(warning),
+        )
+        .map((warning) => (
+          <p
+            className="market-admin__warning market-admin__alert"
+            key={warning}
+          >
+            {warning}
           </p>
-          <form
-            className="market-admin__manual"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void act(
-                'refresh',
-                async () => {
-                  const result = await client.refresh(
-                    scope === 'recipe'
-                      ? { scope, recipeId: recipeId.trim() }
-                      : { scope },
-                  );
-                  if (
-                    !result ||
-                    typeof result !== 'object' ||
-                    !('accepted' in result) ||
-                    result.accepted !== true
-                  )
-                    throw new Error(
-                      'Refresh was not accepted. Check collection status and recent runs before retrying.',
-                    );
-                },
-                'Refresh accepted. Follow progress in recent runs.',
-              );
-            }}
-          >
-            <label className="market-admin__field">
-              Refresh scope
-              <select
-                value={scope}
-                disabled={busy}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (
-                    value === 'all' ||
-                    value === 'economy' ||
-                    value === 'recipe'
-                  )
-                    setScope(value);
-                }}
-              >
-                <option value="all">All active recipes</option>
-                <option value="economy">Economy / material prices only</option>
-                <option value="recipe">One recipe</option>
-              </select>
-            </label>
-            {scope === 'recipe' ? (
-              <label className="market-admin__field">
-                Recipe ID
-                <input
-                  required
-                  maxLength={200}
-                  value={recipeId}
-                  disabled={busy}
-                  onChange={(event) => setRecipeId(event.target.value)}
-                />
-                <small>Use the recipe ID from its handbook URL.</small>
-              </label>
-            ) : null}
-            <button
-              type="submit"
-              disabled={!!runDisabledReason}
-              aria-describedby="admin-run-reason"
-            >
-              {busy && feedback.area === 'refresh' ? 'Requesting…' : 'Run now'}
-            </button>
-            <p id="admin-run-reason" className="market-admin__hint">
-              {runDisabledReason || 'Manual refresh is available.'}
-            </p>
-            {notice('refresh')}
-          </form>
-          <details className="market-admin__diagnostics">
-            <summary>Rate limits & cooldowns</summary>
-            {status?.ninja.cooldownUntil ? (
-              <p>poe.ninja cooldown until {time(status.ninja.cooldownUntil)}</p>
-            ) : null}
-            {status?.rateLimits.length ? (
-              <ul className="market-admin__limits">
-                {status.rateLimits.map((policy) => (
-                  <li key={policy.policy}>
-                    <strong>{policy.policy}</strong>
-                    <br />
-                    Last HTTP: {policy.lastStatus ?? '—'} · Minimum delay:{' '}
-                    {policy.minimumDelayMs} ms
-                    <br />
-                    Next permitted request: {time(policy.waitingUntil)}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No recorded rate limits.</p>
-            )}
-          </details>
-        </section>
-        <div>
-          {runsError ? (
-            <p className="market-admin__error" role="alert">
-              Run history unavailable: {runsError} Retrying automatically.
-            </p>
-          ) : null}
-          <MarketRunHistory
-            runs={runs}
-            busy={busy}
-            onCancel={(id) =>
-              void act(
-                'runs',
-                async () => {
-                  await client.cancel(id);
-                },
-                'Cancellation requested. The run stops at its next safe boundary.',
-              )
-            }
-          />
-          {notice('runs')}
-        </div>
-      </div>
-      <section
-        className="market-admin__panel"
-        aria-labelledby="admin-settings-heading"
-      >
-        <div className="market-admin__heading">
-          <div>
-            <h2 id="admin-settings-heading">Settings</h2>
-            <p>
-              {settings
-                ? `Version ${settings.version} · ${settings.timezone}`
-                : 'Persistent collection settings'}
-            </p>
-          </div>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() =>
-              void act(
-                'settings',
-                async () => acceptSettings(await client.settings(), true),
-                'Latest settings loaded. Your unsaved edits are kept.',
-              )
-            }
-          >
-            {settingsError ? 'Retry settings' : 'Compare latest settings'}
-          </button>
-        </div>
-        {settingsError ? (
+        ))}
+      <div>
+        {runsError ? (
           <p className="market-admin__error" role="alert">
-            Settings unavailable: {settingsError} Retry to load the form.
+            Run history unavailable: {runsError} Retrying automatically.
           </p>
         ) : null}
-        {settings && draft ? (
-          <>
-            {settings.warnings
-              .filter((warning) => !status?.warnings.includes(warning))
-              .map((warning) => (
-                <p className="market-admin__warning" key={warning}>
-                  {warning}
-                </p>
-              ))}
-            <form
-              ref={formRef}
-              noValidate
-              onSubmit={(event) => {
-                event.preventDefault();
-                const errors = validateSettings(draft);
-                setFieldErrors(errors);
-                if (Object.keys(errors).length) {
-                  setFeedback({
-                    area: 'settings',
-                    error: 'Check the highlighted settings before saving.',
-                    message: '',
-                  });
-                  focusInvalidSetting();
-                  return;
-                }
+        <MarketRunHistory
+          runs={runs}
+          busy={busy}
+          onCancel={(id) =>
+            void act(
+              'runs',
+              async () => {
+                await client.cancel(id);
+              },
+              'Cancellation requested. The run stops at its next safe boundary.',
+            )
+          }
+        />
+        {notice('runs')}
+      </div>
+      <section
+        className="market-admin__settings"
+        aria-labelledby="admin-settings-heading"
+      >
+        <details className="market-admin__drawer" ref={settingsRef}>
+          <summary>
+            <h2 id="admin-settings-heading">Settings</h2>
+            {dirty ? (
+              <span className="market-admin__warning">Unsaved changes</span>
+            ) : null}
+          </summary>
+          <div className="market-admin__heading">
+            <div>
+              <p>
+                {settings
+                  ? `Version ${settings.version} · ${settings.timezone}`
+                  : 'Persistent collection settings'}
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() =>
                 void act(
                   'settings',
-                  async () => {
-                    try {
-                      acceptSettings(
-                        await client.save(
-                          settings.version,
-                          settingsChanges(settings.configured, draft),
-                        ),
-                      );
-                      setFieldErrors({});
-                    } catch (cause) {
-                      if (cause instanceof SettingsScheduleError) {
-                        setFieldErrors({ refreshCron: cause.message });
-                        focusInvalidSetting();
-                      }
-                      throw cause;
-                    }
-                  },
-                  'Settings saved.',
-                );
-              }}
+                  async () => acceptSettings(await client.settings(), true),
+                  'Latest settings loaded. Your unsaved edits are kept.',
+                )
+              }
             >
-              <fieldset disabled={busy}>
-                <legend className="visually-hidden">
-                  Persistent market settings
-                </legend>
-                <div className="market-admin__settings-groups">
-                  <details className="market-admin__setting-group">
-                    <summary>
-                      Automation{' '}
-                      <small>
-                        {draft.automaticRefreshEnabled
-                          ? 'Recipe refresh on'
-                          : 'Recipe refresh off'}{' '}
-                        ·{' '}
-                        {draft.scheduledCollectionEnabled
-                          ? 'Observations on'
-                          : 'Observations off'}
-                      </small>
-                    </summary>
-                    {(
-                      [
-                        ['automaticRefreshEnabled', 'Automatic recipe refresh'],
+              {settingsError ? 'Retry settings' : 'Compare latest settings'}
+            </button>
+          </div>
+          {settingsError ? (
+            <p className="market-admin__error" role="alert">
+              Settings unavailable: {settingsError} Retry to load the form.
+            </p>
+          ) : null}
+          {settings && draft ? (
+            <>
+              {settings.warnings
+                .filter((warning) => !status?.warnings.includes(warning))
+                .map((warning) => (
+                  <p className="market-admin__warning" key={warning}>
+                    {warning}
+                  </p>
+                ))}
+              <form
+                ref={formRef}
+                noValidate
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const errors = validateSettings(draft);
+                  setFieldErrors(errors);
+                  if (Object.keys(errors).length) {
+                    setFeedback({
+                      area: 'settings',
+                      error: 'Check the highlighted settings before saving.',
+                      message: '',
+                    });
+                    focusInvalidSetting();
+                    return;
+                  }
+                  void act(
+                    'settings',
+                    async () => {
+                      try {
+                        acceptSettings(
+                          await client.save(
+                            settings.version,
+                            settingsChanges(settings.configured, draft),
+                          ),
+                        );
+                        setFieldErrors({});
+                      } catch (cause) {
+                        if (cause instanceof SettingsScheduleError) {
+                          setFieldErrors({ refreshCron: cause.message });
+                          focusInvalidSetting();
+                        }
+                        throw cause;
+                      }
+                    },
+                    'Settings saved.',
+                  );
+                }}
+              >
+                <fieldset disabled={busy}>
+                  <legend className="visually-hidden">
+                    Persistent market settings
+                  </legend>
+                  <div className="market-admin__settings-groups">
+                    <div className="market-admin__setting-group">
+                      <h3>
+                        Automation{' '}
+                        <small>
+                          {draft.automaticRefreshEnabled
+                            ? 'Recipe refresh on'
+                            : 'Recipe refresh off'}{' '}
+                          ·{' '}
+                          {draft.scheduledCollectionEnabled
+                            ? 'Observations on'
+                            : 'Observations off'}
+                        </small>
+                      </h3>
+                      {(
                         [
-                          'scheduledCollectionEnabled',
-                          'Scheduled market observations',
-                        ],
-                        ['manualRefreshEnabled', 'Allow manual refresh'],
-                      ] as const
-                    ).map(([key, label]) => (
-                      <label className="market-admin__check" key={key}>
+                          [
+                            'automaticRefreshEnabled',
+                            'Automatic recipe refresh',
+                          ],
+                          [
+                            'scheduledCollectionEnabled',
+                            'Scheduled market observations',
+                          ],
+                          ['manualRefreshEnabled', 'Allow manual refresh'],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <label className="market-admin__check" key={key}>
+                          <input
+                            type="checkbox"
+                            checked={draft[key]}
+                            onChange={(event) =>
+                              setDraft({
+                                ...draft,
+                                [key]: event.target.checked,
+                              })
+                            }
+                          />
+                          {label}
+                        </label>
+                      ))}
+                      <label className="market-admin__field">
+                        Refresh schedule (cron)
                         <input
-                          type="checkbox"
-                          checked={draft[key]}
+                          name="refreshCron"
+                          required
+                          maxLength={100}
+                          value={draft.refreshCron}
+                          aria-invalid={!!fieldErrors.refreshCron}
+                          aria-describedby="admin-refreshCron-hint"
                           onChange={(event) =>
-                            setDraft({ ...draft, [key]: event.target.checked })
+                            setDraft({
+                              ...draft,
+                              refreshCron: event.target.value,
+                            })
                           }
                         />
-                        {label}
-                      </label>
-                    ))}
-                    <label className="market-admin__field">
-                      Refresh schedule (cron)
-                      <input
-                        name="refreshCron"
-                        required
-                        maxLength={100}
-                        value={draft.refreshCron}
-                        aria-invalid={!!fieldErrors.refreshCron}
-                        aria-describedby="admin-refreshCron-hint"
-                        onChange={(event) =>
-                          setDraft({
-                            ...draft,
-                            refreshCron: event.target.value,
-                          })
-                        }
-                      />
-                      <small
-                        id="admin-refreshCron-hint"
-                        className={
-                          fieldErrors.refreshCron ? 'market-admin__error' : ''
-                        }
-                      >
-                        {fieldErrors.refreshCron ||
-                          'Five fields. At least 5 minutes between refreshes.'}
-                      </small>
-                    </label>
-                  </details>
-                  {(
-                    [
-                      ['Requests', numericSettings.slice(0, 2)],
-                      ['Freshness', numericSettings.slice(2, 5)],
-                      ['Retention', numericSettings.slice(5)],
-                    ] as const
-                  ).map(([title, fields]) => (
-                    <details
-                      className="market-admin__setting-group"
-                      key={title}
-                    >
-                      <summary>
-                        {title}
-                        <small>
-                          {title === 'Requests'
-                            ? `${draft.requestTimeoutMs / 1000}s timeout · ${draft.collectionConcurrency} concurrent`
-                            : title === 'Freshness'
-                              ? `${draft.maximumQuoteAgeMs / 60_000} min maximum quote age`
-                              : `${draft.rawRetentionHours}h raw · ${draft.historyRetentionDays}d history`}
+                        <small
+                          id="admin-refreshCron-hint"
+                          className={
+                            fieldErrors.refreshCron ? 'market-admin__error' : ''
+                          }
+                        >
+                          {fieldErrors.refreshCron ||
+                            'Five fields. At least 5 minutes between refreshes.'}
                         </small>
-                      </summary>
-                      <div className="market-admin__fields">
-                        {fields.map(({ key, label, factor, min, max }) => (
-                          <label className="market-admin__field" key={key}>
-                            {label}
-                            <input
-                              name={key}
-                              type="number"
-                              required
-                              min={min}
-                              max={max}
-                              step={key.endsWith('Ms') ? 'any' : 1}
-                              value={
-                                Number.isFinite(draft[key])
-                                  ? draft[key] / factor
-                                  : ''
-                              }
-                              aria-invalid={!!fieldErrors[key]}
-                              aria-describedby={`admin-${key}-hint`}
-                              onChange={(event) =>
-                                setDraft({
-                                  ...draft,
-                                  [key]: event.target.valueAsNumber * factor,
-                                })
-                              }
-                            />
-                            <small
-                              id={`admin-${key}-hint`}
-                              className={
-                                fieldErrors[key] ? 'market-admin__error' : ''
-                              }
-                            >
-                              {fieldErrors[key] ||
-                                `${min === 1 / 60 ? '0.017' : min}–${max}${settings.effective[key] !== draft[key] ? ` · Effective: ${settings.effective[key] / factor}` : ''}`}
-                            </small>
-                          </label>
-                        ))}
+                      </label>
+                    </div>
+                    {(
+                      [
+                        ['Requests', numericSettings.slice(0, 2)],
+                        ['Freshness', numericSettings.slice(2, 5)],
+                        ['Retention', numericSettings.slice(5)],
+                      ] as const
+                    ).map(([title, fields]) => (
+                      <div className="market-admin__setting-group" key={title}>
+                        <h3>
+                          {title}
+                          <small>
+                            {title === 'Requests'
+                              ? `${draft.requestTimeoutMs / 1000}s timeout · ${draft.collectionConcurrency} concurrent`
+                              : title === 'Freshness'
+                                ? `${draft.maximumQuoteAgeMs / 60_000} min maximum quote age`
+                                : `${draft.rawRetentionHours}h raw · ${draft.historyRetentionDays}d history`}
+                          </small>
+                        </h3>
+                        <div className="market-admin__fields">
+                          {fields.map(({ key, label, factor, min, max }) => (
+                            <label className="market-admin__field" key={key}>
+                              {label}
+                              <input
+                                name={key}
+                                type="number"
+                                required
+                                min={min}
+                                max={max}
+                                step={key.endsWith('Ms') ? 'any' : 1}
+                                value={
+                                  Number.isFinite(draft[key])
+                                    ? draft[key] / factor
+                                    : ''
+                                }
+                                aria-invalid={!!fieldErrors[key]}
+                                aria-describedby={`admin-${key}-hint`}
+                                onChange={(event) =>
+                                  setDraft({
+                                    ...draft,
+                                    [key]: event.target.valueAsNumber * factor,
+                                  })
+                                }
+                              />
+                              <small
+                                id={`admin-${key}-hint`}
+                                className={
+                                  fieldErrors[key] ? 'market-admin__error' : ''
+                                }
+                              >
+                                {fieldErrors[key] ||
+                                  `${min === 1 / 60 ? '0.017' : min}–${max}${settings.effective[key] !== draft[key] ? ` · Effective: ${settings.effective[key] / factor}` : ''}`}
+                              </small>
+                            </label>
+                          ))}
+                        </div>
                       </div>
-                      {title === 'Freshness' ? (
-                        <p className="market-admin__explanation">
-                          Reuse TTL can avoid a new request. Maximum quote age
-                          determines whether a price remains usable. Both reuse
-                          TTL and freshness warning must fit within maximum
-                          quote age.
-                        </p>
-                      ) : title === 'Retention' ? (
-                        <p className="market-admin__explanation">
-                          Price history must cover the raw snapshot retention
-                          period.
-                        </p>
-                      ) : null}
-                    </details>
-                  ))}
-                </div>
-                <div className="market-admin__save">
-                  <button type="submit" disabled={!dirty || busy}>
-                    {busy && feedback.area === 'settings'
-                      ? 'Saving…'
-                      : 'Save settings'}
-                  </button>
+                    ))}
+                  </div>
                   {dirty ? (
-                    <>
+                    <div className="market-admin__save">
+                      <button type="submit" disabled={!dirty || busy}>
+                        {busy && feedback.area === 'settings'
+                          ? 'Saving…'
+                          : 'Save settings'}
+                      </button>
                       <button
                         type="button"
                         disabled={busy}
@@ -775,22 +829,21 @@ export function AdminMarketPage() {
                       <span className="market-admin__warning">
                         Unsaved changes
                       </span>
-                    </>
-                  ) : (
-                    <span>All changes saved</span>
-                  )}
-                </div>
-              </fieldset>
-            </form>
-            <p className="market-admin__hint">
-              {settings.applies}
-              {settings.restartRequired ? ' Restart required.' : ''}
-            </p>
-          </>
-        ) : !settingsError ? (
-          <p role="status">Loading settings…</p>
-        ) : null}
-        {notice('settings')}
+                    </div>
+                  ) : null}
+                </fieldset>
+              </form>
+              <p className="market-admin__hint">
+                Pause blocks new collection; active work can finish. Cancel an
+                active run separately. {settings.applies}
+                {settings.restartRequired ? ' Restart required.' : ''}
+              </p>
+            </>
+          ) : !settingsError ? (
+            <p role="status">Loading settings…</p>
+          ) : null}
+          {notice('settings')}
+        </details>
       </section>
     </div>
   );
@@ -803,16 +856,15 @@ export function MarketConnectionStatus({
 }) {
   return (
     <section
-      className="market-admin__panel market-admin__connection"
+      className="market-admin__connection"
       aria-labelledby="admin-status-heading"
     >
-      <div className="market-admin__heading">
-        <h2 id="admin-status-heading">Market status</h2>
-        <small>Updated {time(status.serverTime)}</small>
-      </div>
-      <dl className="market-admin__status">
+      <h2 id="admin-status-heading" className="visually-hidden">
+        Market status
+      </h2>
+      <dl className="market-admin__overview">
         <div>
-          <dt>Current league</dt>
+          <dt>League</dt>
           <dd>
             {status.league
               ? `${status.league.name} · ${status.league.confirmed ? 'Confirmed' : 'Last known / unconfirmed'}`
@@ -820,51 +872,7 @@ export function MarketConnectionStatus({
           </dd>
         </div>
         <div>
-          <dt>Sources</dt>
-          <dd>
-            <span
-              className={
-                status.trade.configured && status.trade.status === 'OK'
-                  ? 'market-admin__success'
-                  : 'market-admin__warning'
-              }
-            >
-              Trade:{' '}
-              {status.trade.configured
-                ? sourceLabel(status.trade.status)
-                : 'Not configured'}
-            </span>
-            <small>
-              poe.ninja:{' '}
-              {status.ninja.configured
-                ? sourceLabel(status.ninja.status)
-                : 'Not configured'}
-            </small>
-          </dd>
-        </div>
-        <div>
-          <dt>Worker / scheduler</dt>
-          <dd
-            className={
-              status.worker.healthy && status.scheduler.healthy
-                ? 'market-admin__success'
-                : 'market-admin__error'
-            }
-          >
-            {status.worker.healthy ? 'Healthy' : 'Unavailable'} /{' '}
-            {status.scheduler.healthy ? 'Healthy' : 'Unavailable'}
-          </dd>
-        </div>
-        <div>
-          <dt>Next refresh</dt>
-          <dd>
-            {status.scheduler.enabled
-              ? time(status.scheduler.nextRefreshAt)
-              : 'Automatic refresh disabled'}
-          </dd>
-        </div>
-        <div>
-          <dt>Recipe coverage</dt>
+          <dt>Fresh recipes</dt>
           <dd
             className={
               status.coverage.freshRecipes === status.coverage.activeRecipes &&
@@ -881,17 +889,73 @@ export function MarketConnectionStatus({
           </dd>
         </div>
         <div>
-          <dt>Active refresh</dt>
+          <dt>Next refresh</dt>
           <dd>
-            {status.activeRun
-              ? `${status.activeRun.status} · ${status.activeRun.completedQueries + status.activeRun.failedQueries}/${status.activeRun.totalQueries} queries`
-              : 'No active run'}
+            {status.scheduler.enabled
+              ? time(status.scheduler.nextRefreshAt)
+              : 'Automatic refresh disabled'}
+          </dd>
+        </div>
+        <div>
+          <dt>Sources</dt>
+          <dd>
+            <span
+              className={
+                status.trade.configured &&
+                ['OK', 'succeeded'].includes(status.trade.status)
+                  ? ''
+                  : 'market-admin__warning'
+              }
+            >
+              Trade:{' '}
+              {status.trade.configured
+                ? sourceLabel(status.trade.status)
+                : 'Not configured'}
+            </span>
+            <small>
+              poe.ninja:{' '}
+              {status.ninja.configured
+                ? sourceLabel(status.ninja.status)
+                : 'Not configured'}
+            </small>
           </dd>
         </div>
       </dl>
+      {!status.worker.healthy || !status.scheduler.healthy ? (
+        <p className="market-admin__error" role="alert">
+          Worker / scheduler:{' '}
+          {status.worker.healthy ? 'Healthy' : 'Unavailable'} /{' '}
+          {status.scheduler.healthy ? 'Healthy' : 'Unavailable'}. Check
+          connection details before starting work.
+        </p>
+      ) : null}
+      {status.ninja.cooldownUntil ? (
+        <p className="market-admin__warning">
+          poe.ninja is cooling down until {time(status.ninja.cooldownUntil)}.
+        </p>
+      ) : null}
       <details className="market-admin__diagnostics">
         <summary>Connection details</summary>
         <dl className="market-admin__status">
+          <div>
+            <dt>Updated</dt>
+            <dd>{time(status.serverTime)}</dd>
+          </div>
+          <div>
+            <dt>Worker / scheduler</dt>
+            <dd>
+              {status.worker.healthy ? 'Healthy' : 'Unavailable'} /{' '}
+              {status.scheduler.healthy ? 'Healthy' : 'Unavailable'}
+            </dd>
+          </div>
+          <div>
+            <dt>Active refresh</dt>
+            <dd>
+              {status.activeRun
+                ? `${status.activeRun.status} · ${status.activeRun.completedQueries + status.activeRun.failedQueries}/${status.activeRun.totalQueries} queries`
+                : 'No active run'}
+            </dd>
+          </div>
           <div>
             <dt>Trade diagnostic</dt>
             <dd>
@@ -932,6 +996,24 @@ export function MarketConnectionStatus({
             <dd>{time(status.coverage.latestSnapshotAt)}</dd>
           </div>
         </dl>
+        {status.ninja.cooldownUntil ? (
+          <p className="market-admin__warning">
+            poe.ninja cooldown until {time(status.ninja.cooldownUntil)}
+          </p>
+        ) : null}
+        {status.rateLimits.length ? (
+          <ul className="market-admin__limits">
+            {status.rateLimits.map((policy) => (
+              <li key={policy.policy}>
+                <strong>{policy.policy}</strong> · HTTP{' '}
+                {policy.lastStatus ?? '—'} · Minimum delay{' '}
+                {policy.minimumDelayMs} ms
+                <br />
+                Next permitted request: {time(policy.waitingUntil)}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </details>
     </section>
   );
@@ -991,91 +1073,144 @@ export function MarketRunHistory({
   busy: boolean;
   onCancel: (id: string) => void;
 }) {
+  const active = (run: MarketAdminRun) =>
+    run.status === 'queued' || run.status === 'running';
+  const ordered = [
+    ...runs.filter(active),
+    ...runs.filter((run) => !active(run)),
+  ];
+  function row(run: MarketAdminRun) {
+    return (
+      <li key={run.id}>
+        <details className="market-admin__run-details">
+          <summary>
+            <span className="market-admin__run-heading">
+              <strong>
+                {run.scope === 'recipe'
+                  ? `Recipe: ${run.recipeId}`
+                  : run.scope === 'economy'
+                    ? 'Material prices'
+                    : 'All recipes'}
+              </strong>
+              <span
+                className={`market-admin__badge ${run.status === 'succeeded' ? 'market-admin__success' : run.status === 'failed' ? 'market-admin__error' : 'market-admin__warning'}`}
+              >
+                {
+                  {
+                    queued: 'Queued',
+                    running: 'Running',
+                    succeeded: 'Completed',
+                    failed: 'Failed',
+                    cancelled: 'Cancelled',
+                    skipped: 'Skipped',
+                  }[run.status]
+                }
+                {run.cancelRequested ? ' · Cancellation requested' : ''}
+              </span>
+              <time dateTime={run.requestedAt} title={time(run.requestedAt)}>
+                {new Date(run.requestedAt).toLocaleString('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </time>
+            </span>
+          </summary>
+          <dl>
+            <dt>Source</dt>
+            <dd>{run.source}</dd>
+            <dt>Requested</dt>
+            <dd>{time(run.requestedAt)}</dd>
+            <dt>Started</dt>
+            <dd>{time(run.startedAt)}</dd>
+            <dt>Finished</dt>
+            <dd>{time(run.finishedAt)}</dd>
+            <dt>Duration</dt>
+            <dd>
+              {run.durationMs === null
+                ? run.finishedAt
+                  ? 'Finished · duration unavailable'
+                  : 'In progress'
+                : `${Math.round(run.durationMs / 1000)} seconds`}
+            </dd>
+            <dt>Queries</dt>
+            <dd>
+              {run.completedQueries}/{run.totalQueries} queries complete ·{' '}
+              {run.failedQueries} failed
+            </dd>
+            <dt>Source freshness</dt>
+            <dd>{time(run.sourceFreshness)}</dd>
+            <dt>Error code</dt>
+            <dd>{run.errorCode ?? '—'}</dd>
+            <dt>Run ID</dt>
+            <dd>{run.id}</dd>
+          </dl>
+        </details>
+        {active(run) ? (
+          <>
+            <p>
+              {run.totalQueries
+                ? `${run.completedQueries + run.failedQueries}/${run.totalQueries} queries processed`
+                : 'Planning queries…'}
+              {run.failedQueries ? ` · ${run.failedQueries} failed` : ''}
+            </p>
+            <progress
+              aria-label="Refresh query progress"
+              max={run.totalQueries > 0 ? run.totalQueries : undefined}
+              value={
+                run.totalQueries > 0
+                  ? run.completedQueries + run.failedQueries
+                  : undefined
+              }
+            />
+            <button
+              type="button"
+              disabled={busy || run.cancelRequested}
+              onClick={() => onCancel(run.id)}
+              aria-label={`Cancel run ${run.id}`}
+            >
+              {run.cancelRequested ? 'Cancellation requested' : 'Cancel run'}
+            </button>
+          </>
+        ) : null}
+        {run.errorCode ? (
+          <p
+            className={
+              run.status === 'skipped' || run.status === 'cancelled'
+                ? 'market-admin__hint'
+                : 'market-admin__error'
+            }
+          >
+            {runErrorLabel(run.errorCode)}
+          </p>
+        ) : null}
+        {run.cooldownUntil ? (
+          <p className="market-admin__warning">
+            Cooldown until {time(run.cooldownUntil)}
+          </p>
+        ) : null}
+      </li>
+    );
+  }
   return (
     <section
-      className="market-admin__panel"
+      className="market-admin__history"
       aria-labelledby="admin-history-heading"
     >
       <h2 id="admin-history-heading">Recent runs</h2>
       {runs.length ? (
-        <ol className="market-admin__runs">
-          {runs.map((run) => (
-            <li key={run.id}>
-              <div className="market-admin__run-heading">
-                <strong>
-                  {run.scope === 'recipe'
-                    ? `Recipe: ${run.recipeId}`
-                    : run.scope === 'economy'
-                      ? 'Economy / material prices'
-                      : 'All active recipes'}
-                </strong>
-                <span
-                  className={`market-admin__badge ${run.status === 'succeeded' ? 'market-admin__success' : run.status === 'failed' ? 'market-admin__error' : 'market-admin__warning'}`}
-                >
-                  {run.status}
-                  {run.cancelRequested ? ' · Cancellation requested' : ''}
-                </span>
-              </div>
-              <p>
-                {run.source} · Requested {time(run.requestedAt)} ·{' '}
-                {run.durationMs === null
-                  ? run.finishedAt
-                    ? 'Finished · duration unavailable'
-                    : 'In progress'
-                  : `${Math.round(run.durationMs / 1000)} seconds`}
-              </p>
-              <p>
-                {run.completedQueries}/{run.totalQueries} queries complete ·{' '}
-                {run.failedQueries} failed · Source freshness:{' '}
-                {time(run.sourceFreshness)}
-              </p>
-              {['queued', 'running'].includes(run.status) ? (
-                <progress
-                  aria-label="Refresh query progress"
-                  max={run.totalQueries > 0 ? run.totalQueries : undefined}
-                  value={
-                    run.totalQueries > 0
-                      ? run.completedQueries + run.failedQueries
-                      : undefined
-                  }
-                />
-              ) : null}
-              {run.errorCode ? (
-                <p className="market-admin__error">
-                  {runErrorLabel(run.errorCode)}
-                </p>
-              ) : null}
-              {run.cooldownUntil ? (
-                <p>Cooldown until {time(run.cooldownUntil)}</p>
-              ) : null}
-              <details>
-                <summary>Run details</summary>
-                <dl>
-                  <dt>Error code</dt>
-                  <dd>{run.errorCode ?? '—'}</dd>
-                  <dt>Run ID</dt>
-                  <dd>{run.id}</dd>
-                  <dt>Started</dt>
-                  <dd>{time(run.startedAt)}</dd>
-                  <dt>Finished</dt>
-                  <dd>{time(run.finishedAt)}</dd>
-                </dl>
-              </details>
-              {['queued', 'running'].includes(run.status) ? (
-                <button
-                  type="button"
-                  disabled={busy || run.cancelRequested}
-                  onClick={() => onCancel(run.id)}
-                  aria-label={`Cancel run ${run.id}`}
-                >
-                  {run.cancelRequested
-                    ? 'Cancellation requested'
-                    : 'Cancel run'}
-                </button>
-              ) : null}
-            </li>
-          ))}
-        </ol>
+        <>
+          <ol className="market-admin__runs">{ordered.slice(0, 3).map(row)}</ol>
+          {ordered.length > 3 ? (
+            <details className="market-admin__older">
+              <summary>More runs ({ordered.length - 3})</summary>
+              <ol className="market-admin__runs">
+                {ordered.slice(3).map(row)}
+              </ol>
+            </details>
+          ) : null}
+        </>
       ) : (
         <p>No refresh runs recorded yet.</p>
       )}

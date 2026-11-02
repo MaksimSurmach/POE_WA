@@ -1,0 +1,133 @@
+{
+  "viewports": [
+    {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "height": 1000,
+      "runY": 276,
+      "minFont": 14,
+      "smallTargets": []
+    },
+    {
+      "width": 768,
+      "scrollWidth": 768,
+      "height": 988,
+      "runY": 268.796875,
+      "minFont": 14,
+      "smallTargets": []
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 1116,
+      "runY": 345.796875,
+      "minFont": 14,
+      "smallTargets": []
+    },
+    {
+      "width": 320,
+      "scrollWidth": 320,
+      "height": 1161,
+      "runY": 345.796875,
+      "minFont": 14,
+      "smallTargets": []
+    }
+  ],
+  "states": {
+    "recipeSelection": "title -> correct ID",
+    "catalogFailure": "manual ID fallback",
+    "disclosurePolling": "open and focus preserved",
+    "dirtyPause": "draft kept",
+    "inlineValidation": "drawer open; invalid field focused; no request",
+    "conflict": "visible; draft kept",
+    "statusRecovery": "passed",
+    "settingsRecovery": "drawer auto-open; retry works",
+    "history": "all 12 accessible; active promoted; failures visible; unknown total indeterminate",
+    "cancel": "available without opening run details",
+    "textScale200": "no horizontal overflow at 1440"
+  },
+  "realMutations": 0,
+  "syntheticWrites": [
+    {
+      "path": "refresh",
+      "body": {
+        "scope": "recipe",
+        "recipeId": "physical-large-cluster-alteration"
+      },
+      "synthetic": true
+    },
+    {
+      "path": "pause",
+      "body": {
+        "version": 4
+      },
+      "synthetic": true
+    },
+    {
+      "path": "settings",
+      "body": {
+        "version": 5,
+        "settings": {
+          "requestTimeoutMs": 13000
+        }
+      },
+      "synthetic": true
+    },
+    {
+      "path": "cancel",
+      "body": {},
+      "synthetic": true
+    }
+  ],
+  "last_visual_confirmation": {
+    "sentenceCase": true,
+    "widths": [1440, 768, 390, 320],
+    "overflow": false,
+    "mutations": 0
+  },
+  "baseline": [
+    {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "height": 1578,
+      "runY": 839.203125,
+      "bodyFont": "16px",
+      "metaFont": "12.48px"
+    },
+    {
+      "width": 768,
+      "scrollWidth": 768,
+      "height": 1958,
+      "runY": 829.5,
+      "bodyFont": "16px",
+      "metaFont": "12.48px"
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 2395,
+      "runY": 1025.796875,
+      "bodyFont": "16px",
+      "metaFont": "11.52px"
+    },
+    {
+      "width": 320,
+      "scrollWidth": 320,
+      "height": 2608,
+      "runY": 1169.96875,
+      "bodyFont": "16px",
+      "metaFont": "11.52px"
+    }
+  ],
+  "final_source_sha256": {
+    "apps/web/src/AdminMarketPage.tsx": "6d3e96f2421ee38444d8a3e2aeb805cae9e19e163e2dc63d83703bb9d8dbe119",
+    "apps/web/src/adminMarket.css": "7180126423a17997acf1518c490d97fd6077142198899244ad13292143f5a36b"
+  },
+  "unchanged_live_settings": {
+    "version": 4,
+    "automaticRefreshEnabled": false,
+    "scheduledCollectionEnabled": false,
+    "collectionsPaused": false,
+    "requestTimeoutMs": 12000
+  }
+}

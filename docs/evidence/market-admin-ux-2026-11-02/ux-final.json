@@ -1,0 +1,50 @@
+{
+  "prescriptions": [
+    {
+      "rank": 1,
+      "status": "delivered",
+      "evidence": "after-1440 band under the action bar shows four plain dt/dd cells (League / Fresh recipes / Next refresh / Sources) with colour only on the two exception values; no six symmetric cards. Source: MarketConnectionStatus `dl.market-admin__overview`, CSS `grid-template-columns: repeat(4, minmax(0,1fr))`; the old per-cell card chrome is gone and deep fields moved into `details.market-admin__diagnostics` (\"Connection details\")."
+    },
+    {
+      "rank": 2,
+      "status": "delivered",
+      "evidence": "after-1440 y\u2248225-340: the Refresh scope + \"Run now\" strip is the first interactive block directly beneath the H1, above status/runs; pause/resume and the live state badge sit on the header line itself (source `market-admin__heading` > `market-admin__collection`, then `section.market-admin__action-bar`). Intent (one-glance launch) met even though refresh lives in its own adjacent bar rather than inside the header row."
+    },
+    {
+      "rank": 3,
+      "status": "delivered",
+      "evidence": "after-1440 y\u2248520-720 and after-390 y\u2248690-910: \"Recent runs\" is a compact row list (title \u00b7 status dot \u00b7 timestamp) with the failure reason inline (\"Skipped because collections are paused.\"). Source MarketRunHistory: `ordered.slice(0,3)` rows, remainder behind \"More runs (n)\", per-row `details` for Source/Queries/Run ID; active runs keep progress + Cancel run."
+    },
+    {
+      "rank": 4,
+      "status": "delivered",
+      "evidence": "after-1440 bottom: a single \"Settings\" disclosure, closed by default; after-settings shows one expansion revealing all groups as h3 headings (Automation / Requests / Freshness / Retention) with no nested accordions. Source: `details.market-admin__drawer` with summary badge `Unsaved changes` when `dirty`, the `useEffect` that force-opens the drawer on dirty/field errors/settings errors, and a `market-admin__save` bar carrying Save, Discard edits and a second gold \"Unsaved changes\" marker (draft loudness source-inferred only; no dirty screenshot supplied)."
+    },
+    {
+      "rank": 5,
+      "status": "delivered",
+      "evidence": "after-settings: each group header carries one short state summary (\"12s timeout \u00b7 4 concurrent\", \"96h raw \u00b7 14d history\"); per-field helper text is reduced to the numeric range (\"1\u201330\", \"24\u20132160\") plus the cron rule. Only one explanatory paragraph survives, at the end (pause/cancel/apply semantics), matching source lines 836-840."
+    },
+    {
+      "rank": 6,
+      "status": "delivered",
+      "evidence": "CSS: body copy 1rem/1.5, h2 1.125rem, floor 0.875rem for small/dt/hint/time (no sub-14px text), inputs/selects 1rem with 44px min-height, buttons 44px. Container `max-width:1120px` centred \u2014 after-1440 shows comfortable side margins and no over-wide measure (`p{max-width:70ch}`); after-390 shows a clean single-column fallback at 600px/850px breakpoints with no horizontal overflow."
+    }
+  ],
+  "remaining_material_issues": [
+    {
+      "priority": "P2",
+      "issue": "`.market-admin__badge { text-transform: capitalize }` title-cases multi-word collection states, so the primary header state reads \"Accepting New Work\" (visible at after-1440 y\u2248156 and after-390 y\u2248217) instead of the sentence case used everywhere else in the handbook; the same rule will render \"Collections Paused\", \"Checking Collection Status\" and \"\u00b7 Cancellation Requested\" on run rows. It is the most prominent word pair on the page, so the inconsistency reads as a different product voice at the exact point the operator reads state.",
+      "evidence": "after-1440 header badge text; adminMarket.css line 228 `text-transform: capitalize` on `.market-admin__badge`; AdminMarketPage.tsx lines 394-399 supply sentence-case strings.",
+      "minimal_fix": "Remove `text-transform: capitalize` from `.market-admin__badge` and apply it only to the raw run-status token (e.g. a `.market-admin__run-heading .market-admin__badge::first-letter`-style rule or capitalise `run.status` in MarketRunHistory), keeping lowercase API statuses rendering correctly."
+    }
+  ],
+  "verdict": "material UX fixes remain",
+  "summary": "All six prescriptions are delivered in substance. The default view is genuinely quiet: header (back link, title, live state badge, pause/resume) \u2192 one refresh strip with scope + Run now \u2192 a four-cell status line with colour reserved for the two exceptions \u2192 three condensed run rows \u2192 a closed Settings drawer. Depth survives behind \"Connection details\", per-run disclosures, \"More runs\" and the single settings drawer, so the task path is short while configuration is clearly secondary. Type never drops below 0.875rem, controls hold 44px targets, the 1120px container keeps a sane measure at 1440, and the 390 view reflows to one column without overflow or truncation. Core controls and safety semantics are intact in source: pause/resume with edit preservation, run cancellation with cancel-requested state, version-conflict and auth-specific error copy, cron and cross-field validation with aria-invalid focus, dirty-state save/discard, and the drawer auto-opening on draft or validation state. Dark/gold identity and the handbook shell are unchanged. One visible inconsistency remains (badge title-casing); everything else I found is cosmetic and out of scope.",
+  "coverage_limits": [
+    "Only the three supplied PNGs were inspected; I did not drive a browser and make no claim of interactive verification. User/browser verification remains parent-owned.",
+    "Conditional states (dirty settings, validation errors, active run with progress/cancel, paused collections, catalog failure/manual-ID fallback, loading and error banners) appear in no screenshot and were judged from source only.",
+    "Intermediate viewports between 390 and 1440 (notably the 601-850px band where the overview is two columns but settings are still two columns) were not pictured.",
+    "Contrast ratios, focus-visible rings, and token values from the global theme (var(--accent)/--warning/--muted) were not measured; those files were out of scope."
+  ]
+}
