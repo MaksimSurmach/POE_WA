@@ -1,4 +1,5 @@
 import type { RateLimitWindow } from '@poe-worksmith/domain';
+import type { MarketAdminSettings } from '@poe-worksmith/contracts';
 import type {
   MarketTarget,
   MarketResearchSnapshotSummary,
@@ -34,6 +35,69 @@ const timestamps = {
     .defaultNow()
     .notNull(),
 };
+
+export const marketAdminSettings = pgTable(
+  'market_admin_settings',
+  {
+    id: integer('id').primaryKey().default(1),
+    version: integer('version').notNull().default(0),
+    settings: jsonb('settings').$type<MarketAdminSettings>().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [check('market_admin_settings_singleton', sql`${t.id} = 1`)],
+);
+
+export const marketAdminAudit = pgTable('market_admin_audit', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  actor: text('actor').notNull(),
+  action: text('action').notNull(),
+  details: jsonb('details').$type<Record<string, unknown>>().notNull(),
+});
+
+export const marketAdminRuns = pgTable(
+  'market_admin_runs',
+  {
+    id: uuid('id').primaryKey(),
+    scope: text('scope').notNull(),
+    recipeId: text('recipe_id'),
+    source: text('source').notNull(),
+    status: text('status').notNull(),
+    requestedAt: timestamp('requested_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    cancelRequested: boolean('cancel_requested').notNull().default(false),
+    errorCode: text('error_code'),
+    progress: jsonb('progress')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+  },
+  (t) => [
+    uniqueIndex('market_admin_runs_single_active')
+      .on(sql`(1)`)
+      .where(sql`${t.status} in ('queued', 'running')`),
+    index('market_admin_runs_requested_idx').on(t.requestedAt),
+    check(
+      'market_admin_runs_status_check',
+      sql`${t.status} in ('queued', 'running', 'succeeded', 'failed', 'cancelled', 'skipped')`,
+    ),
+    check(
+      'market_admin_runs_scope_check',
+      sql`${t.scope} in ('all', 'economy', 'recipe')`,
+    ),
+  ],
+);
+
+export const marketWorkerHealth = pgTable('market_worker_health', {
+  id: text('id').primaryKey(),
+  heartbeatAt: timestamp('heartbeat_at', { withTimezone: true }).notNull(),
+  settingsVersion: integer('settings_version').notNull(),
+});
 
 export const refreshCycles = pgTable(
   'refresh_cycles',

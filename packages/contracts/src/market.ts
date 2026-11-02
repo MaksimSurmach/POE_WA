@@ -364,6 +364,7 @@ export const marketSnapshotImportSchema = z
 
 const optionalPrice = z.number().finite().positive().nullable();
 export const marketResearchSnapshotSummarySchema = z.strictObject({
+  rawAvailable: z.boolean().optional(),
   id: z.uuid(),
   targetId: z.uuid(),
   targetVersion: z.literal(1),
@@ -783,6 +784,7 @@ export const marketCollectionSearchEvidenceSchema = z.strictObject({
 });
 
 export const marketCollectionRunSchema = z.strictObject({
+  rawAvailable: z.boolean().optional(),
   id: z.uuid(),
   targetId: z.uuid(),
   targetDigest: z.string().regex(/^[a-f0-9]{64}$/),

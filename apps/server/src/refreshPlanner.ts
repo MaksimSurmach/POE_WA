@@ -73,6 +73,7 @@ export async function planCatalogRefresh(
     snapshotTtlMs: number;
     logger?: Logger;
     metrics?: Metrics;
+    recipeId?: string;
   },
 ): Promise<CatalogRefreshPlan> {
   const now = options.now ?? new Date();
@@ -90,9 +91,9 @@ export async function planCatalogRefresh(
     snapshotTtlMs: options.snapshotTtlMs,
   });
 
-  const recipes = (await repositories.recipes.listActive()).sort(
-    (left, right) => left.id.localeCompare(right.id),
-  );
+  const recipes = (await repositories.recipes.listActive())
+    .filter((recipe) => !options.recipeId || recipe.id === options.recipeId)
+    .sort((left, right) => left.id.localeCompare(right.id));
   const { dependencies, totalDependencies } = await buildDependencies(
     recipes,
     league.leagueGggId,

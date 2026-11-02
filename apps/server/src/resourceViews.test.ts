@@ -316,6 +316,137 @@ describe('repository-backed resource views', () => {
     },
   );
 
+  it.each([true, false])(
+    'applies a lowered maximum quote age to catalog and recipe views without deleting prices (input timestamp=%s)',
+    async (hasInputTimestamp) => {
+      const repositories = createInMemoryRepositories();
+      await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+      const recipeId = 'physical-large-cluster-jagged';
+      const recipe = await repositories.recipes.findById(recipeId);
+      if (!recipe) throw new Error('Missing canonical recipe fixture');
+      const now = new Date();
+      const league = await repositories.leagues.upsert({
+        endAt: null,
+        game: 'poe1',
+        gggId: 'Synthetic Policy League',
+        isCurrent: true,
+        metadata: {},
+        name: 'Synthetic Policy League',
+        realm: 'pc',
+        startAt: null,
+        syncedAt: now,
+      });
+      const queued = await repositories.cycles.save({
+        completedQueries: 0,
+        completedRecipes: 0,
+        errorMessage: null,
+        failedQueries: 0,
+        failedRecipes: 0,
+        finishedAt: null,
+        id: '11111111-1111-4111-8111-111111111111',
+        leagueId: league.id,
+        publishedAt: null,
+        requestedAt: now,
+        startedAt: null,
+        status: 'queued',
+        totalQueries: 0,
+        totalRecipes: 1,
+      });
+      const running = await repositories.cycles.save(
+        transitionRefreshCycle(queued, 'running', now),
+      );
+      const saved = await repositories.evaluations.save({
+        confidence: 'low',
+        currency: 'chaos',
+        errorCode: null,
+        estimatedSalePrice: '10',
+        evaluatedAt: now,
+        expectedCraftCost: '3.75',
+        lastSuccessfulAt: now,
+        leagueId: league.id,
+        marginPercent: '62.5',
+        observationId: null,
+        profit: '6.25',
+        recipeId,
+        refreshCycleId: running.id,
+        sourceSnapshotDedupeKey: 'synthetic-policy-snapshot',
+        status: 'success',
+        methodCost: {
+          recipeContentHash: recipe.contentHash,
+          expiresAt: new Date(now.getTime() + 20 * 60_000).toISOString(),
+          ...(hasInputTimestamp
+            ? {
+                oldestInputAt: new Date(
+                  now.getTime() - 10 * 60_000,
+                ).toISOString(),
+              }
+            : {}),
+          expectedCost: { amount: '3.75', currency: 'chaos' },
+        },
+      });
+      await repositories.cycles.save({ ...running, completedRecipes: 1 });
+      await repositories.cycles.publish(running.id, now);
+      const published = await repositories.catalog.getPublished();
+      let maximumQuoteAgeMs = 30 * 60_000;
+      const readers = createResourceReaders(
+        repositories,
+        await loadItemPresentationCatalog(presentationPath),
+        undefined,
+        async () => maximumQuoteAgeMs,
+      );
+      const initialCatalog = await readers.readCatalog(correlationId);
+      expect(
+        initialCatalog.data?.entries.find(
+          (entry) => entry.recipe.id === recipeId,
+        )?.evaluation,
+      ).toMatchObject({
+        status: 'success',
+        profit: { amount: 6.25, currency: 'chaos' },
+      });
+      expect(
+        (await readers.readRecipe(correlationId, recipeId)).data?.evaluation
+          .status,
+      ).toBe('success');
+
+      maximumQuoteAgeMs = 5 * 60_000;
+      const catalog = catalogResponseSchema.parse(
+        await readers.readCatalog(correlationId),
+      );
+      const detail = recipeResponseSchema.parse(
+        await readers.readRecipe(correlationId, recipeId),
+      );
+      expect(
+        catalog.data?.entries.find((entry) => entry.recipe.id === recipeId)
+          ?.evaluation,
+      ).toMatchObject({
+        status: 'stale',
+        expectedCraftCost: null,
+        estimatedSalePrice: null,
+        profit: null,
+        marginPercent: null,
+      });
+      expect(detail.data?.evaluation).toMatchObject({
+        status: 'stale',
+        expectedCraftCost: null,
+        estimatedSalePrice: null,
+        profit: null,
+        marginPercent: null,
+      });
+      expect(detail.data?.method?.expectedCost).toBeNull();
+      expect(await repositories.evaluations.listByCycle(running.id)).toEqual([
+        saved,
+      ]);
+      expect(await repositories.catalog.getPublished()).toEqual(published);
+      expect(await repositories.recipes.findById(recipeId)).toEqual(recipe);
+
+      maximumQuoteAgeMs = 30 * 60_000;
+      expect(
+        (await readers.readRecipe(correlationId, recipeId)).data?.evaluation
+          .status,
+      ).toBe('success');
+    },
+  );
+
   it('does not present a published catalog after its league rolls over', async () => {
     const repositories = createInMemoryRepositories();
     await synchronizeRecipeCatalog(recipesPath, repositories.recipes);

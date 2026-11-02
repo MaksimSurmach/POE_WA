@@ -13,6 +13,8 @@ import { describe, expect, it } from 'vitest';
 
 import { MarketJobProcessor } from './marketJobProcessor.js';
 import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
+import { planCatalogRefresh } from './refreshPlanner.js';
+import { evaluateAndPublishCatalog } from './catalogPublisher.js';
 
 const now = new Date('2026-07-20T00:00:00.000Z');
 
@@ -33,6 +35,142 @@ function storedRecipe(): Recipe {
 }
 
 describe('full refresh orchestrator', () => {
+  it('plans dependencies only for the selected recipe', async () => {
+    const repositories = createInMemoryRepositories();
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Standard',
+      isCurrent: true,
+      metadata: {},
+      name: 'Standard',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
+    const selected = storedRecipe();
+    await repositories.recipes.save(selected);
+    await repositories.recipes.save({
+      ...selected,
+      id: 'unrelated-invalid-recipe',
+      contentHash: 'content-unrelated-invalid-recipe',
+      definition: {},
+    });
+
+    const plan = await planCatalogRefresh(repositories, {
+      recipeId: selected.id,
+      league: {
+        leagueGggId: league.gggId,
+        leagueId: league.id,
+        leagueName: league.name,
+      },
+      marketDependencies: fixtureMarketDependencies,
+      snapshotTtlMs: 60_000,
+      now,
+    });
+
+    expect(plan.cycle.totalRecipes).toBe(1);
+    expect(plan.queries.length).toBeGreaterThan(0);
+    expect(
+      plan.queries.every(
+        ({ recipeIds }) =>
+          recipeIds.length === 1 && recipeIds[0] === selected.id,
+      ),
+    ).toBe(true);
+  });
+
+  it('does not replace the published catalog when cancelled during final material collection', async () => {
+    const repositories = createInMemoryRepositories();
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Standard',
+      isCurrent: true,
+      metadata: {},
+      name: 'Standard',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
+    await repositories.recipes.save(storedRecipe());
+    const previousId = '66666666-6666-4666-8666-666666666666';
+    await repositories.cycles.save({
+      id: previousId,
+      leagueId: league.id,
+      status: 'queued',
+      totalRecipes: 1,
+      totalQueries: 0,
+      completedQueries: 0,
+      completedRecipes: 0,
+      failedQueries: 0,
+      failedRecipes: 0,
+      requestedAt: now,
+      startedAt: null,
+      finishedAt: null,
+      publishedAt: null,
+      errorMessage: null,
+    });
+    await evaluateAndPublishCatalog(repositories, {
+      cycleId: previousId,
+      league: league.gggId,
+      now,
+      evaluateRecipe: async () => ({
+        confidence: 'high',
+        currency: 'chaos',
+        estimatedSalePrice: '100',
+        expectedCraftCost: '40',
+        marginPercent: '60',
+        observationId: null,
+        profit: '60',
+        sourceSnapshotDedupeKey: null,
+      }),
+    });
+    const previous = await repositories.catalog.getPublished();
+    const controller = new AbortController();
+    const id = '77777777-7777-4777-8777-777777777777';
+    let collections = 0;
+    const orchestrator = new FullRefreshOrchestrator({
+      repositories,
+      league: {
+        leagueGggId: league.gggId,
+        leagueId: league.id,
+        leagueName: league.name,
+      },
+      marketDependencies: fixtureMarketDependencies,
+      marketJobs: {
+        runAvailable: async () => {
+          const cycle = await repositories.cycles.findById(id);
+          if (!cycle) throw new Error('Expected planned cycle');
+          await repositories.cycles.save({
+            ...cycle,
+            completedQueries: cycle.totalQueries,
+          });
+          return {
+            claimed: 0,
+            failed: 0,
+            recovered: 0,
+            retried: 0,
+            succeeded: 0,
+          };
+        },
+      },
+      collectMaterialPrices: async () => {
+        if (++collections === 2) controller.abort();
+      },
+      clock: () => now,
+      snapshotTtlMs: 60_000,
+      workerId: 'test-worker',
+      signal: controller.signal,
+    });
+
+    await expect(orchestrator.run(id)).rejects.toMatchObject({
+      name: 'AbortError',
+    });
+    expect(collections).toBe(2);
+    expect(await repositories.catalog.getPublished()).toEqual(previous);
+    expect(await repositories.evaluations.listByCycle(id)).toEqual([]);
+  });
+
   it('plans, executes, evaluates and publishes one retry-safe cycle', async () => {
     const repositories = createInMemoryRepositories();
     const league = await repositories.leagues.upsert({

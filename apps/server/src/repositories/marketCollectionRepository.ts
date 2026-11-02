@@ -154,7 +154,7 @@ export function createMarketCollectionRepository(
              from jsonb_array_elements(payload->'listings') listing
            ), '[]'::jsonb)
          ) as observation
-         from market_collection_runs where target_id = $1
+         from market_collection_runs where target_id = $1 and coalesce(payload->>'rawAvailable','true')='true'
          order by started_at, id`,
         [targetId],
       );

@@ -37,16 +37,23 @@ export function createResourceReaders(
   repositories: Repositories,
   presentationCatalog: ItemPresentationCatalog,
   trade?: TradeQueryGenerator,
+  readMaximumQuoteAgeMs?: () => Promise<number>,
 ) {
   return {
     async readCatalog(correlationId: string): Promise<CatalogResponse> {
-      const [recipes, currentPublished, progress, currentLeague] =
-        await Promise.all([
-          repositories.recipes.listActive(),
-          repositories.catalog.getPublished(),
-          repositories.catalog.getProgress(),
-          repositories.leagues.findCurrent(),
-        ]);
+      const [
+        recipes,
+        currentPublished,
+        progress,
+        currentLeague,
+        maximumQuoteAgeMs,
+      ] = await Promise.all([
+        repositories.recipes.listActive(),
+        repositories.catalog.getPublished(),
+        repositories.catalog.getProgress(),
+        repositories.leagues.findCurrent(),
+        readMaximumQuoteAgeMs?.(),
+      ]);
       const published =
         currentPublished?.cycle.leagueId === currentLeague?.id
           ? currentPublished
@@ -64,6 +71,7 @@ export function createResourceReaders(
             const evaluation = currentEvaluation(
               recipe,
               evaluations.get(recipe.id),
+              maximumQuoteAgeMs,
             );
             const snapshot = await latestOutputSnapshot({
               currentLeague,
@@ -93,13 +101,19 @@ export function createResourceReaders(
       correlationId: string,
       recipeId: string,
     ): Promise<RecipeResponse> {
-      const [recipe, currentPublished, progress, currentLeague] =
-        await Promise.all([
-          repositories.recipes.findById(recipeId),
-          repositories.catalog.getPublished(),
-          repositories.catalog.getProgress(),
-          repositories.leagues.findCurrent(),
-        ]);
+      const [
+        recipe,
+        currentPublished,
+        progress,
+        currentLeague,
+        maximumQuoteAgeMs,
+      ] = await Promise.all([
+        repositories.recipes.findById(recipeId),
+        repositories.catalog.getPublished(),
+        repositories.catalog.getProgress(),
+        repositories.leagues.findCurrent(),
+        readMaximumQuoteAgeMs?.(),
+      ]);
       const published =
         currentPublished?.cycle.leagueId === currentLeague?.id
           ? currentPublished
@@ -129,6 +143,7 @@ export function createResourceReaders(
         published?.evaluations.find(
           (candidate) => candidate.recipeId === recipe.id,
         ),
+        maximumQuoteAgeMs,
       );
 
       return resourceResponse(
@@ -526,11 +541,23 @@ function refreshStatus(
 function currentEvaluation(
   recipe: StoredRecipe,
   evaluation: RecipeEvaluation | undefined,
+  maximumQuoteAgeMs?: number,
 ) {
   if (evaluation?.methodCost?.recipeContentHash !== recipe.contentHash)
     return undefined;
   const expiresAt = evaluation.methodCost.expiresAt;
-  if (typeof expiresAt === 'string' && Date.parse(expiresAt) <= Date.now()) {
+  const oldestInputAt = evaluation.methodCost.oldestInputAt;
+  const policyExpired =
+    maximumQuoteAgeMs !== undefined &&
+    (typeof oldestInputAt === 'string'
+      ? !Number.isFinite(Date.parse(oldestInputAt)) ||
+        Date.parse(oldestInputAt) + maximumQuoteAgeMs <= Date.now()
+      : maximumQuoteAgeMs < 30 * 60_000 ||
+        evaluation.evaluatedAt.getTime() + maximumQuoteAgeMs <= Date.now());
+  if (
+    (typeof expiresAt === 'string' && Date.parse(expiresAt) <= Date.now()) ||
+    policyExpired
+  ) {
     return {
       ...evaluation,
       status: 'stale' as const,

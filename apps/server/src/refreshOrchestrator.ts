@@ -47,6 +47,9 @@ export class FullRefreshOrchestrator {
   readonly #workerId: string;
   readonly #logger: Logger | undefined;
   readonly #metrics: Metrics | undefined;
+  readonly #signal: AbortSignal | undefined;
+  readonly #recipeId: string | undefined;
+  readonly #maximumQuoteAgeMs: number;
 
   constructor(options: {
     collectMaterialPrices?: () => Promise<void>;
@@ -61,6 +64,9 @@ export class FullRefreshOrchestrator {
     workerId: string;
     logger?: Logger;
     metrics?: Metrics;
+    signal?: AbortSignal;
+    recipeId?: string;
+    maximumQuoteAgeMs?: number;
   }) {
     this.#collectMaterialPrices = options.collectMaterialPrices;
     this.#clock = options.clock ?? (() => new Date());
@@ -73,6 +79,9 @@ export class FullRefreshOrchestrator {
     this.#workerId = options.workerId.trim();
     this.#logger = options.logger;
     this.#metrics = options.metrics;
+    this.#signal = options.signal;
+    this.#recipeId = options.recipeId;
+    this.#maximumQuoteAgeMs = options.maximumQuoteAgeMs ?? 30 * 60_000;
     if (
       Object.values(this.#league).some((value) => value.trim().length === 0) ||
       this.#workerId.length === 0 ||
@@ -94,6 +103,7 @@ export class FullRefreshOrchestrator {
       });
     logger?.info('refresh.started');
     try {
+      this.#signal?.throwIfAborted();
       const now = this.#clock();
       const plan = await planCatalogRefresh(this.#repositories, {
         cycleId,
@@ -103,6 +113,7 @@ export class FullRefreshOrchestrator {
           ? { marketDependencies: this.#marketDependencies }
           : {}),
         snapshotTtlMs: this.#snapshotTtlMs,
+        ...(this.#recipeId ? { recipeId: this.#recipeId } : {}),
         ...(logger ? { logger } : {}),
         ...(this.#metrics ? { metrics: this.#metrics } : {}),
       });
@@ -114,10 +125,13 @@ export class FullRefreshOrchestrator {
       }
 
       await this.#collectPrices(cycle);
+      this.#signal?.throwIfAborted();
       const jobs = await this.#marketJobs.runAvailable(
         `${this.#workerId}:${cycle.id}`,
         now,
+        this.#signal,
       );
+      this.#signal?.throwIfAborted();
       const refreshed = await this.#repositories.cycles.findById(cycle.id);
       if (!refreshed) throw new DomainError('PERSISTENCE_NOT_FOUND');
       cycle = refreshed;
@@ -126,11 +140,15 @@ export class FullRefreshOrchestrator {
       }
 
       await this.#collectPrices(cycle);
+      this.#signal?.throwIfAborted();
       const publication = await evaluateAndPublishCatalog(this.#repositories, {
         cycleId: cycle.id,
         league: this.#league.leagueGggId,
         leagueName: this.#league.leagueName,
         now: this.#clock(),
+        maximumQuoteAgeMs: this.#maximumQuoteAgeMs,
+        ...(this.#recipeId ? { recipeId: this.#recipeId } : {}),
+        ...(this.#signal ? { signal: this.#signal } : {}),
         ...(logger ? { logger } : {}),
         ...(this.#metrics ? { metrics: this.#metrics } : {}),
         ...(this.#marketDependencies

@@ -1,4 +1,12 @@
 import { collectRecipeMaterialPrices } from './marketEconomy.js';
+import {
+  createMarketAdminStore,
+  defaultAdminSettings,
+  type AdminQueue,
+} from './marketAdmin.js';
+import { createMarketAdminStatusReader } from './marketAdminStatus.js';
+import { marketAdminRefreshSchema } from '@poe-worksmith/contracts';
+import { DomainError } from '@poe-worksmith/domain';
 import { synchronizeRecipeCatalog } from './recipes/synchronizeRecipes.js';
 import { existsSync } from 'node:fs';
 import pino from 'pino';
@@ -79,11 +87,25 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   });
   const metrics = new Metrics();
   const pool = createDatabasePool(config.database, logger);
-  let workerError: Error | undefined;
   const repositories = createPostgresRepositories(pool);
   const economy = createMarketEconomyRepository(pool);
+  const admin = createMarketAdminStore({
+    pool,
+    defaults: defaultAdminSettings({
+      refreshCron: config.refreshCron,
+      requestTimeoutMs: Number(
+        process.env.POE_TRADE_REQUEST_TIMEOUT_MS ?? config.poeRequestTimeoutMs,
+      ),
+      concurrency: config.marketConcurrency,
+      snapshotTtlMs: config.snapshotTtlMs,
+    }),
+    timezone: config.refreshTimezone,
+    concurrencyLimit: config.marketConcurrency,
+  });
+  await admin.init();
   const economyClient = new NinjaEconomyClient({
     userAgent: process.env.NINJA_USER_AGENT ?? config.poeUserAgent,
+    readTimeoutMs: async () => (await admin.read()).effective.requestTimeoutMs,
   });
   const recipeRoot = fileURLToPath(
     new URL('../../../recipes/', import.meta.url),
@@ -117,16 +139,13 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     repositories,
     presentationCatalog,
     trade,
+    async () => (await admin.read()).effective.maximumQuoteAgeMs,
   );
   let jobs: ApplicationJobScheduler | undefined;
   let tradeClient: PoeTradeClient | undefined;
   const refreshProducer =
     modeIncludesApi(config.mode) && !modeIncludesWorker(config.mode)
-      ? new ManualRefreshProducer(
-          createJobBoss(pool, config.jobSchema, logger, (error) => {
-            workerError ??= error;
-          }),
-        )
+      ? new ManualRefreshProducer(createJobBoss(pool, config.jobSchema, logger))
       : undefined;
   const research = createMarketResearchRepository(pool);
   const collectionStore = createMarketCollectionRepository(pool);
@@ -135,15 +154,30 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       new GggRateLimitController({ repository: repositories.rateLimits }),
       process.env,
       economy,
+      async () => (await admin.read()).effective.requestTimeoutMs,
     ),
     store: collectionStore,
+    readControls: async () => (await admin.read()).effective,
   });
+  function producer() {
+    const result = jobs ?? refreshProducer;
+    if (!result) throw new DomainError('PERSISTENCE_UNAVAILABLE');
+    return result;
+  }
+  const adminQueue: AdminQueue = {
+    enqueue: (data, id, db) => producer().enqueue(data, id, db),
+    cancel: (id) => producer().cancel(id),
+  };
   const api = modeIncludesApi(config.mode)
     ? buildApi(
         logger,
         async () => {
           await pool.query('select 1');
-          if (workerError) throw workerError;
+          if (
+            modeIncludesWorker(config.mode) &&
+            !(await admin.workerHealth()).healthy
+          )
+            throw new Error('WORKER_HEARTBEAT_MISSING');
         },
         repositories.catalog.getProgress,
         repositories.rateLimits.list,
@@ -152,6 +186,18 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         repositories.leagues.list,
         repositories.leagues.findCurrent,
         {
+          marketAdmin: {
+            store: admin,
+            queue: adminQueue,
+            status: createMarketAdminStatusReader({
+              store: admin,
+              repositories,
+              collection: collectionManager,
+              economy,
+              ninja: economyClient,
+              readCatalog: resourceReaders.readCatalog,
+            }),
+          },
           diagnosticsToken: config.operatorDiagnosticsToken,
           metrics: metrics.registry,
           marketResearch: research,
@@ -161,11 +207,8 @@ export async function runProcess(forcedMode?: ApplicationMode) {
               : undefined,
           marketEconomy: {
             repository: economy,
-            client: process.env.NINJA_USER_AGENT
-              ? new NinjaEconomyClient({
-                  userAgent: process.env.NINJA_USER_AGENT,
-                })
-              : undefined,
+            client: economyClient,
+            readRetention: async () => (await admin.read()).effective,
           },
           readCircuits: repositories.providerCircuits.list,
           readOperationalDiagnostics: repositories.operationalDiagnostics.read,
@@ -175,14 +218,14 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             getProgress: repositories.catalog.getProgress,
             timezone: config.refreshTimezone,
           }),
-          triggerRefresh: modeIncludesWorker(config.mode)
-            ? async () => {
-                if (!jobs) throw new Error('REFRESH_WORKER_UNAVAILABLE');
-                return jobs.triggerRefresh();
-              }
-            : refreshProducer
-              ? () => refreshProducer.triggerRefresh()
-              : undefined,
+          triggerRefresh: async () =>
+            (
+              await admin.enqueue(
+                { scope: 'all' },
+                'legacy-refresh',
+                adminQueue,
+              )
+            ).id,
         },
       )
     : undefined;
@@ -194,34 +237,22 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       provider: 'poe-trade',
       repository: repositories.providerCircuits,
     });
-    tradeClient = new PoeTradeClient({
-      allowRequests: process.env.POE_TRADE_ACCESS === 'owner_permitted',
-      collectionTimeoutMs: Math.min(
-        15 * 60_000,
-        Math.max(1000, config.jobLeaseTimeoutMs - 1000),
-      ),
-      collectionSource: managedCollectionSource(collectionManager, research),
-      circuits,
-      logger,
-      metrics,
-      rateLimits,
-      requestTimeoutMs: config.poeRequestTimeoutMs,
-      userAgent: config.poeUserAgent,
-    });
-    const marketJobs = new MarketJobProcessor({
-      concurrency: config.marketConcurrency,
-      leaseTimeoutMs: config.jobLeaseTimeoutMs,
-      logger,
-      metrics,
-      providers: [tradeClient],
-      repositories,
-      retryDelayMs: config.marketRetryDelayMs,
-      snapshotTtlMs: config.snapshotTtlMs,
-    });
-    const retention = new RetentionCleaner({
-      batchSize: config.retentionBatchSize,
-      repositories,
-    });
+    function createTradeClient(requestTimeoutMs: number) {
+      return new PoeTradeClient({
+        allowRequests: process.env.POE_TRADE_ACCESS === 'owner_permitted',
+        collectionTimeoutMs: Math.min(
+          15 * 60_000,
+          Math.max(1000, config.jobLeaseTimeoutMs - 1000),
+        ),
+        collectionSource: managedCollectionSource(collectionManager, research),
+        circuits,
+        logger,
+        metrics,
+        rateLimits,
+        requestTimeoutMs,
+        userAgent: config.poeUserAgent,
+      });
+    }
     const resolver = new LeagueResolver({
       leagues: repositories.leagues,
       poeNinja: new HttpPoeNinjaLeagueClient({
@@ -234,34 +265,159 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       }),
     });
     jobs = new ApplicationJobScheduler({
-      boss: createJobBoss(pool, config.jobSchema, logger, (error) => {
-        workerError ??= error;
-      }),
+      boss: createJobBoss(pool, config.jobSchema, logger),
       cleanupCron: config.cleanupCron,
       logger,
       refreshCron: config.refreshCron,
       refreshTimezone: config.refreshTimezone,
-      runCleanup: () => retention.run(),
-      runRefresh: async (cycleId) => {
-        const currentLeague = await repositories.leagues.findCurrent();
-        if (!currentLeague) throw new Error('CURRENT_LEAGUE_UNRESOLVED');
-        return new FullRefreshOrchestrator({
-          collectMaterialPrices: () =>
+      control: {
+        readSchedule: async () => {
+          const settings = (await admin.read()).effective;
+          return {
+            enabled:
+              settings.automaticRefreshEnabled &&
+              settings.scheduledCollectionEnabled &&
+              !settings.collectionsPaused,
+            cron: settings.refreshCron,
+            timezone: config.refreshTimezone,
+          };
+        },
+        heartbeat: async () => {
+          const current = (await admin.read()).version;
+          await admin.reconcile({
+            state: (id) => producer().state(id),
+            cancel: adminQueue.cancel,
+          });
+          await admin.heartbeat(current);
+        },
+      },
+      runCleanup: async () => {
+        const settings = (await admin.read()).effective;
+        await admin.cleanupObservations(settings);
+        await economy.cleanup?.({
+          payloadBefore: new Date(
+            Date.now() - settings.rawRetentionHours * 3_600_000,
+          ),
+          snapshotsBefore: new Date(
+            Date.now() - settings.historyRetentionDays * 86_400_000,
+          ),
+        });
+        return new RetentionCleaner({
+          batchSize: config.retentionBatchSize,
+          repositories,
+          rawSnapshotsRetentionMs: settings.rawRetentionHours * 3_600_000,
+          observationsRetentionMs: settings.historyRetentionDays * 86_400_000,
+        }).run();
+      },
+      runRefresh: async (cycleId, rawData, jobSignal) => {
+        const scope = marketAdminRefreshSchema.parse(
+          rawData?.scope === 'recipe'
+            ? { scope: 'recipe', recipeId: rawData.recipeId }
+            : { scope: rawData?.scope ?? 'all' },
+        );
+        const data = { ...scope, source: rawData?.source ?? 'scheduler' };
+        if (!(await admin.claim(cycleId, data))) return { skipped: true };
+        const controller = new AbortController();
+        const signal = jobSignal
+          ? AbortSignal.any([jobSignal, controller.signal])
+          : controller.signal;
+        let checking = false;
+        const check = setInterval(() => {
+          if (checking) return;
+          checking = true;
+          void admin
+            .cancellationRequested(cycleId)
+            .then((cancelled) => {
+              if (cancelled) controller.abort();
+            })
+            .catch(() => controller.abort())
+            .finally(() => {
+              checking = false;
+            });
+        }, 1000);
+        const abort = () => tradeClient?.stop();
+        signal.addEventListener('abort', abort, { once: true });
+        try {
+          const settings = (await admin.read()).effective;
+          const currentLeague = await repositories.leagues.findCurrent();
+          if (!currentLeague)
+            throw new DomainError('CURRENT_LEAGUE_UNRESOLVED');
+          const collectMaterialPrices = () =>
             collectRecipeMaterialPrices(
               currentLeague.gggId,
               economyClient,
               economy,
+              signal,
+              (report) => admin.progress(cycleId, report),
+            );
+          if (scope.scope === 'economy') {
+            const report = await collectMaterialPrices();
+            signal.throwIfAborted();
+            await admin.finish(
+              cycleId,
+              report.failed ? 'failed' : 'succeeded',
+              report.errorCode,
+            );
+            return report;
+          }
+          tradeClient = createTradeClient(settings.requestTimeoutMs);
+          const marketJobs = new MarketJobProcessor({
+            concurrency: settings.collectionConcurrency,
+            leaseTimeoutMs: config.jobLeaseTimeoutMs,
+            logger,
+            metrics,
+            providers: [tradeClient],
+            repositories,
+            retryDelayMs: config.marketRetryDelayMs,
+            snapshotTtlMs: Math.min(
+              settings.snapshotReuseTtlMs,
+              settings.maximumQuoteAgeMs,
             ),
-          league: refreshLeagueContext(currentLeague),
-          marketJobs,
-          marketDependencies,
-          economy,
-          repositories,
-          logger,
-          metrics,
-          snapshotTtlMs: config.snapshotTtlMs,
-          workerId: `worker-${process.pid}`,
-        }).run(cycleId);
+          });
+          const report = await new FullRefreshOrchestrator({
+            collectMaterialPrices: async () => {
+              await collectMaterialPrices();
+            },
+            league: refreshLeagueContext(currentLeague),
+            marketJobs,
+            marketDependencies,
+            economy,
+            repositories,
+            logger,
+            metrics,
+            snapshotTtlMs: Math.min(
+              settings.snapshotReuseTtlMs,
+              settings.maximumQuoteAgeMs,
+            ),
+            maximumQuoteAgeMs: settings.maximumQuoteAgeMs,
+            signal,
+            ...(scope.scope === 'recipe' ? { recipeId: scope.recipeId } : {}),
+            workerId: `worker-${process.pid}`,
+          }).run(cycleId);
+          await admin.finish(
+            cycleId,
+            report.publication.published ? 'succeeded' : 'failed',
+            report.publication.published ? null : 'REFRESH_PUBLICATION_FAILED',
+          );
+          return report;
+        } catch (error) {
+          const cancelled =
+            signal.aborted ||
+            (error instanceof DomainError &&
+              error.code === 'MARKET_COLLECTION_CANCELLED');
+          const code = cancelled
+            ? 'MARKET_COLLECTION_CANCELLED'
+            : error instanceof DomainError
+              ? error.code
+              : 'INTERNAL_ERROR';
+          await admin.failCycle(cycleId, code);
+          await admin.finish(cycleId, cancelled ? 'cancelled' : 'failed', code);
+          throw error;
+        } finally {
+          clearInterval(check);
+          signal.removeEventListener('abort', abort);
+          tradeClient?.stop();
+        }
       },
       leagueCron: config.leagueResolveCron,
       leagueTimezone: config.leagueResolveTimezone,
@@ -286,6 +442,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
 
   try {
     await runtime.start();
+    if (modeIncludesWorker(config.mode)) await collectionManager.start(5000);
   } catch (error) {
     logger.fatal({ err: error }, 'application startup failed');
     await collectionManager?.stop().catch((cleanupError: unknown) => {

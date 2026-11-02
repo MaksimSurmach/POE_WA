@@ -1,4 +1,5 @@
-import { PgBoss, type Job } from 'pg-boss';
+import { PgBoss, type Job, type Db } from 'pg-boss';
+import type { AdminRefreshJob } from './marketAdmin.js';
 import type { Pool } from 'pg';
 import type { Logger } from 'pino';
 
@@ -17,7 +18,11 @@ export const LEAGUE_RESOLVE_SCHEDULE_KEY = 'league-resolve';
 const LEAGUE_RESOLVE_SINGLETON_KEY = 'league-resolve';
 
 type TestJobData = { source: 'scheduler' };
-type CatalogRefreshJobData = { source: 'manual' | 'scheduler' };
+type CatalogRefreshJobData = {
+  source: 'manual' | 'scheduler';
+  scope?: 'all' | 'economy' | 'recipe';
+  recipeId?: string;
+};
 type CatalogCleanupJobData = { source: 'scheduler' };
 type LeagueResolveJobData = { source: 'scheduler' | 'startup' };
 
@@ -117,14 +122,20 @@ export async function ensureCatalogSchedules(
 }
 
 async function ensureCatalogRefreshQueue(boss: PgBoss) {
-  await boss.createQueue(CATALOG_REFRESH_QUEUE, {
+  const options = {
     deleteAfterSeconds: 7 * 24 * 60 * 60,
     expireInSeconds: 60 * 60,
-    policy: 'exclusive',
     retryBackoff: true,
     retryDelay: 60,
-    retryLimit: 6,
+    retryLimit: 0,
+    retentionSeconds: 24 * 60 * 60,
+    heartbeatSeconds: 30,
+  } as const;
+  await boss.createQueue(CATALOG_REFRESH_QUEUE, {
+    ...options,
+    policy: 'exclusive',
   });
+  await boss.updateQueue(CATALOG_REFRESH_QUEUE, options);
 }
 
 export class ManualRefreshProducer implements JobRunner {
@@ -158,6 +169,22 @@ export class ManualRefreshProducer implements JobRunner {
       CATALOG_REFRESH_QUEUE,
       { source: 'manual' } satisfies CatalogRefreshJobData,
       { singletonKey: CATALOG_REFRESH_SINGLETON_KEY, singletonSeconds: 60 },
+    );
+  }
+  enqueue(data: AdminRefreshJob, id: string, db: Db) {
+    return this.#boss.send(CATALOG_REFRESH_QUEUE, data, {
+      id,
+      db,
+      singletonKey: CATALOG_REFRESH_SINGLETON_KEY,
+    });
+  }
+  cancel(id: string) {
+    return this.#boss.cancel(CATALOG_REFRESH_QUEUE, id);
+  }
+  async state(id: string) {
+    return (
+      (await this.#boss.findJobs(CATALOG_REFRESH_QUEUE, { id }))[0]?.state ??
+      null
     );
   }
 }
@@ -194,7 +221,23 @@ export class ApplicationJobScheduler implements JobRunner {
   readonly #refreshCron: string;
   readonly #refreshTimezone: string;
   readonly #runCleanup: () => Promise<unknown>;
-  readonly #runRefresh: (cycleId: string) => Promise<unknown>;
+  readonly #runRefresh: (
+    cycleId: string,
+    data?: CatalogRefreshJobData,
+    signal?: AbortSignal,
+  ) => Promise<unknown>;
+  readonly #control:
+    | {
+        readSchedule(): Promise<{
+          enabled: boolean;
+          cron: string;
+          timezone: string;
+        }>;
+        heartbeat(): Promise<void>;
+      }
+    | undefined;
+  #controlTimer: ReturnType<typeof setInterval> | undefined;
+  #controlTask: Promise<void> | undefined;
   readonly #leagueCron: string;
   readonly #leagueTimezone: string;
   readonly #runLeagueResolve: () => Promise<unknown>;
@@ -207,7 +250,19 @@ export class ApplicationJobScheduler implements JobRunner {
     refreshCron: string;
     refreshTimezone?: string;
     runCleanup: () => Promise<unknown>;
-    runRefresh: (cycleId: string) => Promise<unknown>;
+    runRefresh: (
+      cycleId: string,
+      data?: CatalogRefreshJobData,
+      signal?: AbortSignal,
+    ) => Promise<unknown>;
+    control?: {
+      readSchedule(): Promise<{
+        enabled: boolean;
+        cron: string;
+        timezone: string;
+      }>;
+      heartbeat(): Promise<void>;
+    };
     leagueCron?: string;
     leagueTimezone?: string;
     runLeagueResolve?: () => Promise<unknown>;
@@ -219,6 +274,7 @@ export class ApplicationJobScheduler implements JobRunner {
     this.#refreshTimezone = options.refreshTimezone ?? 'UTC';
     this.#runCleanup = options.runCleanup;
     this.#runRefresh = options.runRefresh;
+    this.#control = options.control;
     this.#leagueCron = options.leagueCron ?? '0 23 * * *';
     this.#leagueTimezone = options.leagueTimezone ?? 'Europe/Warsaw';
     this.#runLeagueResolve =
@@ -238,12 +294,13 @@ export class ApplicationJobScheduler implements JobRunner {
         cron: this.#leagueCron,
         timezone: this.#leagueTimezone,
       });
+      await this.#syncControl();
       await this.#boss.work<CatalogRefreshJobData>(
         CATALOG_REFRESH_QUEUE,
         { localConcurrency: 1 },
         async (jobs) => {
           for (const job of jobs) {
-            const report = await this.#runRefresh(job.id);
+            const report = await this.#runRefresh(job.id, job.data, job.signal);
             this.#logger.info(
               { cycleId: job.id, report, source: job.data.source },
               'catalog refresh completed',
@@ -285,6 +342,20 @@ export class ApplicationJobScheduler implements JobRunner {
         { singletonKey: LEAGUE_RESOLVE_SINGLETON_KEY, singletonSeconds: 60 },
       );
       this.#started = true;
+      if (this.#control)
+        this.#controlTimer = setInterval(() => {
+          if (this.#controlTask) return;
+          this.#controlTask = this.#syncControl()
+            .catch((error: unknown) => {
+              this.#logger.error(
+                { err: error },
+                'market control reconciliation failed',
+              );
+            })
+            .finally(() => {
+              this.#controlTask = undefined;
+            });
+        }, 5000);
     } catch (error) {
       await this.#boss.stop({ close: false, graceful: false });
       throw error;
@@ -293,6 +364,8 @@ export class ApplicationJobScheduler implements JobRunner {
 
   async stop(timeoutMs: number) {
     if (!this.#started) return;
+    if (this.#controlTimer) clearInterval(this.#controlTimer);
+    await this.#controlTask;
     await this.#boss.stop({ close: false, graceful: true, timeout: timeoutMs });
     this.#started = false;
   }
@@ -306,6 +379,55 @@ export class ApplicationJobScheduler implements JobRunner {
         singletonSeconds: 60,
       },
     );
+  }
+  enqueue(data: AdminRefreshJob, id: string, db: Db) {
+    return this.#boss.send(CATALOG_REFRESH_QUEUE, data, {
+      id,
+      db,
+      singletonKey: CATALOG_REFRESH_SINGLETON_KEY,
+    });
+  }
+  cancel(id: string) {
+    return this.#boss.cancel(CATALOG_REFRESH_QUEUE, id);
+  }
+  async state(id: string) {
+    return (
+      (await this.#boss.findJobs(CATALOG_REFRESH_QUEUE, { id }))[0]?.state ??
+      null
+    );
+  }
+  async #syncControl() {
+    if (!this.#control) return;
+    const schedule = await this.#control.readSchedule();
+    const current = (
+      await this.#boss.getSchedules(
+        CATALOG_REFRESH_QUEUE,
+        CATALOG_REFRESH_SCHEDULE_KEY,
+      )
+    )[0];
+    if (
+      schedule.enabled &&
+      (!current ||
+        current.cron !== schedule.cron ||
+        current.timezone !== schedule.timezone)
+    )
+      await this.#boss.schedule(
+        CATALOG_REFRESH_QUEUE,
+        schedule.cron,
+        { source: 'scheduler' },
+        {
+          key: CATALOG_REFRESH_SCHEDULE_KEY,
+          singletonKey: CATALOG_REFRESH_SINGLETON_KEY,
+          singletonSeconds: 60,
+          tz: schedule.timezone,
+        },
+      );
+    else if (!schedule.enabled && current)
+      await this.#boss.unschedule(
+        CATALOG_REFRESH_QUEUE,
+        CATALOG_REFRESH_SCHEDULE_KEY,
+      );
+    await this.#control.heartbeat();
   }
 }
 

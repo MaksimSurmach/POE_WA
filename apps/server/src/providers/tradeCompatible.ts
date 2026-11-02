@@ -386,6 +386,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
         Partial<Pick<MarketEconomyRepository, 'latest'>>)
     | undefined;
   #denied = false;
+  readonly #readTimeoutMs: (() => Promise<number>) | undefined;
   connectionStatus: NonNullable<MarketCollectionSource['connectionStatus']> =
     'UNAVAILABLE';
 
@@ -394,6 +395,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     options: {
       fetcher?: typeof fetch;
       clock?: () => Date;
+      readTimeoutMs?: () => Promise<number>;
       economy?: Pick<MarketEconomyRepository, 'find'> &
         Partial<Pick<MarketEconomyRepository, 'latest'>>;
     } = {},
@@ -402,6 +404,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     this.#fetch = options.fetcher ?? fetch;
     this.#clock = options.clock ?? (() => new Date());
     this.#economy = options.economy;
+    this.#readTimeoutMs = options.readTimeoutMs;
   }
 
   async #request(
@@ -423,7 +426,11 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
         redirect: 'manual',
         signal: AbortSignal.any([
           signal,
-          AbortSignal.timeout(this.#config.timeoutMs),
+          AbortSignal.timeout(
+            this.#readTimeoutMs
+              ? await this.#readTimeoutMs()
+              : this.#config.timeoutMs,
+          ),
         ]),
         headers: {
           Accept: 'application/json',
