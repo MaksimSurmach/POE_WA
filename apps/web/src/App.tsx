@@ -4,6 +4,7 @@ import { Link, Outlet, Route, Routes } from 'react-router-dom';
 
 import {
   defaultCatalogFilters,
+  formatMarginPercent,
   filterCatalog,
   getPriceStatus,
   type CatalogFilters,
@@ -12,6 +13,7 @@ import { Money, ProfitBadge, StatusPanel } from './components.js';
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
 import { ItemTooltip } from './ItemTooltip.js';
+import { successfulAtFormatter } from './failureStates.js';
 
 const itemTypes = [
   'helmet',
@@ -25,7 +27,6 @@ const itemTypes = [
   'amulet',
   'cluster-jewel',
 ];
-
 const apiClient = createApiClient();
 
 function AppShell() {
@@ -216,15 +217,21 @@ function CatalogRow({ entry }: { entry: CatalogEntry }) {
       <td>
         {evaluation.marginPercent === null
           ? 'Not estimated'
-          : `${evaluation.marginPercent}%`}
+          : formatMarginPercent(evaluation.marginPercent)}
       </td>
       <td>{evaluation.confidence ?? 'Unavailable'}</td>
       <td>
-        {getPriceStatus(
-          evaluation.status,
-          evaluation.lastSuccessfulAt,
-          Date.now(),
-        )}
+        {getPriceStatus(evaluation.status)}
+        {evaluation.lastSuccessfulAt ? (
+          <small>
+            {' '}
+            <time dateTime={evaluation.lastSuccessfulAt}>
+              {successfulAtFormatter.format(
+                new Date(evaluation.lastSuccessfulAt),
+              )}
+            </time>
+          </small>
+        ) : null}
       </td>
     </tr>
   );

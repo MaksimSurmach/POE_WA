@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   defaultCatalogFilters,
+  formatMarginPercent,
   filterCatalog,
   getPriceStatus,
 } from './catalog.js';
@@ -26,20 +27,18 @@ describe('recipe catalog search and item type filters', () => {
     ).toEqual(['low-margin-ring']);
   });
 
-  it('reports price freshness from evaluation status and refresh age', () => {
-    const now = Date.parse('2026-11-02T10:00:00.000Z');
-    expect(getPriceStatus('success', '2026-11-02T06:00:00.000Z', now)).toBe(
-      'Current',
-    );
-    expect(getPriceStatus('success', '2026-11-02T05:00:00.000Z', now)).toBe(
-      'Outdated',
-    );
-    expect(getPriceStatus('stale', '2026-11-02T09:30:00.000Z', now)).toBe(
-      'Outdated',
-    );
-    expect(getPriceStatus('partial', null, now)).toBe('Partial');
-    expect(getPriceStatus('loading', null, now)).toBe('Updating');
-    expect(getPriceStatus('error', null, now)).toBe('Unavailable');
+  it('reports price freshness from the server evaluation status', () => {
+    expect(getPriceStatus('success')).toBe('Updated');
+    expect(getPriceStatus('stale')).toBe('Outdated');
+    expect(getPriceStatus('partial')).toBe('Partial');
+    expect(getPriceStatus('loading')).toBe('Updating');
+    expect(getPriceStatus('error')).toBe('Unavailable');
+  });
+
+  it('rounds ROI percentages without displaying negative zero', () => {
+    expect(formatMarginPercent(33.3333)).toBe('33.3%');
+    expect(formatMarginPercent(50)).toBe('50.0%');
+    expect(formatMarginPercent(-0.04)).toBe('0.0%');
   });
 
   it('searches item names and summaries without using hidden recipe tags', () => {

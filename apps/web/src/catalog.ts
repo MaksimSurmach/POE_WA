@@ -1,5 +1,10 @@
 import type { CatalogEntry } from '@poe-worksmith/contracts';
 
+const percentFormatter = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 1,
+  minimumFractionDigits: 1,
+});
+
 export interface CatalogFilters {
   category: string;
   search: string;
@@ -25,28 +30,17 @@ export function filterCatalog(
   });
 }
 
-export function getPriceStatus(
-  status: CatalogEntry['evaluation']['status'],
-  lastSuccessfulAt: string | null,
-  now: number,
-) {
-  const ageHours = lastSuccessfulAt
-    ? (now - Date.parse(lastSuccessfulAt)) / 3_600_000
-    : null;
-
-  // shortcut: freshness follows the default four-hour refresh cadence; use server cadence if deployments diverge.
-  if (
-    status === 'stale' ||
-    (status === 'success' && ageHours !== null && ageHours > 4)
-  ) {
-    return 'Outdated';
-  }
-
+export function getPriceStatus(status: CatalogEntry['evaluation']['status']) {
   return {
-    success: 'Current',
+    success: 'Updated',
     stale: 'Outdated',
     loading: 'Updating',
     partial: 'Partial',
     error: 'Unavailable',
   }[status];
+}
+
+export function formatMarginPercent(value: number) {
+  const rounded = Number(value.toFixed(1));
+  return `${percentFormatter.format(Object.is(rounded, -0) ? 0 : rounded)}%`;
 }
