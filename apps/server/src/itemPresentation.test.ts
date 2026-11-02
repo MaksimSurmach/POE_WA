@@ -16,6 +16,12 @@ const recipePath = fileURLToPath(
     import.meta.url,
   ),
 );
+const alterationRecipePath = fileURLToPath(
+  new URL(
+    '../../../recipes/physical-large-cluster-alteration/recipe.json',
+    import.meta.url,
+  ),
+);
 const catalogPath = fileURLToPath(
   new URL(
     '../presentation/poe1/3.26.0/physical-large-cluster.json',
@@ -43,7 +49,7 @@ describe('recipe item presentation', () => {
       rarity: 'rare',
     });
     expect(presentation.materials.map(({ quantity }) => quantity)).toEqual([
-      30, 30,
+      172, 172,
     ]);
     expect(presentation.target.modifiers.map(({ label }) => label)).toEqual([
       'Battle-Hardened',
@@ -56,6 +62,26 @@ describe('recipe item presentation', () => {
     expect(JSON.stringify(presentation)).toBe(
       JSON.stringify(createRecipeItemPresentation({ catalog, recipe: input })),
     );
+  });
+
+  it('loads the separate currency crafting target with its priced materials', async () => {
+    const input = validateRecipeDocument(
+      JSON.parse(await readFile(alterationRecipePath, 'utf8')),
+    );
+    if (input.schemaVersion !== 2) throw new Error('expected V2 recipe');
+    const catalog = await loadItemPresentationCatalog(catalogPath);
+    const presentation = createRecipeItemPresentation({
+      catalog,
+      recipe: input,
+    });
+
+    expect(input.craft.variants?.[0]?.steps[1]?.success?.probability).toBeCloseTo(
+      1 / 2409,
+    );
+    expect(presentation.materials.map(({ canonicalId, quantity }) => [canonicalId, quantity])).toEqual([
+      ['orb-of-transmutation', 1],
+      ['orb-of-alteration', 2409],
+    ]);
   });
 
   it('fails explicitly when required metadata is missing', async () => {

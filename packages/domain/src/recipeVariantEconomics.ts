@@ -1,5 +1,6 @@
 import { Decimal } from 'decimal.js';
 
+import type { DecimalMoney } from './economics.js';
 import type { CanonicalCraftVariant } from './recipeSchemaV2.js';
 
 /** Returns entered expected material usage per finished item, or null if unknown. */
@@ -121,5 +122,30 @@ export function calculateVariantMaterialEconomics(input: {
           }
         : null,
     steps,
+  };
+}
+
+export function calculateExpectedCraftCost(input: {
+  basePrice: DecimalMoney | null;
+  currency: string;
+  materialCost: DecimalMoney | null;
+}): DecimalMoney | null {
+  if (
+    !input.basePrice ||
+    !input.materialCost ||
+    input.basePrice.currency !== input.currency ||
+    input.materialCost.currency !== input.currency
+  )
+    return null;
+  const DecimalValue = Decimal.clone({
+    precision: 40,
+    rounding: Decimal.ROUND_HALF_UP,
+  });
+  return {
+    amount: new DecimalValue(input.basePrice.amount)
+      .add(input.materialCost.amount)
+      .toDecimalPlaces(8)
+      .toFixed(),
+    currency: input.currency,
   };
 }

@@ -29,6 +29,11 @@ const fetcher: typeof fetch = async (input) =>
       String(input).endsWith('/items') ? metadata.items : metadata.stats,
     ),
   );
+let metadataHeaders: Headers | undefined;
+const headerCheckingFetcher: typeof fetch = async (input, init) => {
+  metadataHeaders = new Headers(init?.headers);
+  return fetcher(input);
+};
 async function manifest(externalId = 'explicit.stat_4188581520') {
   directory = await mkdtemp(path.join(tmpdir(), 'trade-mappings-'));
   const file = path.join(directory, 'manifest.json');
@@ -51,10 +56,18 @@ async function manifest(externalId = 'explicit.stat_4188581520') {
   return file;
 }
 describe('curated PoE Trade mappings', () => {
-  it('validates declared IDs against metadata without matching names', async () =>
+  it('validates IDs and identifies the mapping client to PoE Trade', async () => {
     expect(
-      await loadAndValidateTradeMappingManifest(await manifest(), fetcher),
-    ).toMatchObject({ sourceRevision: 'v1' }));
+      await loadAndValidateTradeMappingManifest(
+        await manifest(),
+        headerCheckingFetcher,
+      ),
+    ).toMatchObject({ sourceRevision: 'v1' });
+    expect(metadataHeaders?.get('User-Agent')).toBe(
+      process.env.POE_USER_AGENT?.trim() ||
+        'POE Worksmith trade mapping validator',
+    );
+  });
   it('fails stale declared IDs explicitly', async () =>
     await expect(
       loadAndValidateTradeMappingManifest(

@@ -21,6 +21,7 @@ import type { RecipeMarketDependencies } from './recipeMarket.js';
 import type { Logger } from 'pino';
 import { operationLogger } from './observability/operationContext.js';
 import type { Metrics } from './observability/metrics.js';
+import type { MarketEconomyRepository } from './marketEconomy.js';
 
 type MarketJobRunner = Pick<MarketJobProcessor, 'runAvailable'>;
 
@@ -36,6 +37,8 @@ export class FullRefreshOrchestrator {
   readonly #marketJobs: MarketJobRunner;
   readonly #repositories: Repositories;
   readonly #marketDependencies: RecipeMarketDependencies | undefined;
+  readonly #economy:
+    Pick<MarketEconomyRepository, 'find' | 'latest'> | undefined;
   readonly #snapshotTtlMs: number;
   readonly #workerId: string;
   readonly #logger: Logger | undefined;
@@ -46,6 +49,7 @@ export class FullRefreshOrchestrator {
     league: RefreshLeagueContext;
     marketJobs: MarketJobRunner;
     marketDependencies?: RecipeMarketDependencies;
+    economy?: Pick<MarketEconomyRepository, 'find' | 'latest'>;
     repositories: Repositories;
     snapshotTtlMs: number;
     workerId: string;
@@ -56,6 +60,7 @@ export class FullRefreshOrchestrator {
     this.#league = Object.freeze({ ...options.league });
     this.#marketJobs = options.marketJobs;
     this.#marketDependencies = options.marketDependencies;
+    this.#economy = options.economy;
     this.#repositories = options.repositories;
     this.#snapshotTtlMs = options.snapshotTtlMs;
     this.#workerId = options.workerId.trim();
@@ -122,6 +127,7 @@ export class FullRefreshOrchestrator {
         ...(this.#marketDependencies
           ? { marketDependencies: this.#marketDependencies }
           : {}),
+        ...(this.#economy ? { economy: this.#economy } : {}),
       });
       logger?.info('refresh.completed');
       this.#metrics?.refreshDuration.observe(

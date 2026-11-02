@@ -18,6 +18,12 @@ export const priceSchema = z
     currency: z.enum(['chaos', 'divine']),
   })
   .strict();
+export const profitSchema = z
+  .object({
+    amount: z.number().finite(),
+    currency: z.enum(['chaos', 'divine']),
+  })
+  .strict();
 
 /** One raw market offer. Seller duplicates are intentionally valid. */
 export const listingSchema = z
@@ -63,7 +69,7 @@ export const recipeEvaluationSchema = z
     evaluatedAt: z.iso.datetime().nullable(),
     expectedCraftCost: priceSchema.nullable(),
     estimatedSalePrice: priceSchema.nullable(),
-    profit: priceSchema.nullable(),
+    profit: profitSchema.nullable(),
     marginPercent: z.number().finite().nullable(),
     snapshotId: z.string().min(1).nullable(),
     lastSuccessfulAt: z.iso.datetime().nullable(),
@@ -513,6 +519,7 @@ export const refreshDiagnosticsResponseSchema = z.strictObject({
 });
 
 export type Price = z.infer<typeof priceSchema>;
+export type Profit = z.infer<typeof profitSchema>;
 export type Listing = z.infer<typeof listingSchema>;
 export type MarketSnapshot = z.infer<typeof marketSnapshotSchema>;
 export type Recipe = z.infer<typeof recipeSchema>;

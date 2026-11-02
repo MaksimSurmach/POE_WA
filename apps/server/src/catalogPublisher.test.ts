@@ -107,6 +107,37 @@ function evaluator(failingIds: readonly string[] = []): FreshRecipeEvaluator {
 }
 
 describe('catalog evaluation and publication', () => {
+  it('publishes known costs when there is no output ask yet', async () => {
+    const repositories = createInMemoryRepositories();
+    await seedCycle(repositories, 'cycle-partial-output', 1);
+
+    const report = await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-partial-output',
+      evaluateRecipe: async () => ({
+        confidence: 'low',
+        currency: 'chaos',
+        estimatedSalePrice: null,
+        expectedCraftCost: '100',
+        marginPercent: null,
+        observationId: null,
+        profit: null,
+        sourceSnapshotDedupeKey: 'snapshot-recipe-01',
+        status: 'partial',
+      }),
+      league: 'Mercenaries',
+      now,
+    });
+
+    expect(report).toMatchObject({ completedRecipes: 1, published: true });
+    expect(report.evaluations[0]).toMatchObject({
+      estimatedSalePrice: null,
+      expectedCraftCost: '100',
+      marginPercent: null,
+      profit: null,
+      status: 'partial',
+    });
+  });
+
   it('keeps a priced sale result as stale when expected craft cost is unknown', async () => {
     const repositories = createInMemoryRepositories();
     await seedCycle(repositories, 'cycle-unknown', 1);

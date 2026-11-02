@@ -23,6 +23,7 @@ export const integrationRecipeIds = [
   'fixture-v2-harvest-d-14',
   'fixture-v2-harvest-d-15',
   'physical-large-cluster-jagged',
+  'physical-large-cluster-alteration',
   'fixture-v1-cheapest-17',
   'fixture-v1-third-18',
   'fixture-v1-median-19',
@@ -39,13 +40,15 @@ export const expectedDefaultQueryKeys = [
   'fixture:material:legacy',
   'fixture:material:production:jagged',
   'fixture:material:production:resonator',
-  'fixture:material:production:vivid',
+  'fixture:material:production:alteration',
+  'fixture:material:production:transmutation',
   'fixture:output:a',
   'fixture:output:b',
   'fixture:output:c',
   'fixture:output:d',
   'fixture:output:legacy',
-  'fixture:output:production',
+  'fixture:output:production:alteration',
+  'fixture:output:production:jagged',
 ] as const;
 
 const compiled = import.meta.url.includes('/dist/');
@@ -53,12 +56,14 @@ const syntheticDirectory = new URL(
   compiled ? './recipe-assets/synthetic/' : './recipes/',
   import.meta.url,
 );
-const productionRecipe = new URL(
-  compiled
-    ? './recipe-assets/production/physical-large-cluster/recipe.json'
-    : '../../../../recipes/physical-large-cluster/recipe.json',
+const productionRoot = new URL(
+  compiled ? './recipe-assets/production/' : '../../../../recipes/',
   import.meta.url,
 );
+const productionRecipes = [
+  'physical-large-cluster/recipe.json',
+  'physical-large-cluster-alteration/recipe.json',
+].map((file) => new URL(file, productionRoot));
 const query = (
   fixtureKey: string,
 ): CanonicalRecipeV1['baseRequirements']['tradeQuery'] => ({
@@ -79,18 +84,12 @@ export async function loadIntegrationCatalog(): Promise<
       loadRecipeFile(fileURLToPath(new URL(file, syntheticDirectory)), root),
     ),
   );
-  const production = await loadRecipeFile(
-    fileURLToPath(productionRecipe),
-    fileURLToPath(
-      new URL(
-        compiled
-          ? './recipe-assets/production/physical-large-cluster/'
-          : '../../../../recipes/',
-        import.meta.url,
-      ),
+  const production = await Promise.all(
+    productionRecipes.map((file) =>
+      loadRecipeFile(fileURLToPath(file), fileURLToPath(productionRoot)),
     ),
   );
-  return [...synthetic, production].sort((left, right) =>
+  return [...synthetic, ...production].sort((left, right) =>
     left.definition.id.localeCompare(right.definition.id),
   );
 }
@@ -108,18 +107,17 @@ export const integrationMarketDependencies: RecipeMarketDependencies = async ({
       },
       { kind: 'target', query: query('fixture:output:legacy') },
     ];
-  const group =
-    recipe.id === 'physical-large-cluster-jagged'
-      ? 'production'
-      : recipe.id.includes('-a-')
-        ? 'a'
-        : recipe.id.includes('-b-')
-          ? 'b'
-          : recipe.id.includes('-c-')
-            ? 'c'
-            : 'd';
+  const group = recipe.id.startsWith('physical-large-cluster-')
+    ? 'production'
+    : recipe.id.includes('-a-')
+      ? 'a'
+      : recipe.id.includes('-b-')
+        ? 'b'
+        : recipe.id.includes('-c-')
+          ? 'c'
+          : 'd';
   const materialDependencies =
-    group === 'production'
+    group === 'production' && recipe.id.endsWith('-jagged')
       ? [
           {
             materialId: 'jagged-fossil',
@@ -129,28 +127,35 @@ export const integrationMarketDependencies: RecipeMarketDependencies = async ({
             materialId: 'primitive-chaotic-resonator',
             queryKey: 'fixture:material:production:resonator',
           },
-          {
-            materialId: 'vivid-crystallised-lifeforce',
-            queryKey: 'fixture:material:production:vivid',
-          },
         ]
-      : group === 'a' || group === 'c'
+      : group === 'production'
         ? [
             {
-              materialId: 'fixture:jagged',
-              queryKey: 'fixture:material:jagged',
+              materialId: 'orb-of-alteration',
+              queryKey: 'fixture:material:production:alteration',
             },
             {
-              materialId: 'fixture:resonator',
-              queryKey: 'fixture:material:resonator',
+              materialId: 'orb-of-transmutation',
+              queryKey: 'fixture:material:production:transmutation',
             },
           ]
-        : [
-            {
-              materialId: 'fixture:lifeforce',
-              queryKey: 'fixture:material:lifeforce',
-            },
-          ];
+        : group === 'a' || group === 'c'
+          ? [
+              {
+                materialId: 'fixture:jagged',
+                queryKey: 'fixture:material:jagged',
+              },
+              {
+                materialId: 'fixture:resonator',
+                queryKey: 'fixture:material:resonator',
+              },
+            ]
+          : [
+              {
+                materialId: 'fixture:lifeforce',
+                queryKey: 'fixture:material:lifeforce',
+              },
+            ];
   return [
     {
       kind: 'base',
@@ -163,7 +168,14 @@ export const integrationMarketDependencies: RecipeMarketDependencies = async ({
       materialId,
       query: query(queryKey),
     })),
-    { kind: 'target', query: query(`fixture:output:${group}`) },
+    {
+      kind: 'target',
+      query: query(
+        group === 'production'
+          ? `fixture:output:production:${recipe.id.endsWith('-jagged') ? 'jagged' : 'alteration'}`
+          : `fixture:output:${group}`,
+      ),
+    },
   ];
 };
 export async function expectedDefaultQueryHashes(league = 'Fixture League') {

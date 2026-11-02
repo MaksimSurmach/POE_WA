@@ -12,9 +12,6 @@ export function RecipePage() {
   const { recipeId } = useParams();
   const [response, setResponse] = useState<RecipeResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    null,
-  );
 
   useEffect(() => {
     let active = true;
@@ -47,10 +44,7 @@ export function RecipePage() {
 
   const detail = response.data;
   const { evaluation, recipe } = detail;
-  const selectedVariant =
-    detail.variants.find(({ id }) => id === selectedVariantId) ??
-    detail.variants[0] ??
-    null;
+  const selectedVariant = detail.variants[0] ?? null;
   const targetMods = detail.presentation.target.modifiers;
 
   return (
@@ -107,55 +101,34 @@ export function RecipePage() {
 
       {selectedVariant ? (
         <DetailSection title="Craft">
-          <div
-            className="variant-tabs"
-            role="group"
-            aria-label="Crafting method"
-          >
-            {detail.variants.map((variant) => (
-              <button
-                aria-pressed={selectedVariant.id === variant.id}
-                className={
-                  selectedVariant.id === variant.id ? 'is-selected' : ''
-                }
-                key={variant.id}
-                onClick={() => setSelectedVariantId(variant.id)}
-                type="button"
-              >
-                {variant.name}{' '}
-                <span>
-                  <Money price={variant.expectedCost} />
-                </span>
-              </button>
-            ))}
-          </div>
           <ol className="craft-steps">
-            {selectedVariant.steps.map((step) => (
-              <li key={step.id}>
-                <strong>{step.action}</strong>
-                <span>
-                  {step.materials
-                    .map(
-                      (material) =>
-                        `${material.quantityPerAttempt ?? '?'} × ${material.name}`,
-                    )
-                    .join(' · ')}
-                </span>
-                <small>
-                  {step.success
-                    ? `Success chance: ${(step.success.probability * 100).toPrecision(3)}%`
-                    : 'Success chance not estimated'}{' '}
-                  · Continue when: {step.continueWhen}
-                </small>
-              </li>
-            ))}
+            {selectedVariant.steps.map((step) => {
+              const execution = selectedVariant.expectedExecutions.find(
+                ({ stepId }) => stepId === step.id,
+              );
+              return (
+                <li key={step.id}>
+                  <strong>{step.action}</strong>
+                  <span>
+                    {step.materials
+                      .map(
+                        (material) =>
+                          `${material.quantityPerAttempt ?? '?'} × ${material.name}`,
+                      )
+                      .join(' · ')}
+                  </span>
+                  <small>
+                    {step.success
+                      ? `${(step.success.probability * 100).toPrecision(3)}% chance`
+                      : ''}
+                    {execution
+                      ? `${step.success ? ' · ' : ''}about ${execution.count.toLocaleString()} uses per item`
+                      : ''}
+                  </small>
+                </li>
+              );
+            })}
           </ol>
-          <p className="craft-note">
-            Total cost and odds unavailable until verified. On failure:{' '}
-            {selectedVariant.steps
-              .map(({ failureAction }) => failureAction)
-              .join(' ')}
-          </p>
           {selectedVariant.evidence ? (
             <a
               className="craft-evidence"
@@ -163,7 +136,7 @@ export function RecipePage() {
               rel="noreferrer"
               target="_blank"
             >
-              Crafting source · {selectedVariant.evidence.patch}
+              Craft of Exile
             </a>
           ) : null}
         </DetailSection>
@@ -171,14 +144,11 @@ export function RecipePage() {
 
       <DetailSection title="Base and target">
         <p className="base-requirements">
-          {detail.base.name}: {detail.base.requirements.join(' · ')}
+          {detail.base.name} · {detail.base.requirements.join(' · ')}
         </p>
-        <ul className="target-modifier-list">
-          {targetMods.map((modifier) => (
-            <li key={modifier.canonicalId}>{modifier.label}</li>
-          ))}
-        </ul>
-        <small>Target requirements; these are not observed market rolls.</small>
+        <p className="base-requirements">
+          Required: {targetMods.map((modifier) => modifier.label).join(' · ')}
+        </p>
       </DetailSection>
     </article>
   );

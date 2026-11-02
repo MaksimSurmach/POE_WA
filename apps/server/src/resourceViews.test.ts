@@ -37,19 +37,26 @@ describe('repository-backed resource views', () => {
     );
 
     expect(report).toMatchObject({
-      created: ['physical-large-cluster-jagged'],
+      created: [
+        'physical-large-cluster-alteration',
+        'physical-large-cluster-jagged',
+      ],
     });
     const catalog = catalogResponseSchema.parse(
       await readers.readCatalog(correlationId),
     );
     expect(catalog.state).toBe('loading');
-    expect(catalog.data?.entries).toHaveLength(1);
-    expect(catalog.data?.entries[0]).toMatchObject({
+    expect(catalog.data?.entries).toHaveLength(2);
+    expect(
+      catalog.data?.entries.find(
+        ({ recipe }) => recipe.id === 'physical-large-cluster-jagged',
+      ),
+    ).toMatchObject({
       evaluation: { status: 'loading' },
       recipe: {
         id: 'physical-large-cluster-jagged',
         minimumCapital: null,
-        title: 'Physical Large Cluster Jewel',
+        title: 'Physical Cluster Jewel · 3 Notables',
       },
     });
 
@@ -63,13 +70,13 @@ describe('repository-backed resource views', () => {
         {
           costPerAttempt: null,
           name: 'Jagged Fossil',
-          quantityPerAttempt: 30,
+          quantityPerAttempt: 172,
           unitPrice: null,
         },
         {
           costPerAttempt: null,
           name: 'Primitive Chaotic Resonator',
-          quantityPerAttempt: 30,
+          quantityPerAttempt: 172,
           unitPrice: null,
         },
       ],
@@ -77,8 +84,8 @@ describe('repository-backed resource views', () => {
       presentation: {
         base: { name: 'Large Cluster Jewel' },
         materials: [
-          { name: 'Jagged Fossil', quantity: 30 },
-          { name: 'Primitive Chaotic Resonator', quantity: 30 },
+          { name: 'Jagged Fossil', quantity: 172 },
+          { name: 'Primitive Chaotic Resonator', quantity: 172 },
         ],
         target: {
           modifiers: [

@@ -43,15 +43,13 @@ export function createV2RecipeMarketDependencies(options: {
   return async ({ league, recipe }) => {
     if (recipe.schemaVersion === 1)
       return legacyRecipeMarketDependencies({ recipe });
+    const setup = canonicalCraftSetupFromRecipe(recipe);
     const base = await generated(options.trade, league, {
-      ...canonicalCraftSetupFromRecipe(recipe),
+      ...setup,
+      base: { ...setup.base, rarity: 'normal' },
       target: { allOf: [], anyOf: [], minimumMatched: null },
     });
-    const target = await generated(
-      options.trade,
-      league,
-      canonicalCraftSetupFromRecipe(recipe),
-    );
+    const target = await generated(options.trade, league, setup);
     const resourceIds = new Set([
       ...(recipe.craft.resourceConsumption?.materials ?? []).map(
         ({ itemId }) => itemId,
@@ -73,7 +71,6 @@ export function createV2RecipeMarketDependencies(options: {
               await options.resolveResource(itemId, recipe.gameDataVersion),
             ],
           },
-          sort: { price: 'asc' },
         }),
       })),
     );

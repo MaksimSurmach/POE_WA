@@ -38,9 +38,15 @@ export function recipeDocumentMetadata(
       title: recipe.title,
     };
   }
+  const craftMethod =
+    recipe.craft.method.kind === 'fossil'
+      ? recipe.craft.method.fossils.join(' + ')
+      : recipe.craft.method.kind === 'currency'
+        ? recipe.craft.method.currency
+        : `harvest-${recipe.craft.method.tag}`;
   return {
     category: recipe.category,
-    craftMethod: recipe.craft.method.kind,
+    craftMethod,
     gameVersion: recipe.gameDataVersion,
     id: recipe.id,
     tags: recipe.tags,

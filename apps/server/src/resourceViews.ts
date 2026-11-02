@@ -4,19 +4,23 @@ import {
   type DomainErrorCode,
   domainErrorCodeSchema,
   type Price,
+  type Profit,
   type RecipeDetailView,
   type RecipeEvaluation as ApiRecipeEvaluation,
   type RecipeResponse,
   type RefreshStatus,
   recipeVariantViewSchema,
+  marketSnapshotSchema,
 } from '@poe-worksmith/contracts';
 import {
   DomainError,
+  type CanonicalJsonObject,
   type Recipe as StoredRecipe,
   type RecipeEvaluation,
   type Repositories,
   validateRecipeDocument,
   canonicalCraftSetupFromRecipe,
+  hashMarketQuery,
   type TradeQueryGenerator,
 } from '@poe-worksmith/domain';
 import {
@@ -49,15 +53,26 @@ export function createResourceReaders(
           evaluation,
         ]),
       );
-      const entries = recipes
-        .sort((left, right) => left.id.localeCompare(right.id))
-        .map((recipe) =>
-          toCatalogEntry(
-            recipe,
-            evaluations.get(recipe.id),
-            presentationCatalog,
-          ),
-        );
+      const entries = await Promise.all(
+        recipes
+          .sort((left, right) => left.id.localeCompare(right.id))
+          .map(async (recipe) => {
+            const evaluation = evaluations.get(recipe.id);
+            const snapshot = await latestOutputSnapshot({
+              currentLeague,
+              evaluation,
+              recipe,
+              repositories,
+              trade,
+            });
+            return toCatalogEntry(
+              recipe,
+              evaluation,
+              presentationCatalog,
+              snapshot,
+            );
+          }),
+      );
 
       return resourceResponse(
         correlationId,
@@ -93,6 +108,7 @@ export function createResourceReaders(
                 league: currentLeague.gggId,
                 setup: {
                   ...canonicalCraftSetupFromRecipe(definition),
+                  base: { ...definition.base, rarity: 'normal' },
                   target: { allOf: [], anyOf: [], minimumMatched: null },
                 },
               })
@@ -156,6 +172,7 @@ function toCatalogEntry(
   recipe: StoredRecipe,
   evaluation?: RecipeEvaluation,
   presentationCatalog?: ItemPresentationCatalog,
+  snapshot?: CatalogEntry['snapshot'],
 ): CatalogEntry {
   const definition = validateRecipeDocument(recipe.definition);
   let itemPreview: CatalogEntry['itemPreview'];
@@ -177,8 +194,94 @@ function toCatalogEntry(
     evaluation: toEvaluation(recipe.id, evaluation),
     ...(itemPreview ? { itemPreview } : {}),
     recipe: toRecipeSummary(recipe, evaluation),
-    snapshot: null,
+    snapshot: snapshot ?? null,
   };
+}
+
+async function latestOutputSnapshot(input: {
+  currentLeague: Awaited<ReturnType<Repositories['leagues']['findCurrent']>>;
+  evaluation: RecipeEvaluation | undefined;
+  recipe: StoredRecipe;
+  repositories: Repositories;
+  trade: TradeQueryGenerator | undefined;
+}): Promise<CatalogEntry['snapshot']> {
+  if (!input.currentLeague) return null;
+  const definition = validateRecipeDocument(input.recipe.definition);
+  let query: CanonicalJsonObject;
+  if (definition.schemaVersion === 1) {
+    query = definition.output.tradeQuery
+      .query as unknown as CanonicalJsonObject;
+  } else {
+    if (!input.trade) return null;
+    const result = await input.trade.generate({
+      league: input.currentLeague.gggId,
+      setup: canonicalCraftSetupFromRecipe(definition),
+    });
+    if (!result.ok) return null;
+    query = result.value.query as CanonicalJsonObject;
+  }
+  const queryHash = await hashMarketQuery({
+    league: input.currentLeague.gggId,
+    provider:
+      definition.schemaVersion === 1
+        ? definition.output.tradeQuery.provider
+        : 'poe-trade',
+    query,
+    schemaVersion:
+      definition.schemaVersion === 1
+        ? definition.output.tradeQuery.schemaVersion
+        : 1,
+  });
+  const marketQuery =
+    await input.repositories.marketQueries.findByCanonicalHash(queryHash);
+  if (!marketQuery) return null;
+  const snapshot = await input.repositories.snapshots.findLatest(
+    marketQuery.id,
+    input.currentLeague.id,
+  );
+  if (
+    !snapshot ||
+    (input.evaluation?.sourceSnapshotDedupeKey &&
+      snapshot.dedupeKey !== input.evaluation.sourceSnapshotDedupeKey)
+  )
+    return null;
+  const listings = Array.isArray(snapshot.payload.listings)
+    ? snapshot.payload.listings
+    : [];
+  const parsed = marketSnapshotSchema.safeParse({
+    id: String(snapshot.id),
+    queryHash,
+    capturedAt: snapshot.capturedAt.toISOString(),
+    totalResults: snapshot.payload.totalResults,
+    listings: listings.flatMap((value) => {
+      if (!value || typeof value !== 'object') return [];
+      const row = value as Record<string, unknown>;
+      const price = row.price as Record<string, unknown> | undefined;
+      const amount =
+        typeof price?.amount === 'string'
+          ? Number(price.amount)
+          : price?.amount;
+      if (
+        typeof row.id !== 'string' ||
+        typeof row.account !== 'string' ||
+        typeof row.indexedAt !== 'string' ||
+        typeof row.ageSeconds !== 'number' ||
+        typeof amount !== 'number' ||
+        (price?.currency !== 'chaos' && price?.currency !== 'divine')
+      )
+        return [];
+      return [
+        {
+          id: row.id,
+          seller: row.account,
+          indexedAt: row.indexedAt,
+          ageSeconds: row.ageSeconds,
+          price: { amount, currency: price.currency },
+        },
+      ];
+    }),
+  });
+  return parsed.success ? parsed.data : null;
 }
 
 function toRecipeSummary(recipe: StoredRecipe, evaluation?: RecipeEvaluation) {
@@ -224,7 +327,7 @@ function toEvaluation(
     expectedCraftCost: price(evaluation.expectedCraftCost, evaluation.currency),
     lastSuccessfulAt: evaluation.lastSuccessfulAt?.toISOString() ?? null,
     marginPercent: finiteNumber(evaluation.marginPercent),
-    profit: price(evaluation.profit, evaluation.currency),
+    profit: profit(evaluation.profit, evaluation.currency),
     recipeId,
     snapshotId: null,
     status: evaluation.status,
@@ -433,6 +536,16 @@ function price(
 ): Price | null {
   const amount = finiteNumber(rawAmount);
   if (amount === null || amount < 0) return null;
+  if (rawCurrency !== 'chaos' && rawCurrency !== 'divine') return null;
+  return { amount, currency: rawCurrency };
+}
+
+function profit(
+  rawAmount: string | null | undefined,
+  rawCurrency: string | null | undefined,
+): Profit | null {
+  const amount = finiteNumber(rawAmount);
+  if (amount === null) return null;
   if (rawCurrency !== 'chaos' && rawCurrency !== 'divine') return null;
   return { amount, currency: rawCurrency };
 }

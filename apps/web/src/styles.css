@@ -1191,11 +1191,11 @@ progress::-webkit-progress-value {
 }
 .craft-target-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 240px);
-  gap: 18px;
+  grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.75fr);
+  gap: 14px;
   align-items: center;
-  min-height: 76px;
-  padding: 10px 14px;
+  min-height: 68px;
+  padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1215,9 +1215,9 @@ progress::-webkit-progress-value {
 }
 .craft-target-card__art {
   display: grid;
-  flex: 0 0 48px;
-  width: 48px;
-  height: 48px;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
   place-items: center;
   border: 1px solid #303943;
   border-radius: 7px;
@@ -1276,22 +1276,22 @@ progress::-webkit-progress-value {
   color: var(--accent);
 }
 .craft-target-card__market {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 5px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
-  text-align: right;
 }
 .craft-target-card__metrics {
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  align-items: center;
 }
 .craft-target-card__metrics > div {
   display: flex;
   flex-direction: column;
   gap: 2px;
   align-items: flex-end;
+  min-width: 0;
 }
 .craft-target-card__metrics small,
 .craft-target-card__snapshot {
@@ -1303,6 +1303,15 @@ progress::-webkit-progress-value {
   color: var(--text);
   font-size: 0.82rem;
   font-weight: 620;
+}
+.craft-target-card__metrics .profit {
+  font-size: 0.82rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.craft-target-card--starter .craft-target-card__metrics {
+  grid-template-columns: repeat(2, minmax(0, 100px));
+  justify-content: end;
 }
 .craft-target-card__snapshot {
   overflow: hidden;
@@ -1316,7 +1325,7 @@ progress::-webkit-progress-value {
 @media (max-width: 620px) {
   .craft-target-card {
     grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
+    gap: 8px;
     padding: 10px 12px;
   }
   .craft-target-card__market {
@@ -1325,6 +1334,9 @@ progress::-webkit-progress-value {
   }
   .craft-target-card__metrics > div {
     align-items: flex-start;
+  }
+  .craft-target-card__metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .craft-target-card__snapshot {
     white-space: normal;

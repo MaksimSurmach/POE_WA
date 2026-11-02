@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  calculateExpectedCraftCost,
   calculateVariantMaterialEconomics,
   expectedVariantMaterialUsage,
 } from './recipeVariantEconomics.js';
@@ -74,6 +75,23 @@ const recipe = validateRecipeV2({
 });
 
 describe('expected variant material usage', () => {
+  it('adds the base to expected material cost exactly', () => {
+    expect(
+      calculateExpectedCraftCost({
+        basePrice: { amount: '10.25', currency: 'chaos' },
+        currency: 'chaos',
+        materialCost: { amount: '0.15230961', currency: 'chaos' },
+      }),
+    ).toEqual({ amount: '10.40230961', currency: 'chaos' });
+    expect(
+      calculateExpectedCraftCost({
+        basePrice: { amount: '10', currency: 'chaos' },
+        currency: 'chaos',
+        materialCost: null,
+      }),
+    ).toBeNull();
+  });
+
   it('sums materials using per-step entered executions', () => {
     expect(expectedVariantMaterialUsage(recipe.craft.variants![0]!)).toEqual({
       fossil: 7,

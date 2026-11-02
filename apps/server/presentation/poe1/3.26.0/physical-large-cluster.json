@@ -33,6 +33,14 @@
     "vivid-crystallised-lifeforce": {
       "itemClass": "Currency",
       "name": "Vivid Crystallised Lifeforce"
+    },
+    "orb-of-alteration": {
+      "itemClass": "Currency",
+      "name": "Orb of Alteration"
+    },
+    "orb-of-transmutation": {
+      "itemClass": "Currency",
+      "name": "Orb of Transmutation"
     }
   }
 }

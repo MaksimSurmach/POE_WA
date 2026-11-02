@@ -1,6 +1,6 @@
 {
   "gameDataVersion": "3.26.0",
-  "mappingVersion": "poe-trade-2026-07-21.1",
+  "mappingVersion": "poe-trade-2026-11-02.1",
   "mappings": [
     {
       "entityKind": "base",
@@ -10,7 +10,7 @@
       "payload": {
         "filters": {
           "enchant.stat_3086156145": 8,
-          "enchant.stat_3948993189": 12,
+          "enchant.stat_3948993189|12": 12,
           "enchant.stat_4079888060": 2
         }
       }
@@ -33,17 +33,31 @@
     {
       "entityKind": "resource",
       "canonicalId": "jagged-fossil",
-      "externalId": "Jagged Fossil"
+      "externalId": "Jagged Fossil",
+      "payload": { "exchangeId": "jagged-fossil" }
     },
     {
       "entityKind": "resource",
       "canonicalId": "primitive-chaotic-resonator",
-      "externalId": "Primitive Chaotic Resonator"
+      "externalId": "Primitive Chaotic Resonator",
+      "payload": { "exchangeId": "primitive-chaotic-resonator" }
     },
     {
       "entityKind": "resource",
       "canonicalId": "vivid-crystallised-lifeforce",
       "externalId": "Vivid Crystallised Lifeforce"
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "orb-of-alteration",
+      "externalId": "Orb of Alteration",
+      "payload": { "exchangeId": "alt" }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "orb-of-transmutation",
+      "externalId": "Orb of Transmutation",
+      "payload": { "exchangeId": "transmute" }
     }
   ]
 }

@@ -9,7 +9,7 @@ import type { MarketEconomyRepository } from './marketEconomy.js';
 export async function convertMarketQuote(input: {
   money: DecimalMoney;
   currency: 'chaos' | 'divine';
-  target: MarketTarget;
+  target: Pick<MarketTarget, 'league'>;
   capturedAt: string;
   exchangeSnapshotId?: string;
   economy?: Pick<MarketEconomyRepository, 'find'>;

@@ -1,4 +1,4 @@
-import type { Price, RecipeEvaluation } from '@poe-worksmith/contracts';
+import type { Price, Profit, RecipeEvaluation } from '@poe-worksmith/contracts';
 import type { ReactNode } from 'react';
 
 const compactNumber = new Intl.NumberFormat('en-US', {
@@ -20,7 +20,7 @@ export function Money({ price }: { price: Price | null }) {
   );
 }
 
-export function ProfitBadge({ amount, currency }: Price) {
+export function ProfitBadge({ amount, currency }: Profit) {
   const sign = amount > 0 ? '+' : '';
 
   return (

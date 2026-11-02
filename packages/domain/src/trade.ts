@@ -120,26 +120,45 @@ export class RegisteredTradeQueryGenerator implements TradeQueryGenerator {
       diagnostics,
     );
     if (!filters.ok) return filters;
+    const baseStats = Object.entries(base.value.filters ?? {}).map(
+      ([id, value]) => ({
+        id,
+        ...(id.endsWith('|12') ? {} : { value: { min: value, max: value } }),
+      }),
+    );
+    const targetStats = filters.value as TradeFilterFragment[];
+    const stats = [...targetStats];
+    if (baseStats.length > 0) {
+      const andGroup = stats.find(
+        (group) => group.type === 'and' && Array.isArray(group.filters),
+      );
+      if (andGroup)
+        andGroup.filters = [
+          ...baseStats,
+          ...(andGroup.filters as TradeFilterFragment[]),
+        ];
+      else stats.unshift({ type: 'and', filters: baseStats });
+    }
     const query = {
       query: {
+        type: base.value.id,
         filters: {
           misc_filters: {
             filters: {
               ilvl: { min: setup.base.itemLevel },
-              ...(base.value.filters ?? {}),
               ...variantFilter.value,
             },
           },
           type_filters: {
             filters: {
-              type: { option: base.value.id },
+              rarity: { option: setup.base.rarity },
               ...(base.value.discriminator
                 ? { category: { option: base.value.discriminator } }
                 : {}),
             },
           },
         },
-        stats: filters.value,
+        stats,
         status: { option: 'securable' },
       },
       sort: { price: 'asc' },

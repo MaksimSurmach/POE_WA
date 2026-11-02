@@ -11,6 +11,7 @@ import {
   type Recipe,
   type RecipeEvaluation,
   type Repositories,
+  calculateExpectedCraftCost,
   calculateVariantMaterialEconomics,
   expectedVariantMaterialUsage,
   hashMarketQuery,
@@ -25,6 +26,11 @@ import {
 } from './recipeMarket.js';
 import type { Logger } from 'pino';
 import type { Metrics } from './observability/metrics.js';
+import { convertMarketQuote } from './marketCurrency.js';
+import type {
+  MarketEconomyRepository,
+  StoredMarketEconomySnapshot,
+} from './marketEconomy.js';
 
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
   z.union([
@@ -61,12 +67,13 @@ const snapshotPayloadSchema = z.object({
 type FreshEvaluation = Readonly<{
   confidence: 'low' | 'medium' | 'high';
   currency: string;
-  estimatedSalePrice: string;
+  estimatedSalePrice: string | null;
   expectedCraftCost: string | null;
   marginPercent: string | null;
   observationId: number | null;
   profit: string | null;
   sourceSnapshotDedupeKey: string;
+  status?: 'success' | 'partial';
   variantCosts?: Record<string, unknown>;
 }>;
 
@@ -102,6 +109,7 @@ export async function evaluateAndPublishCatalog(
     leagueName?: string;
     now?: Date;
     marketDependencies?: RecipeMarketDependencies;
+    economy?: Pick<MarketEconomyRepository, 'find' | 'latest'>;
     logger?: Logger;
     metrics?: Metrics;
   },
@@ -167,10 +175,19 @@ export async function evaluateAndPublishCatalog(
         ])
       : [],
   );
+  const economySummary = await options.economy?.latest(league, 'Currency');
+  const currencyExchange = economySummary
+    ? await options.economy!.find(economySummary.id)
+    : null;
   const evaluateRecipe =
     options.evaluateRecipe ??
     ((recipe, context) =>
-      evaluateFreshRecipe(recipe, context, options.marketDependencies));
+      evaluateFreshRecipe(
+        recipe,
+        context,
+        options.marketDependencies,
+        currencyExchange,
+      ));
   const evaluations: RecipeEvaluation[] = [];
   let completedRecipes = 0;
   let failedRecipes = 0;
@@ -194,7 +211,7 @@ export async function evaluateAndPublishCatalog(
         leagueId: cycle.leagueId,
         recipeId: recipe.id,
         refreshCycleId: cycle.id,
-        status: 'success',
+        status: fresh.status ?? 'success',
         variantCosts: fresh.variantCosts ?? null,
       };
       completedRecipes += 1;
@@ -316,6 +333,7 @@ async function evaluateFreshRecipe(
     repositories: Repositories;
   },
   marketDependencies?: RecipeMarketDependencies,
+  currencyExchange?: StoredMarketEconomySnapshot | null,
 ): Promise<FreshEvaluation> {
   let definition;
   try {
@@ -335,30 +353,80 @@ async function evaluateFreshRecipe(
   if (!baseDependency || !targetDependency)
     throw new DomainError('RECIPE_INVALID');
   const base = await resolveMarket(baseDependency.query, context);
-  const materials = await Promise.all(
+  const materialMarkets = await Promise.all(
     dependencies
       .filter(({ kind }) => kind === 'material')
-      .map(
-        async (material) =>
-          [
-            material.materialId!,
-            (await resolveMarket(material.query, context)).aggregation.cheapest,
-          ] as const,
-      ),
+      .map(async (material) => {
+        const result = await resolveMarket(material.query, context);
+        return {
+          capturedAt: result.snapshotCapturedAt,
+          id: material.materialId!,
+          price: result.aggregation.cheapest,
+        };
+      }),
   );
-  const finishing = await Promise.all(
+  const finishingMarkets = await Promise.all(
     dependencies
       .filter(({ kind }) => kind === 'finishing')
-      .map(
-        async (item) =>
-          [
-            item.materialId!,
-            (await resolveMarket(item.query, context)).aggregation.cheapest,
-          ] as const,
-      ),
+      .map(async (item) => {
+        const result = await resolveMarket(item.query, context);
+        return {
+          capturedAt: result.snapshotCapturedAt,
+          id: item.materialId!,
+          price: result.aggregation.cheapest,
+        };
+      }),
   );
   const output = await resolveMarket(targetDependency.query, context);
-  const materialPriceMap = Object.fromEntries(materials);
+  const currency = output.aggregation.sampleSize
+    ? output.aggregation.currency
+    : base.aggregation.currency;
+  const conversionEvidence: NonNullable<
+    Awaited<ReturnType<typeof convertMarketQuote>>
+  >['exchange'][] = [];
+  const convertPrice = async (
+    price: { amount: string; currency: string } | null,
+    capturedAt: Date,
+  ) => {
+    if (!price) return null;
+    if (!currencyExchange || !['chaos', 'divine'].includes(currency))
+      return price.currency === currency ? price : null;
+    const converted = await convertMarketQuote({
+      money: price,
+      currency: currency as 'chaos' | 'divine',
+      target: { league: context.league },
+      capturedAt: capturedAt.toISOString(),
+      exchangeSnapshotId: currencyExchange.id,
+      economy: {
+        find: async (id) =>
+          id === currencyExchange.id ? currencyExchange : null,
+      },
+      now: context.now.getTime(),
+      dataKind: 'observed',
+    });
+    if (converted?.exchange) conversionEvidence.push(converted.exchange);
+    return converted?.money ?? null;
+  };
+  const basePrice = await convertPrice(
+    base.aggregation.cheapest,
+    base.snapshotCapturedAt,
+  );
+  const [materialEntries, finishingEntries] = await Promise.all([
+    Promise.all(
+      materialMarkets.map(
+        async ({ capturedAt, id, price }) =>
+          [id, await convertPrice(price, capturedAt)] as const,
+      ),
+    ),
+    Promise.all(
+      finishingMarkets.map(
+        async ({ capturedAt, id, price }) =>
+          [id, await convertPrice(price, capturedAt)] as const,
+      ),
+    ),
+  ]);
+  const materialPriceMap = Object.fromEntries(materialEntries);
+  const finishingPriceMap = Object.fromEntries(finishingEntries);
   const outputEstimate = output.aggregation.estimators.find(
     ({ id }) => id === 'cheapest',
   )?.price;
@@ -367,31 +435,38 @@ async function evaluateFreshRecipe(
     definition.schemaVersion === 2
       ? (definition.craft.variants ?? []).map((variant) => {
           const materialEconomics = calculateVariantMaterialEconomics({
-            currency: output.aggregation.currency,
+            currency,
             materialPrices: materialPriceMap,
             variant,
+          });
+          const totalCost = calculateExpectedCraftCost({
+            basePrice,
+            currency,
+            materialCost: materialEconomics.expectedCost,
           });
           const usage = expectedVariantMaterialUsage(variant);
           let expectedCraftCost: string | null = null;
           if (usage) {
             const result = calculateRecipeEconomics({
               aggregation: output.aggregation,
-              basePrice: base.aggregation.cheapest,
-              currency: output.aggregation.currency,
-              finishingPrices: Object.fromEntries(finishing),
+              basePrice,
+              currency,
+              finishingPrices: finishingPriceMap,
               materialPrices: materialPriceMap,
               recipe: economicsRecipe(definition, variant),
             });
             if (result.ok)
               expectedCraftCost =
                 result.value.breakdown.expectedCraftCost.amount;
+            else expectedCraftCost = totalCost?.amount ?? null;
           }
           variantCosts[variant.id] = {
             ...materialEconomics,
+            currencyExchange: conversionEvidence[0] ?? null,
             expectedCost: expectedCraftCost
               ? {
                   amount: expectedCraftCost,
-                  currency: output.aggregation.currency,
+                  currency,
                 }
               : null,
           };
@@ -408,9 +483,9 @@ async function evaluateFreshRecipe(
     definition.schemaVersion === 1
       ? calculateRecipeEconomics({
           aggregation: output.aggregation,
-          basePrice: base.aggregation.cheapest,
-          currency: output.aggregation.currency,
-          finishingPrices: Object.fromEntries(finishing),
+          basePrice,
+          currency,
+          finishingPrices: finishingPriceMap,
           materialPrices: materialPriceMap,
           recipe: definition,
         })
@@ -420,9 +495,9 @@ async function evaluateFreshRecipe(
   const selectedResult = bestVariant
     ? calculateRecipeEconomics({
         aggregation: output.aggregation,
-        basePrice: base.aggregation.cheapest,
+        basePrice,
         currency: output.aggregation.currency,
-        finishingPrices: Object.fromEntries(finishing),
+        finishingPrices: finishingPriceMap,
         materialPrices: materialPriceMap,
         recipe: economicsRecipe(definition, bestVariant.variant),
       })
@@ -433,7 +508,8 @@ async function evaluateFreshRecipe(
         ? legacyResult.value.estimatedSalePrice.amount
         : null
       : (outputEstimate?.amount ?? null);
-  if (salePrice === null) throw new DomainError('INSUFFICIENT_LISTINGS');
+  if (salePrice === null && definition.schemaVersion === 1)
+    throw new DomainError('INSUFFICIENT_LISTINGS');
 
   const observations = await context.repositories.observations.listRecent(
     output.marketQueryId,
@@ -446,17 +522,18 @@ async function evaluateFreshRecipe(
   );
   return {
     confidence: confidence(output.aggregation.sampleSize),
-    currency: output.aggregation.currency,
+    currency,
     estimatedSalePrice: salePrice,
     expectedCraftCost: selectedResult?.ok
       ? selectedResult.value.breakdown.expectedCraftCost.amount
-      : null,
+      : (bestVariant?.expectedCraftCost ?? null),
     marginPercent: selectedResult?.ok
       ? selectedResult.value.marginPercent
       : null,
     observationId: observation?.id ?? null,
     profit: selectedResult?.ok ? selectedResult.value.profit.amount : null,
     sourceSnapshotDedupeKey: output.snapshotDedupeKey,
+    ...(salePrice === null ? { status: 'partial' as const } : {}),
     ...(definition.schemaVersion === 2 ? { variantCosts } : {}),
   };
 }

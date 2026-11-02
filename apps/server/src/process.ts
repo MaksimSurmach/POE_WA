@@ -75,6 +75,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   const pool = createDatabasePool(config.database, logger);
   let workerError: Error | undefined;
   const repositories = createPostgresRepositories(pool);
+  const economy = createMarketEconomyRepository(pool);
   const trade = new RegisteredTradeQueryGenerator(
     createPostgresTradeMappingCatalog(pool),
     [noVariantFilter, clusterJewelVariantFilter],
@@ -114,7 +115,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         adapter: configuredCollectionSource(
           new GggRateLimitController({ repository: repositories.rateLimits }),
           process.env,
-          createMarketEconomyRepository(pool),
+          economy,
         ),
         store: collectionStore,
       })
@@ -141,7 +142,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
               ? { manager: collectionManager, store: collectionStore }
               : undefined,
           marketEconomy: {
-            repository: createMarketEconomyRepository(pool),
+            repository: economy,
             client: process.env.NINJA_USER_AGENT
               ? new NinjaEconomyClient({
                   userAgent: process.env.NINJA_USER_AGENT,
@@ -225,6 +226,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           league: refreshLeagueContext(currentLeague),
           marketJobs,
           marketDependencies,
+          economy,
           repositories,
           logger,
           metrics,

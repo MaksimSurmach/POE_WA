@@ -50,7 +50,7 @@ const mappings: TradeMappingCatalog = {
       discriminator: 'jewel',
       filters: {
         'enchant.stat_3086156145': 8,
-        'enchant.stat_3948993189': 12,
+        'enchant.stat_3948993189|12': 12,
         'enchant.stat_4079888060': 2,
       },
     },
@@ -82,17 +82,39 @@ describe('Trade query generation', () => {
         query: {
           sort: { price: 'asc' },
           query: {
+            type: 'Large Cluster Jewel',
             filters: {
               misc_filters: {
                 filters: {
                   ilvl: { min: 84 },
-                  'enchant.stat_3086156145': 8,
-                  'enchant.stat_3948993189': 12,
-                  'enchant.stat_4079888060': 2,
+                },
+              },
+              type_filters: {
+                filters: {
+                  rarity: { option: 'rare' },
+                  category: { option: 'jewel' },
                 },
               },
             },
-            stats: [{ type: 'and' }, { type: 'count', value: { min: 1 } }],
+            stats: [
+              {
+                type: 'and',
+                filters: [
+                  { id: 'enchant.stat_3086156145', value: { min: 8, max: 8 } },
+                  { id: 'enchant.stat_3948993189|12' },
+                  { id: 'enchant.stat_4079888060', value: { min: 2, max: 2 } },
+                  { id: 'explicit.mod:physical', value: { min: 3 } },
+                ],
+              },
+              {
+                type: 'count',
+                value: { min: 1 },
+                filters: [
+                  { id: 'explicit.mod:chaos' },
+                  { id: 'explicit.mod:fire' },
+                ],
+              },
+            ],
           },
         },
       },
@@ -100,6 +122,27 @@ describe('Trade query generation', () => {
     expect(first.ok && second.ok && first.value.hash).toBe(
       second.ok && second.value.hash,
     );
+  });
+  it('keeps output rarity in the generated price query', async () => {
+    const result = await generator.generate({
+      league: 'Allflame',
+      setup: {
+        ...setup,
+        base: { ...setup.base, rarity: 'magic' },
+      },
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        query: {
+          query: {
+            filters: {
+              type_filters: { filters: { rarity: { option: 'magic' } } },
+            },
+          },
+        },
+      },
+    });
   });
   it('returns a stable diagnostic instead of a broad query when mapping is missing', async () => {
     const missing = new RegisteredTradeQueryGenerator(

@@ -11,16 +11,14 @@ import {
   filterMarketTargets,
   formatMarginPercent,
   filterCatalog,
-  getPriceStatus,
   lowestAskInCurrency,
   marketTargetItemType,
   marketTargetTitle,
   type CatalogFilters,
 } from './catalog.js';
-import { Money, StatusPanel } from './components.js';
+import { Money, ProfitBadge, StatusPanel } from './components.js';
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
-import { successfulAtFormatter } from './failureStates.js';
 import { marketClient } from './marketClient.js';
 
 const itemTypes = [
@@ -123,6 +121,17 @@ function CatalogRoute() {
       <section className="catalog-heading" aria-labelledby="catalog-heading">
         <div>
           <h1 id="catalog-heading">Crafting Targets</h1>
+          {response?.publishedAt ? (
+            <p>
+              Market updated{' '}
+              <time dateTime={response.publishedAt}>
+                {new Intl.DateTimeFormat(undefined, {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }).format(new Date(response.publishedAt))}
+              </time>
+            </p>
+          ) : null}
         </div>
       </section>
 
@@ -226,6 +235,7 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
   );
   const ask = lowestAsk?.price ?? entry.evaluation.estimatedSalePrice;
   const itemType = entry.recipe.category.replaceAll('-', ' ');
+  const method = entry.recipe.craftMethod.replaceAll('-', ' ');
   return (
     <article className="craft-target-card">
       <div className="craft-target-card__identity">
@@ -240,56 +250,41 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
           </Link>
           <div className="craft-target-card__details">
             <span>{itemType}</span>
-            <span>{entry.recipe.craftMethod}</span>
+            <span>{method}</span>
           </div>
         </div>
       </div>
       <div className="craft-target-card__market">
         <div className="craft-target-card__metrics">
           <div>
-            <small>Craft cost</small>
+            <small>Expected cost</small>
             <Money price={entry.evaluation.expectedCraftCost} />
           </div>
           <div>
-            <small>
-              {lowestAsk ? 'Lowest ask' : 'Market estimate'}
-              {(entry.evaluation.estimatedSalePrice?.currency ??
-              entry.evaluation.expectedCraftCost?.currency)
-                ? ` (${entry.evaluation.estimatedSalePrice?.currency ?? entry.evaluation.expectedCraftCost?.currency})`
-                : ''}
-            </small>
+            <small>Ask</small>
             {ask ? <Money price={ask} /> : <strong>—</strong>}
+          </div>
+          <div>
+            <small>Profit</small>
+            {entry.evaluation.profit ? (
+              <ProfitBadge {...entry.evaluation.profit} />
+            ) : (
+              <strong>—</strong>
+            )}
+          </div>
+          <div>
+            <small>ROI</small>
+            <strong>
+              {entry.evaluation.marginPercent === null
+                ? '—'
+                : formatMarginPercent(entry.evaluation.marginPercent)}
+            </strong>
           </div>
           <div>
             <small>Listed</small>
             <strong>{snapshot ? snapshot.totalResults : '—'}</strong>
           </div>
         </div>
-        <small className="craft-target-card__snapshot">
-          {snapshot ? (
-            <>
-              Trade snapshot ·{' '}
-              <time dateTime={snapshot.capturedAt}>
-                {successfulAtFormatter.format(new Date(snapshot.capturedAt))}
-              </time>
-            </>
-          ) : entry.evaluation.lastSuccessfulAt ? (
-            <>
-              Last successful ·{' '}
-              <time dateTime={entry.evaluation.lastSuccessfulAt}>
-                {successfulAtFormatter.format(
-                  new Date(entry.evaluation.lastSuccessfulAt),
-                )}
-              </time>
-            </>
-          ) : (
-            'No snapshot'
-          )}
-          {entry.evaluation.marginPercent === null
-            ? ''
-            : ` · ROI ${formatMarginPercent(entry.evaluation.marginPercent)}`}
-          {` · ${getPriceStatus(entry.evaluation.status)}`}
-        </small>
       </div>
     </article>
   );
@@ -300,7 +295,7 @@ function MarketTargetRow({ target }: { target: MarketStarterTarget }) {
   const snapshot = target.marketSnapshot;
   const itemType = marketTargetItemType(target.slot).replaceAll('-', ' ');
   return (
-    <article className="craft-target-card">
+    <article className="craft-target-card craft-target-card--starter">
       <div className="craft-target-card__identity">
         <ItemArtwork
           key={snapshot?.iconUrl ?? target.artworkUrl ?? itemType}
@@ -312,11 +307,7 @@ function MarketTargetRow({ target }: { target: MarketStarterTarget }) {
             {marketTargetTitle(target)}
           </strong>
           <div className="craft-target-card__details">
-            <span>{target.builds[0]}</span>
             <span>{itemType}</span>
-            <span>
-              {target.league} · {target.patch}
-            </span>
           </div>
           <div className="craft-target-card__links">
             {target.tradeUrl ? (
@@ -359,22 +350,16 @@ function MarketTargetRow({ target }: { target: MarketStarterTarget }) {
         <small className="craft-target-card__snapshot">
           {snapshot ? (
             <>
-              {snapshot.league} · {snapshot.variantCount}{' '}
-              {snapshot.variantCount === 1 ? 'base variant' : 'base variants'} ·{' '}
-              <time dateTime={snapshot.capturedAt}>
-                {successfulAtFormatter.format(new Date(snapshot.capturedAt))}
-              </time>{' '}
-              ·{' '}
               <a
                 href={`https://poe.ninja/poe1/economy/${encodeURIComponent(snapshot.league.toLowerCase())}/base-types`}
                 rel="noreferrer"
                 target="_blank"
               >
-                poe.ninja
+                poe.ninja data
               </a>
             </>
           ) : (
-            'No BaseType snapshot'
+            'No price data'
           )}
         </small>
       </div>

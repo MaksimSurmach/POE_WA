@@ -39,6 +39,8 @@ const metadata = {
           { type: 'Jagged Fossil' },
           { type: 'Primitive Chaotic Resonator' },
           { type: 'Vivid Crystallised Lifeforce' },
+          { type: 'Orb of Alteration' },
+          { type: 'Orb of Transmutation' },
         ],
       },
     ],
@@ -48,7 +50,7 @@ const metadata = {
       {
         entries: [
           { id: 'enchant.stat_3086156145' },
-          { id: 'enchant.stat_3948993189' },
+          { id: 'enchant.stat_3948993189|12' },
           { id: 'enchant.stat_4079888060' },
           { id: 'explicit.stat_4188581520' },
           { id: 'explicit.stat_3415827027' },
@@ -89,7 +91,10 @@ describe('production catalog initialization', () => {
       `update game_data_versions set status = 'active' where patch_version = '3.26.0'`,
     );
     await importTradeMappings(pool, manifest);
-    const [recipe] = await loadRecipeCatalog(recipesPath);
+    const recipes = await loadRecipeCatalog(recipesPath);
+    const recipe = recipes.find(
+      ({ definition }) => definition.id === 'physical-large-cluster-jagged',
+    );
     if (!recipe || recipe.definition.schemaVersion !== 2)
       throw new Error('Expected physical large cluster schema-v2 recipe');
     await synchronizeRecipes(repositories.recipes, [recipe], readFile);
@@ -103,10 +108,9 @@ describe('production catalog initialization', () => {
       ),
     })({ league: 'Mercenaries', recipe: recipe.definition });
 
-    expect(dependencies).toHaveLength(5);
+    expect(dependencies).toHaveLength(4);
     expect(dependencies.map(({ kind }) => kind)).toEqual([
       'base',
-      'material',
       'material',
       'material',
       'target',
@@ -115,8 +119,46 @@ describe('production catalog initialization', () => {
       undefined,
       'jagged-fossil',
       'primitive-chaotic-resonator',
-      'vivid-crystallised-lifeforce',
       undefined,
+    ]);
+    expect(
+      dependencies
+        .filter(({ kind }) => kind === 'material')
+        .map(({ query }) => query.query),
+    ).toEqual([
+      { exchange: { have: ['chaos'], want: ['jagged-fossil'] } },
+      {
+        exchange: {
+          have: ['chaos'],
+          want: ['primitive-chaotic-resonator'],
+        },
+      },
+    ]);
+    const alterationRecipe = recipes.find(
+      ({ definition }) => definition.id === 'physical-large-cluster-alteration',
+    );
+    if (!alterationRecipe) throw new Error('Expected Alteration recipe');
+    const alterationDependencies = await createV2RecipeMarketDependencies({
+      resolveResource: createPostgresResourceResolver(pool),
+      trade: new RegisteredTradeQueryGenerator(
+        createPostgresTradeMappingCatalog(pool),
+        [clusterJewelVariantFilter],
+        [mappedTargetFilter],
+      ),
+    })({ league: 'Mercenaries', recipe: alterationRecipe.definition });
+    expect(alterationDependencies.map(({ materialId }) => materialId)).toEqual([
+      undefined,
+      'orb-of-alteration',
+      'orb-of-transmutation',
+      undefined,
+    ]);
+    expect(
+      alterationDependencies
+        .filter(({ kind }) => kind === 'material')
+        .map(({ query }) => query.query),
+    ).toEqual([
+      { exchange: { have: ['chaos'], want: ['alt'] } },
+      { exchange: { have: ['chaos'], want: ['transmute'] } },
     ]);
   });
 });

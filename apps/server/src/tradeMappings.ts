@@ -10,6 +10,7 @@ import { z } from 'zod';
 
 const mappingPayload = z
   .object({
+    exchangeId: z.string().min(1).optional(),
     filters: z
       .record(
         z.string(),
@@ -72,8 +73,15 @@ export async function loadAndValidateTradeMappingManifest(
   if (!parsed.success) throw new Error('PROVIDER_SCHEMA_CHANGED');
   const [items, stats] = await Promise.all(
     ['items', 'stats'].map(async (kind) => {
+      const headers = new Headers();
+      headers.set(
+        'User-Agent',
+        process.env.POE_USER_AGENT?.trim() ||
+          'POE Worksmith trade mapping validator',
+      );
       const response = await fetcher(
         `https://www.pathofexile.com/api/trade/data/${kind}`,
+        { headers },
       );
       if (!response.ok) throw new Error('PROVIDER_METADATA_UNAVAILABLE');
       return response.json() as Promise<unknown>;
@@ -207,13 +215,18 @@ export function createPostgresTradeMappingCatalog(
 
 export function createPostgresResourceResolver(pool: Pool) {
   return async (itemId: string, gameDataVersion: string) => {
-    const result = await pool.query<{ external_id: string }>(
-      `select pm.external_id from provider_mappings pm join game_data_versions gdv on gdv.id = pm.game_data_version_id where gdv.patch_version = $1 and pm.provider = 'poe-trade' and pm.entity_kind = 'resource' and pm.canonical_id = $2 and pm.status = 'active'`,
+    const result = await pool.query<{
+      external_id: string;
+      payload: Record<string, unknown>;
+    }>(
+      `select pm.external_id, pm.payload from provider_mappings pm join game_data_versions gdv on gdv.id = pm.game_data_version_id where gdv.patch_version = $1 and pm.provider = 'poe-trade' and pm.entity_kind = 'resource' and pm.canonical_id = $2 and pm.status = 'active'`,
       [gameDataVersion, itemId],
     );
     if (result.rowCount !== 1)
       throw new Error(`TRADE_MAPPING_MISSING: ${itemId}`);
-    return result.rows[0]!.external_id;
+    const payload = mappingPayload.safeParse(result.rows[0]!.payload);
+    if (!payload.success) throw new Error('PROVIDER_SCHEMA_CHANGED');
+    return payload.data.exchangeId ?? result.rows[0]!.external_id;
   };
 }
 

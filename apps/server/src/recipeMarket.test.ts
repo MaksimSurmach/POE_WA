@@ -105,9 +105,9 @@ describe('physical large cluster vertical fixture', () => {
       trade,
       resolveResource: async (id) =>
         ({
-          'jagged-fossil': 'Jagged Fossil',
-          'primitive-chaotic-resonator': 'Primitive Chaotic Resonator',
-          'vivid-crystallised-lifeforce': 'Vivid Crystallised Lifeforce',
+          'jagged-fossil': 'jagged-fossil',
+          'primitive-chaotic-resonator': 'primitive-chaotic-resonator',
+          'vivid-crystallised-lifeforce': 'vivid-crystallised-lifeforce',
         })[id]!,
     })({ league: 'Mercenaries', recipe });
     expect(dependencies).toHaveLength(5);
@@ -123,6 +123,25 @@ describe('physical large cluster vertical fixture', () => {
         .filter(({ kind }) => kind === 'material')
         .map(({ query }) => query.provider),
     ).toEqual(['poe-trade', 'poe-trade', 'poe-trade']);
+    expect(
+      dependencies
+        .filter(({ kind }) => kind === 'material')
+        .map(({ query }) => query.query),
+    ).toEqual([
+      { exchange: { have: ['chaos'], want: ['jagged-fossil'] } },
+      {
+        exchange: {
+          have: ['chaos'],
+          want: ['primitive-chaotic-resonator'],
+        },
+      },
+      {
+        exchange: {
+          have: ['chaos'],
+          want: ['vivid-crystallised-lifeforce'],
+        },
+      },
+    ]);
     expect(dependencies.at(-1)?.query.query).toMatchObject({
       query: {
         stats: [
@@ -132,7 +151,6 @@ describe('physical large cluster vertical fixture', () => {
         ],
         status: { option: 'securable' },
       },
-      sort: { price: 'asc' },
     });
 
     const economics = calculateRecipeEconomics({
@@ -180,7 +198,7 @@ describe('physical large cluster vertical fixture', () => {
             tradeQuery: dependencies[2]!.query,
           },
         ],
-          output: { label: recipe.title, tradeQuery: dependencies[4]!.query },
+        output: { label: recipe.title, tradeQuery: dependencies[4]!.query },
         schemaVersion: 1,
         success: { mode: 'expected_attempts', expectedAttempts: 1 },
         summary: recipe.title,

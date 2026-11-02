@@ -43,6 +43,34 @@ const searchResponseSchema = z
     total: z.number().int().nonnegative(),
   })
   .loose();
+const exchangeSideSchema = z.object({
+  amount: z.number().finite().positive(),
+  currency: z.string().trim().min(1),
+});
+const exchangeListingSchema = z.object({
+  id: z.string().min(1),
+  listing: z.object({
+    account: z.object({ name: z.string().min(1) }).loose(),
+    indexed: z.iso.datetime({ offset: true }),
+    offers: z.array(
+      z.object({ exchange: exchangeSideSchema, item: exchangeSideSchema }),
+    ),
+  }),
+});
+const exchangeResponseSchema = z
+  .object({
+    id: z.string().min(1),
+    result: z
+      .union([
+        z.record(z.string(), exchangeListingSchema),
+        z.array(exchangeListingSchema).max(0),
+      ])
+      .transform((result) =>
+        Array.isArray(result) ? result : Object.values(result),
+      ),
+    total: z.number().int().nonnegative(),
+  })
+  .loose();
 const fetchedListingSchema = z
   .object({
     id: z.string().min(1),
@@ -50,8 +78,8 @@ const fetchedListingSchema = z
     listing: z
       .object({
         account: z.object({ name: z.string().min(1) }).loose(),
-        fee: moneySchema.nullish(),
-        indexed: z.iso.datetime(),
+        fee: z.unknown().optional(),
+        indexed: z.iso.datetime({ offset: true }),
         price: moneySchema,
       })
       .loose(),
@@ -129,6 +157,38 @@ export class PoeTradeClient implements MarketSearchProvider {
       headers: this.#headers(true),
       method: 'POST',
     });
+    if (preparedSearch.kind === 'exchange') {
+      const exchange = parseProviderResponse(
+        exchangeResponseSchema,
+        rawSearch,
+        this.id,
+        'trade-search',
+        this.#logger,
+      );
+      const fetchedAt = this.#clock();
+      const listings = exchange.result
+        .flatMap((entry) =>
+          entry.listing.offers.flatMap(({ exchange: have, item: want }) =>
+            have.amount > 0 && want.amount > 0
+              ? [
+                  normalizeExchangeListing(
+                    entry,
+                    have.amount / want.amount,
+                    have.currency,
+                    fetchedAt,
+                  ),
+                ]
+              : [],
+          ),
+        )
+        .slice(0, maximumListings);
+      return {
+        fetchedAt,
+        listings,
+        provider: this.id,
+        totalResults: exchange.total,
+      };
+    }
     const search = parseProviderResponse(
       searchResponseSchema,
       rawSearch,
@@ -310,17 +370,39 @@ function normalizeListing(
   fetchedAt: Date,
 ): MarketListing {
   const indexedAt = new Date(entry.listing.indexed);
+  const fee = moneySchema.safeParse(entry.listing.fee);
   return {
     account: entry.listing.account.name,
     ageSeconds: Math.max(
       0,
       Math.floor((fetchedAt.getTime() - indexedAt.getTime()) / 1000),
     ),
-    fee: entry.listing.fee ? normalizeMoney(entry.listing.fee) : null,
+    fee: fee.success ? normalizeMoney(fee.data) : null,
     id: entry.id,
     indexedAt,
     item: entry.item,
     price: normalizeMoney(entry.listing.price),
+  };
+}
+
+function normalizeExchangeListing(
+  entry: z.infer<typeof exchangeListingSchema>,
+  unitPrice: number,
+  currency: string,
+  fetchedAt: Date,
+): MarketListing {
+  const indexedAt = new Date(entry.listing.indexed);
+  return {
+    account: entry.listing.account.name,
+    ageSeconds: Math.max(
+      0,
+      Math.floor((fetchedAt.getTime() - indexedAt.getTime()) / 1000),
+    ),
+    fee: null,
+    id: entry.id,
+    indexedAt,
+    item: {},
+    price: { amount: String(unitPrice), currency },
   };
 }
 

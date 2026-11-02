@@ -24,7 +24,8 @@ const mockFetchResponse = {
       },
       listing: {
         account: { name: index < 2 ? 'same-seller' : `seller-${index}` },
-        fee: { amount: 1, currency: 'gold' },
+        fee:
+          index === 0 ? { feeType: 'listed' } : { amount: 1, currency: 'gold' },
         indexed: `2026-07-19T23:${String(59 - index).padStart(2, '0')}:00.000Z`,
         price: { amount: index + 10, currency: 'divine' },
       },
@@ -123,9 +124,10 @@ describe('PoE Trade Merchant client', () => {
     expect(
       result.listings.filter(({ account }) => account === 'same-seller'),
     ).toHaveLength(2);
+    expect(result.listings.some(({ fee }) => fee === null)).toBe(true);
     expect(result.listings[0]).toMatchObject({
       ageSeconds: 60,
-      fee: { amount: '1', currency: 'gold' },
+      fee: null,
       item: { baseType: 'Large Cluster Jewel', ilvl: 84 },
       price: { amount: '10', currency: 'divine' },
     });
@@ -180,6 +182,47 @@ describe('PoE Trade Merchant client', () => {
     });
     expect(query).toEqual({
       exchange: { have: ['divine'], want: ['chaos'] },
+    });
+  });
+
+  it('fills the exchange listing sample from offers beyond the first ten rows', async () => {
+    const result = Object.fromEntries(
+      Array.from({ length: 11 }, (_, index) => [
+        `offer-${index}`,
+        {
+          id: `offer-${index}`,
+          listing: {
+            account: { name: `seller-${index}` },
+            indexed: '2026-07-19T23:59:00+00:00',
+            offers:
+              index === 10
+                ? [
+                    {
+                      exchange: { amount: 1, currency: 'chaos' },
+                      item: { amount: 1, currency: 'alt' },
+                    },
+                  ]
+                : [],
+          },
+        },
+      ]),
+    );
+    const client = new PoeTradeClient({
+      baseUrl: 'https://trade.test',
+      fetch: async () =>
+        Response.json({ id: 'exchange-id', result, total: 11 }),
+      userAgent: 'OAuth poe-worksmith/0.0.0 (contact: test@example.com)',
+    });
+
+    await expect(
+      client.search({
+        league: 'Settlers',
+        query: { exchange: { have: ['chaos'], want: ['alt'] } },
+        schemaVersion: 1,
+      }),
+    ).resolves.toMatchObject({
+      listings: [{ id: 'offer-10', price: { amount: '1', currency: 'chaos' } }],
+      totalResults: 11,
     });
   });
 
