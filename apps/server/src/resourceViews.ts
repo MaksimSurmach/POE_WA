@@ -1,4 +1,3 @@
-import { gzipSync } from 'node:zlib';
 import {
   type CatalogEntry,
   type CatalogResponse,
@@ -24,6 +23,7 @@ import {
   createRecipeItemPresentation,
   type ItemPresentationCatalog,
 } from './itemPresentation.js';
+import { marketTradeUrl } from './marketTradeQuery.js';
 
 export function createResourceReaders(
   repositories: Repositories,
@@ -100,7 +100,10 @@ export function createResourceReaders(
           : null;
       const baseTradeUrl =
         generatedBase?.ok && currentLeague
-          ? `https://www.pathofexile.com/trade/search/${encodeURIComponent(currentLeague.gggId)}/${gzipSync(JSON.stringify({ ...generatedBase.value.query, sort: { price: 'asc' } })).toString('base64url')}`
+          ? marketTradeUrl(currentLeague.gggId, {
+              ...generatedBase.value.query,
+              sort: { price: 'asc' },
+            })
           : null;
       const evaluation = published?.evaluations.find(
         (candidate) => candidate.recipeId === recipe.id,

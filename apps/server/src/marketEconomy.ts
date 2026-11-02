@@ -18,6 +18,10 @@ export type StoredMarketEconomySnapshot = NinjaEconomySnapshot & {
 export interface MarketEconomyRepository {
   assertReady(): Promise<void>;
   list(): Promise<MarketEconomySummary[]>;
+  latest(
+    league: string,
+    category: MarketEconomyCategory,
+  ): Promise<MarketEconomySummary | null>;
   save(
     snapshot: StoredMarketEconomySnapshot,
   ): Promise<StoredMarketEconomySnapshot>;

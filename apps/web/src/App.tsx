@@ -1,7 +1,7 @@
 import type {
   CatalogEntry,
   CatalogResponse,
-  MarketTargetInput,
+  MarketStarterTarget,
 } from '@poe-worksmith/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Outlet, Route, Routes } from 'react-router-dom';
@@ -12,14 +12,14 @@ import {
   formatMarginPercent,
   filterCatalog,
   getPriceStatus,
+  lowestAskInCurrency,
   marketTargetItemType,
   marketTargetTitle,
   type CatalogFilters,
 } from './catalog.js';
-import { Money, ProfitBadge, StatusPanel } from './components.js';
+import { Money, StatusPanel } from './components.js';
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
-import { ItemTooltip } from './ItemTooltip.js';
 import { successfulAtFormatter } from './failureStates.js';
 import { marketClient } from './marketClient.js';
 
@@ -59,7 +59,7 @@ function CatalogRoute() {
   const [filters, setFilters] = useState<CatalogFilters>(defaultCatalogFilters);
   const [response, setResponse] = useState<CatalogResponse | null>(null);
   const [marketTargets, setMarketTargets] = useState<
-    MarketTargetInput[] | null
+    MarketStarterTarget[] | null
   >(null);
   const [marketLibraryError, setMarketLibraryError] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -196,36 +196,18 @@ function CatalogRoute() {
             <p className="handbook-empty">No items match these filters.</p>
           ) : (
             <section
-              className="recipe-table-wrap"
+              className="craft-target-list"
               aria-label="Crafting targets"
             >
-              <table className="recipe-table">
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Type</th>
-                    <th>Base</th>
-                    <th>Method</th>
-                    <th>Expected cost</th>
-                    <th>Cheapest ask</th>
-                    <th>Potential spread</th>
-                    <th>ROI</th>
-                    <th>Confidence</th>
-                    <th>Price status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredEntries.map((entry) => (
-                    <CatalogRow entry={entry} key={entry.recipe.id} />
-                  ))}
-                  {filteredTargets.map((target) => (
-                    <MarketTargetRow
-                      key={`${target.name}:${target.slot}:${target.baseTypes.join('|')}`}
-                      target={target}
-                    />
-                  ))}
-                </tbody>
-              </table>
+              {filteredEntries.map((entry) => (
+                <RecipeTargetRow entry={entry} key={entry.recipe.id} />
+              ))}
+              {filteredTargets.map((target) => (
+                <MarketTargetRow
+                  key={`${target.name}:${target.slot}:${target.baseTypes.join('|')}`}
+                  target={target}
+                />
+              ))}
             </section>
           )}
         </>
@@ -234,90 +216,196 @@ function CatalogRoute() {
   );
 }
 
-function CatalogRow({ entry }: { entry: CatalogEntry }) {
-  const { evaluation, recipe } = entry;
+function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
+  const snapshot = entry.snapshot;
+  const lowestAsk = lowestAskInCurrency(
+    snapshot,
+    entry.evaluation.estimatedSalePrice?.currency ??
+      entry.evaluation.expectedCraftCost?.currency ??
+      null,
+  );
+  const ask = lowestAsk?.price ?? entry.evaluation.estimatedSalePrice;
+  const itemType = entry.recipe.category.replaceAll('-', ' ');
   return (
-    <tr>
-      <td>
-        <div className="recipe-table__identity">
-          {entry.itemPreview ? <ItemTooltip item={entry.itemPreview} /> : null}
-          <Link to={`/recipes/${recipe.id}`}>
-            <strong>{recipe.title}</strong>
+    <article className="craft-target-card">
+      <div className="craft-target-card__identity">
+        <ItemArtwork
+          key={entry.itemPreview?.iconUrl ?? itemType}
+          iconUrl={entry.itemPreview?.iconUrl ?? null}
+          itemType={itemType}
+        />
+        <div className="craft-target-card__copy">
+          <Link to={`/recipes/${entry.recipe.id}`} title={entry.recipe.title}>
+            <strong>{entry.recipe.title}</strong>
           </Link>
+          <div className="craft-target-card__details">
+            <span>{itemType}</span>
+            <span>{entry.recipe.craftMethod}</span>
+          </div>
         </div>
-      </td>
-      <td className="recipe-table__type">
-        {recipe.category.replaceAll('-', ' ')}
-      </td>
-      <td>{entry.itemPreview?.name ?? recipe.category.replaceAll('-', ' ')}</td>
-      <td>{recipe.craftMethod}</td>
-      <td>
-        <Money price={evaluation.expectedCraftCost} />
-      </td>
-      <td>
-        <Money price={evaluation.estimatedSalePrice} />
-      </td>
-      <td>
-        {evaluation.profit ? (
-          <ProfitBadge {...evaluation.profit} />
-        ) : (
-          'Not estimated'
-        )}
-      </td>
-      <td>
-        {evaluation.marginPercent === null
-          ? 'Not estimated'
-          : formatMarginPercent(evaluation.marginPercent)}
-      </td>
-      <td>{evaluation.confidence ?? 'Unavailable'}</td>
-      <td>
-        {getPriceStatus(evaluation.status)}
-        {evaluation.lastSuccessfulAt ? (
-          <small>
-            {' '}
-            <time dateTime={evaluation.lastSuccessfulAt}>
-              {successfulAtFormatter.format(
-                new Date(evaluation.lastSuccessfulAt),
-              )}
-            </time>
-          </small>
-        ) : null}
-      </td>
-    </tr>
+      </div>
+      <div className="craft-target-card__market">
+        <div className="craft-target-card__metrics">
+          <div>
+            <small>Craft cost</small>
+            <Money price={entry.evaluation.expectedCraftCost} />
+          </div>
+          <div>
+            <small>
+              {lowestAsk ? 'Lowest ask' : 'Market estimate'}
+              {(entry.evaluation.estimatedSalePrice?.currency ??
+              entry.evaluation.expectedCraftCost?.currency)
+                ? ` (${entry.evaluation.estimatedSalePrice?.currency ?? entry.evaluation.expectedCraftCost?.currency})`
+                : ''}
+            </small>
+            {ask ? <Money price={ask} /> : <strong>—</strong>}
+          </div>
+          <div>
+            <small>Listed</small>
+            <strong>{snapshot ? snapshot.totalResults : '—'}</strong>
+          </div>
+        </div>
+        <small className="craft-target-card__snapshot">
+          {snapshot ? (
+            <>
+              Trade snapshot ·{' '}
+              <time dateTime={snapshot.capturedAt}>
+                {successfulAtFormatter.format(new Date(snapshot.capturedAt))}
+              </time>
+            </>
+          ) : entry.evaluation.lastSuccessfulAt ? (
+            <>
+              Last successful ·{' '}
+              <time dateTime={entry.evaluation.lastSuccessfulAt}>
+                {successfulAtFormatter.format(
+                  new Date(entry.evaluation.lastSuccessfulAt),
+                )}
+              </time>
+            </>
+          ) : (
+            'No snapshot'
+          )}
+          {entry.evaluation.marginPercent === null
+            ? ''
+            : ` · ROI ${formatMarginPercent(entry.evaluation.marginPercent)}`}
+          {` · ${getPriceStatus(entry.evaluation.status)}`}
+        </small>
+      </div>
+    </article>
   );
 }
 
-function MarketTargetRow({ target }: { target: MarketTargetInput }) {
+function MarketTargetRow({ target }: { target: MarketStarterTarget }) {
   const source = target.sources[0];
+  const snapshot = target.marketSnapshot;
+  const itemType = marketTargetItemType(target.slot).replaceAll('-', ' ');
   return (
-    <tr>
-      <td>
-        <div className="recipe-table__identity recipe-table__target">
-          <div>
-            <strong>{marketTargetTitle(target)}</strong>
-            <small>
-              Market target · {target.league} {target.patch}
-            </small>
+    <article className="craft-target-card">
+      <div className="craft-target-card__identity">
+        <ItemArtwork
+          key={snapshot?.iconUrl ?? target.artworkUrl ?? itemType}
+          iconUrl={snapshot?.iconUrl ?? target.artworkUrl}
+          itemType={itemType}
+        />
+        <div className="craft-target-card__copy">
+          <strong title={marketTargetTitle(target)}>
+            {marketTargetTitle(target)}
+          </strong>
+          <div className="craft-target-card__details">
+            <span>{target.builds[0]}</span>
+            <span>{itemType}</span>
+            <span>
+              {target.league} · {target.patch}
+            </span>
+          </div>
+          <div className="craft-target-card__links">
+            {target.tradeUrl ? (
+              <a href={target.tradeUrl} rel="noreferrer" target="_blank">
+                Trade database
+              </a>
+            ) : null}
             {source ? (
               <a href={source.url} rel="noreferrer" target="_blank">
-                Source · {source.title}
+                {source.title}
               </a>
             ) : null}
           </div>
         </div>
-      </td>
-      <td className="recipe-table__type">
-        {marketTargetItemType(target.slot).replaceAll('-', ' ')}
-      </td>
-      <td>{target.baseTypes.join(' / ')}</td>
-      <td>Not specified</td>
-      <td>Not estimated</td>
-      <td>Not priced</td>
-      <td>Not estimated</td>
-      <td>Not estimated</td>
-      <td>Unverified</td>
-      <td>Target profile</td>
-    </tr>
+      </div>
+      <div className="craft-target-card__market">
+        <div className="craft-target-card__metrics">
+          <div>
+            <small>Stash estimate</small>
+            {snapshot && snapshot.price.amount !== null ? (
+              <Money
+                price={{
+                  amount: snapshot.price.amount,
+                  currency: snapshot.price.currency,
+                }}
+              />
+            ) : (
+              <strong>—</strong>
+            )}
+          </div>
+          <div>
+            <small>
+              {snapshot && snapshot.variantCount > 1
+                ? 'Variant listings'
+                : 'Listed'}
+            </small>
+            <strong>{snapshot?.listingCount ?? '—'}</strong>
+          </div>
+        </div>
+        <small className="craft-target-card__snapshot">
+          {snapshot ? (
+            <>
+              {snapshot.league} · {snapshot.variantCount}{' '}
+              {snapshot.variantCount === 1 ? 'base variant' : 'base variants'} ·{' '}
+              <time dateTime={snapshot.capturedAt}>
+                {successfulAtFormatter.format(new Date(snapshot.capturedAt))}
+              </time>{' '}
+              ·{' '}
+              <a
+                href={`https://poe.ninja/poe1/economy/${encodeURIComponent(snapshot.league.toLowerCase())}/base-types`}
+                rel="noreferrer"
+                target="_blank"
+              >
+                poe.ninja
+              </a>
+            </>
+          ) : (
+            'No BaseType snapshot'
+          )}
+        </small>
+      </div>
+    </article>
+  );
+}
+
+function ItemArtwork({
+  iconUrl,
+  itemType,
+}: {
+  iconUrl: string | null;
+  itemType: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  return iconUrl && !failed ? (
+    <img
+      alt=""
+      className="craft-target-card__art"
+      loading="lazy"
+      onError={() => setFailed(true)}
+      referrerPolicy="no-referrer"
+      src={iconUrl}
+    />
+  ) : (
+    <span
+      aria-hidden="true"
+      className="craft-target-card__art craft-target-card__art--fallback"
+    >
+      {itemType.slice(0, 1).toLocaleUpperCase()}
+    </span>
   );
 }
 

@@ -1,4 +1,8 @@
-import type { CatalogEntry, MarketTargetInput } from '@poe-worksmith/contracts';
+import type {
+  CatalogEntry,
+  MarketTargetInput,
+  Price,
+} from '@poe-worksmith/contracts';
 
 const percentFormatter = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
@@ -69,9 +73,24 @@ export function marketTargetItemType(slot: string) {
 }
 
 export function marketTargetTitle(target: MarketListTarget) {
-  return [target.builds[0], target.baseTypes.join(' / ')]
-    .filter(Boolean)
-    .join(' — ');
+  return target.baseTypes.join(' / ');
+}
+
+export function lowestAskInCurrency(
+  snapshot: CatalogEntry['snapshot'],
+  currency: Price['currency'] | null,
+) {
+  if (!snapshot || !currency) return undefined;
+  return snapshot.listings.reduce<
+    (typeof snapshot.listings)[number] | undefined
+  >(
+    (lowest, listing) =>
+      listing.price.currency === currency &&
+      (!lowest || listing.price.amount < lowest.price.amount)
+        ? listing
+        : lowest,
+    undefined,
+  );
 }
 
 export function filterMarketTargets<T extends MarketListTarget>(
@@ -82,7 +101,7 @@ export function filterMarketTargets<T extends MarketListTarget>(
   return targets.filter((target) => {
     const itemType = marketTargetItemType(target.slot);
     const text =
-      `${marketTargetTitle(target)} ${target.name} ${target.slot} ${target.baseTypes.join(' ')}`.toLocaleLowerCase();
+      `${marketTargetTitle(target)} ${target.name} ${target.slot} ${target.baseTypes.join(' ')} ${target.builds.join(' ')}`.toLocaleLowerCase();
     return (
       (!search || text.includes(search)) &&
       (filters.category === 'all' || itemType === filters.category)

@@ -28,6 +28,7 @@ export type NinjaEconomyLine = Readonly<{
   name: string | null;
   detailsId: string | null;
   baseType: string | null;
+  iconUrl?: string | null;
   price: Readonly<{ amount: number | null; currency: string }>;
   listingCount: number | null;
   observationCount: number | null;
@@ -110,6 +111,7 @@ const itemSchema = z.object({
         name: text,
         detailsId: text,
         baseType: text.nullish(),
+        icon: z.unknown().optional(),
         chaosValue: amount.nullish(),
         count,
         listingCount: count,
@@ -413,6 +415,7 @@ function normalizeLines(raw: unknown, isBase: boolean): NinjaEconomyLine[] {
       name: line.name,
       detailsId: line.detailsId,
       baseType: line.baseType ?? null,
+      iconUrl: safeIconUrl(line.icon),
       price: { amount: positiveOrNull(line.chaosValue), currency: 'chaos' },
       listingCount: line.listingCount ?? null,
       observationCount: line.count ?? null,
@@ -458,6 +461,22 @@ function parse<T>(schema: z.ZodType<T>, raw: unknown): T {
 
 function positiveOrNull(value: number | null | undefined) {
   return value != null && value > 0 ? value : null;
+}
+
+function safeIconUrl(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' &&
+      !url.username &&
+      !url.password &&
+      url.href.length <= 2048 &&
+      url.hostname.endsWith('.poecdn.com')
+      ? url.href
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 function resultFor(

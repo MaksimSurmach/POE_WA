@@ -68,6 +68,12 @@ describe('persistent economy observations', () => {
         capturedAt: '2026-10-02T00:00:00.000Z',
       }),
     );
+    expect(await repository.latest('Fixture league', 'BaseType')).toMatchObject(
+      {
+        capturedAt: '2026-10-02T00:00:00.000Z',
+        payloadAvailable: true,
+      },
+    );
     const summaries = await repository.list();
     expect(summaries).toHaveLength(2);
     expect(summaries[0]?.capturedAt).toBe('2026-10-02T00:00:00.000Z');
@@ -131,6 +137,7 @@ describe('persistent economy observations', () => {
         ?.payloadAvailable,
     ).toBe(false);
     expect(await repository.find(saved.id)).toBeNull();
+    expect(await repository.latest('Fixture league', 'BaseType')).toBeNull();
     await repository.cleanup!({
       payloadBefore: new Date('2026-10-02T00:00:00.000Z'),
       snapshotsBefore: new Date('2026-10-02T00:00:00.000Z'),

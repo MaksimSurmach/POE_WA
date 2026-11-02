@@ -1,4 +1,3 @@
-import { gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 import {
@@ -173,11 +172,8 @@ describe('repository-backed resource views', () => {
       await readers.readRecipe(correlationId, 'physical-large-cluster-jagged'),
     );
     const url = new URL(detail.data!.baseTradeUrl!);
-    expect(url.pathname).toContain('/trade/search/Mercenaries/');
-    const encoded = url.pathname.split('/').at(-1)!;
-    expect(
-      JSON.parse(gunzipSync(Buffer.from(encoded, 'base64url')).toString()),
-    ).toMatchObject({
+    expect(url.pathname).toContain('/trade/search/Mercenaries');
+    expect(JSON.parse(url.searchParams.get('q') ?? 'null')).toMatchObject({
       query: {
         type: 'Large Cluster Jewel',
         filters: { misc_filters: { filters: { ilvl: { min: 83 } } } },

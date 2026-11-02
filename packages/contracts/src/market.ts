@@ -421,9 +421,27 @@ export const marketWorkbenchResponseSchema = z.strictObject({
   }),
 });
 
+export const marketStarterMarketSnapshotSchema = z.strictObject({
+  capturedAt: z.iso.datetime(),
+  iconUrl: httpsUrl.nullable(),
+  league: text(100),
+  listingCount: z.number().int().nonnegative().nullable(),
+  observationCount: z.number().int().nonnegative().nullable(),
+  variantCount: z.number().int().positive(),
+  price: z.strictObject({
+    amount: z.number().finite().positive().nullable(),
+    currency: z.enum(['chaos', 'divine']),
+  }),
+  sourceUrl: httpsUrl,
+});
+export const marketStarterTargetSchema = marketTargetInputSchema.extend({
+  artworkUrl: httpsUrl.nullable(),
+  marketSnapshot: marketStarterMarketSnapshotSchema.nullable(),
+  tradeUrl: httpsUrl.nullable(),
+});
 export const marketStarterLibraryResponseSchema = z.strictObject({
   correlationId: z.uuid(),
-  data: z.array(marketTargetInputSchema),
+  data: z.array(marketStarterTargetSchema),
 });
 
 export const marketTargetResponseSchema = z.strictObject({
@@ -478,6 +496,7 @@ export type MarketWorkbenchResponse = z.infer<
 export type MarketStarterLibraryResponse = z.infer<
   typeof marketStarterLibraryResponseSchema
 >;
+export type MarketStarterTarget = z.infer<typeof marketStarterTargetSchema>;
 
 export const marketEconomyCategorySchema = z.enum([
   'BaseType',
@@ -495,6 +514,7 @@ export const marketEconomyLineSchema = z.strictObject({
   name: z.string().nullable(),
   detailsId: z.string().nullable(),
   baseType: z.string().nullable(),
+  iconUrl: httpsUrl.nullable().optional(),
   price: z.strictObject({
     amount: z.number().finite().positive().nullable(),
     currency: text(500),

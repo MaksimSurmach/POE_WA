@@ -4,6 +4,10 @@ import { DomainError } from '@poe-worksmith/domain';
 import { marketDigest } from './marketResearch.js';
 import { tradeMappingVersion, tradeStatMappings } from './tradeStatMappings.js';
 
+export function marketTradeUrl(league: string, query: object) {
+  return `https://www.pathofexile.com/trade/search/${encodeURIComponent(league)}?q=${encodeURIComponent(JSON.stringify(query))}`;
+}
+
 /** Unsupported/free-text requirements fail before any HTTP request. */
 export function generateMarketTradeQuery(
   target: MarketTarget,
@@ -161,7 +165,7 @@ export function generateMarketTradeQuery(
       scope,
       request,
     }),
-    // The website accepts the encoded query directly; no search request is needed to inspect it.
+    // Rich searches stay compressed so they fit the existing 2048-character URL contract.
     url: `https://www.pathofexile.com/trade/search/${encodeURIComponent(target.league)}/${gzipSync(JSON.stringify(request)).toString('base64url')}`,
   };
 }

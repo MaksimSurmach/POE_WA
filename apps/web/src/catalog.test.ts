@@ -6,6 +6,7 @@ import {
   formatMarginPercent,
   filterCatalog,
   getPriceStatus,
+  lowestAskInCurrency,
   marketTargetItemType,
   marketTargetTitle,
   type MarketListTarget,
@@ -13,6 +14,34 @@ import {
 import { catalogFixtures } from './mocks/catalog.js';
 
 describe('recipe catalog search and item type filters', () => {
+  it('keeps lowest asks comparable by currency', () => {
+    const snapshot = catalogFixtures[0]!.snapshot!;
+    const listings = [
+      {
+        ...snapshot.listings[0]!,
+        price: { amount: 2, currency: 'divine' as const },
+      },
+      {
+        ...snapshot.listings[1]!,
+        price: { amount: 30, currency: 'chaos' as const },
+      },
+      {
+        ...snapshot.listings[2]!,
+        price: { amount: 12, currency: 'chaos' as const },
+      },
+    ];
+
+    expect(
+      lowestAskInCurrency({ ...snapshot, listings }, 'chaos')?.price.amount,
+    ).toBe(12);
+    expect(
+      lowestAskInCurrency({ ...snapshot, listings }, 'divine')?.price.amount,
+    ).toBe(2);
+    expect(
+      lowestAskInCurrency({ ...snapshot, listings }, null),
+    ).toBeUndefined();
+  });
+
   it('shows every item type and filters by category', () => {
     expect(
       new Set(
@@ -91,9 +120,7 @@ describe('recipe catalog search and item type filters', () => {
         'Кластерный самоцвет',
       ].map(marketTargetItemType),
     ).toEqual(['belt', 'boots', 'ring', 'shield', 'jewel', 'cluster-jewel']);
-    expect(marketTargetTitle(targets[0]!)).toBe(
-      'Toxic Rain Pathfinder — Broadhead Arrow Quiver',
-    );
+    expect(marketTargetTitle(targets[0]!)).toBe('Broadhead Arrow Quiver');
     expect(
       filterMarketTargets(targets, {
         ...defaultCatalogFilters,
@@ -104,6 +131,12 @@ describe('recipe catalog search and item type filters', () => {
       filterMarketTargets(targets, {
         ...defaultCatalogFilters,
         search: 'winter orb',
+      }),
+    ).toEqual([targets[1]]);
+    expect(
+      filterMarketTargets(targets, {
+        ...defaultCatalogFilters,
+        search: 'occultist',
       }),
     ).toEqual([targets[1]]);
   });

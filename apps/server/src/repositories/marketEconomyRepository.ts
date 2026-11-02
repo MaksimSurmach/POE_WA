@@ -31,6 +31,22 @@ export function createMarketEconomyRepository(
         }),
       );
     },
+    async latest(league, category) {
+      const result = await pool.query<{
+        summary: Record<string, unknown>;
+        payload_available: boolean;
+      }>(
+        'select summary, payload is not null as payload_available from market_economy_snapshots where league = $1 and category = $2 and payload is not null order by captured_at desc, id limit 1',
+        [league, category],
+      );
+      const row = result.rows[0];
+      return row
+        ? marketEconomySummarySchema.parse({
+            ...row.summary,
+            payloadAvailable: row.payload_available,
+          })
+        : null;
+    },
     async save(snapshot) {
       const result = await pool.query<{ payload: StoredMarketEconomySnapshot }>(
         `insert into market_economy_snapshots (id, league, category, payload_hash, captured_at, summary, payload)
