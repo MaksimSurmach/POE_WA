@@ -88,6 +88,12 @@ changes an observation's capture time. Shorter quote-age settings invalidate
 existing price views immediately, without deleting evaluations. Unprovable older
 legacy inputs fail closed under a stricter age policy.
 
+The admin page places current collection state and Pause/Resume first, followed by
+refresh controls and recent runs. Settings are grouped below these actions. Pause
+and compare-latest preserve unrelated unsaved edits; Discard edits removes them.
+Field errors open and focus their group. Resource failures can recover independently,
+and admin HTTP requests have a 15-second UI timeout.
+
 ## Runs and cancellation
 
 | API under `/api/admin/market`      | Operation                                                                                                              |
@@ -137,7 +143,8 @@ does not run cleanup or invalidate stored historical records.
 
 ## Verification
 
-See [the acceptance evidence](evidence/market-admin-2026-11-02/validation.md).
+See [the acceptance evidence](evidence/market-admin-2026-11-02/validation.md) and
+[the UI review and correction](evidence/market-admin-ui-2026-11-02/validation.md).
 Live Trade collection is deployment-authorized separately and was not enabled by
 this change. Normal provider limits and independently configured profile opt-in
 still apply after an administrator enables automatic settings.
