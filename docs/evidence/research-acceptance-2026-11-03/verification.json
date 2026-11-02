@@ -1,0 +1,75 @@
+{
+  "auditedAt": "2026-11-03",
+  "kind": "local-existing-source-acceptance-audit",
+  "newExternalDataCollected": false,
+  "checks": {
+    "seedManifestHashes": 11,
+    "seedValidator": "PASS: 16 research candidates; 25 sources; 4 negative controls",
+    "originalSeedProfilesPreserved": 16,
+    "finalDecisionProfiles": 22,
+    "acceptedScopedRecipes": 7,
+    "mergedAliases": 1,
+    "rejectedFinalistsPreserved": 14,
+    "recipeEvidenceReferencesPresentLocally": 55,
+    "recomputedBundleObservations": [
+      {
+        "profileId": "rf-helmet-burning-plus-concentrated-exploratory",
+        "matched": 11,
+        "usable": 20,
+        "historicalSnapshotCalendarDate": null
+      },
+      {
+        "profileId": "rf-shield-recovery-life-exploratory",
+        "matched": 5,
+        "usable": 18,
+        "historicalSnapshotCalendarDate": null
+      },
+      {
+        "profileId": "spectre-minion-helmet",
+        "matched": 1,
+        "usable": 20,
+        "historicalSnapshotCalendarDate": null
+      },
+      {
+        "profileId": "spectre-minion-shield",
+        "matched": 1,
+        "usable": 17,
+        "historicalSnapshotCalendarDate": null
+      }
+    ]
+  },
+  "priorResearchDryRun": {
+    "frozenFiles": 263,
+    "unchangedFiles": 250,
+    "changedAfterFreeze": [
+      "acceptance-gaps.json",
+      "audit.md",
+      "catalog.reviewed.csv",
+      "catalog.reviewed.json",
+      "checkpoint.json",
+      "coverage.json",
+      "followup-market/partial-costs.json",
+      "market_fetch_backlog.json",
+      "p2.checkpoint.json",
+      "p4.checkpoint.json",
+      "p5.checkpoint.json",
+      "rejected.csv",
+      "source_registry.json"
+    ],
+    "containsFinalRecipes": false,
+    "containsFinalDecisions": false,
+    "repeatRunsIdempotentForFrozenInput": true,
+    "runtimeTargets": 0,
+    "marketSnapshots": 0,
+    "scope": "Historical research JSON ledger; not current schema-v3 recipe import or product E2E"
+  },
+  "notEstablished": [
+    "current market prices",
+    "full expected material/base/recovery costs for the seven new chains",
+    "completed sales or realized profit",
+    "representative character population demand",
+    "exact historical snapshot calendar timestamps",
+    "live-game execution",
+    "production deployment acceptance"
+  ]
+}

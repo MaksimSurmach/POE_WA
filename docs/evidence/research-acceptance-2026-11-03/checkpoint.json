@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-30",
+  "P0": "11 seed manifest hashes verified; Time Machine UI and economy dumps inspected",
+  "P1": "22 catalog leads including 16 seed; extra EA negative control",
+  "P2": "Six full authorPoBs,21itemsets,3AGsets excluded; exactvariants and currenttree comparison/migration retained.",
+  "P3": "2 exploratory Week 1 UI cohorts, 20 RF Chieftain and 20 Spectre Necromancer; four bundle observations; exact timestamp and representativeness unknown",
+  "P4": "Closed content/mechanics gate:7scopedrecipes,1mergedalias,14excludedfinalists withreasons; paidfailure/preparation and currentbuildscope proved as stated.",
+  "P5": "Finalcatalogschema2,JSON/CSV,70offerobservations across7targetedcaptures,14referenceaggregates,explicitcostcomponents and externaldata limits; isolateddry-run only.",
+  "next": "resume.md",
+  "completion": "COMPLETE_FOR_DECLARED_RESEARCH_SCOPE",
+  "scope_boundary": "Not allleadsaccepted; no livegame, purchase, fullcost, sale, optimality orprofitcertification.",
+  "final_decisions": "final-decisions.json",
+  "final_recipes": "final-recipes.json"
+}

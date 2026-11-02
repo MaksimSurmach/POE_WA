@@ -1,0 +1,19 @@
+{
+  "checked_at_utc": "2026-10-30T09:49:17.655801+00:00",
+  "status": "PASS",
+  "assertions": [
+    "12 configured steps; exact 100000-action sum",
+    "Failure actions at steps4/8/9 route to actual Scour12; no restart failure action",
+    "Step11 ends successful item; Step12 consumes Scour then routes to Transmute1",
+    "162 Scours reconcile103ASloss+36plus1firstlowchaos+23chaosfirstlowchaos",
+    "31 full finished item examples independently parsed and checked",
+    "1 unfinished plus1-first item at action cap accounted for",
+    "Cleanup exact enumeration for1/2/3junk mods:1/3,1/6,1/10"
+  ],
+  "limits": [
+    "No CoE internal calls; read native public export and AX text",
+    "PoB import text adds six linked white sockets as an explicit source-backed procurement condition; CoE output did not model sockets",
+    "Before-run export retains old results inherited from prior file; never use it as run proof",
+    "No price/conversion assertions; CoE cost display ignored"
+  ]
+}

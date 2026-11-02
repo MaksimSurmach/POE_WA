@@ -1,0 +1,81 @@
+[
+  {
+    "id": "R01",
+    "source_ids": [
+      "S16",
+      "S17"
+    ],
+    "severity": "blocking_for_patch_verified_import",
+    "finding": "Гайд и связанный PoB показывают разные версии 3.29 / 3.28.",
+    "action": "Не удалять автоматически; проверить changelog механик и актуальный экспорт. До этого patch_verified=false."
+  },
+  {
+    "id": "R02",
+    "source_ids": [
+      "S18",
+      "S19"
+    ],
+    "severity": "blocking_for_patch_verified_import",
+    "finding": "Spectre guide 3.29 связан с PoB 3.28 и пользовательской конфигурацией.",
+    "action": "Проверить точный item set и механики; не считать независимым игроком/историческим наблюдением."
+  },
+  {
+    "id": "R03",
+    "source_ids": [
+      "S21"
+    ],
+    "severity": "reject_current_after_retirement",
+    "finding": "Cold Snap guide помечен как снятый после изменения механики.",
+    "action": "Не публиковать как действующую цель без нового независимого подтверждения; исторические данные не переписывать."
+  },
+  {
+    "id": "R04",
+    "source_ids": [
+      "S14",
+      "S20",
+      "S23"
+    ],
+    "severity": "variant_split",
+    "finding": "Winter Orb варианты расходятся по unique/rare шлему и CI приоритетам.",
+    "action": "Раздельные archetype/variant; не объединять моды разных предметов в невозможный идеал."
+  },
+  {
+    "id": "R05",
+    "source_ids": [
+      "S12"
+    ],
+    "severity": "special_origin",
+    "finding": "+max spectres chest из особого источника не равен обычному essence-craft модификатору.",
+    "action": "Допустить finishing купленного специального base только отдельно, с его стоимостью и проверкой метода."
+  },
+  {
+    "id": "R06",
+    "source_ids": [
+      "S11",
+      "S12",
+      "S13"
+    ],
+    "severity": "substitution_risk",
+    "finding": "Редкие апгрейды конкурируют с уникальными предметами.",
+    "action": "Измерять rare-share отдельно и сравнивать бюджетные альтернативы; популярность билда не равна спросу на каждый rare."
+  },
+  {
+    "id": "R07",
+    "source_ids": [
+      "S22"
+    ],
+    "severity": "qualitative_negative_control",
+    "finding": "Mirror-tier дорогой предмет не доказывает ликвидность промежуточного крафта.",
+    "action": "Нужны отдельные покупательские сегменты и рыночные свидетельства; не переносить цену BiS вниз по уровням."
+  },
+  {
+    "id": "R08",
+    "source_ids": [
+      "S07",
+      "S24"
+    ],
+    "severity": "dataset_scope_unknown",
+    "finding": "Affinities полезен, но свежесть, cohort и недели набора ещё не проверены.",
+    "action": "До проверки использовать как источник идей, не как текущие проценты; не перемножать marginal percentages."
+  }
+]

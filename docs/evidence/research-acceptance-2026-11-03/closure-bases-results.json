@@ -1,0 +1,423 @@
+{
+  "schema_version": "max1288-base-closure/1",
+  "checked_at_utc": "2026-10-30T10:10:28.647865+00:00",
+  "access": "Public CoE beta UI; official Trade evidence reused from task-owned read-only recovery/market passes; no internal API, auth changes, seller contact, purchases, runtime or production writes.",
+  "status": "SIX_TERMINAL_SCOPED_RECIPES",
+  "acceptance_meaning": "Complete named base-to-finish mechanics at stated scope. Conditional generation is reachability, not empirical total spend; ordinary paid failure/reset actions separately observed. Does not assert whole-build/cost/profit acceptance.",
+  "profiles": [
+    {
+      "profile_id": "rf-fire-trap-helmet",
+      "status": "ACCEPTED_SCOPED_RECIPE",
+      "scope": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25.",
+      "baseconditions": {
+        "base": "Archdemon Crown",
+        "ilvl": 83,
+        "rarity": "rare",
+        "influence": "Elder only",
+        "fractured": false,
+        "corrupted": false,
+        "native_implicit": "+2 socketed skill gems / -2 socketed support gems",
+        "acquisition": "Paid existing Elder base. First10 dated official Trade asks all ilvl83,1 Divine each; real offers establish obtainable input without relying on theoretical82.",
+        "acquisition_ref": "../followup-market-rf/elder-archdemon-base82.asks.json",
+        "price_kind": "dated asking prices, not purchases/sales"
+      },
+      "recipe": [
+        "From acquired rare Elder83: Harvest Reforge Fire until Conc AND Burning AND open prefix. Reject all other rolls, including a desired pair with no bench slot.",
+        "Bench8-10% AoE/+1 socketed AoE gems for4Chaos. Stop."
+      ],
+      "recovery": [
+        "Direct Fire reforge consumes50Wild and rerolls all explicits, including bench; retains Elder and native implicit. No Scour needed per failure.",
+        "If acquired magic/normal, use appropriate rarity preparation first; selected priced input is rare. No donor/Awakener/influence addition assumed free."
+      ],
+      "finalbundlepass": true,
+      "finals": [
+        {
+          "target": "any support tier",
+          "conc": 20,
+          "burn": 18,
+          "bench_aoe": 9,
+          "bench_gems": 1,
+          "ilvl": 83
+        },
+        {
+          "target": "20/20",
+          "conc": 20,
+          "burn": 20,
+          "bench_aoe": 8,
+          "bench_gems": 1,
+          "ilvl": 83
+        }
+      ],
+      "calculator": [
+        {
+          "target": "any support tier + open prefix",
+          "success_percent": 1.07,
+          "displayed_attempts": 94,
+          "Wild_Crystallised_Lifeforce": 4700
+        },
+        {
+          "target": "20/20 + open prefix",
+          "success_percent": 0.11,
+          "displayed_attempts": 910,
+          "Wild_Crystallised_Lifeforce": 45500
+        }
+      ],
+      "evidence": [
+        "rf83-any-calculator.dom.txt",
+        "rf83-any-calculator-url.txt",
+        "rf83-any-finish.dom.txt",
+        "rf83-tier20-calculator.dom.txt",
+        "rf83-tier20-calculator-url.txt",
+        "rf83-tier20-finish.item.txt",
+        "rf83-tier20-finish.png",
+        "rf83-reforge-failure.dom.txt"
+      ],
+      "limits": [
+        "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+        "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+      ]
+    },
+    {
+      "profile_id": "lacerate-block-shield",
+      "status": "ACCEPTED_SCOPED_RECIPE",
+      "scope": "Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield.",
+      "baseconditions": {
+        "base": "Pinnacle Tower Shield",
+        "ilvl": 70,
+        "rarity": "normal or rare acquired Shaper base",
+        "influence": "Shaper only",
+        "fractured": false,
+        "corrupted": false,
+        "native_implicit": "+20-30 life; verified21",
+        "acquisition": "Explicit paid Shaper base input; UI influence toggle represents acquired state and is not a free in-game influence operation. Natural Pinnacle floor70 confirmed; old68 representative rejected.",
+        "price": null,
+        "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+      },
+      "recipe": [
+        "Deafening Greed until recovery4-5% AND an open suffix. Greed guarantees130-144 explicit life.",
+        "Bench compatible elemental resistance29-35 in open suffix for3Chaos. Stop."
+      ],
+      "recovery": [
+        "Reject numeric3% even if recovery affix exists; repeat Greed, paying each essence.",
+        "Real Greed retry discarded recovery and bench; paid Scour retained Shaper, natural21life, ilvl70 and base. Reuse normal result with Deafening Greed."
+      ],
+      "finalbundlepass": true,
+      "finals": [
+        {
+          "explicit_life": 139,
+          "native_life": 21,
+          "total_flat_life": 160,
+          "recover_life_on_block_percent": 5,
+          "crafted_fire_resistance": 33,
+          "all_elemental_resistance": 16,
+          "armour": 900
+        }
+      ],
+      "calculator_note": "Prior1.44%/70 attempts measures any3-5% recovery + open suffix, NOT numeric4-5. Do not price selected target using70.",
+      "evidence": [
+        "pinnacle70-natural.dom.txt",
+        "pinnacle70-shaper-acquired.item.txt",
+        "pinnacle70-recovery3-reject.item.txt",
+        "pinnacle70-finish.item.txt",
+        "pinnacle70-finish.png",
+        "pinnacle70-greed-retry-failure.dom.txt",
+        "pinnacle70-paid-scour.item.txt"
+      ],
+      "limits": [
+        "No armour, suppression, resistance-cap or endgame Synthesised replacement claim. Shaper acquired-input market price not measured here."
+      ]
+    },
+    {
+      "profile_id": "spectre-minion-helmet",
+      "status": "ACCEPTED_SCOPED_RECIPE",
+      "scope": "Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction.",
+      "baseconditions": {
+        "base": "Bone Helmet",
+        "ilvl": 75,
+        "rarity": "normal or rare",
+        "influence": "none",
+        "fractured": false,
+        "corrupted": false,
+        "native_implicit": "15-20% minion damage; natural fresh example16, retained prior full finish18",
+        "acquisition": "Ordinary base at75; natural base requires73 and reaches+2 minion floor75. Buy/drop eligible base, no fractured+2 input assumed.",
+        "price": null,
+        "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+      },
+      "recipe": [
+        "Deafening Greed until+2 all minion skill gems AND an open suffix. Life91-105.",
+        "Bench a compatible elemental resistance29-35 for3Chaos. Stop."
+      ],
+      "recovery": [
+        "If+2 or suffix missing, pay another Greed and discard all prior explicits.",
+        "Fresh real failure: life100 and3 full suffixes but no+2; paid Scour removed all explicits and retained Bone16% implicit and75."
+      ],
+      "finalbundlepass": true,
+      "finals": [
+        {
+          "from": "retained same-date full chain",
+          "life": 92,
+          "minion_gems": 2,
+          "crafted_fire_resistance": 33,
+          "native_minion_damage": 18
+        }
+      ],
+      "calculator": {
+        "success_percent": 0.0683,
+        "displayed_Greed": 1465,
+        "target": "+2 + open suffix; no numeric100life condition"
+      },
+      "evidence": [
+        "bone75-natural.dom.txt",
+        "bone75-greed-failure.dom.txt",
+        "bone75-paid-scour.dom.txt",
+        "../followup-helm/minion-helmet-chain/results.json",
+        "../followup-helm/minion-helmet-chain/plus2-finish.ax.txt"
+      ],
+      "limits": [
+        "92life is accepted only where current author does not require100. No100 guarantee, exact Praetor defence/gem/bench replication, Wraithlord/Dark Monarch replacement or current character-cap claim."
+      ]
+    },
+    {
+      "profile_id": "spectre-minion-shield",
+      "status": "ACCEPTED_SCOPED_RECIPE",
+      "scope": "Life-based Spectre low-budget +1 minion/life rare shield; ordinary minion implicit preserved.",
+      "baseconditions": {
+        "base": "Fossilised Spirit Shield",
+        "ilvl": 60,
+        "rarity": "normal or rare",
+        "influence": "none",
+        "fractured": false,
+        "corrupted": false,
+        "native_implicit": "Minions deal5-10% increased damage; verified6",
+        "acquisition": "Ordinary eligible base, requires59;60 is reachable and satisfies+1 mod floor. Do not substitute synthetic input missing native implicit.",
+        "price": null,
+        "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+      },
+      "recipe": [
+        "Deafening Greed until+1 all minion skill gems AND open suffix.",
+        "Bench compatible elemental resistance29-35 for3Chaos. Stop."
+      ],
+      "recovery": [
+        "Repeat paid Greed on failure without Scour; rare reroll removes old explicit mods and bench while preserving native implicit.",
+        "Real retry from finished shield rolled144life but lost+1 and filled all suffixes; reject, do not call it finished."
+      ],
+      "finalbundlepass": true,
+      "finals": [
+        {
+          "life": 136,
+          "minion_gems": 1,
+          "crafted_fire_resistance": 30,
+          "native_minion_damage": 6,
+          "int_requirement": 141
+        }
+      ],
+      "calculator": {
+        "success_percent": 0.711,
+        "displayed_Greed": 141,
+        "target": "+1 + open suffix"
+      },
+      "evidence": [
+        "fossilised60-natural.dom.txt",
+        "fossilised60-calculator.dom.txt",
+        "fossilised60-finish.dom.txt",
+        "fossilised60-finish.png",
+        "fossilised60-greed-retry-failure.dom.txt"
+      ],
+      "limits": [
+        "No Shaper recovery, suppression, Bitterbind equivalence or resistance-cap claim. Natural summoner shield family selected; generic INT shield pool not substituted."
+      ]
+    },
+    {
+      "profile_id": "tr-aoe-helmet",
+      "status": "ACCEPTED_SCOPED_RECIPE",
+      "scope": "Current guide100+ life, native suppression, one elemental resistance, AoE/+1 and ordinary mana-cost/physical-taken implicit pair; non-fractured Grizzly route.",
+      "baseconditions": {
+        "base": "Grizzly Pelt",
+        "ilvl": 85,
+        "rarity": "normal or rare",
+        "influence": "none initially; Eldritch finish",
+        "fractured": false,
+        "corrupted": false,
+        "natural_requirement": "level78,Dex194",
+        "acquisition": "Ordinary natural Grizzly85; exact base identity resolved. No Lion/Majestic mismatch, no purchased suppression fracture assumed.",
+        "price": null,
+        "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+      },
+      "recipe": [
+        "Deafening Greed until life>=100 AND native suppression AND at least one useful elemental resistance AND open prefix. Numeric life/resistance are inspected manually; reject failures.",
+        "Bench8-10AoE/+1 socketedAoE for4Chaos. Exact10, if needed by character, requires paid bench rerolls; observed10 is an example.",
+        "Lesser Ember until unconditional Mana Cost Efficiency, then Lesser Ichor until physical hit taken as Lightning. Stop."
+      ],
+      "recovery": [
+        "Direct Greed retry costs one essence; preserves Eldritch pair, discards rolled explicits and AoE bench.",
+        "Actual failure:97life,43lightningres,no suppression; reject even though resistance exists. Paid Scour returned normal Grizzly85 with both Eldritch implicits retained.",
+        "Failed Ember/Ichor rerolls only that origin implicit; no Conflict/elevation or dual same-origin assumption."
+      ],
+      "finalbundlepass": true,
+      "finals": [
+        {
+          "life": 102,
+          "suppression": 8,
+          "cold_resistance": 21,
+          "crafted_aoe": 10,
+          "socketed_aoe_gems": 1,
+          "Mana_Cost_Efficiency": 26,
+          "physical_hits_taken_as_lightning": 6,
+          "base": "Grizzly Pelt",
+          "ilvl": 85
+        }
+      ],
+      "calculator_note": "Prior12.3%/9 attempts models any suppression+open prefix only; it omits numeric100life and resistance and MUST NOT price the accepted full core.",
+      "evidence": [
+        "grizzly85-natural.dom.txt",
+        "tr-grizzly-outcome1.item.txt",
+        "tr-grizzly-bench.item.txt",
+        "tr-grizzly-exarch.item.txt",
+        "tr-grizzly-finish.item.txt",
+        "tr-grizzly-finish.png",
+        "tr-grizzly-greed-retry-failure.item.txt",
+        "tr-grizzly-paid-scour.dom.txt"
+      ],
+      "limits": [
+        "One21coldres does not prove this character capped;8supp is not PoB14supp. No exact127life/48fire/45lightning replica or whole-build equivalence. Numeric100life met in saved final."
+      ]
+    },
+    {
+      "profile_id": "spectre-fear-gloves",
+      "status": "ACCEPTED_SCOPED_RECIPE",
+      "scope": "Guide-family life/chaos/minion glove upgrade, author-compatible armour option and cheaper ES-base variant kept separate.",
+      "baseconditions": {
+        "base": "Leviathan Gauntlets",
+        "ilvl": 85,
+        "rarity": "rare",
+        "influence": "none initially; Exarch finish",
+        "fractured_chaos": 34,
+        "corrupted": false,
+        "quality_requirement": "none for this explicit/implicit scope; no20%quality or armour floor claimed",
+        "acquisition": "Actual dated listed Havoc Touch rare: fractured34 chaos,13Divine+3641gold fee. Imported all4 observed modifiers through public advanced item importer; re-export verified base,85,4mods and actual fracture. No purchase.",
+        "acquisition_ref": "../closure-recovery/glove-base-market/leviathan-public-rows.json",
+        "listing_id": "30589d6c8f809a15cd03c9fac7deed044e9471216fe6511e6fbc7c36f6b70aac"
+      },
+      "recipe": [
+        "From acquired rare fractured31+ chaos gloves, repeat Deafening Fear until native lifeT2+ (100-129) AND open suffix.",
+        "Bench26-30Strength for2Chaos if filling this selected attribute benchmark. If a native Strength roll blocks the craft, reject/reroll or use the native value only within an explicitly different finish target.",
+        "Lesser Ember until unconditional minion damage14-16%. Stop. This is generic guide minion implicit, not planned20-22 tier."
+      ],
+      "recovery": [
+        "Real Fear retry retained34fracture and minion15implicit but lost life115 and Strengthbench and filled suffixes; reject, pay another Fear.",
+        "Direct essence rerolls do not require Scour. Optional paid Scour removes nonfractured explicits and leaves MAGIC34fracture plus15Exarch; paid Regal restores RARE before Fear. Both actions explicitly executed.",
+        "Self-fracture alternative demonstrated from3 fresh natural Leviathan85 bases: each Deafening Envy yields31-35chaos, then regular Fracturing Orb. Wrong fracture requires replacement, Scour cannot remove it. Three random failures are not impossibility proof or an expectation."
+      ],
+      "finalbundlepass": true,
+      "finals": [
+        {
+          "base": "Leviathan Gauntlets",
+          "ilvl": 85,
+          "fractured_chaos": 34,
+          "life": 115,
+          "essence_minion_damage": 29,
+          "crafted_Strength": 30,
+          "Exarch_minion_damage": 15,
+          "armour": 401
+        }
+      ],
+      "calculator": {
+        "scope": "Leviathan34fracture Fear core only",
+        "success_percent": 2.9,
+        "displayed_Fear": 35,
+        "not_empirical_or_full_route": true
+      },
+      "alternatives": [
+        {
+          "base": "Warlock Gloves",
+          "ilvl": 85,
+          "fractured_chaos": 35,
+          "candidate": "Apocalypse Grip",
+          "ask_Divine": 6,
+          "gold_fee": 4324,
+          "proof": "../closure-recovery/glove-base-market/observations.json",
+          "completed_finish_proof": "../followup-other/fear-finished-export.json",
+          "limit": "Prior10000-action chain178finished from same-family35fracture synthetic model, now a matching actual listed input exists. ES defence differs from Leviathan; quality20 in old model is not a requirement of new scope."
+        },
+        {
+          "base": "Warlock Gloves",
+          "ilvl": 85,
+          "fractured_chaos": 34,
+          "candidate": "Brood Claw",
+          "ask_Divine": 5,
+          "gold_fee": 3844,
+          "proof": "../closure-recovery/glove-base-market/observations.json",
+          "limit": "Cheaper dated offer, same fracture family; no new empirical run on34Warlock and no armour-equivalence claim."
+        }
+      ],
+      "self_preparation_ledger": {
+        "natural_bases_consumed": 3,
+        "Deafening_Envy": 3,
+        "Fracturing_Orb": 3,
+        "Orb_of_Scouring": 1,
+        "desired_fractures": 0,
+        "failures": [
+          "4mods,+35chaos: fractured63LifeOnKill",
+          "4mods,+35chaos: fractured58%armour",
+          "5mods,+34chaos: fracturedlightningattackprefix"
+        ],
+        "spending_policy": "Currencies are action quantities; ignore simulator built-in monetary conversions. Acquired rare alternative avoids self-fracture cost, it is not added to the purchase branch."
+      },
+      "evidence": [
+        "warlock85-natural.dom.txt",
+        "leviathan85-natural.dom.txt",
+        "leviathan85-envy-prefracture.dom.txt",
+        "leviathan85-fracture-attempt1.dom.txt",
+        "leviathan85-wrong-fracture-scour.item.txt",
+        "leviathan85-fracture-attempt2.item.txt",
+        "leviathan85-fracture-attempt3.item.txt",
+        "fear-leviathan-import-verified.item.txt",
+        "fear-leviathan-calculator.dom.txt",
+        "fear-leviathan-core.item.txt",
+        "fear-leviathan-bench.item.txt",
+        "fear-leviathan-finish.item.txt",
+        "fear-leviathan-finish.png",
+        "fear-leviathan-retry-failure.item.txt",
+        "fear-leviathan-paid-scour.item.txt",
+        "fear-leviathan-paid-regal.item.txt"
+      ],
+      "limits": [
+        "Plain listing paste lost all modifiers in beta importer and is explicitly rejected; only advanced re-import is accepted.",
+        "34 and35 fractures are distinct valued inputs. No promise of planned20-22implicit, full armour/ES, character attribute/resistance caps, purchase completion or profit.",
+        "Current official patch offers changed Fractured Fossils and new bench rerolls. Those are not needed by this ordinary-currency purchase route and are not silently claimed optimal."
+      ]
+    }
+  ],
+  "rejected_variants": [
+    {
+      "profile_id": "rf-fire-trap-helmet",
+      "status": "REJECTED_FROM_FINALISTS",
+      "variant": "82-level optimized acquisition / elevated25 / socketedRF",
+      "reason": "Only actual83 input offers evidenced; ordinary reforge does not supply elevated25, and author excludes socketedRF."
+    },
+    {
+      "profile_id": "lacerate-block-shield",
+      "status": "REJECTED_FROM_FINALISTS",
+      "variant": "new-league Synthesised endgame replica",
+      "reason": "Current official3.29 disallows obtaining new non-unique Synthesised items by normal routes; Shaper intermediate is a distinct accepted variant."
+    },
+    {
+      "profile_id": "spectre-minion-helmet",
+      "status": "REJECTED_FROM_FINALISTS",
+      "variant": "guaranteed100life or exact Praetor PoB copy",
+      "reason": "Greed range91-105, retained final92, and Bone differs from plannedPraetor; no invented100floor on generic author route."
+    },
+    {
+      "profile_id": "tr-aoe-helmet",
+      "status": "REJECTED_FROM_FINALISTS",
+      "variant": "12.3percent complete target economics / Lion-Majestic identity / full PoB replica",
+      "reason": "Old numeric omitted100life+res, naturalGrizzly substituted; accepted final has8supp and21cold, not PoB14supp and2highres."
+    },
+    {
+      "profile_id": "spectre-fear-gloves",
+      "status": "REJECTED_FROM_FINALISTS",
+      "variant": "free synthetic35fracture / Warlock equals Leviathan / guaranteed20-22Lesserimplicit",
+      "reason": "Fracture has actual paid offer or costly random failure branch; bases differ; Lesser minion14-16 does not produce20-22."
+    }
+  ]
+}

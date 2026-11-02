@@ -1,0 +1,834 @@
+{
+  "schema_version": "research-catalog/1",
+  "prepared_at": "2026-10-30",
+  "purpose": "Source-linked first-pass research candidates; NOT product-ready recommendations.",
+  "measured_player_dataset_available": false,
+  "profiles": [
+    {
+      "id": "rf-fire-trap-helmet",
+      "title": "RF: шлем под Fire Trap",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "RF Chieftain",
+      "slot": "Helmet",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Elder-influenced helmet"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Встроенные support-модификаторы для Fire Trap; точную комбинацию установить из выбранного варианта"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "upgrade; календарная неделя неизвестна",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S10"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Проверить конкретные support-моды, совместимость, доступность базы и альтернативы.",
+        "Отделить стартовый предмет от целевого апгрейда; подтвердить патч."
+      ]
+    },
+    {
+      "id": "lacerate-block-shield",
+      "title": "Lacerate: восстановление жизни при блоке",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Lacerate Gladiator",
+      "slot": "Shield",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Shaper-influenced shield; exact base pending"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Recover life on block: гайд указывает 5%, 4% как бюджетную альтернативу",
+        "Жизнь/защита/сопротивления — приоритеты, не придуманные числовые пороги"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "rare intermediate / upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S11",
+        "S16",
+        "S17"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [
+        "The Surrender"
+      ],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Уточнить базу, variant и допустимые пороги; разрешить PoB 3.28 / guide 3.29 конфликт.",
+        "Проверить доступность уникальной замены и окно спроса."
+      ]
+    },
+    {
+      "id": "lacerate-budget-belt",
+      "title": "Lacerate: редкий пояс до уникального",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Lacerate Gladiator",
+      "slot": "Belt",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Stygian Vise"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Максимальная жизнь",
+        "Сопротивления под потребность билда"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "budget alternative; not a dated week",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S11"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [
+        "Belt of the Deceiver",
+        "Ryslatha’s Coil"
+      ],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Проверить ценовой потолок альтернатив и необходимость именно rare.",
+        "Не относить обычный life/res пояс к высокомаржинальным без наблюдений."
+      ]
+    },
+    {
+      "id": "spectre-minion-helmet",
+      "title": "Spectre: редкий шлем с уровнями приспешников",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Spectre Summoner",
+      "slot": "Helmet",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Rare helmet; base pending"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "+1–2 к уровням всех камней приспешников",
+        "Жизнь",
+        "Сопротивления/характеристики по необходимости"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "budget / upgrade before variant-specific uniques",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S12",
+        "S18",
+        "S19"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [
+        "Wraithlord",
+        "Dark Monarch"
+      ],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Сверить +1 и +2 как отдельные ценовые уровни, не один профиль.",
+        "Проверить patch mismatch и причины перехода на unique."
+      ]
+    },
+    {
+      "id": "spectre-minion-shield",
+      "title": "Spectre: редкий щит с +1 minion",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Spectre Summoner",
+      "slot": "Shield",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Bone Spirit Shield / Fossilised Spirit Shield; verify exact choice"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "+1 к уровню камней приспешников",
+        "Жизнь",
+        "Сопротивления; minion damage как возможный дополнительный приоритет"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "budget / upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S12"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [
+        "Bitterbind Point"
+      ],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Проверить точное семейство модов и доступность на выбранной базе.",
+        "Сравнить с поздней уникальной заменой."
+      ]
+    },
+    {
+      "id": "spectre-fear-gloves",
+      "title": "Spectre: minion-урон на перчатках",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Spectre Summoner",
+      "slot": "Gloves",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Rare gloves; base pending"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Minion damage от Essence of Fear",
+        "Жизнь",
+        "Сопротивления; implicits проверять отдельно"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "crafted upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S12"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": "Исследовать Essence of Fear; исходная база и finishing пока не проверены.",
+      "competing_substitutes": [],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Проверить essence tier и patch, мод-пулы, необходимость fractured стартовой базы.",
+        "Unnerve применимо только при реальном источнике ударов; не объединять варианты автоматически."
+      ]
+    },
+    {
+      "id": "spectre-budget-belt",
+      "title": "Spectre: бюджетный rare пояс",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Spectre Summoner",
+      "slot": "Belt",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Stygian Vise"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Жизнь",
+        "Сопротивления/характеристики"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "budget alternative",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S12"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [
+        "Darkness Enthroned"
+      ],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Проверить, остаётся ли рынок rare после покупки уникальной замены; нет вывода о прибыльности."
+      ]
+    },
+    {
+      "id": "srs-nonpoison-helmet",
+      "title": "SRS non-poison: уровни minion на шлеме",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "SRS Necromancer — non-poison",
+      "slot": "Helmet",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Rare helmet; base pending"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "+1–2 к уровню камней приспешников",
+        "Жизнь/сопротивления под выбранный вариант"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "non-poison upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S13"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Не переносить требования на poison SRS.",
+        "Уточнить совместную связку и пороги для конкретного item set."
+      ]
+    },
+    {
+      "id": "srs-recovery-shield",
+      "title": "SRS: редкий recovery shield",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "SRS Necromancer — exact defensive variant pending",
+      "slot": "Shield",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Rare shield; influence/base pending"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Восстановление жизни при блоке",
+        "Spell block",
+        "Жизнь"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "variant-dependent upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S13"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [
+        "Aegis Aurora"
+      ],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Проверить MoM/ES/life вариант и какие моды реально обязательны одновременно.",
+        "Unique-замена не должна учитываться как покупатель rare."
+      ]
+    },
+    {
+      "id": "worb-es-implicit-gloves",
+      "title": "Winter Orb: ES-перчатки с implicits",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Winter Orb Occultist — CI variant",
+      "slot": "Gloves",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Warlock Gloves / verified high-ES base"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Энергетический щит",
+        "Cold exposure on hit",
+        "Unnerve; сопротивления по потребности"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "CI upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S14",
+        "S20"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Проверить совместимость implicit-источников с выбранной базой и патчем.",
+        "Не навязывать life-порог CI варианту; сохранить variant и item set."
+      ]
+    },
+    {
+      "id": "worb-es-body",
+      "title": "Winter Orb: редкий ES-нагрудник",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Winter Orb Occultist — CI variant",
+      "slot": "Body Armour",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Twilight Regalia; verify patch/base"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Высокий энергетический щит",
+        "Сопротивления; дополнительные implicits проверить отдельно"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "CI upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S14",
+        "S20"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Нужны измеримые ES-пороги, способ крафта и определение промежуточного бюджета.",
+        "Не превращать пример дорогого предмета в обязательный набор для всех игроков."
+      ]
+    },
+    {
+      "id": "tr-plus3-bow",
+      "title": "Toxic Rain: gem-level bow",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Toxic Rain Pathfinder",
+      "slot": "Bow",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Thicket Bow"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "+1 к уровню вставленных камней",
+        "+2 к уровням support gems",
+        "Скорость атаки; chaos DoT multiplier по выбранному методу"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "specific crafted upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S15"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": "Исследовать документированный gem-level/bench путь; вероятность и цены ещё не получены.",
+      "competing_substitutes": [],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Проверить сочетание crafted/explicit модов, affix slots, применение метакрафта и стоимость finishing.",
+        "Не использовать цену из гайда как текущую."
+      ]
+    },
+    {
+      "id": "tr-basic-quiver",
+      "title": "Toxic Rain: доступный DoT-колчан",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Toxic Rain Pathfinder",
+      "slot": "Quiver",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Broadhead Arrow Quiver; verify"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Скорость атаки",
+        "Жизнь",
+        "Один применимый DoT multiplier"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "basic upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S15"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Не объединять с Hunter double-DoT версией; проверить, какие моды применяются к skill."
+      ]
+    },
+    {
+      "id": "tr-hunter-quiver",
+      "title": "Toxic Rain: более дорогой double-DoT колчан",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Toxic Rain Pathfinder",
+      "slot": "Quiver",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Hunter-influenced quiver; verify"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Два совместимых DoT multiplier",
+        "Жизнь / скорость атаки по бюджету"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "advanced upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S15"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Проверить совместимость двух семейств и ilvl, отдельный бюджет/рыночную группу.",
+        "Убедиться, что это достижимый крафт, а не только теоретический BiS."
+      ]
+    },
+    {
+      "id": "tr-aoe-helmet",
+      "title": "Toxic Rain: AoE/suppression шлем",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Toxic Rain Pathfinder",
+      "slot": "Helmet",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Evasion helmet; exact base pending"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Socketed AoE gems / area-effect setup из выбранного варианта",
+        "Spell suppression",
+        "Жизнь; сопротивления по необходимости"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "upgrade",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S15"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Проверить точную формулировку, источник AoE-мода и crafted slots.",
+        "Не путать gem-setup в шлеме с основным Toxic Rain в луке."
+      ]
+    },
+    {
+      "id": "worb-shaper-helmet-lead",
+      "title": "Winter Orb: отдельный Shaper helmet вариант",
+      "game": "poe1",
+      "realm": "pc",
+      "market_mode": "softcore_trade_research",
+      "build_archetype": "Winter Orb — Reddit variant, distinct from CI/Willclash guide",
+      "slot": "Helmet",
+      "rarity": "rare",
+      "source_declared_patch": "3.29",
+      "validated_patch": null,
+      "league": null,
+      "base_names": [
+        "Shaper-influenced Archdemon Crown; verify"
+      ],
+      "canonical_base_ids": null,
+      "source_bundle_descriptions": [
+        "Essence/supported-gem связка из отдельного crafting guide — точный набор ещё не нормализован"
+      ],
+      "canonical_constraints": null,
+      "source_stage": "separate high-budget variant",
+      "observed_league_day": null,
+      "observed_week": null,
+      "research_windows": [
+        "D1-3 baseline",
+        "D7 / week 1",
+        "D14 / week 2",
+        "D21-28"
+      ],
+      "week_assignment_status": "unverified_do_not_infer_from_budget",
+      "evidence_kind": "guide_recommendation",
+      "source_ids": [
+        "S23"
+      ],
+      "verification_status": "research_lead",
+      "craftability_status": "unverified",
+      "possible_craft_route": null,
+      "competing_substitutes": [
+        "Willclash"
+      ],
+      "provenance_note": "Source-derived candidate, not measured adoption, executed trade or profitable craft.",
+      "measured_prevalence": null,
+      "market_observations": null,
+      "cost_estimate": null,
+      "economic_status": "not_evaluated",
+      "import_ready": false,
+      "next_verification": [
+        "Получить первичный PoB/автора и проверяемый рецепт; Reddit пока только lead.",
+        "Не смешивать с вариантом, использующим Willclash; проверить совместимость и бюджет."
+      ]
+    }
+  ]
+}
