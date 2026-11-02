@@ -1,11 +1,14 @@
+import { fixtureMarketDependencies } from './testkit/recipeMarket.js';
 import {
   createInMemoryRepositories,
   type JsonRecord,
   type MarketSearchProvider,
   type Recipe,
-  validateRecipeV1,
 } from '@poe-worksmith/domain';
-import { validRecipeV1Fixture } from '@poe-worksmith/domain/fixtures';
+import {
+  canonicalRecipeFixture,
+  fixtureRecipe,
+} from '@poe-worksmith/domain/fixtures';
 import { describe, expect, it } from 'vitest';
 
 import { MarketJobProcessor } from './marketJobProcessor.js';
@@ -14,14 +17,14 @@ import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
 const now = new Date('2026-07-20T00:00:00.000Z');
 
 function storedRecipe(): Recipe {
-  const definition = validateRecipeV1(validRecipeV1Fixture);
+  const definition = fixtureRecipe(canonicalRecipeFixture);
   return {
     active: true,
     category: definition.category,
     contentHash: 'content-physical-large-cluster-jagged',
     craftMethod: 'harvest',
     definition: { ...definition } as JsonRecord,
-    gameVersion: definition.gameVersion,
+    gameVersion: definition.patch,
     guideMarkdown: '# Guide',
     id: definition.id,
     tags: definition.tags,
@@ -72,6 +75,7 @@ describe('full refresh orchestrator', () => {
       snapshotTtlMs: 60_000,
     });
     const orchestrator = new FullRefreshOrchestrator({
+      marketDependencies: fixtureMarketDependencies,
       clock: () => now,
       league: {
         leagueGggId: league.gggId,

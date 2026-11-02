@@ -136,6 +136,11 @@ export const domainErrorDefinitions = {
     disposition: 'permanent',
     publicMessage: 'The market source is not authorized for automated access.',
   },
+  MARKET_COLLECTION_CANCELLED: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage: 'Market collection was cancelled; no price was published.',
+  },
   MARKET_COLLECTION_FAILED: {
     category: 'market',
     disposition: 'retryable',

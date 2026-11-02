@@ -2,8 +2,6 @@ import {
   aggregateMarketListings,
   type CanonicalJsonObject,
   type CanonicalJsonValue,
-  type CanonicalRecipeV1,
-  type CanonicalCraftVariant,
   DomainError,
   type DomainErrorCode,
   type MarketListing,
@@ -11,18 +9,17 @@ import {
   type Recipe,
   type RecipeEvaluation,
   type Repositories,
-  calculateExpectedCraftCost,
-  calculateVariantMaterialEconomics,
-  expectedVariantMaterialUsage,
+  calculateMethodMaterialEconomics,
+  compareCraftWithAsk,
   hashMarketQuery,
   transitionRefreshCycle,
   validateRecipeDocument,
 } from '@poe-worksmith/domain';
-import { calculateRecipeEconomics } from '@poe-worksmith/domain/economics';
+
 import { z } from 'zod';
 import {
-  legacyRecipeMarketDependencies,
   type RecipeMarketDependencies,
+  comparableRecipeListings,
 } from './recipeMarket.js';
 import type { Logger } from 'pino';
 import type { Metrics } from './observability/metrics.js';
@@ -60,6 +57,7 @@ const listingSchema = z.strictObject({
   price: moneySchema,
 });
 const snapshotPayloadSchema = z.object({
+  coverage: z.enum(['complete', 'partial', 'unknown']).optional(),
   listings: z.array(listingSchema),
   totalResults: z.number().int().nonnegative(),
 });
@@ -72,9 +70,9 @@ type FreshEvaluation = Readonly<{
   marginPercent: string | null;
   observationId: number | null;
   profit: string | null;
-  sourceSnapshotDedupeKey: string;
+  sourceSnapshotDedupeKey: string | null;
   status?: 'success' | 'partial';
-  variantCosts?: Record<string, unknown>;
+  methodCost?: Record<string, unknown>;
 }>;
 
 export type FreshRecipeEvaluator = (
@@ -179,6 +177,23 @@ export async function evaluateAndPublishCatalog(
   const currencyExchange = economySummary
     ? await options.economy!.find(economySummary.id)
     : null;
+  const materialEconomies = new Map<string, StoredMarketEconomySnapshot>();
+  for (const category of [
+    'Currency',
+    'Essence',
+    'Fossil',
+    'Resonator',
+  ] as const) {
+    const latest = await options.economy?.latest(league, category);
+    const snapshot = latest ? await options.economy?.find(latest.id) : null;
+    if (
+      snapshot &&
+      snapshot.league === league &&
+      now.getTime() >= Date.parse(snapshot.capturedAt) &&
+      now.getTime() - Date.parse(snapshot.capturedAt) <= 30 * 60_000
+    )
+      materialEconomies.set(category, snapshot);
+  }
   const evaluateRecipe =
     options.evaluateRecipe ??
     ((recipe, context) =>
@@ -187,6 +202,7 @@ export async function evaluateAndPublishCatalog(
         context,
         options.marketDependencies,
         currencyExchange,
+        [...materialEconomies.values()],
       ));
   const evaluations: RecipeEvaluation[] = [];
   let completedRecipes = 0;
@@ -212,49 +228,55 @@ export async function evaluateAndPublishCatalog(
         recipeId: recipe.id,
         refreshCycleId: cycle.id,
         status: fresh.status ?? 'success',
-        variantCosts: fresh.variantCosts ?? null,
+        methodCost: {
+          ...fresh.methodCost,
+          recipeContentHash: recipe.contentHash,
+        },
       };
       completedRecipes += 1;
     } catch (cause) {
       const error = toDomainError(cause);
       const fallback = previousByRecipe.get(recipe.id);
-      evaluation = reusableEvaluation(fallback)
-        ? {
-            confidence: fallback.confidence,
-            currency: fallback.currency,
-            errorCode: error.code,
-            estimatedSalePrice: fallback.estimatedSalePrice,
-            evaluatedAt: now,
-            expectedCraftCost: fallback.expectedCraftCost,
-            lastSuccessfulAt: fallback.lastSuccessfulAt ?? fallback.evaluatedAt,
-            leagueId: cycle.leagueId,
-            marginPercent: fallback.marginPercent,
-            observationId: fallback.observationId,
-            profit: fallback.profit,
-            recipeId: recipe.id,
-            refreshCycleId: cycle.id,
-            sourceSnapshotDedupeKey: fallback.sourceSnapshotDedupeKey,
-            variantCosts: fallback.variantCosts ?? null,
-            status: 'stale',
-          }
-        : {
-            confidence: null,
-            currency: null,
-            errorCode: error.code,
-            estimatedSalePrice: null,
-            evaluatedAt: now,
-            expectedCraftCost: null,
-            lastSuccessfulAt: null,
-            leagueId: cycle.leagueId,
-            marginPercent: null,
-            observationId: null,
-            profit: null,
-            recipeId: recipe.id,
-            refreshCycleId: cycle.id,
-            sourceSnapshotDedupeKey: null,
-            variantCosts: null,
-            status: 'error',
-          };
+      evaluation =
+        reusableEvaluation(fallback) &&
+        fallback.methodCost?.recipeContentHash === recipe.contentHash
+          ? {
+              confidence: fallback.confidence,
+              currency: fallback.currency,
+              errorCode: error.code,
+              estimatedSalePrice: fallback.estimatedSalePrice,
+              evaluatedAt: now,
+              expectedCraftCost: fallback.expectedCraftCost,
+              lastSuccessfulAt:
+                fallback.lastSuccessfulAt ?? fallback.evaluatedAt,
+              leagueId: cycle.leagueId,
+              marginPercent: fallback.marginPercent,
+              observationId: fallback.observationId,
+              profit: fallback.profit,
+              recipeId: recipe.id,
+              refreshCycleId: cycle.id,
+              sourceSnapshotDedupeKey: fallback.sourceSnapshotDedupeKey,
+              methodCost: fallback.methodCost ?? null,
+              status: 'stale',
+            }
+          : {
+              confidence: null,
+              currency: null,
+              errorCode: error.code,
+              estimatedSalePrice: null,
+              evaluatedAt: now,
+              expectedCraftCost: null,
+              lastSuccessfulAt: null,
+              leagueId: cycle.leagueId,
+              marginPercent: null,
+              observationId: null,
+              profit: null,
+              recipeId: recipe.id,
+              refreshCycleId: cycle.id,
+              sourceSnapshotDedupeKey: null,
+              methodCost: null,
+              status: 'error',
+            };
       failedRecipes += 1;
       if (evaluation.status === 'stale') staleFallbacks += 1;
     }
@@ -334,6 +356,7 @@ async function evaluateFreshRecipe(
   },
   marketDependencies?: RecipeMarketDependencies,
   currencyExchange?: StoredMarketEconomySnapshot | null,
+  materialEconomies: readonly StoredMarketEconomySnapshot[] = [],
 ): Promise<FreshEvaluation> {
   let definition;
   try {
@@ -341,46 +364,48 @@ async function evaluateFreshRecipe(
   } catch (cause) {
     throw new DomainError('RECIPE_INVALID', { cause });
   }
-  const dependencies = marketDependencies
-    ? await marketDependencies({ league: context.league, recipe: definition })
-    : definition.schemaVersion === 1
-      ? legacyRecipeMarketDependencies({ recipe: definition })
-      : (() => {
-          throw new DomainError('RECIPE_INVALID');
-        })();
+  if (!marketDependencies) throw new DomainError('RECIPE_INVALID');
+  const dependencies = await marketDependencies({
+    league: context.league,
+    recipe: definition,
+  });
   const baseDependency = dependencies.find(({ kind }) => kind === 'base');
   const targetDependency = dependencies.find(({ kind }) => kind === 'target');
-  if (!baseDependency || !targetDependency)
+  if (!baseDependency?.query || !targetDependency?.query)
     throw new DomainError('RECIPE_INVALID');
-  const base = await resolveMarket(baseDependency.query, context);
+  const optionalMarket = async (
+    query: import('./recipeMarket.js').RecipeMarketQuery,
+  ) => {
+    try {
+      return await resolveMarket(query, context);
+    } catch (error) {
+      if (
+        error instanceof DomainError &&
+        ['SNAPSHOT_MISSING', 'SNAPSHOT_EXPIRED'].includes(error.code)
+      )
+        return null;
+      throw error;
+    }
+  };
+  const base = await optionalMarket(baseDependency.query);
   const materialMarkets = await Promise.all(
     dependencies
       .filter(({ kind }) => kind === 'material')
       .map(async (material) => {
-        const result = await resolveMarket(material.query, context);
+        const result = material.query
+          ? await optionalMarket(material.query)
+          : null;
         return {
-          capturedAt: result.snapshotCapturedAt,
+          capturedAt: result?.snapshotCapturedAt ?? context.now,
           id: material.materialId!,
-          price: result.aggregation.cheapest,
-        };
-      }),
-  );
-  const finishingMarkets = await Promise.all(
-    dependencies
-      .filter(({ kind }) => kind === 'finishing')
-      .map(async (item) => {
-        const result = await resolveMarket(item.query, context);
-        return {
-          capturedAt: result.snapshotCapturedAt,
-          id: item.materialId!,
-          price: result.aggregation.cheapest,
+          price: result?.aggregation.cheapest ?? null,
         };
       }),
   );
   const output = await resolveMarket(targetDependency.query, context);
-  const currency = output.aggregation.sampleSize
-    ? output.aggregation.currency
-    : base.aggregation.currency;
+  const currency = output?.aggregation.sampleSize
+    ? output?.aggregation.currency
+    : (base?.aggregation.currency ?? 'chaos');
   const conversionEvidence: NonNullable<
     Awaited<ReturnType<typeof convertMarketQuote>>
   >['exchange'][] = [];
@@ -408,199 +433,151 @@ async function evaluateFreshRecipe(
     return converted?.money ?? null;
   };
   const basePrice = await convertPrice(
-    base.aggregation.cheapest,
-    base.snapshotCapturedAt,
+    base?.aggregation.cheapest ?? null,
+    base?.snapshotCapturedAt ?? context.now,
   );
-  const [materialEntries, finishingEntries] = await Promise.all([
-    Promise.all(
-      materialMarkets.map(
-        async ({ capturedAt, id, price }) =>
-          [id, await convertPrice(price, capturedAt)] as const,
-      ),
+  const materialEntries = await Promise.all(
+    materialMarkets.map(
+      async ({ capturedAt, id, price }) =>
+        [id, await convertPrice(price, capturedAt)] as const,
     ),
-    Promise.all(
-      finishingMarkets.map(
-        async ({ capturedAt, id, price }) =>
-          [id, await convertPrice(price, capturedAt)] as const,
-      ),
-    ),
-  ]);
+  );
   const materialPriceMap = Object.fromEntries(materialEntries);
-  const finishingPriceMap = Object.fromEntries(finishingEntries);
-  const outputEstimate = output.aggregation.estimators.find(
+  const materialEvidence: Record<string, unknown> = Object.fromEntries(
+    materialMarkets
+      .filter((m) => m.price)
+      .map((m) => [
+        m.id,
+        {
+          itemId: m.id,
+          league: context.league,
+          source: 'poe-trade-exchange',
+          priceBasis: 'asking',
+          currency: m.price!.currency,
+          capturedAt: m.capturedAt.toISOString(),
+        },
+      ]),
+  );
+  if (basePrice && base)
+    materialEvidence.base = {
+      itemId: 'base',
+      league: context.league,
+      source: 'poe-trade',
+      priceBasis: 'asking',
+      currency: basePrice.currency,
+      capturedAt: base.snapshotCapturedAt.toISOString(),
+    };
+  for (const dependency of dependencies.filter((d) => d.kind === 'material')) {
+    const id = dependency.materialId!;
+    if (materialPriceMap[id]) continue;
+    for (const snapshot of materialEconomies) {
+      const line = snapshot.lines.find((line) => line.detailsId === id);
+      if (!line || line.price.amount === null) continue;
+      materialPriceMap[id] = await convertPrice(
+        { amount: String(line.price.amount), currency: line.price.currency },
+        new Date(snapshot.capturedAt),
+      );
+      materialEvidence[id] = {
+        itemId: id,
+        league: snapshot.league,
+        source: snapshot.source,
+        priceBasis: 'economy-estimate',
+        currency: line.price.currency,
+        capturedAt: snapshot.capturedAt,
+        snapshotId: snapshot.id,
+      };
+      break;
+    }
+  }
+  const outputEstimate = output?.aggregation.estimators.find(
     ({ id }) => id === 'cheapest',
   )?.price;
-  const variantCosts: Record<string, unknown> = {};
-  const evaluatedVariants =
-    definition.schemaVersion === 2
-      ? (definition.craft.variants ?? []).map((variant) => {
-          const materialEconomics = calculateVariantMaterialEconomics({
-            currency,
-            materialPrices: materialPriceMap,
-            variant,
-          });
-          const totalCost = calculateExpectedCraftCost({
-            basePrice,
-            currency,
-            materialCost: materialEconomics.expectedCost,
-          });
-          const usage = expectedVariantMaterialUsage(variant);
-          let expectedCraftCost: string | null = null;
-          if (usage) {
-            const result = calculateRecipeEconomics({
-              aggregation: output.aggregation,
-              basePrice,
-              currency,
-              finishingPrices: finishingPriceMap,
-              materialPrices: materialPriceMap,
-              recipe: economicsRecipe(definition, variant),
-            });
-            if (result.ok)
-              expectedCraftCost =
-                result.value.breakdown.expectedCraftCost.amount;
-            else expectedCraftCost = totalCost?.amount ?? null;
-          }
-          variantCosts[variant.id] = {
-            ...materialEconomics,
-            currencyExchange: conversionEvidence[0] ?? null,
-            expectedCost: expectedCraftCost
-              ? {
-                  amount: expectedCraftCost,
-                  currency,
-                }
-              : null,
-          };
-          return { expectedCraftCost, variant };
-        })
-      : [];
-  const bestVariant = evaluatedVariants
-    .filter(({ expectedCraftCost }) => expectedCraftCost !== null)
-    .sort(
-      (left, right) =>
-        Number(left.expectedCraftCost) - Number(right.expectedCraftCost),
-    )[0];
-  const legacyResult =
-    definition.schemaVersion === 1
-      ? calculateRecipeEconomics({
-          aggregation: output.aggregation,
-          basePrice,
-          currency,
-          finishingPrices: finishingPriceMap,
-          materialPrices: materialPriceMap,
-          recipe: definition,
-        })
-      : null;
-  if (legacyResult && !legacyResult.ok)
-    throw new DomainError(legacyResult.errorCode);
-  const selectedResult = bestVariant
-    ? calculateRecipeEconomics({
-        aggregation: output.aggregation,
-        basePrice,
-        currency: output.aggregation.currency,
-        finishingPrices: finishingPriceMap,
-        materialPrices: materialPriceMap,
-        recipe: economicsRecipe(definition, bestVariant.variant),
-      })
-    : legacyResult;
-  const salePrice =
-    definition.schemaVersion === 1
-      ? legacyResult?.ok
-        ? legacyResult.value.estimatedSalePrice.amount
-        : null
-      : (outputEstimate?.amount ?? null);
-  if (salePrice === null && definition.schemaVersion === 1)
-    throw new DomainError('INSUFFICIENT_LISTINGS');
-
-  const observations = await context.repositories.observations.listRecent(
-    output.marketQueryId,
-    context.leagueId,
-    new Date(0),
-  );
+  const materialEconomics = calculateMethodMaterialEconomics({
+    currency,
+    materialPrices: materialPriceMap,
+    method: definition.craft,
+  });
+  const evidenceValid =
+    definition.verification.status === 'verified' &&
+    definition.verification.leagues.includes(context.league) &&
+    definition.craft.expectedExecutions?.every(
+      ({ evidence }) => evidence.patch === definition.patch,
+    ) &&
+    definition.craft.baseConsumption?.evidence.patch === definition.patch;
+  const salePrice = outputEstimate?.amount ?? null;
+  const comparison = compareCraftWithAsk({
+    basePrice,
+    currency,
+    materialCost: evidenceValid ? materialEconomics.expectedCost : null,
+    expectedBases: evidenceValid
+      ? (definition.craft.baseConsumption?.expectedBases ?? null)
+      : null,
+    ask: outputEstimate ?? null,
+  });
+  const { expectedCraftCost } = comparison;
+  const methodCost = {
+    ...materialEconomics,
+    recipeContentHash: recipe.contentHash,
+    expiresAt: new Date(
+      Math.min(
+        output?.snapshotExpiresAt.getTime() ?? Infinity,
+        base?.snapshotExpiresAt.getTime() ?? Infinity,
+        context.now.getTime() + 30 * 60_000,
+      ),
+    ).toISOString(),
+    source: output
+      ? {
+          capturedAt: output.snapshotCapturedAt.toISOString(),
+          sampleSize: output.aggregation.sampleSize,
+          priceBasis: 'asking',
+        }
+      : null,
+    marketStatus: output
+      ? output.coverage !== 'complete'
+        ? 'partial'
+        : output.aggregation.sampleSize
+          ? 'priced'
+          : 'empty'
+      : 'unavailable',
+    materialEvidence,
+    baseCost: basePrice,
+    expectedBases: evidenceValid
+      ? (definition.craft.baseConsumption?.expectedBases ?? null)
+      : null,
+    currencyExchange: conversionEvidence[0] ?? null,
+    expectedCost:
+      expectedCraftCost === null
+        ? null
+        : { amount: expectedCraftCost, currency },
+  };
+  const observations = output
+    ? await context.repositories.observations.listRecent(
+        output.marketQueryId,
+        context.leagueId,
+        new Date(0),
+      )
+    : [];
   const observation = observations.find(
     ({ observedAt }) =>
-      observedAt.getTime() === output.snapshotCapturedAt.getTime(),
+      observedAt.getTime() === output?.snapshotCapturedAt.getTime(),
   );
   return {
-    confidence: confidence(output.aggregation.sampleSize),
+    confidence: confidence(output?.aggregation.sampleSize ?? 0),
     currency,
     estimatedSalePrice: salePrice,
-    expectedCraftCost: selectedResult?.ok
-      ? selectedResult.value.breakdown.expectedCraftCost.amount
-      : (bestVariant?.expectedCraftCost ?? null),
-    marginPercent: selectedResult?.ok
-      ? selectedResult.value.marginPercent
-      : null,
+    expectedCraftCost,
+    marginPercent: comparison.marginPercent,
     observationId: observation?.id ?? null,
-    profit: selectedResult?.ok ? selectedResult.value.profit.amount : null,
-    sourceSnapshotDedupeKey: output.snapshotDedupeKey,
-    ...(salePrice === null ? { status: 'partial' as const } : {}),
-    ...(definition.schemaVersion === 2 ? { variantCosts } : {}),
-  };
-}
-
-function economicsRecipe(
-  definition: ReturnType<typeof validateRecipeDocument>,
-  variant?: CanonicalCraftVariant,
-): CanonicalRecipeV1 {
-  if (definition.schemaVersion === 1) return definition;
-  return {
-    baseRequirements: {
-      baseType: definition.base.baseId,
-      tradeQuery: {
-        provider: 'poe-trade',
-        query: { placeholder: true },
-        schemaVersion: 1,
-      },
-    },
-    category: definition.category,
-    craftSteps: [{ id: 'craft', title: definition.craft.method.kind }],
-    estimator: { strategy: 'cheapest' },
-    finishingCosts: [],
-    gameVersion: definition.gameDataVersion,
-    id: definition.id,
-    materials: variant
-      ? Object.entries(expectedVariantMaterialUsage(variant) ?? {}).map(
-          ([itemId, quantityPerAttempt]) => ({
-            id: itemId,
-            label: itemId,
-            quantityPerAttempt,
-            tradeQuery: {
-              provider: 'poe-trade',
-              query: { placeholder: true },
-              schemaVersion: 1,
-            },
-          }),
-        )
-      : (definition.craft.resourceConsumption?.materials ?? []).map(
-          ({ itemId, quantity }) => ({
-            id: itemId,
-            label: itemId,
-            quantityPerAttempt: quantity,
-            tradeQuery: {
-              provider: 'poe-trade',
-              query: { placeholder: true },
-              schemaVersion: 1,
-            },
-          }),
-        ),
-    output: {
-      label: definition.title,
-      tradeQuery: {
-        provider: 'poe-trade',
-        query: { placeholder: true },
-        schemaVersion: 1,
-      },
-    },
-    schemaVersion: 1,
-    success: { mode: 'expected_attempts', expectedAttempts: 1 },
-    summary: definition.summary ?? definition.title,
-    tags: [...definition.tags],
-    title: definition.title,
+    profit: comparison.profit,
+    sourceSnapshotDedupeKey: output?.snapshotDedupeKey ?? null,
+    status:
+      salePrice === null || expectedCraftCost === null ? 'partial' : 'success',
+    methodCost,
   };
 }
 
 async function resolveMarket(
-  tradeQuery: CanonicalRecipeV1['baseRequirements']['tradeQuery'],
+  tradeQuery: import('./recipeMarket.js').RecipeMarketQuery,
   context: {
     leagueId: string;
     league: string;
@@ -629,18 +606,31 @@ async function resolveMarket(
   if (!payload.success) {
     throw new DomainError('SNAPSHOT_INVALID', { cause: payload.error });
   }
-  const listings: MarketListing[] = payload.data.listings.map((listing) => ({
+  let listings: MarketListing[] = payload.data.listings.map((listing) => ({
     ...listing,
     indexedAt: new Date(listing.indexedAt),
   }));
-  const currency = listings[0]?.price.currency ?? 'unknown';
+  listings = comparableRecipeListings(
+    tradeQuery.query,
+    listings,
+    snapshot.capturedAt,
+    context.now,
+  );
+  const currency = tradeQuery.query.handbookTarget
+    ? 'chaos'
+    : (listings[0]?.price.currency ?? 'unknown');
   const aggregation = aggregateMarketListings({
     currency,
-    listings,
+    listings:
+      tradeQuery.query.handbookTarget && payload.data.coverage !== 'complete'
+        ? []
+        : listings,
     totalListings: payload.data.totalResults,
   });
   return {
     aggregation,
+    coverage: payload.data.coverage ?? 'unknown',
+    snapshotExpiresAt: snapshot.expiresAt,
     marketQueryId: marketQuery.id,
     snapshotCapturedAt: snapshot.capturedAt,
     snapshotDedupeKey: snapshot.dedupeKey,

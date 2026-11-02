@@ -1,105 +1,241 @@
 import {
   canonicalCraftSetupFromRecipe,
-  type CanonicalRecipeV1,
-  type GeneratedTradeQuery,
+  aggregateMarketListings,
+  type MarketListing,
+  type CanonicalJsonObject,
   type LoadedRecipeDefinition,
   type TradeQueryGenerator,
 } from '@poe-worksmith/domain';
+import { z } from 'zod';
+import {
+  canonicalMarketJson,
+  createMarketTarget,
+  createImportedMarketSnapshot,
+} from './marketResearch.js';
+import { analyzeBeltSnapshot } from './beltComparability.js';
+import { marketTargetInputSchema } from '@poe-worksmith/contracts';
 
-export type RecipeMarketDependency = Readonly<{
-  kind: 'base' | 'finishing' | 'material' | 'target';
-  materialId?: string;
-  query: CanonicalRecipeV1['baseRequirements']['tradeQuery'];
-}>;
-
+export type RecipeMarketQuery = {
+  provider: 'poe-trade';
+  query: CanonicalJsonObject;
+  schemaVersion: 1;
+};
+export type RecipeMarketDependency =
+  | Readonly<{
+      kind: 'base' | 'target';
+      query: RecipeMarketQuery;
+      materialId?: never;
+    }>
+  | Readonly<{
+      kind: 'material';
+      materialId: string;
+      query: RecipeMarketQuery | null;
+    }>;
 export type RecipeMarketDependencies = (input: {
   league: string;
   recipe: LoadedRecipeDefinition;
 }) => Promise<readonly RecipeMarketDependency[]>;
 
-export function legacyRecipeMarketDependencies(input: {
-  recipe: CanonicalRecipeV1;
-}): readonly RecipeMarketDependency[] {
-  return [
-    { kind: 'base', query: input.recipe.baseRequirements.tradeQuery },
-    ...input.recipe.materials.map(({ id, tradeQuery }) => ({
-      kind: 'material' as const,
-      materialId: id,
-      query: tradeQuery,
-    })),
-    ...input.recipe.finishingCosts.map(({ id, tradeQuery }) => ({
-      kind: 'finishing' as const,
-      materialId: id,
-      query: tradeQuery,
-    })),
-    { kind: 'target', query: input.recipe.output.tradeQuery },
-  ];
-}
-
-export function createV2RecipeMarketDependencies(options: {
+export function createRecipeMarketDependencies(options: {
   trade: TradeQueryGenerator;
-  resolveResource(itemId: string, gameDataVersion: string): Promise<string>;
+  resolveResource(
+    itemId: string,
+    gameDataVersion: string,
+  ): Promise<string | null>;
 }): RecipeMarketDependencies {
   return async ({ league, recipe }) => {
-    if (recipe.schemaVersion === 1)
-      return legacyRecipeMarketDependencies({ recipe });
-    const setup = canonicalCraftSetupFromRecipe(recipe);
-    const base = await generated(options.trade, league, {
-      ...setup,
-      base: { ...setup.base, rarity: 'normal' },
-      target: { allOf: [], anyOf: [], minimumMatched: null },
-    });
-    const target = await generated(options.trade, league, setup);
-    const resourceIds = new Set([
-      ...(recipe.craft.resourceConsumption?.materials ?? []).map(
-        ({ itemId }) => itemId,
+    const resourceIds = new Set(
+      recipe.craft.steps.flatMap((step) =>
+        step.materials.map(({ itemId }) => itemId),
       ),
-      ...(recipe.craft.variants ?? []).flatMap((variant) =>
-        variant.steps.flatMap((step) =>
-          step.materials.map(({ itemId }) => itemId),
-        ),
-      ),
-    ]);
-    const materials = await Promise.all(
-      [...resourceIds].sort().map(async (itemId) => ({
-        kind: 'material' as const,
-        materialId: itemId,
-        query: tradeQuery({
-          exchange: {
-            have: ['chaos'],
-            want: [
-              await options.resolveResource(itemId, recipe.gameDataVersion),
-            ],
-          },
-        }),
-      })),
     );
     return [
-      { kind: 'base', query: tradeQuery(base.query) },
-      ...materials,
-      { kind: 'target', query: tradeQuery(target.query) },
+      {
+        kind: 'base',
+        query: await generateRecipeMarketQuery(
+          options.trade,
+          recipe,
+          league,
+          true,
+        ),
+      },
+      ...(await Promise.all(
+        [...resourceIds].sort().map(async (materialId) => {
+          const exchangeId = await options.resolveResource(
+            materialId,
+            recipe.gameDataVersion,
+          );
+          return {
+            kind: 'material' as const,
+            materialId,
+            query: exchangeId
+              ? tradeQuery({
+                  exchange: { have: ['chaos'], want: [exchangeId] },
+                })
+              : null,
+          };
+        }),
+      )),
+      {
+        kind: 'target',
+        query: await generateRecipeMarketQuery(options.trade, recipe, league),
+      },
     ];
   };
 }
-
-function tradeQuery(
-  query: Record<string, unknown>,
-): CanonicalRecipeV1['baseRequirements']['tradeQuery'] {
+function tradeQuery(query: Record<string, unknown>): RecipeMarketQuery {
   return {
     provider: 'poe-trade',
-    query:
-      query as unknown as CanonicalRecipeV1['baseRequirements']['tradeQuery']['query'],
+    query: z.record(z.string(), z.json()).parse(query),
     schemaVersion: 1,
   };
 }
 
-async function generated(
+const generatedSearch = z.object({
+  query: z.object({
+    type: z.string(),
+    stats: z
+      .array(
+        z.object({
+          type: z.literal('and'),
+          filters: z.array(
+            z.object({
+              id: z.string(),
+              value: z
+                .object({
+                  min: z.number().optional(),
+                  max: z.number().optional(),
+                })
+                .optional(),
+            }),
+          ),
+        }),
+      )
+      .default([]),
+  }),
+});
+
+export async function generateRecipeMarketQuery(
   trade: TradeQueryGenerator,
+  recipe: LoadedRecipeDefinition,
   league: string,
-  setup: Parameters<TradeQueryGenerator['generate']>[0]['setup'],
-): Promise<GeneratedTradeQuery> {
-  const result = await trade.generate({ league, setup });
+  starting = false,
+): Promise<RecipeMarketQuery> {
+  const setup = canonicalCraftSetupFromRecipe(recipe);
+  const result = await trade.generate({
+    league,
+    setup: starting
+      ? {
+          ...setup,
+          base: recipe.startingBase,
+          target: {
+            allOf: recipe.craft.startingMods.map(({ modId, tier }) => ({
+              kind: 'explicit' as const,
+              modId,
+              excluded: false,
+              ...(tier ? { exactTier: tier } : {}),
+            })),
+            anyOf: [],
+            minimumMatched: null,
+          },
+        }
+      : setup,
+  });
   if (!result.ok)
     throw new Error(result.diagnostics.map(({ code }) => code).join(','));
-  return result.value;
+  const generated = generatedSearch.parse(result.value.query);
+  const item = starting ? recipe.startingBase : recipe.base;
+  const handbookTarget = marketTargetInputSchema.parse({
+    name: starting
+      ? `base:${item.baseId}`.slice(0, 200)
+      : recipe.targetSignature,
+    game: 'poe1',
+    realm: 'pc',
+    league,
+    patch: recipe.patch,
+    slot: starting ? 'starting-base' : 'crafted-item',
+    baseTypes: [generated.query.type],
+    builds: [],
+    requiredMods: [],
+    sources: [],
+    minItemLevel: item.itemLevel,
+    influences: [...item.influences].sort(),
+    corrupted: item.state.corrupted,
+    synthesised: item.state.synthesised,
+    tradeSearch: {
+      version: 1,
+      scope: 'strict',
+      status: 'securable',
+      currency: 'chaos',
+      includeOtherCurrencies: true,
+      rarity: item.rarity,
+      fractured: item.state.fractured,
+      groups: generated.query.stats.map((g) => ({
+        type: g.type,
+        filters: g.filters.map((stat) => ({
+          id: stat.id,
+          ...result.value.matchRules?.find((rule) => rule.id === stat.id),
+          ...(stat.value?.min !== undefined ? { min: stat.value.min } : {}),
+          ...(stat.value?.max !== undefined ? { max: stat.value.max } : {}),
+        })),
+      })),
+    },
+  });
+  handbookTarget.tradeSearch?.groups.forEach((g) =>
+    g.filters.sort((a, b) => a.id.localeCompare(b.id)),
+  );
+  return tradeQuery({
+    ...result.value.query,
+    handbookTarget: canonicalMarketJson(handbookTarget),
+  });
+}
+
+export function comparableRecipeListings(
+  query: CanonicalJsonObject,
+  listings: readonly MarketListing[],
+  capturedAt: Date,
+  now: Date,
+) {
+  if (!query.handbookTarget) return [...listings];
+  const target = recipeQueryTarget(query.handbookTarget);
+  const imported = createImportedMarketSnapshot(
+    {
+      targetId: target.id,
+      capturedAt: capturedAt.toISOString(),
+      sourceUrl: 'https://www.pathofexile.com/trade',
+      currency: 'chaos',
+      dataKind: 'observed',
+      emptyResult: listings.length === 0,
+      listings: listings
+        .filter(
+          (row) =>
+            typeof row.item.league !== 'string' ||
+            row.item.league === target.league,
+        )
+        .map((row) => ({
+          externalId: row.id,
+          price: Number(row.price.amount),
+          currency: row.price.currency,
+          item: row.item,
+        })),
+    },
+    target,
+    now,
+  );
+  const matches = new Set(
+    analyzeBeltSnapshot(target, imported, now.getTime())
+      .rows.filter((row) => row.status === 'MATCH')
+      .map((row) => row.externalId),
+  );
+  return [
+    ...aggregateMarketListings({
+      currency: 'chaos',
+      listings: listings.filter((row) => matches.has(row.id)),
+    }).listings,
+  ];
+}
+
+// Keep explicit empty constraints inside the generic query canonicalizer, which drops empty query containers.
+export function recipeQueryTarget(value: unknown) {
+  return createMarketTarget(JSON.parse(z.string().parse(value)));
 }

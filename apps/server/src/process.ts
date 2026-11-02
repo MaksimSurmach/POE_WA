@@ -1,3 +1,6 @@
+import { collectRecipeMaterialPrices } from './marketEconomy.js';
+import { synchronizeRecipeCatalog } from './recipes/synchronizeRecipes.js';
+import { existsSync } from 'node:fs';
 import pino from 'pino';
 import { fileURLToPath } from 'node:url';
 
@@ -19,7 +22,7 @@ import { PoeTradeClient } from './providers/poeTrade.js';
 import { GggRateLimitController } from './rateLimitController.js';
 import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
 import { refreshLeagueContext } from './refreshLeagueContext.js';
-import { createV2RecipeMarketDependencies } from './recipeMarket.js';
+import { createRecipeMarketDependencies } from './recipeMarket.js';
 import { createPostgresRepositories } from './repositories/index.js';
 import {
   createPostgresResourceResolver,
@@ -48,7 +51,10 @@ import { createMarketEconomyRepository } from './repositories/marketEconomyRepos
 import { createMarketCollectionRepository } from './repositories/marketCollectionRepository.js';
 import { NinjaEconomyClient } from './providers/ninjaEconomy.js';
 import { MarketCollectionManager } from './marketCollection.js';
-import { configuredCollectionSource } from './marketCollectionSource.js';
+import {
+  configuredCollectionSource,
+  managedCollectionSource,
+} from './marketCollectionSource.js';
 
 export async function runProcess(forcedMode?: ApplicationMode) {
   const config = loadRuntimeConfig(process.env, forcedMode);
@@ -76,19 +82,33 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   let workerError: Error | undefined;
   const repositories = createPostgresRepositories(pool);
   const economy = createMarketEconomyRepository(pool);
+  const economyClient = new NinjaEconomyClient({
+    userAgent: process.env.NINJA_USER_AGENT ?? config.poeUserAgent,
+  });
+  const recipeRoot = fileURLToPath(
+    new URL('../../../recipes/', import.meta.url),
+  );
+  const catalogPath = existsSync(recipeRoot)
+    ? recipeRoot
+    : fileURLToPath(new URL('../recipes/', import.meta.url));
+  const sync = await synchronizeRecipeCatalog(
+    catalogPath,
+    repositories.recipes,
+  );
+  if (sync.failed.length) throw new Error('RECIPE_SYNC_FAILED');
   const trade = new RegisteredTradeQueryGenerator(
     createPostgresTradeMappingCatalog(pool),
     [noVariantFilter, clusterJewelVariantFilter],
     [mappedTargetFilter],
   );
-  const marketDependencies = createV2RecipeMarketDependencies({
+  const marketDependencies = createRecipeMarketDependencies({
     resolveResource: createPostgresResourceResolver(pool),
     trade,
   });
   const presentationCatalog = await loadItemPresentationCatalog(
     fileURLToPath(
       new URL(
-        '../presentation/poe1/3.26.0/physical-large-cluster.json',
+        '../presentation/poe1/3.29.3.3/physical-large-cluster.json',
         import.meta.url,
       ),
     ),
@@ -99,6 +119,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     trade,
   );
   let jobs: ApplicationJobScheduler | undefined;
+  let tradeClient: PoeTradeClient | undefined;
   const refreshProducer =
     modeIncludesApi(config.mode) && !modeIncludesWorker(config.mode)
       ? new ManualRefreshProducer(
@@ -107,19 +128,16 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           }),
         )
       : undefined;
-  const collectionStore = modeIncludesApi(config.mode)
-    ? createMarketCollectionRepository(pool)
-    : undefined;
-  const collectionManager = collectionStore
-    ? new MarketCollectionManager({
-        adapter: configuredCollectionSource(
-          new GggRateLimitController({ repository: repositories.rateLimits }),
-          process.env,
-          economy,
-        ),
-        store: collectionStore,
-      })
-    : undefined;
+  const research = createMarketResearchRepository(pool);
+  const collectionStore = createMarketCollectionRepository(pool);
+  const collectionManager = new MarketCollectionManager({
+    adapter: configuredCollectionSource(
+      new GggRateLimitController({ repository: repositories.rateLimits }),
+      process.env,
+      economy,
+    ),
+    store: collectionStore,
+  });
   const api = modeIncludesApi(config.mode)
     ? buildApi(
         logger,
@@ -136,7 +154,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         {
           diagnosticsToken: config.operatorDiagnosticsToken,
           metrics: metrics.registry,
-          marketResearch: createMarketResearchRepository(pool),
+          marketResearch: research,
           marketCollection:
             collectionStore && collectionManager
               ? { manager: collectionManager, store: collectionStore }
@@ -176,21 +194,22 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       provider: 'poe-trade',
       repository: repositories.providerCircuits,
     });
+    tradeClient = new PoeTradeClient({
+      allowRequests: process.env.POE_TRADE_ACCESS === 'owner_permitted',
+      collectionSource: managedCollectionSource(collectionManager, research),
+      circuits,
+      logger,
+      metrics,
+      rateLimits,
+      requestTimeoutMs: config.poeRequestTimeoutMs,
+      userAgent: config.poeUserAgent,
+    });
     const marketJobs = new MarketJobProcessor({
       concurrency: config.marketConcurrency,
       leaseTimeoutMs: config.jobLeaseTimeoutMs,
       logger,
       metrics,
-      providers: [
-        new PoeTradeClient({
-          circuits,
-          logger,
-          metrics,
-          rateLimits,
-          requestTimeoutMs: config.poeRequestTimeoutMs,
-          userAgent: config.poeUserAgent,
-        }),
-      ],
+      providers: [tradeClient],
       repositories,
       retryDelayMs: config.marketRetryDelayMs,
       snapshotTtlMs: config.snapshotTtlMs,
@@ -222,6 +241,11 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       runRefresh: async (cycleId) => {
         const currentLeague = await repositories.leagues.findCurrent();
         if (!currentLeague) throw new Error('CURRENT_LEAGUE_UNRESOLVED');
+        await collectRecipeMaterialPrices(
+          currentLeague.gggId,
+          economyClient,
+          economy,
+        );
         return new FullRefreshOrchestrator({
           league: refreshLeagueContext(currentLeague),
           marketJobs,
@@ -243,6 +267,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     ...(api ? { api } : {}),
     ...(refreshProducer ? { apiJobs: refreshProducer } : {}),
     afterApiClose: async () => {
+      tradeClient?.stop();
       await collectionManager?.stop();
     },
     host: config.host,
@@ -256,7 +281,6 @@ export async function runProcess(forcedMode?: ApplicationMode) {
 
   try {
     await runtime.start();
-    await collectionManager?.start();
   } catch (error) {
     logger.fatal({ err: error }, 'application startup failed');
     await collectionManager?.stop().catch((cleanupError: unknown) => {

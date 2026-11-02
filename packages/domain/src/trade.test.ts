@@ -170,3 +170,20 @@ describe('Trade query generation', () => {
     expect(result.diagnostics[0]?.code).toBe('TRADE_MAPPING_MISSING');
   });
 });
+
+it('preserves both numeric bounds, including zero, in a mapped modifier query', () => {
+  const result = mappedTargetFilter.translate({
+    condition: {
+      kind: 'explicit',
+      modId: 'fixture',
+      excluded: false,
+      minimumValue: 0,
+      maximumValue: 10,
+    },
+    mapping: { id: 'explicit.fixture' },
+  });
+  expect(result).toMatchObject({
+    ok: true,
+    value: { id: 'explicit.fixture', value: { min: 0, max: 10 } },
+  });
+});

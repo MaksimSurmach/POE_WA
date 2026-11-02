@@ -76,6 +76,41 @@ const config = loadTradeCompatibleConfig({
 });
 
 describe('Trade-compatible queries and transport', () => {
+  it('normalizes an observed cluster enum hash with null magnitude indexes', async () => {
+    const raw = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.cluster-modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    const row = normalizeTradeCompatibleListing(raw.result[0], tradeTarget());
+    expect(row.item.mods).toContainEqual({
+      id: 'enchant.stat_3948993189|12',
+      value: 1,
+    });
+    expect(row.item.mods).toContainEqual({
+      id: 'explicit.stat_4188581520',
+      value: 1,
+      tier: 1,
+    });
+  });
+
+  it('omits a currency restriction when comparing converted mixed-currency asks', () => {
+    const target = tradeTarget();
+    const request = generateMarketTradeQuery({
+      ...target,
+      tradeSearch: { ...target.tradeSearch!, includeOtherCurrencies: true },
+    }).request;
+    expect(request.query.filters.trade_filters.filters.price).toEqual({});
+    expect(
+      generateMarketTradeQuery(target).request.query.filters.trade_filters
+        .filters.price,
+    ).toEqual({ option: 'chaos' });
+  });
+
   it('normalizes the sanitized November 1 object-mod response and preserves crafted origin', async () => {
     const raw = JSON.parse(
       await readFile(

@@ -222,11 +222,10 @@ export function createPostgresResourceResolver(pool: Pool) {
       `select pm.external_id, pm.payload from provider_mappings pm join game_data_versions gdv on gdv.id = pm.game_data_version_id where gdv.patch_version = $1 and pm.provider = 'poe-trade' and pm.entity_kind = 'resource' and pm.canonical_id = $2 and pm.status = 'active'`,
       [gameDataVersion, itemId],
     );
-    if (result.rowCount !== 1)
-      throw new Error(`TRADE_MAPPING_MISSING: ${itemId}`);
+    if (result.rowCount !== 1) return null;
     const payload = mappingPayload.safeParse(result.rows[0]!.payload);
     if (!payload.success) throw new Error('PROVIDER_SCHEMA_CHANGED');
-    return payload.data.exchangeId ?? result.rows[0]!.external_id;
+    return payload.data.exchangeId ?? null;
   };
 }
 

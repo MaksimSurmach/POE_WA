@@ -65,14 +65,10 @@ export async function integrationScenario(
   ) => {
     script[hashes[expectedDefaultQueryKeys.indexOf(key)]!] = steps;
   };
-  if (name === 'publish-at-95')
-    set('fixture:output:legacy', [
-      { type: 'success', result: result('fixture:output:legacy', 11) },
-    ]);
+  if (name === 'publish-at-95' || name === 'reject-below-95')
+    set('fixture:output:boundary-one', [{ type: 'malformed' }]);
   if (name === 'reject-below-95')
-    set('fixture:output:legacy', [
-      { type: 'success', result: result('fixture:output:legacy', 10) },
-    ]);
+    set('fixture:output:boundary-two', [{ type: 'malformed' }]);
   if (name === 'retry-429-then-success')
     set('fixture:material:lifeforce', [
       { type: 'error', errorCode: 'PROVIDER_RATE_LIMITED' },

@@ -1,0 +1,119 @@
+{
+  "base": {
+    "baseId": "fixture:base:a",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "category": "fixture",
+  "craft": {
+    "evidence": {
+      "method": "Synthetic arithmetic fixture; not game evidence",
+      "patch": "fixture-1",
+      "url": "https://example.com/fixture",
+      "verifiedAt": "2026-11-02",
+      "settings": "Labelled deterministic test input",
+      "artifact": "fixture",
+      "assumptions": "Counts supplied per completed item, including recovery and finishing."
+    },
+    "method": {
+      "kind": "harvest-reforge",
+      "tag": "physical"
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Synthetic arithmetic fixture; not game evidence",
+        "patch": "fixture-1",
+        "url": "https://example.com/fixture",
+        "verifiedAt": "2026-11-02",
+        "settings": "Labelled deterministic test input",
+        "artifact": "fixture",
+        "assumptions": "Counts supplied per completed item, including recovery and finishing."
+      }
+    },
+    "uncertainties": [],
+    "id": "harvest-reforge",
+    "name": "harvest-reforge",
+    "steps": [
+      {
+        "action": "Execute the described method",
+        "continueWhen": "Target output reached",
+        "failureAction": "Repeat on the same base",
+        "id": "craft",
+        "materials": [
+          {
+            "itemId": "fixture:lifeforce",
+            "quantity": 100
+          }
+        ],
+        "title": "Craft"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 1,
+        "evidence": {
+          "method": "Synthetic arithmetic fixture; not game evidence",
+          "patch": "fixture-1",
+          "url": "https://example.com/fixture",
+          "verifiedAt": "2026-11-02",
+          "settings": "Labelled deterministic test input",
+          "artifact": "fixture",
+          "assumptions": "Counts supplied per completed item, including recovery and finishing."
+        },
+        "stepId": "craft"
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "fixture:base:a",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "normal",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "patch": "fixture-1",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Fixture League"],
+    "checkedAt": "2026-11-02",
+    "sources": ["https://example.com/fixture"],
+    "notes": "Synthetic fixture only, not a live recipe."
+  },
+  "gameDataVersion": "fixture-1",
+  "id": "fixture-harvest-b-06",
+  "schemaVersion": 3,
+  "summary": "Synthetic integration fixture.",
+  "tags": ["fixture"],
+  "targetSignature": "fixture-1:c6aeed686b6bf19be330e86c8d7a3aaa",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:fixture-b"
+      }
+    ],
+    "suffixes": [],
+    "implicits": [],
+    "other": []
+  },
+  "title": "fixture-harvest-b-06"
+}

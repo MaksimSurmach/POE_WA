@@ -15,10 +15,7 @@ import {
 } from '@poe-worksmith/domain';
 
 import type { RefreshLeagueContext } from './refreshLeagueContext.js';
-import {
-  legacyRecipeMarketDependencies,
-  type RecipeMarketDependencies,
-} from './recipeMarket.js';
+import { type RecipeMarketDependencies } from './recipeMarket.js';
 import type { Logger } from 'pino';
 import type { Metrics } from './observability/metrics.js';
 
@@ -253,14 +250,10 @@ async function buildDependencies(
       throw new DomainError('RECIPE_INVALID', { cause });
     }
 
-    const queries = marketDependencies
-      ? await marketDependencies({ league, recipe: definition })
-      : definition.schemaVersion === 1
-        ? legacyRecipeMarketDependencies({ recipe: definition })
-        : (() => {
-            throw new DomainError('RECIPE_INVALID');
-          })();
+    if (!marketDependencies) throw new DomainError('RECIPE_INVALID');
+    const queries = await marketDependencies({ league, recipe: definition });
     for (const { query: tradeQuery } of queries) {
+      if (!tradeQuery) continue;
       totalDependencies += 1;
       const query = canonicalizeMarketQuery(tradeQuery.query);
       const canonicalHash = await hashMarketQuery({

@@ -1,11 +1,12 @@
 import { Decimal } from 'decimal.js';
 import { describe, expect, it } from 'vitest';
 
-import { validRecipeV1Fixture } from './fixtures/recipes.js';
+import { economicsFixture } from './fixtures/recipes.js';
 import type { MarketListing } from './marketProviders.js';
 import { aggregateMarketListings } from './priceEstimators.js';
 import { calculateRecipeEconomics } from './economics.js';
-import { validateRecipeV1 } from './recipeSchema.js';
+import type { EconomicsInput } from './economics.js';
+import type { EstimatorConfiguration } from './priceEstimators.js';
 
 function aggregation(prices: readonly number[]) {
   const listings: MarketListing[] = prices.map((amount, index) => ({
@@ -22,25 +23,25 @@ function aggregation(prices: readonly number[]) {
 
 function recipe(
   overrides: {
-    estimator?: Record<string, unknown>;
+    estimator?: EstimatorConfiguration;
     finishingQuantity?: number;
     materialQuantity?: number;
-    success?: Record<string, unknown>;
+    success?: EconomicsInput['success'];
   } = {},
 ) {
-  return validateRecipeV1({
-    ...validRecipeV1Fixture,
+  return {
+    ...economicsFixture,
     estimator: overrides.estimator ?? { strategy: 'cheapest' },
-    finishingCosts: validRecipeV1Fixture.finishingCosts.map((item) => ({
+    finishingCosts: economicsFixture.finishingCosts.map((item) => ({
       ...item,
       quantity: overrides.finishingQuantity ?? item.quantity,
     })),
-    materials: validRecipeV1Fixture.materials.map((item) => ({
+    materials: economicsFixture.materials.map((item) => ({
       ...item,
       quantityPerAttempt: overrides.materialQuantity ?? item.quantityPerAttempt,
     })),
-    success: overrides.success ?? validRecipeV1Fixture.success,
-  });
+    success: overrides.success ?? economicsFixture.success,
+  };
 }
 
 const prices = {

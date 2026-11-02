@@ -1,0 +1,210 @@
+{
+  "result": [
+    {
+      "id": "cluster-observed-sanitized",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-11-02T06:19:16Z",
+        "price": {
+          "type": "~b/o",
+          "amount": 2,
+          "currency": "divine"
+        },
+        "fee": 7378,
+        "account": {
+          "name": "sanitized-seller"
+        }
+      },
+      "item": {
+        "verified": true,
+        "w": 1,
+        "h": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL05ld0dlbUJhc2UzIiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/db35e60885/NewGemBase3.png",
+        "league": "Allflame",
+        "name": "Sanitized Cluster",
+        "typeLine": "Large Cluster Jewel",
+        "baseType": "Large Cluster Jewel",
+        "rarity": "Rare",
+        "ilvl": 83,
+        "identified": true,
+        "properties": [
+          {
+            "name": "[Intangibility|Intangibility]",
+            "values": [["27%", 0]],
+            "displayMode": 0,
+            "type": 110
+          }
+        ],
+        "notableProperties": [
+          {
+            "name": "Master the Fundamentals",
+            "values": [
+              ["+10% to all Elemental Resistances", 0],
+              ["35% reduced Elemental Damage", 0],
+              ["35% increased Physical Damage", 0]
+            ],
+            "displayMode": 0,
+            "type": 28,
+            "suffix": "2796"
+          },
+          {
+            "name": "Furious Assault",
+            "values": [
+              ["8% increased Attack and Cast Speed", 0],
+              ["25% increased Physical Damage", 0]
+            ],
+            "displayMode": 0,
+            "type": 28,
+            "suffix": "981"
+          },
+          {
+            "name": "Battle-Hardened",
+            "values": [
+              ["30% increased Evasion Rating and Armour", 0],
+              ["35% increased Physical Damage", 0]
+            ],
+            "displayMode": 0,
+            "type": 28,
+            "suffix": "53318"
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [["40", 0]],
+            "displayMode": 0,
+            "type": 62
+          }
+        ],
+        "enchantMods": [
+          {
+            "description": "Adds 8 Passive Skills",
+            "domain": "enchant",
+            "hash": "stat.enchant.stat_3086156145",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "min": "8",
+                    "max": "12"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "2 Added Passive Skills are Jewel Sockets",
+            "domain": "enchant",
+            "hash": "stat.enchant.stat_4079888060",
+            "mods": [
+              {
+                "name": "of Possibility",
+                "magnitudes": [
+                  {
+                    "min": "2",
+                    "max": "2"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Added Small Passive Skills grant: 12% increased Physical Damage",
+            "domain": "enchant",
+            "hash": "stat.enchant.stat_3948993189|12"
+          }
+        ],
+        "explicitMods": [
+          {
+            "description": "Added Small Passive Skills also grant: 1% increased Attack and Cast Speed with Physical Skills",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_1903097619",
+            "mods": [
+              {
+                "name": "of Rumbling",
+                "tier": "S3",
+                "magnitudes": [
+                  {
+                    "min": "1",
+                    "max": "1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "1 Added Passive Skill is Battle-Hardened",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_4188581520",
+            "mods": [
+              {
+                "name": "Notable",
+                "tier": "P1",
+                "level": 50,
+                "magnitudes": [
+                  {
+                    "min": "1",
+                    "max": "1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "1 Added Passive Skill is Furious Assault",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3415827027",
+            "mods": [
+              {
+                "name": "of Significance",
+                "tier": "S1",
+                "magnitudes": [
+                  {
+                    "min": "1",
+                    "max": "1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "1 Added Passive Skill is Master the Fundamentals",
+            "domain": "explicit",
+            "hash": "stat.explicit.stat_3585232432",
+            "mods": [
+              {
+                "name": "Notable",
+                "tier": "P1",
+                "level": 50,
+                "magnitudes": [
+                  {
+                    "min": "1",
+                    "max": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "descrText": "Place into an allocated Large Jewel Socket on the Passive Skill Tree. Added passives do not interact with jewel radiuses. Right click to remove from the Socket.",
+        "frameType": 2,
+        "frameTypeId": "Rare",
+        "extended": {
+          "hashes": {
+            "explicit": [
+              ["explicit.stat_1903097619", [0]],
+              ["explicit.stat_4188581520", [3]],
+              ["explicit.stat_3415827027", [2]],
+              ["explicit.stat_3585232432", [1]]
+            ],
+            "enchant": [
+              ["enchant.stat_3086156145", [0]],
+              ["enchant.stat_4079888060", [1]],
+              ["enchant.stat_3948993189|12", null]
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -12,6 +12,8 @@ const percentFormatter = new Intl.NumberFormat('en-US', {
 export interface CatalogFilters {
   category: string;
   search: string;
+  tag?: string;
+  sort?: 'title' | 'cost' | 'profit' | 'roi' | 'freshness';
 }
 
 export type MarketListTarget = Pick<
@@ -57,14 +59,43 @@ export function filterCatalog(
   filters: CatalogFilters,
 ) {
   const search = filters.search.trim().toLocaleLowerCase();
-  return entries.filter(({ itemPreview, recipe }) => {
-    const text =
-      `${recipe.title} ${recipe.summary} ${recipe.category} ${itemPreview?.name ?? ''}`.toLocaleLowerCase();
-    return (
-      (!search || text.includes(search)) &&
-      (filters.category === 'all' || recipe.category === filters.category)
-    );
-  });
+  return entries
+    .filter(({ itemPreview, recipe }) => {
+      const text =
+        `${recipe.title} ${recipe.summary} ${recipe.category} ${recipe.craftMethod} ${recipe.tags.join(' ')} ${itemPreview?.name ?? ''}`.toLocaleLowerCase();
+      return (
+        (!search || text.includes(search)) &&
+        (filters.category === 'all' || recipe.category === filters.category) &&
+        (!filters.tag ||
+          filters.tag === 'all' ||
+          recipe.tags.includes(filters.tag))
+      );
+    })
+    .sort((a, b) => {
+      if (!filters.sort || filters.sort === 'title')
+        return a.recipe.title.localeCompare(b.recipe.title);
+      const value = (e: CatalogEntry) =>
+        filters.sort === 'cost'
+          ? (e.evaluation.expectedCraftCost?.amount ?? null)
+          : filters.sort === 'profit'
+            ? (e.evaluation.profit?.amount ?? null)
+            : filters.sort === 'roi'
+              ? e.evaluation.marginPercent
+              : e.snapshot
+                ? Date.parse(e.snapshot.capturedAt)
+                : null;
+      const left = value(a),
+        right = value(b);
+      if (left === null) return right === null ? 0 : 1;
+      if (right === null) return -1;
+      // Never compare nominal amounts in different currencies.
+      if (filters.sort === 'cost' || filters.sort === 'profit') {
+        const lc = a.evaluation.expectedCraftCost?.currency,
+          rc = b.evaluation.expectedCraftCost?.currency;
+        if (lc !== rc) return (lc ?? '').localeCompare(rc ?? '');
+      }
+      return filters.sort === 'cost' ? left - right : right - left;
+    });
 }
 
 export function marketTargetItemType(slot: string) {

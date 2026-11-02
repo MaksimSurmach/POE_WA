@@ -44,8 +44,23 @@ export function RecipePage() {
 
   const detail = response.data;
   const { evaluation, recipe } = detail;
-  const selectedVariant = detail.variants[0] ?? null;
+  const method = detail.method;
   const targetMods = detail.presentation.target.modifiers;
+  const prices =
+    detail.snapshot?.listings
+      .map((l) => l.price)
+      .filter((p) => p.currency === evaluation.estimatedSalePrice?.currency)
+      .sort((a, b) => a.amount - b.amount) ?? [];
+  const middle = Math.floor(prices.length / 2);
+  const median = prices.length
+    ? {
+        currency: prices[middle]!.currency,
+        amount:
+          prices.length % 2
+            ? prices[middle]!.amount
+            : (prices[middle - 1]!.amount + prices[middle]!.amount) / 2,
+      }
+    : null;
 
   return (
     <article className="recipe-detail recipe-detail--compact">
@@ -58,7 +73,8 @@ export function RecipePage() {
           <div>
             <h1>{recipe.title}</h1>
             <span className="recipe-detail__type">
-              {recipe.category.replaceAll('-', ' ')}
+              {recipe.category.replaceAll('-', ' ')} · Patch{' '}
+              {detail.gameVersion}
             </span>
           </div>
         </div>
@@ -74,15 +90,18 @@ export function RecipePage() {
         ) : null}
       </header>
 
+      {detail.uncertainties.length ? (
+        <p className="recipe-warning">{detail.uncertainties.join(' ')}</p>
+      ) : null}
       <div className="recipe-economics" aria-label="Current economics">
         <span>
-          Expected craft cost{' '}
+          Indicative expected cost{' '}
           <strong>
             <Money price={evaluation.expectedCraftCost} />
           </strong>
         </span>
         <span>
-          Cheapest ask{' '}
+          Cheapest confirmed ask{' '}
           <strong>
             <Money price={evaluation.estimatedSalePrice} />
           </strong>
@@ -99,11 +118,11 @@ export function RecipePage() {
         </span>
       </div>
 
-      {selectedVariant ? (
-        <DetailSection title="Craft">
+      {method ? (
+        <DetailSection title={method.name}>
           <ol className="craft-steps">
-            {selectedVariant.steps.map((step) => {
-              const execution = selectedVariant.expectedExecutions.find(
+            {method.steps.map((step) => {
+              const execution = method.expectedExecutions.find(
                 ({ stepId }) => stepId === step.id,
               );
               return (
@@ -117,22 +136,61 @@ export function RecipePage() {
                       )
                       .join(' · ')}
                   </span>
+                  <div className="recipe-ingredients">
+                    {step.materials.map((material) => {
+                      const art = detail.presentation.materials.find(
+                        (m) => m.canonicalId === material.itemId,
+                      );
+                      return (
+                        <span
+                          className="recipe-ingredient"
+                          key={material.itemId}
+                        >
+                          {art ? (
+                            <ItemTooltip
+                              item={{
+                                canonicalId: art.canonicalId,
+                                iconUrl: art.iconUrl,
+                                itemClass: art.itemClass,
+                                itemLevel: null,
+                                modifiers: [],
+                                name: art.name,
+                                properties: [],
+                                rarity: 'normal',
+                                role: 'material',
+                              }}
+                            />
+                          ) : null}
+                          <span>
+                            {material.name}:{' '}
+                            <Money price={material.unitPrice} /> each ·{' '}
+                            <Money price={material.costPerAttempt} /> per
+                            execution
+                          </span>
+                        </span>
+                      );
+                    })}
+                  </div>
                   <small>
                     {step.success
                       ? `${(step.success.probability * 100).toPrecision(3)}% chance`
                       : ''}
                     {execution
                       ? `${step.success ? ' · ' : ''}about ${execution.count.toLocaleString()} uses per item`
-                      : ''}
+                      : ' · Expected uses: Not estimated'}
+                  </small>
+                  <small>
+                    Success: {step.continueWhen} · Failure/recovery:{' '}
+                    {step.failureAction}
                   </small>
                 </li>
               );
             })}
           </ol>
-          {selectedVariant.evidence ? (
+          {method.evidence ? (
             <a
               className="craft-evidence"
-              href={selectedVariant.evidence.url}
+              href={method.evidence.url}
               rel="noreferrer"
               target="_blank"
             >
@@ -142,12 +200,64 @@ export function RecipePage() {
         </DetailSection>
       ) : null}
 
+      <DetailSection title="Price evidence">
+        <p>
+          Starting base: <Money price={method.baseCost} /> · Expected bases per
+          finished item: {method.expectedBases ?? 'Not estimated'}
+        </p>
+        {method.priceSources.map((source) => (
+          <p key={source.itemId}>
+            {source.itemId.replaceAll('-', ' ')} · {source.source} ·{' '}
+            {source.league} · {source.currency} ·{' '}
+            {source.priceBasis === 'economy-estimate'
+              ? 'Economy estimate'
+              : 'Asking price'}{' '}
+            ·{' '}
+            <time dateTime={source.capturedAt}>
+              {new Date(source.capturedAt).toLocaleString('en-US')}
+            </time>
+          </p>
+        ))}
+        <p>
+          {detail.snapshot
+            ? `${detail.snapshot.listings.length} verified sellers · ${detail.snapshot.coverage ?? 'unknown'} search coverage · ${new Date(detail.snapshot.capturedAt).toLocaleString('en-US')}`
+            : method.marketStatus === 'empty'
+              ? 'No verified comparable asking prices found.'
+              : 'Comparable market data unavailable.'}
+        </p>
+        <p>
+          Median verified ask (secondary): <Money price={median} />
+        </p>
+        <div className="recipe-ingredients">
+          {detail.snapshot?.listings.slice(0, 5).map((listing) => (
+            <span className="recipe-ingredient" key={listing.id}>
+              {listing.itemPreview ? (
+                <ItemTooltip item={listing.itemPreview} />
+              ) : null}
+              <Money price={listing.price} />
+            </span>
+          ))}
+        </div>
+      </DetailSection>
       <DetailSection title="Base and target">
+        <ItemTooltip item={detail.presentation.base} />
         <p className="base-requirements">
           {detail.base.name} · {detail.base.requirements.join(' · ')}
         </p>
-        <p className="base-requirements">
-          Required: {targetMods.map((modifier) => modifier.label).join(' · ')}
+        {(['prefix', 'suffix', 'implicit', 'enchant', 'other'] as const).map(
+          (group) => (
+            <p className="base-requirements" key={group}>
+              {group}:{' '}
+              {targetMods
+                .filter((m) => m.generationType === group)
+                .map((m) => m.label)
+                .join(' · ') || 'None required'}
+            </p>
+          ),
+        )}
+        <p>
+          Prices are asking prices, not confirmed sales. ROI uses the cheapest
+          verified comparable ask.
         </p>
       </DetailSection>
     </article>

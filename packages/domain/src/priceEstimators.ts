@@ -1,8 +1,10 @@
 import { DomainError } from './errors.js';
 import type { MarketListing, ProviderMoney } from './marketProviders.js';
-import type { CanonicalRecipeV1 } from './recipeSchema.js';
 
-export type EstimatorConfiguration = CanonicalRecipeV1['estimator'];
+export type EstimatorConfiguration =
+  | { strategy: 'cheapest' }
+  | { strategy: 'nth_cheapest' | 'median_top_n' | 'mean_top_n'; n: number }
+  | { strategy: 'percentile'; percentile: number };
 export type EstimatorUnavailableReason =
   'insufficient_listings' | 'no_listings';
 

@@ -122,7 +122,22 @@ const defaultGuide = {
     },
   ],
   selectedEstimatorId: 'third-cheapest',
-  variants: [],
+  method: {
+    baseCost: null,
+    expectedBases: null,
+    marketStatus: 'unavailable',
+    priceSources: [],
+    id: 'fixture',
+    name: 'Fixture method',
+    expectedCost: null,
+    evidence: null,
+    expectedExecutions: [],
+    materialsPerAttempt: null,
+    steps: [],
+  },
+  targetSignature: 'fixture',
+  verification: 'unverified',
+  uncertainties: [],
 } satisfies Omit<RecipeDetailView, 'evaluation' | 'recipe' | 'snapshot'>;
 
 function createDetail(

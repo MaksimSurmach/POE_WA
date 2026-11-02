@@ -1,30 +1,29 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-import { DomainError, validateRecipeDocument } from '@poe-worksmith/domain';
+import { validateRecipeDocument } from '@poe-worksmith/domain';
 import { describe, expect, it } from 'vitest';
 
 import {
   createRecipeItemPresentation,
   loadItemPresentationCatalog,
-  type ItemPresentationCatalog,
 } from './itemPresentation.js';
 
 const recipePath = fileURLToPath(
   new URL(
-    '../../../recipes/physical-large-cluster/recipe.json',
+    '../../../recipes/cluster-jewel/physical-large-cluster-jagged.json',
     import.meta.url,
   ),
 );
 const alterationRecipePath = fileURLToPath(
   new URL(
-    '../../../recipes/physical-large-cluster-alteration/recipe.json',
+    '../../../recipes/cluster-jewel/physical-large-cluster-alteration.json',
     import.meta.url,
   ),
 );
 const catalogPath = fileURLToPath(
   new URL(
-    '../presentation/poe1/3.26.0/physical-large-cluster.json',
+    '../presentation/poe1/3.29.3.3/physical-large-cluster.json',
     import.meta.url,
   ),
 );
@@ -36,7 +35,7 @@ async function recipe() {
 describe('recipe item presentation', () => {
   it('maps canonical data in deterministic source order', async () => {
     const input = await recipe();
-    if (input.schemaVersion !== 2) throw new Error('expected V2 recipe');
+    if (input.schemaVersion !== 3) throw new Error('expected V2 recipe');
     const catalog = await loadItemPresentationCatalog(catalogPath);
     const presentation = createRecipeItemPresentation({
       catalog,
@@ -46,15 +45,15 @@ describe('recipe item presentation', () => {
     expect(presentation.base).toMatchObject({
       itemLevel: 83,
       name: 'Large Cluster Jewel',
-      rarity: 'rare',
+      rarity: 'normal',
     });
     expect(presentation.materials.map(({ quantity }) => quantity)).toEqual([
-      172, 172,
+      1, 1,
     ]);
     expect(presentation.target.modifiers.map(({ label }) => label)).toEqual([
       'Battle-Hardened',
-      'Furious Assault',
       'Master the Fundamentals',
+      'Furious Assault',
     ]);
     expect(presentation.base.iconUrl).toBe(
       'https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase3.png',
@@ -68,35 +67,32 @@ describe('recipe item presentation', () => {
     const input = validateRecipeDocument(
       JSON.parse(await readFile(alterationRecipePath, 'utf8')),
     );
-    if (input.schemaVersion !== 2) throw new Error('expected V2 recipe');
+    if (input.schemaVersion !== 3) throw new Error('expected V2 recipe');
     const catalog = await loadItemPresentationCatalog(catalogPath);
     const presentation = createRecipeItemPresentation({
       catalog,
       recipe: input,
     });
 
-    expect(input.craft.variants?.[0]?.steps[1]?.success?.probability).toBeCloseTo(
-      1 / 2409,
-    );
-    expect(presentation.materials.map(({ canonicalId, quantity }) => [canonicalId, quantity])).toEqual([
+    expect(input.craft.steps[1]?.success?.probability).toBeCloseTo(0.00072, 8);
+    expect(input.craft.expectedExecutions?.[1]?.count).toBe(1389);
+    expect(
+      presentation.materials.map(({ canonicalId, quantity }) => [
+        canonicalId,
+        quantity,
+      ]),
+    ).toEqual([
       ['orb-of-transmutation', 1],
-      ['orb-of-alteration', 2409],
+      ['orb-of-alteration', 1],
     ]);
   });
 
-  it('fails explicitly when required metadata is missing', async () => {
-    const input = await recipe();
-    if (input.schemaVersion !== 2) throw new Error('expected V2 recipe');
-    const catalog: ItemPresentationCatalog = {
-      get: () => null,
-      version: () => '1',
-    };
-
-    expect(() =>
-      createRecipeItemPresentation({ catalog, recipe: input }),
-    ).toThrow(DomainError);
-    expect(() =>
-      createRecipeItemPresentation({ catalog, recipe: input }),
-    ).toThrow(/recipe/i);
+  it('falls back to canonical identities when artwork metadata is unknown', async () => {
+    const presentation = createRecipeItemPresentation({
+      catalog: { get: () => null, version: () => '1' },
+      recipe: await recipe(),
+    });
+    expect(presentation.target.iconUrl).toBeNull();
+    expect(presentation.target.name).toContain('Metadata/');
   });
 });

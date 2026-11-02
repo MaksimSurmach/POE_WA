@@ -191,7 +191,7 @@ describe('full refresh PostgreSQL E2E', () => {
     expect(third.provider.totalCalls()).toBe(first.provider.totalCalls());
   });
 
-  it('enforces the 95% publication boundary with one shared legacy query', async () => {
+  it('enforces the 95% publication boundary with independent failed target queries', async () => {
     await run('all-success');
     const at95 = await run('publish-at-95', {
       now: new Date('2026-07-20T12:05:01.000Z'),

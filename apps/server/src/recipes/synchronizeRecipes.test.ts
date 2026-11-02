@@ -1,8 +1,8 @@
+import { createInMemoryRepositories } from '@poe-worksmith/domain';
 import {
-  createInMemoryRepositories,
-  validateRecipeV1,
-} from '@poe-worksmith/domain';
-import { validRecipeV1Fixture } from '@poe-worksmith/domain/fixtures';
+  canonicalRecipeFixture,
+  fixtureRecipe,
+} from '@poe-worksmith/domain/fixtures';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -18,9 +18,9 @@ const recipeCatalog = path.resolve(import.meta.dirname, '../../../../recipes');
 function loadedRecipe(overrides: Partial<LoadedRecipe> = {}): LoadedRecipe {
   return {
     assets: [],
-    definition: validateRecipeV1(validRecipeV1Fixture),
+    definition: fixtureRecipe(canonicalRecipeFixture),
     markdown: '# Guide\n',
-    sourcePath: 'physical-large-cluster/recipe.json',
+    sourcePath: 'cluster-jewel/physical-large-cluster-jagged.json',
     ...overrides,
   };
 }
@@ -58,9 +58,6 @@ describe('recipe synchronization', () => {
 
   it('hashes normalized recipe data and referenced asset bytes', async () => {
     const source = loadedRecipe({ assets: ['images/example.png'] });
-    if (source.definition.schemaVersion !== 1) {
-      throw new Error('Expected the legacy fixture to load as schema v1');
-    }
     const definition = source.definition;
     const first = await computeRecipeContentHash(source, async () =>
       Buffer.from('image-one'),
@@ -70,10 +67,6 @@ describe('recipe synchronization', () => {
         ...source,
         definition: {
           ...definition,
-          craftSteps: definition.craftSteps.map((step) => ({
-            ...step,
-            metadata: { notes: step.metadata?.notes ?? [], method: 'harvest' },
-          })),
         },
       },
       async () => Buffer.from('image-one'),

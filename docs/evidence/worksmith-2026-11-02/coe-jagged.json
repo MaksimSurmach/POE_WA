@@ -1,0 +1,6 @@
+{
+  "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=4%2C13&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NDIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+  "checkedAt": "2026-11-02",
+  "patch": "3.29.3.3",
+  "visible": " [level=4]\n  - button \"Create simulation\"\n  - generic: Computing permutations of valid combinations\n  - generic: \"Success chance :\"\n  - generic: 1 out of 103 tries\n  - generic: 0.976%\n  - generic: \"Expected costs :\"\n  - generic: \"103\"\n  - text: Jagged Fossil\n  - generic: \"103\"\n  - text: Primitive Chaotic Resonator\n  - generic: \"1645\"\n  - text: \"Confidence :\"\n  - generic: 63.391 %\n  - textbox:\n    - /placeholder: \" \"\n    - text: \"103\"\n  - generic: Tries\n  - generic: X\n  - generic: Executed in 0.249 seconds\n  "
+}

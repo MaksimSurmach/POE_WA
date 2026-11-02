@@ -495,6 +495,7 @@ export class MarketCollectionManager {
   readonly #store: MarketCollectionStore;
   readonly #requests = new Set<Promise<MarketCollectionRun>>();
   readonly #tasks = new Set<Promise<void>>();
+  readonly #completions = new Map<string, Promise<void>>();
   #timer: ReturnType<typeof setInterval> | undefined;
   #stopping = false;
   #accessBlocked = false;
@@ -637,10 +638,35 @@ export class MarketCollectionManager {
     const controller = new AbortController();
     this.#active.set(targetId, controller);
     this.#activeRunIds.set(stored.id, targetId);
+    const completion = this.#execute(
+      target,
+      stored,
+      controller,
+      settings?.enabled ?? false,
+    );
+    this.#completions.set(stored.id, completion);
     this.#track(
-      this.#execute(target, stored, controller, settings?.enabled ?? false),
+      completion.finally(() => {
+        this.#completions.delete(stored.id);
+      }),
     );
     return stored;
+  }
+
+  async collectNow(targetId: string, signal: AbortSignal) {
+    throwIfAborted(signal);
+    const run = await this.runNow(targetId);
+    const cancel = () => this.#active.get(targetId)?.abort();
+    signal.addEventListener('abort', cancel, { once: true });
+    if (signal.aborted) cancel();
+    try {
+      await this.#completions.get(run.id);
+    } finally {
+      signal.removeEventListener('abort', cancel);
+    }
+    const completed = await this.#store.findRun(run.id);
+    if (!completed) throw new DomainError('PERSISTENCE_NOT_FOUND');
+    return completed;
   }
 
   async cancel(runId: string) {

@@ -1578,6 +1578,11 @@ progress::-webkit-progress-value {
   height: 100%;
   object-fit: contain;
 }
+.craft-target-card .item-preview__trigger {
+  width: 42px;
+  height: 42px;
+  padding: 2px;
+}
 .item-preview__trigger > span {
   color: var(--muted);
   font-size: 2rem;
@@ -1595,10 +1600,10 @@ progress::-webkit-progress-value {
   border-color: #e58d45;
 }
 .item-tooltip {
-  position: absolute;
+  position: fixed;
   z-index: 20;
-  top: calc(100% + 6px);
-  left: 0;
+  top: 8px;
+  left: 8px;
   display: none;
   width: min(330px, calc(100vw - 40px));
   max-height: min(60vh, 420px);
@@ -1612,8 +1617,6 @@ progress::-webkit-progress-value {
   font-size: 0.78rem;
   line-height: 1.4;
 }
-.item-preview:hover:not(.is-dismissed) .item-tooltip,
-.item-preview:focus-within:not(.is-dismissed) .item-tooltip,
 .item-tooltip.is-open {
   display: grid;
   gap: 5px;
@@ -1689,4 +1692,43 @@ progress::-webkit-progress-value {
   .recipe-detail__identity {
     align-items: flex-start;
   }
+}
+
+.handbook-refresh {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.handbook-refresh button,
+.handbook-controls select {
+  padding: 8px 12px;
+  background: var(--surface, #171a20);
+  color: inherit;
+  border: 1px solid #555b66;
+  border-radius: 5px;
+}
+.handbook-refresh button:disabled {
+  opacity: 0.55;
+}
+.item-tooltip[hidden] {
+  display: none;
+}
+.recipe-ingredients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+.recipe-ingredient {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.recipe-ingredient .item-preview__trigger {
+  width: 38px;
+  height: 38px;
+}
+.recipe-warning {
+  color: #dcc28c;
 }

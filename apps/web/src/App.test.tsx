@@ -8,7 +8,7 @@ import { formatAge, Money } from './components.js';
 describe('application shell', () => {
   it('renders catalog and recipe routes inside the shared shell', () => {
     const catalog = renderToStaticMarkup(
-      <MemoryRouter initialEntries={['/catalog']}>
+      <MemoryRouter initialEntries={['/']}>
         <App />
       </MemoryRouter>,
     );
@@ -18,7 +18,7 @@ describe('application shell', () => {
       </MemoryRouter>,
     );
 
-    expect(catalog).toContain('Crafting Targets');
+    expect(catalog).toContain('Worksmith Handbook');
     expect(catalog).toContain('Loading recipes');
     expect(catalog).not.toContain('Рынок');
     expect(recipe).toContain('Loading recipe');

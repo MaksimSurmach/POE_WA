@@ -30,3 +30,7 @@ a corrective migration instead of editing an applied file. Local development
 may use `pnpm db:reset` to remove the disposable local volume and replay every
 migration. CI starts from an empty PostgreSQL service and runs `pnpm db:migrate`
 before integration tests.
+
+## Single-method recipe upgrade
+
+Migration `0022_single_method_cost.sql` adds a nullable `method_cost` JSON column. It neither rewrites nor drops existing `variant_costs`, snapshots, observations, recipe IDs or evaluation amounts. Historical payloads stay in the database and are not interpreted as current method costs. The current reader requires a matching recipe content hash. Sync the Git catalog after migration; removed definitions are soft-disabled. A PostgreSQL migration test compares historical evaluation and raw-evidence payloads before and after applying the actual SQL.

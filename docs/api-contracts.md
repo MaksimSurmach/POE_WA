@@ -30,3 +30,5 @@ All non-resource HTTP errors use:
 
 The API echoes a valid `x-request-id` UUID or generates one, and returns the same
 value in the header and body. Internal causes are logged server-side only.
+
+The handbook detail has one `method` object, target signature, verification state, uncertainty notes, step prices and source timestamps. It has no `variants` field. Catalog snapshots contain only verified, seller-deduplicated comparable listings; original raw listings remain in storage. Listing previews are explicitly labelled observed items; target previews are templates. `POST /api/refresh` queues one bounded run; `GET /api/refresh` supplies progress and failure state.

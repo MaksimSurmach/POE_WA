@@ -1,0 +1,21 @@
+{
+  "patchVersion": "3.29.3.3",
+  "source": "https://www.pathofexile.com/api/trade/data/items",
+  "sourceRevision": "mapping-identities-checked-2026-11-02",
+  "records": [
+    {
+      "kind": "base",
+      "payload": {
+        "id": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+        "name": "Large Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only. No affix pool, tags or probability weights asserted.",
+          "checkedAt": "2026-11-02"
+        }
+      }
+    }
+  ]
+}

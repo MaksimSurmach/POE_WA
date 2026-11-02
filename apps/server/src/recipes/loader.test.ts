@@ -1,328 +1,49 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-
-import { validRecipeV1Fixture } from '@poe-worksmith/domain/fixtures';
-import matter from 'gray-matter';
+import { canonicalRecipeFixture } from '@poe-worksmith/domain/fixtures';
 import { afterEach, describe, expect, it } from 'vitest';
-
-import { loadRecipeCatalog, RecipeCatalogError } from './loader.js';
-
-const temporaryDirectories: string[] = [];
-
+import { loadRecipeCatalog } from './loader.js';
+const roots: string[] = [];
 afterEach(async () => {
   await Promise.all(
-    temporaryDirectories
-      .splice(0)
-      .map((directory) => rm(directory, { force: true, recursive: true })),
+    roots.splice(0).map((r) => rm(r, { force: true, recursive: true })),
   );
 });
-
-async function createCatalog() {
-  const directory = await mkdtemp(path.join(tmpdir(), 'poe-recipes-'));
-  temporaryDirectories.push(directory);
-  return directory;
+async function root() {
+  const r = await mkdtemp(path.join(tmpdir(), 'recipe-catalog-'));
+  roots.push(r);
+  await mkdir(path.join(r, 'cluster-jewel'));
+  return r;
 }
-
-async function writeRecipe(
-  catalog: string,
-  directory: string,
-  definition: Record<string, unknown>,
-  markdown = '# Guide\n\nCraft carefully.\n',
-) {
-  const recipeDirectory = path.join(catalog, directory);
-  await mkdir(recipeDirectory, { recursive: true });
-  await writeFile(
-    path.join(recipeDirectory, 'recipe.md'),
-    matter.stringify(markdown, definition),
-  );
-  return recipeDirectory;
+async function write(r: string, name: string, value: unknown) {
+  await writeFile(path.join(r, 'cluster-jewel', name), JSON.stringify(value));
 }
-
-function expectCatalogError(error: unknown) {
-  expect(error).toBeInstanceOf(RecipeCatalogError);
-  return error as RecipeCatalogError;
-}
-
-describe('Markdown recipe loader', () => {
-  it('loads manual JSON recipes from the same catalog without a parallel loader', async () => {
-    const catalog = await createCatalog();
-    const directory = path.join(catalog, 'cluster-jewel');
-    await mkdir(directory, { recursive: true });
-    await writeFile(
-      path.join(directory, 'physical.json'),
-      JSON.stringify({
-        base: {
-          baseId: 'Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge',
-          influences: [],
-          itemLevel: 84,
-          rarity: 'rare',
-          state: { corrupted: false, fractured: false, synthesised: false },
-          variant: {
-            kind: 'cluster-jewel',
-            passiveCount: 8,
-            smallPassiveStatId: 'physical-damage',
-          },
-        },
-        category: 'cluster-jewel',
-        content: { craftSteps: [] },
-        craft: {
-          method: { kind: 'harvest-reforge', tag: 'physical' },
-          startingMods: [],
-        },
-        gameDataVersion: '3.26.0',
-        id: 'physical-json',
-        schemaVersion: 2,
-        tags: ['physical'],
-        target: { allOf: [], anyOf: [], minimumMatched: null },
-        title: 'Physical JSON Recipe',
-      }),
-    );
-
-    await expect(loadRecipeCatalog(catalog)).resolves.toMatchObject([
-      {
-        definition: { id: 'physical-json' },
-        markdown: '',
-        sourcePath: 'cluster-jewel/physical.json',
-      },
+describe('canonical Git JSON recipe loader', () => {
+  it('loads category directories deterministically and ignores obsolete Markdown', async () => {
+    const r = await root();
+    await write(r, 'b.json', { ...canonicalRecipeFixture, id: 'b' });
+    await write(r, 'a.json', { ...canonicalRecipeFixture, id: 'a' });
+    await writeFile(path.join(r, 'recipe.md'), 'obsolete');
+    expect((await loadRecipeCatalog(r)).map((r) => r.definition.id)).toEqual([
+      'a',
+      'b',
     ]);
   });
-
-  it('keeps v1 compatibility and returns v2 through a separate loader path', async () => {
-    const catalog = await createCatalog();
-    await writeRecipe(catalog, 'legacy', validRecipeV1Fixture);
-    await writeRecipe(catalog, 'v2', {
-      base: {
-        baseId: 'Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge',
-        influences: [],
-        itemLevel: 84,
-        rarity: 'rare',
-        state: { corrupted: false, fractured: false, synthesised: false },
-        variant: {
-          kind: 'cluster-jewel',
-          passiveCount: 8,
-          smallPassiveStatId: 'physical-damage',
-        },
-      },
-      category: 'cluster-jewel',
-      content: { craftSteps: [] },
-      craft: {
-        method: { kind: 'harvest-reforge', tag: 'physical' },
-        startingMods: [],
-      },
-      gameDataVersion: '3.26.0',
-      id: 'v2',
-      schemaVersion: 2,
-      tags: ['physical'],
-      target: { allOf: [], anyOf: [], minimumMatched: null },
-      title: 'V2 Recipe',
+  it('rejects duplicate IDs and reports schema errors without partial catalog', async () => {
+    const r = await root();
+    await write(r, 'a.json', canonicalRecipeFixture);
+    await write(r, 'b.json', canonicalRecipeFixture);
+    await expect(loadRecipeCatalog(r)).rejects.toThrow(/Duplicate recipe id/);
+    await write(r, 'b.json', { schemaVersion: 2 });
+    await expect(loadRecipeCatalog(r)).rejects.toThrow(/schemaVersion/);
+  });
+  it('rejects a changed output with an old signature', async () => {
+    const r = await root();
+    await write(r, 'a.json', {
+      ...canonicalRecipeFixture,
+      base: { ...canonicalRecipeFixture.base, rarity: 'magic' },
     });
-
-    const recipes = await loadRecipeCatalog(catalog);
-
-    expect(recipes.map(({ definition }) => definition.schemaVersion)).toEqual([
-      1, 2,
-    ]);
-  });
-
-  it('loads every recipe in deterministic id order and keeps Markdown separate', async () => {
-    const catalog = await createCatalog();
-    await writeRecipe(catalog, 'z-recipe', {
-      ...validRecipeV1Fixture,
-      id: 'z-recipe',
-      title: 'Z Recipe',
-    });
-    await writeRecipe(
-      catalog,
-      'a-recipe',
-      { ...validRecipeV1Fixture, id: 'a-recipe', title: 'A Recipe' },
-      '# A guide\r\n\r\nBody.\r\n',
-    );
-
-    const recipes = await loadRecipeCatalog(catalog);
-
-    expect(recipes.map(({ definition }) => definition.id)).toEqual([
-      'a-recipe',
-      'z-recipe',
-    ]);
-    expect(recipes[0]).toMatchObject({
-      markdown: '# A guide\n\nBody.\n',
-      sourcePath: 'a-recipe/recipe.md',
-    });
-    expect(recipes[0]?.definition).not.toHaveProperty('markdown');
-  });
-
-  it('collects direct and referenced local images in stable order', async () => {
-    const catalog = await createCatalog();
-    const directory = await writeRecipe(
-      catalog,
-      'images',
-      validRecipeV1Fixture,
-      '# Guide\n\n![B](images/b.png)\n![A][diagram]\n![B again](images/b.png)\n\n[diagram]: images/a.webp\n',
-    );
-    await mkdir(path.join(directory, 'images'));
-    await Promise.all([
-      writeFile(path.join(directory, 'images/a.webp'), 'a'),
-      writeFile(path.join(directory, 'images/b.png'), 'b'),
-    ]);
-
-    const [recipe] = await loadRecipeCatalog(catalog);
-
-    expect(recipe?.assets).toEqual([
-      'images/images/a.webp',
-      'images/images/b.png',
-    ]);
-  });
-
-  it('includes source file and field path for schema failures', async () => {
-    const catalog = await createCatalog();
-    await writeRecipe(catalog, 'invalid', {
-      ...validRecipeV1Fixture,
-      materials: [
-        { ...validRecipeV1Fixture.materials[0], quantityPerAttempt: 0 },
-      ],
-    });
-
-    await expect(loadRecipeCatalog(catalog)).rejects.toSatisfy(
-      (error: unknown) => {
-        const catalogError = expectCatalogError(error);
-        expect(catalogError.issues).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              file: 'invalid/recipe.md',
-              path: 'materials[0].quantityPerAttempt',
-            }),
-          ]),
-        );
-        return true;
-      },
-    );
-  });
-
-  it('rejects missing assets and image paths outside the recipe directory', async () => {
-    const catalog = await createCatalog();
-    await writeRecipe(
-      catalog,
-      'missing',
-      validRecipeV1Fixture,
-      '# Guide\n\n![Missing](images/missing.png)\n',
-    );
-    await writeRecipe(
-      catalog,
-      'escape',
-      { ...validRecipeV1Fixture, id: 'escape' },
-      '# Guide\n\n![Escape](../secret.png)\n',
-    );
-
-    await expect(loadRecipeCatalog(catalog)).rejects.toSatisfy(
-      (error: unknown) => {
-        const messages = expectCatalogError(error).issues.map(
-          ({ message }) => message,
-        );
-        expect(messages).toEqual(
-          expect.arrayContaining([
-            'Missing asset "images/missing.png"',
-            'Image source escapes the recipe directory',
-          ]),
-        );
-        return true;
-      },
-    );
-  });
-
-  it('rejects duplicate recipe IDs with both source locations', async () => {
-    const catalog = await createCatalog();
-    await writeRecipe(catalog, 'first', validRecipeV1Fixture);
-    await writeRecipe(catalog, 'second', validRecipeV1Fixture);
-
-    await expect(loadRecipeCatalog(catalog)).rejects.toSatisfy(
-      (error: unknown) => {
-        const [issue] = expectCatalogError(error).issues;
-        expect(issue).toMatchObject({ file: 'second/recipe.md', path: 'id' });
-        expect(issue?.message).toContain('first/recipe.md');
-        return true;
-      },
-    );
-  });
-
-  it('rejects raw HTML or JSX without executing it', async () => {
-    const catalog = await createCatalog();
-    await writeRecipe(
-      catalog,
-      'unsafe',
-      validRecipeV1Fixture,
-      '# Guide\n\n<Component onClick={() => run()} />\n',
-    );
-
-    await expect(loadRecipeCatalog(catalog)).rejects.toSatisfy(
-      (error: unknown) => {
-        expect(expectCatalogError(error).issues).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              message: 'Raw HTML and JSX are not allowed',
-              path: 'markdown',
-            }),
-          ]),
-        );
-        return true;
-      },
-    );
-  });
-
-  it('allows JSX-looking text inside inert code fences', async () => {
-    const catalog = await createCatalog();
-    await writeRecipe(
-      catalog,
-      'code-sample',
-      validRecipeV1Fixture,
-      '# Guide\n\n```tsx\n<Component />\n```\n',
-    );
-
-    await expect(loadRecipeCatalog(catalog)).resolves.toHaveLength(1);
-  });
-
-  it('rejects missing, malformed, and body-less recipe content', async () => {
-    const catalog = await createCatalog();
-    const missing = path.join(catalog, 'missing-frontmatter');
-    const malformed = path.join(catalog, 'malformed-frontmatter');
-    await mkdir(missing);
-    await mkdir(malformed);
-    await writeFile(path.join(missing, 'recipe.md'), '# Guide\n');
-    await writeFile(
-      path.join(malformed, 'recipe.md'),
-      '---\ntitle: [invalid\n---\n# Guide\n',
-    );
-    await writeRecipe(
-      catalog,
-      'empty-body',
-      {
-        ...validRecipeV1Fixture,
-        id: 'empty-body',
-      },
-      '',
-    );
-
-    await expect(loadRecipeCatalog(catalog)).rejects.toSatisfy(
-      (error: unknown) => {
-        const issues = expectCatalogError(error).issues;
-        expect(issues).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              file: 'empty-body/recipe.md',
-              path: 'markdown',
-            }),
-            expect.objectContaining({
-              file: 'malformed-frontmatter/recipe.md',
-              path: 'frontMatter',
-            }),
-            expect.objectContaining({
-              file: 'missing-frontmatter/recipe.md',
-              path: 'frontMatter',
-            }),
-          ]),
-        );
-        return true;
-      },
-    );
+    await expect(loadRecipeCatalog(r)).rejects.toThrow(/signature/);
   });
 });

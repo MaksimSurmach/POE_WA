@@ -34,6 +34,44 @@ const mockFetchResponse = {
 };
 
 describe('PoE Trade Merchant client', () => {
+  it('aborts rate-limit waits and rejects subsequent requests during shutdown', async () => {
+    let entered!: () => void;
+    const waiting = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+    const fetcher = vi.fn<typeof fetch>();
+    const client = new PoeTradeClient({
+      userAgent: 'test',
+      fetch: fetcher,
+      rateLimits: {
+        waitForPermit: async (_endpoint, signal) => {
+          entered();
+          return new Promise((_resolve, reject) =>
+            signal!.addEventListener('abort', () => reject(signal!.reason), {
+              once: true,
+            }),
+          );
+        },
+        observeResponse: vi.fn().mockResolvedValue({}),
+      },
+    });
+    const request = {
+      league: 'Fixture League',
+      query: { exchange: { have: ['chaos'], want: ['divine'] } },
+      schemaVersion: 1 as const,
+    };
+    const result = client.search(request);
+    await waiting;
+    client.stop();
+    await expect(result).rejects.toMatchObject({
+      code: 'MARKET_COLLECTION_CANCELLED',
+    });
+    await expect(client.search(request)).rejects.toMatchObject({
+      code: 'MARKET_COLLECTION_CANCELLED',
+    });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it('keeps exchange offer IDs unique within one listing', async () => {
     const client = new PoeTradeClient({
       baseUrl: 'https://trade.test',
@@ -130,10 +168,9 @@ describe('PoE Trade Merchant client', () => {
       ['trade-fetch'],
     ]);
     expect(circuits.recordFailure).not.toHaveBeenCalled();
-    expect(rateLimits.waitForPermit.mock.calls).toEqual([
-      ['trade-search'],
-      ['trade-fetch'],
-    ]);
+    expect(
+      rateLimits.waitForPermit.mock.calls.map(([endpoint]) => [endpoint]),
+    ).toEqual([['trade-search'], ['trade-fetch']]);
     expect(
       rateLimits.observeResponse.mock.calls.map(([endpoint]) => endpoint),
     ).toEqual(['trade-search', 'trade-fetch']);

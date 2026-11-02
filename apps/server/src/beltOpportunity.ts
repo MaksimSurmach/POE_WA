@@ -6,7 +6,6 @@ import type {
 import {
   aggregateMarketListings,
   DomainError,
-  validateRecipeV1,
   type MarketListing,
 } from '@poe-worksmith/domain';
 import { calculateRecipeEconomics } from '@poe-worksmith/domain/economics';
@@ -305,7 +304,7 @@ export async function evaluateBeltOpportunity(
     query: { manual: true },
     schemaVersion: 1 as const,
   };
-  const parsed = validateRecipeV1({
+  const parsed = {
     schemaVersion: 1,
     id: 'belt-research',
     title: target.name,
@@ -318,7 +317,7 @@ export async function evaluateBeltOpportunity(
       id: `step-${index + 1}`,
       title,
     })),
-    estimator: { strategy: 'cheapest' },
+    estimator: { strategy: 'cheapest' as const },
     finishingCosts: (method.finishing ?? []).map((entry) => ({
       id: entry.id,
       label: entry.label,
@@ -333,7 +332,7 @@ export async function evaluateBeltOpportunity(
     })),
     output: { label: target.name, tradeQuery: query },
     success: method.success,
-  });
+  };
   const aggregation = aggregateMarketListings({
     currency: snapshot.currency,
     listings,

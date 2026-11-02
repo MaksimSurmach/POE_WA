@@ -1,16 +1,17 @@
 # Manual recipe authoring
 
-Copy `docs/recipe.template.json` to a category folder, for example
-`recipes/cluster-jewel/<id>.json`, and keep IDs unique. JSON recipes and existing
-`recipe.md` files load through the same recursive catalog.
+Copy `docs/recipe.template.json` to `recipes/<category>/<id>.json`.
+The JSON-only recursive catalog requires unique IDs and schema version 3.
+One recipe defines one exact output and one craft procedure. A second method
+requires another recipe; identical outputs share their computed target signature.
 
-Use `craft.variants` for ordered methods and steps. Enter step probabilities and
-expected executions only with dated, linked evidence. Enter expected
-executions per finished item for each material-consuming step; otherwise the
-expected total remains unavailable. Step quantities may be `null` when not
-verified, which prevents a calculated total.
+Group output modifiers under `target.prefixes`, `suffixes`, `implicits` and
+`other`. Define the acquired item under `startingBase` and the finished item
+under `base`. Enter dated calculator evidence, per-stage expected executions
+per finished item, and expected base consumption. Missing evidence or quantities
+withhold expected cost and ROI. Do not infer a multi-stage total from one roll's
+success probability. Material IDs must match verified exchange or Ninja details IDs.
 
 Git is the recipe source of truth. Removing a recipe soft-disables it on the
-next sync; its database row and evaluation history remain. Run
-`pnpm recipes:validate` before committing and `pnpm recipes:sync --dry-run` to
-preview changes.
+next sync; database rows, raw snapshots and evaluation history remain.
+Run `pnpm recipes:validate` and `pnpm recipes:sync --dry-run` before committing.

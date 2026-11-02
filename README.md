@@ -1,68 +1,34 @@
-# POE Worksmith Automator
+# Worksmith Handbook
 
-## Crafter market workbench
+Worksmith lists manually authored crafting recipes. Each row has one target output and one method. Recipes live in `recipes/<category>/*.json`; the browser has no profile authoring or JSON import. The detail page shows the target, starting base, ordered method, priced materials, and conservative craft-versus-buy comparison.
 
-The primary UI now investigates **what to craft**: build-linked target profiles,
-observations of comparable asking prices, source provenance and snapshot history.
-The previous recipe catalogue remains at `/catalog`.
-
-Requirements are Node 22.13+ within Node 22, pnpm 11, and PostgreSQL 17. After installing dependencies:
+Use Node 22, pnpm 11 and PostgreSQL 17. For an existing database, back it up and run the forward migrations; never reset it. Migration 0022 adds `method_cost` and retains the historical `variant_costs` payloads, observations and snapshots. Recipe sync updates definitions and soft-disables removed IDs without deleting their history.
 
 ```bash
 pnpm install --frozen-lockfile
+pnpm db:migrate
 pnpm build
-pnpm start:market
-```
-
-In another terminal, start the UI:
-
-```bash
+pnpm recipes:validate
+pnpm recipes:sync
+pnpm start
+# In another terminal:
 pnpm --filter @poe-worksmith/web dev
 ```
 
-Vite proxies `/api` to the API on `127.0.0.1:3000`. `start:market` starts only the
-API; it does not launch the old trade worker. With no PostgreSQL configuration,
-the UI explicitly shows unavailable storage and offers a clearly labelled,
-local-only demonstration. It never pretends that changes were persisted.
+The combined server and worker are needed for **Refresh Prices**. `start:market` is a historical research API entrypoint and does not serve the handbook. The UI uses the existing exclusive refresh queue, PostgreSQL rate limiter, Trade-compatible collection owner and economy snapshot cache. Only verified comparable asks enter valuations. The cheapest ask drives indicative profit/ROI; the median is secondary information. Listings are asking prices, not confirmed sales.
 
-To save targets and observations, configure the local database using the
-instructions below and apply all migrations. The new research tables are
-additive and are not subject to the old recipe retention policy. The Sources
-panel records economy collection attempts, including provider errors and cache
-reuse. Open the main page, create a target with its league/patch and source
-links, and import a JSON snapshot. See [observation format](docs/market-observation-format.md),
-[data source capabilities](docs/market-data-sources.md), and the
-[M1 implementation plan](docs/plans/2026-10-29-crafter-market-intelligence.md).
+For a fresh installation, initialize the current Trade identity mappings through the existing import tools before collecting prices:
 
-The working beta adds versioned JSON catalog import, structured Trade queries, a separately configured session-capable search/fetch provider, matching, supply history and scenario-based craft economics. Automatic Trade access is off by default. Owner-configured live search/fetch is verified: five profiles, 12 persisted real observations including retained revisions, and one source-backed approximate RF cost/spread scenario. Other profiles still lack complete current cost models. See [beta setup, secure environment variables and verification](docs/market-engine-beta.md). Asking prices, base estimates and completed transactions remain different evidence types.
-
-### Public economy collection
-
-Set `NINJA_USER_AGENT` in your local environment file to identify your application
-and a real contact, for example:
-
-```dotenv
-NINJA_USER_AGENT="POEWorksmith/0.1 (contact: https://github.com/MaksimSurmach/POE_WA/issues)"
+```bash
+pnpm game-data:import apps/server/mappings/poe-trade/3.29.3.3/base-source.json
+# Activate the version ID printed by the import command:
+pnpm game-data:activate <version-id>
+pnpm trade-mappings:import apps/server/mappings/poe-trade/3.29.3.3/physical-large-cluster.json
 ```
 
-After applying migrations, restart `start:market`, open **Источники**, fetch the
-league list, select a category and collect a snapshot. No game password or API
-key is required for this public economy source. PostgreSQL must be ready before
-collection starts. The UI previews up to 200 rows; the full response is retained
-in the economy snapshot table. A cache hit or `304` reuses the same observation.
-The Sources panel keeps a separate journal of each collection attempt.
+The supplied manifest contains base identity for market mappings only; it is not a complete affix pool. Probabilities are manually checked against the archived Craft of Exile configurations for patch 3.29.3.3. Their rounded display values produce indicative estimates. Unsupported leagues or missing evidence leave expected total and ROI unestimated. See [recipe schema](docs/recipe-schema.md) and [checked calculator evidence](docs/evidence/worksmith-2026-11-02/).
 
-Raw economy payloads are retained for 90 days and snapshot summaries for 730
-days by default. Set `MARKET_ECONOMY_RAW_RETENTION_DAYS` and
-`MARKET_ECONOMY_SUMMARY_RETENTION_DAYS` to positive day counts to change the
-policy. Expired raw payloads remain visible as summaries but cannot be opened;
-expired summaries are removed when the Sources overview loads. Seed the reviewed guide-based profiles
-after migrations with `pnpm market:seed-library`; the command is safe to rerun.
-
-The API is intended for one trusted operator on loopback or behind a private
-access boundary. It is not yet a public multi-user service.
-
-See [validation evidence and remaining gates](docs/market-validation.md).
+Automatic Trade website access is disabled by default. Configure only access you are permitted to use, using the existing `MARKET_COLLECTION_SOURCE=trade-compatible`, `POE_TRADE_ACCESS=owner_permitted` and `POE_TRADE_USER_AGENT` settings. Session credentials remain server-side. A challenge/403 pauses collection; do not bypass protection. [Provider setup](docs/market-engine-beta.md) documents the connection boundary. Public material economy data uses `NINJA_USER_AGENT` (or the configured application user agent) and the existing documented poe.ninja client.
 
 ## Backend runtime
 

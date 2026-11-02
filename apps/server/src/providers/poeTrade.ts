@@ -9,6 +9,9 @@ import {
   type ProviderMoney,
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
+import { domainErrorCodeSchema } from '@poe-worksmith/contracts';
+import type { MarketCollectionAdapter } from '../marketCollection.js';
+import { recipeQueryTarget } from '../recipeMarket.js';
 
 import type { ProviderCircuitGate } from '../circuitBreaker.js';
 import type { RateLimitGate } from '../rateLimitController.js';
@@ -104,6 +107,10 @@ export type PoeTradeFetch = (
 
 export class PoeTradeClient implements MarketSearchProvider {
   readonly id = 'poe-trade';
+  readonly #collectionSource: MarketCollectionAdapter | undefined;
+  readonly #allowRequests: boolean;
+  #accessBlocked = false;
+  readonly #shutdown = new AbortController();
   readonly #baseUrl: URL;
   readonly #clock: () => Date;
   readonly #circuits: ProviderCircuitGate | undefined;
@@ -116,6 +123,8 @@ export class PoeTradeClient implements MarketSearchProvider {
 
   constructor(options: {
     baseUrl?: string;
+    collectionSource?: MarketCollectionAdapter;
+    allowRequests?: boolean;
     circuits?: ProviderCircuitGate;
     clock?: () => Date;
     fetch?: PoeTradeFetch;
@@ -125,6 +134,8 @@ export class PoeTradeClient implements MarketSearchProvider {
     requestTimeoutMs?: number;
     userAgent: string;
   }) {
+    this.#collectionSource = options.collectionSource;
+    this.#allowRequests = options.allowRequests ?? true;
     this.#baseUrl = new URL(options.baseUrl ?? defaultBaseUrl);
     this.#circuits = options.circuits;
     this.#clock = options.clock ?? (() => new Date());
@@ -144,7 +155,89 @@ export class PoeTradeClient implements MarketSearchProvider {
     }
   }
 
+  stop() {
+    this.#shutdown.abort();
+  }
+
   async search(request: MarketSearchRequest): Promise<MarketSearchResult> {
+    if (this.#shutdown.signal.aborted)
+      throw new DomainError('MARKET_COLLECTION_CANCELLED');
+    if (!this.#allowRequests || this.#accessBlocked)
+      throw new DomainError('MARKET_ACCESS_BLOCKED');
+    if (request.query.handbookTarget) {
+      if (
+        !this.#collectionSource ||
+        this.#collectionSource.descriptor.access !== 'authorized'
+      )
+        throw new DomainError('MARKET_ACCESS_BLOCKED');
+      const target = recipeQueryTarget(request.query.handbookTarget);
+      if (target.league !== request.league)
+        throw new DomainError('MARKET_QUERY_INVALID');
+      const batch = await this.#collectionSource.collect({
+        target,
+        // Batch time includes shared rate-limit waits; transport timeouts apply to each HTTP call.
+        signal: AbortSignal.any([
+          this.#shutdown.signal,
+          AbortSignal.timeout(5 * 60_000),
+        ]),
+      });
+      if (this.#shutdown.signal.aborted || batch.cancelled)
+        throw new DomainError('MARKET_COLLECTION_CANCELLED');
+      if (batch.errorCode) {
+        if (
+          [
+            'PROVIDER_AUTH_FAILED',
+            'PROVIDER_ACCESS_DENIED',
+            'PROVIDER_CHALLENGE',
+            'MARKET_ACCESS_BLOCKED',
+          ].includes(batch.errorCode)
+        )
+          this.#accessBlocked = true;
+        const code = domainErrorCodeSchema.safeParse(batch.errorCode);
+        throw new DomainError(
+          code.success ? code.data : 'MARKET_COLLECTION_FAILED',
+        );
+      }
+      if (!batch.capturedAt) throw new DomainError('PROVIDER_RESPONSE_INVALID');
+      if ((batch.reportedTotal ?? 0) > 0 && batch.fetchedCount === 0)
+        throw new DomainError('MARKET_COLLECTION_FAILED');
+      const fetchedAt = new Date(batch.capturedAt);
+      return {
+        provider: this.id,
+        fetchedAt,
+        coverage: batch.coverage,
+        totalResults: batch.reportedTotal ?? batch.listings.length,
+        listings: batch.listings.flatMap((row) =>
+          row.price === null ||
+          !row.currency ||
+          !row.externalId ||
+          typeof row.item.seller !== 'string'
+            ? []
+            : [
+                {
+                  id: row.externalId,
+                  account: row.item.seller,
+                  ageSeconds: row.listedAt
+                    ? Math.max(
+                        0,
+                        Math.floor(
+                          (fetchedAt.getTime() - Date.parse(row.listedAt)) /
+                            1000,
+                        ),
+                      )
+                    : 0,
+                  indexedAt: new Date(row.listedAt ?? batch.capturedAt!),
+                  fee:
+                    row.fee === undefined
+                      ? null
+                      : { amount: String(row.fee), currency: 'gold' },
+                  price: { amount: String(row.price), currency: row.currency },
+                  item: { ...row.item, rawListing: row.rawListing ?? null },
+                },
+              ],
+        ),
+      };
+    }
     const league = request.league.trim();
     if (league.length === 0) throw new DomainError('MARKET_QUERY_INVALID');
     const preparedSearch = buildSearchRequest(request.query);
@@ -256,16 +349,21 @@ export class PoeTradeClient implements MarketSearchProvider {
       'provider.request.started',
     );
     await this.#circuits?.beforeRequest(endpoint);
-    await this.#rateLimits?.waitForPermit(endpoint);
     let response: Response;
     try {
+      await this.#rateLimits?.waitForPermit(endpoint, this.#shutdown.signal);
+      this.#shutdown.signal.throwIfAborted();
       response = await this.#fetch(url, {
         ...init,
-        signal: AbortSignal.timeout(this.#requestTimeoutMs),
+        signal: AbortSignal.any([
+          this.#shutdown.signal,
+          AbortSignal.timeout(this.#requestTimeoutMs),
+        ]),
       });
     } catch (error) {
-      const providerError =
-        error instanceof DomainError
+      const providerError = this.#shutdown.signal.aborted
+        ? new DomainError('MARKET_COLLECTION_CANCELLED')
+        : error instanceof DomainError
           ? error
           : new DomainError('PROVIDER_UNAVAILABLE', { cause: error });
       await this.#circuits?.recordFailure(endpoint, providerError);
@@ -285,9 +383,13 @@ export class PoeTradeClient implements MarketSearchProvider {
       throw providerError;
     }
 
+    if (this.#shutdown.signal.aborted)
+      throw new DomainError('MARKET_COLLECTION_CANCELLED');
     await this.#rateLimits?.observeResponse(endpoint, response);
 
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403)
+        this.#accessBlocked = true;
       const providerError = mapHttpError(response.status);
       await this.#circuits?.recordFailure(endpoint, providerError);
       this.#logger?.warn(
@@ -320,6 +422,10 @@ export class PoeTradeClient implements MarketSearchProvider {
       (performance.now() - started) / 1000,
     );
 
+    if (response.headers.get('content-type')?.includes('text/html')) {
+      this.#accessBlocked = true;
+      throw new DomainError('PROVIDER_CHALLENGE');
+    }
     try {
       return (await response.json()) as unknown;
     } catch (error) {

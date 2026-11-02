@@ -1,3 +1,4 @@
+import { comparableRecipeListings } from './recipeMarket.js';
 import {
   aggregateMarketListings,
   canonicalizeMarketQuery,
@@ -144,6 +145,7 @@ export class MarketJobProcessor {
       result,
       payload.leagueId,
       this.#snapshotTtlMs,
+      marketQuery.query as CanonicalJsonObject,
     );
   }
 
@@ -283,11 +285,19 @@ function prepareResult(
   result: MarketSearchResult,
   leagueId: string,
   snapshotTtlMs: number,
+  query: CanonicalJsonObject,
 ): PreparedMarketJob {
-  const currency = result.listings[0]?.price.currency ?? 'unknown';
+  const currency = query.handbookTarget
+    ? 'chaos'
+    : (result.listings[0]?.price.currency ?? 'unknown');
   const aggregation = aggregateMarketListings({
     currency,
-    listings: result.listings,
+    listings: comparableRecipeListings(
+      query,
+      result.listings,
+      result.fetchedAt,
+      result.fetchedAt,
+    ),
     totalListings: result.totalResults,
   });
   const snapshot: NewRawSnapshot = {
@@ -301,6 +311,9 @@ function prepareResult(
         ...listing,
         indexedAt: listing.indexedAt.toISOString(),
       })),
+      coverage:
+        result.coverage ??
+        (result.totalResults > result.listings.length ? 'partial' : 'complete'),
       provider: result.provider,
       totalResults: result.totalResults,
     },

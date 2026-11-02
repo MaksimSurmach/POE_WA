@@ -1,39 +1,22 @@
 import type {
   CatalogEntry,
   CatalogResponse,
-  MarketStarterTarget,
+  CurrentLeagueResponse,
 } from '@poe-worksmith/contracts';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link, Outlet, Route, Routes } from 'react-router-dom';
 
 import {
   defaultCatalogFilters,
-  filterMarketTargets,
   formatMarginPercent,
   filterCatalog,
-  lowestAskInCurrency,
-  marketTargetItemType,
-  marketTargetTitle,
   type CatalogFilters,
 } from './catalog.js';
 import { Money, ProfitBadge, StatusPanel } from './components.js';
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
-import { marketClient } from './marketClient.js';
+import { ItemTooltip } from './ItemTooltip.js';
 
-const itemTypes = [
-  'helmet',
-  'body-armour',
-  'gloves',
-  'boots',
-  'weapon',
-  'shield',
-  'belt',
-  'ring',
-  'amulet',
-  'cluster-jewel',
-  'quiver',
-];
 const apiClient = createApiClient();
 
 function AppShell() {
@@ -56,41 +39,94 @@ function AppShell() {
 function CatalogRoute() {
   const [filters, setFilters] = useState<CatalogFilters>(defaultCatalogFilters);
   const [response, setResponse] = useState<CatalogResponse | null>(null);
-  const [marketTargets, setMarketTargets] = useState<
-    MarketStarterTarget[] | null
-  >(null);
-  const [marketLibraryError, setMarketLibraryError] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [league, setLeague] = useState<CurrentLeagueResponse['data'] | null>(
+    null,
+  );
+  const refreshBaseline = useRef<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState('');
+  useEffect(() => {
+    apiClient
+      .getCurrentLeague()
+      .then((r) => setLeague(r.data))
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (!refreshing) return;
+    let active = true;
+    const poll = setInterval(() => {
+      apiClient
+        .getRefreshFreshness()
+        .then(async (r) => {
+          if (!active) return;
+          const cycle = r.data.active ?? r.data.lastAttempt;
+          if (cycle)
+            setRefreshMessage(
+              `${r.data.state}: ${cycle.completedQueries + cycle.failedQueries}/${cycle.totalQueries} queries`,
+            );
+          if (
+            ['published', 'failed'].includes(r.data.state) &&
+            r.data.lastAttempt?.id !== refreshBaseline.current
+          ) {
+            const [catalog, currentLeague] = await Promise.all([
+              apiClient.getCatalog(),
+              apiClient.getCurrentLeague(),
+            ]);
+            if (active) {
+              setResponse(catalog);
+              setLeague(currentLeague.data);
+              setRefreshing(false);
+            }
+          }
+        })
+        .catch(() => {
+          if (active) {
+            setRefreshing(false);
+            setRefreshMessage('Price refresh status unavailable.');
+          }
+        });
+    }, 2000);
+    return () => {
+      active = false;
+      clearInterval(poll);
+    };
+  }, [refreshing]);
+  async function refreshPrices() {
+    setRefreshing(true);
+    setRefreshMessage('Requesting price refresh…');
+    try {
+      refreshBaseline.current =
+        (await apiClient.getRefreshFreshness()).data.lastAttempt?.id ?? null;
+      const result = await apiClient.triggerPriceRefresh();
+      if (!result.data.accepted) refreshBaseline.current = null;
+      setRefreshMessage(
+        result.data.accepted
+          ? 'Price refresh queued.'
+          : 'A refresh is already queued or running.',
+      );
+    } catch {
+      setRefreshing(false);
+      setRefreshMessage(
+        'Price refresh unavailable. Check the server connection and configured source access.',
+      );
+    }
+  }
   const entries = response?.data?.entries ?? [];
-  const targets = marketTargets ?? [];
-  const marketUpdatedAt =
-    [
-      ...entries.map(({ snapshot }) => snapshot?.capturedAt),
-      ...targets.map(({ marketSnapshot }) => marketSnapshot?.capturedAt),
-    ]
-      .filter((timestamp): timestamp is string => Boolean(timestamp))
-      .sort()
-      .at(-1) ?? response?.publishedAt;
+  const marketUpdatedAt = entries
+    .map(({ snapshot }) => snapshot?.capturedAt)
+    .filter((timestamp): timestamp is string => Boolean(timestamp))
+    .sort()
+    .at(-1);
   const categories = useMemo(
     () =>
-      [
-        ...new Set([
-          ...itemTypes,
-          ...entries.map(({ recipe }) => recipe.category),
-          ...targets.map(({ slot }) => marketTargetItemType(slot)),
-        ]),
-      ].sort(),
-    [entries, targets],
+      [...new Set([...entries.map(({ recipe }) => recipe.category)])].sort(),
+    [entries],
   );
   const filteredEntries = useMemo(
     () => filterCatalog(entries, filters),
     [entries, filters],
   );
-  const filteredTargets = useMemo(
-    () => filterMarketTargets(targets, filters),
-    [targets, filters],
-  );
-
   useEffect(() => {
     let active = true;
     apiClient
@@ -100,17 +136,6 @@ function CatalogRoute() {
       })
       .catch(() => {
         if (active) setLoadError(true);
-      });
-    marketClient
-      .starterLibrary()
-      .then((profiles) => {
-        if (active) setMarketTargets(profiles);
-      })
-      .catch(() => {
-        if (active) {
-          setMarketTargets([]);
-          setMarketLibraryError(true);
-        }
       });
     return () => {
       active = false;
@@ -128,18 +153,33 @@ function CatalogRoute() {
     <>
       <section className="catalog-heading" aria-labelledby="catalog-heading">
         <div>
-          <h1 id="catalog-heading">Crafting Targets</h1>
+          <h1 id="catalog-heading">Worksmith Handbook</h1>
+          <p>
+            {league
+              ? `${league.discovery === 'confirmed' ? '' : 'Last known league: '}${league.name} · Last checked ${new Date(league.syncedAt).toLocaleString('en-US')}`
+              : 'League unavailable'}
+          </p>
           {marketUpdatedAt ? (
             <p>
               Market updated{' '}
               <time dateTime={marketUpdatedAt}>
-                {new Intl.DateTimeFormat(undefined, {
+                {new Intl.DateTimeFormat('en-US', {
                   dateStyle: 'medium',
                   timeStyle: 'short',
                 }).format(new Date(marketUpdatedAt))}
               </time>
             </p>
           ) : null}
+        </div>
+        <div className="handbook-refresh">
+          <button
+            type="button"
+            disabled={refreshing}
+            onClick={() => void refreshPrices()}
+          >
+            {refreshing ? 'Refreshing…' : 'Refresh Prices'}
+          </button>
+          <span role="status">{refreshMessage}</span>
         </div>
       </section>
 
@@ -150,24 +190,14 @@ function CatalogRoute() {
         </StatusPanel>
       ) : null}
 
-      {marketLibraryError ? (
-        <p className="handbook-empty" role="alert">
-          Market target library could not be loaded.
-        </p>
-      ) : null}
-
       {!response && !loadError ? (
         <StatusPanel tone="info" title="Loading recipes" />
-      ) : marketTargets === null && entries.length === 0 ? (
-        <StatusPanel tone="info" title="Loading market targets" />
-      ) : marketTargets !== null &&
-        entries.length === 0 &&
-        targets.length === 0 &&
+      ) : entries.length === 0 &&
         !filters.search.trim() &&
         filters.category === 'all' ? (
         <section className="empty-state" aria-labelledby="empty-heading">
           <h2 id="empty-heading">No crafting targets available</h2>
-          <p>Recipes and market targets will appear here.</p>
+          <p>Crafting recipes will appear here.</p>
         </section>
       ) : (
         <>
@@ -183,6 +213,35 @@ function CatalogRoute() {
                 value={filters.search}
                 onChange={(event) => updateFilter('search', event.target.value)}
               />
+            </label>
+            <label>
+              Tag{' '}
+              <select
+                value={filters.tag ?? 'all'}
+                onChange={(e) => updateFilter('tag', e.target.value)}
+              >
+                <option value="all">All tags</option>
+                {[...new Set(entries.flatMap((e) => e.recipe.tags))]
+                  .sort()
+                  .map((tag) => (
+                    <option key={tag}>{tag}</option>
+                  ))}
+              </select>
+            </label>
+            <label>
+              Sort{' '}
+              <select
+                value={filters.sort ?? 'title'}
+                onChange={(e) =>
+                  updateFilter('sort', e.target.value as CatalogFilters['sort'])
+                }
+              >
+                <option value="title">Target</option>
+                <option value="cost">Expected cost</option>
+                <option value="profit">Profit</option>
+                <option value="roi">ROI</option>
+                <option value="freshness">Freshness</option>
+              </select>
             </label>
             <div
               className="category-filters"
@@ -209,7 +268,7 @@ function CatalogRoute() {
             </div>
           </section>
 
-          {filteredEntries.length + filteredTargets.length === 0 ? (
+          {filteredEntries.length === 0 ? (
             <p className="handbook-empty">No items match these filters.</p>
           ) : (
             <section
@@ -218,12 +277,6 @@ function CatalogRoute() {
             >
               {filteredEntries.map((entry) => (
                 <RecipeTargetRow entry={entry} key={entry.recipe.id} />
-              ))}
-              {filteredTargets.map((target) => (
-                <MarketTargetRow
-                  key={`${target.name}:${target.slot}:${target.baseTypes.join('|')}`}
-                  target={target}
-                />
               ))}
             </section>
           )}
@@ -235,23 +288,17 @@ function CatalogRoute() {
 
 function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
   const snapshot = entry.snapshot;
-  const lowestAsk = lowestAskInCurrency(
-    snapshot,
-    entry.evaluation.estimatedSalePrice?.currency ??
-      entry.evaluation.expectedCraftCost?.currency ??
-      null,
-  );
-  const ask = lowestAsk?.price ?? entry.evaluation.estimatedSalePrice;
+  const ask = entry.evaluation.estimatedSalePrice;
   const itemType = entry.recipe.category.replaceAll('-', ' ');
   const method = entry.recipe.craftMethod.replaceAll('-', ' ');
   return (
     <article className="craft-target-card">
       <div className="craft-target-card__identity">
-        <ItemArtwork
-          key={entry.itemPreview?.iconUrl ?? itemType}
-          iconUrl={entry.itemPreview?.iconUrl ?? null}
-          itemType={itemType}
-        />
+        {entry.itemPreview ? (
+          <ItemTooltip item={entry.itemPreview} />
+        ) : (
+          <ItemArtwork iconUrl={null} itemType={itemType} />
+        )}
         <div className="craft-target-card__copy">
           <Link to={`/recipes/${entry.recipe.id}`} title={entry.recipe.title}>
             <strong>{entry.recipe.title}</strong>
@@ -259,13 +306,14 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
           <div className="craft-target-card__details">
             <span>{itemType}</span>
             <span>{method}</span>
+            <span>Patch {entry.recipe.patch ?? 'unverified'}</span>
           </div>
           {entry.evaluation.status === 'stale' &&
           entry.evaluation.lastSuccessfulAt ? (
             <small className="craft-target-card__freshness">
               Older prices ·{' '}
               <time dateTime={entry.evaluation.lastSuccessfulAt}>
-                {new Intl.DateTimeFormat(undefined, {
+                {new Intl.DateTimeFormat('en-US', {
                   dateStyle: 'medium',
                   timeStyle: 'short',
                 }).format(new Date(entry.evaluation.lastSuccessfulAt))}
@@ -281,7 +329,7 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
             <Money price={entry.evaluation.expectedCraftCost} />
           </div>
           <div>
-            <small>Ask</small>
+            <small>Cheapest confirmed ask</small>
             {ask ? <Money price={ask} /> : <strong>—</strong>}
           </div>
           <div>
@@ -301,87 +349,23 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
             </strong>
           </div>
           <div>
-            <small>Listed</small>
-            <strong>{snapshot ? snapshot.totalResults : '—'}</strong>
-          </div>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function MarketTargetRow({ target }: { target: MarketStarterTarget }) {
-  const source = target.sources[0];
-  const snapshot = target.marketSnapshot;
-  const itemType = marketTargetItemType(target.slot).replaceAll('-', ' ');
-  return (
-    <article className="craft-target-card craft-target-card--starter">
-      <div className="craft-target-card__identity">
-        <ItemArtwork
-          key={snapshot?.iconUrl ?? target.artworkUrl ?? itemType}
-          iconUrl={snapshot?.iconUrl ?? target.artworkUrl}
-          itemType={itemType}
-        />
-        <div className="craft-target-card__copy">
-          <strong title={marketTargetTitle(target)}>
-            {marketTargetTitle(target)}
-          </strong>
-          <div className="craft-target-card__details">
-            <span>{itemType}</span>
-          </div>
-          <div className="craft-target-card__links">
-            {target.tradeUrl ? (
-              <a href={target.tradeUrl} rel="noreferrer" target="_blank">
-                Trade database
-              </a>
-            ) : null}
-            {source ? (
-              <a href={source.url} rel="noreferrer" target="_blank">
-                {source.title}
-              </a>
-            ) : null}
-          </div>
-        </div>
-      </div>
-      <div className="craft-target-card__market">
-        <div className="craft-target-card__metrics">
-          <div>
-            <small>Stash estimate</small>
-            {snapshot && snapshot.price.amount !== null ? (
-              <Money
-                price={{
-                  amount: snapshot.price.amount,
-                  currency: snapshot.price.currency,
-                }}
-              />
-            ) : (
-              <strong>—</strong>
-            )}
+            <small>Verified sellers</small>
+            <strong>{snapshot ? snapshot.listings.length : '—'}</strong>
           </div>
           <div>
-            <small>
-              {snapshot && snapshot.variantCount > 1
-                ? 'Variant listings'
-                : 'Listed'}
-            </small>
-            <strong>{snapshot?.listingCount ?? '—'}</strong>
+            <small>Market confidence</small>
+            <strong>{entry.evaluation.confidence ?? 'Unknown'}</strong>
           </div>
         </div>
-        <small className="craft-target-card__snapshot">
-          {snapshot ? (
-            <>
-              <a
-                href={`https://poe.ninja/poe1/economy/${encodeURIComponent(snapshot.league.toLowerCase())}/base-types`}
-                rel="noreferrer"
-                target="_blank"
-              >
-                poe.ninja data
-              </a>
-            </>
-          ) : (
-            'No price data'
-          )}
-        </small>
+        {snapshot ? (
+          <small>
+            {snapshot.coverage ?? 'Unknown'} coverage ·{' '}
+            {new Date(snapshot.capturedAt).toLocaleString('en-US')}
+            {snapshot.expiresAt && Date.parse(snapshot.expiresAt) < Date.now()
+              ? ' · Stale'
+              : ''}
+          </small>
+        ) : null}
       </div>
     </article>
   );
@@ -419,7 +403,6 @@ export function App() {
     <Routes>
       <Route element={<AppShell />}>
         <Route index element={<CatalogRoute />} />
-        <Route path="catalog" element={<CatalogRoute />} />
         <Route path="recipes/:recipeId" element={<RecipePage />} />
       </Route>
     </Routes>

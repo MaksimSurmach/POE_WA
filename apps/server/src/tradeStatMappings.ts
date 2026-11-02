@@ -228,3 +228,31 @@ export const tradeStatMappings: Record<string, { key: string; text: string }> =
       text: 'Minions deal #% increased Damage',
     },
   };
+
+// Cluster query IDs are also validated by mappings/poe-trade/3.29.3.3/physical-large-cluster.json.
+Object.assign(tradeStatMappings, {
+  'explicit.stat_4188581520': {
+    key: 'battle-hardened',
+    text: '1 Added Passive Skill is Battle-Hardened',
+  },
+  'explicit.stat_3415827027': {
+    key: 'furious-assault',
+    text: '1 Added Passive Skill is Furious Assault',
+  },
+  'explicit.stat_3585232432': {
+    key: 'master-the-fundamentals',
+    text: '1 Added Passive Skill is Master the Fundamentals',
+  },
+  'enchant.stat_3086156145': {
+    key: 'passive-count',
+    text: 'Adds # Passive Skills',
+  },
+  'enchant.stat_3948993189|12': {
+    key: 'physical-small-passives',
+    text: 'Added Small Passive Skills grant: 12% increased Physical Damage',
+  },
+  'enchant.stat_4079888060': {
+    key: 'jewel-sockets',
+    text: '# Added Passive Skills are Jewel Sockets',
+  },
+});

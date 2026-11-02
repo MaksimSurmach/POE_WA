@@ -33,18 +33,15 @@ const availability = (
   ).reason;
 
 describe('integration catalog', () => {
-  it('has the exact unique 21-recipe v1/v2 matrix and query manifest', async () => {
+  it('has the exact unique 21-recipe canonical matrix and query manifest', async () => {
     const recipes = await loadIntegrationCatalog();
     expect(recipes).toHaveLength(21);
     expect(recipes.map(({ definition }) => definition.id).sort()).toEqual(
       [...integrationRecipeIds].sort(),
     );
     expect(
-      recipes.filter(({ definition }) => definition.schemaVersion === 2),
-    ).toHaveLength(17);
-    expect(
-      recipes.filter(({ definition }) => definition.schemaVersion === 1),
-    ).toHaveLength(4);
+      recipes.every(({ definition }) => definition.schemaVersion === 3),
+    ).toBe(true);
     expect(new Set(await expectedDefaultQueryHashes())).toHaveLength(
       expectedDefaultQueryKeys.length,
     );
@@ -52,7 +49,7 @@ describe('integration catalog', () => {
   it('loads 19 checked-in synthetic sources deterministically', async () => {
     const directory = new URL('./recipes/', import.meta.url);
     expect(
-      (await readdir(directory)).filter((file) => file.endsWith('.md')),
+      (await readdir(directory)).filter((file) => file.endsWith('.json')),
     ).toHaveLength(19);
     const first = await loadIntegrationCatalog();
     const second = await loadIntegrationCatalog();
@@ -74,7 +71,7 @@ describe('integration catalog', () => {
           league: 'Fixture League',
           recipe: recipe.definition,
         });
-        return dependencies.find(({ kind }) => kind === 'target')?.query.query
+        return dependencies.find(({ kind }) => kind === 'target')?.query?.query
           .fixtureKey;
       }),
     );

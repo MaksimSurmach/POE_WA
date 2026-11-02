@@ -31,4 +31,13 @@ describe('ItemTooltip', () => {
     expect(markup).toContain('Physical notable passive skills');
     expect(markup).toContain('aria-expanded="false"');
   });
+
+  it('renders the supplied base item artwork', () => {
+    const markup = renderToStaticMarkup(
+      <ItemTooltip
+        item={{ ...item, iconUrl: 'https://example.test/base.png' }}
+      />,
+    );
+    expect(markup).toContain('src="https://example.test/base.png"');
+  });
 });

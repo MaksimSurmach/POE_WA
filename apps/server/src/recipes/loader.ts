@@ -1,32 +1,15 @@
-import { lstat, readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
-
 import {
   RecipeValidationError,
   type LoadedRecipeDefinition,
   validateRecipeDocument,
 } from '@poe-worksmith/domain';
-import matter from 'gray-matter';
-import remarkParse from 'remark-parse';
-import { unified } from 'unified';
-import { visit } from 'unist-util-visit';
 
-const ALLOWED_IMAGE_EXTENSIONS = new Set([
-  '.avif',
-  '.gif',
-  '.jpeg',
-  '.jpg',
-  '.png',
-  '.webp',
-]);
-
-type LoadedRecipeBase = {
+export type LoadedRecipe = {
   assets: readonly string[];
   markdown: string;
   sourcePath: string;
-};
-
-export type LoadedRecipe = LoadedRecipeBase & {
   definition: LoadedRecipeDefinition;
 };
 
@@ -118,242 +101,48 @@ export async function loadRecipeFile(
   recipeFile: string,
   catalogPath = path.dirname(recipeFile),
 ): Promise<LoadedRecipe> {
-  const catalogRoot = path.resolve(catalogPath);
-  const absoluteFile = path.resolve(recipeFile);
-  const sourcePath = relativePath(catalogRoot, absoluteFile);
-  let source: string;
+  const sourcePath = relativePath(
+    path.resolve(catalogPath),
+    path.resolve(recipeFile),
+  );
   try {
-    source = await readFile(absoluteFile, 'utf8');
+    if (path.extname(recipeFile) !== '.json')
+      throw new Error('Recipes must be JSON files');
+    const definition = validateRecipeDocument(
+      JSON.parse(await readFile(recipeFile, 'utf8')),
+    );
+    return { assets: [], definition, markdown: '', sourcePath };
   } catch (error) {
-    throw new RecipeCatalogError([
-      { file: sourcePath, message: safeErrorMessage(error), path: '$file' },
-    ]);
+    throw new RecipeCatalogError(
+      error instanceof RecipeValidationError
+        ? error.issues.map(({ message, path }) => ({
+            file: sourcePath,
+            message,
+            path,
+          }))
+        : [
+            {
+              file: sourcePath,
+              message: safeErrorMessage(error),
+              path: '$file',
+            },
+          ],
+    );
   }
-
-  const isJson = path.extname(absoluteFile).toLowerCase() === '.json';
-  let document: unknown;
-  let body = '';
-  try {
-    if (isJson) {
-      document = JSON.parse(source);
-    } else {
-      if (!matter.test(source)) throw new Error('Missing YAML front matter');
-      const parsed = matter(source);
-      document = parsed.data;
-      body = parsed.content;
-    }
-  } catch (error) {
-    throw new RecipeCatalogError([
-      {
-        file: sourcePath,
-        message: safeErrorMessage(error),
-        path: isJson ? '$json' : 'frontMatter',
-      },
-    ]);
-  }
-
-  let definition: LoadedRecipeDefinition;
-  try {
-    definition = validateRecipeDocument(document);
-  } catch (error) {
-    if (error instanceof RecipeValidationError) {
-      throw new RecipeCatalogError(
-        error.issues.map((issue) => ({
-          file: sourcePath,
-          message: issue.message,
-          path: issue.path,
-        })),
-      );
-    }
-    throw error;
-  }
-
-  const markdown = normalizeMarkdown(body);
-  if (!isJson && !markdown) {
-    throw new RecipeCatalogError([
-      {
-        file: sourcePath,
-        message: 'Markdown body is required',
-        path: 'markdown',
-      },
-    ]);
-  }
-
-  const assets = markdown
-    ? await validateMarkdown(
-        markdown,
-        path.dirname(absoluteFile),
-        catalogRoot,
-        sourcePath,
-      )
-    : [];
-
-  return { assets, definition, markdown, sourcePath };
 }
 
 async function findRecipeFiles(directory: string): Promise<string[]> {
-  const entries = (await readdir(directory, { withFileTypes: true })).sort(
-    (left, right) => left.name.localeCompare(right.name),
-  );
   const files: string[] = [];
-
-  for (const entry of entries) {
-    const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await findRecipeFiles(entryPath)));
-    } else if (
-      entry.isFile() &&
-      (entry.name === 'recipe.md' || entry.name.endsWith('.json'))
-    ) {
-      files.push(entryPath);
-    }
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...(await findRecipeFiles(file)));
+    else if (entry.isFile() && entry.name.endsWith('.json')) files.push(file);
   }
-  return files;
+  return files.sort();
 }
-
-async function validateMarkdown(
-  markdown: string,
-  recipeDirectory: string,
-  catalogRoot: string,
-  sourcePath: string,
-) {
-  const tree = unified().use(remarkParse).parse(markdown);
-  const definitions = new Map<string, string>();
-  const imageUrls: string[] = [];
-  const issues: RecipeLoaderIssue[] = [];
-
-  visit(tree, 'definition', (node) => {
-    definitions.set(node.identifier.toLowerCase(), node.url);
-  });
-  visit(tree, 'text', (node) => {
-    if (/<\/?[A-Z][A-Za-z0-9_.:-]*(?:\s|\/?>)/.test(node.value)) {
-      issues.push({
-        file: sourcePath,
-        message: 'Raw HTML and JSX are not allowed',
-        path: 'markdown',
-      });
-    }
-  });
-  visit(tree, 'html', () => {
-    issues.push({
-      file: sourcePath,
-      message: 'Raw HTML and JSX are not allowed',
-      path: 'markdown',
-    });
-  });
-  visit(tree, (node) => {
-    if (node.type === 'image') {
-      imageUrls.push(node.url);
-    } else if (node.type === 'imageReference') {
-      const url = definitions.get(node.identifier.toLowerCase());
-      if (url) {
-        imageUrls.push(url);
-      } else {
-        issues.push({
-          file: sourcePath,
-          message: `Missing image definition "${node.identifier}"`,
-          path: `markdown.images[${imageUrls.length}]`,
-        });
-      }
-    }
-  });
-
-  const assets = new Set<string>();
-  for (const [index, imageUrl] of imageUrls.entries()) {
-    const issuePath = `markdown.images[${index}]`;
-    const asset = await validateAsset(
-      imageUrl,
-      recipeDirectory,
-      catalogRoot,
-      sourcePath,
-      issuePath,
-    ).catch((error: unknown) => {
-      issues.push({
-        file: sourcePath,
-        message: safeErrorMessage(error),
-        path: issuePath,
-      });
-      return null;
-    });
-    if (asset) assets.add(asset);
-  }
-
-  if (issues.length > 0) throw new RecipeCatalogError(issues);
-  return [...assets].sort();
-}
-
-async function validateAsset(
-  imageUrl: string,
-  recipeDirectory: string,
-  catalogRoot: string,
-  sourcePath: string,
-  issuePath: string,
-) {
-  if (
-    /^(?:[a-z][a-z0-9+.-]*:|\/)/i.test(imageUrl) ||
-    imageUrl.startsWith('//')
-  ) {
-    throw new Error('Image source must be a relative local asset');
-  }
-  if (imageUrl.includes('?') || imageUrl.includes('#')) {
-    throw new Error('Image source must not contain a query or fragment');
-  }
-
-  let decodedUrl: string;
-  try {
-    decodedUrl = decodeURIComponent(imageUrl);
-  } catch {
-    throw new Error('Image source contains invalid URL encoding');
-  }
-
-  const absoluteAsset = path.resolve(recipeDirectory, decodedUrl);
-  const recipeRelative = path.relative(recipeDirectory, absoluteAsset);
-  if (
-    recipeRelative === '' ||
-    recipeRelative === '..' ||
-    recipeRelative.startsWith(`..${path.sep}`) ||
-    path.isAbsolute(recipeRelative)
-  ) {
-    throw new Error('Image source escapes the recipe directory');
-  }
-  if (
-    !ALLOWED_IMAGE_EXTENSIONS.has(path.extname(absoluteAsset).toLowerCase())
-  ) {
-    throw new Error('Image must be PNG, JPEG, GIF, WebP, or AVIF');
-  }
-
-  let details;
-  try {
-    details = await lstat(absoluteAsset);
-  } catch {
-    throw new Error(`Missing asset "${imageUrl}"`);
-  }
-  if (!details.isFile() || details.isSymbolicLink()) {
-    throw new Error(`Asset "${imageUrl}" is not a regular file`);
-  }
-
-  const assetPath = relativePath(catalogRoot, absoluteAsset);
-  if (assetPath.startsWith('../')) {
-    throw new RecipeCatalogError([
-      {
-        file: sourcePath,
-        message: 'Image source escapes the recipe catalog',
-        path: issuePath,
-      },
-    ]);
-  }
-  return assetPath;
-}
-
-function normalizeMarkdown(markdown: string) {
-  const normalized = markdown.replaceAll('\r\n', '\n').trim();
-  return normalized ? `${normalized}\n` : '';
-}
-
 function relativePath(root: string, target: string) {
   return path.relative(root, target).split(path.sep).join('/');
 }
-
 function safeErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Unknown loader error';
 }

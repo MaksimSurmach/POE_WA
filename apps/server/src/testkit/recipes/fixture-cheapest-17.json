@@ -1,0 +1,113 @@
+{
+  "base": {
+    "baseId": "fixture:base:legacy",
+    "influences": [],
+    "itemLevel": 84,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "category": "fixture",
+  "craft": {
+    "evidence": {
+      "method": "Synthetic arithmetic fixture; not game evidence",
+      "patch": "fixture-1",
+      "url": "https://example.com/fixture",
+      "verifiedAt": "2026-11-02",
+      "settings": "Labelled deterministic test input",
+      "artifact": "fixture",
+      "assumptions": "Counts supplied per completed item, including recovery and finishing."
+    },
+    "method": {
+      "currency": "fixture-material",
+      "kind": "currency"
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Synthetic arithmetic fixture; not game evidence",
+        "patch": "fixture-1",
+        "url": "https://example.com/fixture",
+        "verifiedAt": "2026-11-02",
+        "settings": "Labelled deterministic test input",
+        "artifact": "fixture",
+        "assumptions": "Counts supplied per completed item, including recovery and finishing."
+      }
+    },
+    "uncertainties": [],
+    "id": "currency",
+    "name": "currency",
+    "steps": [
+      {
+        "action": "Execute the described method",
+        "continueWhen": "Target output reached",
+        "failureAction": "Repeat on the same base",
+        "id": "craft",
+        "materials": [
+          {
+            "itemId": "fixture-material",
+            "quantity": 3
+          }
+        ],
+        "title": "Craft"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 2,
+        "evidence": {
+          "method": "Synthetic arithmetic fixture; not game evidence",
+          "patch": "fixture-1",
+          "url": "https://example.com/fixture",
+          "verifiedAt": "2026-11-02",
+          "settings": "Labelled deterministic test input",
+          "artifact": "fixture",
+          "assumptions": "Counts supplied per completed item, including recovery and finishing."
+        },
+        "stepId": "craft"
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "fixture:base:legacy",
+    "influences": [],
+    "itemLevel": 84,
+    "rarity": "normal",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "patch": "fixture-1",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Fixture League"],
+    "checkedAt": "2026-11-02",
+    "sources": ["https://example.com/fixture"],
+    "notes": "Synthetic fixture only, not a live recipe."
+  },
+  "gameDataVersion": "fixture-1",
+  "id": "fixture-cheapest-17",
+  "schemaVersion": 3,
+  "summary": "Synthetic integration compatibility fixture.",
+  "tags": ["fixture"],
+  "targetSignature": "fixture-1:c5a37ab0a753d8768d68cbdd852ff599",
+  "target": {
+    "prefixes": [],
+    "suffixes": [],
+    "implicits": [],
+    "other": []
+  },
+  "title": "fixture-cheapest-17"
+}

@@ -46,6 +46,12 @@ export interface TradeTargetTranslator {
   }): ResolutionResult<TradeFilterFragment>;
 }
 export type GeneratedTradeQuery = {
+  matchRules?: {
+    id: string;
+    minTier?: number;
+    maxTier?: number;
+    exactTier?: number;
+  }[];
   diagnostics: { gameDataVersion: string; mappingVersion: string };
   hash: string;
   query: Record<string, unknown>;
@@ -114,10 +120,12 @@ export class RegisteredTradeQueryGenerator implements TradeQueryGenerator {
       ...base.diagnostics,
       ...variantFilter.diagnostics,
     ];
+    const matchRules: NonNullable<GeneratedTradeQuery['matchRules']> = [];
     const filters = await this.translateTarget(
       setup.target,
       setup.gameDataVersion,
       diagnostics,
+      matchRules,
     );
     if (!filters.ok) return filters;
     const baseStats = Object.entries(base.value.filters ?? {}).map(
@@ -170,6 +178,7 @@ export class RegisteredTradeQueryGenerator implements TradeQueryGenerator {
           gameDataVersion: setup.gameDataVersion,
           mappingVersion: base.value.mappingVersion,
         },
+        matchRules,
         hash: stableHash(normalized),
         query,
       },
@@ -181,6 +190,7 @@ export class RegisteredTradeQueryGenerator implements TradeQueryGenerator {
     target: CanonicalTargetSpec,
     gameDataVersion: string,
     diagnostics: ResolutionDiagnostic[],
+    matchRules: NonNullable<GeneratedTradeQuery['matchRules']>,
   ): Promise<ResolutionResult<unknown[]>> {
     const translate = async (condition: CanonicalTargetCondition) => {
       const mapping = await this.mappings.resolveTarget({
@@ -188,6 +198,18 @@ export class RegisteredTradeQueryGenerator implements TradeQueryGenerator {
         target: condition,
       });
       if (!mapping.ok) return mapping;
+      matchRules.push({
+        id: mapping.value.id,
+        ...(condition.minimumTier !== undefined
+          ? { minTier: condition.minimumTier }
+          : {}),
+        ...(condition.maximumTier !== undefined
+          ? { maxTier: condition.maximumTier }
+          : {}),
+        ...(condition.exactTier !== undefined
+          ? { exactTier: condition.exactTier }
+          : {}),
+      });
       const translator = this.targets.find((candidate) =>
         candidate.supports(condition),
       );
@@ -263,15 +285,20 @@ export const clusterJewelVariantFilter: TradeItemVariantTranslator = {
 };
 export const mappedTargetFilter: TradeTargetTranslator = {
   supports: () => true,
-  translate: ({ condition, mapping }) =>
-    success({
+  translate: ({ condition, mapping }) => {
+    const min = mapping.minimum ?? condition.minimumValue;
+    const max = mapping.maximum ?? condition.maximumValue;
+    return success({
       id: mapping.id,
       ...(condition.excluded ? { disabled: true } : {}),
-      ...((mapping.minimum ?? condition.minimumValue)
-        ? { value: { min: mapping.minimum ?? condition.minimumValue } }
+      ...(min !== undefined || max !== undefined
+        ? {
+            value: {
+              ...(min !== undefined ? { min } : {}),
+              ...(max !== undefined ? { max } : {}),
+            },
+          }
         : {}),
-      ...((mapping.maximum ?? condition.maximumValue)
-        ? { value: { max: mapping.maximum ?? condition.maximumValue } }
-        : {}),
-    }),
+    });
+  },
 };

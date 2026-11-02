@@ -285,6 +285,11 @@ function serializeLeague(league: PoeLeague) {
     gggId: league.gggId,
     id: league.id,
     isCurrent: league.isCurrent,
+    discovery:
+      league.metadata.tradeObserved === true &&
+      league.metadata.poeNinjaObserved === true
+        ? ('confirmed' as const)
+        : ('last-known' as const),
     name: league.name,
     realm: league.realm,
     startAt: league.startAt?.toISOString() ?? null,

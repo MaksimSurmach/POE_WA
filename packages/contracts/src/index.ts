@@ -33,6 +33,7 @@ export const listingSchema = z
     price: priceSchema,
     indexedAt: z.iso.datetime(),
     ageSeconds: z.number().int().nonnegative(),
+    itemPreview: z.lazy(() => presentedItemSchema).optional(),
   })
   .strict();
 
@@ -42,6 +43,8 @@ export const marketSnapshotSchema = z
     id: z.string().min(1),
     queryHash: z.string().min(1),
     capturedAt: z.iso.datetime(),
+    expiresAt: z.iso.datetime().optional(),
+    coverage: z.enum(['complete', 'partial', 'unknown']).optional(),
     totalResults: z.number().int().nonnegative(),
     listings: z.array(listingSchema),
   })
@@ -55,6 +58,7 @@ export const recipeSchema = z
     summary: z.string().min(1),
     category: z.string().min(1),
     craftMethod: z.string().min(1),
+    patch: z.string().min(1).optional(),
     tags: z.array(z.string().min(1)),
     minimumCapital: priceSchema.nullable(),
   })
@@ -139,7 +143,7 @@ export const presentedItemSchema = z.strictObject({
   name: z.string().min(1),
   properties: z.array(presentedPropertySchema),
   rarity: z.enum(['normal', 'magic', 'rare', 'unique']).nullable(),
-  role: z.enum(['base', 'target']),
+  role: z.enum(['base', 'target', 'material', 'listing']),
 });
 
 export const presentedMaterialSchema = z.strictObject({
@@ -169,20 +173,36 @@ export const catalogEntrySchema = z
   })
   .strict();
 
-const recipeVariantEvidenceSchema = z.strictObject({
+const recipeEvidenceSchema = z.strictObject({
   method: z.string().min(1),
   patch: z.string().min(1),
   url: z.string().url(),
   verifiedAt: z.iso.date(),
+  settings: z.string().min(1),
+  artifact: z.string().min(1),
+  assumptions: z.string().min(1),
 });
 
-export const recipeVariantViewSchema = z.strictObject({
+export const recipeMethodViewSchema = z.strictObject({
+  baseCost: priceSchema.nullable(),
+  expectedBases: z.number().gte(1).nullable(),
+  marketStatus: z.enum(['priced', 'empty', 'partial', 'unavailable']),
+  priceSources: z.array(
+    z.object({
+      itemId: z.string(),
+      priceBasis: z.enum(['asking', 'economy-estimate']).optional(),
+      source: z.string(),
+      league: z.string(),
+      currency: z.string(),
+      capturedAt: z.iso.datetime(),
+    }),
+  ),
   expectedCost: priceSchema.nullable(),
-  evidence: recipeVariantEvidenceSchema.nullable(),
+  evidence: recipeEvidenceSchema.nullable(),
   expectedExecutions: z.array(
     z.strictObject({
       count: z.number().positive(),
-      evidence: recipeVariantEvidenceSchema,
+      evidence: recipeEvidenceSchema,
       stepId: z.string().min(1),
     }),
   ),
@@ -206,7 +226,7 @@ export const recipeVariantViewSchema = z.strictObject({
       ),
       success: z
         .strictObject({
-          evidence: recipeVariantEvidenceSchema,
+          evidence: recipeEvidenceSchema,
           probability: z.number().gt(0).lte(1),
         })
         .nullable(),
@@ -239,7 +259,10 @@ export const recipeDetailViewSchema = z
         .strict(),
     ),
     craftSteps: z.array(z.string().min(1)).min(1),
-    variants: z.array(recipeVariantViewSchema).default([]),
+    method: recipeMethodViewSchema,
+    targetSignature: z.string().min(1),
+    verification: z.enum(['verified', 'unverified']),
+    uncertainties: z.array(z.string()),
     requiredMods: z.array(z.string().min(1)),
     costBreakdown: z
       .object({
@@ -432,6 +455,7 @@ export const poeLeagueSchema = z.strictObject({
   startAt: z.iso.datetime().nullable(),
   endAt: z.iso.datetime().nullable(),
   isCurrent: z.boolean(),
+  discovery: z.enum(['confirmed', 'last-known']).optional(),
   syncedAt: z.iso.datetime(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),

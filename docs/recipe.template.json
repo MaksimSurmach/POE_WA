@@ -1,39 +1,158 @@
 {
-  "schemaVersion": 2,
-  "id": "your-recipe-id",
-  "title": "Your Recipe Title",
-  "summary": "Short recipe summary.",
-  "tags": ["cluster-jewel"],
-  "category": "cluster-jewel",
-  "gameDataVersion": "3.26.0",
   "base": {
     "baseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
-    "itemLevel": 84,
-    "rarity": "rare",
     "influences": [],
-    "state": { "fractured": false, "synthesised": false, "corrupted": false },
-    "variant": { "kind": "none" }
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "physical-damage"
+    }
   },
-  "target": { "allOf": [], "anyOf": [], "minimumMatched": null },
+  "category": "cluster-jewel",
+  "notes": "The 3-notable fossil craft is a separate output target from the two-notable Alteration craft.",
   "craft": {
-    "method": { "kind": "harvest-reforge", "tag": "physical" },
+    "evidence": {
+      "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=4%2C13&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NDIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "verifiedAt": "2026-11-02",
+      "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, one Jagged Fossil, AND Battle-Hardened + Furious Assault + Master the Fundamentals. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+      "artifact": "docs/evidence/worksmith-2026-11-02/coe-jagged.json",
+      "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+    },
+    "method": {
+      "fossils": ["jagged-fossil"],
+      "kind": "fossil",
+      "resonatorSockets": 1
+    },
     "startingMods": [],
-    "variants": [
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=4%2C13&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NDIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+        "verifiedAt": "2026-11-02",
+        "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, one Jagged Fossil, AND Battle-Hardened + Furious Assault + Master the Fundamentals. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+        "artifact": "docs/evidence/worksmith-2026-11-02/coe-jagged.json",
+        "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+      }
+    },
+    "uncertainties": [
+      "Indicative estimate: Craft of Exile displays rounded probability and expected consumption. Asking prices do not establish completed sales."
+    ],
+    "id": "jagged-fossil",
+    "name": "Jagged Fossil \u00b7 3 Notables",
+    "steps": [
       {
-        "id": "main-method",
-        "name": "Main method",
-        "steps": [
+        "action": "Use one Jagged Fossil in a one-socket resonator on an item-level 83+ base.",
+        "continueWhen": "The item has Battle-Hardened, Furious Assault and Master the Fundamentals.",
+        "failureAction": "Repeat on the same base.",
+        "id": "roll-with-fossil",
+        "materials": [
           {
-            "id": "main-craft",
-            "title": "Perform the craft",
-            "action": "Describe the game action.",
-            "materials": [],
-            "continueWhen": "State the success condition.",
-            "failureAction": "State recovery or restart behavior."
+            "itemId": "jagged-fossil",
+            "quantity": 1
+          },
+          {
+            "itemId": "primitive-chaotic-resonator",
+            "quantity": 1
           }
-        ]
+        ],
+        "success": {
+          "evidence": {
+            "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=4%2C13&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NDIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+            "verifiedAt": "2026-11-02",
+            "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, one Jagged Fossil, AND Battle-Hardened + Furious Assault + Master the Fundamentals. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+            "artifact": "docs/evidence/worksmith-2026-11-02/coe-jagged.json",
+            "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+          },
+          "probability": 0.00976
+        },
+        "title": "Roll with a Jagged Fossil"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 103,
+        "evidence": {
+          "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=4%2C13&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NDIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verifiedAt": "2026-11-02",
+          "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, one Jagged Fossil, AND Battle-Hardened + Furious Assault + Master the Fundamentals. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+          "artifact": "docs/evidence/worksmith-2026-11-02/coe-jagged.json",
+          "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+        },
+        "stepId": "roll-with-fossil"
       }
     ]
   },
-  "content": { "craftSteps": [] }
+  "startingBase": {
+    "baseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "normal",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "physical-damage"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "unverified",
+    "leagues": [],
+    "checkedAt": "2026-11-02",
+    "sources": [
+      "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=4%2C13&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NDIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "https://beta.craftofexile.com/changelog",
+      "https://www.pathofexile.com/api/trade/data/stats"
+    ],
+    "notes": "Current CoE 3.29.3.3 affix assignments and calculator configurations checked on 2026-11-02. Trade IDs revalidated against the public current stats catalogue. The mapping-only game-data manifest contains base identity, no affix weights; probability comes solely from the archived CoE evidence."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "your-recipe-id",
+  "schemaVersion": 3,
+  "summary": "8-passive Large Cluster Jewel with Battle-Hardened, Furious Assault and Master the Fundamentals, rolled with Jagged Fossils.",
+  "tags": ["physical", "jagged-fossil"],
+  "targetSignature": "3.29.3.3:7bf68c4f67b27b2ae65c467e1d5bfac5",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:battle-hardened"
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:master-the-fundamentals"
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:furious-assault"
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Your recipe"
 }

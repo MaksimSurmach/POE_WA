@@ -1,220 +1,302 @@
 import { z } from 'zod';
 
-export const RECIPE_SCHEMA_VERSION = 1 as const;
-export const RECIPE_UNKNOWN_FIELD_POLICY = 'reject' as const;
+import {
+  canonicalCraftMethodSchema,
+  canonicalStartingModSchema,
+} from './canonical/craftMethod.js';
+import { canonicalItemSpecSchema } from './canonical/item.js';
+import type { CanonicalCraftSetup } from './canonical/setup.js';
+import {
+  canonicalTargetConditionSchema,
+  canonicalTargetSpecSchema,
+} from './canonical/target.js';
+import { hashCanonicalCraftSetup } from './canonical/normalization.js';
 
-export type StructuredValue =
-  | boolean
-  | null
-  | number
-  | string
-  | StructuredValue[]
-  | { [key: string]: StructuredValue };
-
-const structuredValueSchema: z.ZodType<StructuredValue> = z.lazy(() =>
-  z.union([
-    z.boolean(),
-    z.null(),
-    z.number(),
-    z.string(),
-    z.array(structuredValueSchema),
-    z.record(z.string(), structuredValueSchema),
-  ]),
-);
-
-const structuredObjectSchema = z.record(z.string(), structuredValueSchema);
-const nonEmptyStructuredObjectSchema = structuredObjectSchema.refine(
-  (value) => Object.keys(value).length > 0,
-  'Must contain at least one query field',
-);
 const textSchema = z.string().trim().min(1);
 const slugSchema = textSchema.regex(
   /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
   'Must be a lowercase kebab-case identifier',
 );
-
-function uniqueSortedStrings(schema: z.ZodString) {
-  return z
-    .array(schema)
-    .min(1)
-    .superRefine((values, context) => {
-      const seen = new Set<string>();
-      values.forEach((value, index) => {
-        if (seen.has(value)) {
-          context.addIssue({
-            code: 'custom',
-            message: `Duplicate value "${value}"`,
-            path: [index],
-          });
-        }
-        seen.add(value);
-      });
-    })
-    .transform((values) => [...values].sort());
-}
-
-const tradeQuerySchema = z.strictObject({
-  provider: z.literal('poe-trade'),
-  query: nonEmptyStructuredObjectSchema,
-  schemaVersion: z.literal(1),
-});
-
-const materialSchema = z.strictObject({
-  id: slugSchema,
-  label: textSchema,
-  quantityPerAttempt: z.number().positive(),
-  tradeQuery: tradeQuerySchema,
-});
-
-const finishingCostSchema = z.strictObject({
-  id: slugSchema,
-  label: textSchema,
-  quantity: z.number().positive(),
-  tradeQuery: tradeQuerySchema,
-});
-
-function uniqueIds(
-  values: readonly { id: string }[],
-  context: z.RefinementCtx,
-) {
+const uniqueSlugs = z.array(slugSchema).superRefine((values, context) => {
   const seen = new Set<string>();
-  values.forEach(({ id }, index) => {
-    if (seen.has(id)) {
+  values.forEach((value, index) => {
+    if (seen.has(value))
       context.addIssue({
         code: 'custom',
-        message: `Duplicate id "${id}"`,
-        path: [index, 'id'],
+        message: `Duplicate value "${value}"`,
+        path: [index],
       });
-    }
-    seen.add(id);
+    seen.add(value);
   });
+});
+
+const evidenceSchema = z.strictObject({
+  method: textSchema,
+  patch: textSchema,
+  url: z.string().url(),
+  verifiedAt: z.iso.date(),
+  settings: textSchema,
+  artifact: textSchema,
+  assumptions: textSchema,
+});
+
+const methodMaterialSchema = z.strictObject({
+  itemId: textSchema,
+  quantity: z.number().positive().nullable(),
+});
+
+const methodStepSchema = z.strictObject({
+  action: textSchema,
+  continueWhen: textSchema,
+  failureAction: textSchema,
+  id: slugSchema,
+  materials: z.array(methodMaterialSchema).default([]),
+  success: z
+    .strictObject({
+      evidence: evidenceSchema,
+      probability: z.number().gt(0).lte(1),
+    })
+    .optional(),
+  title: textSchema,
+});
+
+const craftProcedureSchema = z
+  .strictObject({
+    evidence: evidenceSchema.optional(),
+    method: canonicalCraftMethodSchema,
+    startingMods: z.array(canonicalStartingModSchema).default([]),
+    baseConsumption: z
+      .strictObject({
+        expectedBases: z.number().gte(1),
+        evidence: evidenceSchema,
+      })
+      .optional(),
+    uncertainties: z.array(textSchema).default([]),
+    id: slugSchema,
+    name: textSchema,
+    steps: z.array(methodStepSchema).min(1),
+    // Expected material usage is entered per completed item so conditional stages
+    // are never priced by multiplying all step costs by 1 / probability.
+    expectedExecutions: z
+      .array(
+        z.strictObject({
+          count: z.number().positive(),
+          evidence: evidenceSchema,
+          stepId: slugSchema,
+        }),
+      )
+      .optional(),
+  })
+  .superRefine((procedure, context) => {
+    const stepIds = new Set<string>();
+    procedure.steps.forEach((step, index) => {
+      if (stepIds.has(step.id)) {
+        context.addIssue({
+          code: 'custom',
+          message: `Duplicate step id "${step.id}"`,
+          path: ['steps', index, 'id'],
+        });
+      }
+      stepIds.add(step.id);
+    });
+    const executionIds = new Set<string>();
+    procedure.expectedExecutions?.forEach((execution, index) => {
+      if (!stepIds.has(execution.stepId)) {
+        context.addIssue({
+          code: 'custom',
+          message: `Unknown step id "${execution.stepId}"`,
+          path: ['expectedExecutions', index, 'stepId'],
+        });
+      }
+      if (executionIds.has(execution.stepId)) {
+        context.addIssue({
+          code: 'custom',
+          message: `Duplicate execution count for "${execution.stepId}"`,
+          path: ['expectedExecutions', index, 'stepId'],
+        });
+      }
+      executionIds.add(execution.stepId);
+    });
+  });
+
+export const recipeSchema = z.strictObject({
+  base: canonicalItemSpecSchema.omit({ implicits: true, enchantments: true }),
+  category: slugSchema,
+  notes: textSchema.optional(),
+  craft: craftProcedureSchema,
+  startingBase: canonicalItemSpecSchema.omit({
+    implicits: true,
+    enchantments: true,
+  }),
+  patch: textSchema,
+  verification: z.strictObject({
+    status: z.enum(['verified', 'unverified']),
+    leagues: z.array(textSchema).default([]),
+    checkedAt: z.iso.date(),
+    sources: z.array(z.url()).min(1),
+    notes: textSchema,
+  }),
+  gameDataVersion: textSchema,
+  imageUrl: z.string().url().optional(),
+  id: slugSchema,
+  schemaVersion: z.literal(3),
+  summary: textSchema.optional(),
+  tags: uniqueSlugs.default([]),
+  targetSignature: textSchema,
+  target: z.strictObject({
+    prefixes: z.array(canonicalTargetConditionSchema),
+    suffixes: z.array(canonicalTargetConditionSchema),
+    implicits: z.array(canonicalTargetConditionSchema),
+    other: z.array(canonicalTargetConditionSchema),
+  }),
+  title: textSchema,
+});
+
+export type CanonicalRecipe = z.output<typeof recipeSchema>;
+export type RecipeInput = z.input<typeof recipeSchema>;
+export type CraftProcedure = CanonicalRecipe['craft'];
+export type LoadedRecipeDefinition = CanonicalRecipe;
+
+export function validateRecipeDocument(input: unknown): CanonicalRecipe {
+  const result = recipeSchema.safeParse(input);
+  if (!result.success) throw new RecipeValidationError(result.error);
+  const recipe = result.data;
+  const target = canonicalTargetSpecSchema.safeParse({
+    allOf: Object.values(recipe.target).flat(),
+    anyOf: [],
+    minimumMatched: null,
+  });
+  if (!target.success) throw new RecipeValidationError(target.error);
+  if (
+    Object.values(recipe.target)
+      .flat()
+      .some((c) => c.excluded)
+  )
+    throw new RecipeValidationError(
+      new z.ZodError([
+        {
+          code: 'custom',
+          path: ['target'],
+          message:
+            'Excluded modifier requirements are not supported by recipe queries',
+        },
+      ]),
+    );
+  for (const [group, conditions] of Object.entries(recipe.target)) {
+    for (const condition of conditions) {
+      const valid =
+        group === 'prefixes' || group === 'suffixes'
+          ? ['explicit', 'fractured'].includes(condition.kind)
+          : group === 'implicits'
+            ? condition.kind === 'implicit'
+            : ['enchant', 'pseudo'].includes(condition.kind);
+      if (!valid)
+        throw new RecipeValidationError(
+          new z.ZodError([
+            {
+              code: 'custom',
+              path: ['target', group],
+              message: 'Modifier kind does not belong to its affix group',
+            },
+          ]),
+        );
+    }
+  }
+  const evidence = [
+    ...(recipe.craft.expectedExecutions?.map((e) => e.evidence) ?? []),
+    ...recipe.craft.steps.flatMap((s) =>
+      s.success ? [s.success.evidence] : [],
+    ),
+    ...(recipe.craft.baseConsumption
+      ? [recipe.craft.baseConsumption.evidence]
+      : []),
+  ];
+  if (evidence.some((e) => e.patch !== recipe.patch))
+    throw new RecipeValidationError(
+      new z.ZodError([
+        {
+          code: 'custom',
+          path: ['craft'],
+          message: 'Calculation evidence patch does not match the recipe',
+        },
+      ]),
+    );
+  if (result.data.targetSignature !== recipeTargetSignature(result.data))
+    throw new RecipeValidationError(
+      new z.ZodError([
+        {
+          code: 'custom',
+          path: ['targetSignature'],
+          message: 'Target signature does not match the output specification',
+        },
+      ]),
+    );
+  return result.data;
 }
 
-const successSchema = z.discriminatedUnion('mode', [
-  z.strictObject({
-    mode: z.literal('probability'),
-    probability: z.number().gt(0).lte(1),
-  }),
-  z.strictObject({
-    expectedAttempts: z.number().gte(1),
-    mode: z.literal('expected_attempts'),
-  }),
-]);
+export function canonicalCraftSetupFromRecipe(
+  recipe: CanonicalRecipe,
+): CanonicalCraftSetup {
+  return {
+    base: recipe.base,
+    gameDataVersion: recipe.gameDataVersion,
+    method: recipe.craft.method,
+    startingMods: recipe.craft.startingMods,
+    target: {
+      allOf: Object.values(recipe.target).flat(),
+      anyOf: [],
+      minimumMatched: null,
+    },
+  };
+}
 
-const estimatorSchema = z.discriminatedUnion('strategy', [
-  z.strictObject({ strategy: z.literal('cheapest') }),
-  z.strictObject({
-    n: z.number().int().min(1).max(11),
-    strategy: z.literal('nth_cheapest'),
-  }),
-  z.strictObject({
-    n: z.number().int().min(1).max(11),
-    strategy: z.literal('median_top_n'),
-  }),
-  z.strictObject({
-    n: z.number().int().min(1).max(11),
-    strategy: z.literal('mean_top_n'),
-  }),
-  z.strictObject({
-    percentile: z.number().gt(0).lte(100),
-    strategy: z.literal('percentile'),
-  }),
-]);
+// Method and starting conditions cannot partition offers for the same finished output.
+export function recipeTargetSignature(recipe: CanonicalRecipe) {
+  return `${recipe.patch}:${hashCanonicalCraftSetup({
+    ...canonicalCraftSetupFromRecipe(recipe),
+    method: { kind: 'currency', currency: 'signature' },
+    startingMods: [],
+  })}`;
+}
 
-const craftStepSchema = z.strictObject({
-  id: slugSchema,
-  metadata: structuredObjectSchema.optional(),
-  title: textSchema,
-});
-
-export const recipeV1Schema = z.strictObject({
-  baseRequirements: z.strictObject({
-    baseType: textSchema,
-    influences: uniqueSortedStrings(slugSchema).optional(),
-    itemClass: textSchema.optional(),
-    minItemLevel: z.number().int().min(1).max(100).optional(),
-    tradeQuery: tradeQuerySchema,
-  }),
-  category: slugSchema,
-  craftSteps: z.array(craftStepSchema).min(1).superRefine(uniqueIds),
-  estimator: estimatorSchema,
-  finishingCosts: z.array(finishingCostSchema).superRefine(uniqueIds),
-  gameVersion: textSchema.regex(
-    /^\d+\.\d+(?:\.\d+)?$/,
-    'Must be a numeric game version such as 3.25',
-  ),
-  id: slugSchema,
-  materials: z.array(materialSchema).min(1).superRefine(uniqueIds),
-  output: z.strictObject({
-    label: textSchema,
-    tradeQuery: tradeQuerySchema,
-  }),
-  schemaVersion: z.literal(RECIPE_SCHEMA_VERSION),
-  success: successSchema,
-  summary: textSchema,
-  tags: uniqueSortedStrings(slugSchema),
-  title: textSchema,
-});
-
-export type CanonicalRecipeV1 = z.output<typeof recipeV1Schema>;
-export type RecipeV1Input = z.input<typeof recipeV1Schema>;
-
-export type RecipeValidationIssue = {
-  code: string;
-  message: string;
-  path: string;
-};
+export function recipeDocumentMetadata(recipe: CanonicalRecipe) {
+  return {
+    category: recipe.category,
+    craftMethod: recipe.craft.name,
+    gameVersion: recipe.patch,
+    id: recipe.id,
+    tags: recipe.tags,
+    title: recipe.title,
+  };
+}
 
 export class RecipeValidationError extends Error {
-  readonly issues: readonly RecipeValidationIssue[];
-
-  constructor(error: z.ZodError, schemaVersion = 1) {
-    const issues = normalizeIssues(error.issues);
+  readonly issues: readonly { code: string; message: string; path: string }[];
+  constructor(error: z.ZodError) {
+    const issues = error.issues.flatMap<{
+      code: string;
+      message: string;
+      path: string;
+    }>((issue) =>
+      issue.code === 'unrecognized_keys'
+        ? issue.keys.map((key) => ({
+            code: issue.code,
+            message: `Unknown field "${key}"`,
+            path: [...issue.path, key].join('.'),
+          }))
+        : [
+            {
+              code: issue.code,
+              message: issue.message,
+              path: issue.path.join('.') || '$',
+            },
+          ],
+    );
     super(
-      `Invalid recipe v${schemaVersion}: ${issues
-        .map(({ message, path }) => `${path}: ${message}`)
-        .join('; ')}`,
+      `Invalid recipe: ${issues.map(({ path, message }) => `${path}: ${message}`).join('; ')}`,
       { cause: error },
     );
     this.name = 'RecipeValidationError';
     this.issues = issues;
   }
-}
-
-export function validateRecipeV1(input: unknown): CanonicalRecipeV1 {
-  const result = recipeV1Schema.safeParse(input);
-  if (!result.success) throw new RecipeValidationError(result.error);
-  return result.data;
-}
-
-function normalizeIssues(
-  issues: readonly z.core.$ZodIssue[],
-): RecipeValidationIssue[] {
-  const normalized: RecipeValidationIssue[] = [];
-  for (const issue of issues) {
-    if (issue.code === 'unrecognized_keys') {
-      for (const key of issue.keys) {
-        normalized.push({
-          code: issue.code,
-          message: `Unknown field "${key}"`,
-          path: formatPath([...issue.path, key]),
-        });
-      }
-    } else {
-      normalized.push({
-        code: issue.code,
-        message: issue.message,
-        path: formatPath(issue.path),
-      });
-    }
-  }
-  return normalized;
-}
-
-function formatPath(path: readonly PropertyKey[]) {
-  if (path.length === 0) return '$';
-  return path.reduce<string>((result, segment) => {
-    if (typeof segment === 'number') return `${result}[${segment}]`;
-    return result ? `${result}.${String(segment)}` : String(segment);
-  }, '');
 }
