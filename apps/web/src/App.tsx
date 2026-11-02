@@ -142,9 +142,8 @@ function CatalogRoute() {
       {!response && !loadError ? (
         <StatusPanel tone="info" title="Loading recipes" />
       ) : marketTargets === null && entries.length === 0 ? (
-        <StatusPanel tone="info" title="Loading recipes" />
-      ) : (response !== null || loadError) &&
-        marketTargets !== null &&
+        <StatusPanel tone="info" title="Loading market targets" />
+      ) : marketTargets !== null &&
         entries.length === 0 &&
         targets.length === 0 &&
         !filters.search.trim() &&
