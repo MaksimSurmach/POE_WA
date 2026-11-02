@@ -53,6 +53,22 @@ function CatalogRoute() {
       .catch(() => {});
   }, []);
   useEffect(() => {
+    let active = true;
+    apiClient
+      .getRefreshFreshness()
+      .then((r) => {
+        if (active && r.data.active) {
+          refreshBaseline.current = r.data.published?.id ?? null;
+          setRefreshing(true);
+          setRefreshMessage('Price refresh running.');
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
     if (!refreshing) return;
     let active = true;
     const queuedAt = Date.now();
@@ -107,8 +123,14 @@ function CatalogRoute() {
     setRefreshing(true);
     setRefreshMessage('Requesting price refresh…');
     try {
-      refreshBaseline.current =
-        (await apiClient.getRefreshFreshness()).data.lastAttempt?.id ?? null;
+      const freshness = (await apiClient.getRefreshFreshness()).data;
+      refreshBaseline.current = freshness.active
+        ? (freshness.published?.id ?? null)
+        : (freshness.lastAttempt?.id ?? null);
+      if (freshness.active) {
+        setRefreshMessage('A price refresh is already running.');
+        return;
+      }
       const result = await apiClient.triggerPriceRefresh();
       if (!result.data.accepted) refreshBaseline.current = null;
       setRefreshMessage(

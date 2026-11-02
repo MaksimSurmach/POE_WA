@@ -339,3 +339,43 @@ describe('health API', () => {
     await api.close();
   });
 });
+
+it('does not queue another manual refresh while a durable cycle is active', async () => {
+  const timestamp = new Date();
+  const triggerRefresh = vi.fn();
+  const active = {
+    id: '11111111-1111-4111-8111-111111111111',
+    leagueId: '22222222-2222-4222-8222-222222222222',
+    status: 'running' as const,
+    totalRecipes: 1,
+    completedRecipes: 0,
+    failedRecipes: 0,
+    totalQueries: 1,
+    completedQueries: 0,
+    failedQueries: 0,
+    requestedAt: timestamp,
+    startedAt: timestamp,
+    finishedAt: null,
+    publishedAt: null,
+    errorMessage: null,
+  };
+  const api = buildApi(
+    pino({ level: 'silent' }),
+    vi.fn(),
+    async () => ({ active, published: null }),
+    async () => [],
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    { triggerRefresh },
+  );
+  try {
+    const response = await api.inject({ method: 'POST', url: '/api/refresh' });
+    expect(response.statusCode).toBe(202);
+    expect(response.json().data.accepted).toBe(false);
+    expect(triggerRefresh).not.toHaveBeenCalled();
+  } finally {
+    await api.close();
+  }
+});

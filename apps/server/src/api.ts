@@ -194,7 +194,8 @@ export function buildApi(
   const triggerRefresh = options.triggerRefresh;
   if (triggerRefresh)
     api.post('/api/refresh', async (request, reply) => {
-      const jobId = await triggerRefresh();
+      const progress = await readRefreshProgress();
+      const jobId = progress.active ? null : await triggerRefresh();
       reply.code(202);
       return refreshTriggerResponseSchema.parse({
         correlationId: request.id,

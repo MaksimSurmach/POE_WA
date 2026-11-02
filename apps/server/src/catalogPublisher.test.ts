@@ -287,7 +287,7 @@ describe('catalog evaluation and publication', () => {
         fee: null,
         id: `${marketQueryId}-listing-${listingIndex}`,
         indexedAt: new Date(now.getTime() - 60_000).toISOString(),
-        item: {},
+        item: { stock: 10000 },
         price: {
           amount: String(
             startingPrices[queryIndex]! +
