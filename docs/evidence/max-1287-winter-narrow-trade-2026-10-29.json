@@ -1,0 +1,189 @@
+{
+  "capturedAt": "2026-10-29T23:52:06.000Z",
+  "sourceUrl": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAE42QwQrCMBBEf0XmHESTaG1-Q_AiItFsZSHWkqRiKfl3qSJU7ME97TLMG2Z7xGRTG2F63JrEtxoGkc5tsCdPyAKpawgG29Rd2NazHUeCeLkizL7_6LZ2EKjYJwpvgR0M6NF4PnOaD4ajkmWpdLHQCgJ361sacq9cwyzVIgs4jkOug6msj5TFJEaWUunNWq7KH4xa_k1RqpArqaUufihaTlAO-TAq-C5-HN2jNdjAqfv6abCBkId5AqCMubtzAQAA",
+  "currency": "divine",
+  "dataKind": "observed",
+  "notes": "Manual transcription of visible Instant Buyout search, Allflame PC, life >=130, fire >=42, chaos >=31. Asking prices are not sales; other modifiers, catalyst, corruption and influence must be checked for individual compatibility. Ghoul Lash includes a crafted extra damage modifier. The PoB replacement has not been checked for any listing.",
+  "listings": [
+    {
+      "price": 3,
+      "item": {
+        "name": "Ghoul Lash",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "AndrzejPompa#3311",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          {
+            "id": "life",
+            "value": 138,
+            "tier": 1
+          },
+          {
+            "id": "fire_resistance",
+            "value": 44
+          },
+          {
+            "id": "chaos_resistance",
+            "value": 33
+          }
+        ],
+        "rawText": "Verified; Stygian Vise; Item Level 85; Has 1 Abyssal Socket; Intangibility 10%; 5% reduced Enemy Stun Threshold (S5); +45 maximum Energy Shield (P2); +138 maximum Life (P1); +44% Fire Resistance (S2); +33% Chaos Resistance (S1); 16% increased Damage (P0); fee 5694 gold; listed 3 months ago. Asking 3 divine, Instant Buyout."
+      }
+    },
+    {
+      "price": 4,
+      "item": {
+        "name": "Morbid Cord",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "7AMONSTER7#6490",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          {
+            "id": "life",
+            "value": 136,
+            "tier": 1
+          },
+          {
+            "id": "fire_resistance",
+            "value": 48
+          },
+          {
+            "id": "chaos_resistance",
+            "value": 32
+          }
+        ],
+        "rawText": "Verified; Stygian Vise; Item Level 85; Has 1 Abyssal Socket; +10 Strength (S10); +318 Armour (P4); +136 maximum Life (P1); +50 maximum Mana (P4); +48% Fire Resistance (S1); +32% Chaos Resistance (S1); fee 5328 gold; listed 3 months ago. Asking 4 divine, Instant Buyout."
+      }
+    },
+    {
+      "price": 5,
+      "item": {
+        "name": "Onslaught Tether",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "otinhokillll#5181",
+        "status": "listed",
+        "itemLevel": 86,
+        "mods": [
+          {
+            "id": "life",
+            "value": 134,
+            "tier": 1
+          },
+          {
+            "id": "fire_resistance",
+            "value": 47
+          },
+          {
+            "id": "chaos_resistance",
+            "value": 31
+          }
+        ],
+        "rawText": "Verified; Stygian Vise; Item Level 86; Has 1 Abyssal Socket; Intangibility 33%; +19 Strength (S8); +48 maximum Energy Shield (P1); +134 maximum Life (P1); +38 maximum Mana (P7); +47% Fire Resistance (S1); +31% Chaos Resistance (S1); fee 5752 gold; listed 2 months ago. Asking 5 divine, Instant Buyout."
+      }
+    },
+    {
+      "price": 5,
+      "item": {
+        "name": "Storm Bind",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "Slickstyle#5708",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          {
+            "id": "life",
+            "value": 143,
+            "tier": 1
+          },
+          {
+            "id": "fire_resistance",
+            "value": 46
+          },
+          {
+            "id": "chaos_resistance",
+            "value": 32
+          }
+        ],
+        "rawText": "Verified; Stygian Vise; Item Level 85; Has 1 Abyssal Socket; Intangibility 27%; +35 Strength (S5); +51 maximum Energy Shield (P1); +143 maximum Life (P1); +46% Fire Resistance (S1); +32% Chaos Resistance (S1); Reflects 8 Physical Damage to Melee Attackers (P1); fee 5699 gold; listed last week. Asking 5 divine, Instant Buyout."
+      }
+    },
+    {
+      "price": 7,
+      "item": {
+        "name": "Ambush Leash",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "Snowdogcat#3009",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          {
+            "id": "life",
+            "value": 133,
+            "tier": 1
+          },
+          {
+            "id": "fire_resistance",
+            "value": 46
+          },
+          {
+            "id": "chaos_resistance",
+            "value": 33
+          }
+        ],
+        "rawText": "Verified; Stygian Vise; Item Level 85; Has 1 Abyssal Socket; +50 maximum Energy Shield (P1); +133 maximum Life (P1); +42 maximum Mana (P6); +46% Fire Resistance (S1); +18% Lightning Resistance (S6); +33% Chaos Resistance (S1); fee 5611 gold; listed 2 months ago. Asking 7 divine, Instant Buyout."
+      }
+    },
+    {
+      "price": 7,
+      "item": {
+        "name": "Storm Tether",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "Rudys#5092",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          {
+            "id": "life",
+            "value": 140,
+            "tier": 1
+          },
+          {
+            "id": "fire_resistance",
+            "value": 47
+          },
+          {
+            "id": "chaos_resistance",
+            "value": 32
+          }
+        ],
+        "rawText": "Verified; Stygian Vise; Item Level 85; Has 1 Abyssal Socket; Intangibility 8%; +422 Armour (P2); +140 maximum Life (P1); +25 maximum Mana (P9); +47% Fire Resistance (S1); +10% Cold Resistance (S8); +32% Chaos Resistance (S1); fee 5603 gold; listed 3 months ago. Asking 7 divine, Instant Buyout."
+      }
+    }
+  ]
+}

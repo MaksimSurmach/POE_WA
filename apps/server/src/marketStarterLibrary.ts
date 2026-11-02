@@ -62,6 +62,69 @@ const sources = {
 
 export const marketStarterLibrary: MarketTargetInput[] = [
   profile(
+    'Winter Orb Elementalist — Stygian Vise (исследование)',
+    'Winter Orb Elementalist',
+    'Belt',
+    ['Stygian Vise'],
+    [
+      'Максимальная жизнь 110+',
+      'Сопротивление хаосу 26–30% от Essence of Envy',
+      'Другие сопротивления по потребности',
+    ],
+    {
+      title: 'Winter Orb Elementalist PoB (3.29)',
+      url: 'https://pobb.in/W4yCI3RRdniV',
+      notes:
+        'Источник описывает Essence of Envy и механику Allflame, с заменой базы при Intangibility выше 25%. Вероятность и стоимость замены не указаны; существующая модель повторов на одной базе неприменима. Количественные требования к остальным сопротивлениям не заданы. Не рассчитывать до проверки метода.',
+    },
+  ),
+  profile(
+    'Flicker Strike Slayer — редкий Stygian Vise (исследование)',
+    'Flicker Strike Slayer',
+    'Belt',
+    ['Stygian Vise'],
+    [
+      '+100 к максимальной жизни',
+      '+80% суммарных элементальных сопротивлений',
+      '30% увеличенного урона стихий атаками',
+    ],
+    {
+      title: 'Flicker Strike Slayer gear (3.29)',
+      url: 'https://odealo.com/articles/trinity-flicker-strike-slayer-build-1',
+      notes:
+        'Гайд указывает редкую альтернативу, но его PoB использует Arn’s Anguish. При замене на Vengeance Tether без самоцвета PoB показывает 62% огненного сопротивления и снижение DPS примерно на 31%. Редкий пояс требует адаптации остальной сборки; профиль остаётся исследовательским.',
+    },
+  ),
+  profile(
+    'Lacerate Gladiator — редкий Stygian Vise (исследование)',
+    'Lacerate Gladiator',
+    'Belt',
+    ['Stygian Vise'],
+    ['Элементальные сопротивления по потребности', 'Максимальная жизнь'],
+    {
+      title: 'Lacerate Gladiator gear (3.29)',
+      url: 'https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks',
+      notes:
+        'Редкий пояс — альтернатива уникальному. Порогов, уровня предмета и влияний источник не задаёт; правила сопоставления требуют уточнения.',
+    },
+  ),
+  profile(
+    'Spectre Summoner — бюджетный Stygian Vise (исследование)',
+    'Spectre Summoner Necromancer',
+    'Belt',
+    ['Stygian Vise'],
+    [
+      'Высокая максимальная жизнь',
+      'Сопротивления и характеристики по потребности',
+    ],
+    {
+      title: 'Spectre Summoner gear (3.29)',
+      url: 'https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks',
+      notes:
+        'Бюджетная редкая альтернатива; основной рекомендованный пояс уникальный. Количественные пороги и параметры базы не указаны; правила сопоставления требуют уточнения.',
+    },
+  ),
+  profile(
     'RF Chieftain — шлем Fire Trap',
     'Pohx RF Chieftain',
     'Шлем',

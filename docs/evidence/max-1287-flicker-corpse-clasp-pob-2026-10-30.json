@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-10-30T00:06:31Z",
+  "viewer": "https://pob.cool/poe1#=https://pobb.in/A45N45HSb_X4",
+  "build": "https://pobb.in/A45N45HSb_X4",
+  "league": "Allflame",
+  "patch": "3.29",
+  "searchUrl": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAE4VR0UrEQAz8FcnzcvTcA739DcEXOZbYTc9w223ZpGop---yVqFyqHlJwjCTYbKAKOok4BYYRuUhgQOhdsr4HAmKAZ1HAgcPOp8Z080jC4H5ZAm4p-UbxxTAQMdRKa8AB3BA72PklnVXCd7eHo_2cNccLBh4xThRvdtzArdvmlLMF2sUmsKwW5vXQTF6itRTqlMmYVFMLV2p3P8qwqnNhEJhIxSwxzP5N9YXj6rYXrxcOEa50rX_mOs401--9rYYCCw11ACuwyhUTuW0SWxN0m_2zZgxs84_npQxE5RaH68VmIrEAQAA",
+  "notes": "Manual listing transcription from visible search filtered by life >=100, total elemental resistance >=80, elemental attack damage >=30 and pseudo total fire >=13. Price is an ask, not a sale. No abyss jewel was equipped in replacement.",
+  "listing": {
+    "name": "Corpse Clasp",
+    "baseType": "Stygian Vise",
+    "itemLevel": 85,
+    "seller": "Skido07#4286",
+    "askingPrice": {
+      "amount": 1,
+      "currency": "divine"
+    },
+    "goldFee": 4396,
+    "listed": "2 months ago",
+    "rawText": "Verified; Item Level 85; Has 1 Abyssal Socket; +3 Armour (P8); +125 maximum Life (P2); +42% Fire Resistance (S2); +18% Cold Resistance (S6); +34% Lightning Resistance (S4); 32% increased Elemental Damage with Attack Skills (R2, crafted); asking 1 divine; fee 4396 gold; Instant Buyout."
+  },
+  "pob": {
+    "method": "Custom item with all displayed affixes, equip in belt slot, Abyss socket empty, all other equipment and settings unchanged.",
+    "baseline": {
+      "belt": "Arn’s Anguish",
+      "combinedDPS": 159974117.5,
+      "totalLife": 2855,
+      "effectiveHitPool": 91554,
+      "resistances": [75, 75, 75, 69]
+    },
+    "replacement": {
+      "belt": "Corpse Clasp",
+      "combinedDPS": 109934082.5,
+      "totalLife": 2841,
+      "effectiveHitPool": 84126,
+      "resistances": [75, 75, 75, 69]
+    },
+    "limitations": "The belt removes Arn’s Brutal Charge mechanic. Despite capped elemental resistances, this is not equivalent to the original build; no gameplay or user-accepted DPS loss is established."
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "checkedAt": "2026-10-30T00:00:50Z",
+  "viewer": "https://pob.cool/",
+  "viewerVersion": "2.67.2",
+  "cases": [
+    {
+      "build": "https://pobb.in/W4yCI3RRdniV",
+      "listing": "Storm Bind",
+      "listingSeller": "Slickstyle#5708",
+      "listingSource": "max-1287-winter-narrow-trade-2026-10-29.json",
+      "method": "Entered all visible affixes into PoB custom item, equipped in Belt; retained Foul Oculus abyss jewel, all other items and configuration.",
+      "itemText": "Storm Bind\nStygian Vise\nItem Level: 85\nSockets: A\nImplicits: 1\nHas 1 Abyssal Socket\n+35 to Strength\n+51 to maximum Energy Shield\n+143 to maximum Life\n+46% to Fire Resistance\n+32% to Chaos Resistance\nReflects 8 Physical Damage to Melee Attackers",
+      "baseline": {
+        "hitDPS": 3700849.9,
+        "totalLife": 3966,
+        "totalMana": 1151,
+        "unreservedMana": 140,
+        "energyShield": 3607,
+        "effectiveHitPool": 154767,
+        "resistances": [76, 76, 76, 75]
+      },
+      "replacement": {
+        "hitDPS": 3700849.9,
+        "totalLife": 4008,
+        "totalMana": 1089,
+        "unreservedMana": 133,
+        "energyShield": 3607,
+        "effectiveHitPool": 155533,
+        "resistances": [76, 76, 76, 75]
+      },
+      "limitations": "Original belt also has 31% increased Flask Charges gained; replacement has none. Snapshot does not establish mana or flask sustain in actual gameplay, or a complete craft recipe for this exact item."
+    },
+    {
+      "build": "https://pobb.in/A45N45HSb_X4",
+      "guide": "https://odealo.com/articles/trinity-flicker-strike-slayer-build-1",
+      "listing": "Vengeance Tether",
+      "listingSeller": "hehe432#7842",
+      "listingSource": "max-1287-flicker-trade-2026-10-29.json",
+      "method": "Entered all visible affixes into PoB custom item, equipped in Belt; newly available abyss socket is empty, all other items and configuration unchanged.",
+      "itemText": "Vengeance Tether\nStygian Vise\nItem Level: 85\nSockets: A\nImplicits: 1\nHas 1 Abyssal Socket\n+119 to maximum Life\n+52 to maximum Mana\n+42% to Cold Resistance\n+46% to Lightning Resistance\n11% increased Flask Effect Duration\n32% increased Elemental Damage with Attack Skills",
+      "baseline": {
+        "belt": "Arn’s Anguish",
+        "combinedDPS": 159974117.5,
+        "totalLife": 2855,
+        "effectiveHitPool": 91554,
+        "fireResistance": 75
+      },
+      "replacement": {
+        "belt": "Vengeance Tether",
+        "combinedDPS": 109934082.5,
+        "totalLife": 2831,
+        "effectiveHitPool": 76931,
+        "fireResistance": 62
+      },
+      "limitations": "PoB 2.67.2 shown values are for this saved configuration; replacing Arn removes its Brutal Charge mechanic, and the abyss socket is empty. No actual market jewel or build reconfiguration is modelled."
+    }
+  ]
+}

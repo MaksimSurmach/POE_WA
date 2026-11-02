@@ -8,6 +8,7 @@ import {
   type MarketResearchSnapshotSummary,
   type MarketSourceCapability,
   type MarketTarget,
+  type BeltPriceUpdate,
 } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
 
@@ -22,6 +23,8 @@ export interface MarketResearchRepository {
   saveSnapshot(
     snapshot: MarketResearchSnapshot,
   ): Promise<MarketResearchSnapshot>;
+  listPriceUpdates?(targetId: string): Promise<BeltPriceUpdate[]>;
+  savePriceUpdate?(update: BeltPriceUpdate): Promise<BeltPriceUpdate>;
 }
 
 export const marketSourceCapabilities: MarketSourceCapability[] = [

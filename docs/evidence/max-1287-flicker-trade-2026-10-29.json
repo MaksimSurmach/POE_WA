@@ -1,0 +1,106 @@
+{
+  "capturedAt": "2026-10-29T20:34:59.000Z",
+  "sourceUrl": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAE41R0UrEQAz8FZnn5aj2QG9_Q_BFjiV2c2e47bZsUrWU_rvUKlTOB_OSCcPMwGSCGtmg8BO63qTL8FBuhkIviTE72NgzPB5tPAvlmydRhvtSKfzz9MNTjnA4STIuKyERHvzRJ2nEdosg1HeHQ72_r_Y1HN4oDbzktpLhb6tqdoiiS26EP1FSnt23Ta88xG63rmCdUQqcuOW8oMIqapQbvrJ9-L-r5KYwKceNc6SWzhzexV4DmVFzCXqRlPQqqP4r6DgfN52sXYXNvYGFitj46w2FCmNe5hNL50KBpgEAAA",
+  "notes": "Manual transcription from visible Trade UI: Instant Buyout, Rare Stygian Vise, life >=100, total elemental resistance >=80, elemental attack damage >=30. Five selected divine-priced rows; separate chaos-priced results are not mixed. Asking prices are not sales. Influence, corruption and quality are not inferred from missing labels. Pseudo totals are copied from the displayed query match; no missing individual resistance is assumed zero.",
+  "currency": "divine",
+  "dataKind": "observed",
+  "listings": [
+    {
+      "price": 1,
+      "item": {
+        "name": "Onslaught Locket",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "지순이는최강#7402",
+        "status": "listed",
+        "itemLevel": 84,
+        "mods": [
+          { "id": "life", "value": 104 },
+          { "id": "elemental_attack_damage", "value": 30 }
+        ],
+        "elementalResistances": { "fire": 41, "cold": 23, "lightning": 24 },
+        "rawText": "Verified; Item Level 84; Has 1 Abyssal Socket; +104 maximum Life (P3); +51 maximum Mana (P4); +41% Fire Resistance (S3); +23% Cold Resistance (S6); +24% Lightning Resistance (S5); 30% increased Elemental Damage with Attack Skills (R2); pseudo total elemental resistance 88%; asking 1 divine; fee 4104; listed 5 weeks ago; Instant Buyout."
+      }
+    },
+    {
+      "price": 1,
+      "item": {
+        "name": "Skull Twine",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "Ziadrak#0971",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          { "id": "life", "value": 125 },
+          { "id": "elemental_attack_damage", "value": 32 }
+        ],
+        "rawText": "Verified; Item Level 85; Has 1 Abyssal Socket; +125 maximum Life (P2); +46% Fire Resistance (S1); +39% Lightning Resistance (S3); 17% increased Stun and Block Recovery (S4); Reflects 1 Physical Damage to Melee Attackers (P2); 32% increased Elemental Damage with Attack Skills (R2); pseudo total elemental resistance 85%; asking 1 divine; fee 4744; listed 3 weeks ago; Instant Buyout."
+      }
+    },
+    {
+      "price": 1,
+      "item": {
+        "name": "Vengeance Tether",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "hehe432#7842",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          { "id": "life", "value": 119 },
+          { "id": "elemental_attack_damage", "value": 32 }
+        ],
+        "rawText": "Verified; Intangibility 22%; Item Level 85; Has 1 Abyssal Socket; +119 maximum Life (P2); +52 maximum Mana (P4); +42% Cold Resistance (S2); +46% Lightning Resistance (S1); 11% increased Flask Effect Duration (S4); 32% increased Elemental Damage with Attack Skills (P3); pseudo total elemental resistance 88%; asking 1 divine; fee 5136; listed 3 months ago; Instant Buyout."
+      }
+    },
+    {
+      "price": 1,
+      "item": {
+        "name": "Grim Thread",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "MacCross_#3707",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          { "id": "life", "value": 106 },
+          { "id": "elemental_attack_damage", "value": 30 }
+        ],
+        "rawText": "Verified; Item Level 85; Has 1 Abyssal Socket; 9% reduced Enemy Stun Threshold (S4); +36 maximum Energy Shield (P4); +106 maximum Life (P3); +46% Fire Resistance (S1); +46% Lightning Resistance (S1); 30% increased Elemental Damage with Attack Skills (R2); pseudo total elemental resistance 92%; asking 1 divine; fee 5270; listed 2 weeks ago; Instant Buyout."
+      }
+    },
+    {
+      "price": 1,
+      "item": {
+        "name": "Nemesis Lash",
+        "baseType": "Stygian Vise",
+        "rarity": "rare",
+        "league": "Allflame",
+        "patch": "3.29",
+        "currency": "divine",
+        "seller": "Maso05#6422",
+        "status": "listed",
+        "itemLevel": 85,
+        "mods": [
+          { "id": "life", "value": 106 },
+          { "id": "elemental_attack_damage", "value": 31 }
+        ],
+        "elementalResistances": { "fire": 22, "cold": 42, "lightning": 31 },
+        "rawText": "Verified; Item Level 85; Has 1 Abyssal Socket; +106 maximum Life (P3); +62 maximum Mana (P2); +22% Fire Resistance (S6); +42% Cold Resistance (S2); +31% Lightning Resistance (S4); 31% increased Elemental Damage with Attack Skills (R2); pseudo total elemental resistance 95%; asking 1 divine; fee 4652; listed last month; Instant Buyout."
+      }
+    }
+  ]
+}
