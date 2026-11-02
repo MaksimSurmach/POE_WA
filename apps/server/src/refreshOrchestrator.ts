@@ -23,6 +23,7 @@ import type { Logger } from 'pino';
 import { operationLogger } from './observability/operationContext.js';
 import type { Metrics } from './observability/metrics.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
+import { setTimeout as delay } from 'node:timers/promises';
 
 type MarketJobRunner = Pick<MarketJobProcessor, 'runAvailable'>;
 
@@ -126,17 +127,38 @@ export class FullRefreshOrchestrator {
 
       await this.#collectPrices(cycle);
       this.#signal?.throwIfAborted();
-      const jobs = await this.#marketJobs.runAvailable(
-        `${this.#workerId}:${cycle.id}`,
-        now,
-        this.#signal,
-      );
-      this.#signal?.throwIfAborted();
-      const refreshed = await this.#repositories.cycles.findById(cycle.id);
-      if (!refreshed) throw new DomainError('PERSISTENCE_NOT_FOUND');
-      cycle = refreshed;
-      if (cycle.completedQueries + cycle.failedQueries !== cycle.totalQueries) {
-        throw new DomainError('REFRESH_INCOMPLETE');
+      const jobs = {
+        claimed: 0,
+        failed: 0,
+        recovered: 0,
+        retried: 0,
+        succeeded: 0,
+      };
+      for (;;) {
+        const batch = await this.#marketJobs.runAvailable(
+          `${this.#workerId}:${cycle.id}`,
+          this.#clock(),
+          this.#signal,
+        );
+        jobs.claimed += batch.claimed;
+        jobs.failed += batch.failed;
+        jobs.recovered += batch.recovered;
+        jobs.retried += batch.retried;
+        jobs.succeeded += batch.succeeded;
+        this.#signal?.throwIfAborted();
+        const refreshed = await this.#repositories.cycles.findById(cycle.id);
+        if (!refreshed) throw new DomainError('PERSISTENCE_NOT_FOUND');
+        cycle = refreshed;
+        if (cycle.completedQueries + cycle.failedQueries === cycle.totalQueries)
+          break;
+        if (
+          cycle.status !== 'running' ||
+          performance.now() - started >= 60 * 60_000 ||
+          (jobs.retried === 0 && jobs.recovered === 0)
+        )
+          throw new DomainError('REFRESH_INCOMPLETE');
+        // Delayed retries remain part of this cycle, within the queue's one-hour bound.
+        await delay(1000, undefined, { signal: this.#signal });
       }
 
       await this.#collectPrices(cycle);
