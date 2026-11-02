@@ -50,6 +50,7 @@ describe('authored recipe to provider to published economics', () => {
     'capped',
     'thin-stock',
     'ninja-bulk',
+    'ninja-unconvertible',
   ] as const)(
     'shares queries and retains raw observations while withholding prices for %s coverage',
     async (coverage) => {
@@ -233,7 +234,11 @@ describe('authored recipe to provider to published economics', () => {
             detailsId: 'primal-crystallised-lifeforce',
             name: 'Primal Crystallised Lifeforce',
             baseType: null,
-            price: { amount: 5, currency: 'chaos' },
+            price: {
+              amount: 5,
+              currency:
+                coverage === 'ninja-unconvertible' ? 'exalted' : 'chaos',
+            },
             listingCount: null,
             observationCount: 10,
             tradedVolume: null,
@@ -241,7 +246,7 @@ describe('authored recipe to provider to published economics', () => {
         ],
       };
       const report = await new FullRefreshOrchestrator({
-        ...(coverage === 'ninja-bulk'
+        ...(['ninja-bulk', 'ninja-unconvertible'].includes(coverage)
           ? {
               economy: {
                 latest: async (_league, category) =>
@@ -288,13 +293,13 @@ describe('authored recipe to provider to published economics', () => {
         expectedCraftCost:
           coverage === 'ninja-bulk'
             ? '40'
-            : ['complete', 'capped'].includes(coverage)
+            : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
               ? '22'
               : null,
         profit:
           coverage === 'ninja-bulk'
             ? '40'
-            : ['complete', 'capped'].includes(coverage)
+            : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
               ? '58'
               : null,
       });
@@ -303,13 +308,13 @@ describe('authored recipe to provider to published economics', () => {
         expectedCraftCost:
           coverage === 'ninja-bulk'
             ? '70'
-            : ['complete', 'capped'].includes(coverage)
+            : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
               ? '34'
               : null,
         profit:
           coverage === 'ninja-bulk'
             ? '10'
-            : ['complete', 'capped'].includes(coverage)
+            : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
               ? '46'
               : null,
       });

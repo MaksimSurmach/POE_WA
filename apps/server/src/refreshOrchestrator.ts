@@ -1,6 +1,7 @@
 import {
   DomainError,
   type Repositories,
+  type RefreshCycle,
   transitionRefreshCycle,
 } from '@poe-worksmith/domain';
 
@@ -109,16 +110,7 @@ export class FullRefreshOrchestrator {
         );
       }
 
-      try {
-        if (cycle.status === 'running') await this.#collectMaterialPrices?.();
-      } catch (error) {
-        await this.#repositories.cycles.save({
-          ...transitionRefreshCycle(cycle, 'failed', this.#clock()),
-          errorMessage:
-            error instanceof DomainError ? error.code : 'PROVIDER_UNAVAILABLE',
-        });
-        throw error;
-      }
+      await this.#collectPrices(cycle);
       const jobs = await this.#marketJobs.runAvailable(
         `${this.#workerId}:${cycle.id}`,
         now,
@@ -130,6 +122,7 @@ export class FullRefreshOrchestrator {
         throw new DomainError('REFRESH_INCOMPLETE');
       }
 
+      await this.#collectPrices(cycle);
       const publication = await evaluateAndPublishCatalog(this.#repositories, {
         cycleId: cycle.id,
         league: this.#league.leagueGggId,
@@ -160,6 +153,22 @@ export class FullRefreshOrchestrator {
         { outcome: 'failed' },
         (performance.now() - started) / 1000,
       );
+      throw error;
+    }
+  }
+  async #collectPrices(cycle: RefreshCycle) {
+    if (cycle.status !== 'running') return;
+    try {
+      await this.#collectMaterialPrices?.();
+    } catch (cause) {
+      const error =
+        cause instanceof DomainError
+          ? cause
+          : new DomainError('PERSISTENCE_UNAVAILABLE', { cause });
+      await this.#repositories.cycles.save({
+        ...transitionRefreshCycle(cycle, 'failed', this.#clock()),
+        errorMessage: error.code,
+      });
       throw error;
     }
   }

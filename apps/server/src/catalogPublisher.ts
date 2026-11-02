@@ -486,11 +486,13 @@ async function evaluateFreshRecipe(
     for (const snapshot of materialEconomies) {
       const line = snapshot.lines.find((line) => line.detailsId === id);
       if (!line || line.price.amount === null) continue;
-      materialPriceMap[id] = await convertPrice(
+      const converted = await convertPrice(
         { amount: String(line.price.amount), currency: line.price.currency },
         new Date(snapshot.capturedAt),
       );
-      if (materialPriceMap[id]) bulkSupported.add(id);
+      if (!converted) continue;
+      materialPriceMap[id] = converted;
+      bulkSupported.add(id);
       materialEvidence[id] = {
         itemId: id,
         league: snapshot.league,

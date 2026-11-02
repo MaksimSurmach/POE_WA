@@ -61,6 +61,7 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
     }
     function dismissEscape(event: KeyboardEvent) {
       if (event.key === 'Escape' && open) {
+        preview.current?.querySelector('button')?.focus();
         setOpen(false);
         setDismissed(true);
       }

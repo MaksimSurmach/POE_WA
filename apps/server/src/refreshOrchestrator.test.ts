@@ -144,10 +144,58 @@ it('records material-source preparation failure on the durable cycle', async () 
     clock: () => now,
   });
   const id = '22222222-2222-4222-8222-222222222222';
-  await expect(orchestrator.run(id)).rejects.toThrow('Persistence unavailable');
+  await expect(orchestrator.run(id)).rejects.toMatchObject({
+    code: 'PERSISTENCE_UNAVAILABLE',
+  });
   expect(await repositories.cycles.findById(id)).toMatchObject({
     status: 'failed',
     finishedAt: now,
-    errorMessage: 'PROVIDER_UNAVAILABLE',
+    errorMessage: 'PERSISTENCE_UNAVAILABLE',
   });
+});
+
+it('refreshes cached material evidence again immediately before publication', async () => {
+  const repositories = createInMemoryRepositories();
+  const league = await repositories.leagues.upsert({
+    game: 'poe1',
+    realm: 'pc',
+    gggId: 'Standard',
+    name: 'Standard',
+    isCurrent: true,
+    startAt: null,
+    endAt: null,
+    syncedAt: now,
+    metadata: {},
+  });
+  let clock = now;
+  const collected: number[] = [];
+  const orchestrator = new FullRefreshOrchestrator({
+    repositories,
+    league: {
+      leagueId: league.id,
+      leagueGggId: league.gggId,
+      leagueName: league.name,
+    },
+    marketDependencies: fixtureMarketDependencies,
+    marketJobs: {
+      runAvailable: async () => {
+        clock = new Date(now.getTime() + 31 * 60000);
+        return {
+          claimed: 0,
+          failed: 0,
+          recovered: 0,
+          retried: 0,
+          succeeded: 0,
+        };
+      },
+    },
+    collectMaterialPrices: async () => {
+      collected.push(clock.getTime());
+    },
+    clock: () => clock,
+    snapshotTtlMs: 1800000,
+    workerId: 'test',
+  });
+  await orchestrator.run('99999999-9999-4999-8999-999999999999');
+  expect(collected).toEqual([now.getTime(), now.getTime() + 31 * 60000]);
 });
