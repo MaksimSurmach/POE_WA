@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
   defaultCatalogFilters,
+  filterMarketTargets,
   formatMarginPercent,
   filterCatalog,
   getPriceStatus,
+  marketTargetItemType,
+  marketTargetTitle,
+  type MarketListTarget,
 } from './catalog.js';
 import { catalogFixtures } from './mocks/catalog.js';
 
@@ -55,5 +59,52 @@ describe('recipe catalog search and item type filters', () => {
         search: 'not a recipe',
       }),
     ).toEqual([]);
+  });
+
+  it('restores starter market targets with item-type filtering and English titles', () => {
+    const targets: MarketListTarget[] = [
+      {
+        name: 'Toxic Rain — колчан',
+        slot: 'Колчан',
+        baseTypes: ['Broadhead Arrow Quiver'],
+        builds: ['Toxic Rain Pathfinder'],
+        sources: [],
+      },
+      {
+        name: 'Winter Orb — перчатки',
+        slot: 'Перчатки',
+        baseTypes: ['Warlock Gloves'],
+        builds: ['Winter Orb Occultist'],
+        sources: [],
+      },
+    ];
+
+    expect(marketTargetItemType('Колчан')).toBe('quiver');
+    expect(marketTargetItemType('Жезл')).toBe('weapon');
+    expect(
+      [
+        'Пояс',
+        'Ботинки',
+        'Кольцо',
+        'Щит',
+        'Самоцвет',
+        'Кластерный самоцвет',
+      ].map(marketTargetItemType),
+    ).toEqual(['belt', 'boots', 'ring', 'shield', 'jewel', 'cluster-jewel']);
+    expect(marketTargetTitle(targets[0]!)).toBe(
+      'Toxic Rain Pathfinder — Broadhead Arrow Quiver',
+    );
+    expect(
+      filterMarketTargets(targets, {
+        ...defaultCatalogFilters,
+        category: 'quiver',
+      }),
+    ).toEqual([targets[0]]);
+    expect(
+      filterMarketTargets(targets, {
+        ...defaultCatalogFilters,
+        search: 'winter orb',
+      }),
+    ).toEqual([targets[1]]);
   });
 });

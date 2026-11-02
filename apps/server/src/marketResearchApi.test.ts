@@ -356,6 +356,14 @@ describe('market workbench API', () => {
   it('exposes unavailable storage honestly and refuses to pretend an import was saved', async () => {
     const api = testApi();
     try {
+      const starterLibrary = await api.inject('/api/market/starter-library');
+      expect(starterLibrary.statusCode).toBe(200);
+      expect(starterLibrary.json().data).toHaveLength(14);
+      expect(starterLibrary.json().data[0]).toMatchObject({
+        league: 'Allflame',
+        baseTypes: ['Stygian Vise'],
+      });
+
       const read = await api.inject('/api/market');
       expect(read.statusCode).toBe(200);
       expect(read.json().data).toMatchObject({

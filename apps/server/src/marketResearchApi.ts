@@ -11,6 +11,7 @@ import {
   marketCollectionRunResponseSchema,
   marketTargetResponseSchema,
   marketWorkbenchResponseSchema,
+  marketStarterLibraryResponseSchema,
 } from '@poe-worksmith/contracts';
 import { DomainError, type RateLimitState } from '@poe-worksmith/domain';
 import type {
@@ -25,6 +26,7 @@ import { randomUUID } from 'node:crypto';
 
 import { analyzeBeltSnapshot } from './beltComparability.js';
 import { activeCatalogTargets, importMarketCatalog } from './marketCatalog.js';
+import { marketStarterLibrary } from './marketStarterLibrary.js';
 import { generateMarketTradeQuery } from './marketTradeQuery.js';
 import { evaluateBeltOpportunity } from './beltOpportunity.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
@@ -70,6 +72,13 @@ export function registerMarketResearchRoutes(
         }
       : source,
   );
+  api.get('/api/market/starter-library', async (request) =>
+    marketStarterLibraryResponseSchema.parse({
+      correlationId: request.id,
+      data: marketStarterLibrary,
+    }),
+  );
+
   api.get('/api/market', async (request) => {
     const unavailable = () =>
       marketWorkbenchResponseSchema.parse({

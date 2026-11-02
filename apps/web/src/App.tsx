@@ -1,12 +1,19 @@
-import type { CatalogEntry, CatalogResponse } from '@poe-worksmith/contracts';
+import type {
+  CatalogEntry,
+  CatalogResponse,
+  MarketTargetInput,
+} from '@poe-worksmith/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Outlet, Route, Routes } from 'react-router-dom';
 
 import {
   defaultCatalogFilters,
+  filterMarketTargets,
   formatMarginPercent,
   filterCatalog,
   getPriceStatus,
+  marketTargetItemType,
+  marketTargetTitle,
   type CatalogFilters,
 } from './catalog.js';
 import { Money, ProfitBadge, StatusPanel } from './components.js';
@@ -14,6 +21,7 @@ import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
 import { ItemTooltip } from './ItemTooltip.js';
 import { successfulAtFormatter } from './failureStates.js';
+import { marketClient } from './marketClient.js';
 
 const itemTypes = [
   'helmet',
@@ -26,6 +34,7 @@ const itemTypes = [
   'ring',
   'amulet',
   'cluster-jewel',
+  'quiver',
 ];
 const apiClient = createApiClient();
 
@@ -49,21 +58,31 @@ function AppShell() {
 function CatalogRoute() {
   const [filters, setFilters] = useState<CatalogFilters>(defaultCatalogFilters);
   const [response, setResponse] = useState<CatalogResponse | null>(null);
+  const [marketTargets, setMarketTargets] = useState<
+    MarketTargetInput[] | null
+  >(null);
+  const [marketLibraryError, setMarketLibraryError] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const entries = response?.data?.entries ?? [];
+  const targets = marketTargets ?? [];
   const categories = useMemo(
     () =>
       [
         ...new Set([
           ...itemTypes,
           ...entries.map(({ recipe }) => recipe.category),
+          ...targets.map(({ slot }) => marketTargetItemType(slot)),
         ]),
       ].sort(),
-    [entries],
+    [entries, targets],
   );
   const filteredEntries = useMemo(
     () => filterCatalog(entries, filters),
     [entries, filters],
+  );
+  const filteredTargets = useMemo(
+    () => filterMarketTargets(targets, filters),
+    [targets, filters],
   );
 
   useEffect(() => {
@@ -75,6 +94,17 @@ function CatalogRoute() {
       })
       .catch(() => {
         if (active) setLoadError(true);
+      });
+    marketClient
+      .starterLibrary()
+      .then((profiles) => {
+        if (active) setMarketTargets(profiles);
+      })
+      .catch(() => {
+        if (active) {
+          setMarketTargets([]);
+          setMarketLibraryError(true);
+        }
       });
     return () => {
       active = false;
@@ -92,7 +122,7 @@ function CatalogRoute() {
     <>
       <section className="catalog-heading" aria-labelledby="catalog-heading">
         <div>
-          <h1 id="catalog-heading">Crafting Recipes</h1>
+          <h1 id="catalog-heading">Crafting Targets</h1>
         </div>
       </section>
 
@@ -101,24 +131,36 @@ function CatalogRoute() {
           The recipe list could not be loaded. Try again when the service is
           available.
         </StatusPanel>
-      ) : !response ? (
+      ) : null}
+
+      {marketLibraryError ? (
+        <p className="handbook-empty" role="alert">
+          Market target library could not be loaded.
+        </p>
+      ) : null}
+
+      {marketTargets === null && (!response || entries.length === 0) ? (
         <StatusPanel tone="info" title="Loading recipes" />
-      ) : entries.length === 0 ? (
+      ) : marketTargets !== null &&
+        entries.length === 0 &&
+        targets.length === 0 &&
+        !filters.search.trim() &&
+        filters.category === 'all' ? (
         <section className="empty-state" aria-labelledby="empty-heading">
-          <h2 id="empty-heading">No recipes available</h2>
-          <p>Manually maintained recipes will appear here.</p>
+          <h2 id="empty-heading">No crafting targets available</h2>
+          <p>Recipes and market targets will appear here.</p>
         </section>
       ) : (
         <>
           <section
             className="handbook-controls"
-            aria-label="Recipe search and item types"
+            aria-label="Crafting target search and item types"
           >
             <label className="catalog-search">
-              <span className="visually-hidden">Search recipes</span>
+              <span className="visually-hidden">Search items</span>
               <input
                 type="search"
-                placeholder="Search items or recipes…"
+                placeholder="Search items or targets…"
                 value={filters.search}
                 onChange={(event) => updateFilter('search', event.target.value)}
               />
@@ -148,12 +190,12 @@ function CatalogRoute() {
             </div>
           </section>
 
-          {filteredEntries.length === 0 ? (
-            <p className="handbook-empty">No recipes match these filters.</p>
+          {filteredEntries.length + filteredTargets.length === 0 ? (
+            <p className="handbook-empty">No items match these filters.</p>
           ) : (
             <section
               className="recipe-table-wrap"
-              aria-label="Crafting recipes"
+              aria-label="Crafting targets"
             >
               <table className="recipe-table">
                 <thead>
@@ -173,6 +215,12 @@ function CatalogRoute() {
                 <tbody>
                   {filteredEntries.map((entry) => (
                     <CatalogRow entry={entry} key={entry.recipe.id} />
+                  ))}
+                  {filteredTargets.map((target) => (
+                    <MarketTargetRow
+                      key={`${target.name}:${target.slot}:${target.baseTypes.join('|')}`}
+                      target={target}
+                    />
                   ))}
                 </tbody>
               </table>
@@ -233,6 +281,40 @@ function CatalogRow({ entry }: { entry: CatalogEntry }) {
           </small>
         ) : null}
       </td>
+    </tr>
+  );
+}
+
+function MarketTargetRow({ target }: { target: MarketTargetInput }) {
+  const source = target.sources[0];
+  return (
+    <tr>
+      <td>
+        <div className="recipe-table__identity recipe-table__target">
+          <div>
+            <strong>{marketTargetTitle(target)}</strong>
+            <small>
+              Market target · {target.league} {target.patch}
+            </small>
+            {source ? (
+              <a href={source.url} rel="noreferrer" target="_blank">
+                Source · {source.title}
+              </a>
+            ) : null}
+          </div>
+        </div>
+      </td>
+      <td className="recipe-table__type">
+        {marketTargetItemType(target.slot).replaceAll('-', ' ')}
+      </td>
+      <td>{target.baseTypes.join(' / ')}</td>
+      <td>Not specified</td>
+      <td>Not estimated</td>
+      <td>Not priced</td>
+      <td>Not estimated</td>
+      <td>Not estimated</td>
+      <td>Unverified</td>
+      <td>Target profile</td>
     </tr>
   );
 }

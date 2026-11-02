@@ -421,6 +421,11 @@ export const marketWorkbenchResponseSchema = z.strictObject({
   }),
 });
 
+export const marketStarterLibraryResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: z.array(marketTargetInputSchema),
+});
+
 export const marketTargetResponseSchema = z.strictObject({
   correlationId: z.uuid(),
   data: marketTargetSchema,
@@ -469,6 +474,9 @@ export type MarketSourceCapability = z.infer<
 >;
 export type MarketWorkbenchResponse = z.infer<
   typeof marketWorkbenchResponseSchema
+>;
+export type MarketStarterLibraryResponse = z.infer<
+  typeof marketStarterLibraryResponseSchema
 >;
 
 export const marketEconomyCategorySchema = z.enum([

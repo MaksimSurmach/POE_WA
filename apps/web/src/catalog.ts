@@ -1,4 +1,4 @@
-import type { CatalogEntry } from '@poe-worksmith/contracts';
+import type { CatalogEntry, MarketTargetInput } from '@poe-worksmith/contracts';
 
 const percentFormatter = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
@@ -9,6 +9,39 @@ export interface CatalogFilters {
   category: string;
   search: string;
 }
+
+export type MarketListTarget = Pick<
+  MarketTargetInput,
+  'baseTypes' | 'builds' | 'name' | 'slot' | 'sources'
+>;
+
+const itemTypeBySlot: Record<string, string> = {
+  amulet: 'amulet',
+  belt: 'belt',
+  boots: 'boots',
+  'body armour': 'body-armour',
+  'body-armour': 'body-armour',
+  gloves: 'gloves',
+  helmet: 'helmet',
+  jewel: 'jewel',
+  quiver: 'quiver',
+  ring: 'ring',
+  shield: 'shield',
+  weapon: 'weapon',
+  амулет: 'amulet',
+  ботинки: 'boots',
+  пояс: 'belt',
+  кольцо: 'ring',
+  самоцвет: 'jewel',
+  щит: 'shield',
+  'кластерный самоцвет': 'cluster-jewel',
+  жезл: 'weapon',
+  колчан: 'quiver',
+  лук: 'weapon',
+  нагрудник: 'body-armour',
+  перчатки: 'gloves',
+  шлем: 'helmet',
+};
 
 export const defaultCatalogFilters: CatalogFilters = {
   category: 'all',
@@ -26,6 +59,33 @@ export function filterCatalog(
     return (
       (!search || text.includes(search)) &&
       (filters.category === 'all' || recipe.category === filters.category)
+    );
+  });
+}
+
+export function marketTargetItemType(slot: string) {
+  const normalized = slot.trim().toLocaleLowerCase();
+  return itemTypeBySlot[normalized] ?? normalized.replaceAll(' ', '-');
+}
+
+export function marketTargetTitle(target: MarketListTarget) {
+  return [target.builds[0], target.baseTypes.join(' / ')]
+    .filter(Boolean)
+    .join(' — ');
+}
+
+export function filterMarketTargets<T extends MarketListTarget>(
+  targets: T[],
+  filters: CatalogFilters,
+) {
+  const search = filters.search.trim().toLocaleLowerCase();
+  return targets.filter((target) => {
+    const itemType = marketTargetItemType(target.slot);
+    const text =
+      `${marketTargetTitle(target)} ${target.name} ${target.slot} ${target.baseTypes.join(' ')}`.toLocaleLowerCase();
+    return (
+      (!search || text.includes(search)) &&
+      (filters.category === 'all' || itemType === filters.category)
     );
   });
 }

@@ -4,6 +4,7 @@ import {
   beltPriceUpdateSchema,
   beltPriceUpdatesResponseSchema,
   marketWorkbenchResponseSchema,
+  marketStarterLibraryResponseSchema,
   marketEconomyLeaguesResponseSchema,
   marketCollectionResponseSchema,
   marketCollectionSettingsResponseSchema,
@@ -52,6 +53,11 @@ async function request(
 }
 
 export const marketClient = {
+  async starterLibrary() {
+    return marketStarterLibraryResponseSchema.parse(
+      await request('/api/market/starter-library'),
+    ).data;
+  },
   async leagues() {
     return marketEconomyLeaguesResponseSchema.parse(
       await request('/api/market/economy/leagues'),

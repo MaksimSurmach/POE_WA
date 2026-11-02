@@ -18,7 +18,7 @@ describe('application shell', () => {
       </MemoryRouter>,
     );
 
-    expect(catalog).toContain('Crafting Recipes');
+    expect(catalog).toContain('Crafting Targets');
     expect(catalog).toContain('Loading recipes');
     expect(catalog).not.toContain('Рынок');
     expect(recipe).toContain('Loading recipe');
