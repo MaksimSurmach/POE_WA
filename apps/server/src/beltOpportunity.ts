@@ -5,12 +5,15 @@ import type {
 } from '@poe-worksmith/contracts';
 import {
   aggregateMarketListings,
+  DomainError,
   validateRecipeV1,
   type MarketListing,
 } from '@poe-worksmith/domain';
 import { calculateRecipeEconomics } from '@poe-worksmith/domain/economics';
 import { analyzeBeltSnapshot } from './beltComparability.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
+import { convertMarketQuote } from './marketCurrency.js';
+import { generateMarketTradeQuery } from './marketTradeQuery.js';
 
 type Method = NonNullable<MarketTarget['beltCraftMethod']>;
 type Price = Method['basePrice'];
@@ -31,7 +34,6 @@ async function resolvePrice(input: {
     if (
       evidence.league !== target.league ||
       evidence.patch !== target.patch ||
-      evidence.currency !== snapshot.currency ||
       evidence.dataKind !== snapshot.dataKind
     )
       return null;
@@ -44,10 +46,27 @@ async function resolvePrice(input: {
       ) > DAY
     )
       return null;
-    return {
+    const converted = await convertMarketQuote({
       money: { amount: String(evidence.amount), currency: evidence.currency },
-      evidence,
-    };
+      currency: snapshot.currency,
+      target,
+      capturedAt: snapshot.capturedAt,
+      now: input.now,
+      dataKind: snapshot.dataKind,
+      ...(input.economy ? { economy: input.economy } : {}),
+      ...(evidence.exchangeSnapshotId
+        ? { exchangeSnapshotId: evidence.exchangeSnapshotId }
+        : {}),
+    });
+    return converted
+      ? {
+          money: converted.money,
+          evidence: {
+            ...evidence,
+            ...(converted.exchange ? { exchange: converted.exchange } : {}),
+          },
+        }
+      : null;
   }
   // BaseType is an aggregate and cannot prove item level or influences.
   if (
@@ -75,15 +94,22 @@ async function resolvePrice(input: {
   const line = stored.lines.find(
     (candidate) => candidate.id === evidence.lineId,
   );
-  if (
-    !line ||
-    line.name !== input.label ||
-    !line.price.amount ||
-    line.price.currency !== snapshot.currency
-  )
-    return null;
-  return {
+  if (!line || line.name !== input.label || !line.price.amount) return null;
+  const converted = await convertMarketQuote({
     money: { amount: String(line.price.amount), currency: line.price.currency },
+    currency: snapshot.currency,
+    target,
+    capturedAt: snapshot.capturedAt,
+    now: input.now,
+    dataKind: snapshot.dataKind,
+    economy: input.economy,
+    ...(evidence.exchangeSnapshotId
+      ? { exchangeSnapshotId: evidence.exchangeSnapshotId }
+      : {}),
+  });
+  if (!converted) return null;
+  return {
+    money: converted.money,
     evidence: {
       ...evidence,
       url: stored.endpoint,
@@ -93,6 +119,7 @@ async function resolvePrice(input: {
       name: line.name,
       amount: line.price.amount,
       currency: line.price.currency,
+      ...(converted.exchange ? { exchange: converted.exchange } : {}),
     },
   };
 }
@@ -109,9 +136,12 @@ export async function evaluateBeltOpportunity(
   if (!target.sources.length) reasons.push('Build source is missing.');
   if (!/^\d+\.\d+(?:\.\d+)?$/.test(target.patch))
     reasons.push('Patch must identify a numeric game version for the recipe.');
-  if (!target.beltRules) reasons.push('Executable belt rules are missing.');
+  if (!target.beltRules && !target.tradeSearch)
+    reasons.push('Executable target rules are missing.');
   if (!method)
-    reasons.push('Craft method, probability and prices are missing.');
+    reasons.push(
+      'Craft cost model, expected attempts and dated prices are missing.',
+    );
   if (method && !method.rulesComplete)
     reasons.push('Rules are not confirmed to cover the build requirements.');
   if (!snapshot) reasons.push('No imported rare listing observation.');
@@ -122,6 +152,25 @@ export async function evaluateBeltOpportunity(
     reasons.push(
       'Need a fresh sample of at least five independent confirmed sellers.',
     );
+  let queryUrl: string | null = null;
+  try {
+    queryUrl = target.tradeSearch
+      ? generateMarketTradeQuery(target).url
+      : snapshot?.sourceUrl.startsWith(
+            'https://www.pathofexile.com/trade/search/',
+          )
+        ? snapshot.sourceUrl
+        : null;
+  } catch (error) {
+    if (
+      !(error instanceof DomainError) ||
+      error.code !== 'MARKET_QUERY_INVALID'
+    )
+      throw error;
+    reasons.push(
+      'Structured Trade mappings are unsupported; correct the profile before collection.',
+    );
+  }
   const empty = {
     targetId: target.id,
     targetDigest: target.digest,
@@ -142,12 +191,23 @@ export async function evaluateBeltOpportunity(
       expectedCraftCost: string;
       askingPrice: string;
       spread: string;
+      roiPercent: string;
+      costRange: { min: string; max: string } | null;
+      askingRange: { min: number; max: number } | null;
       currency: string;
       breakdown: unknown;
     },
     status: 'INSUFFICIENT_DATA' as
       'INSUFFICIENT_DATA' | 'RESEARCH' | 'CALCULATED',
     economicConclusion: null as null | 'POSITIVE' | 'NON_POSITIVE',
+    freshness: !snapshot
+      ? ('MISSING' as const)
+      : now < Date.parse(snapshot.capturedAt) ||
+          now - Date.parse(snapshot.capturedAt) > DAY
+        ? ('STALE' as const)
+        : ('FRESH' as const),
+    confidence: 'LOW' as 'LOW' | 'MEDIUM',
+    queryUrl,
     reasons,
   };
   if (!snapshot || !comparison || !method)
@@ -182,6 +242,35 @@ export async function evaluateBeltOpportunity(
       });
     }),
   );
+  const finishing = await Promise.all(
+    (method.finishing ?? []).map((entry) =>
+      resolvePrice({
+        evidence: priceUpdate?.finishingPrices?.[entry.id] ?? entry.price,
+        label: entry.label,
+        target,
+        snapshot,
+        economy,
+        base: false,
+        now,
+      }),
+    ),
+  );
+  const recovery = method.baseFailurePolicy?.recoveryPrice
+    ? await resolvePrice({
+        evidence:
+          priceUpdate?.recoveryPrice ?? method.baseFailurePolicy.recoveryPrice,
+        label: 'Base recovery',
+        target,
+        snapshot,
+        economy,
+        base: true,
+        now,
+      })
+    : null;
+  if (method.baseFailurePolicy?.recoveryPrice && !recovery)
+    reasons.push('Base recovery price missing or mismatched.');
+  if (finishing.some((price) => !price))
+    reasons.push('Finishing prices missing or mismatched.');
   if (!base)
     reasons.push(
       'Base price missing, stale or scope/currency/provenance mismatch; BaseType does not prove item level.',
@@ -195,6 +284,8 @@ export async function evaluateBeltOpportunity(
   const priceEvidence = [
     base?.evidence ?? null,
     ...materials.map((price) => price?.evidence ?? null),
+    ...finishing.map((price) => price?.evidence ?? null),
+    ...(recovery ? [recovery.evidence] : []),
   ];
   if (reasons.length || !base || materials.some((price) => !price))
     return { ...empty, priceEvidence };
@@ -228,7 +319,12 @@ export async function evaluateBeltOpportunity(
       title,
     })),
     estimator: { strategy: 'cheapest' },
-    finishingCosts: [],
+    finishingCosts: (method.finishing ?? []).map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      quantity: entry.quantity,
+      tradeQuery: query,
+    })),
     materials: method.materials.map((material) => ({
       id: material.id,
       label: material.label,
@@ -242,28 +338,70 @@ export async function evaluateBeltOpportunity(
     currency: snapshot.currency,
     listings,
   });
-  const result = calculateRecipeEconomics({
-    aggregation,
-    basePrice: base.money,
-    currency: snapshot.currency,
-    finishingPrices: {},
-    materialPrices: Object.fromEntries(
-      method.materials.map((material, index) => [
-        material.id,
-        materials[index]?.money,
-      ]),
-    ),
-    recipe: parsed,
-  });
+  const calculate = (attempts?: number) =>
+    calculateRecipeEconomics({
+      aggregation,
+      basePrice: base.money,
+      currency: snapshot.currency,
+      finishingPrices: Object.fromEntries(
+        (method.finishing ?? []).map((entry, index) => [
+          entry.id,
+          finishing[index]?.money,
+        ]),
+      ),
+      ...(method.baseFailurePolicy
+        ? {
+            baseFailurePolicy: {
+              replacementProbabilityPerFailure:
+                method.baseFailurePolicy.replacementProbabilityPerFailure,
+              recoveryPrice: recovery?.money ?? null,
+            },
+          }
+        : {}),
+      materialPrices: Object.fromEntries(
+        method.materials.map((material, index) => [
+          material.id,
+          materials[index]?.money,
+        ]),
+      ),
+      recipe:
+        attempts === undefined
+          ? parsed
+          : {
+              ...parsed,
+              success: {
+                mode: 'expected_attempts',
+                expectedAttempts: attempts,
+              },
+            },
+    });
+  const result = calculate();
   if (!result.ok)
     return {
       ...empty,
       priceEvidence,
       reasons: [...reasons, ...result.reasons.map((reason) => reason.message)],
     };
+  const lower = method.attemptsRange
+    ? calculate(method.attemptsRange.min)
+    : null;
+  const upper = method.attemptsRange
+    ? calculate(method.attemptsRange.max)
+    : null;
+  const askingPrices = comparison.rows
+    .filter((row) => row.status === 'MATCH')
+    .map((row) => row.price)
+    .sort((a, b) => a - b);
   return {
     ...empty,
     status: 'CALCULATED' as const,
+    confidence:
+      snapshot.coverage === 'complete' &&
+      !snapshot.inexact &&
+      snapshot.dataKind === 'observed' &&
+      target.catalog?.verification === 'verified'
+        ? ('MEDIUM' as const)
+        : ('LOW' as const),
     reasons:
       snapshot.coverage === 'partial' ||
       snapshot.coverage === 'unknown' ||
@@ -282,6 +420,17 @@ export async function evaluateBeltOpportunity(
       expectedCraftCost: result.value.breakdown.expectedCraftCost.amount,
       askingPrice: result.value.estimatedSalePrice.amount,
       spread: result.value.profit.amount,
+      roiPercent: result.value.marginPercent,
+      costRange:
+        lower?.ok && upper?.ok
+          ? {
+              min: lower.value.breakdown.expectedCraftCost.amount,
+              max: upper.value.breakdown.expectedCraftCost.amount,
+            }
+          : null,
+      askingRange: askingPrices.length
+        ? { min: askingPrices[0]!, max: askingPrices[askingPrices.length - 1]! }
+        : null,
       currency: snapshot.currency,
       breakdown: result.value.breakdown,
     },

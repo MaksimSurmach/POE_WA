@@ -1,0 +1,831 @@
+{
+  "schemaVersion": 1,
+  "profiles": [
+    {
+      "name": "Flicker Strike Slayer — Stygian Vise",
+      "game": "poe1",
+      "realm": "pc",
+      "league": "Allflame",
+      "patch": "3.29",
+      "slot": "Belt",
+      "baseTypes": ["Stygian Vise"],
+      "builds": ["Flicker Strike Slayer"],
+      "requiredMods": [
+        "Жизнь ≥100",
+        "Сумма сопротивлений стихиям ≥80%",
+        "Урон атак стихиями ≥30%: естественный или верстачный мод"
+      ],
+      "sources": [
+        {
+          "title": "Flicker Strike Slayer 3.29",
+          "url": "https://odealo.com/articles/trinity-flicker-strike-slayer-build-1",
+          "kind": "guide",
+          "notes": "Curated belt pilot; dated manual observations exist in docs/evidence. No inferred profit."
+        }
+      ],
+      "tradeSearch": {
+        "version": 1,
+        "scope": "strict",
+        "status": "available",
+        "currency": "chaos",
+        "rarity": "rare",
+        "groups": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.stat_3299347043",
+                "min": 100
+              },
+              {
+                "id": "pseudo.pseudo_total_elemental_resistance",
+                "min": 80
+              }
+            ]
+          },
+          {
+            "type": "count",
+            "min": 1,
+            "filters": [
+              {
+                "id": "explicit.stat_387439868",
+                "min": 30
+              },
+              {
+                "id": "crafted.stat_387439868",
+                "min": 30
+              }
+            ]
+          }
+        ]
+      },
+      "catalog": {
+        "key": "flicker-elemental-belt",
+        "revision": 3,
+        "progression": null,
+        "verification": "research",
+        "unknowns": [
+          "Rare belt needs character adaptation; planned PoB uses Arn’s Anguish.",
+          "No fresh recipe prices or validated full cost model."
+        ]
+      },
+      "description": "Редкий пояс с жизнью, сопротивлениями и уроном атак стихиями. Гипотеза для адаптированного Flicker Strike; не прямая замена Arn’s Anguish из сохранённого PoB.",
+      "craftVariants": [
+        {
+          "id": "harvest-attack",
+          "name": "Harvest · Reforge Attack",
+          "description": "Узкий вариант: жизнь ≥100, cold ≥42%, lightning ≥42%, урон атак стихиями ≥31%.",
+          "steps": [
+            "Купить неосквернённую Stygian Vise ilvl 85 без влияния и fracture; подготовить редкую базу.",
+            "Повторять Reforge Attack до четырёх заданных модов. Неудачи оплачиваются; база используется повторно."
+          ],
+          "assumptions": [
+            "Ссылка задаёт более узкий результат, чем рыночный профиль.",
+            "Историческая оценка CoE не является текущей ценой или гарантией.",
+            "Нужна адаптация персонажа: исходный PoB использует Arn’s Anguish."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=5%2C3%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMV1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&class=98&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM5IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDQwIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDMyIiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verification": "research"
+        }
+      ]
+    },
+    {
+      "name": "Winter Orb Elementalist — Stygian Vise",
+      "game": "poe1",
+      "realm": "pc",
+      "league": "Allflame",
+      "patch": "3.29",
+      "slot": "Belt",
+      "baseTypes": ["Stygian Vise"],
+      "builds": ["Winter Orb Elementalist"],
+      "requiredMods": [
+        "Жизнь ≥110",
+        "Chaos resistance ≥26%",
+        "Хотя бы одно сопротивление стихиям"
+      ],
+      "sources": [
+        {
+          "title": "Winter Orb Elementalist 3.29",
+          "url": "https://pobb.in/W4yCI3RRdniV",
+          "kind": "pob",
+          "notes": "Curated belt pilot; dated manual observations exist in docs/evidence. No inferred profit."
+        }
+      ],
+      "tradeSearch": {
+        "version": 1,
+        "scope": "strict",
+        "status": "available",
+        "currency": "chaos",
+        "rarity": "rare",
+        "groups": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.stat_3299347043",
+                "min": 110
+              },
+              {
+                "id": "explicit.stat_2923486259",
+                "min": 26
+              }
+            ]
+          },
+          {
+            "type": "count",
+            "min": 1,
+            "filters": [
+              {
+                "id": "explicit.stat_3372524247"
+              },
+              {
+                "id": "explicit.stat_4220027924"
+              },
+              {
+                "id": "explicit.stat_1671376347"
+              }
+            ]
+          }
+        ]
+      },
+      "catalog": {
+        "key": "winter-orb-envy-belt",
+        "revision": 3,
+        "progression": null,
+        "verification": "research",
+        "unknowns": [
+          "Other resistance needs and Allflame base replacement are unquantified.",
+          "No fresh recipe prices or validated full cost model."
+        ]
+      },
+      "description": "Stygian Vise для Winter Orb с жизнью, chaos resistance и дополнительным сопротивлением стихиям. Полная замена исходного пояса требует проверки характеристик персонажа и Abyss jewel.",
+      "craftVariants": [
+        {
+          "id": "envy",
+          "name": "Deafening Essence of Envy",
+          "description": "Узкий вариант: жизнь 130–144, fire resistance ≥42%, chaos resistance 31–35%.",
+          "steps": [
+            "Купить неосквернённую Stygian Vise ilvl 85 без влияния и fracture.",
+            "Повторять Deafening Essence of Envy до жизни T1 и fire resistance T2 или лучше."
+          ],
+          "assumptions": [
+            "Этот вариант строже рыночного профиля.",
+            "Другие характеристики исходного пояса и jewel не гарантируются.",
+            "Нужны свежие цены базы, материалов и оценка попыток."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=3%2C19%2C99&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoibm9ybWFsIiwiaWYiOltdLCJpcCI6W1sxXV0sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&class=98&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM4IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verification": "research"
+        }
+      ]
+    },
+    {
+      "name": "RF: шлем под Fire Trap",
+      "game": "poe1",
+      "realm": "pc",
+      "league": "Allflame",
+      "patch": "3.29",
+      "slot": "Helmet",
+      "baseTypes": ["Archdemon Crown"],
+      "builds": ["RF Chieftain"],
+      "requiredMods": [
+        "Socketed Burning Damage support",
+        "Socketed Concentrated Effect support"
+      ],
+      "minItemLevel": 83,
+      "influences": ["elder"],
+      "corrupted": false,
+      "sources": [
+        {
+          "title": "Pohx RF Chieftain",
+          "url": "https://mobalytics.gg/poe/builds/pohx-righteous-fire-chieftain",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: guide; source ID: S10."
+        },
+        {
+          "title": "HS04",
+          "url": "https://pohx.net/crafts/elder-ft-helmet/",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: primary_craft_guide; source ID: HS04."
+        },
+        {
+          "title": "HS08",
+          "url": "https://repoe-fork.github.io/poe1.html",
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: datamined_game_data; source ID: HS08."
+        },
+        {
+          "title": "BC07",
+          "url": "https://pohx.net/crafts/elder-ft-helmet/",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: primary_craft_guide; source ID: HS04."
+        }
+      ],
+      "tradeSearch": {
+        "version": 1,
+        "scope": "strict",
+        "status": "available",
+        "currency": "chaos",
+        "rarity": "rare",
+        "groups": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.stat_2680613507"
+              },
+              {
+                "id": "explicit.stat_2388360415"
+              },
+              {
+                "id": "crafted.stat_2551600084",
+                "min": 1
+              },
+              {
+                "id": "crafted.stat_280731498",
+                "min": 8
+              }
+            ]
+          }
+        ],
+        "fractured": false
+      },
+      "catalog": {
+        "key": "rf-fire-trap-helmet",
+        "revision": 4,
+        "progression": "upgrade",
+        "verification": "research",
+        "unknowns": [
+          "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+          "No life/resistance floor, sockets/links/quality minimum, sale or optimality included.",
+          "No current base/material quotes or expected attempts; craft economics intentionally unavailable.",
+          "Trade matcher checks the declared item scope, not full character equivalence."
+        ],
+        "evidence": {
+          "checkedAt": "2026-10-30",
+          "historicalWeek": null,
+          "recipe": {
+            "profile_id": "rf-fire-trap-helmet",
+            "status": "ACCEPTED_SCOPED_RECIPE",
+            "scope": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25.",
+            "starting_base": {
+              "base": "Archdemon Crown",
+              "ilvl": 83,
+              "rarity": "rare",
+              "influence": "Elder only",
+              "fractured": false,
+              "corrupted": false,
+              "native_implicit": "+2 socketed skill gems / -2 socketed support gems",
+              "acquisition": "Paid existing Elder base. First10 dated official Trade asks all ilvl83,1 Divine each; real offers establish obtainable input without relying on theoretical82.",
+              "acquisition_ref": "followup-market-rf/elder-archdemon-base82.asks.json",
+              "price_kind": "dated asking prices, not purchases/sales"
+            },
+            "steps": [
+              "From acquired rare Elder83: Harvest Reforge Fire until Conc AND Burning AND open prefix. Reject all other rolls, including a desired pair with no bench slot.",
+              "Bench8-10% AoE/+1 socketed AoE gems for4Chaos. Stop."
+            ],
+            "failure_recovery": [
+              "Direct Fire reforge consumes50Wild and rerolls all explicits, including bench; retains Elder and native implicit. No Scour needed per failure.",
+              "If acquired magic/normal, use appropriate rarity preparation first; selected priced input is rare. No donor/Awakener/influence addition assumed free."
+            ],
+            "verified_finished_examples": [
+              {
+                "target": "any support tier",
+                "conc": 20,
+                "burn": 18,
+                "bench_aoe": 9,
+                "bench_gems": 1,
+                "ilvl": 83
+              },
+              {
+                "target": "20/20",
+                "conc": 20,
+                "burn": 20,
+                "bench_aoe": 8,
+                "bench_gems": 1,
+                "ilvl": 83
+              }
+            ],
+            "examples_are_not_universal_build_minimums": true,
+            "source_receipt_ref": "closure-bases/results.json",
+            "evidence_refs": [
+              "closure-bases/rf83-any-calculator.dom.txt",
+              "closure-bases/rf83-any-calculator-url.txt",
+              "closure-bases/rf83-any-finish.dom.txt",
+              "closure-bases/rf83-tier20-calculator.dom.txt",
+              "closure-bases/rf83-tier20-calculator-url.txt",
+              "closure-bases/rf83-tier20-finish.item.txt",
+              "closure-bases/rf83-tier20-finish.png",
+              "closure-bases/rf83-reforge-failure.dom.txt"
+            ],
+            "limits": [
+              "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+              "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+            ],
+            "financial_acceptance": false
+          },
+          "decision": {
+            "profile_id": "rf-fire-trap-helmet",
+            "checked_date": "2026-10-30",
+            "build_scope": "FT/SearingBondOfDetonation inhelmet; standardRF itself outsidehelmet",
+            "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+            "production_ready": false,
+            "profit": null,
+            "decision": "ACCEPTED_SCOPED_RECIPE",
+            "canonical_profile_id": "rf-fire-trap-helmet",
+            "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+            "recipe_ref": "final-recipes.json",
+            "scope": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25.",
+            "base_conditions": {
+              "base": "Archdemon Crown",
+              "ilvl": 83,
+              "rarity": "rare",
+              "influence": "Elder only",
+              "fractured": false,
+              "corrupted": false,
+              "native_implicit": "+2 socketed skill gems / -2 socketed support gems",
+              "acquisition": "Paid existing Elder base. First10 dated official Trade asks all ilvl83,1 Divine each; real offers establish obtainable input without relying on theoretical82.",
+              "acquisition_ref": "followup-market-rf/elder-archdemon-base82.asks.json",
+              "price_kind": "dated asking prices, not purchases/sales"
+            },
+            "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+            "outside_scope": [
+              "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+              "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+            ],
+            "recipe_profile_id": "rf-fire-trap-helmet"
+          },
+          "inputHashes": {
+            "catalog.reviewed.json": "86597c741f78a252c1c6204d99528b4dd251c05a681355bf724879c71307a2e6",
+            "final-recipes.json": "2aea998ff77aca18908182f8ad35152458b6ee555d284ab70b8c056bad8a2cac",
+            "final-decisions.json": "faa8a70509b813ec42a5656b11b49c01d4d2f04f040d3c7ff4776872b6a0cbd0"
+          },
+          "craftOfExileLinkCheck": {
+            "checkedAt": "2026-11-02T00:17:44.666Z",
+            "concentratedEffectId": "2840",
+            "burningDamageId": "2845",
+            "note": "Replaced stale calculator IDs 2839/2844 after checking rendered requirements; IDs are CoE-specific, not Trade stat IDs."
+          }
+        }
+      },
+      "description": "Elder Archdemon Crown под Fire Trap или Searing Bond of Detonation в RF Chieftain: два встроенных support и верстачный AoE. Не шлем для размещения самого RF.",
+      "craftVariants": [
+        {
+          "id": "fire-reforge",
+          "name": "Harvest · Reforge Fire",
+          "description": "Любые уровни Burning Damage и Concentrated Effect + свободный префикс.",
+          "steps": [
+            "From acquired rare Elder83: Harvest Reforge Fire until Conc AND Burning AND open prefix. Reject all other rolls, including a desired pair with no bench slot.",
+            "Bench8-10% AoE/+1 socketed AoE gems for4Chaos. Stop."
+          ],
+          "assumptions": [
+            "Direct Fire reforge consumes50Wild and rerolls all explicits, including bench; retains Elder and native implicit. No Scour needed per failure.",
+            "If acquired magic/normal, use appropriate rarity preparation first; selected priced input is rare. No donor/Awakener/influence addition assumed free.",
+            "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+            "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&game=poe1&class=73",
+          "verification": "research"
+        },
+        {
+          "id": "fire-reforge-20",
+          "name": "Harvest · уровни 20/20",
+          "description": "Более строгий результат, чем профиль рынка: оба support уровня 20.",
+          "steps": [
+            "Редкая Elder Archdemon Crown ilvl 83 без fracture и corruption.",
+            "Reforge Fire до обоих support уровня 20 и свободного префикса.",
+            "Верстак: +1 socketed AoE gems / 8–10% AoE."
+          ],
+          "assumptions": [
+            "Не используйте цену общей выборки как оценку результата 20/20.",
+            "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+            "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyODQ1IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tcHJlZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&game=poe1&class=73",
+          "verification": "research"
+        }
+      ]
+    },
+    {
+      "name": "Spectre: редкий шлем с уровнями приспешников",
+      "game": "poe1",
+      "realm": "pc",
+      "league": "Allflame",
+      "patch": "3.29",
+      "slot": "Helmet",
+      "baseTypes": ["Bone Helmet"],
+      "builds": ["Spectre Summoner"],
+      "requiredMods": ["Minion gem levels", "Life"],
+      "minItemLevel": 75,
+      "influences": [],
+      "corrupted": false,
+      "sources": [
+        {
+          "title": "Spectre Summoner gear",
+          "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: guide; source ID: S12."
+        },
+        {
+          "title": "Spectre PoB links",
+          "url": "https://www.poe-vault.com/guides/the-spectre-summoner-pob-passive-skill-tree-gem-links",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: guide; source ID: S18."
+        },
+        {
+          "title": "Spectre shared PoB",
+          "url": "https://pobb.in/0rBi20lhVp9l",
+          "kind": "pob",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: pob; source ID: S19."
+        },
+        {
+          "title": "HS02",
+          "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: guide; source ID: S12."
+        },
+        {
+          "title": "HS08",
+          "url": "https://repoe-fork.github.io/poe1.html",
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: datamined_game_data; source ID: HS08."
+        },
+        {
+          "title": "HS12",
+          "url": "https://poedb.tw/us/The_Dark_Monarch",
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: item_reference; source ID: HS12."
+        },
+        {
+          "title": "HS13",
+          "url": "https://poedb.tw/us/Wraithlord",
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: item_reference; source ID: HS13."
+        },
+        {
+          "title": "HS15",
+          "url": "https://pobarchives.com/craft/poe/hhJbX69b",
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: simulated_craft_example; source ID: HS15."
+        },
+        {
+          "title": "BC02",
+          "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. Original source kind: guide; source ID: S12."
+        }
+      ],
+      "tradeSearch": {
+        "version": 1,
+        "scope": "strict",
+        "status": "available",
+        "currency": "chaos",
+        "rarity": "rare",
+        "groups": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.stat_2162097452",
+                "min": 2
+              },
+              {
+                "id": "explicit.stat_3299347043"
+              },
+              {
+                "id": "implicit.stat_1589917703",
+                "min": 15
+              }
+            ]
+          }
+        ]
+      },
+      "catalog": {
+        "key": "spectre-minion-helmet",
+        "revision": 3,
+        "progression": "budget/upgrade",
+        "verification": "research",
+        "unknowns": [
+          "92life is accepted only where current author does not require100. No100 guarantee, exact Praetor defence/gem/bench replication, Wraithlord/Dark Monarch replacement or current character-cap claim.",
+          "No current base/material quotes or expected attempts; craft economics intentionally unavailable.",
+          "Trade matcher checks the declared item scope, not full character equivalence."
+        ],
+        "evidence": {
+          "checkedAt": "2026-10-30",
+          "historicalWeek": null,
+          "recipe": {
+            "profile_id": "spectre-minion-helmet",
+            "status": "ACCEPTED_SCOPED_RECIPE",
+            "scope": "Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction.",
+            "starting_base": {
+              "base": "Bone Helmet",
+              "ilvl": 75,
+              "rarity": "normal or rare",
+              "influence": "none",
+              "fractured": false,
+              "corrupted": false,
+              "native_implicit": "15-20% minion damage; natural fresh example16, retained prior full finish18",
+              "acquisition": "Ordinary base at75; natural base requires73 and reaches+2 minion floor75. Buy/drop eligible base, no fractured+2 input assumed.",
+              "price": null,
+              "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+            },
+            "steps": [
+              "Deafening Greed until+2 all minion skill gems AND an open suffix. Life91-105.",
+              "Bench a compatible elemental resistance29-35 for3Chaos. Stop."
+            ],
+            "failure_recovery": [
+              "If+2 or suffix missing, pay another Greed and discard all prior explicits.",
+              "Fresh real failure: life100 and3 full suffixes but no+2; paid Scour removed all explicits and retained Bone16% implicit and75."
+            ],
+            "verified_finished_examples": [
+              {
+                "from": "retained same-date full chain",
+                "life": 92,
+                "minion_gems": 2,
+                "crafted_fire_resistance": 33,
+                "native_minion_damage": 18
+              }
+            ],
+            "examples_are_not_universal_build_minimums": true,
+            "source_receipt_ref": "closure-bases/results.json",
+            "evidence_refs": [
+              "closure-bases/bone75-natural.dom.txt",
+              "closure-bases/bone75-greed-failure.dom.txt",
+              "closure-bases/bone75-paid-scour.dom.txt",
+              "closure-bases/../followup-helm/minion-helmet-chain/results.json",
+              "closure-bases/../followup-helm/minion-helmet-chain/plus2-finish.ax.txt"
+            ],
+            "limits": [
+              "92life is accepted only where current author does not require100. No100 guarantee, exact Praetor defence/gem/bench replication, Wraithlord/Dark Monarch replacement or current character-cap claim."
+            ],
+            "financial_acceptance": false
+          },
+          "decision": {
+            "profile_id": "spectre-minion-helmet",
+            "checked_date": "2026-10-30",
+            "build_scope": "LowBudgetEndGame rare beforeDarkMonarch",
+            "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+            "production_ready": false,
+            "profit": null,
+            "decision": "ACCEPTED_SCOPED_RECIPE",
+            "canonical_profile_id": "spectre-minion-helmet",
+            "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+            "recipe_ref": "final-recipes.json",
+            "scope": "Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction.",
+            "base_conditions": {
+              "base": "Bone Helmet",
+              "ilvl": 75,
+              "rarity": "normal or rare",
+              "influence": "none",
+              "fractured": false,
+              "corrupted": false,
+              "native_implicit": "15-20% minion damage; natural fresh example16, retained prior full finish18",
+              "acquisition": "Ordinary base at75; natural base requires73 and reaches+2 minion floor75. Buy/drop eligible base, no fractured+2 input assumed.",
+              "price": null,
+              "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+            },
+            "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+            "outside_scope": [
+              "92life is accepted only where current author does not require100. No100 guarantee, exact Praetor defence/gem/bench replication, Wraithlord/Dark Monarch replacement or current character-cap claim."
+            ],
+            "recipe_profile_id": "spectre-minion-helmet"
+          },
+          "inputHashes": {
+            "catalog.reviewed.json": "86597c741f78a252c1c6204d99528b4dd251c05a681355bf724879c71307a2e6",
+            "final-recipes.json": "2aea998ff77aca18908182f8ad35152458b6ee555d284ab70b8c056bad8a2cac",
+            "final-decisions.json": "faa8a70509b813ec42a5656b11b49c01d4d2f04f040d3c7ff4776872b6a0cbd0"
+          }
+        }
+      },
+      "description": "Bone Helmet для раннего life-based Spectre: +2 ко всем minion gems, жизнь и природный minion damage implicit. Не точная копия Praetor из PoB.",
+      "craftVariants": [
+        {
+          "id": "greed",
+          "name": "Deafening Essence of Greed",
+          "description": "Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction.",
+          "steps": [
+            "Deafening Greed until+2 all minion skill gems AND an open suffix. Life91-105.",
+            "Bench a compatible elemental resistance29-35 for3Chaos. Stop."
+          ],
+          "assumptions": [
+            "If+2 or suffix missing, pay another Greed and discard all prior explicits.",
+            "Fresh real failure: life100 and3 full suffixes but no+2; paid Scour removed all explicits and retained Bone16% implicit and75.",
+            "92life is accepted only where current author does not require100. No100 guarantee, exact Praetor defence/gem/bench replication, Wraithlord/Dark Monarch replacement or current character-cap claim."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltbMThdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoyMTEsImVuZXJneXNoaWVsZCI6NDV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&class=73",
+          "verification": "research"
+        }
+      ]
+    },
+    {
+      "name": "Lacerate: восстановление жизни при блоке",
+      "game": "poe1",
+      "realm": "pc",
+      "league": "Allflame",
+      "patch": "3.29",
+      "slot": "Shield",
+      "baseTypes": ["Pinnacle Tower Shield"],
+      "builds": ["Lacerate Gladiator"],
+      "requiredMods": ["Recover life% on block"],
+      "minItemLevel": 70,
+      "influences": ["shaper"],
+      "corrupted": false,
+      "sources": [
+        {
+          "title": "Lacerate Gladiator gear",
+          "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: guide; source ID: S11."
+        },
+        {
+          "title": "Lacerate PoB links",
+          "url": "https://www.poe-vault.com/guides/lacerate-gladiator-passive-skill-tree-gem-links",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: guide; source ID: S16."
+        },
+        {
+          "title": "Lacerate shared low-budget PoB",
+          "url": "https://pobb.in/i8A9gJKkJ8TR",
+          "kind": "pob",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: pob; source ID: S17."
+        },
+        {
+          "title": "HS01",
+          "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: guide; source ID: S11."
+        },
+        {
+          "title": "HS08",
+          "url": "https://repoe-fork.github.io/poe1.html",
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: datamined_game_data; source ID: HS08."
+        },
+        {
+          "title": "HS09",
+          "url": "https://www.poe-vault.com/guides/crafting-basic-shields",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: older_craft_guide; source ID: HS09."
+        },
+        {
+          "title": "HS10",
+          "url": "https://poedb.tw/us/The_Surrender",
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: item_reference; source ID: HS10."
+        },
+        {
+          "title": "BC03",
+          "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. Original source kind: guide; source ID: S11."
+        }
+      ],
+      "tradeSearch": {
+        "version": 1,
+        "scope": "strict",
+        "status": "available",
+        "currency": "chaos",
+        "rarity": "rare",
+        "groups": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.stat_2442647190"
+              },
+              {
+                "id": "explicit.stat_3299347043"
+              }
+            ]
+          }
+        ]
+      },
+      "catalog": {
+        "key": "lacerate-block-shield",
+        "revision": 4,
+        "progression": "intermediate rare upgrade",
+        "verification": "research",
+        "unknowns": [
+          "No armour, suppression, resistance-cap or endgame Synthesised replacement claim. Shaper acquired-input market price not measured here.",
+          "No current base/material quotes or expected attempts; craft economics intentionally unavailable.",
+          "Trade matcher checks the declared item scope, not full character equivalence."
+        ],
+        "evidence": {
+          "checkedAt": "2026-10-30",
+          "historicalWeek": null,
+          "recipe": {
+            "profile_id": "lacerate-block-shield",
+            "status": "ACCEPTED_SCOPED_RECIPE",
+            "scope": "Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield.",
+            "starting_base": {
+              "base": "Pinnacle Tower Shield",
+              "ilvl": 70,
+              "rarity": "normal or rare acquired Shaper base",
+              "influence": "Shaper only",
+              "fractured": false,
+              "corrupted": false,
+              "native_implicit": "+20-30 life; verified21",
+              "acquisition": "Explicit paid Shaper base input; UI influence toggle represents acquired state and is not a free in-game influence operation. Natural Pinnacle floor70 confirmed; old68 representative rejected.",
+              "price": null,
+              "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+            },
+            "steps": [
+              "Deafening Greed until recovery4-5% AND an open suffix. Greed guarantees130-144 explicit life.",
+              "Bench compatible elemental resistance29-35 in open suffix for3Chaos. Stop."
+            ],
+            "failure_recovery": [
+              "Reject numeric3% even if recovery affix exists; repeat Greed, paying each essence.",
+              "Real Greed retry discarded recovery and bench; paid Scour retained Shaper, natural21life, ilvl70 and base. Reuse normal result with Deafening Greed."
+            ],
+            "verified_finished_examples": [
+              {
+                "explicit_life": 139,
+                "native_life": 21,
+                "total_flat_life": 160,
+                "recover_life_on_block_percent": 5,
+                "crafted_fire_resistance": 33,
+                "all_elemental_resistance": 16,
+                "armour": 900
+              }
+            ],
+            "examples_are_not_universal_build_minimums": true,
+            "source_receipt_ref": "closure-bases/results.json",
+            "evidence_refs": [
+              "closure-bases/pinnacle70-natural.dom.txt",
+              "closure-bases/pinnacle70-shaper-acquired.item.txt",
+              "closure-bases/pinnacle70-recovery3-reject.item.txt",
+              "closure-bases/pinnacle70-finish.item.txt",
+              "closure-bases/pinnacle70-finish.png",
+              "closure-bases/pinnacle70-greed-retry-failure.dom.txt",
+              "closure-bases/pinnacle70-paid-scour.item.txt"
+            ],
+            "limits": [
+              "No armour, suppression, resistance-cap or endgame Synthesised replacement claim. Shaper acquired-input market price not measured here."
+            ],
+            "financial_acceptance": false
+          },
+          "decision": {
+            "profile_id": "lacerate-block-shield",
+            "checked_date": "2026-10-30",
+            "build_scope": "Intermediate Shaper life-block shield beforeSurrender",
+            "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+            "production_ready": false,
+            "profit": null,
+            "decision": "ACCEPTED_SCOPED_RECIPE",
+            "canonical_profile_id": "lacerate-block-shield",
+            "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+            "recipe_ref": "final-recipes.json",
+            "scope": "Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield.",
+            "base_conditions": {
+              "base": "Pinnacle Tower Shield",
+              "ilvl": 70,
+              "rarity": "normal or rare acquired Shaper base",
+              "influence": "Shaper only",
+              "fractured": false,
+              "corrupted": false,
+              "native_implicit": "+20-30 life; verified21",
+              "acquisition": "Explicit paid Shaper base input; UI influence toggle represents acquired state and is not a free in-game influence operation. Natural Pinnacle floor70 confirmed; old68 representative rejected.",
+              "price": null,
+              "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+            },
+            "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+            "outside_scope": [
+              "No armour, suppression, resistance-cap or endgame Synthesised replacement claim. Shaper acquired-input market price not measured here."
+            ],
+            "recipe_profile_id": "lacerate-block-shield"
+          },
+          "inputHashes": {
+            "catalog.reviewed.json": "86597c741f78a252c1c6204d99528b4dd251c05a681355bf724879c71307a2e6",
+            "final-recipes.json": "2aea998ff77aca18908182f8ad35152458b6ee555d284ab70b8c056bad8a2cac",
+            "final-decisions.json": "faa8a70509b813ec42a5656b11b49c01d4d2f04f040d3c7ff4776872b6a0cbd0"
+          },
+          "craftOfExileLinkCheck": {
+            "checkedAt": "2026-11-02T00:27:48.915Z",
+            "shaperLifeOnBlockId": "1868",
+            "method": "Deafening Essence of Greed",
+            "note": "Corrected the stale requirement that opened chance to Shock on Block. Numeric recovery >=4 is a manual acceptance check."
+          }
+        }
+      },
+      "description": "Промежуточный Shaper щит для Lacerate: восстановление жизни при блоке и высокая плоская жизнь. Не замена конечного Synthesised щита.",
+      "craftVariants": [
+        {
+          "id": "greed",
+          "name": "Deafening Essence of Greed",
+          "description": "Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield.",
+          "steps": [
+            "Deafening Greed until recovery4-5% AND an open suffix. Greed guarantees130-144 explicit life.",
+            "Bench compatible elemental resistance29-35 in open suffix for3Chaos. Stop."
+          ],
+          "assumptions": [
+            "Reject numeric3% even if recovery affix exists; repeat Greed, paying each essence.",
+            "Real Greed retry discarded recovery and bench; paid Scour retained Shaper, natural21life, ilvl70 and base. Reuse normal result with Deafening Greed.",
+            "No armour, suppression, resistance-cap or endgame Synthesised replacement claim. Shaper acquired-input market price not measured here.",
+            "CoE задаёт наличие recovery и свободного суффикса. Числовой roll 4–5% нужно проверять вручную; 3% не принимается и не включён в вероятность калькулятора."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?game=poe1&group=16&item=926&method=3%2C2%2C20&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9TaGllbGRzL1NoaWVsZFN0cjE3IiwibSI6W3siayI6IkluY3JlYXNlZExpZmU5IiwidiI6WzEzOV0sImYiOlsiZSJdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZFBoeXNpY2FsRGFtYWdlUmVkdWN0aW9uUmF0aW5nUGVyY2VudDUiLCJ2IjpbNzldLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQWxsUmVzaXN0YW5jZXM1IiwidiI6WzE2XSwiZiI6W10sInAiOm51bGx9LHsiayI6IlJlY292ZXJMaWZlUGVyY2VudE9uQmxvY2tVYmVyMV8iLCJ2IjpbNV0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJFaW5oYXJNYXN0ZXJGaXJlUmVzaXN0M18iLCJ2IjpbMzNdLCJmIjpbXSwicCI6bnVsbH1dLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3MCwiciI6InJhcmUiLCJpZiI6WzBdLCJpcCI6W1syMV1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjUwM30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&influences=0&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxODY4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoic3BlY2lhbDpvcGVuLXN1ZmZpeCIsInQiOiIxIiwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&ilvl=70&class=114",
+          "verification": "research"
+        }
+      ]
+    }
+  ]
+}

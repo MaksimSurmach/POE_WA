@@ -6,7 +6,7 @@ The primary UI now investigates **what to craft**: build-linked target profiles,
 observations of comparable asking prices, source provenance and snapshot history.
 The previous recipe catalogue remains at `/catalog`.
 
-Requirements remain Node 22 and pnpm 11. After installing dependencies:
+Requirements are Node 22.13+ within Node 22, pnpm 11, and PostgreSQL 17. After installing dependencies:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -34,9 +34,7 @@ links, and import a JSON snapshot. See [observation format](docs/market-observat
 [data source capabilities](docs/market-data-sources.md), and the
 [M1 implementation plan](docs/plans/2026-10-29-crafter-market-intelligence.md).
 
-This is the first delivery within M1. Automated rare-listing access, PoB parsing,
-structured mod matching and a crafting-profit model are not complete. Asking
-prices, base estimates and completed transactions are different evidence types.
+The working beta adds versioned JSON catalog import, structured Trade queries, a separately configured session-capable search/fetch provider, matching, supply history and scenario-based craft economics. Automatic Trade access is off by default. Owner-configured live search/fetch is verified: five profiles, 12 persisted real observations including retained revisions, and one source-backed approximate RF cost/spread scenario. Other profiles still lack complete current cost models. See [beta setup, secure environment variables and verification](docs/market-engine-beta.md). Asking prices, base estimates and completed transactions remain different evidence types.
 
 ### Public economy collection
 

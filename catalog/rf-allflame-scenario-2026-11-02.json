@@ -1,0 +1,304 @@
+{
+  "schemaVersion": 1,
+  "profiles": [
+    {
+      "name": "RF: шлем под Fire Trap",
+      "game": "poe1",
+      "realm": "pc",
+      "league": "Allflame",
+      "patch": "3.29",
+      "slot": "Helmet",
+      "baseTypes": ["Archdemon Crown"],
+      "builds": ["RF Chieftain"],
+      "requiredMods": [
+        "Socketed Burning Damage support",
+        "Socketed Concentrated Effect support"
+      ],
+      "minItemLevel": 83,
+      "influences": ["elder"],
+      "corrupted": false,
+      "sources": [
+        {
+          "title": "Pohx RF Chieftain",
+          "url": "https://mobalytics.gg/poe/builds/pohx-righteous-fire-chieftain",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: guide; source ID: S10."
+        },
+        {
+          "title": "HS04",
+          "url": "https://pohx.net/crafts/elder-ft-helmet/",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: primary_craft_guide; source ID: HS04."
+        },
+        {
+          "title": "HS08",
+          "url": "https://repoe-fork.github.io/poe1.html",
+          "kind": "manual",
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: datamined_game_data; source ID: HS08."
+        },
+        {
+          "title": "BC07",
+          "url": "https://pohx.net/crafts/elder-ft-helmet/",
+          "kind": "guide",
+          "notes": "MAX-1288 checked 2026-10-30; Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Original source kind: primary_craft_guide; source ID: HS04."
+        },
+        {
+          "title": "CoE · текущий сценарий RF ilvl83",
+          "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&game=poe1&class=73",
+          "kind": "manual",
+          "notes": "Rendered requirements and rounded expectation checked on 2026-11-02; scenario only, not in-game or financial acceptance."
+        }
+      ],
+      "tradeSearch": {
+        "version": 1,
+        "scope": "strict",
+        "status": "available",
+        "currency": "chaos",
+        "rarity": "rare",
+        "groups": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.stat_2680613507"
+              },
+              {
+                "id": "explicit.stat_2388360415"
+              },
+              {
+                "id": "crafted.stat_2551600084",
+                "min": 1
+              },
+              {
+                "id": "crafted.stat_280731498",
+                "min": 8
+              }
+            ]
+          }
+        ],
+        "fractured": false
+      },
+      "catalog": {
+        "key": "rf-fire-trap-helmet",
+        "revision": 5,
+        "progression": "upgrade",
+        "verification": "research",
+        "unknowns": [
+          "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+          "No life/resistance floor, sockets/links/quality minimum, sale or optimality included.",
+          "Trade matcher checks the declared item scope, not full character equivalence.",
+          "CoE expectation is rounded and has not been independently validated in live-game trials.",
+          "Scenario uses an existing rare Elder base at a dated asking price; alternative base-preparation routes and gold fees are excluded.",
+          "This scenario is not a proven sale, optimal recipe or full character/build equivalence."
+        ],
+        "evidence": {
+          "checkedAt": "2026-10-30",
+          "historicalWeek": null,
+          "recipe": {
+            "profile_id": "rf-fire-trap-helmet",
+            "status": "ACCEPTED_SCOPED_RECIPE",
+            "scope": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25.",
+            "starting_base": {
+              "base": "Archdemon Crown",
+              "ilvl": 83,
+              "rarity": "rare",
+              "influence": "Elder only",
+              "fractured": false,
+              "corrupted": false,
+              "native_implicit": "+2 socketed skill gems / -2 socketed support gems",
+              "acquisition": "Paid existing Elder base. First10 dated official Trade asks all ilvl83,1 Divine each; real offers establish obtainable input without relying on theoretical82.",
+              "acquisition_ref": "followup-market-rf/elder-archdemon-base82.asks.json",
+              "price_kind": "dated asking prices, not purchases/sales"
+            },
+            "steps": [
+              "From acquired rare Elder83: Harvest Reforge Fire until Conc AND Burning AND open prefix. Reject all other rolls, including a desired pair with no bench slot.",
+              "Bench8-10% AoE/+1 socketed AoE gems for4Chaos. Stop."
+            ],
+            "failure_recovery": [
+              "Direct Fire reforge consumes50Wild and rerolls all explicits, including bench; retains Elder and native implicit. No Scour needed per failure.",
+              "If acquired magic/normal, use appropriate rarity preparation first; selected priced input is rare. No donor/Awakener/influence addition assumed free."
+            ],
+            "verified_finished_examples": [
+              {
+                "target": "any support tier",
+                "conc": 20,
+                "burn": 18,
+                "bench_aoe": 9,
+                "bench_gems": 1,
+                "ilvl": 83
+              },
+              {
+                "target": "20/20",
+                "conc": 20,
+                "burn": 20,
+                "bench_aoe": 8,
+                "bench_gems": 1,
+                "ilvl": 83
+              }
+            ],
+            "examples_are_not_universal_build_minimums": true,
+            "source_receipt_ref": "closure-bases/results.json",
+            "evidence_refs": [
+              "closure-bases/rf83-any-calculator.dom.txt",
+              "closure-bases/rf83-any-calculator-url.txt",
+              "closure-bases/rf83-any-finish.dom.txt",
+              "closure-bases/rf83-tier20-calculator.dom.txt",
+              "closure-bases/rf83-tier20-calculator-url.txt",
+              "closure-bases/rf83-tier20-finish.item.txt",
+              "closure-bases/rf83-tier20-finish.png",
+              "closure-bases/rf83-reforge-failure.dom.txt"
+            ],
+            "limits": [
+              "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+              "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+            ],
+            "financial_acceptance": false
+          },
+          "decision": {
+            "profile_id": "rf-fire-trap-helmet",
+            "checked_date": "2026-10-30",
+            "build_scope": "FT/SearingBondOfDetonation inhelmet; standardRF itself outsidehelmet",
+            "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+            "production_ready": false,
+            "profit": null,
+            "decision": "ACCEPTED_SCOPED_RECIPE",
+            "canonical_profile_id": "rf-fire-trap-helmet",
+            "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+            "recipe_ref": "final-recipes.json",
+            "scope": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25.",
+            "base_conditions": {
+              "base": "Archdemon Crown",
+              "ilvl": 83,
+              "rarity": "rare",
+              "influence": "Elder only",
+              "fractured": false,
+              "corrupted": false,
+              "native_implicit": "+2 socketed skill gems / -2 socketed support gems",
+              "acquisition": "Paid existing Elder base. First10 dated official Trade asks all ilvl83,1 Divine each; real offers establish obtainable input without relying on theoretical82.",
+              "acquisition_ref": "followup-market-rf/elder-archdemon-base82.asks.json",
+              "price_kind": "dated asking prices, not purchases/sales"
+            },
+            "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+            "outside_scope": [
+              "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+              "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+            ],
+            "recipe_profile_id": "rf-fire-trap-helmet"
+          },
+          "inputHashes": {
+            "catalog.reviewed.json": "86597c741f78a252c1c6204d99528b4dd251c05a681355bf724879c71307a2e6",
+            "final-recipes.json": "2aea998ff77aca18908182f8ad35152458b6ee555d284ab70b8c056bad8a2cac",
+            "final-decisions.json": "faa8a70509b813ec42a5656b11b49c01d4d2f04f040d3c7ff4776872b6a0cbd0"
+          },
+          "craftOfExileLinkCheck": {
+            "checkedAt": "2026-11-02T00:17:44.666Z",
+            "concentratedEffectId": "2840",
+            "burningDamageId": "2845",
+            "note": "Replaced stale calculator IDs 2839/2844 after checking rendered requirements; IDs are CoE-specific, not Trade stat IDs."
+          },
+          "quantitativeScenario": {
+            "checkedAt": "2026-11-02T00:17:44.666Z",
+            "expectedAttempts": 94,
+            "expectationKind": "Rounded external CoE estimate, not empirical spending",
+            "currencySnapshotId": "9de0a93c-d3ad-4ba4-9219-a38840b8b3f4",
+            "baseQuoteAt": "2026-11-02T00:22:41.532Z",
+            "baseQueryId": "H4sIAAAAAAAAA62SwWrDMAyGX2X4HHbZZfQ29hijGM1WsMCxjSy3lJB3n9LQksACPeQk-7f-T7Kt0VQBadWcRpOLUE7mZOACFOE3opk6I7eCqn2xCx6HnN6-OV-T6e5G9f2Mj5SUReWeoiAvB-RVLhWbz-9LsAGqrQEKsqXUx4bJaZnz1D0xkPxrGIx-n_JyM45bhSNAjB5xOAAUWpIDMFfgmNlvOeeVdUHa1X61ZGCS22YsVFLGpDMxUHU7PoqXOMeB1PL5ockuM7ci6DewHmK9z1fP4KTp41kSHP7LmSsK6x_tlCxMerm10QXIdTZO0x_9ALmY4QIAAA",
+            "baseListingId": "426e68f9c7b970f9f0b848e70595f9c4ce732df28c4c8354741d9693807a4ce4",
+            "receipt": "docs/evidence/market-beta-rf-scenario-2026-11-02.json"
+          }
+        }
+      },
+      "description": "Elder Archdemon Crown под Fire Trap или Searing Bond of Detonation в RF Chieftain: два встроенных support и верстачный AoE. Не шлем для размещения самого RF.",
+      "craftVariants": [
+        {
+          "id": "fire-reforge",
+          "name": "Harvest · Reforge Fire",
+          "description": "Любые уровни Burning Damage и Concentrated Effect + свободный префикс.",
+          "steps": [
+            "From acquired rare Elder83: Harvest Reforge Fire until Conc AND Burning AND open prefix. Reject all other rolls, including a desired pair with no bench slot.",
+            "Bench8-10% AoE/+1 socketed AoE gems for4Chaos. Stop."
+          ],
+          "assumptions": [
+            "Direct Fire reforge consumes50Wild and rerolls all explicits, including bench; retains Elder and native implicit. No Scour needed per failure.",
+            "If acquired magic/normal, use appropriate rarity preparation first; selected priced input is rare. No donor/Awakener/influence addition assumed free.",
+            "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+            "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&game=poe1&class=73",
+          "verification": "research"
+        },
+        {
+          "id": "fire-reforge-20",
+          "name": "Harvest · уровни 20/20",
+          "description": "Более строгий результат, чем профиль рынка: оба support уровня 20.",
+          "steps": [
+            "Редкая Elder Archdemon Crown ilvl 83 без fracture и corruption.",
+            "Reforge Fire до обоих support уровня 20 и свободного префикса.",
+            "Верстак: +1 socketed AoE gems / 8–10% AoE."
+          ],
+          "assumptions": [
+            "Не используйте цену общей выборки как оценку результата 20/20.",
+            "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+            "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+          ],
+          "craftOfExileUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyODQ1IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tcHJlZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&game=poe1&class=73",
+          "verification": "research"
+        }
+      ],
+      "beltCraftMethod": {
+        "version": 1,
+        "name": "Сценарий · Harvest Fire (~94 попытки)",
+        "sourceUrl": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&game=poe1&class=73",
+        "assumptions": "Приближённый сценарий: CoE на ilvl 83 показывает округлённые 94 ожидаемые попытки для двух support любого уровня и свободного префикса. 50 Wild за попытку, повтор на той же редкой Elder-базе. База 250 chaos — наблюдённый ask, не покупка. Верстак 4 chaos. Золото, альтернативная подготовка базы и эквивалентность полного билда не моделируются; игровые траты не проверены.",
+        "steps": [
+          "Купить существующую опознанную редкую Elder Archdemon Crown ilvl 83+, без corruption и fracture: в выбранной выборке от 250 chaos.",
+          "Повторять Harvest Reforge Fire (50 Wild за попытку) до Burning Damage + Concentrated Effect любого уровня и свободного префикса. Неудачи полностью переролливаются на той же базе.",
+          "Верстак: +1 socketed AoE gems / 8–10% AoE за 4 chaos; остановиться."
+        ],
+        "rulesComplete": true,
+        "repeatOnSameBase": true,
+        "success": {
+          "mode": "expected_attempts",
+          "expectedAttempts": 94
+        },
+        "basePrice": {
+          "source": "manual",
+          "amount": 250,
+          "currency": "chaos",
+          "league": "Allflame",
+          "patch": "3.29",
+          "capturedAt": "2026-11-02T00:22:41.532Z",
+          "dataKind": "observed",
+          "url": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAA62SwWrDMAyGX2X4HHbZZfQ29hijGM1WsMCxjSy3lJB3n9LQksACPeQk-7f-T7Kt0VQBadWcRpOLUE7mZOACFOE3opk6I7eCqn2xCx6HnN6-OV-T6e5G9f2Mj5SUReWeoiAvB-RVLhWbz-9LsAGqrQEKsqXUx4bJaZnz1D0xkPxrGIx-n_JyM45bhSNAjB5xOAAUWpIDMFfgmNlvOeeVdUHa1X61ZGCS22YsVFLGpDMxUHU7PoqXOMeB1PL5ockuM7ci6DewHmK9z1fP4KTp41kSHP7LmSsK6x_tlCxMerm10QXIdTZO0x_9ALmY4QIAAA",
+          "notes": "Dated acquisition quote: 10 eligible identified rare Elder83+ bases, first asks 250 chaos. Not a purchase; gold fees and cheaper alternative preparation paths are excluded."
+        },
+        "materials": [
+          {
+            "id": "wild-lifeforce",
+            "label": "Wild Crystallised Lifeforce",
+            "quantityPerAttempt": 50,
+            "price": {
+              "source": "economy",
+              "snapshotId": "9de0a93c-d3ad-4ba4-9219-a38840b8b3f4",
+              "patch": "3.29",
+              "lineId": "wild-lifeforce"
+            }
+          }
+        ],
+        "finishing": [
+          {
+            "id": "bench-aoe",
+            "label": "Chaos Orb",
+            "quantity": 4,
+            "price": {
+              "source": "economy",
+              "snapshotId": "9de0a93c-d3ad-4ba4-9219-a38840b8b3f4",
+              "patch": "3.29",
+              "lineId": "chaos"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

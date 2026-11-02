@@ -17,12 +17,16 @@ import {
 import { marketClient } from './marketClient.js';
 import { marketDemo } from './marketDemo.js';
 import { EconomyPanel } from './EconomyPanel.js';
+import { MarketOpportunities } from './MarketOpportunities.js';
+import { MarketCraftCosts } from './MarketCraftCosts.js';
+import { MarketCatalogImport } from './MarketCatalogImport.js';
+import { MarketTradeQuery } from './MarketTradeQuery.js';
 import {
   displayDate,
   displayPrice,
   filterTargets,
+  lastObservedLeague,
   latestSnapshot,
-  marketStatus,
   snapshotsForTarget,
 } from './marketWorkbench.js';
 import './market.css';
@@ -54,14 +58,20 @@ export function MarketPage() {
   const [demo, setDemo] = useState(false);
   const [tab, setTab] = useState<Tab>('targets');
   const [search, setSearch] = useState('');
-  const [league, setLeague] = useState('all');
+  const [league, setLeague] = useState('');
+  const [liveLeagues, setLiveLeagues] = useState<string[]>([]);
+  const [leagueError, setLeagueError] = useState('');
+  const leagueChosen = useRef(false);
   const [selectedId, setSelectedId] = useState('');
   const [opportunities, setOpportunities] = useState<BeltOpportunity[]>([]);
   const [opportunityKind, setOpportunityKind] = useState<'observed' | 'demo'>(
     'observed',
   );
   const [opportunityError, setOpportunityError] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<'target' | 'snapshot' | null>(null);
+  const [dialog, setDialog] = useState<
+    'target' | 'snapshot' | 'catalog' | null
+  >(null);
+  const [opportunityTargetId, setOpportunityTargetId] = useState('');
   const [priceTarget, setPriceTarget] = useState<MarketTarget | null>(null);
   const [rawSnapshot, setRawSnapshot] = useState<unknown | null>(null);
   const [beltAnalysis, setBeltAnalysis] = useState<
@@ -84,11 +94,34 @@ export function MarketPage() {
   }, []);
 
   useEffect(() => {
+    let active = true;
+    void marketClient
+      .leagues()
+      .then((value) => {
+        if (!active) return;
+        const names = value.leagues.map((entry) => entry.id);
+        setLiveLeagues(names);
+        setLeague((selected) => selected || names[0] || 'all');
+      })
+      .catch(() => {
+        if (active) {
+          setLeagueError(
+            'Список лиг недоступен. Выбрана лига последнего реального наблюдения.',
+          );
+          setLeague((selected) => selected || 'all');
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!data || data.storage !== 'postgres') return;
     let active = true;
     setOpportunityError(null);
     void marketClient
-      .opportunities(opportunityKind)
+      .opportunities(opportunityKind, league)
       .then((value) => {
         if (active) setOpportunities(value);
       })
@@ -98,27 +131,53 @@ export function MarketPage() {
     return () => {
       active = false;
     };
-  }, [data, opportunityKind]);
+  }, [data, opportunityKind, league]);
+
+  useEffect(() => {
+    if (leagueError && data && !leagueChosen.current) {
+      setLeague(lastObservedLeague(data.snapshots) ?? 'all');
+    }
+  }, [leagueError, data]);
 
   const workbench = demo ? marketDemo : data;
-  const kind = demo ? 'demo' : 'observed';
+  const kind = demo ? 'demo' : opportunityKind;
   const targets = workbench?.targets ?? [];
   const snapshots = workbench?.snapshots ?? [];
   const visibleTargets = filterTargets(targets, search, league);
   const selected =
     visibleTargets.find((target) => target.id === selectedId) ??
+    visibleTargets.find((target) =>
+      opportunities.some((row) => row.targetId === target.id),
+    ) ??
     visibleTargets[0] ??
     null;
-  const leagues = [...new Set(targets.map((target) => target.league))].sort();
-  const observed = snapshots.filter((snapshot) => snapshot.dataKind === kind);
-  const historySnapshots = demo ? observed : snapshots;
+  const leagues = [
+    ...new Set([...liveLeagues, ...targets.map((target) => target.league)]),
+  ];
+  const visibleIds = new Set(visibleTargets.map((target) => target.id));
+  const visibleOpportunities = opportunities.filter((row) =>
+    visibleIds.has(row.targetId),
+  );
+  const observed = snapshots.filter(
+    (snapshot) =>
+      snapshot.dataKind === kind &&
+      (league === 'all' || snapshot.league === league),
+  );
+  const historySnapshots = (demo ? observed : snapshots).filter(
+    (snapshot) => league === 'all' || snapshot.league === league,
+  );
   const lastObservation = observed
     .map((snapshot) => snapshot.capturedAt)
     .sort()
     .at(-1);
-  const withoutData = targets.filter(
-    (target) => latestSnapshot(target, snapshots, kind) === null,
-  ).length;
+  const withoutData = visibleTargets
+    .filter(
+      (target) =>
+        demo || opportunities.some((row) => row.targetId === target.id),
+    )
+    .filter(
+      (target) => latestSnapshot(target, snapshots, kind) === null,
+    ).length;
   const canWrite = !demo && data?.storage === 'postgres';
   const sourceRows = workbench?.sources ?? marketDemo.sources;
 
@@ -148,11 +207,14 @@ export function MarketPage() {
     <div className="market-workbench">
       <section className="market-heading">
         <div>
-          <p className="market-eyebrow">POE 1 · PC · РЫНОЧНАЯ РАЗВЕДКА</p>
-          <h1>Что стоит крафтить?</h1>
+          <h1>Рынок крафта</h1>
+          <p className="market-heading-context">
+            POE 1 · PC ·{' '}
+            {league === 'all' ? 'Все лиги' : league || 'Загрузка лиг'}
+          </p>
           <p className="market-intro">
-            От потребности билда — к проверяемой цене предмета. Цели, источники
-            и история наблюдений в одном месте.
+            Выберите предмет: характеристики, билды, варианты крафта и проверка
+            Trade.
           </p>
         </div>
         <div className="market-heading__actions">
@@ -167,14 +229,25 @@ export function MarketPage() {
           <button
             type="button"
             className="market-button"
-            onClick={() => {
-              setDemo(!demo);
-              setLeague('all');
-              setSelectedId('');
-            }}
+            disabled={!canWrite}
+            onClick={() => setDialog('catalog')}
           >
-            {demo ? 'Вернуться к своим данным' : 'Посмотреть пример'}
+            Импорт каталога JSON
           </button>
+          {(!canWrite || demo) && (
+            <button
+              type="button"
+              className="market-button"
+              onClick={() => {
+                leagueChosen.current = true;
+                setDemo(!demo);
+                setLeague('all');
+                setSelectedId('');
+              }}
+            >
+              {demo ? 'Вернуться к своим данным' : 'Посмотреть пример'}
+            </button>
+          )}
         </div>
       </section>
 
@@ -198,220 +271,18 @@ export function MarketPage() {
         </div>
       ) : null}
 
-      {!demo && data?.storage === 'postgres' && (
-        <section aria-label="Пояса для крафта" className="market-notice">
-          <h2>Пояса для крафта</h2>
-          <p>
-            Цена предложения не означает продажу. Числовой разрыв не гарантирует
-            прибыль. Расчёт использует один и тот же базовый предмет при
-            повторах.
-          </p>
-          <label>
-            Данные:{' '}
-            <select
-              value={opportunityKind}
-              onChange={(event) =>
-                setOpportunityKind(
-                  event.target.value === 'demo' ? 'demo' : 'observed',
-                )
-              }
-            >
-              <option value="observed">Реальные наблюдения</option>
-              <option value="demo">DEMO · синтетические данные</option>
-            </select>
-          </label>
-          {opportunityError && (
-            <p role="alert">Не удалось загрузить анализ: {opportunityError}</p>
-          )}
-          {opportunities.length === 0 && !opportunityError && (
-            <p>
-              Нет сохранённых целей для поясов. Запустите импорт библиотеки.
-            </p>
-          )}
-          {opportunities.map((opportunity) => (
-            <article key={opportunity.targetId}>
-              <h3>
-                {opportunity.name} · {opportunity.status}{' '}
-                {opportunity.economicConclusion === 'POSITIVE'
-                  ? '· Положительная разница'
-                  : opportunity.economicConclusion === 'NON_POSITIVE'
-                    ? '· Нулевая или отрицательная разница'
-                    : ''}{' '}
-                {opportunityKind === 'demo' ? '· DEMO' : ''}
-              </h3>
-              <p>
-                {opportunity.league} · {opportunity.patch} ·{' '}
-                {opportunity.builds.join(', ')} ·{' '}
-                {opportunity.capturedAt
-                  ? displayDate(opportunity.capturedAt)
-                  : 'нет наблюдений'}
-              </p>
-              <p>
-                Затраты:{' '}
-                {opportunity.calculation
-                  ? `${opportunity.calculation.expectedCraftCost} ${opportunity.calculation.currency}`
-                  : '—'}{' '}
-                · Цена предложения:{' '}
-                {opportunity.calculation
-                  ? `${opportunity.calculation.askingPrice} ${opportunity.calculation.currency}`
-                  : '—'}{' '}
-                · Разрыв:{' '}
-                {opportunity.calculation
-                  ? `${opportunity.calculation.spread} ${opportunity.calculation.currency}`
-                  : '—'}
-              </p>
-              <p>
-                {opportunity.reasons.join(' ') ||
-                  'Риск: ручная выборка и заявленные допущения метода.'}
-              </p>
-              {opportunity.method && (
-                <button
-                  type="button"
-                  className="market-button"
-                  onClick={() => {
-                    const selectedTarget = targets.find(
-                      (entry) => entry.id === opportunity.targetId,
-                    );
-                    if (selectedTarget) setPriceTarget(selectedTarget);
-                  }}
-                >
-                  Обновить цены
-                </button>
-              )}
-              <details>
-                <summary>Источники, правила и расчёт</summary>
-                <ul>
-                  {opportunity.sources.map((source) => (
-                    <li key={source.url}>
-                      <a href={source.url} target="_blank" rel="noreferrer">
-                        {source.title}
-                      </a>{' '}
-                      {source.notes}
-                    </li>
-                  ))}
-                </ul>
-                {opportunity.sourceUrl && (
-                  <a
-                    href={opportunity.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Источник снимка
-                  </a>
-                )}
-                {opportunity.rules && (
-                  <div>
-                    <p>
-                      Правила v{opportunity.rules.version}: база{' '}
-                      {targets
-                        .find((item) => item.id === opportunity.targetId)
-                        ?.baseTypes.join(', ')}
-                      , уровень{' '}
-                      {opportunity.rules.minItemLevel == null
-                        ? 'любой'
-                        : `${opportunity.rules.minItemLevel}+`}
-                      ,{' '}
-                      {opportunity.rules.corrupted == null
-                        ? 'осквернение любое'
-                        : opportunity.rules.corrupted
-                          ? 'осквернён'
-                          : 'не осквернён'}
-                      ; влияния:{' '}
-                      {opportunity.rules.influences == null
-                        ? 'любые'
-                        : opportunity.rules.influences.join(', ') || 'нет'}
-                      .
-                    </p>
-                    <ul>
-                      {opportunity.rules.mods.map((mod) => (
-                        <li key={mod.id}>
-                          {mod.id}: минимум {mod.minValue}
-                          {mod.maxTier ? `, tier ${mod.maxTier} или лучше` : ''}
-                        </li>
-                      ))}
-                    </ul>
-                    {opportunity.rules.version !== 1 &&
-                      opportunity.rules.totalElementalResistanceMin != null && (
-                        <p>
-                          Сумма сопротивлений стихиям: минимум{' '}
-                          {opportunity.rules.totalElementalResistanceMin}%.
-                        </p>
-                      )}
-                  </div>
-                )}
-                {opportunity.method && (
-                  <div>
-                    <p>
-                      Метод:{' '}
-                      <a
-                        href={opportunity.method.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {opportunity.method.name}
-                      </a>{' '}
-                      · {opportunity.method.assumptions}
-                    </p>
-                    <ol>
-                      {opportunity.method.steps.map((step, index) => (
-                        <li key={index}>{step}</li>
-                      ))}
-                    </ol>
-                    <p>
-                      {opportunity.method.success.mode === 'probability'
-                        ? `Вероятность: ${opportunity.method.success.probability}`
-                        : `Ожидаемые попытки: ${opportunity.method.success.expectedAttempts}`}
-                    </p>
-                  </div>
-                )}
-                {opportunity.snapshotId && (
-                  <button
-                    type="button"
-                    className="market-link-button"
-                    onClick={() => {
-                      const snapshot = snapshots.find(
-                        (entry) => entry.id === opportunity.snapshotId,
-                      );
-                      if (snapshot) void showSnapshot(snapshot);
-                    }}
-                  >
-                    Объявления и причины
-                  </button>
-                )}
-                <pre className="market-json">
-                  {JSON.stringify(
-                    {
-                      rules: opportunity.rules,
-                      method: opportunity.method,
-                      priceEvidence: opportunity.priceEvidence,
-                      calculation: opportunity.calculation,
-                      comparison: opportunity.comparison,
-                    },
-                    null,
-                    2,
-                  )}
-                </pre>
-              </details>
-            </article>
-          ))}
-        </section>
-      )}
-
       <section className="market-metrics" aria-label="Состояние исследования">
         <Metric
-          value={String(targets.length)}
+          value={String(
+            demo ? visibleTargets.length : visibleOpportunities.length,
+          )}
           label="Целей на проверке"
-          detail="Профили нужных предметов"
+          detail={`${withoutData} без рыночных данных`}
         />
         <Metric
           value={String(observed.length)}
           label="Снимков рынка"
           detail={demo ? 'Учебные данные' : 'Сохранённые наблюдения'}
-        />
-        <Metric
-          value={String(withoutData)}
-          label="Без рыночных данных"
-          detail="Сначала проверить предложения"
         />
         <Metric
           value={lastObservation ? displayDate(lastObservation) : '—'}
@@ -474,8 +345,12 @@ export function MarketPage() {
               <span className="market-sr-only">Лига</span>
               <select
                 value={league}
-                onChange={(event) => setLeague(event.target.value)}
+                onChange={(event) => {
+                  leagueChosen.current = true;
+                  setLeague(event.target.value);
+                }}
               >
+                <option value="">Выбираем актуальную лигу…</option>
                 <option value="all">Все лиги · раздельные данные</option>
                 {leagues.map((name) => (
                   <option key={name} value={name}>
@@ -484,11 +359,35 @@ export function MarketPage() {
                 ))}
               </select>
             </label>
+            <label>
+              <span className="market-sr-only">Данные рейтинга</span>
+              <select
+                value={demo ? 'demo' : opportunityKind}
+                disabled={demo}
+                onChange={(event) =>
+                  setOpportunityKind(
+                    event.target.value === 'demo' ? 'demo' : 'observed',
+                  )
+                }
+              >
+                <option value="observed">Реальный рынок</option>
+                <option value="demo">DEMO</option>
+              </select>
+            </label>
           </div>
+          {leagueError && (
+            <p className="market-league-status" role="status">
+              {leagueError}
+            </p>
+          )}
 
           {loading && !data && !demo ? (
             <Empty title="Загружаем рабочее пространство…" />
-          ) : visibleTargets.length === 0 ? (
+          ) : (
+              demo
+                ? visibleTargets.length === 0
+                : visibleOpportunities.length === 0
+            ) ? (
             <Empty
               title={
                 targets.length
@@ -509,83 +408,83 @@ export function MarketPage() {
                 {canWrite ? 'Создать первую цель' : 'Открыть учебный пример'}
               </button>
             </Empty>
-          ) : (
-            <div className="market-workspace-grid">
-              <div
-                className="market-target-list"
-                aria-label="Цели для исследования"
-              >
-                <div className="market-list-heading">
-                  <span>Предмет / потребность</span>
-                  <span>Цена предложения</span>
-                </div>
-                {visibleTargets.map((target) => {
-                  const snapshot = latestSnapshot(target, snapshots, kind);
-                  const status = marketStatus(snapshot);
-                  return (
-                    <button
-                      type="button"
-                      className={`market-target-row ${selected?.id === target.id ? 'is-selected' : ''}`}
-                      key={target.id}
-                      aria-pressed={selected?.id === target.id}
-                      onClick={() => setSelectedId(target.id)}
-                    >
-                      <span className="market-item-mark" aria-hidden="true">
-                        {target.slot === 'Belt'
-                          ? '◈'
-                          : target.slot === 'Ring'
-                            ? '◎'
-                            : '◇'}
-                      </span>
-                      <span className="market-target-identity">
-                        <strong>{target.name}</strong>
-                        <span>
-                          {target.baseTypes.join(' / ')} · {target.league}
-                        </span>
-                        <span className="market-build-label">
-                          {target.builds[0] ?? 'Билд пока не указан'}
-                        </span>
-                        <span
-                          className={`market-badge market-badge--${status.tone}`}
-                        >
-                          {status.label}
-                        </span>
-                      </span>
-                      <span className="market-target-price">
-                        <strong>
-                          {snapshot
-                            ? displayPrice(snapshot.median, snapshot.currency)
-                            : '—'}
-                        </strong>
-                        <span>
-                          {snapshot
-                            ? `${snapshot.count} предложений`
-                            : 'Нужен снимок'}
-                        </span>
-                        {snapshot && (
-                          <span>{displayDate(snapshot.capturedAt)}</span>
-                        )}
-                      </span>
-                    </button>
-                  );
-                })}
-                <p className="market-list-note">
-                  Цены объявлений. Выборка определяется импортом; это не все
-                  предложения рынка и не подтверждённые продажи.
-                </p>
-              </div>
+          ) : demo ? (
+            <div className="market-demo-profiles">
+              {visibleTargets.map((target) => (
+                <button
+                  type="button"
+                  className="market-button"
+                  key={target.id}
+                  onClick={() => setSelectedId(target.id)}
+                >
+                  {target.name}
+                </button>
+              ))}
               {selected && (
                 <TargetPanel
-                  key={`${selected.id}-${latestSnapshot(selected, snapshots, kind)?.id ?? 'empty'}`}
+                  key={selected.id}
                   target={selected}
                   snapshots={snapshots}
-                  kind={kind}
-                  canWrite={canWrite}
+                  kind="demo"
+                  canWrite={false}
                   onImport={() => setDialog('snapshot')}
                   onSnapshot={(snapshot) => void showSnapshot(snapshot)}
                 />
               )}
             </div>
+          ) : (
+            <>
+              {opportunityError && (
+                <p role="alert">
+                  Не удалось загрузить анализ: {opportunityError}
+                </p>
+              )}
+              <MarketOpportunities
+                rows={visibleOpportunities}
+                selectedId={opportunityTargetId}
+                onSelect={(id) => {
+                  setOpportunityTargetId(id);
+                  if (id) setSelectedId(id);
+                }}
+                renderDetails={(opportunity) => {
+                  const target = targets.find(
+                    (entry) => entry.id === opportunity.targetId,
+                  );
+                  return (
+                    target && (
+                      <>
+                        <TargetPanel
+                          target={target}
+                          snapshots={snapshots}
+                          kind={opportunityKind}
+                          canWrite={canWrite}
+                          onImport={() => setDialog('snapshot')}
+                          onSnapshot={(snapshot) => void showSnapshot(snapshot)}
+                          opportunity={opportunity}
+                          onPrices={() => setPriceTarget(target)}
+                        />
+                        {canWrite && (
+                          <details className="market-detail-operations">
+                            <summary>Проверить рынок и настроить сбор</summary>
+                            <MarketCollectionPanel
+                              target={target}
+                              canWrite={canWrite}
+                              onManualImport={() => setDialog('snapshot')}
+                              onObservation={reload}
+                            />
+                          </details>
+                        )}
+                      </>
+                    )
+                  );
+                }}
+              />
+              <p className="market-footnote">
+                Цены объявлений, не продажи. Рейтинг: доступный расчёт →
+                уверенность → ROI → продавцы → приток. Медиана учитывает только
+                совпавшие предметы, по одному предложению на продавца.
+              </p>
+            </>
           )}
         </section>
       ) : tab === 'snapshots' ? (
@@ -745,7 +644,7 @@ export function MarketPage() {
               </article>
             ))}
           </div>
-          <EconomyPanel demo={demo} />
+          <EconomyPanel demo={demo} selectedLeague={league} />
           <div className="market-source-library">
             <h3>Библиотека источников билдов</h3>
             {targets.every((target) => target.sources.length === 0) ? (
@@ -779,7 +678,7 @@ export function MarketPage() {
         <strong>Как читать оценку.</strong> Медиана и диапазон p25–p75 описывают
         импортированную выборку. Пометки «малая выборка» (&lt; 5) и «старше 24
         часов» помогают проверять данные. Они не оценивают вероятность продажи;
-        доходность появится после модели стоимости крафта.
+        расчёт доходности доступен при достаточных данных о крафте.
       </footer>
 
       {dialog === 'target' && (
@@ -791,6 +690,15 @@ export function MarketPage() {
               setSearch('');
               setLeague('all');
               await reload();
+            }}
+          />
+        </Dialog>
+      )}
+      {dialog === 'catalog' && (
+        <Dialog title="Импорт каталога" onClose={() => setDialog(null)}>
+          <MarketCatalogImport
+            onImported={() => {
+              void reload();
             }}
           />
         </Dialog>
@@ -1034,9 +942,9 @@ function MarketCollectionPanel({
       {data?.source.access === 'blocked' && (
         <div className="market-notice market-notice--warning" role="status">
           <strong>Автоматический источник не подключён.</strong>{' '}
-          {data.source.reason} Пароль и cookies не используются. Импортируйте
-          реальные выбранные объявления вручную: снимок попадёт и в историю
-          collection, и в тот же анализатор рейтинга.{' '}
+          {data.source.reason} Секреты не передаются в браузер приложения.
+          Импортируйте реальные выбранные объявления вручную: снимок попадёт и в
+          историю collection, и в тот же анализатор рейтинга.{' '}
           <button
             type="button"
             className="market-button"
@@ -1049,12 +957,14 @@ function MarketCollectionPanel({
       )}
       {data?.source.implementation && (
         <p>
-          Режим:{' '}
+          Подключение: {data.source.connectionStatus ?? 'UNAVAILABLE'}. Режим:{' '}
           {data.source.implementation === 'manual'
             ? 'ручной импорт'
             : data.source.implementation === 'replay'
               ? 'тестовый replay'
-              : 'источник не подключён'}
+              : data.source.implementation === 'trade_compatible'
+                ? 'Trade-compatible'
+                : 'источник не подключён'}
           . Разрешение:{' '}
           {data.source.authorization === 'user_supplied'
             ? 'ответственность импортирующего пользователя'
@@ -1142,6 +1052,25 @@ function MarketCollectionPanel({
           определяет источник; частичный ответ не считается всем рынком.
         </p>
       </div>
+      <p>
+        Последний запуск:{' '}
+        {data?.runs[0] ? displayDate(data.runs[0].startedAt) : '—'} · Следующий:{' '}
+        {data?.settings?.nextRunAt
+          ? displayDate(data.settings.nextRunAt)
+          : 'выключен'}{' '}
+        · Последний успешный из 25:{' '}
+        {data?.runs.find(
+          (run) => run.status === 'succeeded' || run.status === 'empty',
+        )?.completedAt
+          ? displayDate(
+              data.runs.find(
+                (run) => run.status === 'succeeded' || run.status === 'empty',
+              )!.completedAt!,
+            )
+          : '—'}{' '}
+        · Кулдаун:{' '}
+        {data?.cooldownUntil ? displayDate(data.cooldownUntil) : 'нет'}
+      </p>
       {data?.series.map((series) => (
         <section
           key={`${series.dataKind}:${series.currency}:${series.queryDigest}`}
@@ -1159,6 +1088,9 @@ function MarketCollectionPanel({
                   <th>Изменены</th>
                   <th>Нет в охвате</th>
                   <th>Вернулись</th>
+                  <th>Остались</th>
+                  <th>Цены ↑ / ↓</th>
+                  <th>Продавцы</th>
                   <th>Медиана выборки</th>
                 </tr>
               </thead>
@@ -1173,6 +1105,11 @@ function MarketCollectionPanel({
                     <td>{point.changedCount}</td>
                     <td>{point.missingCount}</td>
                     <td>{point.restoredCount}</td>
+                    <td>{point.persistedCount}</td>
+                    <td>
+                      {point.increasedCount ?? 0} / {point.decreasedCount ?? 0}
+                    </td>
+                    <td>{point.independentSellers ?? 0}</td>
                     <td>{displayPrice(point.median, series.currency)}</td>
                   </tr>
                 ))}
@@ -1246,6 +1183,8 @@ function TargetPanel({
   canWrite,
   onImport,
   onSnapshot,
+  opportunity,
+  onPrices,
 }: {
   target: MarketTarget;
   snapshots: MarketResearchSnapshotSummary[];
@@ -1253,6 +1192,8 @@ function TargetPanel({
   canWrite: boolean;
   onImport: () => void;
   onSnapshot: (snapshot: MarketResearchSnapshotSummary) => void;
+  opportunity?: BeltOpportunity;
+  onPrices?: () => void;
 }) {
   const all = snapshotsForTarget(target, snapshots, kind);
   const initialCurrency = all.at(-1)?.currency ?? 'divine';
@@ -1262,10 +1203,12 @@ function TargetPanel({
   return (
     <aside className="market-target-panel" aria-label="Выбранная цель">
       <div className="market-panel-heading">
-        <span className="market-eyebrow">ПРОФИЛЬ ЦЕЛИ</span>
         <span className="market-badge market-badge--muted">{target.slot}</span>
       </div>
-      <h2>{target.name}</h2>
+      <h2>{target.baseTypes.join(' / ')}</h2>
+      {target.description && (
+        <p className="market-target-description">{target.description}</p>
+      )}
       <p className="market-target-context">
         {target.league} · патч {target.patch}
       </p>
@@ -1300,6 +1243,29 @@ function TargetPanel({
         )}
       </dl>
       <h3>Обязательные свойства</h3>
+      <details>
+        <summary>Точный запрос и широкое сравнение</summary>
+        <MarketTradeQuery target={target} />
+      </details>
+      {target.catalog && (
+        <details>
+          <summary>
+            Каталог · ревизия {target.catalog.revision} ·{' '}
+            {target.catalog.verification}
+          </summary>
+          <p>Этап: {target.catalog.progression ?? 'неизвестен'}</p>
+          <ul>
+            {target.catalog.unknowns.map((unknown, index) => (
+              <li key={index}>{unknown}</li>
+            ))}
+          </ul>
+          {target.catalog.evidence && (
+            <pre className="market-json">
+              {JSON.stringify(target.catalog.evidence, null, 2)}
+            </pre>
+          )}
+        </details>
+      )}
       {target.requiredMods.length || target.beltRules ? (
         <ul className="market-mods">
           {target.requiredMods.map((mod, index) => (
@@ -1339,6 +1305,113 @@ function TargetPanel({
           </a>
         ))}
       </div>
+      <section className="market-craft-variants">
+        <h3>Варианты крафта</h3>
+        {target.craftVariants?.length ? (
+          target.craftVariants.map((variant) => (
+            <article key={variant.id} className="market-craft-variant">
+              <div className="market-variant-heading">
+                <h4>{variant.name}</h4>
+                <a
+                  href={variant.craftOfExileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Craft of Exile ↗
+                </a>
+              </div>
+              <p>{variant.description}</p>
+              <ol>
+                {variant.steps.map((step, index) => (
+                  <li key={index}>{step}</li>
+                ))}
+              </ol>
+              <details>
+                <summary>Допущения · {variant.verification}</summary>
+                <ul>
+                  {variant.assumptions.map((assumption, index) => (
+                    <li key={index}>{assumption}</li>
+                  ))}
+                </ul>
+              </details>
+            </article>
+          ))
+        ) : (
+          <p className="market-footnote">Варианты крафта пока не добавлены.</p>
+        )}
+      </section>
+      {opportunity && (
+        <section className="market-economics-detail">
+          <h3>Расчёт и качество данных</h3>
+          <p>
+            {opportunity.status === 'CALCULATED'
+              ? opportunity.economicConclusion === 'POSITIVE'
+                ? 'Положительная ожидаемая разница'
+                : 'Нулевая или отрицательная ожидаемая разница'
+              : 'Для расчёта не хватает данных'}{' '}
+            · уверенность{' '}
+            {opportunity.confidence === 'MEDIUM' ? 'средняя' : 'низкая'}.
+          </p>
+          <ul>
+            {opportunity.reasons.map((reason, index) => (
+              <li key={index}>{reason}</li>
+            ))}
+          </ul>
+          {opportunity.method && (
+            <>
+              <p>
+                {opportunity.method.name}: {opportunity.method.assumptions}
+              </p>
+              <ol>
+                {opportunity.method.steps.map((step, index) => (
+                  <li key={index}>{step}</li>
+                ))}
+              </ol>
+              {onPrices && (
+                <button
+                  type="button"
+                  className="market-button"
+                  onClick={onPrices}
+                >
+                  Обновить цены расчёта
+                </button>
+              )}
+            </>
+          )}
+          {opportunity.calculation && (
+            <details>
+              <summary>Состав затрат и ценовые источники</summary>
+              <MarketCraftCosts opportunity={opportunity} />
+            </details>
+          )}
+          {opportunity.comparison && (
+            <details>
+              <summary>
+                Сопоставимость объявлений · MATCH / PARTIAL / REJECT
+              </summary>
+              <ul>
+                {opportunity.comparison.rows.map((row) => (
+                  <li key={row.index}>
+                    {row.status} · {row.price}{' '}
+                    {opportunity.comparison?.currency} ·{' '}
+                    {row.reasons.join('; ') || 'Все требования подтверждены'}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+          {opportunity.supply && (
+            <p>
+              Предложение: +{opportunity.supply.newCount} новых,{' '}
+              {opportunity.supply.missingCount} отсутствуют,{' '}
+              {opportunity.supply.restoredCount} вернулись; ↑
+              {opportunity.supply.increasedCount} / ↓
+              {opportunity.supply.decreasedCount} цен. Охват:{' '}
+              {opportunity.supply.coverage}. Исчезновение не означает продажу.
+            </p>
+          )}
+        </section>
+      )}
       <section className="market-price-history">
         <div className="market-history-title">
           <h3>История медианы</h3>
@@ -1391,9 +1464,6 @@ function TargetPanel({
       >
         + Импортировать наблюдение
       </button>
-      <p className="market-footnote market-unknown">
-        Стоимость крафта и ожидаемая прибыль ещё не рассчитаны.
-      </p>
     </aside>
   );
 }
@@ -2086,6 +2156,25 @@ function BeltPriceForm({
       .then(setHistory)
       .catch((cause: unknown) => setError(errorMessage(cause)));
   }, [target.id]);
+  const costs = [
+    ...(target.beltCraftMethod?.materials ?? []).map((entry) => ({
+      ...entry,
+      prefix: 'material',
+    })),
+    ...(target.beltCraftMethod?.finishing ?? []).map((entry) => ({
+      ...entry,
+      prefix: 'finishing',
+    })),
+    ...(target.beltCraftMethod?.baseFailurePolicy?.recoveryPrice
+      ? [
+          {
+            id: 'base',
+            label: 'Возврат за заменённую базу',
+            prefix: 'recovery',
+          },
+        ]
+      : []),
+  ];
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
@@ -2114,6 +2203,29 @@ function BeltPriceForm({
         targetId: target.id,
         dataKind,
         basePrice: makePrice(value('base'), value('time'), value('url')),
+        ...(method.finishing?.length
+          ? {
+              finishingPrices: Object.fromEntries(
+                method.finishing.map((entry) => [
+                  entry.id,
+                  makePrice(
+                    value(`finishing-${entry.id}`),
+                    value(`finishing-time-${entry.id}`),
+                    value(`finishing-url-${entry.id}`),
+                  ),
+                ]),
+              ),
+            }
+          : {}),
+        ...(method.baseFailurePolicy?.recoveryPrice
+          ? {
+              recoveryPrice: makePrice(
+                value('recovery-base'),
+                value('recovery-time-base'),
+                value('recovery-url-base'),
+              ),
+            }
+          : {}),
         materialPrices: Object.fromEntries(
           method.materials.map((m) => [
             m.id,
@@ -2166,8 +2278,8 @@ function BeltPriceForm({
         Цена подходящей базы
         <input required type="number" step="any" min="0.00000001" name="base" />
       </label>
-      {target.beltCraftMethod?.materials.map((material) => (
-        <fieldset key={material.id}>
+      {costs.map((material) => (
+        <fieldset key={`${material.prefix}-${material.id}`}>
           <legend>{material.label}</legend>
           <label>
             Цена
@@ -2176,7 +2288,7 @@ function BeltPriceForm({
               type="number"
               step="any"
               min="0.00000001"
-              name={`material-${material.id}`}
+              name={`${material.prefix}-${material.id}`}
             />
           </label>
           <label>
@@ -2184,12 +2296,16 @@ function BeltPriceForm({
             <input
               required
               type="datetime-local"
-              name={`material-time-${material.id}`}
+              name={`${material.prefix}-time-${material.id}`}
             />
           </label>
           <label>
             Источник
-            <input required type="url" name={`material-url-${material.id}`} />
+            <input
+              required
+              type="url"
+              name={`${material.prefix}-url-${material.id}`}
+            />
           </label>
         </fieldset>
       ))}
@@ -2215,7 +2331,13 @@ function BeltPriceForm({
                 </>
               )}
               <ul>
-                {Object.entries(item.materialPrices).map(([id, price]) => (
+                {Object.entries({
+                  ...item.materialPrices,
+                  ...item.finishingPrices,
+                  ...(item.recoveryPrice
+                    ? { recovery: item.recoveryPrice }
+                    : {}),
+                }).map(([id, price]) => (
                   <li key={id}>
                     {id}:{' '}
                     {price.source === 'manual'

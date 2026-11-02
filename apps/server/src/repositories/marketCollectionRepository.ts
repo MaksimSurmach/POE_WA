@@ -148,6 +148,7 @@ export function createMarketCollectionRepository(
              select jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
                'externalId', listing->'externalId',
                'currency', listing->'currency',
+               'seller', listing->'item'->'seller',
                'fingerprint', listing->'fingerprint'
              )) || jsonb_build_object('price', listing->'price'))
              from jsonb_array_elements(payload->'listings') listing

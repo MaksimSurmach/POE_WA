@@ -43,10 +43,8 @@ import { createMarketResearchRepository } from './repositories/marketResearchRep
 import { createMarketEconomyRepository } from './repositories/marketEconomyRepository.js';
 import { createMarketCollectionRepository } from './repositories/marketCollectionRepository.js';
 import { NinjaEconomyClient } from './providers/ninjaEconomy.js';
-import {
-  configuredMarketCollectionSource,
-  MarketCollectionManager,
-} from './marketCollection.js';
+import { MarketCollectionManager } from './marketCollection.js';
+import { configuredCollectionSource } from './marketCollectionSource.js';
 
 export async function runProcess(forcedMode?: ApplicationMode) {
   const config = loadRuntimeConfig(process.env, forcedMode);
@@ -98,8 +96,10 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     : undefined;
   const collectionManager = collectionStore
     ? new MarketCollectionManager({
-        adapter: configuredMarketCollectionSource(
-          process.env.MARKET_COLLECTION_SOURCE,
+        adapter: configuredCollectionSource(
+          new GggRateLimitController({ repository: repositories.rateLimits }),
+          process.env,
+          createMarketEconomyRepository(pool),
         ),
         store: collectionStore,
       })

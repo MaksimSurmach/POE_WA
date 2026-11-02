@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { readFile } from 'node:fs/promises';
+import { marketCatalogImportSchema } from './marketCatalog.js';
 import type { StoredMarketEconomySnapshot } from './marketEconomy.js';
 import { beltDemoFixture } from './beltDemoFixture.js';
 import { evaluateBeltOpportunity } from './beltOpportunity.js';
@@ -19,6 +21,166 @@ function fixture() {
   return { definition, target, snapshot };
 }
 describe('belt opportunity', () => {
+  it('calculates the dated approximate RF scenario while keeping its research confidence low', async () => {
+    const catalog = marketCatalogImportSchema.parse(
+      JSON.parse(
+        await readFile(
+          new URL(
+            '../../../catalog/rf-allflame-scenario-2026-11-02.json',
+            import.meta.url,
+          ),
+          'utf8',
+        ),
+      ),
+    );
+    const at = new Date('2026-11-02T00:35:00.000Z');
+    const target = createMarketTarget(catalog.profiles[0], at);
+    const snapshot = createImportedMarketSnapshot(
+      {
+        targetId: target.id,
+        capturedAt: at.toISOString(),
+        sourceUrl: 'https://example.com/rf-fixture',
+        currency: 'chaos',
+        dataKind: 'observed',
+        // In-memory fixture using recorded prices; synthetic sellers, no persistence or live requests.
+        listings: [250, 280, 340, 350, 399, 600].map((price, index) => ({
+          externalId: `fixture-${index}`,
+          price,
+          item: {
+            baseType: 'Archdemon Crown',
+            rarity: 'rare',
+            league: 'Allflame',
+            patch: '3.29',
+            itemLevel: 83,
+            corrupted: false,
+            fractured: false,
+            influences: ['elder'],
+            currency: 'chaos',
+            seller: `fixture-${index}`,
+            status: 'listed',
+            mods: target.tradeSearch!.groups.flatMap((group) =>
+              group.filters.map((stat) => ({
+                id: stat.id,
+                value: stat.min ?? 16,
+              })),
+            ),
+          },
+        })),
+      },
+      target,
+      at,
+    );
+    const stored: StoredMarketEconomySnapshot = {
+      id: '9de0a93c-d3ad-4ba4-9219-a38840b8b3f4',
+      kind: 'economy-overview',
+      schemaVersion: 1,
+      source: 'poe.ninja',
+      game: 'poe1',
+      endpoint:
+        'https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Currency',
+      payloadHash: 'a'.repeat(64),
+      capturedAt: '2026-11-01T22:22:17.200Z',
+      sourceUpdatedAt: null,
+      raw: {},
+      league: 'Allflame',
+      category: 'Currency',
+      priceBasis: 'currency-exchange',
+      lines: [
+        ['wild-lifeforce', 'Wild Crystallised Lifeforce', 0.01888],
+        ['chaos', 'Chaos Orb', 1],
+      ].map(([id, name, amount]) => ({
+        id: String(id),
+        name: String(name),
+        detailsId: null,
+        baseType: null,
+        price: { amount: Number(amount), currency: 'chaos' },
+        listingCount: null,
+        observationCount: null,
+        tradedVolume: null,
+      })),
+    };
+    const result = await evaluateBeltOpportunity(
+      target,
+      snapshot,
+      { find: async () => stored },
+      at.getTime(),
+    );
+    expect(result).toMatchObject({
+      status: 'CALCULATED',
+      confidence: 'LOW',
+      economicConclusion: 'NON_POSITIVE',
+      calculation: {
+        expectedCraftCost: '342.736',
+        askingPrice: '250',
+        spread: '-92.736',
+      },
+    });
+  });
+  it('includes finishing, expected base replacement/recovery and an entered attempts range', async () => {
+    const { target, snapshot } = fixture();
+    const method = target.beltCraftMethod!;
+    const result = await evaluateBeltOpportunity(
+      {
+        ...target,
+        beltCraftMethod: {
+          ...method,
+          repeatOnSameBase: false,
+          success: { mode: 'expected_attempts', expectedAttempts: 4 },
+          attemptsRange: { min: 2, max: 6 },
+          baseFailurePolicy: {
+            replacementProbabilityPerFailure: 0.5,
+            recoveryPrice: {
+              ...method.basePrice,
+              source: 'manual',
+              amount: 4,
+              currency: 'chaos',
+              league: target.league,
+              patch: target.patch,
+              capturedAt: snapshot.capturedAt,
+              dataKind: 'demo',
+              url: 'https://example.com/recovery',
+              notes: 'Synthetic recovery assumption',
+            },
+          },
+          finishing: [
+            {
+              id: 'finish',
+              label: 'Finish',
+              quantity: 2,
+              price: {
+                ...method.basePrice,
+                source: 'manual',
+                amount: 3,
+                currency: 'chaos',
+                league: target.league,
+                patch: target.patch,
+                capturedAt: snapshot.capturedAt,
+                dataKind: 'demo',
+                url: 'https://example.com/finish',
+                notes: 'Synthetic finish price',
+              },
+            },
+          ],
+        },
+      },
+      snapshot,
+      undefined,
+      now.getTime(),
+    );
+    expect(result.status).toBe('CALCULATED');
+    expect(result.calculation).toMatchObject({
+      expectedCraftCost: '33',
+      spread: '7',
+      costRange: { min: '23', max: '43' },
+      breakdown: {
+        baseReplacement: {
+          expectedReplacements: '1.5',
+          netCost: { amount: '9' },
+        },
+        finishingTotal: { amount: '6' },
+      },
+    });
+  });
   it('keeps partial asking prices usable and visibly preliminary', async () => {
     const { target, snapshot } = fixture();
     const result = await evaluateBeltOpportunity(

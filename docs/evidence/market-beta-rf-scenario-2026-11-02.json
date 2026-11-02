@@ -1,0 +1,235 @@
+{
+  "checkedAt": "2026-11-02T00:30:49.317147+00:00",
+  "scope": "Dated approximate RF any-support-tier scenario, not the 20/20 variant. Prices are asks and economy estimates; no purchase or craft executed.",
+  "craftOfExile": {
+    "anySupportTier": {
+      "calculations": "Calculations\nCreate simulation\nComputing permutations of valid combinations\nSuccess chance :\n1 out of 94 tries\n1.07%\nExpected costs :\n4700\nWild Crystallised Lifeforce\n68.9\nConfidence :\n63.409 %\nTries\nX\nExecuted in 3.192 seconds",
+      "requirements": "Group type\nAnd\nOr\nNot\nMatches\nELDER\nPREFIX\n#% increased Area DamageSocketed Gems are Supported by Level # Concentrated Effect\nTier\nELDER\nSUFFIX\n#% increased Burning DamageSocketed Gems are Supported by Level # Burning Damage\nTier\nMETA\nOpen Prefix\nValue\nRequirement\nTier\nAdd a requirement group",
+      "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&game=poe1&class=73",
+      "capturedAt": "2026-11-02T00:17:44.666Z"
+    },
+    "bothLevel20": {
+      "calculations": "Calculations\nCreate simulation\nInitializing\nEvaluating setup validity\nRunning method setup\n1 of 1\nObtaining initial item states\n16 of 16\nCrunching combinations of successes\n1\nComputing permutations of valid combinations\nSuccess chance :\n1 out of 910 tries\n0.11%\nExpected costs :\n45500\nWild Crystallised Lifeforce\n667\nConfidence :\n63.232 %\nTries\nX\nExecuted in 2.708 seconds",
+      "capturedAt": "2026-11-02T00:25:19.857Z",
+      "requirements": "Group type\nAnd\nOr\nNot\nMatches\nELDER\nPREFIX\n#% increased Area DamageSocketed Gems are Supported by Level # Concentrated Effect\nTier\nELDER\nSUFFIX\n#% increased Burning DamageSocketed Gems are Supported by Level # Burning Damage\nTier\nMETA\nOpen Prefix\nValue\nRequirement\nTier\nAdd a requirement group",
+      "tiers": ["1", "1", "1", ""],
+      "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbeyJrIjoiSW5jcmVhc2VkQnVybmluZ0RhbWFnZVN1cHBvcnRlZFViZXIyIiwidiI6WzI5LDE4XSwiZiI6W10sInAiOm51bGx9LHsiayI6IkludGVsbGlnZW5jZTMiLCJ2IjpbMjFdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiU3R1blJlY292ZXJ5NSIsInYiOlsyNF0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZEFybW91ckFuZEVuZXJneVNoaWVsZDIiLCJ2IjpbMzJdLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQXJlYURhbWFnZVN1cHBvcnRlZFViZXIzIiwidiI6WzI1LDIwXSwiZiI6W10sInAiOm51bGx9LHsiayI6Ikp1bk1hc3RlcjJTa2lsbEFyZWFPZkVmZmVjdFBlcmNlbnRBbmRBcmVhT2ZFZmZlY3RHZW1MZXZlbDEtIiwidiI6WzksMV0sImYiOltdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbMV0sImlwIjpbWzIsLTJdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoxOTAsImVuZXJneXNoaWVsZCI6NDJ9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyODQ1IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tcHJlZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&game=poe1&class=73"
+    },
+    "linksChecked": [
+      {
+        "capturedAt": "2026-11-02T00:25:33.228Z",
+        "key": "spectre-minion-helmet",
+        "levels": ["75", "", "1", "1"],
+        "requirements": "Group type\nAnd\nOr\nNot\nMatches\nPREFIX\n+# to Level of all Minion Skill Gems\nTier\nMETA\nOpen Suffix\nValue\nRequirement\nTier\nAdd a requirement group",
+        "url": "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltbMThdXSwiZSI6W10sInAiOnsiYXJtb3VyIjoyMTEsImVuZXJneXNoaWVsZCI6NDV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d&class=73"
+      },
+      {
+        "capturedAt": "2026-11-02T00:25:43.972Z",
+        "key": "winter-orb-envy-belt",
+        "levels": ["85", "", "1", "2"],
+        "requirements": "Group type\nAnd\nOr\nNot\nMatches\nPREFIX\n+# to maximum Life\nTier\nSUFFIX\n+#% to Fire Resistance\nTier\nRequirement\nTier\nAdd a requirement group",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=3%2C19%2C99&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoibm9ybWFsIiwiaWYiOltdLCJpcCI6W1sxXV0sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM4IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=98"
+      },
+      {
+        "capturedAt": "2026-11-02T00:27:48.915Z",
+        "key": "lacerate-block-shield",
+        "levels": ["70", "", "", "1"],
+        "requirements": "Group type\nAnd\nOr\nNot\nMatches\nSHAPER\nSUFFIX\nRecover #% of Life when you Block\nTier\nMETA\nOpen Suffix\nValue\nRequirement\nTier\nAdd a requirement group",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=16&item=926&method=3%2C2%2C20&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9TaGllbGRzL1NoaWVsZFN0cjE3IiwibSI6W3siayI6IkluY3JlYXNlZExpZmU5IiwidiI6WzEzOV0sImYiOlsiZSJdLCJwIjpudWxsfSx7ImsiOiJMb2NhbEluY3JlYXNlZFBoeXNpY2FsRGFtYWdlUmVkdWN0aW9uUmF0aW5nUGVyY2VudDUiLCJ2IjpbNzldLCJmIjpbXSwicCI6bnVsbH0seyJrIjoiQWxsUmVzaXN0YW5jZXM1IiwidiI6WzE2XSwiZiI6W10sInAiOm51bGx9LHsiayI6IlJlY292ZXJMaWZlUGVyY2VudE9uQmxvY2tVYmVyMV8iLCJ2IjpbNV0sImYiOltdLCJwIjpudWxsfSx7ImsiOiJFaW5oYXJNYXN0ZXJGaXJlUmVzaXN0M18iLCJ2IjpbMzNdLCJmIjpbXSwicCI6bnVsbH1dLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3MCwiciI6InJhcmUiLCJpZiI6WzBdLCJpcCI6W1syMV1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjUwM30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&influences=0&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxODY4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoic3BlY2lhbDpvcGVuLXN1ZmZpeCIsInQiOiIxIiwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&ilvl=70&class=114"
+      },
+      {
+        "capturedAt": "2026-11-02T00:28:58.502Z",
+        "key": "flicker-elemental-belt",
+        "levels": ["85", "", "3", "2", "2", "3"],
+        "requirements": "Group type\nAnd\nOr\nNot\nMatches\nPREFIX\n+# to maximum Life\nTier\nSUFFIX\n+#% to Cold Resistance\nTier\nSUFFIX\n+#% to Lightning Resistance\nTier\nPREFIX\n#% increased Elemental Damage with Attack Skills\nTier\nRequirement\nTier\nAdd a requirement group",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=5%2C3%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMV1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM5IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDQwIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDMyIiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=98"
+      }
+    ]
+  },
+  "baseQuote": {
+    "capturedAt": "2026-11-02T00:22:41.532Z",
+    "league": "Allflame",
+    "purpose": "Starting rare Elder Archdemon Crown ilvl83+, uncorrupted, unfractured; asking prices, not purchases.",
+    "request": {
+      "query": {
+        "status": {
+          "option": "available"
+        },
+        "type": "Archdemon Crown",
+        "stats": [
+          {
+            "type": "not",
+            "filters": [
+              {
+                "id": "pseudo.pseudo_has_shaper_influence"
+              }
+            ]
+          },
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "pseudo.pseudo_has_elder_influence"
+              }
+            ]
+          },
+          {
+            "type": "not",
+            "filters": [
+              {
+                "id": "pseudo.pseudo_has_crusader_influence"
+              }
+            ]
+          },
+          {
+            "type": "not",
+            "filters": [
+              {
+                "id": "pseudo.pseudo_has_redeemer_influence"
+              }
+            ]
+          },
+          {
+            "type": "not",
+            "filters": [
+              {
+                "id": "pseudo.pseudo_has_hunter_influence"
+              }
+            ]
+          },
+          {
+            "type": "not",
+            "filters": [
+              {
+                "id": "pseudo.pseudo_has_warlord_influence"
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "rarity": {
+                "option": "rare"
+              }
+            }
+          },
+          "misc_filters": {
+            "filters": {
+              "ilvl": {
+                "min": 83
+              },
+              "corrupted": {
+                "option": "false"
+              },
+              "fractured_item": {
+                "option": "false"
+              }
+            }
+          },
+          "trade_filters": {
+            "filters": {
+              "price": {
+                "option": "chaos"
+              }
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    },
+    "sourceUrl": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAA62SwWrDMAyGX2X4HHbZZfQ29hijGM1WsMCxjSy3lJB3n9LQksACPeQk-7f-T7Kt0VQBadWcRpOLUE7mZOACFOE3opk6I7eCqn2xCx6HnN6-OV-T6e5G9f2Mj5SUReWeoiAvB-RVLhWbz-9LsAGqrQEKsqXUx4bJaZnz1D0xkPxrGIx-n_JyM45bhSNAjB5xOAAUWpIDMFfgmNlvOeeVdUHa1X61ZGCS22YsVFLGpDMxUHU7PoqXOMeB1PL5ockuM7ci6DewHmK9z1fP4KTp41kSHP7LmSsK6x_tlCxMerm10QXIdTZO0x_9ALmY4QIAAA",
+    "eligible": [
+      {
+        "id": "426e68f9c7b970f9f0b848e70595f9c4ce732df28c4c8354741d9693807a4ce4",
+        "price": 250,
+        "currency": "chaos",
+        "itemLevel": 83
+      },
+      {
+        "id": "c6610951c25bb6820712d86cb9be59fe3526b3d7afb0b91fd8262c9425285843",
+        "price": 250,
+        "currency": "chaos",
+        "itemLevel": 83
+      },
+      {
+        "id": "5cb5f5ddcba2df50fca394386aeeb6f67b95e9a02c79f7813fef73bd3f70f68c",
+        "price": 250,
+        "currency": "chaos",
+        "itemLevel": 83
+      },
+      {
+        "id": "358243023dfc2e7d31505295b17afd50f507a572497ac59e9b7fa7be0d01832f",
+        "price": 250,
+        "currency": "chaos",
+        "itemLevel": 83
+      },
+      {
+        "id": "15112fe90f4fd327e08e99869ef6cf5fdef927c267f5eed6c003773d9813d393",
+        "price": 250,
+        "currency": "chaos",
+        "itemLevel": 83
+      },
+      {
+        "id": "e3e7984b88e99d0b773ade46d8718a7a60bbc968d1c4793605403f81314831ac",
+        "price": 260,
+        "currency": "chaos",
+        "itemLevel": 83
+      },
+      {
+        "id": "47b4ecb6914f25090c12d0e45e469990bf428e908bcb224ef5228b184ba39d98",
+        "price": 260,
+        "currency": "chaos",
+        "itemLevel": 83
+      },
+      {
+        "id": "e1303dcad79ba27a3eddad305cc7211aab4301c4d496d9fc26454aece85afc0b",
+        "price": 260,
+        "currency": "chaos",
+        "itemLevel": 83
+      },
+      {
+        "id": "da6c2c38485fa45f80e352db9691572ad5e3ae759785065736f1a6ecbd19ceca",
+        "price": 275,
+        "currency": "chaos",
+        "itemLevel": 83
+      },
+      {
+        "id": "475bfaed491f35180583648d64e72df381d2fe9ee36f1389b35f687218136c01",
+        "price": 280,
+        "currency": "chaos",
+        "itemLevel": 83
+      }
+    ]
+  },
+  "baseSearch": {
+    "reportedTotal": 36,
+    "fetched": 10,
+    "coverage": "first ten only"
+  },
+  "materialQuote": {
+    "snapshotId": "9de0a93c-d3ad-4ba4-9219-a38840b8b3f4",
+    "capturedAt": "2026-11-01T22:22:17.200Z",
+    "league": "Allflame",
+    "lineId": "wild-lifeforce",
+    "chaosPerUnit": 0.01888
+  },
+  "declaredMeanCost": {
+    "baseChaos": 250,
+    "expectedAttempts": 94,
+    "wildPerAttempt": 50,
+    "wildChaos": 88.736,
+    "benchChaos": 4,
+    "totalChaos": 342.736
+  },
+  "limits": [
+    "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+    "No life/resistance floor, sockets/links/quality minimum, sale or optimality included.",
+    "Trade matcher checks the declared item scope, not full character equivalence.",
+    "CoE expectation is rounded and has not been independently validated in live-game trials.",
+    "Scenario uses an existing rare Elder base at a dated asking price; alternative base-preparation routes and gold fees are excluded.",
+    "This scenario is not a proven sale, optimal recipe or full character/build equivalence."
+  ]
+}

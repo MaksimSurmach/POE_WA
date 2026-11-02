@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { marketDemo } from './marketDemo.js';
 import {
   filterTargets,
+  lastObservedLeague,
   marketStatus,
   snapshotsForTarget,
 } from './marketWorkbench.js';
@@ -9,6 +10,31 @@ import {
 describe('market evidence selection', () => {
   const target = marketDemo.targets[0]!;
   const snapshot = marketDemo.snapshots[0]!;
+
+  it('uses the most recent real league only as a fallback, ignoring newer demos', () => {
+    expect(lastObservedLeague([snapshot])).toBeNull();
+    expect(
+      lastObservedLeague([
+        {
+          ...snapshot,
+          league: 'Newer demo',
+          capturedAt: '2026-12-01T00:00:00Z',
+        },
+        {
+          ...snapshot,
+          dataKind: 'observed',
+          league: 'Older',
+          capturedAt: '2026-10-01T00:00:00Z',
+        },
+        {
+          ...snapshot,
+          dataKind: 'observed',
+          league: 'Current',
+          capturedAt: '2026-11-01T00:00:00Z',
+        },
+      ]),
+    ).toBe('Current');
+  });
 
   it('isolates target version, league, patch, currency and provenance before charting', () => {
     const candidates = [

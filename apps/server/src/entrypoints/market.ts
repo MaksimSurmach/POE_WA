@@ -7,10 +7,10 @@ import { createMarketResearchRepository } from '../repositories/marketResearchRe
 import { createMarketEconomyRepository } from '../repositories/marketEconomyRepository.js';
 import { createMarketCollectionRepository } from '../repositories/marketCollectionRepository.js';
 import { NinjaEconomyClient } from '../providers/ninjaEconomy.js';
-import {
-  configuredMarketCollectionSource,
-  MarketCollectionManager,
-} from '../marketCollection.js';
+import { MarketCollectionManager } from '../marketCollection.js';
+import { configuredCollectionSource } from '../marketCollectionSource.js';
+import { GggRateLimitController } from '../rateLimitController.js';
+import { createPostgresRepositories } from '../repositories/index.js';
 
 // An explicit API-only entrypoint. It never initializes the legacy Trade worker.
 const logger = pino({
@@ -32,14 +32,22 @@ const pool = hasDatabase
 const collectionStore = pool
   ? createMarketCollectionRepository(pool)
   : undefined;
-const collectionManager = collectionStore
-  ? new MarketCollectionManager({
-      adapter: configuredMarketCollectionSource(
-        process.env.MARKET_COLLECTION_SOURCE,
-      ),
-      store: collectionStore,
-    })
+const rateLimits = pool
+  ? createPostgresRepositories(pool).rateLimits
   : undefined;
+const collectionManager =
+  collectionStore && pool && rateLimits
+    ? new MarketCollectionManager({
+        adapter: configuredCollectionSource(
+          new GggRateLimitController({
+            repository: rateLimits,
+          }),
+          process.env,
+          createMarketEconomyRepository(pool),
+        ),
+        store: collectionStore,
+      })
+    : undefined;
 function retentionDays(name: string, fallback: number) {
   const value = Number(process.env[name] ?? fallback);
   if (!Number.isSafeInteger(value) || value < 1 || value > 36_500)
@@ -56,7 +64,7 @@ const api = buildApi(
     await pool.query('select 1');
   },
   async () => ({ active: null, published: null }),
-  undefined,
+  rateLimits ? () => rateLimits.list() : undefined,
   undefined,
   undefined,
   undefined,

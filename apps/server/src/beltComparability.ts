@@ -13,6 +13,8 @@ const evidence = z
     patch: z.string().optional(),
     quality: z.number().int().optional(),
     modsComplete: z.boolean().optional(),
+    verifiedAbsentStats: z.array(z.string()).optional(),
+    fractured: z.boolean().optional(),
     elementalResistances: z
       .object({
         fire: z.number().finite(),
@@ -31,7 +33,8 @@ const evidence = z
         z.object({
           id: z.string(),
           value: z.number().finite().optional(),
-          tier: z.number().int().positive().optional(),
+          // Legacy normalized bench mods used zero; it carries no affix-tier evidence.
+          tier: z.number().int().nonnegative().optional(),
         }),
       )
       .optional(),
@@ -48,7 +51,8 @@ export function analyzeBeltSnapshot(
     if (
       listing.price === null ||
       (listing.currency !== undefined && listing.currency !== snapshot.currency)
-    ) return [];
+    )
+      return [];
     const parsed = evidence.safeParse(listing.item);
     const item = parsed.success ? parsed.data : {};
     const rejected: string[] = [];
@@ -58,14 +62,18 @@ export function analyzeBeltSnapshot(
       else if (!matches) rejected.push(`${name}: mismatch`);
     };
     const rules = target.beltRules;
-    if (!rules || target.slot.toLowerCase() !== 'belt')
+    if (!rules && !target.tradeSearch)
       unknown.push('versioned belt rules unavailable');
     check(
       'base',
       item.baseType,
       item.baseType !== undefined && target.baseTypes.includes(item.baseType),
     );
-    check('rarity', item.rarity, item.rarity === 'rare');
+    check(
+      'rarity',
+      item.rarity,
+      item.rarity === (target.tradeSearch?.rarity ?? 'rare'),
+    );
     check('league', item.league, item.league === target.league);
     check('patch', item.patch, item.patch === target.patch);
     check('currency', item.currency, item.currency === snapshot.currency);
@@ -102,6 +110,56 @@ export function analyzeBeltSnapshot(
             item.influences?.includes(influence),
           ),
       );
+    if (target.tradeSearch) {
+      if (target.influences !== undefined)
+        check(
+          'exact influences',
+          item.influences,
+          item.influences !== undefined &&
+            [...item.influences].sort().join('|') ===
+              [...target.influences].sort().join('|'),
+        );
+      if (target.tradeSearch.fractured !== undefined)
+        check(
+          'fracture',
+          item.fractured,
+          item.fractured === target.tradeSearch.fractured,
+        );
+      for (const group of target.tradeSearch.groups) {
+        let matched = 0;
+        let uncertain = 0;
+        for (const stat of group.filters) {
+          const found =
+            item.mods?.filter((entry) => entry.id === stat.id) ?? [];
+          if (found.length !== 1 || found[0]?.value === undefined) {
+            if (!item.verifiedAbsentStats?.includes(stat.id)) uncertain++;
+            continue;
+          }
+          const entry = found[0];
+          if (
+            (stat.min !== undefined && entry.value! < stat.min) ||
+            (stat.max !== undefined && entry.value! > stat.max)
+          )
+            continue;
+          if (stat.maxTier !== undefined && !entry.tier) {
+            uncertain++;
+            continue;
+          }
+          if (stat.maxTier !== undefined && entry.tier! > stat.maxTier)
+            continue;
+          matched++;
+        }
+        const needed =
+          group.type === 'count'
+            ? (group.min ?? group.filters.length)
+            : group.filters.length;
+        const label = `${group.type}: ${group.filters.map((stat) => stat.id).join(', ')}`;
+        if (matched + uncertain < needed)
+          rejected.push(`${label}: thresholds not met`);
+        else if (matched < needed)
+          unknown.push(`${label}: missing or ambiguous modifier evidence`);
+      }
+    }
     if (rules) {
       if (rules.version !== 1 && rules.totalElementalResistanceMin !== null) {
         const res = item.elementalResistances;
@@ -136,7 +194,11 @@ export function analyzeBeltSnapshot(
         }
         const found = item.mods.filter((entry) => entry.id === mod.id);
         if (found.length === 0) {
-          if (item.modsComplete === true) rejected.push(`${mod.id}: missing`);
+          if (
+            item.modsComplete === true ||
+            item.verifiedAbsentStats?.includes(mod.id)
+          )
+            rejected.push(`${mod.id}: missing`);
           else unknown.push(`${mod.id}: mod list completeness unknown`);
           continue;
         }
@@ -150,25 +212,26 @@ export function analyzeBeltSnapshot(
         else if (entry.value < mod.minValue)
           rejected.push(`${mod.id}: below threshold`);
         if (mod.maxTier !== undefined) {
-          if (entry?.tier === undefined)
-            unknown.push(`${mod.id}: tier unknown`);
+          if (!entry?.tier) unknown.push(`${mod.id}: tier unknown`);
           else if (entry.tier > mod.maxTier)
             rejected.push(`${mod.id}: tier mismatch`);
         }
       }
     }
-    return [{
-      index,
-      externalId: listing.externalId ?? null,
-      price: listing.price,
-      seller: item.seller ?? null,
-      status: rejected.length
-        ? ('REJECT' as const)
-        : unknown.length
-          ? ('PARTIAL' as const)
-          : ('MATCH' as const),
-      reasons: [...rejected, ...unknown],
-    }];
+    return [
+      {
+        index,
+        externalId: listing.externalId ?? null,
+        price: listing.price,
+        seller: item.seller ?? null,
+        status: rejected.length
+          ? ('REJECT' as const)
+          : unknown.length
+            ? ('PARTIAL' as const)
+            : ('MATCH' as const),
+        reasons: [...rejected, ...unknown],
+      },
+    ];
   });
   const sellers = new Map<string, number>();
   for (const row of rows)
@@ -182,8 +245,9 @@ export function analyzeBeltSnapshot(
     now >= Date.parse(snapshot.capturedAt) &&
     now - Date.parse(snapshot.capturedAt) <= 24 * 60 * 60 * 1000;
   return {
-    algorithm:
-      target.beltRules?.version === 3
+    algorithm: target.tradeSearch
+      ? ('trade-comparability-v1' as const)
+      : target.beltRules?.version === 3
         ? ('belt-comparability-v3' as const)
         : target.beltRules?.version === 2
           ? ('belt-comparability-v2' as const)
@@ -199,8 +263,21 @@ export function analyzeBeltSnapshot(
       ...(!fresh ? ['Observation is stale or dated in the future.'] : []),
       ...(prices.length < 5 ? ['Fewer than five independent sellers.'] : []),
     ],
-    selectionBias: 'Manually selected asking prices; delisting is not a sale.',
+    selectionBias:
+      snapshot.provenance === 'collection'
+        ? 'Bounded Trade asking-price sample; delisting is not a sale.'
+        : 'Manually selected asking prices; delisting is not a sale.',
     independentSellers: prices.length,
+    askingDistribution: prices.length
+      ? {
+          min: prices[0]!,
+          median:
+            (prices[Math.floor((prices.length - 1) / 2)]! +
+              prices[Math.ceil((prices.length - 1) / 2)]!) /
+            2,
+          max: prices.at(-1)!,
+        }
+      : null,
     confirmedListings: rows.filter((row) => row.status === 'MATCH').length,
     conservativeAskingPrice:
       fresh && prices.length >= 5

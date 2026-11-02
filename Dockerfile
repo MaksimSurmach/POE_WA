@@ -15,6 +15,7 @@ COPY apps/web apps/web
 COPY packages/contracts packages/contracts
 COPY packages/domain packages/domain
 COPY recipes recipes
+COPY catalog catalog
 RUN pnpm --filter @poe-worksmith/domain build \
   && pnpm --filter @poe-worksmith/contracts build \
   && pnpm --filter @poe-worksmith/server build \
@@ -56,6 +57,7 @@ COPY --from=build --chown=node:node /workspace/apps/server/drizzle ./drizzle
 COPY --from=build --chown=node:node /workspace/apps/server/mappings ./mappings
 COPY --from=build --chown=node:node /workspace/apps/server/presentation ./presentation
 COPY --from=build --chown=node:node /workspace/recipes ./recipes
+COPY --from=build --chown=node:node /workspace/catalog ./catalog
 
 USER node
 EXPOSE 3000

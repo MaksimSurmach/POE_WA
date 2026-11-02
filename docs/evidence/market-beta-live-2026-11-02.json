@@ -1,0 +1,382 @@
+{
+  "checkedAt": "2026-11-02T00:42:21.081334+00:00",
+  "environment": {
+    "node": "22.13.0",
+    "pnpm": "11.8.0",
+    "postgresql": "17.11",
+    "database": "poe_worksmith_beta",
+    "productionReset": false
+  },
+  "source": {
+    "id": "trade-compatible",
+    "connectionStatus": "CONNECTED",
+    "access": "owner_permitted",
+    "sessionConfigured": false,
+    "officialDeveloperApiAuthorizationClaimed": false
+  },
+  "profiles": [
+    {
+      "targetId": "bec3a7e2-bc87-4511-83d6-01d76aabea5c",
+      "name": "RF: шлем под Fire Trap",
+      "league": "Allflame",
+      "patch": "3.29",
+      "targetDigest": "563a5c722f4c1156e2b56e870a9a69f93cc96208e0ad98b0cc66ace0534bd3ea",
+      "matchedListings": 6,
+      "independentSellers": 6,
+      "askingDistribution": {
+        "min": 250,
+        "median": 345,
+        "max": 600
+      },
+      "askingCurrency": "chaos",
+      "outcomes": [
+        {
+          "id": "fb0ee5ca-27ba-4926-b7bb-8030464e4971",
+          "status": "succeeded",
+          "queryDigest": "05cb490ce60d9d4e6aea75dd8275ad57128519bf33bf739115286502c08b7518",
+          "capturedAt": "2026-11-02T00:35:05.350Z",
+          "completedAt": "2026-11-02T00:35:45.426Z",
+          "snapshotId": "84316740-7ab7-4d1d-a4f3-6ea8fbbf5ccc",
+          "coverage": "complete",
+          "reportedTotal": 6,
+          "returnedCount": 6,
+          "fetchedCount": 6,
+          "cached": false,
+          "errorCode": null
+        },
+        {
+          "id": "689d6eb5-3b9d-47c4-9803-8b025b318afa",
+          "status": "succeeded",
+          "queryDigest": "05cb490ce60d9d4e6aea75dd8275ad57128519bf33bf739115286502c08b7518",
+          "capturedAt": "2026-11-02T00:32:10.951Z",
+          "completedAt": "2026-11-02T00:32:51.010Z",
+          "snapshotId": "6b4a75b1-6d91-4b35-a7fd-59cc8e8d5e09",
+          "coverage": "complete",
+          "reportedTotal": 6,
+          "returnedCount": 6,
+          "fetchedCount": 6,
+          "cached": false,
+          "errorCode": null
+        }
+      ],
+      "calculation": {
+        "expectedCraftCost": "342.736",
+        "askingPrice": "250",
+        "spread": "-92.736",
+        "roiPercent": "-27.05756034",
+        "costRange": null,
+        "askingRange": {
+          "min": 250,
+          "max": 600
+        },
+        "currency": "chaos",
+        "breakdown": {
+          "base": {
+            "id": "base",
+            "label": "Archdemon Crown",
+            "quantity": "1",
+            "total": {
+              "amount": "250",
+              "currency": "chaos"
+            },
+            "unitPrice": {
+              "amount": "250",
+              "currency": "chaos"
+            }
+          },
+          "expectedAttempts": "94",
+          "expectedCraftCost": {
+            "amount": "342.736",
+            "currency": "chaos"
+          },
+          "expectedMaterials": {
+            "amount": "88.736",
+            "currency": "chaos"
+          },
+          "finishing": [
+            {
+              "id": "bench-aoe",
+              "label": "Chaos Orb",
+              "quantity": "4",
+              "total": {
+                "amount": "4",
+                "currency": "chaos"
+              },
+              "unitPrice": {
+                "amount": "1",
+                "currency": "chaos"
+              }
+            }
+          ],
+          "finishingTotal": {
+            "amount": "4",
+            "currency": "chaos"
+          },
+          "materials": [
+            {
+              "id": "wild-lifeforce",
+              "label": "Wild Crystallised Lifeforce",
+              "quantity": "50",
+              "total": {
+                "amount": "0.944",
+                "currency": "chaos"
+              },
+              "unitPrice": {
+                "amount": "0.01888",
+                "currency": "chaos"
+              }
+            }
+          ],
+          "materialsPerAttempt": {
+            "amount": "0.944",
+            "currency": "chaos"
+          }
+        }
+      },
+      "confidence": "LOW",
+      "economicConclusion": "NON_POSITIVE"
+    },
+    {
+      "targetId": "bedec0da-c9f7-4761-b36c-8452ea1be935",
+      "name": "Winter Orb Elementalist — Stygian Vise",
+      "league": "Allflame",
+      "patch": "3.29",
+      "targetDigest": "dd9ea418b6852bb85ed7cd99b37a3c5920972ddf591f947837b22c21e61cf3cd",
+      "matchedListings": 29,
+      "independentSellers": 29,
+      "askingDistribution": {
+        "min": 100,
+        "median": 222,
+        "max": 1000
+      },
+      "askingCurrency": "chaos",
+      "outcomes": [
+        {
+          "id": "ca6c3632-c9e6-430f-a738-43b5f30cc5bf",
+          "status": "succeeded",
+          "queryDigest": "1456d0474deb600d4f82c6fac5a37eabcbb7421d0e87d894b73add645eea272d",
+          "capturedAt": "2026-11-01T23:41:34.466Z",
+          "completedAt": "2026-11-01T23:43:33.785Z",
+          "snapshotId": "219b579a-0d31-4607-a5ac-35ab63d1ff8a",
+          "coverage": "complete",
+          "reportedTotal": 30,
+          "returnedCount": 30,
+          "fetchedCount": 30,
+          "cached": false,
+          "errorCode": null
+        },
+        {
+          "id": "787c5196-5a52-4448-a657-41b411ae5259",
+          "status": "succeeded",
+          "queryDigest": "1456d0474deb600d4f82c6fac5a37eabcbb7421d0e87d894b73add645eea272d",
+          "capturedAt": "2026-11-01T23:36:56.045Z",
+          "completedAt": "2026-11-01T23:38:55.480Z",
+          "snapshotId": "6ed034b4-0f3a-4a5c-a3b6-ec81a0ba6a10",
+          "coverage": "complete",
+          "reportedTotal": 30,
+          "returnedCount": 30,
+          "fetchedCount": 30,
+          "cached": false,
+          "errorCode": null
+        }
+      ]
+    },
+    {
+      "targetId": "4265606b-c051-482b-af4c-f9453e9d2d4f",
+      "name": "Flicker Strike Slayer — Stygian Vise",
+      "league": "Allflame",
+      "patch": "3.29",
+      "targetDigest": "9475e0cdf1bd28da167554587f340d1668ac127113ab17ee2bf6a08351d3fd27",
+      "matchedListings": 7,
+      "independentSellers": 7,
+      "askingDistribution": {
+        "min": 100,
+        "median": 200,
+        "max": 300
+      },
+      "askingCurrency": "chaos",
+      "outcomes": [
+        {
+          "id": "cce33cc1-4746-43bf-ab1b-664d0835ddd7",
+          "status": "succeeded",
+          "queryDigest": "90b0cec07c78fe38cacaeeeb0a2d18140a1fd38c02a1ae3e14b43020bfd56185",
+          "capturedAt": "2026-11-01T23:44:13.321Z",
+          "completedAt": "2026-11-01T23:45:33.460Z",
+          "snapshotId": "16e761c3-82d8-4fb1-8c91-e8d0d4312f99",
+          "coverage": "complete",
+          "reportedTotal": 7,
+          "returnedCount": 7,
+          "fetchedCount": 7,
+          "cached": false,
+          "errorCode": null
+        },
+        {
+          "id": "a22e18c9-c22c-4538-9a90-a7ef4d2f788b",
+          "status": "succeeded",
+          "queryDigest": "90b0cec07c78fe38cacaeeeb0a2d18140a1fd38c02a1ae3e14b43020bfd56185",
+          "capturedAt": "2026-11-01T23:34:56.344Z",
+          "completedAt": "2026-11-01T23:35:36.353Z",
+          "snapshotId": "96d323eb-aeec-41bf-bb8d-db31cc8dd52e",
+          "coverage": "complete",
+          "reportedTotal": 7,
+          "returnedCount": 7,
+          "fetchedCount": 7,
+          "cached": false,
+          "errorCode": null
+        }
+      ]
+    },
+    {
+      "targetId": "7245333d-e107-42a5-baf6-0a6c58406a51",
+      "name": "Lacerate: восстановление жизни при блоке",
+      "league": "Allflame",
+      "patch": "3.29",
+      "targetDigest": "63b87545b4bca3e778cc73e7475475c22a7f4449d9c665f1b9ff27b4af9b136f",
+      "matchedListings": 0,
+      "independentSellers": 0,
+      "askingDistribution": null,
+      "askingCurrency": "chaos",
+      "outcomes": [
+        {
+          "id": "4f29fba7-d107-461b-874c-a3fe5f7a7a41",
+          "status": "empty",
+          "queryDigest": "289747c5ca7e651dac344f353b7e1f15f1440bd4541027d97c1b923a6744e695",
+          "capturedAt": "2026-11-02T00:33:30.636Z",
+          "completedAt": "2026-11-02T00:33:30.657Z",
+          "snapshotId": "a73ae42a-c28c-4694-a3e6-9e477b0ade28",
+          "coverage": "complete",
+          "reportedTotal": 0,
+          "returnedCount": 0,
+          "fetchedCount": 0,
+          "cached": false,
+          "errorCode": null
+        }
+      ]
+    },
+    {
+      "targetId": "1f4c4338-69b2-4b8a-9025-deeec534d912",
+      "name": "Spectre: редкий шлем с уровнями приспешников",
+      "league": "Allflame",
+      "patch": "3.29",
+      "targetDigest": "6bce18599c962de4f93ee0da7f76a489d334fa5564c9231774affb276af4e499",
+      "matchedListings": 0,
+      "independentSellers": 0,
+      "askingDistribution": null,
+      "askingCurrency": "chaos",
+      "outcomes": [
+        {
+          "id": "6269d224-89bf-4a74-be70-86021747bd32",
+          "status": "empty",
+          "queryDigest": "ac33f1ee51a2ad10fb94fe5b6df22bc1bf03ae3e03146686f9e959537b29f7e5",
+          "capturedAt": "2026-11-01T23:44:53.446Z",
+          "completedAt": "2026-11-01T23:44:53.457Z",
+          "snapshotId": "70fd9b24-ed4d-4145-b601-eb6e57e32d9c",
+          "coverage": "complete",
+          "reportedTotal": 0,
+          "returnedCount": 0,
+          "fetchedCount": 0,
+          "cached": false,
+          "errorCode": null
+        },
+        {
+          "id": "abc49aca-7a28-4791-9051-b686e58a919c",
+          "status": "empty",
+          "queryDigest": "ac33f1ee51a2ad10fb94fe5b6df22bc1bf03ae3e03146686f9e959537b29f7e5",
+          "capturedAt": "2026-11-01T23:36:15.942Z",
+          "completedAt": "2026-11-01T23:36:15.954Z",
+          "snapshotId": "0df81be1-d377-42b5-885b-eda687b14509",
+          "coverage": "complete",
+          "reportedTotal": 0,
+          "returnedCount": 0,
+          "fetchedCount": 0,
+          "cached": false,
+          "errorCode": null
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Asking prices are not completed sales.",
+    "The dated RF revision 5 scenario is an approximate LOW-confidence cost estimate; gold and alternative base preparation are excluded. Other profiles lack complete current cost models.",
+    "Empty searches are successful zero-result observations. Historical revisions and their observations are preserved.",
+    "These receipts refer to the local review database; raw immutable observations remain there."
+  ],
+  "rareSnapshots": 12,
+  "pricedProfilesWithTwoIndependentObservations": 3,
+  "retiredProfiles": [
+    {
+      "targetId": "bf245f4f-2715-4219-9359-b1b1cfe9bc59",
+      "name": "RF: шлем под Fire Trap",
+      "league": "Allflame",
+      "patch": "3.29",
+      "targetDigest": "acea259a7a6ddfaca3635e0a7df2484a8290769b83b266a5c14093cdf01d197a",
+      "matchedListings": 6,
+      "independentSellers": 6,
+      "askingDistribution": {
+        "min": 250,
+        "median": 345,
+        "max": 600
+      },
+      "askingCurrency": "chaos",
+      "outcomes": [
+        {
+          "id": "49c859ce-e91b-4c1c-802e-c28b617d84f2",
+          "status": "succeeded",
+          "queryDigest": "b48aa8ecfa0a39254d049fe4fc93f3bf18825168bcf2b96eae1ddb42d99d8a50",
+          "capturedAt": "2026-11-01T23:49:58.782Z",
+          "completedAt": "2026-11-01T23:50:38.986Z",
+          "snapshotId": "660138f8-39ca-466e-a66c-7465ea46b749",
+          "coverage": "complete",
+          "reportedTotal": 6,
+          "returnedCount": 6,
+          "fetchedCount": 6,
+          "cached": false,
+          "errorCode": null
+        },
+        {
+          "id": "1e144770-8f2e-4e3f-81ef-7f1731935284",
+          "status": "succeeded",
+          "queryDigest": "b48aa8ecfa0a39254d049fe4fc93f3bf18825168bcf2b96eae1ddb42d99d8a50",
+          "capturedAt": "2026-11-01T23:40:14.844Z",
+          "completedAt": "2026-11-01T23:40:54.924Z",
+          "snapshotId": "9d283c08-8380-48ea-b03f-d474341ba2b5",
+          "coverage": "complete",
+          "reportedTotal": 6,
+          "returnedCount": 6,
+          "fetchedCount": 6,
+          "cached": false,
+          "errorCode": null
+        }
+      ]
+    },
+    {
+      "targetId": "26e27d4c-180a-4bd9-8932-f717a07a718a",
+      "name": "Lacerate: восстановление жизни при блоке",
+      "league": "Allflame",
+      "patch": "3.29",
+      "targetDigest": "5bb3177237c7b3e7ba64a158941b788a1e6f0ee0493f55e141e19025267ee1b1",
+      "matchedListings": 0,
+      "independentSellers": 0,
+      "askingDistribution": null,
+      "askingCurrency": "chaos",
+      "outcomes": [
+        {
+          "id": "f0c9ad45-7070-4150-8516-64287916bcbc",
+          "status": "empty",
+          "queryDigest": "f3edfcdd1efcdac236c537f34723d99c4d42182db0ee4ef4df1a730c0121f7ba",
+          "capturedAt": "2026-11-01T23:39:34.848Z",
+          "completedAt": "2026-11-01T23:39:34.856Z",
+          "snapshotId": "0d6a6f1c-d91f-4dae-9121-111972dd1cd6",
+          "coverage": "complete",
+          "reportedTotal": 0,
+          "returnedCount": 0,
+          "fetchedCount": 0,
+          "cached": false,
+          "errorCode": null
+        }
+      ]
+    }
+  ],
+  "activeProfileSnapshots": 9,
+  "retiredProfileSnapshots": 3
+}

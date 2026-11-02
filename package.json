@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@11.8.0",
   "engines": {
-    "node": ">=22.12 <23",
+    "node": ">=22.13 <23",
     "pnpm": ">=11 <12"
   },
   "scripts": {
@@ -38,7 +38,9 @@
     "test:e2e:backend": "pnpm --filter @poe-worksmith/server test:e2e:backend",
     "typecheck": "pnpm -r --if-present typecheck",
     "market:seed-belt-demo": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:seed-belt-demo",
-    "market:import-belt-evidence": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:import-belt-evidence"
+    "market:import-belt-evidence": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:import-belt-evidence",
+    "market:import-catalog": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:import-catalog",
+    "market:test-connection": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:test-connection"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

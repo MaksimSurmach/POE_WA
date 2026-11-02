@@ -39,7 +39,13 @@ async function economyRequest(path: string, body?: unknown): Promise<unknown> {
   return payload;
 }
 
-export function EconomyPanel({ demo }: { demo: boolean }) {
+export function EconomyPanel({
+  demo,
+  selectedLeague,
+}: {
+  demo: boolean;
+  selectedLeague?: string;
+}) {
   const [overview, setOverview] = useState<
     MarketEconomyOverviewResponse['data'] | null
   >(null);
@@ -50,6 +56,9 @@ export function EconomyPanel({ demo }: { demo: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [detail, setDetail] = useState<MarketEconomyDetail | null>(null);
+  useEffect(() => {
+    if (selectedLeague && selectedLeague !== 'all') setLeague(selectedLeague);
+  }, [selectedLeague]);
   async function load() {
     const response = marketEconomyOverviewResponseSchema.parse(
       await economyRequest('/api/market/economy'),
@@ -75,7 +84,11 @@ export function EconomyPanel({ demo }: { demo: boolean }) {
           await economyRequest('/api/market/economy/leagues'),
         ).data;
         setLeagues(result.leagues);
-        setLeague(result.leagues[0]?.id ?? '');
+        setLeague(
+          selectedLeague && selectedLeague !== 'all'
+            ? selectedLeague
+            : (result.leagues[0]?.id ?? ''),
+        );
         setMessage(`Список лиг проверен: ${displayDate(result.checkedAt)}.`);
       } else if (action === 'collect') {
         const result = marketEconomyCollectResponseSchema.parse(

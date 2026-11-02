@@ -60,12 +60,14 @@ export const beltPriceEvidenceSchema = z.discriminatedUnion('source', [
     dataKind: z.enum(['observed', 'demo']),
     url: httpsUrl,
     notes: text(1000),
+    exchangeSnapshotId: z.uuid().optional(),
   }),
   z.strictObject({
     source: z.literal('economy'),
     snapshotId: z.uuid(),
     lineId: text(500),
     patch: text(50),
+    exchangeSnapshotId: z.uuid().optional(),
   }),
 ]);
 
@@ -74,6 +76,8 @@ export const beltPriceUpdateInputSchema = z.strictObject({
   dataKind: z.enum(['observed', 'demo']),
   basePrice: beltPriceEvidenceSchema,
   materialPrices: z.record(z.string(), beltPriceEvidenceSchema),
+  finishingPrices: z.record(z.string(), beltPriceEvidenceSchema).optional(),
+  recoveryPrice: beltPriceEvidenceSchema.optional(),
 });
 export const beltPriceUpdateSchema = beltPriceUpdateInputSchema.extend({
   id: z.uuid(),
@@ -96,7 +100,31 @@ export const beltCraftMethodSchema = z
     assumptions: text(2000),
     steps: z.array(text(500)).min(1).max(20),
     rulesComplete: z.boolean(),
-    repeatOnSameBase: z.literal(true),
+    repeatOnSameBase: z.boolean(),
+    baseFailurePolicy: z
+      .strictObject({
+        replacementProbabilityPerFailure: z.number().finite().min(0).max(1),
+        recoveryPrice: beltPriceEvidenceSchema.optional(),
+      })
+      .optional(),
+    attemptsRange: z
+      .strictObject({
+        min: z.number().finite().gte(1),
+        max: z.number().finite().gte(1),
+      })
+      .refine((range) => range.min <= range.max, 'Invalid attempts range')
+      .optional(),
+    finishing: z
+      .array(
+        z.strictObject({
+          id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+          label: text(),
+          quantity: z.number().finite().positive(),
+          price: beltPriceEvidenceSchema,
+        }),
+      )
+      .max(20)
+      .optional(),
     success: z.discriminatedUnion('mode', [
       z.strictObject({
         mode: z.literal('probability'),
@@ -122,6 +150,37 @@ export const beltCraftMethodSchema = z
   })
   .superRefine((method, context) => {
     if (
+      new Set((method.finishing ?? []).map((entry) => entry.id)).size !==
+      (method.finishing ?? []).length
+    )
+      context.addIssue({
+        code: 'custom',
+        path: ['finishing'],
+        message: 'Duplicate finishing IDs',
+      });
+    if (method.attemptsRange) {
+      const attempts =
+        method.success.mode === 'expected_attempts'
+          ? method.success.expectedAttempts
+          : 1 / method.success.probability;
+      if (
+        attempts < method.attemptsRange.min ||
+        attempts > method.attemptsRange.max
+      )
+        context.addIssue({
+          code: 'custom',
+          path: ['attemptsRange'],
+          message: 'Range must contain the expected attempts',
+        });
+    }
+    if (!method.repeatOnSameBase && !method.baseFailurePolicy)
+      context.addIssue({
+        code: 'custom',
+        path: ['baseFailurePolicy'],
+        message:
+          'A replacement/recovery assumption is required for consumable bases',
+      });
+    if (
       new Set(method.materials.map((material) => material.id)).size !==
       method.materials.length
     )
@@ -132,9 +191,81 @@ export const beltCraftMethodSchema = z
       });
   });
 
-/** A user-curated demand hypothesis. Mod text is not an executable trade query. */
+export const tradeStatRuleSchema = z
+  .strictObject({
+    id: text(200).regex(
+      /^(explicit|implicit|crafted|fractured|pseudo)\.[a-z0-9_]+$/,
+    ),
+    key: text(200).optional(),
+    min: z.number().finite().optional(),
+    max: z.number().finite().optional(),
+    maxTier: z.number().int().positive().optional(),
+  })
+  .refine(
+    (rule) =>
+      rule.min === undefined || rule.max === undefined || rule.min <= rule.max,
+    'Invalid stat range',
+  );
+
+export const tradeSearchSchema = z.strictObject({
+  version: z.literal(1),
+  scope: z.enum(['strict', 'broad']),
+  status: z.enum(['available', 'securable', 'online', 'any']),
+  currency: z.enum(['chaos', 'divine']),
+  rarity: z.enum(['normal', 'magic', 'rare', 'unique']),
+  fractured: z.boolean().optional(),
+  exchangeSnapshotId: z.uuid().optional(),
+  groups: z
+    .array(
+      z
+        .strictObject({
+          type: z.enum(['and', 'count']),
+          min: z.number().int().positive().optional(),
+          filters: z.array(tradeStatRuleSchema).min(1).max(30),
+        })
+        .superRefine((group, ctx) => {
+          if (
+            (group.type === 'count' &&
+              (!group.min || group.min > group.filters.length)) ||
+            (group.type === 'and' && group.min !== undefined)
+          )
+            ctx.addIssue({
+              code: 'custom',
+              message:
+                'Count groups require a valid minimum; AND groups have no minimum',
+            });
+        }),
+    )
+    .min(1)
+    .max(10),
+});
+
+/** A user-curated demand hypothesis. Free text is never parsed into stat IDs. */
 export const marketTargetInputSchema = z.strictObject({
   name: text(),
+  description: text(4000).optional(),
+  craftVariants: z
+    .array(
+      z.strictObject({
+        id: text(100),
+        name: text(),
+        description: text(2000),
+        steps: z.array(text(2000)).min(1).max(20),
+        assumptions: z.array(text(2000)).max(20),
+        craftOfExileUrl: httpsUrl.refine(
+          (value) =>
+            [
+              'craftofexile.com',
+              'www.craftofexile.com',
+              'beta.craftofexile.com',
+            ].includes(new URL(value).hostname),
+          'Use a Craft of Exile configuration URL',
+        ),
+        verification: z.enum(['unverified', 'research', 'verified']),
+      }),
+    )
+    .max(10)
+    .optional(),
   game: z.literal('poe1'),
   realm: z.literal('pc'),
   league: text(100),
@@ -150,6 +281,17 @@ export const marketTargetInputSchema = z.strictObject({
   sources: z.array(marketSourceEvidenceSchema).max(30),
   beltRules: beltRulesSchema.optional(),
   beltCraftMethod: beltCraftMethodSchema.optional(),
+  tradeSearch: tradeSearchSchema.optional(),
+  catalog: z
+    .strictObject({
+      key: text(200),
+      revision: z.number().int().positive(),
+      progression: text(200).nullable(),
+      verification: z.enum(['unverified', 'research', 'verified']),
+      unknowns: z.array(text(1000)).max(30),
+      evidence: z.record(z.string(), z.json()).optional(),
+    })
+    .optional(),
 });
 
 export const marketTargetSchema = marketTargetInputSchema.extend({
@@ -283,6 +425,25 @@ export const marketTargetResponseSchema = z.strictObject({
   correlationId: z.uuid(),
   data: marketTargetSchema,
 });
+export const marketTradeQueryResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: z.strictObject({
+    version: z.string(),
+    scope: z.enum(['strict', 'broad']),
+    hash: z.string().regex(/^[a-f0-9]{64}$/),
+    url: httpsUrl,
+    request: z.record(z.string(), z.json()),
+  }),
+});
+export const marketCatalogImportResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: z.strictObject({
+    dryRun: z.boolean(),
+    created: z.number().int().nonnegative(),
+    unchanged: z.number().int().nonnegative(),
+    targets: z.array(marketTargetSchema),
+  }),
+});
 
 export const marketResearchSnapshotResponseSchema = z.strictObject({
   correlationId: z.uuid(),
@@ -415,6 +576,7 @@ export const beltAnalysisSchema = z.strictObject({
     'belt-comparability-v1',
     'belt-comparability-v2',
     'belt-comparability-v3',
+    'trade-comparability-v1',
   ]),
   targetDigest: z.string(),
   snapshotId: z.uuid(),
@@ -427,6 +589,14 @@ export const beltAnalysisSchema = z.strictObject({
   independentSellers: z.number().int().nonnegative(),
   confirmedListings: z.number().int().nonnegative(),
   conservativeAskingPrice: z.number().positive().nullable(),
+  askingDistribution: z
+    .strictObject({
+      min: z.number().positive(),
+      median: z.number().positive(),
+      max: z.number().positive(),
+    })
+    .nullable()
+    .optional(),
   rows: z.array(
     z.strictObject({
       index: z.number().int().nonnegative(),
@@ -443,6 +613,31 @@ export const beltAnalysisResponseSchema = z.strictObject({
   data: beltAnalysisSchema,
 });
 export type BeltAnalysis = z.infer<typeof beltAnalysisSchema>;
+
+const craftCostMoneySchema = z.object({
+  amount: z.string().regex(/^-?\d+(\.\d+)?$/),
+  currency: z.enum(['chaos', 'divine']),
+});
+const craftCostLineSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  quantity: z.string(),
+  total: craftCostMoneySchema,
+});
+// The historical opportunity payload permits arbitrary breakdown JSON.
+export const craftCostBreakdownSchema = z.object({
+  base: craftCostLineSchema,
+  expectedAttempts: z.string(),
+  expectedMaterials: craftCostMoneySchema,
+  finishingTotal: craftCostMoneySchema,
+  materials: z.array(craftCostLineSchema),
+  baseReplacement: z
+    .object({
+      expectedReplacements: z.string(),
+      netCost: craftCostMoneySchema,
+    })
+    .optional(),
+});
 
 export const beltOpportunitySchema = z.strictObject({
   targetId: z.uuid(),
@@ -465,12 +660,35 @@ export const beltOpportunitySchema = z.strictObject({
       expectedCraftCost: z.string(),
       askingPrice: z.string(),
       spread: z.string(),
+      roiPercent: z.string().optional(),
+      costRange: z
+        .strictObject({ min: z.string(), max: z.string() })
+        .nullable()
+        .optional(),
+      askingRange: z
+        .strictObject({ min: z.number(), max: z.number() })
+        .nullable()
+        .optional(),
       currency: z.string(),
       breakdown: z.json(),
     })
     .nullable(),
   status: z.enum(['RESEARCH', 'INSUFFICIENT_DATA', 'CALCULATED']),
   economicConclusion: z.enum(['POSITIVE', 'NON_POSITIVE']).nullable(),
+  freshness: z.enum(['MISSING', 'FRESH', 'STALE']).optional(),
+  confidence: z.enum(['LOW', 'MEDIUM']).optional(),
+  queryUrl: httpsUrl.nullable().optional(),
+  supply: z
+    .strictObject({
+      newCount: z.number().int().nonnegative(),
+      missingCount: z.number().int().nonnegative(),
+      restoredCount: z.number().int().nonnegative(),
+      increasedCount: z.number().int().nonnegative(),
+      decreasedCount: z.number().int().nonnegative(),
+      coverage: z.enum(['complete', 'partial', 'unknown']).nullable(),
+    })
+    .nullable()
+    .optional(),
   reasons: z.array(z.string()),
 });
 export const beltOpportunitiesResponseSchema = z.strictObject({
@@ -527,7 +745,7 @@ export const marketCollectionListingSchema = marketImportListingSchema.extend({
 
 export const marketCollectionSearchEvidenceSchema = z.strictObject({
   ids: z.array(text(256)).max(100_000),
-  queryId: text(256).nullable(),
+  queryId: text(4096).nullable(),
   reportedTotal: z.number().int().nonnegative().nullable(),
   request: z.record(z.string(), z.json()).optional(),
   raw: z.record(z.string(), z.json()).optional(),
@@ -583,7 +801,18 @@ export const marketCollectionSourceSchema = z.strictObject({
   access: z.enum(['blocked', 'replay', 'authorized']),
   dataKind: z.enum(['observed', 'demo']),
   reason: z.string().max(1500).nullable(),
-  implementation: z.enum(['manual', 'not_connected', 'replay']).optional(),
+  implementation: z
+    .enum(['manual', 'not_connected', 'replay', 'trade_compatible'])
+    .optional(),
+  connectionStatus: z
+    .enum([
+      'CONNECTED',
+      'AUTH_REQUIRED',
+      'ACCESS_DENIED',
+      'RATE_LIMITED',
+      'UNAVAILABLE',
+    ])
+    .optional(),
   authorization: z
     .enum(['user_supplied', 'unverified', 'test_only'])
     .optional(),
@@ -606,6 +835,10 @@ export const marketCollectionPointSchema = z.strictObject({
   restored: idList,
   changedCount: z.number().int().min(0),
   changed: idList,
+  increasedCount: z.number().int().nonnegative().optional(),
+  decreasedCount: z.number().int().nonnegative().optional(),
+  independentSellers: z.number().int().nonnegative().optional(),
+  coverage: z.enum(['complete', 'partial', 'unknown']).nullable().optional(),
 });
 
 /** One series per data kind and currency, strictly within one target id, digest, league and patch. */
@@ -624,6 +857,7 @@ export const marketCollectionResponseSchema = z.strictObject({
     runs: z.array(marketCollectionRunSchema).max(25),
     series: z.array(marketCollectionSeriesSchema),
     note: z.string(),
+    cooldownUntil: z.iso.datetime().nullable().optional(),
   }),
 });
 

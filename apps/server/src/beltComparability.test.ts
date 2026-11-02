@@ -65,6 +65,7 @@ describe('belt comparability v1', () => {
     const snap = snapshot([
       item,
       { ...item, mods: [{ id: 'life', value: 90 }] },
+      { ...item, mods: [{ id: 'life', value: 90, tier: 0 }] },
       { ...item, mods: [{ id: 'life', value: 79, tier: 2 }] },
       { ...item, baseType: 'Leather Belt' },
       { ...item, currency: 'divine' },
@@ -74,6 +75,7 @@ describe('belt comparability v1', () => {
     const result = analyzeBeltSnapshot(target, snap, now.getTime());
     expect(result.rows.map((row) => row.status)).toEqual([
       'MATCH',
+      'PARTIAL',
       'PARTIAL',
       'REJECT',
       'REJECT',
@@ -101,7 +103,9 @@ describe('belt comparability v1', () => {
       now,
     );
     expect(snap.listings).toHaveLength(2);
-    expect(analyzeBeltSnapshot(target, snap, now.getTime()).rows).toHaveLength(1);
+    expect(analyzeBeltSnapshot(target, snap, now.getTime()).rows).toHaveLength(
+      1,
+    );
   });
   it('deduplicates sellers, requires a fresh sample and never claims profit', () => {
     const snap = snapshot([
@@ -111,6 +115,7 @@ describe('belt comparability v1', () => {
     ]);
     const result = analyzeBeltSnapshot(target, snap, now.getTime());
     expect(result.independentSellers).toBe(5);
+    expect(result.askingDistribution).toEqual({ min: 10, median: 13, max: 15 });
     expect(result.conservativeAskingPrice).toBe(12);
     expect(result.status).toBe('INSUFFICIENT_DATA');
     expect(
