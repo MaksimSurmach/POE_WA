@@ -21,8 +21,22 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
         setDismissed(false);
       }
     }
+    function dismissEscape(event: KeyboardEvent) {
+      if (
+        event.key === 'Escape' &&
+        (preview.current?.matches(':hover') ||
+          preview.current?.contains(document.activeElement))
+      ) {
+        setOpen(false);
+        setDismissed(true);
+      }
+    }
     document.addEventListener('pointerdown', dismissOutside);
-    return () => document.removeEventListener('pointerdown', dismissOutside);
+    document.addEventListener('keydown', dismissEscape);
+    return () => {
+      document.removeEventListener('pointerdown', dismissOutside);
+      document.removeEventListener('keydown', dismissEscape);
+    };
   }, []);
   return (
     <span
@@ -32,12 +46,6 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
           setOpen(false);
           setDismissed(false);
-        }
-      }}
-      onKeyDown={(event) => {
-        if (event.key === 'Escape') {
-          setOpen(false);
-          setDismissed(true);
         }
       }}
       onMouseLeave={() => setDismissed(false)}
