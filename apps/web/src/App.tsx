@@ -12,7 +12,12 @@ import {
   filterCatalog,
   type CatalogFilters,
 } from './catalog.js';
-import { Money, ProfitBadge, StatusPanel } from './components.js';
+import {
+  Money,
+  ProfitBadge,
+  StatusPanel,
+  economicClass,
+} from './components.js';
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
 import { ItemTooltip } from './ItemTooltip.js';
@@ -375,7 +380,7 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
           </div>
           <div>
             <small>ROI</small>
-            <strong>
+            <strong className={economicClass(entry.evaluation.marginPercent)}>
               {entry.evaluation.marginPercent === null
                 ? '—'
                 : formatMarginPercent(entry.evaluation.marginPercent)}

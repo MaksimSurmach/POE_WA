@@ -20,11 +20,19 @@ export function Money({ price }: { price: Price | null }) {
   );
 }
 
+export function economicClass(value: number | null) {
+  return value === null || value === 0
+    ? 'economic-unknown'
+    : value > 0
+      ? 'economic-positive'
+      : 'economic-negative';
+}
+
 export function ProfitBadge({ amount, currency }: Profit) {
   const sign = amount > 0 ? '+' : '';
 
   return (
-    <span className={amount > 0 ? 'profit profit--positive' : 'profit'}>
+    <span className={`profit ${economicClass(amount)}`}>
       {sign}
       {compactNumber.format(amount)} {currencyLabel[currency]}
     </span>

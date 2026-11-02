@@ -1732,3 +1732,13 @@ progress::-webkit-progress-value {
 .recipe-warning {
   color: #dcc28c;
 }
+
+.craft-target-card__metrics strong.economic-positive {
+  color: var(--success);
+}
+.craft-target-card__metrics strong.economic-negative {
+  color: var(--danger);
+}
+.craft-target-card__metrics strong.economic-unknown {
+  color: var(--muted);
+}

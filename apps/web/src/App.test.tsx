@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { App } from './App.js';
-import { formatAge, Money } from './components.js';
+import { formatAge, Money, ProfitBadge, economicClass } from './components.js';
 
 describe('application shell', () => {
   it('renders catalog and recipe routes inside the shared shell', () => {
@@ -44,3 +44,19 @@ describe('shared presentation primitives', () => {
     expect(formatAge(172800)).toBe('2 d ago');
   });
 });
+
+it.each([
+  [-3.5, 'economic-negative', '-3.5'],
+  [4, 'economic-positive', '+4'],
+  [0, 'economic-unknown', '0'],
+] as const)(
+  'renders signed economics with readable polarity for %s',
+  (amount, tone, label) => {
+    const html = renderToStaticMarkup(
+      <ProfitBadge amount={amount} currency="chaos" />,
+    );
+    expect(html).toContain(tone);
+    expect(html).toContain(`${label} c`);
+    expect(economicClass(amount)).toBe(tone);
+  },
+);

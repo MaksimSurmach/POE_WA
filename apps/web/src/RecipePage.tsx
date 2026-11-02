@@ -2,7 +2,13 @@ import type { RecipeResponse } from '@poe-worksmith/contracts';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import { Money, StatusPanel } from './components.js';
+import {
+  Money,
+  ProfitBadge,
+  StatusPanel,
+  economicClass,
+} from './components.js';
+import { formatMarginPercent } from './catalog.js';
 import { createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
 
@@ -112,10 +118,18 @@ export function RecipePage() {
           Potential profit{' '}
           <strong>
             {evaluation.profit ? (
-              <Money price={evaluation.profit} />
+              <ProfitBadge {...evaluation.profit} />
             ) : (
               'Not estimated'
             )}
+          </strong>
+        </span>
+        <span>
+          ROI{' '}
+          <strong className={economicClass(evaluation.marginPercent)}>
+            {evaluation.marginPercent === null
+              ? 'Not estimated'
+              : formatMarginPercent(evaluation.marginPercent)}
           </strong>
         </span>
       </div>
