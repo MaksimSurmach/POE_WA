@@ -103,12 +103,20 @@ describe('production catalog initialization', () => {
       ),
     })({ league: 'Mercenaries', recipe: recipe.definition });
 
-    expect(dependencies).toHaveLength(4);
+    expect(dependencies).toHaveLength(5);
     expect(dependencies.map(({ kind }) => kind)).toEqual([
       'base',
       'material',
       'material',
+      'material',
       'target',
+    ]);
+    expect(dependencies.map((dependency) => dependency.materialId)).toEqual([
+      undefined,
+      'jagged-fossil',
+      'primitive-chaotic-resonator',
+      'vivid-crystallised-lifeforce',
+      undefined,
     ]);
   });
 });

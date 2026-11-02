@@ -31,6 +31,7 @@ const prices: Record<string, readonly number[]> = {
   'fixture:material:legacy': [3],
   'fixture:material:production:jagged': [2],
   'fixture:material:production:resonator': [1],
+  'fixture:material:production:vivid': [0.02],
   'fixture:output:a': [100],
   'fixture:output:b': [120],
   'fixture:output:c': [150],

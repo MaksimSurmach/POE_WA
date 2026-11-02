@@ -39,6 +39,7 @@ export const expectedDefaultQueryKeys = [
   'fixture:material:legacy',
   'fixture:material:production:jagged',
   'fixture:material:production:resonator',
+  'fixture:material:production:vivid',
   'fixture:output:a',
   'fixture:output:b',
   'fixture:output:c',
@@ -127,6 +128,10 @@ export const integrationMarketDependencies: RecipeMarketDependencies = async ({
           {
             materialId: 'primitive-chaotic-resonator',
             queryKey: 'fixture:material:production:resonator',
+          },
+          {
+            materialId: 'vivid-crystallised-lifeforce',
+            queryKey: 'fixture:material:production:vivid',
           },
         ]
       : group === 'a' || group === 'c'

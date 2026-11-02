@@ -121,6 +121,9 @@ describe('catalog evaluation and publication', () => {
         observationId: null,
         profit: null,
         sourceSnapshotDedupeKey: 'snapshot-recipe-01',
+        variantCosts: {
+          fossil: { materialsPerAttempt: { amount: '1', currency: 'chaos' } },
+        },
       }),
       league: 'Mercenaries',
       now,
@@ -138,6 +141,9 @@ describe('catalog evaluation and publication', () => {
       estimatedSalePrice: '100',
       expectedCraftCost: null,
       status: 'stale',
+      variantCosts: {
+        fossil: { materialsPerAttempt: { amount: '1', currency: 'chaos' } },
+      },
     });
   });
 

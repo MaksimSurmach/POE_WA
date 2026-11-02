@@ -43,7 +43,7 @@ export function RecipePage() {
     };
   }, [recipeId]);
 
-  if (loadError) return <RecipeMessage title="Recipe not found" />;
+  if (loadError) return <RecipeMessage title="Recipe unavailable" />;
   if (!response) return <RecipeMessage title="Loading recipe" />;
   if (!response.data) return <RecipeMessage title="Recipe unavailable" />;
 
@@ -280,28 +280,34 @@ export function RecipePage() {
           ) : null}
         </div>
         <div>
-          <DetailSection title="Crafting steps">
-            <ol className="craft-steps">
-              {detail.craftSteps.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
-          </DetailSection>
-          <DetailSection title="Expected cost">
-            {detail.costBreakdown ? (
-              <p className="cost-formula">
-                {detail.costBreakdown.expectedAttempts} expected attempts ×{' '}
-                <Money price={detail.costBreakdown.materialsPerAttempt} /> per
-                attempt + <Money price={detail.costBreakdown.baseCost} /> base +{' '}
-                <Money price={detail.costBreakdown.finishingCost} /> finishing ={' '}
-                <strong>
-                  <Money price={detail.costBreakdown.expectedCost} />
-                </strong>
-              </p>
-            ) : (
-              <p>Expected total is not estimated.</p>
-            )}
-          </DetailSection>
+          {!detail.variants.length ? (
+            <>
+              <DetailSection title="Crafting steps">
+                <ol className="craft-steps">
+                  {detail.craftSteps.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+              </DetailSection>
+              <DetailSection title="Expected cost">
+                {detail.costBreakdown ? (
+                  <p className="cost-formula">
+                    {detail.costBreakdown.expectedAttempts} expected attempts ×{' '}
+                    <Money price={detail.costBreakdown.materialsPerAttempt} />{' '}
+                    per attempt +{' '}
+                    <Money price={detail.costBreakdown.baseCost} /> base +{' '}
+                    <Money price={detail.costBreakdown.finishingCost} />{' '}
+                    finishing ={' '}
+                    <strong>
+                      <Money price={detail.costBreakdown.expectedCost} />
+                    </strong>
+                  </p>
+                ) : (
+                  <p>Expected total is not estimated.</p>
+                )}
+              </DetailSection>
+            </>
+          ) : null}
           <DetailSection title="Market comparison">
             {detail.snapshot?.listings.length ? (
               <table className="detail-table listings-table">

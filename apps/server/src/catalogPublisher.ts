@@ -195,6 +195,7 @@ export async function evaluateAndPublishCatalog(
         recipeId: recipe.id,
         refreshCycleId: cycle.id,
         status: 'success',
+        variantCosts: fresh.variantCosts ?? null,
       };
       completedRecipes += 1;
     } catch (cause) {
@@ -234,6 +235,7 @@ export async function evaluateAndPublishCatalog(
             recipeId: recipe.id,
             refreshCycleId: cycle.id,
             sourceSnapshotDedupeKey: null,
+            variantCosts: null,
             status: 'error',
           };
       failedRecipes += 1;
