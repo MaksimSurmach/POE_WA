@@ -8,11 +8,11 @@ const assets = join(server, 'dist/testkit/recipe-assets');
 const syntheticDestination = join(assets, 'synthetic');
 const productionSource = join(
   server,
-  '../../recipes/physical-large-cluster/recipe.md',
+  '../../recipes/physical-large-cluster/recipe.json',
 );
 const productionDestination = join(
   assets,
-  'production/physical-large-cluster/recipe.md',
+  'production/physical-large-cluster/recipe.json',
 );
 
 const files = (await readdir(syntheticSource)).filter((file) =>

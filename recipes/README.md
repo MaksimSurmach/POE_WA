@@ -1,13 +1,16 @@
-# Recipe authoring
+# Manual recipe authoring
 
-1. Copy `recipe.template.md` to `recipes/<unique-id>/recipe.md`.
-2. Replace every placeholder while preserving `schemaVersion: 1`.
-3. Run `pnpm recipes:validate` before committing.
-4. Preview database changes with `pnpm recipes:sync --dry-run`.
-5. Apply them with `pnpm recipes:sync` after migrations are current.
+Copy `docs/recipe.template.json` to a category folder, for example
+`recipes/cluster-jewel/<id>.json`, and keep IDs unique. JSON recipes and existing
+`recipe.md` files load through the same recursive catalog.
 
-Git is the recipe source of truth. A removed `recipe.md` is soft-disabled by
-the next sync; its database row and evaluation history are retained.
+Use `craft.variants` for ordered methods and steps. Enter step probabilities and
+expected executions only with dated, linked evidence. Enter expected
+executions per finished item for each material-consuming step; otherwise the
+expected total remains unavailable. Step quantities may be `null` when not
+verified, which prevents a calculated total.
 
-Validation reports the file and field for duplicate IDs, schema errors, unsafe
-or missing image assets, malformed front matter, and invalid Markdown content.
+Git is the recipe source of truth. Removing a recipe soft-disables it on the
+next sync; its database row and evaluation history remain. Run
+`pnpm recipes:validate` before committing and `pnpm recipes:sync --dry-run` to
+preview changes.

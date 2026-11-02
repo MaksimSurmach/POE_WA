@@ -83,14 +83,7 @@ export async function ensureCatalogSchedules(
     refreshTimezone?: string;
   },
 ) {
-  await boss.createQueue(CATALOG_REFRESH_QUEUE, {
-    deleteAfterSeconds: 7 * 24 * 60 * 60,
-    expireInSeconds: 60 * 60,
-    policy: 'exclusive',
-    retryBackoff: true,
-    retryDelay: 60,
-    retryLimit: 6,
-  });
+  await ensureCatalogRefreshQueue(boss);
   await boss.createQueue(CATALOG_CLEANUP_QUEUE, {
     deleteAfterSeconds: 7 * 24 * 60 * 60,
     expireInSeconds: 30 * 60,
@@ -121,6 +114,52 @@ export async function ensureCatalogSchedules(
       tz: 'UTC',
     },
   );
+}
+
+async function ensureCatalogRefreshQueue(boss: PgBoss) {
+  await boss.createQueue(CATALOG_REFRESH_QUEUE, {
+    deleteAfterSeconds: 7 * 24 * 60 * 60,
+    expireInSeconds: 60 * 60,
+    policy: 'exclusive',
+    retryBackoff: true,
+    retryDelay: 60,
+    retryLimit: 6,
+  });
+}
+
+export class ManualRefreshProducer implements JobRunner {
+  readonly #boss: PgBoss;
+  #started = false;
+
+  constructor(boss: PgBoss) {
+    this.#boss = boss;
+  }
+
+  async start() {
+    if (this.#started) return;
+    try {
+      await this.#boss.start();
+      await ensureCatalogRefreshQueue(this.#boss);
+      this.#started = true;
+    } catch (error) {
+      await this.#boss.stop({ close: false, graceful: false });
+      throw error;
+    }
+  }
+
+  async stop(timeoutMs: number) {
+    if (!this.#started) return;
+    await this.#boss.stop({ close: false, graceful: true, timeout: timeoutMs });
+    this.#started = false;
+  }
+
+  triggerRefresh() {
+    return this.#boss.send(
+      CATALOG_REFRESH_QUEUE,
+      { source: 'manual' } satisfies CatalogRefreshJobData,
+      { singletonKey: CATALOG_REFRESH_SINGLETON_KEY, singletonSeconds: 60 },
+    );
+  }
 }
 
 export async function ensureLeagueSchedule(

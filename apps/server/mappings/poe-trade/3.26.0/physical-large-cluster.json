@@ -39,6 +39,11 @@
       "entityKind": "resource",
       "canonicalId": "primitive-chaotic-resonator",
       "externalId": "Primitive Chaotic Resonator"
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "vivid-crystallised-lifeforce",
+      "externalId": "Vivid Crystallised Lifeforce"
     }
   ]
 }

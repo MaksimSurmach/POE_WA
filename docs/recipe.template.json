@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "id": "your-recipe-id",
+  "title": "Your Recipe Title",
+  "summary": "Short recipe summary.",
+  "tags": ["cluster-jewel"],
+  "category": "cluster-jewel",
+  "gameDataVersion": "3.26.0",
+  "base": {
+    "baseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "itemLevel": 84,
+    "rarity": "rare",
+    "influences": [],
+    "state": { "fractured": false, "synthesised": false, "corrupted": false },
+    "variant": { "kind": "none" }
+  },
+  "target": { "allOf": [], "anyOf": [], "minimumMatched": null },
+  "craft": {
+    "method": { "kind": "harvest-reforge", "tag": "physical" },
+    "startingMods": [],
+    "variants": [
+      {
+        "id": "main-method",
+        "name": "Main method",
+        "steps": [
+          {
+            "id": "main-craft",
+            "title": "Perform the craft",
+            "action": "Describe the game action.",
+            "materials": [],
+            "continueWhen": "State the success condition.",
+            "failureAction": "State recovery or restart behavior."
+          }
+        ]
+      }
+    ]
+  },
+  "content": { "craftSteps": [] }
+}

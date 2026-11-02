@@ -84,6 +84,7 @@ export type NewRecipeEvaluation = {
   recipeId: string;
   refreshCycleId: string;
   sourceSnapshotDedupeKey: string | null;
+  variantCosts?: JsonRecord | null;
   status: EvaluationStatus;
 };
 

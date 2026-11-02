@@ -3,6 +3,7 @@
   "metadataVersion": "1",
   "metadata": {
     "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge": {
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase3.png",
       "itemClass": "Jewel",
       "name": "Large Cluster Jewel"
     },
@@ -28,6 +29,10 @@
     "primitive-chaotic-resonator": {
       "itemClass": "Resonator",
       "name": "Primitive Chaotic Resonator"
+    },
+    "vivid-crystallised-lifeforce": {
+      "itemClass": "Currency",
+      "name": "Vivid Crystallised Lifeforce"
     }
   }
 }

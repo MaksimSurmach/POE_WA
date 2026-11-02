@@ -20,7 +20,7 @@ function loadedRecipe(overrides: Partial<LoadedRecipe> = {}): LoadedRecipe {
     assets: [],
     definition: validateRecipeV1(validRecipeV1Fixture),
     markdown: '# Guide\n',
-    sourcePath: 'physical-large-cluster/recipe.md',
+    sourcePath: 'physical-large-cluster/recipe.json',
     ...overrides,
   };
 }
@@ -28,7 +28,10 @@ function loadedRecipe(overrides: Partial<LoadedRecipe> = {}): LoadedRecipe {
 describe('recipe synchronization', () => {
   it('validates the authoring template and synchronizes the starter catalog', async () => {
     const template = await loadRecipeFile(
-      path.join(recipeCatalog, 'recipe.template.md'),
+      path.resolve(
+        import.meta.dirname,
+        '../../../../docs/recipe.template.json',
+      ),
       recipeCatalog,
     );
     expect(template.definition.id).toBe('your-recipe-id');

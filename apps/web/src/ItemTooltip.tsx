@@ -1,5 +1,5 @@
 import type { PresentedItem } from '@poe-worksmith/contracts';
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 const groups = [
   ['implicit', 'Implicit modifiers'],
@@ -11,13 +11,30 @@ const groups = [
 
 export function ItemTooltip({ item }: { item: PresentedItem }) {
   const [open, setOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const id = useId();
+  const preview = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    function dismissOutside(event: PointerEvent) {
+      if (!preview.current?.contains(event.target as Node)) {
+        setOpen(false);
+        setDismissed(false);
+      }
+    }
+    document.addEventListener('pointerdown', dismissOutside);
+    return () => document.removeEventListener('pointerdown', dismissOutside);
+  }, []);
   return (
     <span
-      className="item-preview"
+      ref={preview}
+      className={`item-preview${dismissed ? ' is-dismissed' : ''}`}
       onKeyDown={(event) => {
-        if (event.key === 'Escape') setOpen(false);
+        if (event.key === 'Escape') {
+          setOpen(false);
+          setDismissed(true);
+        }
       }}
+      onMouseLeave={() => setDismissed(false)}
     >
       <button
         className={`item-preview__trigger item-preview__trigger--${item.rarity ?? 'unknown'}`}
@@ -26,7 +43,11 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
         aria-controls={id}
         aria-expanded={open}
         aria-label={`Preview target item: ${item.name}, ${item.itemClass}`}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          setDismissed(open);
+          setOpen((value) => !value);
+        }}
+        onFocus={() => setDismissed(false)}
       >
         {item.iconUrl ? (
           <img src={item.iconUrl} alt="" />
@@ -35,7 +56,7 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
         )}
       </button>
       <span
-        className={`item-tooltip${open ? ' is-open' : ''}`}
+        className={`item-tooltip${open && !dismissed ? ' is-open' : ''}`}
         id={id}
         role="tooltip"
       >

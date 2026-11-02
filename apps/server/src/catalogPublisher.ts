@@ -3,6 +3,7 @@ import {
   type CanonicalJsonObject,
   type CanonicalJsonValue,
   type CanonicalRecipeV1,
+  type CanonicalCraftVariant,
   DomainError,
   type DomainErrorCode,
   type MarketListing,
@@ -10,6 +11,8 @@ import {
   type Recipe,
   type RecipeEvaluation,
   type Repositories,
+  calculateVariantMaterialEconomics,
+  expectedVariantMaterialUsage,
   hashMarketQuery,
   transitionRefreshCycle,
   validateRecipeDocument,
@@ -59,11 +62,12 @@ type FreshEvaluation = Readonly<{
   confidence: 'low' | 'medium' | 'high';
   currency: string;
   estimatedSalePrice: string;
-  expectedCraftCost: string;
-  marginPercent: string;
+  expectedCraftCost: string | null;
+  marginPercent: string | null;
   observationId: number | null;
-  profit: string;
+  profit: string | null;
   sourceSnapshotDedupeKey: string;
+  variantCosts?: Record<string, unknown>;
 }>;
 
 export type FreshRecipeEvaluator = (
@@ -212,6 +216,7 @@ export async function evaluateAndPublishCatalog(
             recipeId: recipe.id,
             refreshCycleId: cycle.id,
             sourceSnapshotDedupeKey: fallback.sourceSnapshotDedupeKey,
+            variantCosts: fallback.variantCosts ?? null,
             status: 'stale',
           }
         : {
@@ -351,15 +356,82 @@ async function evaluateFreshRecipe(
       ),
   );
   const output = await resolveMarket(targetDependency.query, context);
-  const result = calculateRecipeEconomics({
-    aggregation: output.aggregation,
-    basePrice: base.aggregation.cheapest,
-    currency: output.aggregation.currency,
-    finishingPrices: Object.fromEntries(finishing),
-    materialPrices: Object.fromEntries(materials),
-    recipe: economicsRecipe(definition),
-  });
-  if (!result.ok) throw new DomainError(result.errorCode);
+  const materialPriceMap = Object.fromEntries(materials);
+  const outputEstimate = output.aggregation.estimators.find(
+    ({ id }) => id === 'cheapest',
+  )?.price;
+  const variantCosts: Record<string, unknown> = {};
+  const evaluatedVariants =
+    definition.schemaVersion === 2
+      ? (definition.craft.variants ?? []).map((variant) => {
+          const materialEconomics = calculateVariantMaterialEconomics({
+            currency: output.aggregation.currency,
+            materialPrices: materialPriceMap,
+            variant,
+          });
+          const usage = expectedVariantMaterialUsage(variant);
+          let expectedCraftCost: string | null = null;
+          if (usage) {
+            const result = calculateRecipeEconomics({
+              aggregation: output.aggregation,
+              basePrice: base.aggregation.cheapest,
+              currency: output.aggregation.currency,
+              finishingPrices: Object.fromEntries(finishing),
+              materialPrices: materialPriceMap,
+              recipe: economicsRecipe(definition, variant),
+            });
+            if (result.ok)
+              expectedCraftCost =
+                result.value.breakdown.expectedCraftCost.amount;
+          }
+          variantCosts[variant.id] = {
+            ...materialEconomics,
+            expectedCost: expectedCraftCost
+              ? {
+                  amount: expectedCraftCost,
+                  currency: output.aggregation.currency,
+                }
+              : null,
+          };
+          return { expectedCraftCost, variant };
+        })
+      : [];
+  const bestVariant = evaluatedVariants
+    .filter(({ expectedCraftCost }) => expectedCraftCost !== null)
+    .sort(
+      (left, right) =>
+        Number(left.expectedCraftCost) - Number(right.expectedCraftCost),
+    )[0];
+  const legacyResult =
+    definition.schemaVersion === 1
+      ? calculateRecipeEconomics({
+          aggregation: output.aggregation,
+          basePrice: base.aggregation.cheapest,
+          currency: output.aggregation.currency,
+          finishingPrices: Object.fromEntries(finishing),
+          materialPrices: materialPriceMap,
+          recipe: definition,
+        })
+      : null;
+  if (legacyResult && !legacyResult.ok)
+    throw new DomainError(legacyResult.errorCode);
+  const selectedResult = bestVariant
+    ? calculateRecipeEconomics({
+        aggregation: output.aggregation,
+        basePrice: base.aggregation.cheapest,
+        currency: output.aggregation.currency,
+        finishingPrices: Object.fromEntries(finishing),
+        materialPrices: materialPriceMap,
+        recipe: economicsRecipe(definition, bestVariant.variant),
+      })
+    : legacyResult;
+  const salePrice =
+    definition.schemaVersion === 1
+      ? legacyResult?.ok
+        ? legacyResult.value.estimatedSalePrice.amount
+        : null
+      : (outputEstimate?.amount ?? null);
+  if (salePrice === null) throw new DomainError('INSUFFICIENT_LISTINGS');
 
   const observations = await context.repositories.observations.listRecent(
     output.marketQueryId,
@@ -372,18 +444,24 @@ async function evaluateFreshRecipe(
   );
   return {
     confidence: confidence(output.aggregation.sampleSize),
-    currency: result.value.profit.currency,
-    estimatedSalePrice: result.value.estimatedSalePrice.amount,
-    expectedCraftCost: result.value.breakdown.expectedCraftCost.amount,
-    marginPercent: result.value.marginPercent,
+    currency: output.aggregation.currency,
+    estimatedSalePrice: salePrice,
+    expectedCraftCost: selectedResult?.ok
+      ? selectedResult.value.breakdown.expectedCraftCost.amount
+      : null,
+    marginPercent: selectedResult?.ok
+      ? selectedResult.value.marginPercent
+      : null,
     observationId: observation?.id ?? null,
-    profit: result.value.profit.amount,
+    profit: selectedResult?.ok ? selectedResult.value.profit.amount : null,
     sourceSnapshotDedupeKey: output.snapshotDedupeKey,
+    ...(definition.schemaVersion === 2 ? { variantCosts } : {}),
   };
 }
 
 function economicsRecipe(
   definition: ReturnType<typeof validateRecipeDocument>,
+  variant?: CanonicalCraftVariant,
 ): CanonicalRecipeV1 {
   if (definition.schemaVersion === 1) return definition;
   return {
@@ -397,22 +475,35 @@ function economicsRecipe(
     },
     category: definition.category,
     craftSteps: [{ id: 'craft', title: definition.craft.method.kind }],
-    estimator: { strategy: 'median_top_n', n: 10 },
+    estimator: { strategy: 'cheapest' },
     finishingCosts: [],
     gameVersion: definition.gameDataVersion,
     id: definition.id,
-    materials: (definition.craft.resourceConsumption?.materials ?? []).map(
-      ({ itemId, quantity }) => ({
-        id: itemId,
-        label: itemId,
-        quantityPerAttempt: quantity,
-        tradeQuery: {
-          provider: 'poe-trade',
-          query: { placeholder: true },
-          schemaVersion: 1,
-        },
-      }),
-    ),
+    materials: variant
+      ? Object.entries(expectedVariantMaterialUsage(variant) ?? {}).map(
+          ([itemId, quantityPerAttempt]) => ({
+            id: itemId,
+            label: itemId,
+            quantityPerAttempt,
+            tradeQuery: {
+              provider: 'poe-trade',
+              query: { placeholder: true },
+              schemaVersion: 1,
+            },
+          }),
+        )
+      : (definition.craft.resourceConsumption?.materials ?? []).map(
+          ({ itemId, quantity }) => ({
+            id: itemId,
+            label: itemId,
+            quantityPerAttempt: quantity,
+            tradeQuery: {
+              provider: 'poe-trade',
+              query: { placeholder: true },
+              schemaVersion: 1,
+            },
+          }),
+        ),
     output: {
       label: definition.title,
       tradeQuery: {

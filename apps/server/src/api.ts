@@ -8,6 +8,7 @@ import {
   rateLimitDiagnosticsResponseSchema,
   leaguesResponseSchema,
   currentLeagueResponseSchema,
+  refreshTriggerResponseSchema,
   refreshDiagnosticsResponseSchema,
   type RecipeResponse,
   recipeResponseSchema,
@@ -75,6 +76,7 @@ export function buildApi(
       | { manager: MarketCollectionManager; store: MarketCollectionStore }
       | undefined;
     marketEconomy?: MarketEconomyOptions | undefined;
+    triggerRefresh?: (() => Promise<string | null>) | undefined;
   } = {},
 ) {
   const api = Fastify({
@@ -189,6 +191,16 @@ export function buildApi(
       },
     });
   });
+  const triggerRefresh = options.triggerRefresh;
+  if (triggerRefresh)
+    api.post('/api/refresh', async (request, reply) => {
+      const jobId = await triggerRefresh();
+      reply.code(202);
+      return refreshTriggerResponseSchema.parse({
+        correlationId: request.id,
+        data: { accepted: jobId !== null },
+      });
+    });
   api.get('/api/diagnostics/rate-limits', async (request) => {
     const policies = await readRateLimits();
     return rateLimitDiagnosticsResponseSchema.parse({

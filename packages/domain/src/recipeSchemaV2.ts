@@ -41,7 +41,7 @@ const evidenceSchema = z.strictObject({
 
 const variantMaterialSchema = z.strictObject({
   itemId: textSchema,
-  quantity: z.number().positive(),
+  quantity: z.number().positive().nullable(),
 });
 
 const variantStepSchema = z.strictObject({
@@ -162,6 +162,7 @@ export const recipeV2Schema = z.strictObject({
 
 export type CanonicalRecipeV2 = z.output<typeof recipeV2Schema>;
 export type RecipeV2Input = z.input<typeof recipeV2Schema>;
+export type CanonicalCraftVariant = z.output<typeof craftVariantSchema>;
 
 export function validateRecipeV2(input: unknown): CanonicalRecipeV2 {
   const result = recipeV2Schema.safeParse(input);

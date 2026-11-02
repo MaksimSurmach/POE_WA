@@ -56,4 +56,24 @@ describe('catalog filtering and ranking', () => {
       snapshotAgeSeconds(catalogFixtures[0]!, '2026-07-20T00:02:00.000Z'),
     ).toBe(120);
   });
+
+  it('filters profitability and confidence and sorts confidence', () => {
+    expect(
+      filterAndSortCatalog(catalogFixtures, {
+        ...defaultCatalogFilters,
+        profitability: 'unknown',
+      }).map(({ recipe }) => recipe.id),
+    ).toContain('no-listings-bow');
+    expect(
+      filterAndSortCatalog(catalogFixtures, {
+        ...defaultCatalogFilters,
+        confidence: 'high',
+      }).every(({ evaluation }) => evaluation.confidence === 'high'),
+    ).toBe(true);
+    const confidenceRanking = filterAndSortCatalog(catalogFixtures, {
+      ...defaultCatalogFilters,
+      sort: 'confidence',
+    });
+    expect(confidenceRanking[0]?.recipe.id).toBe('profitable-cluster');
+  });
 });

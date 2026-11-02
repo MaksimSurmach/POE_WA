@@ -8,6 +8,7 @@ import {
   type RecipeEvaluation as ApiRecipeEvaluation,
   type RecipeResponse,
   type RefreshStatus,
+  recipeVariantViewSchema,
 } from '@poe-worksmith/contracts';
 import {
   DomainError,
@@ -46,7 +47,13 @@ export function createResourceReaders(
       );
       const entries = recipes
         .sort((left, right) => left.id.localeCompare(right.id))
-        .map((recipe) => toCatalogEntry(recipe, evaluations.get(recipe.id)));
+        .map((recipe) =>
+          toCatalogEntry(
+            recipe,
+            evaluations.get(recipe.id),
+            presentationCatalog,
+          ),
+        );
 
       return resourceResponse(
         correlationId,
@@ -121,9 +128,19 @@ function resourceResponse<T>(
 function toCatalogEntry(
   recipe: StoredRecipe,
   evaluation?: RecipeEvaluation,
+  presentationCatalog?: ItemPresentationCatalog,
 ): CatalogEntry {
+  const definition = validateRecipeDocument(recipe.definition);
+  const itemPreview =
+    definition.schemaVersion === 2 && presentationCatalog
+      ? createRecipeItemPresentation({
+          catalog: presentationCatalog,
+          recipe: definition,
+        }).target
+      : undefined;
   return {
     evaluation: toEvaluation(recipe.id, evaluation),
+    ...(itemPreview ? { itemPreview } : {}),
     recipe: toRecipeSummary(recipe, evaluation),
     snapshot: null,
   };
@@ -148,6 +165,7 @@ function toEvaluation(
 ): ApiRecipeEvaluation {
   if (!evaluation) {
     return {
+      confidence: null,
       errorCode: null,
       estimatedSalePrice: null,
       evaluatedAt: null,
@@ -161,6 +179,7 @@ function toEvaluation(
     };
   }
   return {
+    confidence: evaluation.confidence,
     errorCode: errorCode(evaluation.errorCode),
     estimatedSalePrice: price(
       evaluation.estimatedSalePrice,
@@ -268,6 +287,7 @@ function toRecipeDetail(
     requiredMods: tradeStatIds(definition.output.tradeQuery.query),
     selectedEstimatorId: salePrice ? estimatorId : null,
     snapshot: null,
+    variants: [],
   };
 }
 
@@ -285,6 +305,58 @@ function toV2RecipeDetail(
     catalog: presentationCatalog,
     recipe: definition,
   });
+  const variants = (definition.craft.variants ?? []).map((variant) => {
+    const saved = evaluation?.variantCosts?.[variant.id];
+    const savedRecord =
+      saved && typeof saved === 'object'
+        ? (saved as Record<string, unknown>)
+        : {};
+    const savedSteps = Array.isArray(savedRecord.steps)
+      ? savedRecord.steps.filter(
+          (step): step is Record<string, unknown> =>
+            Boolean(step) && typeof step === 'object',
+        )
+      : [];
+    const cost = recipeVariantViewSchema.safeParse({
+      expectedCost: savedRecord.expectedCost ?? null,
+      evidence: variant.evidence ?? null,
+      expectedExecutions: variant.expectedExecutions ?? [],
+      id: variant.id,
+      materialsPerAttempt: savedRecord.materialsPerAttempt ?? null,
+      name: variant.name,
+      steps: variant.steps.map((step) => ({
+        action: step.action,
+        continueWhen: step.continueWhen,
+        failureAction: step.failureAction,
+        id: step.id,
+        materials: step.materials.map((material) => {
+          const savedStep = savedSteps.find((value) => value.id === step.id);
+          const savedMaterials = Array.isArray(savedStep?.materials)
+            ? savedStep.materials.filter(
+                (item): item is Record<string, unknown> =>
+                  Boolean(item) && typeof item === 'object',
+              )
+            : [];
+          const savedMaterial = savedMaterials.find(
+            (value) => value.itemId === material.itemId,
+          );
+          return {
+            costPerAttempt: savedMaterial?.costPerAttempt ?? null,
+            itemId: material.itemId,
+            name:
+              presentationCatalog.get(material.itemId)?.name ??
+              material.itemId.replaceAll('-', ' '),
+            quantityPerAttempt: material.quantity,
+            unitPrice: savedMaterial?.unitPrice ?? null,
+          };
+        }),
+        success: step.success ?? null,
+        title: step.title,
+      })),
+    });
+    if (!cost.success) throw new DomainError('RECIPE_INVALID');
+    return cost.data;
+  });
   return {
     base: {
       name: presentation.base.name,
@@ -296,7 +368,7 @@ function toV2RecipeDetail(
     costBreakdown: null,
     craftSteps: definition.content.craftSteps.map(({ title }) => title),
     estimators: salePrice
-      ? [{ id: 'median-top-10', label: 'median top 10', price: salePrice }]
+      ? [{ id: 'cheapest', label: 'Cheapest ask', price: salePrice }]
       : [],
     evaluation: toEvaluation(recipe.id, evaluation),
     gameVersion: definition.gameDataVersion,
@@ -308,9 +380,13 @@ function toV2RecipeDetail(
     })),
     presentation,
     recipe: toRecipeSummary(recipe, evaluation),
-    requiredMods: presentation.target.modifiers.map(({ label }) => label),
-    selectedEstimatorId: salePrice ? 'median-top-10' : null,
+    requiredMods:
+      definition.target.minimumMatched === null
+        ? []
+        : [`At least ${definition.target.minimumMatched} target modifiers`],
+    selectedEstimatorId: salePrice ? 'cheapest' : null,
     snapshot: null,
+    variants,
   };
 }
 

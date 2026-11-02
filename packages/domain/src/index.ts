@@ -17,6 +17,7 @@ export * from './probability/service.js';
 export * from './probability/types.js';
 export * from './recipeSchema.js';
 export * from './recipeSchemaV2.js';
+export * from './recipeVariantEconomics.js';
 export * from './recipeCompatibility.js';
 export * from './repositories.js';
 export * from './trade.js';

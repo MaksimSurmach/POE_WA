@@ -63,6 +63,26 @@ export function createRecipeItemPresentation(input: {
       value: String(recipe.base.itemLevel),
     },
   ];
+  properties.push(
+    {
+      id: 'influences',
+      label: 'Influence',
+      value:
+        recipe.base.influences.length > 0
+          ? recipe.base.influences.map(titleCase).join(', ')
+          : 'None',
+    },
+    {
+      id: 'corrupted',
+      label: 'Corrupted',
+      value: recipe.base.state.corrupted ? 'Yes' : 'No',
+    },
+    {
+      id: 'fractured',
+      label: 'Fractured',
+      value: recipe.base.state.fractured ? 'Yes' : 'No',
+    },
+  );
   if (recipe.base.variant.kind === 'cluster-jewel') {
     properties.push(
       {
@@ -77,15 +97,34 @@ export function createRecipeItemPresentation(input: {
       },
     );
   }
-  const modifiers = recipe.target.allOf.map((condition): PresentedModifier => {
-    const canonicalId = condition.modId ?? condition.modFamilyId!;
-    const metadata = required(catalog, canonicalId);
-    return {
-      canonicalId,
-      generationType: metadata.generationType ?? generationType(condition.kind),
-      label: metadata.name,
-    };
-  });
+  const modifiers = [...recipe.target.allOf, ...recipe.target.anyOf].map(
+    (condition): PresentedModifier => {
+      const canonicalId = condition.modId ?? condition.modFamilyId!;
+      const metadata = required(catalog, canonicalId);
+      return {
+        canonicalId,
+        generationType:
+          metadata.generationType ?? generationType(condition.kind),
+        label: [
+          condition.excluded ? `Not ${metadata.name}` : metadata.name,
+          condition.exactTier !== undefined
+            ? `Tier ${condition.exactTier}`
+            : condition.minimumTier !== undefined ||
+                condition.maximumTier !== undefined
+              ? `Tier ${condition.minimumTier ?? 1}–${condition.maximumTier ?? 'any'}`
+              : null,
+          condition.minimumValue !== undefined
+            ? `≥ ${condition.minimumValue}`
+            : null,
+          condition.maximumValue !== undefined
+            ? `≤ ${condition.maximumValue}`
+            : null,
+        ]
+          .filter((value): value is string => value !== null)
+          .join(' · '),
+      };
+    },
+  );
   const materials = (recipe.craft.resourceConsumption?.materials ?? []).map(
     ({ itemId, quantity }) => {
       const metadata = required(catalog, itemId);
@@ -142,4 +181,10 @@ function invalid(): never {
 
 function generationType(kind: string): PresentedModifier['generationType'] {
   return kind === 'implicit' || kind === 'enchant' ? kind : 'other';
+}
+
+function titleCase(value: string) {
+  return value
+    .replaceAll('-', ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

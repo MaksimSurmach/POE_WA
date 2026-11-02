@@ -1,0 +1,1 @@
+ALTER TABLE "recipe_evaluations" ADD COLUMN "variant_costs" jsonb;

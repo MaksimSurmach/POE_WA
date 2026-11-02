@@ -138,6 +138,31 @@ describe('health API', () => {
     await api.close();
   });
 
+  it('queues one bounded manual price refresh', async () => {
+    const triggerRefresh = vi.fn().mockResolvedValue('job-1');
+    const api = buildApi(
+      pino({ level: 'silent' }),
+      vi.fn(),
+      async () => ({ active: null, published: null }),
+      async () => [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      { triggerRefresh },
+    );
+
+    const response = await api.inject({ method: 'POST', url: '/api/refresh' });
+
+    expect(response.statusCode).toBe(202);
+    expect(response.json()).toEqual({
+      correlationId: response.headers['x-request-id'],
+      data: { accepted: true },
+    });
+    expect(triggerRefresh).toHaveBeenCalledOnce();
+    await api.close();
+  });
+
   it('exposes shared rate-limit windows and waiting time', async () => {
     const timestamp = new Date('2026-07-20T00:00:00.000Z');
     const blockedUntil = new Date(timestamp.getTime() + 10_000);

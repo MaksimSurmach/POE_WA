@@ -121,6 +121,7 @@ const defaultGuide = {
     },
   ],
   selectedEstimatorId: 'third-cheapest',
+  variants: [],
 } satisfies Omit<RecipeDetailView, 'evaluation' | 'recipe' | 'snapshot'>;
 
 function createDetail(

@@ -34,6 +34,30 @@ const recipe = validateRecipeV2({
       ],
     },
     startingMods: [],
+    variants: [
+      {
+        id: 'harvest-physical',
+        name: 'Harvest Physical Reforge',
+        evidence: {
+          method: 'PoE Wiki manual reference',
+          patch: '3.26',
+          url: 'https://www.poewiki.net/wiki/List_of_harvest_crafting_options',
+          verifiedAt: '2026-11-02',
+        },
+        steps: [
+          {
+            id: 'reforge-physical',
+            title: 'Reforge with Physical modifiers',
+            action: 'Use the Physical reforge.',
+            materials: [
+              { itemId: 'vivid-crystallised-lifeforce', quantity: 50 },
+            ],
+            continueWhen: 'The target modifiers are present.',
+            failureAction: 'Repeat.',
+          },
+        ],
+      },
+    ],
   },
   gameDataVersion: '3.26.0',
   id: 'physical-large-cluster-jagged',
@@ -76,21 +100,29 @@ const trade: TradeQueryGenerator = {
 };
 
 describe('physical large cluster vertical fixture', () => {
-  it('keeps the authored 30+30 estimate and builds exact market dependencies', async () => {
+  it('queries each legacy and variant material once with league-scoped trade queries', async () => {
     const dependencies = await createV2RecipeMarketDependencies({
       trade,
       resolveResource: async (id) =>
-        id === 'jagged-fossil'
-          ? 'Jagged Fossil'
-          : 'Primitive Chaotic Resonator',
+        ({
+          'jagged-fossil': 'Jagged Fossil',
+          'primitive-chaotic-resonator': 'Primitive Chaotic Resonator',
+          'vivid-crystallised-lifeforce': 'Vivid Crystallised Lifeforce',
+        })[id]!,
     })({ league: 'Mercenaries', recipe });
-    expect(dependencies).toHaveLength(4);
+    expect(dependencies).toHaveLength(5);
     expect(dependencies.map(({ materialId }) => materialId)).toEqual([
       undefined,
       'jagged-fossil',
       'primitive-chaotic-resonator',
+      'vivid-crystallised-lifeforce',
       undefined,
     ]);
+    expect(
+      dependencies
+        .filter(({ kind }) => kind === 'material')
+        .map(({ query }) => query.provider),
+    ).toEqual(['poe-trade', 'poe-trade', 'poe-trade']);
     expect(dependencies.at(-1)?.query.query).toMatchObject({
       query: {
         stats: [
@@ -148,7 +180,7 @@ describe('physical large cluster vertical fixture', () => {
             tradeQuery: dependencies[2]!.query,
           },
         ],
-        output: { label: recipe.title, tradeQuery: dependencies[3]!.query },
+          output: { label: recipe.title, tradeQuery: dependencies[4]!.query },
         schemaVersion: 1,
         success: { mode: 'expected_attempts', expectedAttempts: 1 },
         summary: recipe.title,

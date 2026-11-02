@@ -58,6 +58,7 @@ export const recipeSchema = z
 export const recipeEvaluationSchema = z
   .object({
     recipeId: z.string().min(1),
+    confidence: z.enum(['low', 'medium', 'high']).nullable().optional(),
     status: z.enum(['success', 'stale', 'loading', 'partial', 'error']),
     evaluatedAt: z.iso.datetime().nullable(),
     expectedCraftCost: priceSchema.nullable(),
@@ -111,15 +112,6 @@ export const refreshCycleSchema = z
     }
   });
 
-/** Example API-shaped catalog entry consumed by UI components. */
-export const catalogEntrySchema = z
-  .object({
-    recipe: recipeSchema,
-    evaluation: recipeEvaluationSchema,
-    snapshot: marketSnapshotSchema.nullable(),
-  })
-  .strict();
-
 export const presentedPropertySchema = z.strictObject({
   id: z.string().min(1),
   label: z.string().min(1),
@@ -162,6 +154,61 @@ export const itemPresentationContractV1Schema = z.strictObject({
   version: z.literal(1),
 });
 
+export const catalogEntrySchema = z
+  .object({
+    recipe: recipeSchema,
+    evaluation: recipeEvaluationSchema,
+    itemPreview: presentedItemSchema.optional(),
+    snapshot: marketSnapshotSchema.nullable(),
+  })
+  .strict();
+
+const recipeVariantEvidenceSchema = z.strictObject({
+  method: z.string().min(1),
+  patch: z.string().min(1),
+  url: z.string().url(),
+  verifiedAt: z.iso.date(),
+});
+
+export const recipeVariantViewSchema = z.strictObject({
+  expectedCost: priceSchema.nullable(),
+  evidence: recipeVariantEvidenceSchema.nullable(),
+  expectedExecutions: z.array(
+    z.strictObject({
+      count: z.number().positive(),
+      evidence: recipeVariantEvidenceSchema,
+      stepId: z.string().min(1),
+    }),
+  ),
+  id: z.string().min(1),
+  materialsPerAttempt: priceSchema.nullable(),
+  name: z.string().min(1),
+  steps: z.array(
+    z.strictObject({
+      action: z.string().min(1),
+      continueWhen: z.string().min(1),
+      failureAction: z.string().min(1),
+      id: z.string().min(1),
+      materials: z.array(
+        z.strictObject({
+          costPerAttempt: priceSchema.nullable(),
+          itemId: z.string().min(1),
+          name: z.string().min(1),
+          quantityPerAttempt: z.number().positive().nullable(),
+          unitPrice: priceSchema.nullable(),
+        }),
+      ),
+      success: z
+        .strictObject({
+          evidence: recipeVariantEvidenceSchema,
+          probability: z.number().gt(0).lte(1),
+        })
+        .nullable(),
+      title: z.string().min(1),
+    }),
+  ),
+});
+
 export const recipeDetailViewSchema = z
   .object({
     recipe: recipeSchema,
@@ -185,6 +232,7 @@ export const recipeDetailViewSchema = z
         .strict(),
     ),
     craftSteps: z.array(z.string().min(1)).min(1),
+    variants: z.array(recipeVariantViewSchema).default([]),
     requiredMods: z.array(z.string().min(1)),
     costBreakdown: z
       .object({
@@ -389,6 +437,10 @@ export const currentLeagueResponseSchema = z.strictObject({
   correlationId: correlationIdSchema,
   data: poeLeagueSchema,
 });
+export const refreshTriggerResponseSchema = z.strictObject({
+  correlationId: correlationIdSchema,
+  data: z.strictObject({ accepted: z.boolean() }),
+});
 
 export const rateLimitWindowSchema = z.strictObject({
   activeRestrictionSeconds: z.number().int().nonnegative(),
@@ -491,3 +543,8 @@ export type RefreshDiagnosticsResponse = z.infer<
   typeof refreshDiagnosticsResponseSchema
 >;
 export type PoeLeague = z.infer<typeof poeLeagueSchema>;
+export type LeaguesResponse = z.infer<typeof leaguesResponseSchema>;
+export type CurrentLeagueResponse = z.infer<typeof currentLeagueResponseSchema>;
+export type RefreshTriggerResponse = z.infer<
+  typeof refreshTriggerResponseSchema
+>;

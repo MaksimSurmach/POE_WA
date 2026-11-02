@@ -1047,19 +1047,25 @@ progress::-webkit-progress-value {
 }
 .handbook-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1.4fr) minmax(100px, 0.8fr) repeat(
-      4,
-      minmax(100px, 0.8fr)
-    ) 16px;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 68px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.handbook-row__link {
+  display: grid;
+  grid-template-columns:
+    minmax(150px, 1.4fr) minmax(90px, 0.8fr) repeat(5, minmax(90px, 0.8fr))
+    16px;
   gap: 10px;
   align-items: center;
-  min-height: 62px;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
+  min-width: 0;
   text-decoration: none;
 }
-.handbook-row:hover,
-.handbook-row:focus-visible {
+.handbook-row__link:hover,
+.handbook-row__link:focus-visible {
   background: var(--surface);
 }
 .handbook-row__name {
@@ -1117,6 +1123,49 @@ progress::-webkit-progress-value {
 .economic-unknown {
   color: var(--muted);
   font-weight: 500;
+}
+.variant-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+.variant-tabs button {
+  display: grid;
+  gap: 4px;
+  min-width: 150px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.variant-tabs button.is-selected {
+  border-color: var(--accent);
+}
+.variant-tabs button span,
+.variant-detail > p,
+.variant-detail li p {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.variant-cost-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 8px 0;
+  font-size: 0.82rem;
+}
+.variant-cost-summary span {
+  color: var(--muted);
+}
+.variant-detail ol {
+  padding-left: 20px;
+}
+.variant-detail li {
+  margin: 8px 0;
 }
 .handbook-empty {
   padding: 20px 8px;
@@ -1258,8 +1307,8 @@ progress::-webkit-progress-value {
   font-size: 0.78rem;
   line-height: 1.4;
 }
-.item-preview:hover .item-tooltip,
-.item-preview:focus-within .item-tooltip,
+.item-preview:hover:not(.is-dismissed) .item-tooltip,
+.item-preview:focus-within:not(.is-dismissed) .item-tooltip,
 .item-tooltip.is-open {
   display: grid;
   gap: 5px;
@@ -1306,13 +1355,13 @@ progress::-webkit-progress-value {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .handbook-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px 14px;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 7px;
     padding: 10px;
   }
-  .handbook-row__name,
-  .handbook-row__tags {
-    grid-column: 1 / -1;
+  .handbook-row__link {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 14px;
   }
   .handbook-row__name strong {
     white-space: normal;

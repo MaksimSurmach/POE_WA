@@ -4,7 +4,11 @@ import { fileURLToPath } from 'node:url';
 import { buildApi } from './api.js';
 import { ProviderCircuitBreaker } from './circuitBreaker.js';
 import { createDatabasePool } from './database.js';
-import { ApplicationJobScheduler, createJobBoss } from './jobs.js';
+import {
+  ApplicationJobScheduler,
+  createJobBoss,
+  ManualRefreshProducer,
+} from './jobs.js';
 import {
   HttpPoeNinjaLeagueClient,
   HttpPoeTradeLeagueClient,
@@ -91,6 +95,15 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     repositories,
     presentationCatalog,
   );
+  let jobs: ApplicationJobScheduler | undefined;
+  const refreshProducer =
+    modeIncludesApi(config.mode) && !modeIncludesWorker(config.mode)
+      ? new ManualRefreshProducer(
+          createJobBoss(pool, config.jobSchema, logger, (error) => {
+            workerError ??= error;
+          }),
+        )
+      : undefined;
   const collectionStore = modeIncludesApi(config.mode)
     ? createMarketCollectionRepository(pool)
     : undefined;
@@ -141,10 +154,17 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             getProgress: repositories.catalog.getProgress,
             timezone: config.refreshTimezone,
           }),
+          triggerRefresh: modeIncludesWorker(config.mode)
+            ? async () => {
+                if (!jobs) throw new Error('REFRESH_WORKER_UNAVAILABLE');
+                return jobs.triggerRefresh();
+              }
+            : refreshProducer
+              ? () => refreshProducer.triggerRefresh()
+              : undefined,
         },
       )
     : undefined;
-  let jobs: ApplicationJobScheduler | undefined;
   if (modeIncludesWorker(config.mode)) {
     const rateLimits = new GggRateLimitController({
       repository: repositories.rateLimits,
@@ -217,6 +237,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   }
   const runtime = new ApplicationRuntime({
     ...(api ? { api } : {}),
+    ...(refreshProducer ? { apiJobs: refreshProducer } : {}),
     afterApiClose: async () => {
       await collectionManager?.stop();
     },

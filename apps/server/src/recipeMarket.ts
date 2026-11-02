@@ -52,18 +52,25 @@ export function createV2RecipeMarketDependencies(options: {
       league,
       canonicalCraftSetupFromRecipe(recipe),
     );
+    const resourceIds = new Set([
+      ...(recipe.craft.resourceConsumption?.materials ?? []).map(
+        ({ itemId }) => itemId,
+      ),
+      ...(recipe.craft.variants ?? []).flatMap((variant) =>
+        variant.steps.flatMap((step) =>
+          step.materials.map(({ itemId }) => itemId),
+        ),
+      ),
+    ]);
     const materials = await Promise.all(
-      (recipe.craft.resourceConsumption?.materials ?? []).map(async (item) => ({
+      [...resourceIds].sort().map(async (itemId) => ({
         kind: 'material' as const,
-        materialId: item.itemId,
+        materialId: itemId,
         query: tradeQuery({
           exchange: {
             have: ['chaos'],
             want: [
-              await options.resolveResource(
-                item.itemId,
-                recipe.gameDataVersion,
-              ),
+              await options.resolveResource(itemId, recipe.gameDataVersion),
             ],
           },
           sort: { price: 'asc' },

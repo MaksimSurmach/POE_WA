@@ -10,6 +10,7 @@ import {
 import { Money, ProfitBadge, StatusPanel, Tag } from './components.js';
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
+import { ItemTooltip } from './ItemTooltip.js';
 
 const apiClient = createApiClient();
 
@@ -33,7 +34,12 @@ function AppShell() {
 function CatalogRoute() {
   const [filters, setFilters] = useState<CatalogFilters>(defaultCatalogFilters);
   const [response, setResponse] = useState<CatalogResponse | null>(null);
+  const [leagueLabel, setLeagueLabel] = useState('League unavailable');
+  const [leagueIsFallback, setLeagueIsFallback] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [refreshState, setRefreshState] = useState<
+    'idle' | 'working' | 'queued' | 'existing' | 'error'
+  >('idle');
   const entries = response?.data?.entries ?? [];
   const categories = useMemo(
     () => [...new Set(entries.map(({ recipe }) => recipe.category))].sort(),
@@ -63,11 +69,55 @@ function CatalogRoute() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    apiClient
+      .getCurrentLeague()
+      .then(({ data }) => {
+        if (active) {
+          setLeagueLabel(data.name);
+          setLeagueIsFallback(false);
+        }
+      })
+      .catch(async () => {
+        try {
+          const { data } = await apiClient.getLeagues();
+          const league =
+            data.find(({ isCurrent }) => isCurrent) ??
+            [...data].sort(
+              (left, right) =>
+                Date.parse(right.syncedAt) - Date.parse(left.syncedAt),
+            )[0];
+          if (active && league) {
+            setLeagueLabel(
+              `Last known: ${league.name} · synced ${new Date(league.syncedAt).toLocaleString()}`,
+            );
+            setLeagueIsFallback(true);
+          }
+        } catch {
+          if (active) setLeagueLabel('League unavailable');
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   function updateFilter<K extends keyof CatalogFilters>(
     key: K,
     value: CatalogFilters[K],
   ) {
     setFilters((current) => ({ ...current, [key]: value }));
+  }
+
+  async function refreshPrices() {
+    setRefreshState('working');
+    try {
+      const result = await apiClient.triggerPriceRefresh();
+      setRefreshState(result.data.accepted ? 'queued' : 'existing');
+    } catch {
+      setRefreshState('error');
+    }
   }
 
   return (
@@ -76,6 +126,31 @@ function CatalogRoute() {
         <div>
           <h1 id="catalog-heading">Crafting recipes</h1>
           <p>Compare crafting costs with current market prices.</p>
+          <p
+            className={
+              leagueIsFallback ? 'league-label is-fallback' : 'league-label'
+            }
+          >
+            Path of Exile 1 · {leagueLabel}
+          </p>
+        </div>
+        <div className="refresh-control">
+          <button
+            disabled={refreshState === 'working'}
+            onClick={refreshPrices}
+            type="button"
+          >
+            {refreshState === 'working' ? 'Refreshing…' : 'Refresh prices'}
+          </button>
+          <span aria-live="polite">
+            {refreshState === 'queued'
+              ? 'Price refresh queued.'
+              : refreshState === 'existing'
+                ? 'A price refresh is already queued or running.'
+                : refreshState === 'error'
+                  ? 'Price refresh unavailable.'
+                  : ''}
+          </span>
         </div>
       </section>
 
@@ -126,6 +201,44 @@ function CatalogRoute() {
                 ))}
               </select>
             </Filter>
+            <Filter label="Max expected cost (chaos)">
+              <input
+                min="0"
+                placeholder="Any cost"
+                type="number"
+                value={filters.budget === 'all' ? '' : filters.budget}
+                onChange={(event) =>
+                  updateFilter('budget', event.target.value || 'all')
+                }
+              />
+            </Filter>
+            <Filter label="Profitability">
+              <select
+                value={filters.profitability}
+                onChange={(event) =>
+                  updateFilter('profitability', event.target.value)
+                }
+              >
+                <option value="all">Any result</option>
+                <option value="positive">Positive spread</option>
+                <option value="negative">Zero or negative spread</option>
+                <option value="unknown">Not estimated</option>
+              </select>
+            </Filter>
+            <Filter label="Confidence">
+              <select
+                value={filters.confidence}
+                onChange={(event) =>
+                  updateFilter('confidence', event.target.value)
+                }
+              >
+                <option value="all">Any confidence</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+                <option value="unknown">Unavailable</option>
+              </select>
+            </Filter>
             <Filter label="Sort">
               <select
                 value={filters.sort}
@@ -140,6 +253,7 @@ function CatalogRoute() {
                 <option value="cost">Expected cost</option>
                 <option value="margin">ROI</option>
                 <option value="freshness">Price freshness</option>
+                <option value="confidence">Confidence</option>
               </select>
             </Filter>
           </section>
@@ -169,53 +283,65 @@ function Filter({ children, label }: { children: ReactNode; label: string }) {
 }
 
 function CatalogRow({ entry }: { entry: CatalogEntry }) {
-  const { evaluation, recipe, snapshot } = entry;
+  const { evaluation, recipe } = entry;
   const spread = evaluation.profit?.amount;
-  const ageHours = snapshot
-    ? Math.floor((Date.now() - Date.parse(snapshot.capturedAt)) / 3_600_000)
+  const ageHours = evaluation.lastSuccessfulAt
+    ? Math.floor(
+        (Date.now() - Date.parse(evaluation.lastSuccessfulAt)) / 3_600_000,
+      )
     : null;
   return (
-    <Link className="handbook-row" to={`/recipes/${recipe.id}`}>
-      <div className="handbook-row__name">
-        <strong>{recipe.title}</strong>
-        <span>{recipe.category}</span>
-      </div>
-      <div className="handbook-row__tags" aria-label={`${recipe.title} tags`}>
-        {recipe.tags.map((tag) => (
-          <Tag key={tag}>{tag}</Tag>
-        ))}
-      </div>
-      <RecipeValue label="Expected cost">
-        <Money price={evaluation.expectedCraftCost} />
-      </RecipeValue>
-      <RecipeValue label="Cheapest ask">
-        <Money price={evaluation.estimatedSalePrice} />
-      </RecipeValue>
-      <RecipeValue label="Spread">
-        {spread === null || spread === undefined ? (
-          <span className="economic-unknown">Not estimated</span>
-        ) : (
-          <span
-            className={spread > 0 ? 'economic-positive' : 'economic-negative'}
-          >
-            <ProfitBadge
-              amount={spread}
-              currency={evaluation.profit!.currency}
-            />
+    <div className="handbook-row">
+      {entry.itemPreview ? <ItemTooltip item={entry.itemPreview} /> : null}
+      <Link className="handbook-row__link" to={`/recipes/${recipe.id}`}>
+        <div className="handbook-row__name">
+          <strong>{recipe.title}</strong>
+          <span>
+            {entry.itemPreview?.name ?? recipe.category} · {recipe.category}
           </span>
-        )}
-      </RecipeValue>
-      <span className="handbook-row__freshness">
-        {ageHours === null
-          ? 'Price unavailable'
-          : ageHours > 1
+        </div>
+        <div className="handbook-row__tags" aria-label={`${recipe.title} tags`}>
+          {recipe.tags.map((tag) => (
+            <Tag key={tag}>{tag}</Tag>
+          ))}
+        </div>
+        <RecipeValue label="Expected cost">
+          <Money price={evaluation.expectedCraftCost} />
+        </RecipeValue>
+        <RecipeValue label="Cheapest ask">
+          <Money price={evaluation.estimatedSalePrice} />
+        </RecipeValue>
+        <RecipeValue label="Spread">
+          {spread === null || spread === undefined ? (
+            <span className="economic-unknown">Not estimated</span>
+          ) : (
+            <span
+              className={spread > 0 ? 'economic-positive' : 'economic-negative'}
+            >
+              <ProfitBadge
+                amount={spread}
+                currency={evaluation.profit!.currency}
+              />
+            </span>
+          )}
+        </RecipeValue>
+        <span className="handbook-row__freshness">
+          {evaluation.status === 'stale' || (ageHours !== null && ageHours > 1)
             ? 'Price outdated'
-            : 'Price current'}
-      </span>
-      <span className="handbook-row__open" aria-hidden="true">
-        ›
-      </span>
-    </Link>
+            : ageHours === null
+              ? 'Price unavailable'
+              : 'Price current'}
+        </span>
+        <RecipeValue label="Confidence">
+          {evaluation.confidence
+            ? `${evaluation.confidence} confidence`
+            : 'Unavailable'}
+        </RecipeValue>
+        <span className="handbook-row__open" aria-hidden="true">
+          ›
+        </span>
+      </Link>
+    </div>
   );
 }
 

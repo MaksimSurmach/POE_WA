@@ -2,7 +2,6 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import { DomainError, validateRecipeDocument } from '@poe-worksmith/domain';
-import matter from 'gray-matter';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -12,7 +11,10 @@ import {
 } from './itemPresentation.js';
 
 const recipePath = fileURLToPath(
-  new URL('../../../recipes/physical-large-cluster/recipe.md', import.meta.url),
+  new URL(
+    '../../../recipes/physical-large-cluster/recipe.json',
+    import.meta.url,
+  ),
 );
 const catalogPath = fileURLToPath(
   new URL(
@@ -22,9 +24,7 @@ const catalogPath = fileURLToPath(
 );
 
 async function recipe() {
-  return validateRecipeDocument(
-    matter(await readFile(recipePath, 'utf8')).data,
-  );
+  return validateRecipeDocument(JSON.parse(await readFile(recipePath, 'utf8')));
 }
 
 describe('recipe item presentation', () => {
@@ -50,7 +50,9 @@ describe('recipe item presentation', () => {
       'Furious Assault',
       'Master the Fundamentals',
     ]);
-    expect(presentation.base.iconUrl).toBeNull();
+    expect(presentation.base.iconUrl).toBe(
+      'https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase3.png',
+    );
     expect(JSON.stringify(presentation)).toBe(
       JSON.stringify(createRecipeItemPresentation({ catalog, recipe: input })),
     );

@@ -18,6 +18,9 @@ export function RecipePage() {
   const { recipeId } = useParams();
   const [response, setResponse] = useState<RecipeResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     let active = true;
@@ -48,6 +51,10 @@ export function RecipePage() {
   const { evaluation, recipe } = detail;
   const target = detail.presentation.target;
   const modifiers = ['implicit', 'prefix', 'suffix'] as const;
+  const selectedVariant =
+    detail.variants.find(({ id }) => id === selectedVariantId) ??
+    detail.variants[0] ??
+    null;
 
   return (
     <article className="recipe-detail">
@@ -96,6 +103,105 @@ export function RecipePage() {
         </DetailMetric>
       </section>
 
+      {detail.variants.length ? (
+        <DetailSection title="Crafting methods">
+          <div
+            className="variant-tabs"
+            role="group"
+            aria-label="Crafting methods"
+          >
+            {detail.variants.map((variant) => (
+              <button
+                aria-pressed={selectedVariant?.id === variant.id}
+                className={
+                  selectedVariant?.id === variant.id ? 'is-selected' : ''
+                }
+                key={variant.id}
+                onClick={() => setSelectedVariantId(variant.id)}
+                type="button"
+              >
+                {variant.name}
+                <span>
+                  {variant.expectedCost ? (
+                    <Money price={variant.expectedCost} />
+                  ) : (
+                    'Not estimated'
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+          {selectedVariant ? (
+            <div className="variant-detail">
+              <div className="variant-cost-summary">
+                <span>Expected cost</span>
+                <strong>
+                  <Money price={selectedVariant.expectedCost} />
+                </strong>
+                <span>Cost per attempt</span>
+                <strong>
+                  <Money price={selectedVariant.materialsPerAttempt} />
+                </strong>
+              </div>
+              <ol className="craft-steps">
+                {selectedVariant.steps.map((step) => (
+                  <li key={step.id}>
+                    <strong>{step.title}</strong>
+                    <p>{step.action}</p>
+                    {step.success ? (
+                      <p>
+                        Success chance:{' '}
+                        {(step.success.probability * 100).toPrecision(3)}% ·{' '}
+                        {step.success.evidence.method}
+                      </p>
+                    ) : null}
+                    <p>
+                      Continue when: {step.continueWhen}. On failure:{' '}
+                      {step.failureAction}.
+                    </p>
+                    {step.materials.length ? (
+                      <ul>
+                        {step.materials.map((material) => (
+                          <li key={material.itemId}>
+                            {material.quantityPerAttempt ?? 'Qty unknown'} ×{' '}
+                            {material.name}:{' '}
+                            <Money price={material.costPerAttempt} /> per
+                            attempt
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+              {selectedVariant.expectedExecutions.length ? (
+                <p>
+                  Expected material use is based on sourced per-step execution
+                  counts; staged chances are not combined as independent
+                  rerolls.
+                </p>
+              ) : (
+                <p>
+                  Expected total is not estimated because expected step
+                  executions are unknown.
+                </p>
+              )}
+              {selectedVariant.evidence ? (
+                <a
+                  href={selectedVariant.evidence.url}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {selectedVariant.evidence.method} · patch{' '}
+                  {selectedVariant.evidence.patch} · verified{' '}
+                  {selectedVariant.evidence.verifiedAt}
+                </a>
+              ) : null}
+            </div>
+          ) : null}
+        </DetailSection>
+      ) : null}
+
       <div className="detail-columns">
         <div>
           <DetailSection title="Target modifiers">
@@ -140,34 +246,36 @@ export function RecipePage() {
               ))}
             </ul>
           </DetailSection>
-          <DetailSection title="Materials">
-            <table className="detail-table materials-table">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Qty / attempt</th>
-                  <th>Unit price</th>
-                  <th>Cost / attempt</th>
-                </tr>
-              </thead>
-              <tbody>
-                {detail.materials.map((material) => (
-                  <tr key={material.name}>
-                    <td data-label="Item">{material.name}</td>
-                    <td data-label="Qty / attempt">
-                      {material.quantityPerAttempt}
-                    </td>
-                    <td data-label="Unit price">
-                      <Money price={material.unitPrice} />
-                    </td>
-                    <td data-label="Cost / attempt">
-                      <Money price={material.costPerAttempt} />
-                    </td>
+          {!detail.variants.length ? (
+            <DetailSection title="Materials">
+              <table className="detail-table materials-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Qty / attempt</th>
+                    <th>Unit price</th>
+                    <th>Cost / attempt</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </DetailSection>
+                </thead>
+                <tbody>
+                  {detail.materials.map((material) => (
+                    <tr key={material.name}>
+                      <td data-label="Item">{material.name}</td>
+                      <td data-label="Qty / attempt">
+                        {material.quantityPerAttempt}
+                      </td>
+                      <td data-label="Unit price">
+                        <Money price={material.unitPrice} />
+                      </td>
+                      <td data-label="Cost / attempt">
+                        <Money price={material.costPerAttempt} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </DetailSection>
+          ) : null}
         </div>
         <div>
           <DetailSection title="Crafting steps">

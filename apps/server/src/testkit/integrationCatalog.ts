@@ -54,8 +54,8 @@ const syntheticDirectory = new URL(
 );
 const productionRecipe = new URL(
   compiled
-    ? './recipe-assets/production/physical-large-cluster/recipe.md'
-    : '../../../../recipes/physical-large-cluster/recipe.md',
+    ? './recipe-assets/production/physical-large-cluster/recipe.json'
+    : '../../../../recipes/physical-large-cluster/recipe.json',
   import.meta.url,
 );
 const query = (

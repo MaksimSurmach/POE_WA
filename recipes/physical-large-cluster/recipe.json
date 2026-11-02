@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 2,
+  "id": "physical-large-cluster-jagged",
+  "title": "Physical Large Cluster Jewel",
+  "summary": "8-passive large cluster jewel with three physical notables.",
+  "tags": ["cluster-jewel", "physical"],
+  "category": "cluster-jewel",
+  "gameDataVersion": "3.26.0",
+  "base": {
+    "baseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "itemLevel": 83,
+    "rarity": "rare",
+    "influences": [],
+    "state": { "fractured": false, "synthesised": false, "corrupted": false },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "physical-damage"
+    }
+  },
+  "target": {
+    "allOf": [
+      { "kind": "explicit", "modId": "mod:battle-hardened" },
+      { "kind": "explicit", "modId": "mod:furious-assault" },
+      { "kind": "explicit", "modId": "mod:master-the-fundamentals" }
+    ],
+    "anyOf": [],
+    "minimumMatched": null
+  },
+  "craft": {
+    "method": {
+      "kind": "fossil",
+      "fossils": ["jagged-fossil"],
+      "resonatorSockets": 1
+    },
+    "resourceConsumption": {
+      "source": "authored-estimate",
+      "materials": [
+        { "itemId": "jagged-fossil", "quantity": 30 },
+        { "itemId": "primitive-chaotic-resonator", "quantity": 30 }
+      ]
+    },
+    "startingMods": [],
+    "variants": [
+      {
+        "id": "jagged-fossil",
+        "name": "Jagged Fossil",
+        "evidence": {
+          "method": "PoE Wiki: Jagged Fossil adds physical modifiers; probability not estimated",
+          "patch": "3.26",
+          "url": "https://www.poewiki.net/wiki/Jagged_Fossil",
+          "verifiedAt": "2026-11-02"
+        },
+        "steps": [
+          {
+            "id": "roll-with-fossil",
+            "title": "Roll with a Jagged Fossil",
+            "action": "Use one Jagged Fossil in a one-socket resonator on an item-level 83+ base.",
+            "materials": [
+              { "itemId": "jagged-fossil", "quantity": 1 },
+              { "itemId": "primitive-chaotic-resonator", "quantity": 1 }
+            ],
+            "continueWhen": "The base has all three target notables.",
+            "failureAction": "Repeat on the same base; success chance is not estimated."
+          }
+        ]
+      },
+      {
+        "id": "harvest-physical",
+        "name": "Harvest Physical Reforge",
+        "evidence": {
+          "method": "PoE Wiki: Physical reforge costs 50 Vivid Lifeforce; probability not estimated",
+          "patch": "3.26",
+          "url": "https://www.poewiki.net/wiki/List_of_harvest_crafting_options",
+          "verifiedAt": "2026-11-02"
+        },
+        "steps": [
+          {
+            "id": "reforge-physical",
+            "title": "Reforge with Physical modifiers",
+            "action": "Use a Harvest reforge that adds Physical modifiers on the item-level 83+ base.",
+            "materials": [
+              { "itemId": "vivid-crystallised-lifeforce", "quantity": 50 }
+            ],
+            "continueWhen": "The base has all three target notables.",
+            "failureAction": "Repeat on the same base; success chance is not estimated."
+          }
+        ]
+      }
+    ]
+  },
+  "content": {
+    "craftSteps": [
+      {
+        "id": "acquire-base",
+        "title": "Buy an item-level 83+ Large Cluster Jewel with 8 passives and 12% increased Physical Damage."
+      },
+      {
+        "id": "craft",
+        "title": "Choose a crafting method; probabilities and total cost remain unavailable until verified."
+      }
+    ],
+    "notes": "The earlier 30-fossil authored estimate is retained as historical guidance, not a probability calculation."
+  }
+}

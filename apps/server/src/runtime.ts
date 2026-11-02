@@ -19,6 +19,7 @@ export class ApplicationRuntime {
   readonly #afterApiClose: (() => Promise<void>) | undefined;
   readonly #host: string;
   readonly #jobs: JobRunner | undefined;
+  readonly #apiJobs: JobRunner | undefined;
   readonly #logger: Logger;
   readonly #mode: ApplicationMode;
   readonly #pool: DatabasePool;
@@ -26,6 +27,7 @@ export class ApplicationRuntime {
   readonly #shutdownTimeoutMs: number;
   #apiStarted = false;
   #jobsStarted = false;
+  #apiJobsStarted = false;
   #poolClosed = false;
   #stopPromise: Promise<void> | undefined;
 
@@ -34,6 +36,7 @@ export class ApplicationRuntime {
     afterApiClose?: () => Promise<void>;
     host: string;
     jobs?: JobRunner;
+    apiJobs?: JobRunner;
     logger: Logger;
     mode: ApplicationMode;
     pool: DatabasePool;
@@ -44,6 +47,7 @@ export class ApplicationRuntime {
     this.#afterApiClose = options.afterApiClose;
     this.#host = options.host;
     this.#jobs = options.jobs;
+    this.#apiJobs = options.apiJobs;
     this.#logger = options.logger;
     this.#mode = options.mode;
     this.#pool = options.pool;
@@ -61,6 +65,10 @@ export class ApplicationRuntime {
 
       if (modeIncludesApi(this.#mode)) {
         if (!this.#api) throw new Error('API mode requires an API server');
+        if (this.#apiJobs) {
+          this.#apiJobsStarted = true;
+          await this.#apiJobs.start();
+        }
         this.#apiStarted = true;
         await this.#api.listen({ host: this.#host, port: this.#port });
       }
@@ -86,6 +94,12 @@ export class ApplicationRuntime {
     }
     if (this.#afterApiClose)
       await this.#afterApiClose().catch((error: unknown) => errors.push(error));
+    if (this.#apiJobsStarted && this.#apiJobs) {
+      await this.#apiJobs
+        .stop(this.#shutdownTimeoutMs)
+        .catch((error: unknown) => errors.push(error));
+      this.#apiJobsStarted = false;
+    }
     if (this.#jobsStarted && this.#jobs) {
       await this.#jobs
         .stop(this.#shutdownTimeoutMs)
