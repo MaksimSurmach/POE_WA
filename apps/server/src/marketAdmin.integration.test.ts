@@ -185,6 +185,55 @@ async function seedPublishableRun() {
 }
 
 describe('market admin PostgreSQL, queue and API integration', () => {
+  it('caps a long environment TTL at initial maximum quote age so unrelated settings and pause/resume remain usable', async () => {
+    await pool.query('truncate market_admin_settings');
+    const seeded = defaultAdminSettings({
+      refreshCron: defaults.refreshCron,
+      requestTimeoutMs: 15_000,
+      concurrency: 4,
+      snapshotTtlMs: 60 * 60_000,
+    });
+    const seededStore = createMarketAdminStore({
+      ...storeOptions,
+      defaults: seeded,
+    });
+    await seededStore.init();
+    expect((await seededStore.read()).configured).toMatchObject({
+      snapshotReuseTtlMs: 30 * 60_000,
+      maximumQuoteAgeMs: 30 * 60_000,
+    });
+    await seededStore.patch(
+      { version: 0, settings: { requestTimeoutMs: 12_000 } },
+      'operator',
+    );
+    await seededStore.patch(
+      { version: 1, settings: { collectionsPaused: true } },
+      'operator',
+    );
+    const resumed = await seededStore.patch(
+      { version: 2, settings: { collectionsPaused: false } },
+      'operator',
+    );
+    expect(resumed).toMatchObject({
+      version: 3,
+      effective: { requestTimeoutMs: 12_000, collectionsPaused: false },
+    });
+  });
+
+  it('rejects inconsistent initial settings before writing them', async () => {
+    await pool.query('truncate market_admin_settings');
+    const invalid = createMarketAdminStore({
+      ...storeOptions,
+      defaults: { ...defaults, snapshotReuseTtlMs: 60 * 60_000 },
+    });
+    await expect(invalid.init()).rejects.toMatchObject({
+      code: 'MARKET_QUERY_INVALID',
+    });
+    expect(
+      (await pool.query('select * from market_admin_settings')).rows,
+    ).toEqual([]);
+  });
+
   it('refuses publication after a cancellation request and retains the existing catalog pointer', async () => {
     const { id, previousId, repositories } = await seedPublishableRun();
     await store.cancel(id, 'operator', producer);
@@ -377,6 +426,7 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     { collectionConcurrency: 5 },
     { rawRetentionHours: 23 },
     { historyRetentionDays: 731 },
+    { rawRetentionHours: 90 * 24, historyRetentionDays: 14 },
     { snapshotReuseTtlMs: 1_800_001 },
     { maximumQuoteAgeMs: 60_000 },
     { freshnessWarningMs: 1_800_001 },

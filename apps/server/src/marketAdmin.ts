@@ -37,7 +37,7 @@ export function defaultAdminSettings(options: {
       Math.max(1000, options.requestTimeoutMs),
     ),
     collectionConcurrency: Math.min(4, options.concurrency),
-    snapshotReuseTtlMs: Math.min(options.snapshotTtlMs, 7_200_000),
+    snapshotReuseTtlMs: Math.min(options.snapshotTtlMs, 30 * 60_000),
     freshnessWarningMs: 15 * 60_000,
     maximumQuoteAgeMs: 30 * 60_000,
     rawRetentionHours: 90 * 24,
@@ -52,6 +52,7 @@ export function validateAdminSettings(value: unknown, timezone: string) {
   if (
     settings.freshnessWarningMs > settings.maximumQuoteAgeMs ||
     settings.snapshotReuseTtlMs > settings.maximumQuoteAgeMs ||
+    settings.rawRetentionHours > settings.historyRetentionDays * 24 ||
     settings.rawRetentionHours * 3_600_000 < settings.maximumQuoteAgeMs
   )
     throw new DomainError('MARKET_QUERY_INVALID');
@@ -107,9 +108,10 @@ export function createMarketAdminStore(options: {
     );
   }
   async function init() {
+    const defaults = validateAdminSettings(options.defaults, options.timezone);
     await pool.query(
       'insert into market_admin_settings (id,settings) values (1,$1::jsonb) on conflict (id) do nothing',
-      [JSON.stringify(options.defaults)],
+      [JSON.stringify(defaults)],
     );
   }
   function response(row: { version: number; settings: unknown }) {

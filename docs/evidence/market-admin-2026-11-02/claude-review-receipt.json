@@ -1,0 +1,63 @@
+{
+  "status": "complete",
+  "reviewed_source_head": "75cb6e4fca99a95197037aa19a638b992c911377",
+  "scope": "Complete final production diff from3f2663a3 to75cb6e4:30files; generated metadata/tests/CSS excluded.",
+  "reviewer": {
+    "harness": "Claude Code",
+    "route": "claude",
+    "model_requested": "claude-opus-5",
+    "model_actual": "claude-opus-5",
+    "provider_actual": "firstParty",
+    "effort_requested": "low",
+    "effort_actual": "unverified",
+    "receipt_supported": true,
+    "independence_verified": true
+  },
+  "terminal": {
+    "exit_code": 0,
+    "is_error": false,
+    "reason": "completed",
+    "duration_seconds": 82.39,
+    "permission_denials": [],
+    "subagents_spawned": 0,
+    "policy": "safe-mode/restricted; no tools/MCP/hooks/session persistence"
+  },
+  "findings": [
+    {
+      "severity": "P1",
+      "subject": "Selected cold-start refresh allegedly loses other recipes",
+      "disposition": "rejected false positive",
+      "reason": "resourceViews.readCatalog enumerates all active recipes with optional evaluations. No previous same-league publication means no published same-league prices exist to lose. Existing matching same-league evaluations are carried without changing their age.",
+      "evidence": [
+        "apps/server/src/resourceViews.ts:49-71",
+        "apps/server/src/catalogPublisher.ts:174-199"
+      ]
+    },
+    {
+      "severity": "P2",
+      "subject": "Default reuseTTL could exceed initial maximum quote age",
+      "disposition": "fixed and locally rechecked",
+      "fix": "Cap seedTTL at30minutes; validate the full seed before insert. Two PostgreSQL regressions cover1-hour environmentTTL with unrelatedPATCH/pause/resume, and rejecting an inconsistent seed without insertion.",
+      "verification": "Source inspected; parent reports39focused PostgreSQL tests passed including the retention guard case."
+    }
+  ],
+  "additional_local_inspection": "Validated rawRetentionHours <= historyRetentionDays*24 guard, rejection case90days raw/14days history, and matching UIhelp. This delta was not reviewed by Claude.",
+  "post_fix_claude_recheck": {
+    "status": "quota-blocked before inference",
+    "http_status": 429,
+    "error": "usage_limit_reached",
+    "reset_local": "18:50 Europe/Warsaw",
+    "approval_claimed": false,
+    "further_provider_requests": false
+  },
+  "remaining_code_findings": [],
+  "coverage_limits": [
+    "Static production-diff review; tests/build/migrations/browser/CI are parent-owned verification.",
+    "No post-fix Claude approval: narrow re-review was rejected before inference by explicit usage quota."
+  ],
+  "verified_source_sha256": {
+    "apps/server/src/marketAdmin.ts": "4fcdb73403942aed2901e7132d4a28a0ff173fab5c8a88c51df661d8addca3a6",
+    "apps/server/src/marketAdmin.integration.test.ts": "5c04b8d62da95af2f09e4d2472e7f966236e440ff690d136e390d9de94c2995e",
+    "apps/web/src/AdminMarketPage.tsx": "f9a1ce8dfefab2cc73bc1c980b5a297f0aa37f553fa78d1cff7df6a493a153ce"
+  }
+}

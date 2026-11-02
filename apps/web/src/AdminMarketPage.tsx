@@ -375,7 +375,8 @@ export function AdminMarketPage() {
                     Reuse TTL controls whether an existing snapshot can avoid a
                     request. Maximum quote age controls whether a price is
                     usable. A 4-hour interval with a 30-minute TTL leaves a
-                    freshness gap; retained data stays available as history.
+                    freshness gap; retained data stays available as history.{' '}
+                    History retention must cover the raw retention period.
                   </p>
                   <button type="submit" disabled={!dirty || busy}>
                     {busy ? 'Applying…' : 'Save settings'}

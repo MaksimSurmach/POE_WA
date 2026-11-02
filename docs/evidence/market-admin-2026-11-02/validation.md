@@ -40,7 +40,7 @@ migration validation also applies the consolidated migration to an empty
 database.
 
 - 401 unit tests: 64 domain, 10 contracts, 290 server, 37 web.
-- 108 PostgreSQL integration tests; 7 explicit backend E2E tests.
+- 111 PostgreSQL integration tests; 7 explicit backend E2E tests.
 - 7 provider contract tests (also included in the unit suite).
 - Lint, typecheck, production build and migration consistency passed.
 - Fresh empty-database migration passed, including the run-progress column.

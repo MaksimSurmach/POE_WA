@@ -48,6 +48,10 @@ retains its server-side token configuration.
 Settings live in `market_admin_settings`, with a monotonically increasing
 `version`. Every patch requires that version; concurrent/stale writes return 409.
 Unknown fields, invalid relationships and values outside the limits return 400.
+Initial TTL is capped at the default 30-minute maximum quote age, and the seed is
+validated before insertion. An operator can later raise both values together.
+History retention must be at least as long as raw retention; a shorter history
+would otherwise remove a row while its raw payload should still be retained.
 Settings changes and run/cancel requests are audited transactionally. Legacy
 market writes record a request before executing and an outcome afterward; an
 unavailable audit store prevents new legacy writes.
