@@ -139,9 +139,12 @@ function CatalogRoute() {
         </p>
       ) : null}
 
-      {marketTargets === null && (!response || entries.length === 0) ? (
+      {!response && !loadError ? (
         <StatusPanel tone="info" title="Loading recipes" />
-      ) : marketTargets !== null &&
+      ) : marketTargets === null && entries.length === 0 ? (
+        <StatusPanel tone="info" title="Loading recipes" />
+      ) : (response !== null || loadError) &&
+        marketTargets !== null &&
         entries.length === 0 &&
         targets.length === 0 &&
         !filters.search.trim() &&
