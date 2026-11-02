@@ -38,6 +38,7 @@ const metadata = {
           { type: 'Large Cluster Jewel' },
           { type: 'Jagged Fossil' },
           { type: 'Primitive Chaotic Resonator' },
+          { type: 'Vivid Crystallised Lifeforce' },
         ],
       },
     ],

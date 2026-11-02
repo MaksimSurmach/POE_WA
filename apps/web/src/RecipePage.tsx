@@ -154,7 +154,9 @@ export function RecipePage() {
                         {(step.success.probability * 100).toPrecision(3)}% ·{' '}
                         {step.success.evidence.method}
                       </p>
-                    ) : null}
+                    ) : (
+                      <p>Success chance: unknown (no sourced odds).</p>
+                    )}
                     <p>
                       Continue when: {step.continueWhen}. On failure:{' '}
                       {step.failureAction}.
@@ -174,16 +176,16 @@ export function RecipePage() {
                   </li>
                 ))}
               </ol>
-              {selectedVariant.expectedExecutions.length ? (
+              {selectedVariant.expectedCost ? (
                 <p>
-                  Expected material use is based on sourced per-step execution
-                  counts; staged chances are not combined as independent
-                  rerolls.
+                  Expected total includes the base and uses sourced per-step
+                  execution counts; staged chances are not multiplied as
+                  independent rerolls.
                 </p>
               ) : (
                 <p>
-                  Expected total is not estimated because expected step
-                  executions are unknown.
+                  Expected total is not estimated because execution counts,
+                  material quantities, or current prices are unknown.
                 </p>
               )}
               {selectedVariant.evidence ? (

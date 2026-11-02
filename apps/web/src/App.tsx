@@ -297,7 +297,9 @@ function CatalogRow({ entry }: { entry: CatalogEntry }) {
         <div className="handbook-row__name">
           <strong>{recipe.title}</strong>
           <span>
-            {entry.itemPreview?.name ?? recipe.category} · {recipe.category}
+            {entry.itemPreview
+              ? `${entry.itemPreview.name} · ${recipe.category}`
+              : recipe.category}
           </span>
         </div>
         <div className="handbook-row__tags" aria-label={`${recipe.title} tags`}>

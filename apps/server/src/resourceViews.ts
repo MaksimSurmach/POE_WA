@@ -131,13 +131,21 @@ function toCatalogEntry(
   presentationCatalog?: ItemPresentationCatalog,
 ): CatalogEntry {
   const definition = validateRecipeDocument(recipe.definition);
-  const itemPreview =
-    definition.schemaVersion === 2 && presentationCatalog
-      ? createRecipeItemPresentation({
-          catalog: presentationCatalog,
-          recipe: definition,
-        }).target
-      : undefined;
+  let itemPreview: CatalogEntry['itemPreview'];
+  if (
+    definition.schemaVersion === 2 &&
+    presentationCatalog?.get(definition.base.baseId)
+  ) {
+    try {
+      itemPreview = createRecipeItemPresentation({
+        catalog: presentationCatalog,
+        recipe: definition,
+      }).target;
+    } catch (cause) {
+      if (!(cause instanceof DomainError) || cause.code !== 'RECIPE_INVALID')
+        throw cause;
+    }
+  }
   return {
     evaluation: toEvaluation(recipe.id, evaluation),
     ...(itemPreview ? { itemPreview } : {}),
@@ -318,11 +326,11 @@ function toV2RecipeDetail(
         )
       : [];
     const cost = recipeVariantViewSchema.safeParse({
-      expectedCost: savedRecord.expectedCost ?? null,
+      expectedCost: persistedPrice(savedRecord.expectedCost),
       evidence: variant.evidence ?? null,
       expectedExecutions: variant.expectedExecutions ?? [],
       id: variant.id,
-      materialsPerAttempt: savedRecord.materialsPerAttempt ?? null,
+      materialsPerAttempt: persistedPrice(savedRecord.materialsPerAttempt),
       name: variant.name,
       steps: variant.steps.map((step) => ({
         action: step.action,
@@ -341,13 +349,13 @@ function toV2RecipeDetail(
             (value) => value.itemId === material.itemId,
           );
           return {
-            costPerAttempt: savedMaterial?.costPerAttempt ?? null,
+            costPerAttempt: persistedPrice(savedMaterial?.costPerAttempt),
             itemId: material.itemId,
             name:
               presentationCatalog.get(material.itemId)?.name ??
               material.itemId.replaceAll('-', ' '),
             quantityPerAttempt: material.quantity,
-            unitPrice: savedMaterial?.unitPrice ?? null,
+            unitPrice: persistedPrice(savedMaterial?.unitPrice),
           };
         }),
         success: step.success ?? null,
@@ -398,6 +406,17 @@ function price(
   if (amount === null || amount < 0) return null;
   if (rawCurrency !== 'chaos' && rawCurrency !== 'divine') return null;
   return { amount, currency: rawCurrency };
+}
+
+function persistedPrice(value: unknown): Price | null {
+  if (!value || typeof value !== 'object') return null;
+  const { amount, currency } = value as Record<string, unknown>;
+  return price(
+    typeof amount === 'string' || typeof amount === 'number'
+      ? String(amount)
+      : null,
+    typeof currency === 'string' ? currency : null,
+  );
 }
 
 function finiteNumber(value: string | null | undefined) {

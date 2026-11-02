@@ -104,6 +104,120 @@ describe('repository-backed resource views', () => {
     );
   });
 
+  it('omits a catalog item preview when its base has no presentation metadata', async () => {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    const readers = createResourceReaders(repositories, {
+      get: () => null,
+      version: () => '1',
+    });
+
+    const catalog = catalogResponseSchema.parse(
+      await readers.readCatalog(correlationId),
+    );
+    expect(catalog.data?.entries[0]).not.toHaveProperty('itemPreview');
+  });
+
+  it('converts persisted variant price strings into response contract prices', async () => {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Mercenaries',
+      isCurrent: true,
+      metadata: {},
+      name: 'Mercenaries',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: new Date('2026-11-02T00:00:00.000Z'),
+    });
+    const cycle = await repositories.cycles.save({
+      completedQueries: 0,
+      completedRecipes: 0,
+      errorMessage: null,
+      failedQueries: 0,
+      failedRecipes: 0,
+      finishedAt: null,
+      id: '11111111-1111-4111-8111-111111111111',
+      leagueId: league.id,
+      publishedAt: null,
+      requestedAt: new Date('2026-11-02T00:00:00.000Z'),
+      startedAt: null,
+      status: 'queued',
+      totalQueries: 0,
+      totalRecipes: 1,
+    });
+    const running = await repositories.cycles.save(
+      transitionRefreshCycle(cycle, 'running', new Date()),
+    );
+    await repositories.evaluations.save({
+      confidence: 'low',
+      currency: 'chaos',
+      errorCode: null,
+      estimatedSalePrice: '10',
+      evaluatedAt: new Date('2026-11-02T00:00:00.000Z'),
+      expectedCraftCost: '3.75',
+      lastSuccessfulAt: new Date('2026-11-02T00:00:00.000Z'),
+      leagueId: league.id,
+      marginPercent: '62.5',
+      observationId: null,
+      profit: '6.25',
+      recipeId: 'physical-large-cluster-jagged',
+      refreshCycleId: running.id,
+      sourceSnapshotDedupeKey: 'fixture',
+      status: 'success',
+      variantCosts: {
+        'jagged-fossil': {
+          expectedCost: { amount: '3.75', currency: 'chaos' },
+          materialsPerAttempt: { amount: '1.5', currency: 'chaos' },
+          steps: [
+            {
+              id: 'roll-with-fossil',
+              materials: [
+                {
+                  costPerAttempt: { amount: '1', currency: 'chaos' },
+                  itemId: 'jagged-fossil',
+                  unitPrice: { amount: '1', currency: 'chaos' },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+    await repositories.cycles.save({ ...running, completedRecipes: 1 });
+    await repositories.cycles.publish(running.id, new Date());
+    const readers = createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+    );
+
+    const detail = recipeResponseSchema.parse(
+      await readers.readRecipe(correlationId, 'physical-large-cluster-jagged'),
+    );
+    expect(detail.data?.variants[0]).toMatchObject({
+      expectedCost: { amount: 3.75, currency: 'chaos' },
+      materialsPerAttempt: { amount: 1.5, currency: 'chaos' },
+      steps: [
+        {
+          materials: [
+            {
+              costPerAttempt: { amount: 1, currency: 'chaos' },
+              itemId: 'jagged-fossil',
+              unitPrice: { amount: 1, currency: 'chaos' },
+            },
+            {
+              costPerAttempt: null,
+              itemId: 'primitive-chaotic-resonator',
+              unitPrice: null,
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it('does not present a published catalog after its league rolls over', async () => {
     const repositories = createInMemoryRepositories();
     await synchronizeRecipeCatalog(recipesPath, repositories.recipes);

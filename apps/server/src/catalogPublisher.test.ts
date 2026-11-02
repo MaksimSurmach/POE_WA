@@ -107,6 +107,40 @@ function evaluator(failingIds: readonly string[] = []): FreshRecipeEvaluator {
 }
 
 describe('catalog evaluation and publication', () => {
+  it('keeps a priced sale result as stale when expected craft cost is unknown', async () => {
+    const repositories = createInMemoryRepositories();
+    await seedCycle(repositories, 'cycle-unknown', 1);
+    await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-unknown',
+      evaluateRecipe: async () => ({
+        confidence: 'low',
+        currency: 'chaos',
+        estimatedSalePrice: '100',
+        expectedCraftCost: null,
+        marginPercent: null,
+        observationId: null,
+        profit: null,
+        sourceSnapshotDedupeKey: 'snapshot-recipe-01',
+      }),
+      league: 'Mercenaries',
+      now,
+    });
+
+    await seedCycle(repositories, 'cycle-unknown-next', 1);
+    const result = await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-unknown-next',
+      evaluateRecipe: evaluator(['recipe-01']),
+      league: 'Mercenaries',
+      now: new Date(now.getTime() + 1000),
+    });
+
+    expect(result.evaluations[0]).toMatchObject({
+      estimatedSalePrice: '100',
+      expectedCraftCost: null,
+      status: 'stale',
+    });
+  });
+
   it('publishes at 95%, marks fallback stale, and rejects below threshold', async () => {
     const repositories = createInMemoryRepositories();
     await seedCycle(repositories, 'cycle-baseline', 20);

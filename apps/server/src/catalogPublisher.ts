@@ -573,16 +573,10 @@ function reusableEvaluation(
 ): evaluation is RecipeEvaluation & {
   currency: string;
   estimatedSalePrice: string;
-  expectedCraftCost: string;
-  marginPercent: string;
-  profit: string;
 } {
   return Boolean(
     evaluation?.currency &&
     evaluation.estimatedSalePrice &&
-    evaluation.expectedCraftCost &&
-    evaluation.marginPercent &&
-    evaluation.profit &&
     ['success', 'stale', 'partial'].includes(evaluation.status),
   );
 }

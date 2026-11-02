@@ -28,6 +28,12 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
     <span
       ref={preview}
       className={`item-preview${dismissed ? ' is-dismissed' : ''}`}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setOpen(false);
+          setDismissed(false);
+        }
+      }}
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
           setOpen(false);
@@ -44,10 +50,13 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
         aria-expanded={open}
         aria-label={`Preview target item: ${item.name}, ${item.itemClass}`}
         onClick={() => {
-          setDismissed(open);
-          setOpen((value) => !value);
+          setDismissed(false);
+          setOpen(true);
         }}
-        onFocus={() => setDismissed(false)}
+        onFocus={() => {
+          setDismissed(false);
+          setOpen(true);
+        }}
       >
         {item.iconUrl ? (
           <img src={item.iconUrl} alt="" />
@@ -72,11 +81,13 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
             Item Level {item.itemLevel}
           </span>
         ) : null}
-        {item.properties.map(({ id: propertyId, label, value }) => (
-          <span className="item-tooltip__property" key={propertyId}>
-            {label}: {value ?? 'Unknown'}
-          </span>
-        ))}
+        {item.properties.map(({ id: propertyId, label, value }) =>
+          propertyId === 'item-level' ? null : (
+            <span className="item-tooltip__property" key={propertyId}>
+              {label}: {value ?? 'Unknown'}
+            </span>
+          ),
+        )}
         {groups.map(([kind, label]) => {
           const modifiers = item.modifiers.filter(
             (modifier) => modifier.generationType === kind,
@@ -84,8 +95,8 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
           return modifiers.length ? (
             <span className="item-tooltip__mods" key={kind}>
               <strong>{label}</strong>
-              {modifiers.map(({ canonicalId, label: text }) => (
-                <span key={canonicalId}>{text}</span>
+              {modifiers.map(({ canonicalId, label: text }, index) => (
+                <span key={`${canonicalId}-${index}`}>{text}</span>
               ))}
             </span>
           ) : null;
