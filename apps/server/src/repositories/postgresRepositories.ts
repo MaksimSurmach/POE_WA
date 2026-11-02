@@ -559,49 +559,59 @@ export function createPostgresRepositories(pool: Pool): Repositories {
             await client.query('begin');
             await lockRateLimitEndpoint(client, input.endpoint);
             const mapping = await client.query<{ policy: string }>(
-              `select policy
-               from rate_limit_endpoint_policies
+              `select distinct policy from rate_limit_endpoint_policies
                where endpoint = $1
-               for update`,
+                  or ($1 = 'trade' and endpoint in ('trade-search', 'trade-fetch'))`,
               [input.endpoint],
             );
-            const policy =
-              mapping.rows[0]?.policy ?? input.fallbackPolicy.trim();
-            await insertRateLimitState(
-              client,
-              policy,
-              input.now,
-              input.conservativeDelayMs,
+            const policies = [
+              ...new Set(mapping.rows.map(({ policy }) => policy)),
+            ];
+            if (policies.length === 0) {
+              policies.push(input.fallbackPolicy.trim());
+              await insertRateLimitState(
+                client,
+                policies[0]!,
+                input.now,
+                input.conservativeDelayMs,
+              );
+              await client.query(
+                `insert into rate_limit_endpoint_policies (endpoint, policy, updated_at)
+                 values ($1, $2, $3) on conflict (endpoint) do nothing`,
+                [input.endpoint, policies[0], input.now],
+              );
+            }
+            const locked = await client.query<RateLimitStateSqlRow>(
+              `select state.*, array[]::text[] as endpoints from rate_limit_states state
+               where policy = any($1::text[]) order by policy for update`,
+              [policies],
             );
-            const locked = await selectRateLimitStateForUpdate(client, policy);
             const retryAt = new Date(
               Math.max(
-                locked.blocked_until.getTime(),
-                locked.next_request_at.getTime(),
                 input.now.getTime(),
+                ...locked.rows.flatMap((state) => [
+                  state.blocked_until.getTime(),
+                  state.next_request_at.getTime(),
+                ]),
               ),
             );
             const acquired = retryAt <= input.now;
             if (acquired) {
               await client.query(
                 `update rate_limit_states
-                 set next_request_at = $2, updated_at = $1
-                 where policy = $3`,
-                [
-                  input.now,
-                  new Date(input.now.getTime() + locked.minimum_delay_ms),
-                  policy,
-                ],
+                 set next_request_at = $1::timestamptz + minimum_delay_ms * interval '1 millisecond', updated_at = $1
+                 where policy = any($2::text[])`,
+                [input.now, policies],
               );
             }
-            await client.query(
-              `insert into rate_limit_endpoint_policies
-                 (endpoint, policy, updated_at)
-               values ($1, $2, $3)
-               on conflict (endpoint) do nothing`,
-              [input.endpoint, policy, input.now],
-            );
-            const state = await selectRateLimitState(client, policy);
+            // Report a denial from any applicable policy, even if another response arrived later.
+            const governing =
+              locked.rows.find(
+                ({ last_status }) => last_status === 401 || last_status === 403,
+              ) ?? locked.rows[0];
+            if (!governing)
+              throw new RepositoryNotFoundError('rateLimits', 'acquire');
+            const state = await selectRateLimitState(client, governing.policy);
             await client.query('commit');
             return { acquired, retryAt, state };
           } catch (error) {
@@ -648,7 +658,11 @@ export function createPostgresRepositories(pool: Pool): Repositories {
             );
             const previousPolicy =
               mapping.rows[0]?.policy ?? input.fallbackPolicy.trim();
-            const policy = input.policy.trim();
+            const policy =
+              input.windows.length === 0 &&
+              input.policy === input.fallbackPolicy
+                ? previousPolicy
+                : input.policy.trim();
             const policies = [...new Set([previousPolicy, policy])].sort();
             for (const candidate of policies) {
               await insertRateLimitState(
@@ -674,9 +688,14 @@ export function createPostgresRepositories(pool: Pool): Repositories {
                 ),
               ),
             );
+            const current = locked.rows.find((row) => row.policy === policy);
+            const minimumDelayMs =
+              input.windows.length === 0
+                ? Math.max(input.minimumDelayMs, current?.minimum_delay_ms ?? 0)
+                : input.minimumDelayMs;
             const nextRequestAt = new Date(
               Math.max(
-                input.now.getTime() + input.minimumDelayMs,
+                input.now.getTime() + minimumDelayMs,
                 ...locked.rows.map(({ next_request_at: value }) =>
                   value.getTime(),
                 ),
@@ -686,16 +705,24 @@ export function createPostgresRepositories(pool: Pool): Repositories {
               `update rate_limit_states
                set blocked_until = $2, next_request_at = $3,
                    minimum_delay_ms = $4, windows = $5,
-                   last_status = $6, last_response_at = $1,
+                   last_status = case when last_status in (401, 403) then last_status else $6 end,
+                   last_response_at = $1,
                    updated_at = $1
                where policy = $7`,
               [
                 input.now,
                 blockedUntil,
                 nextRequestAt,
-                input.minimumDelayMs,
-                JSON.stringify(input.windows),
-                input.status,
+                minimumDelayMs,
+                JSON.stringify(
+                  input.windows.length === 0
+                    ? (current?.windows ?? [])
+                    : input.windows,
+                ),
+                locked.rows.find(
+                  ({ last_status }) =>
+                    last_status === 401 || last_status === 403,
+                )?.last_status ?? input.status,
                 policy,
               ],
             );
@@ -1642,26 +1669,8 @@ async function insertRateLimitState(
 
 async function lockRateLimitEndpoint(client: PoolClient, endpoint: string) {
   await client.query(`select pg_advisory_xact_lock(hashtextextended($1, 0))`, [
-    `rate-limit:${endpoint}`,
+    `rate-limit:${['trade', 'trade-search', 'trade-fetch'].includes(endpoint) ? 'trade' : endpoint}`,
   ]);
-}
-
-async function selectRateLimitStateForUpdate(
-  client: PoolClient,
-  policy: string,
-) {
-  const result = await client.query<RateLimitStateSqlRow>(
-    `select state.*, array[]::text[] as endpoints
-     from rate_limit_states state
-     where state.policy = $1
-     for update`,
-    [policy],
-  );
-  const row = result.rows[0];
-  if (!row) {
-    throw new RepositoryNotFoundError('rateLimits', 'selectForUpdate');
-  }
-  return row;
 }
 
 async function selectRateLimitState(client: PoolClient, policy: string) {

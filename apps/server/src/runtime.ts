@@ -16,6 +16,7 @@ type DatabasePool = Pick<Pool, 'end'>;
 
 export class ApplicationRuntime {
   readonly #api: ApiServer | undefined;
+  readonly #afterApiClose: (() => Promise<void>) | undefined;
   readonly #host: string;
   readonly #jobs: JobRunner | undefined;
   readonly #logger: Logger;
@@ -30,6 +31,7 @@ export class ApplicationRuntime {
 
   constructor(options: {
     api?: ApiServer;
+    afterApiClose?: () => Promise<void>;
     host: string;
     jobs?: JobRunner;
     logger: Logger;
@@ -39,6 +41,7 @@ export class ApplicationRuntime {
     shutdownTimeoutMs: number;
   }) {
     this.#api = options.api;
+    this.#afterApiClose = options.afterApiClose;
     this.#host = options.host;
     this.#jobs = options.jobs;
     this.#logger = options.logger;
@@ -81,6 +84,8 @@ export class ApplicationRuntime {
       await this.#api.close().catch((error: unknown) => errors.push(error));
       this.#apiStarted = false;
     }
+    if (this.#afterApiClose)
+      await this.#afterApiClose().catch((error: unknown) => errors.push(error));
     if (this.#jobsStarted && this.#jobs) {
       await this.#jobs
         .stop(this.#shutdownTimeoutMs)

@@ -145,13 +145,15 @@ describe('PoE Trade provider contracts', () => {
     await expect(client.search(request(itemQuery))).rejects.toMatchObject({
       code: 'PROVIDER_RATE_LIMITED',
     });
-    await expect(repositories.rateLimits.list()).resolves.toMatchObject([
-      {
-        endpoints: ['trade-search'],
-        lastStatus: 429,
-        policy: 'fixture-trade-policy',
-      },
-    ]);
+    await expect(repositories.rateLimits.list()).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          endpoints: ['trade-search'],
+          lastStatus: 429,
+          policy: 'fixture-trade-policy',
+        }),
+      ]),
+    );
   });
 });
 

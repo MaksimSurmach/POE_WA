@@ -4,20 +4,28 @@ import {
   beltPriceUpdateSchema,
   beltPriceUpdatesResponseSchema,
   marketWorkbenchResponseSchema,
+  marketCollectionResponseSchema,
+  marketCollectionSettingsResponseSchema,
+  marketCollectionRunResponseSchema,
   marketTargetResponseSchema,
   marketResearchSnapshotResponseSchema,
   type MarketTargetInput,
   type MarketSnapshotImport,
+  type MarketCollectionSettingsInput,
   type BeltPriceUpdateInput,
 } from '@poe-worksmith/contracts';
 
-async function request(path: string, body?: unknown): Promise<unknown> {
+async function request(
+  path: string,
+  body?: unknown,
+  method = 'POST',
+): Promise<unknown> {
   const response = await fetch(path, {
     signal: AbortSignal.timeout(30_000),
     ...(body === undefined
       ? {}
       : {
-          method: 'POST',
+          method,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         }),
@@ -62,6 +70,36 @@ export const marketClient = {
   async load() {
     return marketWorkbenchResponseSchema.parse(await request('/api/market'))
       .data;
+  },
+  async collection(id: string) {
+    return marketCollectionResponseSchema.parse(
+      await request(`/api/market/targets/${encodeURIComponent(id)}/collection`),
+    ).data;
+  },
+  async updateCollection(id: string, input: MarketCollectionSettingsInput) {
+    return marketCollectionSettingsResponseSchema.parse(
+      await request(
+        `/api/market/targets/${encodeURIComponent(id)}/collection/settings`,
+        input,
+        'PUT',
+      ),
+    ).data;
+  },
+  async runCollection(id: string) {
+    return marketCollectionRunResponseSchema.parse(
+      await request(
+        `/api/market/targets/${encodeURIComponent(id)}/collection/run`,
+        {},
+      ),
+    ).data;
+  },
+  async cancelCollection(runId: string) {
+    return marketCollectionRunResponseSchema.parse(
+      await request(
+        `/api/market/collection/runs/${encodeURIComponent(runId)}/cancel`,
+        {},
+      ),
+    ).data;
   },
   async createTarget(input: MarketTargetInput) {
     return marketTargetResponseSchema.parse(

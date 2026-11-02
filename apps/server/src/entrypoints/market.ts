@@ -5,7 +5,12 @@ import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
 import { createMarketResearchRepository } from '../repositories/marketResearchRepository.js';
 import { createMarketEconomyRepository } from '../repositories/marketEconomyRepository.js';
+import { createMarketCollectionRepository } from '../repositories/marketCollectionRepository.js';
 import { NinjaEconomyClient } from '../providers/ninjaEconomy.js';
+import {
+  configuredMarketCollectionSource,
+  MarketCollectionManager,
+} from '../marketCollection.js';
 
 // An explicit API-only entrypoint. It never initializes the legacy Trade worker.
 const logger = pino({
@@ -23,6 +28,17 @@ const hasDatabase =
     : Boolean(process.env.DATABASE_URL);
 const pool = hasDatabase
   ? createDatabasePool(loadDatabaseConfig(environment))
+  : undefined;
+const collectionStore = pool
+  ? createMarketCollectionRepository(pool)
+  : undefined;
+const collectionManager = collectionStore
+  ? new MarketCollectionManager({
+      adapter: configuredMarketCollectionSource(
+        process.env.MARKET_COLLECTION_SOURCE,
+      ),
+      store: collectionStore,
+    })
   : undefined;
 function retentionDays(name: string, fallback: number) {
   const value = Number(process.env[name] ?? fallback);
@@ -47,6 +63,10 @@ const api = buildApi(
   undefined,
   {
     marketResearch: pool ? createMarketResearchRepository(pool) : undefined,
+    marketCollection:
+      collectionStore && collectionManager
+        ? { manager: collectionManager, store: collectionStore }
+        : undefined,
     marketEconomy: {
       repository: pool ? createMarketEconomyRepository(pool) : undefined,
       rawRetentionDays: retentionDays('MARKET_ECONOMY_RAW_RETENTION_DAYS', 90),
@@ -64,6 +84,14 @@ const port = Number(process.env.PORT ?? 3000);
 if (!Number.isInteger(port) || port < 1 || port > 65535)
   throw new Error('PORT must be an integer from 1 to 65535');
 await api.listen({ host: process.env.HOST ?? '127.0.0.1', port });
+try {
+  await collectionManager?.start();
+} catch (error) {
+  await collectionManager?.stop();
+  await api.close();
+  await pool?.end();
+  throw error;
+}
 if (!pool)
   logger.info(
     'Market workbench started without persistence; connect PostgreSQL and apply migrations to enable imports',
@@ -74,6 +102,7 @@ async function stop() {
   if (stopping) return;
   stopping = true;
   await api.close();
+  await collectionManager?.stop();
   await pool?.end();
 }
 process.once('SIGINT', () => void stop());

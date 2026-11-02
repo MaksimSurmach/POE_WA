@@ -110,6 +110,43 @@ export const domainErrorDefinitions = {
     disposition: 'permanent',
     publicMessage: 'The imported snapshot does not exist.',
   },
+  MARKET_COLLECTION_INVALID: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage:
+      'The collection setting is invalid. Use an interval of 5 to 1440 minutes.',
+  },
+  MARKET_COLLECTION_BUSY: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage: 'A collection run is already active for this target.',
+  },
+  MARKET_COLLECTION_PAUSED: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage: 'Collection is paused. Resume it before starting a run.',
+  },
+  MARKET_COLLECTION_NOT_RUNNING: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage: 'No collection run is active for this target.',
+  },
+  MARKET_ACCESS_BLOCKED: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage: 'The market source is not authorized for automated access.',
+  },
+  MARKET_COLLECTION_FAILED: {
+    category: 'market',
+    disposition: 'retryable',
+    publicMessage:
+      'The market collection failed before a complete observation.',
+  },
+  MARKET_COLLECTION_INTERRUPTED: {
+    category: 'market',
+    disposition: 'retryable',
+    publicMessage: 'The server restarted before the collection completed.',
+  },
   MATERIAL_PRICE_MISSING: {
     category: 'market',
     disposition: 'degraded',
@@ -149,6 +186,17 @@ export const domainErrorDefinitions = {
     category: 'market',
     disposition: 'permanent',
     publicMessage: 'The market provider rejected authentication.',
+  },
+  PROVIDER_ACCESS_DENIED: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage: 'The market provider denied access.',
+  },
+  PROVIDER_CHALLENGE: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage:
+      'The market provider requires a challenge. Automated access is paused.',
   },
   POE_NINJA_LEAGUES_INVALID: {
     category: 'market',

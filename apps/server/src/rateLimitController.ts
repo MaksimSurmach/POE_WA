@@ -3,6 +3,7 @@ import type {
   RateLimitState,
   RateLimitWindow,
 } from '@poe-worksmith/domain';
+import { DomainError } from '@poe-worksmith/domain';
 
 const defaultConservativeDelayMs = 1000;
 const defaultConservativeBlockMs = 60_000;
@@ -22,8 +23,16 @@ export interface RateLimitGate {
     endpoint: string,
     response: RateLimitedResponse,
   ): Promise<RateLimitState>;
-  waitForPermit(endpoint: string): Promise<RateLimitState>;
+  waitForPermit(
+    endpoint: string,
+    signal?: AbortSignal,
+  ): Promise<RateLimitState>;
 }
+
+type RateLimitSleep = (
+  milliseconds: number,
+  signal?: AbortSignal,
+) => Promise<void>;
 
 export type ParsedRateLimitHeaders = {
   blockedForMs: number;
@@ -39,7 +48,7 @@ export class GggRateLimitController implements RateLimitGate {
   readonly #fallbackPolicy: string;
   readonly #repository: RateLimitRepository;
   readonly #safetyFactor: number;
-  readonly #sleep: (milliseconds: number) => Promise<void>;
+  readonly #sleep: RateLimitSleep;
 
   constructor(options: {
     clock?: () => Date;
@@ -48,7 +57,7 @@ export class GggRateLimitController implements RateLimitGate {
     fallbackPolicy?: string;
     repository: RateLimitRepository;
     safetyFactor?: number;
-    sleep?: (milliseconds: number) => Promise<void>;
+    sleep?: RateLimitSleep;
   }) {
     this.#clock = options.clock ?? (() => new Date());
     this.#conservativeBlockMs =
@@ -61,10 +70,7 @@ export class GggRateLimitController implements RateLimitGate {
     );
     this.#repository = options.repository;
     this.#safetyFactor = options.safetyFactor ?? defaultSafetyFactor;
-    this.#sleep =
-      options.sleep ??
-      ((milliseconds) =>
-        new Promise((resolve) => setTimeout(resolve, milliseconds)));
+    this.#sleep = options.sleep ?? sleepWithSignal;
     if (
       !Number.isInteger(this.#conservativeBlockMs) ||
       this.#conservativeBlockMs < 1 ||
@@ -77,9 +83,13 @@ export class GggRateLimitController implements RateLimitGate {
     }
   }
 
-  async waitForPermit(endpoint: string): Promise<RateLimitState> {
+  async waitForPermit(
+    endpoint: string,
+    signal?: AbortSignal,
+  ): Promise<RateLimitState> {
     const normalizedEndpoint = normalizeEndpoint(endpoint);
     for (;;) {
+      throwIfAborted(signal);
       const now = this.#clock();
       const permit = await this.#repository.acquire({
         conservativeDelayMs: this.#conservativeDelayMs,
@@ -87,8 +97,17 @@ export class GggRateLimitController implements RateLimitGate {
         fallbackPolicy: this.#fallbackPolicy,
         now,
       });
+      throwIfAborted(signal);
+      if (
+        normalizedEndpoint === 'trade' &&
+        (permit.state.lastStatus === 401 || permit.state.lastStatus === 403)
+      )
+        throw new DomainError('MARKET_ACCESS_BLOCKED');
       if (permit.acquired) return permit.state;
-      await this.#sleep(Math.max(1, permit.retryAt.getTime() - now.getTime()));
+      await this.#sleep(
+        Math.max(1, permit.retryAt.getTime() - now.getTime()),
+        signal,
+      );
     }
   }
 
@@ -112,7 +131,7 @@ export class GggRateLimitController implements RateLimitGate {
     });
     return this.#repository.observe({
       blockedUntil: new Date(now.getTime() + parsed.blockedForMs),
-      endpoint: normalizedEndpoint,
+      endpoint: normalizeIdentifier(endpoint, normalizedEndpoint),
       fallbackPolicy: this.#fallbackPolicy,
       minimumDelayMs: parsed.minimumDelayMs,
       now,
@@ -121,6 +140,27 @@ export class GggRateLimitController implements RateLimitGate {
       windows: parsed.windows,
     });
   }
+}
+
+function throwIfAborted(signal?: AbortSignal) {
+  if (signal?.aborted)
+    throw signal.reason ?? new DOMException('Aborted', 'AbortError');
+}
+
+function sleepWithSignal(milliseconds: number, signal?: AbortSignal) {
+  throwIfAborted(signal);
+  return new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      signal?.removeEventListener('abort', abort);
+      resolve();
+    }, milliseconds);
+    const abort = () => {
+      clearTimeout(timeout);
+      signal?.removeEventListener('abort', abort);
+      reject(signal?.reason ?? new DOMException('Aborted', 'AbortError'));
+    };
+    signal?.addEventListener('abort', abort, { once: true });
+  });
 }
 
 export function parseRateLimitHeaders(
@@ -185,7 +225,11 @@ export function parseRateLimitHeaders(
           proactiveRestrictionMs,
           retryAfterMs ?? conservativeBlockMs,
         )
-      : Math.max(activeRestrictionMs, proactiveRestrictionMs);
+      : Math.max(
+          activeRestrictionMs,
+          proactiveRestrictionMs,
+          retryAfterMs ?? 0,
+        );
 
   return { blockedForMs, minimumDelayMs, policy, windows };
 }
@@ -255,6 +299,8 @@ function secondsToMilliseconds(seconds: number) {
 function normalizeEndpoint(value: string) {
   const normalized = normalizeIdentifier(value, '');
   if (!normalized) throw new TypeError('Rate-limit endpoint is invalid');
+  if (normalized === 'trade-search' || normalized === 'trade-fetch')
+    return 'trade';
   return normalized;
 }
 

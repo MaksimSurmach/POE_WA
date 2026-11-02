@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-10-31T10:59:44.708Z",
+  "implementationCommit": "c23bbfc1ffa1b3dcc0f7dae566bb174925a5a8bd",
+  "accessMode": "manual-import",
+  "sourceDecision": "supported-public-stash-exists-but-approved-application-access-not-provided",
+  "publicStash": {
+    "documented": true,
+    "oauthScope": "service:psapi",
+    "clientType": "confidential",
+    "configuredInProjectEnvironment": false,
+    "ownerApproval": "unknown",
+    "requestsSent": 0,
+    "delaySeconds": 300
+  },
+  "tradeUI": {
+    "url": "https://www.pathofexile.com/trade/search/Allflame",
+    "state": "security_challenge",
+    "listingObservations": 0,
+    "normalNavigationAttempts": 1,
+    "challengeSolvedByAgent": false,
+    "ownerActionRequested": true
+  },
+  "currencyExchange": {
+    "documented": true,
+    "satisfiesRareListingGate": false,
+    "requestsSent": 0
+  },
+  "freshObservationCount": 0,
+  "freshGateRequiredCount": 2,
+  "liveCriterion": "not_met",
+  "baselineRankingSnapshotId": "374b8aff-5307-4b03-91ce-768677f7b622",
+  "baselineRankingStatus": "INSUFFICIENT_DATA",
+  "collectionSchedulerStarted": false,
+  "productionCollectionStarted": false,
+  "merged": false,
+  "references": [
+    "https://www.pathofexile.com/developer/docs#available-resources",
+    "https://www.pathofexile.com/developer/docs/reference",
+    "https://www.pathofexile.com/developer/docs/authorization"
+  ],
+  "validationServersStopped": true,
+  "independentEvidenceReview": "passed"
+}

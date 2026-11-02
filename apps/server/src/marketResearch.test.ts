@@ -89,6 +89,35 @@ describe('user-curated market evidence', () => {
     expect(snapshot).not.toHaveProperty('sales');
   });
 
+  it('retains unpriced and other-currency listings without using them for estimates', () => {
+    const target = createMarketTarget(profile, now);
+    const input = {
+      ...observation(target.id),
+      listings: [
+        ...observation(target.id).listings.slice(0, 1),
+        {
+          externalId: 'unpriced',
+          price: null,
+          currency: 'chaos',
+          fee: 2,
+          listedAt: '2026-10-28T11:00:00.000Z',
+          rawListing: { fee: 2, indexed: '2026-10-28T11:00:00.000Z' },
+          item: { league: 'Standard', baseType: 'Stygian Vise' },
+        },
+        {
+          externalId: 'other-currency',
+          price: 100,
+          currency: 'chaos',
+          item: { league: 'Standard', baseType: 'Stygian Vise' },
+        },
+      ],
+    };
+    const snapshot = createImportedMarketSnapshot(input, target, now);
+    expect(snapshot).toMatchObject({ count: 1, median: 2, listings: input.listings });
+    expect(snapshot.listings[1]?.price).toBeNull();
+    expect(snapshot.count).toBe(1);
+  });
+
   it('deduplicates equivalent JSON and listing order without replacing capture time', () => {
     const target = createMarketTarget(profile, now);
     const input = observation(target.id);
@@ -234,12 +263,12 @@ describe('user-curated market evidence', () => {
         now,
       ),
     ).toThrow();
-    expect(() =>
-      createImportedMarketSnapshot(
-        { ...input, listings: [{ price: 1, currency: 'chaos', item: {} }] },
-        target,
-        now,
-      ),
-    ).toThrow();
+    const mixedCurrency = createImportedMarketSnapshot(
+      { ...input, listings: [{ price: 1, currency: 'chaos', item: {} }] },
+      target,
+      now,
+    );
+    expect(mixedCurrency.listings[0]?.currency).toBe('chaos');
+    expect(mixedCurrency).toMatchObject({ count: 0, outcome: 'observed' });
   });
 });

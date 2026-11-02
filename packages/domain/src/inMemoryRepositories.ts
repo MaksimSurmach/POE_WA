@@ -539,29 +539,59 @@ export function createInMemoryRepositories(): Repositories {
     },
     rateLimits: {
       async acquire(input) {
-        const policy =
-          endpointPolicies.get(input.endpoint) ?? input.fallbackPolicy;
-        const current =
-          rateLimitStates.get(policy) ??
-          initialRateLimitState(policy, input.now, input.conservativeDelayMs);
+        const applicable = [...rateLimitStates.values()].filter(
+          ({ endpoints }) =>
+            endpoints.some(
+              (endpoint) =>
+                endpoint === input.endpoint ||
+                (input.endpoint === 'trade' &&
+                  ['trade-search', 'trade-fetch'].includes(endpoint)),
+            ),
+        );
+        if (applicable.length === 0) {
+          const policy =
+            endpointPolicies.get(input.endpoint) ?? input.fallbackPolicy;
+          applicable.push({
+            ...(rateLimitStates.get(policy) ??
+              initialRateLimitState(
+                policy,
+                input.now,
+                input.conservativeDelayMs,
+              )),
+            endpoints: [input.endpoint],
+          });
+        }
         const retryAt = new Date(
           Math.max(
-            current.blockedUntil.getTime(),
-            current.nextRequestAt.getTime(),
             input.now.getTime(),
+            ...applicable.flatMap((state) => [
+              state.blockedUntil.getTime(),
+              state.nextRequestAt.getTime(),
+            ]),
           ),
         );
         const acquired = retryAt <= input.now;
-        const state: RateLimitState = {
-          ...current,
-          endpoints: [...new Set([...current.endpoints, input.endpoint])],
-          nextRequestAt: acquired
-            ? new Date(input.now.getTime() + current.minimumDelayMs)
-            : current.nextRequestAt,
-          updatedAt: input.now,
+        for (const current of applicable) {
+          rateLimitStates.set(
+            current.policy,
+            clone({
+              ...current,
+              nextRequestAt: acquired
+                ? new Date(input.now.getTime() + current.minimumDelayMs)
+                : current.nextRequestAt,
+              updatedAt: input.now,
+            }),
+          );
+        }
+        const governing =
+          applicable.find(
+            ({ lastStatus }) => lastStatus === 401 || lastStatus === 403,
+          ) ?? applicable[0]!;
+        return {
+          acquired,
+          retryAt,
+          state: clone(rateLimitStates.get(governing.policy)!),
         };
-        rateLimitStates.set(policy, clone(state));
-        return { acquired, retryAt, state: clone(state) };
       },
       async list() {
         return [...rateLimitStates.values()]
@@ -579,10 +609,18 @@ export function createInMemoryRepositories(): Repositories {
             input.now,
             input.minimumDelayMs,
           );
+        const policy =
+          input.windows.length === 0 && input.policy === input.fallbackPolicy
+            ? previousPolicy
+            : input.policy;
         const current =
-          rateLimitStates.get(input.policy) ??
-          initialRateLimitState(input.policy, input.now, input.minimumDelayMs);
-        if (previousPolicy !== input.policy) {
+          rateLimitStates.get(policy) ??
+          initialRateLimitState(policy, input.now, input.minimumDelayMs);
+        const minimumDelayMs =
+          input.windows.length === 0
+            ? Math.max(input.minimumDelayMs, current.minimumDelayMs)
+            : input.minimumDelayMs;
+        if (previousPolicy !== policy) {
           rateLimitStates.set(previousPolicy, {
             ...previous,
             endpoints: previous.endpoints.filter(
@@ -590,7 +628,7 @@ export function createInMemoryRepositories(): Repositories {
             ),
           });
         }
-        endpointPolicies.set(input.endpoint, input.policy);
+        endpointPolicies.set(input.endpoint, policy);
         const state: RateLimitState = {
           blockedUntil: new Date(
             Math.max(
@@ -601,20 +639,25 @@ export function createInMemoryRepositories(): Repositories {
           ),
           endpoints: [...new Set([...current.endpoints, input.endpoint])],
           lastResponseAt: input.now,
-          lastStatus: input.status,
-          minimumDelayMs: input.minimumDelayMs,
+          lastStatus:
+            [current, previous].find(
+              ({ lastStatus }) => lastStatus === 401 || lastStatus === 403,
+            )?.lastStatus ?? input.status,
+          minimumDelayMs,
           nextRequestAt: new Date(
             Math.max(
               current.nextRequestAt.getTime(),
               previous.nextRequestAt.getTime(),
-              input.now.getTime() + input.minimumDelayMs,
+              input.now.getTime() + minimumDelayMs,
             ),
           ),
-          policy: input.policy,
+          policy,
           updatedAt: input.now,
-          windows: clone(input.windows),
+          windows: clone(
+            input.windows.length === 0 ? current.windows : input.windows,
+          ),
         };
-        rateLimitStates.set(input.policy, clone(state));
+        rateLimitStates.set(policy, clone(state));
         return clone(state);
       },
     },

@@ -1,0 +1,19 @@
+{
+  "postgresMajor": 17,
+  "customFormatBackup": true,
+  "serverRestart": true,
+  "originalDatabaseNotWritten": true,
+  "fingerprintsEqual": true,
+  "fingerprint": {
+    "runs": 3,
+    "runHash": "1ae8759e18c61e5ad80e0a9dd1b64b1a",
+    "targets": 2,
+    "snapshots": 3,
+    "profileHash": "c44425fd8eab1fea03ac07f730b78015",
+    "snapshotHash": "a6b74720c7cbfd8cded87fa89ac12dc6"
+  },
+  "backupPath": "/tmp/max1287-durable-after.dump",
+  "ownership": "--no-owner on isolated restore",
+  "apiSurvivedPostgresRestart": true,
+  "apiStateEqualAfterRestart": true
+}

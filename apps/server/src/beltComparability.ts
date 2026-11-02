@@ -44,7 +44,11 @@ export function analyzeBeltSnapshot(
   snapshot: MarketResearchSnapshot,
   now = Date.now(),
 ) {
-  const rows = snapshot.listings.map((listing, index) => {
+  const rows = snapshot.listings.flatMap((listing, index) => {
+    if (
+      listing.price === null ||
+      (listing.currency !== undefined && listing.currency !== snapshot.currency)
+    ) return [];
     const parsed = evidence.safeParse(listing.item);
     const item = parsed.success ? parsed.data : {};
     const rejected: string[] = [];
@@ -153,7 +157,7 @@ export function analyzeBeltSnapshot(
         }
       }
     }
-    return {
+    return [{
       index,
       externalId: listing.externalId ?? null,
       price: listing.price,
@@ -164,7 +168,7 @@ export function analyzeBeltSnapshot(
           ? ('PARTIAL' as const)
           : ('MATCH' as const),
       reasons: [...rejected, ...unknown],
-    };
+    }];
   });
   const sellers = new Map<string, number>();
   for (const row of rows)
