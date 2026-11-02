@@ -254,6 +254,12 @@ describe('Trade-compatible queries and transport', () => {
     ).toContainEqual({ id: 'explicit.stat_3299347043', value: 90 });
     malformed.item.explicitMods = ['unexpected life format'];
     expect(
+      normalizeTradeCompatibleListing(
+        { ...malformed, item: { ...malformed.item, verified: true } },
+        tradeTarget(),
+      ).item.verifiedAbsentStats,
+    ).not.toContain('explicit.stat_3299347043');
+    expect(
       normalizeTradeCompatibleListing(malformed, tradeTarget()).item.mods,
     ).not.toContainEqual(expect.objectContaining({ id: 'life' }));
     expect(

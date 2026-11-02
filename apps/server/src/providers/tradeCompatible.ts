@@ -289,10 +289,7 @@ export function normalizeTradeCompatibleListing(
   const verifiedAbsentStats = configured.flatMap((stat) => {
     const origin = stat.id.split('.')[0] ?? '';
     const hashes = item.extended?.hashes?.[origin];
-    return (hashes && !hashes.some(([id]) => id === stat.id)) ||
-      (item.verified !== undefined &&
-        !modifierLines(item).some((line) => line.hash === stat.id) &&
-        !mods.some((mod) => mod.id === stat.id))
+    return hashes && !hashes.some(([id]) => id === stat.id)
       ? [stat.id, stat.key ?? tradeStatMappings[stat.id]?.key ?? stat.id]
       : [];
   });
