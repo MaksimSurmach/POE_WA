@@ -1,3 +1,4 @@
+import type { CanonicalJsonValue } from '@poe-worksmith/domain';
 import { describe, expect, it, vi } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { beltDemoFixture } from '../beltDemoFixture.js';
@@ -5,6 +6,7 @@ import {
   createMarketTarget,
   createImportedMarketSnapshot,
 } from '../marketResearch.js';
+import { comparableRecipeListings } from '../recipeMarket.js';
 import { analyzeBeltSnapshot } from '../beltComparability.js';
 import { generateMarketTradeQuery } from '../marketTradeQuery.js';
 import {
@@ -466,4 +468,46 @@ describe('Trade-compatible queries and transport', () => {
       }),
     ).toThrow('HTTPS origin without credentials');
   });
+});
+
+it('derives absent influences from full normal Trade items and revalidates historical raw observations', async () => {
+  const capture = JSON.parse(
+    await readFile(
+      new URL(
+        './fixtures/tradeCompatible/fetch.normal-cluster.json',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
+  const target = createMarketTarget(capture.target);
+  const normalized = normalizeTradeCompatibleListing(capture.result[0], target);
+  expect(normalized.item.influences).toEqual([]);
+  const legacyItem: Record<string, CanonicalJsonValue> = {
+    ...normalized.item,
+    normalizationVersion: 'trade-compatible-v2',
+    rawListing: capture.result[0],
+  };
+  delete legacyItem.influences;
+  const capturedAt = new Date('2026-11-02T15:10:53Z');
+  const matches = comparableRecipeListings(
+    { handbookTarget: JSON.stringify(capture.target) },
+    [
+      {
+        id: 'normal-cluster-sanitized',
+        account: 'sanitized-seller',
+        ageSeconds: 0,
+        indexedAt: capturedAt,
+        fee: null,
+        item: legacyItem,
+        price: { amount: '9', currency: 'chaos' },
+      },
+    ],
+    capturedAt,
+    capturedAt,
+  );
+  expect(matches).toHaveLength(1);
+  expect(matches[0]?.item.influences).toEqual([]);
+  expect(matches[0]?.price).toEqual({ amount: '9', currency: 'chaos' });
+  expect(legacyItem).not.toHaveProperty('influences');
 });

@@ -347,7 +347,7 @@ export function normalizeTradeCompatibleListing(
       // Patch comes from the explicitly configured search scope, not from an inferred current league.
       patch: target.patch,
       realm: target.realm,
-      normalizationVersion: 'trade-compatible-v2',
+      normalizationVersion: 'trade-compatible-v3',
       seller: listing.account.name,
       status: 'listed',
       ...(listing.price ? { currency: listing.price.currency } : {}),
@@ -355,7 +355,7 @@ export function normalizeTradeCompatibleListing(
       modsComplete: false,
       verifiedAbsentStats,
       ...(resistanceEvidenceComplete ? { elementalResistances } : {}),
-      ...(modArraysPresent
+      ...(modArraysPresent || item.verified !== undefined
         ? {
             influences: Object.entries(item.influences ?? {})
               .filter(([, present]) => present)

@@ -1,0 +1,126 @@
+{
+  "target": {
+    "baseTypes": ["Large Cluster Jewel"],
+    "builds": [],
+    "corrupted": false,
+    "game": "poe1",
+    "influences": [],
+    "league": "Allflame",
+    "minItemLevel": 83,
+    "name": "base:Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "patch": "3.29.3.3",
+    "realm": "pc",
+    "requiredMods": [],
+    "slot": "starting-base",
+    "sources": [],
+    "synthesised": false,
+    "tradeSearch": {
+      "currency": "chaos",
+      "fractured": false,
+      "groups": [
+        {
+          "filters": [
+            {
+              "id": "enchant.stat_3086156145",
+              "max": 8,
+              "min": 8
+            },
+            {
+              "id": "enchant.stat_3948993189|12"
+            },
+            {
+              "id": "enchant.stat_4079888060",
+              "max": 2,
+              "min": 2
+            }
+          ],
+          "type": "and"
+        }
+      ],
+      "includeOtherCurrencies": true,
+      "rarity": "normal",
+      "scope": "strict",
+      "status": "securable",
+      "version": 1
+    }
+  },
+  "result": [
+    {
+      "id": "normal-cluster-sanitized",
+      "listing": {
+        "indexed": "2026-11-02T13:34:55Z",
+        "price": {
+          "type": "~b/o",
+          "amount": 9,
+          "currency": "chaos"
+        },
+        "account": {
+          "name": "sanitized-seller"
+        }
+      },
+      "item": {
+        "h": 1,
+        "w": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvSmV3ZWxzL05ld0dlbUJhc2UzIiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/db35e60885/NewGemBase3.png",
+        "ilvl": 83,
+        "name": "",
+        "league": "Allflame",
+        "rarity": "Normal",
+        "baseType": "Large Cluster Jewel",
+        "extended": {
+          "hashes": {
+            "enchant": [
+              ["enchant.stat_3086156145", [0]],
+              ["enchant.stat_4079888060", [1]],
+              ["enchant.stat_3948993189|12", null]
+            ]
+          }
+        },
+        "typeLine": "Large Cluster Jewel",
+        "verified": true,
+        "descrText": "Place into an allocated Large Jewel Socket on the Passive Skill Tree. Added passives do not interact with jewel radiuses. Right click to remove from the Socket.",
+        "frameType": 0,
+        "identified": true,
+        "enchantMods": [
+          {
+            "hash": "stat.enchant.stat_3086156145",
+            "mods": [
+              {
+                "magnitudes": [
+                  {
+                    "max": "12",
+                    "min": "8"
+                  }
+                ]
+              }
+            ],
+            "domain": "enchant",
+            "description": "Adds 8 Passive Skills"
+          },
+          {
+            "hash": "stat.enchant.stat_4079888060",
+            "mods": [
+              {
+                "name": "of Possibility",
+                "magnitudes": [
+                  {
+                    "max": "2",
+                    "min": "2"
+                  }
+                ]
+              }
+            ],
+            "domain": "enchant",
+            "description": "2 Added Passive Skills are Jewel Sockets"
+          },
+          {
+            "hash": "stat.enchant.stat_3948993189|12",
+            "domain": "enchant",
+            "description": "Added Small Passive Skills grant: 12% increased Physical Damage"
+          }
+        ],
+        "frameTypeId": "Normal"
+      }
+    }
+  ]
+}

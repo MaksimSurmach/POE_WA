@@ -340,6 +340,8 @@ function prepareResult(
     refreshCycleId: job.refreshCycleId!,
     sampleSize: aggregation.sampleSize,
     summary: {
+      coverage: result.coverage ?? 'unknown',
+      sortedPageComplete: result.sortedPageComplete ?? false,
       ageBuckets: aggregation.ageBuckets,
       estimators: aggregation.estimators,
       totalListings: aggregation.totalListings,

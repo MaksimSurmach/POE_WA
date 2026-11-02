@@ -7,6 +7,7 @@ import {
   type TradeQueryGenerator,
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
+import { normalizeTradeCompatibleListing } from './providers/tradeCompatible.js';
 import {
   canonicalMarketJson,
   createMarketTarget,
@@ -198,6 +199,29 @@ export function comparableRecipeListings(
 ) {
   if (!query.handbookTarget) return [...listings];
   const target = recipeQueryTarget(query.handbookTarget);
+  // Raw provider observations remain immutable; matching uses the current normalizer.
+  const normalizedListings = listings.flatMap((row) => {
+    if (!row.item.rawListing) return [row];
+    try {
+      const normalized = normalizeTradeCompatibleListing(
+        row.item.rawListing,
+        target,
+      );
+      return [
+        {
+          ...row,
+          item: {
+            ...normalized.item,
+            rawListing: row.item.rawListing,
+            currency: row.price.currency,
+            ...(row.item.exchange ? { exchange: row.item.exchange } : {}),
+          },
+        },
+      ];
+    } catch {
+      return [];
+    }
+  });
   const imported = createImportedMarketSnapshot(
     {
       targetId: target.id,
@@ -205,8 +229,8 @@ export function comparableRecipeListings(
       sourceUrl: 'https://www.pathofexile.com/trade',
       currency: 'chaos',
       dataKind: 'observed',
-      emptyResult: listings.length === 0,
-      listings: listings
+      emptyResult: normalizedListings.length === 0,
+      listings: normalizedListings
         .filter(
           (row) =>
             typeof row.item.league !== 'string' ||
@@ -230,7 +254,7 @@ export function comparableRecipeListings(
   return [
     ...aggregateMarketListings({
       currency: 'chaos',
-      listings: listings.filter((row) => matches.has(row.id)),
+      listings: normalizedListings.filter((row) => matches.has(row.id)),
     }).listings,
   ];
 }
