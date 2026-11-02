@@ -170,7 +170,10 @@ export function MarketPage() {
     .sort()
     .at(-1);
   const withoutData = visibleTargets
-    .filter((target) => opportunities.some((row) => row.targetId === target.id))
+    .filter(
+      (target) =>
+        demo || opportunities.some((row) => row.targetId === target.id),
+    )
     .filter(
       (target) => latestSnapshot(target, snapshots, kind) === null,
     ).length;
@@ -358,7 +361,8 @@ export function MarketPage() {
             <label>
               <span className="market-sr-only">Данные рейтинга</span>
               <select
-                value={opportunityKind}
+                value={demo ? 'demo' : opportunityKind}
+                disabled={demo}
                 onChange={(event) =>
                   setOpportunityKind(
                     event.target.value === 'demo' ? 'demo' : 'observed',

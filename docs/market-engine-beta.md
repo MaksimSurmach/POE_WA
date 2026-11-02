@@ -34,7 +34,7 @@ For a complete synthetic calculation:
 pnpm market:seed-belt-demo
 ```
 
-Refresh the screen and choose **DEMO** in the ranking data selector. This demo is synthetic and uses the existing manual importer. The PostgreSQL integration test exercises all five structured targets through the actual search/fetch transport with injected endpoint-format fixtures, not live Trade responses.
+Refresh the screen, select the **Demo** league and **DEMO** in the ranking data selector. This demo is synthetic and uses the existing manual importer. The PostgreSQL integration test exercises all five structured targets through the actual search/fetch transport with injected endpoint-format fixtures, not live Trade responses.
 
 ## Trade access
 
