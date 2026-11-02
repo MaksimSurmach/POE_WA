@@ -178,12 +178,17 @@ export class MarketJobProcessor {
       succeeded: 0,
     };
 
+    const startedAt = this.#clock().getTime();
     await Promise.all(
       Array.from({ length: this.#concurrency }, async () => {
         for (;;) {
-          const job = await this.#repositories.jobs.claimNext(workerId, now, [
-            'recipe_refresh',
-          ]);
+          const job = await this.#repositories.jobs.claimNext(
+            workerId,
+            new Date(
+              now.getTime() + Math.max(0, this.#clock().getTime() - startedAt),
+            ),
+            ['recipe_refresh'],
+          );
           if (!job) return;
           if (this.#logger)
             operationLogger(this.#logger, jobContext(job)).info(
@@ -314,6 +319,7 @@ function prepareResult(
       coverage:
         result.coverage ??
         (result.totalResults > result.listings.length ? 'partial' : 'complete'),
+      sortedPageComplete: result.sortedPageComplete ?? false,
       provider: result.provider,
       totalResults: result.totalResults,
     },

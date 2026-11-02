@@ -108,3 +108,46 @@ describe('full refresh orchestrator', () => {
     });
   });
 });
+
+it('records material-source preparation failure on the durable cycle', async () => {
+  const repositories = createInMemoryRepositories();
+  const league = await repositories.leagues.upsert({
+    game: 'poe1',
+    realm: 'pc',
+    gggId: 'Standard',
+    name: 'Standard',
+    isCurrent: true,
+    endAt: null,
+    startAt: null,
+    syncedAt: now,
+    metadata: {},
+  });
+  await repositories.recipes.save(storedRecipe());
+  const orchestrator = new FullRefreshOrchestrator({
+    repositories,
+    league: {
+      leagueId: league.id,
+      leagueGggId: league.gggId,
+      leagueName: league.name,
+    },
+    marketDependencies: fixtureMarketDependencies,
+    marketJobs: {
+      runAvailable: async () => {
+        throw Error('Market dispatch must not start');
+      },
+    },
+    collectMaterialPrices: async () => {
+      throw Error('Persistence unavailable');
+    },
+    snapshotTtlMs: 60000,
+    workerId: 'test',
+    clock: () => now,
+  });
+  const id = '22222222-2222-4222-8222-222222222222';
+  await expect(orchestrator.run(id)).rejects.toThrow('Persistence unavailable');
+  expect(await repositories.cycles.findById(id)).toMatchObject({
+    status: 'failed',
+    finishedAt: now,
+    errorMessage: 'PROVIDER_UNAVAILABLE',
+  });
+});

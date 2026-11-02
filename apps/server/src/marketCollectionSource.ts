@@ -77,6 +77,7 @@ export function managedCollectionSource(
         batchCount: run.batchCount,
         cancelled: run.status === 'cancelled',
         cached: run.cached,
+        ...(run.inexact === undefined ? {} : { inexact: run.inexact }),
         capturedAt: run.capturedAt,
         coverage: run.coverage ?? 'unknown',
         currency: run.currency,

@@ -7,11 +7,14 @@ import {
 import {
   createInMemoryRepositories,
   transitionRefreshCycle,
+  hashMarketQuery,
+  validateRecipeDocument,
   type TradeQueryGenerator,
 } from '@poe-worksmith/domain';
 import { describe, expect, it } from 'vitest';
 
 import { synchronizeRecipeCatalog } from './recipes/synchronizeRecipes.js';
+import { generateRecipeMarketQuery } from './recipeMarket.js';
 import { createResourceReaders } from './resourceViews.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
 
@@ -372,3 +375,76 @@ describe('repository-backed resource views', () => {
     });
   });
 });
+
+it.each([false, true])(
+  'omits expired raw output snapshot even without a published evaluation (expired=%s)',
+  async (expired) => {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    const league = await repositories.leagues.upsert({
+      game: 'poe1',
+      realm: 'pc',
+      gggId: 'Standard',
+      name: 'Standard',
+      isCurrent: true,
+      startAt: null,
+      endAt: null,
+      syncedAt: new Date(),
+      metadata: {},
+    });
+    const recipe = (await repositories.recipes.findById(
+      'physical-large-cluster-jagged',
+    ))!;
+    const trade: TradeQueryGenerator = {
+      generate: async () => ({
+        ok: true,
+        diagnostics: [],
+        value: {
+          hash: 'fixture',
+          diagnostics: {
+            gameDataVersion: '3.29.3.3',
+            mappingVersion: 'fixture',
+          },
+          query: { query: { type: 'Large Cluster Jewel' } },
+        },
+      }),
+    };
+    const query = await generateRecipeMarketQuery(
+      trade,
+      validateRecipeDocument(recipe.definition),
+      league.gggId,
+    );
+    const id = '33333333-3333-4333-8333-333333333333';
+    const cycleId = '55555555-5555-4555-8555-555555555555';
+    await repositories.marketQueries.save({
+      id,
+      recipeId: recipe.id,
+      active: true,
+      canonicalHash: await hashMarketQuery({ league: league.gggId, ...query }),
+      provider: query.provider,
+      query: query.query,
+    });
+    await repositories.snapshots.save({
+      marketQueryId: id,
+      leagueId: league.id,
+      refreshCycleId: cycleId,
+      dedupeKey: 'fixture-stale',
+      capturedAt: new Date(expired ? '2019-01-01' : Date.now()),
+      expiresAt: new Date(expired ? '2020-01-01' : '2099-01-01'),
+      providerStatus: 200,
+      payload: { listings: [], totalResults: 0, coverage: 'partial' },
+    });
+    const readers = createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+      trade,
+    );
+    const response = await readers.readRecipe(correlationId, recipe.id);
+    expect(response.data?.snapshot === null).toBe(expired);
+    if (!expired)
+      expect(response.data?.snapshot).toMatchObject({
+        coverage: 'partial',
+        listings: [],
+      });
+  },
+);

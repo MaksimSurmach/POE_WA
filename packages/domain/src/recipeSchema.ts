@@ -227,7 +227,7 @@ export function validateRecipeDocument(input: unknown): CanonicalRecipe {
         {
           code: 'custom',
           path: ['targetSignature'],
-          message: 'Target signature does not match the output specification',
+          message: `Target signature does not match the output specification; expected ${recipeTargetSignature(result.data)}`,
         },
       ]),
     );

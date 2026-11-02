@@ -55,11 +55,22 @@ function CatalogRoute() {
   useEffect(() => {
     if (!refreshing) return;
     let active = true;
+    const queuedAt = Date.now();
     const poll = setInterval(() => {
       apiClient
         .getRefreshFreshness()
         .then(async (r) => {
           if (!active) return;
+          if (
+            (r.data.lastAttempt?.id ?? null) === refreshBaseline.current &&
+            Date.now() - queuedAt > 60_000
+          ) {
+            setRefreshing(false);
+            setRefreshMessage(
+              'Refresh has not started. Check worker status and try again.',
+            );
+            return;
+          }
           const cycle = r.data.active ?? r.data.lastAttempt;
           if (cycle)
             setRefreshMessage(
@@ -359,8 +370,11 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
         </div>
         {snapshot ? (
           <small>
-            {snapshot.coverage ?? 'Unknown'} coverage ·{' '}
-            {new Date(snapshot.capturedAt).toLocaleString('en-US')}
+            {snapshot.coverage ?? 'Unknown'} coverage
+            {snapshot.sortedPageComplete
+              ? ' (complete lowest-price page)'
+              : ''}{' '}
+            · {new Date(snapshot.capturedAt).toLocaleString('en-US')}
             {snapshot.expiresAt && Date.parse(snapshot.expiresAt) < Date.now()
               ? ' · Stale'
               : ''}

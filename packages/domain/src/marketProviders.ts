@@ -33,6 +33,7 @@ export type MarketSearchRequest = Readonly<{
 
 export type MarketSearchResult = Readonly<{
   coverage?: 'complete' | 'partial' | 'unknown';
+  sortedPageComplete?: boolean;
   fetchedAt: Date;
   listings: readonly MarketListing[];
   provider: string;

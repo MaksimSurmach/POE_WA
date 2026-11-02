@@ -239,6 +239,7 @@ async function latestOutputSnapshot(input: {
   );
   if (
     !snapshot ||
+    snapshot.expiresAt.getTime() <= Date.now() ||
     (input.evaluation?.sourceSnapshotDedupeKey &&
       snapshot.dedupeKey !== input.evaluation.sourceSnapshotDedupeKey)
   )
@@ -252,6 +253,7 @@ async function latestOutputSnapshot(input: {
     capturedAt: snapshot.capturedAt.toISOString(),
     expiresAt: snapshot.expiresAt.toISOString(),
     coverage: snapshot.payload.coverage ?? 'unknown',
+    sortedPageComplete: snapshot.payload.sortedPageComplete === true,
     totalResults: snapshot.payload.totalResults,
     listings: comparableRecipeListings(
       result.query,

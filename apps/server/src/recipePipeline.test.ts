@@ -14,6 +14,8 @@ import { synchronizeRecipes } from './recipes/synchronizeRecipes.js';
 import { createRecipeMarketDependencies } from './recipeMarket.js';
 import { MarketJobProcessor } from './marketJobProcessor.js';
 import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
+import type { StoredMarketEconomySnapshot } from './marketEconomy.js';
+import { summarizeEconomy } from './marketEconomy.js';
 import { PoeTradeClient } from './providers/poeTrade.js';
 import {
   manualImportMarketCollectionSource,
@@ -42,7 +44,13 @@ const trade = new RegisteredTradeQueryGenerator(
 );
 
 describe('authored recipe to provider to published economics', () => {
-  it.each(['complete', 'partial'] as const)(
+  it.each([
+    'complete',
+    'partial',
+    'capped',
+    'thin-stock',
+    'ninja-bulk',
+  ] as const)(
     'shares queries and retains raw observations while withholding prices for %s coverage',
     async (coverage) => {
       const repositories = createInMemoryRepositories();
@@ -112,10 +120,25 @@ describe('authored recipe to provider to published economics', () => {
             batchCount: 1,
             cached: false,
             capturedAt: now.toISOString(),
-            coverage,
+            coverage:
+              coverage === 'capped' || coverage === 'partial'
+                ? 'partial'
+                : 'complete',
+            inexact: false,
+            ...(coverage === 'capped'
+              ? {
+                  searchEvidence: {
+                    queryId: 'fixture',
+                    ids: [],
+                    reportedTotal: 340,
+                    raw: {},
+                    request: { sort: { price: 'asc' } },
+                  },
+                }
+              : {}),
             currency: 'chaos',
             fetchedCount: offers.length,
-            reportedTotal: offers.length,
+            reportedTotal: coverage === 'capped' ? 340 : offers.length,
             returnedCount: offers.length,
             listings: offers.map(([price, seller], index) => ({
               listedAt: '2026-11-02T12:00:00Z',
@@ -169,6 +192,9 @@ describe('authored recipe to provider to published economics', () => {
                         item: {
                           amount: 1,
                           currency: 'primal-crystallised-lifeforce',
+                          stock: ['thin-stock', 'ninja-bulk'].includes(coverage)
+                            ? 1
+                            : 20000,
                         },
                       },
                     ],
@@ -186,7 +212,44 @@ describe('authored recipe to provider to published economics', () => {
         retryDelayMs: 1000,
         snapshotTtlMs: 300000,
       });
+      const bulk: StoredMarketEconomySnapshot = {
+        id: '66666666-6666-4666-8666-666666666666',
+        schemaVersion: 1,
+        kind: 'economy-overview',
+        source: 'poe.ninja',
+        game: 'poe1',
+        league: league.gggId,
+        category: 'Currency',
+        endpoint:
+          'https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Fixture&type=Currency',
+        payloadHash: 'a'.repeat(64),
+        capturedAt: now.toISOString(),
+        sourceUpdatedAt: null,
+        priceBasis: 'currency-exchange',
+        raw: { fixture: true },
+        lines: [
+          {
+            id: 'lifeforce',
+            detailsId: 'primal-crystallised-lifeforce',
+            name: 'Primal Crystallised Lifeforce',
+            baseType: null,
+            price: { amount: 5, currency: 'chaos' },
+            listingCount: null,
+            observationCount: 10,
+            tradedVolume: null,
+          },
+        ],
+      };
       const report = await new FullRefreshOrchestrator({
+        ...(coverage === 'ninja-bulk'
+          ? {
+              economy: {
+                latest: async (_league, category) =>
+                  category === 'Currency' ? summarizeEconomy(bulk) : null,
+                find: async () => bulk,
+              },
+            }
+          : {}),
         repositories,
         marketJobs: jobs,
         marketDependencies: createRecipeMarketDependencies({
@@ -221,14 +284,34 @@ describe('authored recipe to provider to published economics', () => {
         report.publication.evaluations.map((e) => [e.recipeId, e]),
       );
       expect(byId.get(first.id)).toMatchObject({
-        estimatedSalePrice: coverage === 'complete' ? '80' : null,
-        expectedCraftCost: coverage === 'complete' ? '22' : null,
-        profit: coverage === 'complete' ? '58' : null,
+        estimatedSalePrice: coverage !== 'partial' ? '80' : null,
+        expectedCraftCost:
+          coverage === 'ninja-bulk'
+            ? '40'
+            : ['complete', 'capped'].includes(coverage)
+              ? '22'
+              : null,
+        profit:
+          coverage === 'ninja-bulk'
+            ? '40'
+            : ['complete', 'capped'].includes(coverage)
+              ? '58'
+              : null,
       });
       expect(byId.get(second.id)).toMatchObject({
-        estimatedSalePrice: coverage === 'complete' ? '80' : null,
-        expectedCraftCost: coverage === 'complete' ? '34' : null,
-        profit: coverage === 'complete' ? '46' : null,
+        estimatedSalePrice: coverage !== 'partial' ? '80' : null,
+        expectedCraftCost:
+          coverage === 'ninja-bulk'
+            ? '70'
+            : ['complete', 'capped'].includes(coverage)
+              ? '34'
+              : null,
+        profit:
+          coverage === 'ninja-bulk'
+            ? '10'
+            : ['complete', 'capped'].includes(coverage)
+              ? '46'
+              : null,
       });
       expect(byId.get(different.id)).toMatchObject({
         estimatedSalePrice: null,
@@ -250,6 +333,7 @@ describe('authored recipe to provider to published economics', () => {
         league.id,
       );
       expect(snapshot?.payload.listings).toHaveLength(4);
+      expect(snapshot?.payload.sortedPageComplete).toBe(coverage === 'capped');
       const observations = await repositories.observations.listRecent(
         firstQuery!.id,
         league.id,

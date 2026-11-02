@@ -32,6 +32,7 @@ export type FullRefreshReport = Readonly<{
 }>;
 
 export class FullRefreshOrchestrator {
+  readonly #collectMaterialPrices: (() => Promise<void>) | undefined;
   readonly #clock: () => Date;
   readonly #league: RefreshLeagueContext;
   readonly #marketJobs: MarketJobRunner;
@@ -45,6 +46,7 @@ export class FullRefreshOrchestrator {
   readonly #metrics: Metrics | undefined;
 
   constructor(options: {
+    collectMaterialPrices?: () => Promise<void>;
     clock?: () => Date;
     league: RefreshLeagueContext;
     marketJobs: MarketJobRunner;
@@ -56,6 +58,7 @@ export class FullRefreshOrchestrator {
     logger?: Logger;
     metrics?: Metrics;
   }) {
+    this.#collectMaterialPrices = options.collectMaterialPrices;
     this.#clock = options.clock ?? (() => new Date());
     this.#league = Object.freeze({ ...options.league });
     this.#marketJobs = options.marketJobs;
@@ -106,6 +109,16 @@ export class FullRefreshOrchestrator {
         );
       }
 
+      try {
+        if (cycle.status === 'running') await this.#collectMaterialPrices?.();
+      } catch (error) {
+        await this.#repositories.cycles.save({
+          ...transitionRefreshCycle(cycle, 'failed', this.#clock()),
+          errorMessage:
+            error instanceof DomainError ? error.code : 'PROVIDER_UNAVAILABLE',
+        });
+        throw error;
+      }
       const jobs = await this.#marketJobs.runAvailable(
         `${this.#workerId}:${cycle.id}`,
         now,

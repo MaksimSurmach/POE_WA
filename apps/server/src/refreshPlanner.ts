@@ -122,9 +122,15 @@ export async function planCatalogRefresh(
       marketQuery.id,
       league.leagueId,
     );
-    const cache = isFreshSnapshot(snapshot, now, options.snapshotTtlMs)
-      ? 'hit'
-      : 'miss';
+    const oldPartialHandbook =
+      dependency.query.handbookTarget &&
+      snapshot?.payload.coverage === 'partial' &&
+      snapshot.payload.sortedPageComplete === undefined;
+    const cache =
+      isFreshSnapshot(snapshot, now, options.snapshotTtlMs) &&
+      !oldPartialHandbook
+        ? 'hit'
+        : 'miss';
     if (cache === 'hit') cacheHits += 1;
     else cacheMisses += 1;
     resolved.push({ ...dependency, cache, marketQuery, snapshot });

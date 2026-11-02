@@ -10,6 +10,7 @@ import {
   type RecipeEvaluation,
   type Repositories,
   calculateMethodMaterialEconomics,
+  expectedMethodMaterialUsage,
   compareCraftWithAsk,
   hashMarketQuery,
   transitionRefreshCycle,
@@ -58,6 +59,7 @@ const listingSchema = z.strictObject({
 });
 const snapshotPayloadSchema = z.object({
   coverage: z.enum(['complete', 'partial', 'unknown']).optional(),
+  sortedPageComplete: z.boolean().optional(),
   listings: z.array(listingSchema),
   totalResults: z.number().int().nonnegative(),
 });
@@ -375,9 +377,10 @@ async function evaluateFreshRecipe(
     throw new DomainError('RECIPE_INVALID');
   const optionalMarket = async (
     query: import('./recipeMarket.js').RecipeMarketQuery,
+    requiredStock?: number,
   ) => {
     try {
-      return await resolveMarket(query, context);
+      return await resolveMarket(query, context, requiredStock);
     } catch (error) {
       if (
         error instanceof DomainError &&
@@ -387,18 +390,23 @@ async function evaluateFreshRecipe(
       throw error;
     }
   };
+  const usage = expectedMethodMaterialUsage(definition.craft);
   const base = await optionalMarket(baseDependency.query);
   const materialMarkets = await Promise.all(
     dependencies
       .filter(({ kind }) => kind === 'material')
       .map(async (material) => {
         const result = material.query
-          ? await optionalMarket(material.query)
+          ? await optionalMarket(
+              material.query,
+              usage?.[material.materialId!] ?? Infinity,
+            )
           : null;
         return {
           capturedAt: result?.snapshotCapturedAt ?? context.now,
           id: material.materialId!,
           price: result?.aggregation.cheapest ?? null,
+          topOfBook: result?.topOfBook ?? null,
         };
       }),
   );
@@ -438,14 +446,17 @@ async function evaluateFreshRecipe(
   );
   const materialEntries = await Promise.all(
     materialMarkets.map(
-      async ({ capturedAt, id, price }) =>
-        [id, await convertPrice(price, capturedAt)] as const,
+      async ({ capturedAt, id, price, topOfBook }) =>
+        [id, await convertPrice(price ?? topOfBook, capturedAt)] as const,
     ),
   );
   const materialPriceMap = Object.fromEntries(materialEntries);
+  const bulkSupported = new Set(
+    materialMarkets.filter((m) => m.price).map((m) => m.id),
+  );
   const materialEvidence: Record<string, unknown> = Object.fromEntries(
     materialMarkets
-      .filter((m) => m.price)
+      .filter((m) => m.price ?? m.topOfBook)
       .map((m) => [
         m.id,
         {
@@ -453,7 +464,8 @@ async function evaluateFreshRecipe(
           league: context.league,
           source: 'poe-trade-exchange',
           priceBasis: 'asking',
-          currency: m.price!.currency,
+          currency: (m.price ?? m.topOfBook)!.currency,
+          bulkSupported: Boolean(m.price),
           capturedAt: m.capturedAt.toISOString(),
         },
       ]),
@@ -469,7 +481,8 @@ async function evaluateFreshRecipe(
     };
   for (const dependency of dependencies.filter((d) => d.kind === 'material')) {
     const id = dependency.materialId!;
-    if (materialPriceMap[id]) continue;
+    // Ninja is the bulk estimate; a single exchange offer must cover expected consumption.
+
     for (const snapshot of materialEconomies) {
       const line = snapshot.lines.find((line) => line.detailsId === id);
       if (!line || line.price.amount === null) continue;
@@ -477,11 +490,13 @@ async function evaluateFreshRecipe(
         { amount: String(line.price.amount), currency: line.price.currency },
         new Date(snapshot.capturedAt),
       );
+      if (materialPriceMap[id]) bulkSupported.add(id);
       materialEvidence[id] = {
         itemId: id,
         league: snapshot.league,
         source: snapshot.source,
         priceBasis: 'economy-estimate',
+        bulkSupported: true,
         currency: line.price.currency,
         capturedAt: snapshot.capturedAt,
         snapshotId: snapshot.id,
@@ -508,7 +523,12 @@ async function evaluateFreshRecipe(
   const comparison = compareCraftWithAsk({
     basePrice,
     currency,
-    materialCost: evidenceValid ? materialEconomics.expectedCost : null,
+    materialCost:
+      evidenceValid &&
+      usage &&
+      Object.keys(usage).every((id) => bulkSupported.has(id))
+        ? materialEconomics.expectedCost
+        : null,
     expectedBases: evidenceValid
       ? (definition.craft.baseConsumption?.expectedBases ?? null)
       : null,
@@ -530,6 +550,8 @@ async function evaluateFreshRecipe(
           capturedAt: output.snapshotCapturedAt.toISOString(),
           sampleSize: output.aggregation.sampleSize,
           priceBasis: 'asking',
+          coverage: output.coverage,
+          sortedPageComplete: output.sortedPageComplete,
         }
       : null,
     marketStatus: output
@@ -562,7 +584,10 @@ async function evaluateFreshRecipe(
       observedAt.getTime() === output?.snapshotCapturedAt.getTime(),
   );
   return {
-    confidence: confidence(output?.aggregation.sampleSize ?? 0),
+    confidence:
+      output?.coverage === 'complete'
+        ? confidence(output.aggregation.sampleSize)
+        : 'low',
     currency,
     estimatedSalePrice: salePrice,
     expectedCraftCost,
@@ -584,6 +609,7 @@ async function resolveMarket(
     now: Date;
     repositories: Repositories;
   },
+  requiredStock?: number,
 ) {
   const canonicalHash = await hashMarketQuery({
     league: context.league,
@@ -616,20 +642,34 @@ async function resolveMarket(
     snapshot.capturedAt,
     context.now,
   );
+  const topOfBook = aggregateMarketListings({
+    currency: listings[0]?.price.currency ?? 'unknown',
+    listings,
+    totalListings: payload.data.totalResults,
+  }).cheapest;
+  if (requiredStock !== undefined)
+    listings = listings.filter(
+      (row) =>
+        typeof row.item.stock === 'number' && row.item.stock >= requiredStock,
+    );
   const currency = tradeQuery.query.handbookTarget
     ? 'chaos'
     : (listings[0]?.price.currency ?? 'unknown');
   const aggregation = aggregateMarketListings({
     currency,
     listings:
-      tradeQuery.query.handbookTarget && payload.data.coverage !== 'complete'
+      tradeQuery.query.handbookTarget &&
+      payload.data.coverage !== 'complete' &&
+      !payload.data.sortedPageComplete
         ? []
         : listings,
     totalListings: payload.data.totalResults,
   });
   return {
     aggregation,
+    topOfBook,
     coverage: payload.data.coverage ?? 'unknown',
+    sortedPageComplete: payload.data.sortedPageComplete ?? false,
     snapshotExpiresAt: snapshot.expiresAt,
     marketQueryId: marketQuery.id,
     snapshotCapturedAt: snapshot.capturedAt,

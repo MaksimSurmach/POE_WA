@@ -24,7 +24,7 @@ describe('runtime configuration', () => {
     expect(config).toMatchObject({
       cleanupCron: '15 2 * * *',
       host: '0.0.0.0',
-      jobLeaseTimeoutMs: 300_000,
+      jobLeaseTimeoutMs: 1_200_000,
       jobSchema: 'pgboss',
       leagueResolveCron: '0 23 * * *',
       leagueResolveTimezone: 'Europe/Warsaw',

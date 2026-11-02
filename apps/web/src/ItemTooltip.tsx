@@ -25,7 +25,10 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
       if (!trigger || !box) return;
       const left = Math.max(
         8,
-        Math.min(trigger.left, document.documentElement.clientWidth - box.width - 8),
+        Math.min(
+          trigger.left,
+          document.documentElement.clientWidth - box.width - 8,
+        ),
       );
       const below = trigger.bottom + 6;
       const top =
@@ -120,6 +123,7 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
         hidden={!open || dismissed}
         id={id}
         role="tooltip"
+        tabIndex={0}
       >
         <span
           className={`item-tooltip__header item-tooltip__header--${item.rarity ?? 'unknown'}`}

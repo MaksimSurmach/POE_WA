@@ -46,17 +46,22 @@ const searchResponseSchema = z
     total: z.number().int().nonnegative(),
   })
   .loose();
-const exchangeSideSchema = z.object({
-  amount: z.number().finite().positive(),
-  currency: z.string().trim().min(1),
-});
+const exchangeSideSchema = z
+  .object({
+    amount: z.number().finite().positive(),
+    currency: z.string().trim().min(1),
+    stock: z.number().finite().nonnegative().optional(),
+  })
+  .loose();
 const exchangeListingSchema = z.object({
   id: z.string().min(1),
   listing: z.object({
     account: z.object({ name: z.string().min(1) }).loose(),
     indexed: z.iso.datetime({ offset: true }),
     offers: z.array(
-      z.object({ exchange: exchangeSideSchema, item: exchangeSideSchema }),
+      z
+        .object({ exchange: exchangeSideSchema, item: exchangeSideSchema })
+        .loose(),
     ),
   }),
 });
@@ -107,6 +112,7 @@ export type PoeTradeFetch = (
 
 export class PoeTradeClient implements MarketSearchProvider {
   readonly id = 'poe-trade';
+  readonly #collectionTimeoutMs: number;
   readonly #collectionSource: MarketCollectionAdapter | undefined;
   readonly #allowRequests: boolean;
   #accessBlocked = false;
@@ -124,6 +130,7 @@ export class PoeTradeClient implements MarketSearchProvider {
   constructor(options: {
     baseUrl?: string;
     collectionSource?: MarketCollectionAdapter;
+    collectionTimeoutMs?: number;
     allowRequests?: boolean;
     circuits?: ProviderCircuitGate;
     clock?: () => Date;
@@ -134,6 +141,7 @@ export class PoeTradeClient implements MarketSearchProvider {
     requestTimeoutMs?: number;
     userAgent: string;
   }) {
+    this.#collectionTimeoutMs = options.collectionTimeoutMs ?? 15 * 60_000;
     this.#collectionSource = options.collectionSource;
     this.#allowRequests = options.allowRequests ?? true;
     this.#baseUrl = new URL(options.baseUrl ?? defaultBaseUrl);
@@ -178,7 +186,7 @@ export class PoeTradeClient implements MarketSearchProvider {
         // Batch time includes shared rate-limit waits; transport timeouts apply to each HTTP call.
         signal: AbortSignal.any([
           this.#shutdown.signal,
-          AbortSignal.timeout(5 * 60_000),
+          AbortSignal.timeout(this.#collectionTimeoutMs),
         ]),
       });
       if (this.#shutdown.signal.aborted || batch.cancelled)
@@ -206,6 +214,15 @@ export class PoeTradeClient implements MarketSearchProvider {
         provider: this.id,
         fetchedAt,
         coverage: batch.coverage,
+        sortedPageComplete:
+          batch.coverage === 'partial' &&
+          batch.inexact === false &&
+          batch.fetchedCount === batch.returnedCount &&
+          batch.returnedCount > 0 &&
+          (batch.reportedTotal ?? 0) > batch.returnedCount &&
+          z
+            .object({ sort: z.object({ price: z.literal('asc') }) })
+            .safeParse(batch.searchEvidence?.request).success,
         totalResults: batch.reportedTotal ?? batch.listings.length,
         listings: batch.listings.flatMap((row) =>
           row.price === null ||
@@ -270,6 +287,7 @@ export class PoeTradeClient implements MarketSearchProvider {
                     have.amount / want.amount,
                     have.currency,
                     fetchedAt,
+                    offer,
                   ),
                 ]
               : [];
@@ -366,7 +384,8 @@ export class PoeTradeClient implements MarketSearchProvider {
         : error instanceof DomainError
           ? error
           : new DomainError('PROVIDER_UNAVAILABLE', { cause: error });
-      await this.#circuits?.recordFailure(endpoint, providerError);
+      if (providerError.code !== 'MARKET_COLLECTION_CANCELLED')
+        await this.#circuits?.recordFailure(endpoint, providerError);
       this.#logger?.warn(
         { endpoint, provider: this.id, errorCode: providerError.code },
         'provider.request.failed',
@@ -497,6 +516,7 @@ function normalizeExchangeListing(
   unitPrice: number,
   currency: string,
   fetchedAt: Date,
+  offer: z.infer<typeof exchangeListingSchema>['listing']['offers'][number],
 ): MarketListing {
   const indexedAt = new Date(entry.listing.indexed);
   return {
@@ -508,7 +528,10 @@ function normalizeExchangeListing(
     fee: null,
     id: entry.id,
     indexedAt,
-    item: {},
+    item: {
+      stock: offer.item.stock ?? null,
+      rawOffer: jsonObjectSchema.parse(offer),
+    },
     price: { amount: String(unitPrice), currency },
   };
 }

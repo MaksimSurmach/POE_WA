@@ -15,6 +15,8 @@ export function RecipePage() {
 
   useEffect(() => {
     let active = true;
+    setResponse(null);
+    setLoadError(false);
     if (!recipeId) {
       setLoadError(true);
       return () => {
@@ -211,7 +213,9 @@ export function RecipePage() {
             {source.league} · {source.currency} ·{' '}
             {source.priceBasis === 'economy-estimate'
               ? 'Economy estimate'
-              : 'Asking price'}{' '}
+              : source.bulkSupported === false
+                ? 'Unit ask (bulk stock unverified)'
+                : 'Asking price'}{' '}
             ·{' '}
             <time dateTime={source.capturedAt}>
               {new Date(source.capturedAt).toLocaleString('en-US')}
@@ -220,13 +224,13 @@ export function RecipePage() {
         ))}
         <p>
           {detail.snapshot
-            ? `${detail.snapshot.listings.length} verified sellers · ${detail.snapshot.coverage ?? 'unknown'} search coverage · ${new Date(detail.snapshot.capturedAt).toLocaleString('en-US')}`
+            ? `${detail.snapshot.listings.length} verified sellers · ${detail.snapshot.coverage ?? 'unknown'} search coverage${detail.snapshot.sortedPageComplete ? ' (complete lowest-price page)' : ''} · ${new Date(detail.snapshot.capturedAt).toLocaleString('en-US')}`
             : method.marketStatus === 'empty'
               ? 'No verified comparable asking prices found.'
               : 'Comparable market data unavailable.'}
         </p>
         <p>
-          Median verified ask (secondary): <Money price={median} />
+          Median verified ask (observed sample): <Money price={median} />
         </p>
         <div className="recipe-ingredients">
           {detail.snapshot?.listings.slice(0, 5).map((listing) => (

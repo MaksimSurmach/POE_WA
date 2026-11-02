@@ -196,6 +196,10 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     });
     tradeClient = new PoeTradeClient({
       allowRequests: process.env.POE_TRADE_ACCESS === 'owner_permitted',
+      collectionTimeoutMs: Math.min(
+        15 * 60_000,
+        Math.max(1000, config.jobLeaseTimeoutMs - 1000),
+      ),
       collectionSource: managedCollectionSource(collectionManager, research),
       circuits,
       logger,
@@ -241,12 +245,13 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       runRefresh: async (cycleId) => {
         const currentLeague = await repositories.leagues.findCurrent();
         if (!currentLeague) throw new Error('CURRENT_LEAGUE_UNRESOLVED');
-        await collectRecipeMaterialPrices(
-          currentLeague.gggId,
-          economyClient,
-          economy,
-        );
         return new FullRefreshOrchestrator({
+          collectMaterialPrices: () =>
+            collectRecipeMaterialPrices(
+              currentLeague.gggId,
+              economyClient,
+              economy,
+            ),
           league: refreshLeagueContext(currentLeague),
           marketJobs,
           marketDependencies,

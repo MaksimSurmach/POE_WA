@@ -15,7 +15,7 @@ const runtimeEnvironmentSchema = z
       .number()
       .int()
       .min(1000)
-      .default(5 * 60 * 1000),
+      .default(20 * 60 * 1000),
     LOG_LEVEL: z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),
