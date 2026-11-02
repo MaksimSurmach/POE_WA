@@ -1,27 +1,55 @@
 import { describe, expect, it } from 'vitest';
 
-import { defaultCatalogFilters, filterCatalog } from './catalog.js';
+import {
+  defaultCatalogFilters,
+  filterCatalog,
+  getPriceStatus,
+} from './catalog.js';
 import { catalogFixtures } from './mocks/catalog.js';
 
-describe('cluster jewel catalog search', () => {
-  it('searches recipe names, base names, summaries, and tags', () => {
-    for (const search of ['physical', 'large cluster jewel', 'cluster']) {
-      expect(
-        filterCatalog(catalogFixtures, {
-          ...defaultCatalogFilters,
-          search,
-        }).map(({ recipe }) => recipe.id),
-      ).toContain('profitable-cluster');
-    }
-  });
-
-  it('filters by the selected tag and returns no matches plainly', () => {
+describe('recipe catalog search and item type filters', () => {
+  it('shows every item type and filters by category', () => {
+    expect(
+      new Set(
+        filterCatalog(catalogFixtures, defaultCatalogFilters).map(
+          ({ recipe }) => recipe.category,
+        ),
+      ),
+    ).toEqual(
+      new Set(['amulet', 'boots', 'cluster-jewel', 'gloves', 'ring', 'weapon']),
+    );
     expect(
       filterCatalog(catalogFixtures, {
         ...defaultCatalogFilters,
-        tag: 'bow',
+        category: 'ring',
       }).map(({ recipe }) => recipe.id),
-    ).toEqual(['no-listings-bow']);
+    ).toEqual(['low-margin-ring']);
+  });
+
+  it('reports price freshness from evaluation status and refresh age', () => {
+    const now = Date.parse('2026-11-02T10:00:00.000Z');
+    expect(getPriceStatus('success', '2026-11-02T06:00:00.000Z', now)).toBe(
+      'Current',
+    );
+    expect(getPriceStatus('success', '2026-11-02T05:00:00.000Z', now)).toBe(
+      'Outdated',
+    );
+    expect(getPriceStatus('stale', '2026-11-02T09:30:00.000Z', now)).toBe(
+      'Outdated',
+    );
+    expect(getPriceStatus('partial', null, now)).toBe('Partial');
+    expect(getPriceStatus('loading', null, now)).toBe('Updating');
+    expect(getPriceStatus('error', null, now)).toBe('Unavailable');
+  });
+
+  it('searches item names and summaries without using hidden recipe tags', () => {
+    expect(
+      filterCatalog(catalogFixtures, {
+        ...defaultCatalogFilters,
+        category: 'cluster-jewel',
+        search: 'physical',
+      }).map(({ recipe }) => recipe.id),
+    ).toContain('profitable-cluster');
     expect(
       filterCatalog(catalogFixtures, {
         ...defaultCatalogFilters,

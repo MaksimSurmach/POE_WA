@@ -2,7 +2,7 @@ import type { RecipeResponse } from '@poe-worksmith/contracts';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import { Money, StatusPanel, Tag } from './components.js';
+import { Money, StatusPanel } from './components.js';
 import { createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
 
@@ -56,19 +56,15 @@ export function RecipePage() {
   return (
     <article className="recipe-detail recipe-detail--compact">
       <Link className="back-link" to="/">
-        ‹ Cluster Jewels
+        ‹ Recipes
       </Link>
       <header className="recipe-detail__header">
         <div className="recipe-detail__identity">
           <ItemTooltip item={detail.presentation.target} />
           <div>
             <h1>{recipe.title}</h1>
-            <span className="tag-list" aria-label="Recipe tags">
-              {recipe.tags
-                .filter((tag) => tag !== 'cluster-jewel')
-                .map((tag) => (
-                  <Tag key={tag}>{tag}</Tag>
-                ))}
+            <span className="recipe-detail__type">
+              {recipe.category.replaceAll('-', ' ')}
             </span>
           </div>
         </div>
@@ -192,7 +188,7 @@ function RecipeMessage({ title }: { title: string }) {
   return (
     <>
       <Link className="back-link" to="/">
-        ‹ Cluster Jewels
+        ‹ Recipes
       </Link>
       <StatusPanel
         tone={title === 'Loading recipe' ? 'info' : 'danger'}

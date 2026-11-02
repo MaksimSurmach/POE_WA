@@ -18,11 +18,11 @@ describe('application shell', () => {
       </MemoryRouter>,
     );
 
-    expect(catalog).toContain('Cluster Jewels');
+    expect(catalog).toContain('Crafting Recipes');
     expect(catalog).toContain('Loading recipes');
     expect(catalog).not.toContain('Рынок');
     expect(recipe).toContain('Loading recipe');
-    expect(recipe).toContain('Cluster Jewels');
+    expect(recipe).toContain('Recipes');
   });
 });
 

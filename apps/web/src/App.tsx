@@ -5,12 +5,26 @@ import { Link, Outlet, Route, Routes } from 'react-router-dom';
 import {
   defaultCatalogFilters,
   filterCatalog,
+  getPriceStatus,
   type CatalogFilters,
 } from './catalog.js';
-import { Money, StatusPanel, Tag } from './components.js';
+import { Money, ProfitBadge, StatusPanel } from './components.js';
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
 import { ItemTooltip } from './ItemTooltip.js';
+
+const itemTypes = [
+  'helmet',
+  'body-armour',
+  'gloves',
+  'boots',
+  'weapon',
+  'shield',
+  'belt',
+  'ring',
+  'amulet',
+  'cluster-jewel',
+];
 
 const apiClient = createApiClient();
 
@@ -35,15 +49,15 @@ function CatalogRoute() {
   const [filters, setFilters] = useState<CatalogFilters>(defaultCatalogFilters);
   const [response, setResponse] = useState<CatalogResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const entries =
-    response?.data?.entries.filter(
-      ({ recipe }) => recipe.category === 'cluster-jewel',
-    ) ?? [];
-  const tags = useMemo(
+  const entries = response?.data?.entries ?? [];
+  const categories = useMemo(
     () =>
-      [...new Set(entries.flatMap(({ recipe }) => recipe.tags))]
-        .filter((tag) => tag !== 'cluster-jewel')
-        .sort(),
+      [
+        ...new Set([
+          ...itemTypes,
+          ...entries.map(({ recipe }) => recipe.category),
+        ]),
+      ].sort(),
     [entries],
   );
   const filteredEntries = useMemo(
@@ -77,7 +91,7 @@ function CatalogRoute() {
     <>
       <section className="catalog-heading" aria-labelledby="catalog-heading">
         <div>
-          <h1 id="catalog-heading">Cluster Jewels</h1>
+          <h1 id="catalog-heading">Crafting Recipes</h1>
         </div>
       </section>
 
@@ -97,37 +111,37 @@ function CatalogRoute() {
         <>
           <section
             className="handbook-controls"
-            aria-label="Cluster jewel search and tags"
+            aria-label="Recipe search and item types"
           >
             <label className="catalog-search">
-              <span className="visually-hidden">Search cluster jewels</span>
+              <span className="visually-hidden">Search recipes</span>
               <input
                 type="search"
-                placeholder="Search cluster jewels…"
+                placeholder="Search items or recipes…"
                 value={filters.search}
                 onChange={(event) => updateFilter('search', event.target.value)}
               />
             </label>
             <div
-              className="catalog-tags"
+              className="category-filters"
               role="group"
-              aria-label="Filter by tag"
+              aria-label="Filter by item type"
             >
               <button
-                aria-pressed={filters.tag === 'all'}
-                onClick={() => updateFilter('tag', 'all')}
+                aria-pressed={filters.category === 'all'}
+                onClick={() => updateFilter('category', 'all')}
                 type="button"
               >
                 All
               </button>
-              {tags.map((tag) => (
+              {categories.map((category) => (
                 <button
-                  aria-pressed={filters.tag === tag}
-                  key={tag}
-                  onClick={() => updateFilter('tag', tag)}
+                  aria-pressed={filters.category === category}
+                  key={category}
+                  onClick={() => updateFilter('category', category)}
                   type="button"
                 >
-                  {tag}
+                  {category.replaceAll('-', ' ')}
                 </button>
               ))}
             </div>
@@ -137,17 +151,22 @@ function CatalogRoute() {
             <p className="handbook-empty">No recipes match these filters.</p>
           ) : (
             <section
-              className="cluster-table-wrap"
-              aria-label="Cluster jewel recipes"
+              className="recipe-table-wrap"
+              aria-label="Crafting recipes"
             >
-              <table className="cluster-table">
+              <table className="recipe-table">
                 <thead>
                   <tr>
-                    <th>Cluster jewel</th>
-                    <th>Tags</th>
+                    <th>Item</th>
+                    <th>Type</th>
                     <th>Base</th>
                     <th>Method</th>
                     <th>Expected cost</th>
+                    <th>Cheapest ask</th>
+                    <th>Potential spread</th>
+                    <th>ROI</th>
+                    <th>Confidence</th>
+                    <th>Price status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -169,26 +188,43 @@ function CatalogRow({ entry }: { entry: CatalogEntry }) {
   return (
     <tr>
       <td>
-        <div className="cluster-table__identity">
+        <div className="recipe-table__identity">
           {entry.itemPreview ? <ItemTooltip item={entry.itemPreview} /> : null}
           <Link to={`/recipes/${recipe.id}`}>
             <strong>{recipe.title}</strong>
           </Link>
         </div>
       </td>
-      <td>
-        <span className="cluster-table__tags">
-          {recipe.tags
-            .filter((tag) => tag !== 'cluster-jewel')
-            .map((tag) => (
-              <Tag key={tag}>{tag}</Tag>
-            ))}
-        </span>
+      <td className="recipe-table__type">
+        {recipe.category.replaceAll('-', ' ')}
       </td>
-      <td>{entry.itemPreview?.name ?? 'Cluster Jewel'}</td>
+      <td>{entry.itemPreview?.name ?? recipe.category.replaceAll('-', ' ')}</td>
       <td>{recipe.craftMethod}</td>
       <td>
         <Money price={evaluation.expectedCraftCost} />
+      </td>
+      <td>
+        <Money price={evaluation.estimatedSalePrice} />
+      </td>
+      <td>
+        {evaluation.profit ? (
+          <ProfitBadge {...evaluation.profit} />
+        ) : (
+          'Not estimated'
+        )}
+      </td>
+      <td>
+        {evaluation.marginPercent === null
+          ? 'Not estimated'
+          : `${evaluation.marginPercent}%`}
+      </td>
+      <td>{evaluation.confidence ?? 'Unavailable'}</td>
+      <td>
+        {getPriceStatus(
+          evaluation.status,
+          evaluation.lastSuccessfulAt,
+          Date.now(),
+        )}
       </td>
     </tr>
   );

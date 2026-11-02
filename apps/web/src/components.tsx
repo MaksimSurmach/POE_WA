@@ -61,10 +61,6 @@ export function FreshnessIndicator({ ageSeconds }: { ageSeconds: number }) {
   );
 }
 
-export function Tag({ children }: { children: ReactNode }) {
-  return <span className="tag">{children}</span>;
-}
-
 const evaluationLabel: Record<RecipeEvaluation['status'], string> = {
   error: 'Error',
   loading: 'Loading',
