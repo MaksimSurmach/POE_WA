@@ -168,18 +168,19 @@ export class PoeTradeClient implements MarketSearchProvider {
       const fetchedAt = this.#clock();
       const listings = exchange.result
         .flatMap((entry) =>
-          entry.listing.offers.flatMap(({ exchange: have, item: want }) =>
-            have.amount > 0 && want.amount > 0
+          entry.listing.offers.flatMap((offer, offerIndex) => {
+            const { exchange: have, item: want } = offer;
+            return have.amount > 0 && want.amount > 0
               ? [
                   normalizeExchangeListing(
-                    entry,
+                    { ...entry, id: `${entry.id}:${offerIndex}` },
                     have.amount / want.amount,
                     have.currency,
                     fetchedAt,
                   ),
                 ]
-              : [],
-          ),
+              : [];
+          }),
         )
         .slice(0, maximumListings);
       return {

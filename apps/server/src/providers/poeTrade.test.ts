@@ -34,6 +34,47 @@ const mockFetchResponse = {
 };
 
 describe('PoE Trade Merchant client', () => {
+  it('keeps exchange offer IDs unique within one listing', async () => {
+    const client = new PoeTradeClient({
+      baseUrl: 'https://trade.test',
+      fetch: async () =>
+        Response.json({
+          id: 'exchange-id',
+          result: {
+            listing: {
+              id: 'listing-id',
+              listing: {
+                account: { name: 'seller' },
+                indexed: '2026-07-19T23:59:00+00:00',
+                offers: [
+                  {
+                    exchange: { amount: 2, currency: 'chaos' },
+                    item: { amount: 1, currency: 'alt' },
+                  },
+                  {
+                    exchange: { amount: 3, currency: 'chaos' },
+                    item: { amount: 2, currency: 'alt' },
+                  },
+                ],
+              },
+            },
+          },
+          total: 1,
+        }),
+      userAgent: 'OAuth poe-worksmith/0.0.0 (contact: test@example.com)',
+    });
+
+    const result = await client.search({
+      league: 'Settlers',
+      query: { exchange: { have: ['chaos'], want: ['alt'] } },
+      schemaVersion: 1,
+    });
+    expect(result.listings.map(({ id }) => id)).toEqual([
+      'listing-id:0',
+      'listing-id:1',
+    ]);
+  });
+
   it('forces Merchant search and returns the ordered top ten without seller dedupe', async () => {
     const calls: { init: RequestInit | undefined; url: string }[] = [];
     const rateLimits = {
@@ -221,7 +262,9 @@ describe('PoE Trade Merchant client', () => {
         schemaVersion: 1,
       }),
     ).resolves.toMatchObject({
-      listings: [{ id: 'offer-10', price: { amount: '1', currency: 'chaos' } }],
+      listings: [
+        { id: 'offer-10:0', price: { amount: '1', currency: 'chaos' } },
+      ],
       totalResults: 11,
     });
   });

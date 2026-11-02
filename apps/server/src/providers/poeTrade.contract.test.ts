@@ -60,7 +60,7 @@ describe('PoE Trade provider contracts', () => {
       listings: [
         {
           account: 'fixture-seller-1',
-          id: 'fixture-offer-1',
+          id: 'fixture-offer-1:0',
           price: { amount: '0.1', currency: 'chaos' },
         },
       ],

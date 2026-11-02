@@ -207,7 +207,7 @@ export async function evaluateAndPublishCatalog(
         ...fresh,
         errorCode: null,
         evaluatedAt: now,
-        lastSuccessfulAt: now,
+        lastSuccessfulAt: fresh.status === 'partial' ? null : now,
         leagueId: cycle.leagueId,
         recipeId: recipe.id,
         refreshCycleId: cycle.id,

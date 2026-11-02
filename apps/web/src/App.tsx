@@ -252,6 +252,18 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
             <span>{itemType}</span>
             <span>{method}</span>
           </div>
+          {entry.evaluation.status === 'stale' &&
+          entry.evaluation.lastSuccessfulAt ? (
+            <small className="craft-target-card__freshness">
+              Older prices ·{' '}
+              <time dateTime={entry.evaluation.lastSuccessfulAt}>
+                {new Intl.DateTimeFormat(undefined, {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }).format(new Date(entry.evaluation.lastSuccessfulAt))}
+              </time>
+            </small>
+          ) : null}
         </div>
       </div>
       <div className="craft-target-card__market">

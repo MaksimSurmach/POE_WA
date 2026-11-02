@@ -1260,6 +1260,10 @@ progress::-webkit-progress-value {
   line-height: 1.35;
   text-transform: capitalize;
 }
+.craft-target-card__freshness {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
 .craft-target-card__links {
   display: flex;
   flex-wrap: wrap;

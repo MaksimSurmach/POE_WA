@@ -132,6 +132,7 @@ describe('catalog evaluation and publication', () => {
     expect(report.evaluations[0]).toMatchObject({
       estimatedSalePrice: null,
       expectedCraftCost: '100',
+      lastSuccessfulAt: null,
       marginPercent: null,
       profit: null,
       status: 'partial',

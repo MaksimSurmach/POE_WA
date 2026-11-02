@@ -123,7 +123,7 @@ export class RegisteredTradeQueryGenerator implements TradeQueryGenerator {
     const baseStats = Object.entries(base.value.filters ?? {}).map(
       ([id, value]) => ({
         id,
-        ...(id.endsWith('|12') ? {} : { value: { min: value, max: value } }),
+        ...(id.includes('|') ? {} : { value: { min: value, max: value } }),
       }),
     );
     const targetStats = filters.value as TradeFilterFragment[];
