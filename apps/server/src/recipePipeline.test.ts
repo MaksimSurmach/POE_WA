@@ -51,6 +51,8 @@ describe('authored recipe to provider to published economics', () => {
     'thin-stock',
     'ninja-bulk',
     'ninja-unconvertible',
+    'ninja-revalidated',
+    'ninja-cache-hit',
   ] as const)(
     'shares queries and retains raw observations while withholding prices for %s coverage',
     async (coverage) => {
@@ -193,7 +195,12 @@ describe('authored recipe to provider to published economics', () => {
                         item: {
                           amount: 1,
                           currency: 'primal-crystallised-lifeforce',
-                          stock: ['thin-stock', 'ninja-bulk'].includes(coverage)
+                          stock: [
+                            'thin-stock',
+                            'ninja-bulk',
+                            'ninja-revalidated',
+                            'ninja-cache-hit',
+                          ].includes(coverage)
                             ? 1
                             : 20000,
                         },
@@ -224,7 +231,9 @@ describe('authored recipe to provider to published economics', () => {
         endpoint:
           'https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Fixture&type=Currency',
         payloadHash: 'a'.repeat(64),
-        capturedAt: now.toISOString(),
+        capturedAt: ['ninja-revalidated', 'ninja-cache-hit'].includes(coverage)
+          ? new Date(now.getTime() - 31 * 60000).toISOString()
+          : now.toISOString(),
         sourceUpdatedAt: null,
         priceBasis: 'currency-exchange',
         raw: { fixture: true },
@@ -246,12 +255,33 @@ describe('authored recipe to provider to published economics', () => {
         ],
       };
       const report = await new FullRefreshOrchestrator({
-        ...(['ninja-bulk', 'ninja-unconvertible'].includes(coverage)
+        ...([
+          'ninja-bulk',
+          'ninja-unconvertible',
+          'ninja-revalidated',
+          'ninja-cache-hit',
+        ].includes(coverage)
           ? {
               economy: {
                 latest: async (_league, category) =>
                   category === 'Currency' ? summarizeEconomy(bulk) : null,
                 find: async () => bulk,
+                listAttempts: async () => [
+                  {
+                    id: '77777777-7777-4777-8777-777777777777',
+                    league: league.gggId,
+                    category: 'Currency' as const,
+                    startedAt: now.toISOString(),
+                    completedAt: now.toISOString(),
+                    status: 'succeeded' as const,
+                    cacheStatus:
+                      coverage === 'ninja-cache-hit'
+                        ? ('hit' as const)
+                        : ('revalidated' as const),
+                    errorCode: null,
+                    snapshotId: bulk.id,
+                  },
+                ],
               },
             }
           : {}),
@@ -290,33 +320,33 @@ describe('authored recipe to provider to published economics', () => {
       );
       expect(byId.get(first.id)).toMatchObject({
         estimatedSalePrice: coverage !== 'partial' ? '80' : null,
-        expectedCraftCost:
-          coverage === 'ninja-bulk'
-            ? '40'
-            : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
-              ? '22'
-              : null,
-        profit:
-          coverage === 'ninja-bulk'
-            ? '40'
-            : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
-              ? '58'
-              : null,
+        expectedCraftCost: ['ninja-bulk', 'ninja-revalidated'].includes(
+          coverage,
+        )
+          ? '40'
+          : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
+            ? '22'
+            : null,
+        profit: ['ninja-bulk', 'ninja-revalidated'].includes(coverage)
+          ? '40'
+          : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
+            ? '58'
+            : null,
       });
       expect(byId.get(second.id)).toMatchObject({
         estimatedSalePrice: coverage !== 'partial' ? '80' : null,
-        expectedCraftCost:
-          coverage === 'ninja-bulk'
-            ? '70'
-            : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
-              ? '34'
-              : null,
-        profit:
-          coverage === 'ninja-bulk'
-            ? '10'
-            : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
-              ? '46'
-              : null,
+        expectedCraftCost: ['ninja-bulk', 'ninja-revalidated'].includes(
+          coverage,
+        )
+          ? '70'
+          : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
+            ? '34'
+            : null,
+        profit: ['ninja-bulk', 'ninja-revalidated'].includes(coverage)
+          ? '10'
+          : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
+            ? '46'
+            : null,
       });
       expect(byId.get(different.id)).toMatchObject({
         estimatedSalePrice: null,

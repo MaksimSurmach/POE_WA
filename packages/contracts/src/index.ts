@@ -193,6 +193,7 @@ export const recipeMethodViewSchema = z.strictObject({
       itemId: z.string(),
       priceBasis: z.enum(['asking', 'economy-estimate']).optional(),
       bulkSupported: z.boolean().optional(),
+      verifiedAt: z.iso.datetime().optional(),
       source: z.string(),
       league: z.string(),
       currency: z.string(),

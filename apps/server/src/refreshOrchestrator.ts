@@ -40,7 +40,9 @@ export class FullRefreshOrchestrator {
   readonly #repositories: Repositories;
   readonly #marketDependencies: RecipeMarketDependencies | undefined;
   readonly #economy:
-    Pick<MarketEconomyRepository, 'find' | 'latest'> | undefined;
+    | (Pick<MarketEconomyRepository, 'find' | 'latest'> &
+        Partial<Pick<MarketEconomyRepository, 'listAttempts'>>)
+    | undefined;
   readonly #snapshotTtlMs: number;
   readonly #workerId: string;
   readonly #logger: Logger | undefined;
@@ -52,7 +54,8 @@ export class FullRefreshOrchestrator {
     league: RefreshLeagueContext;
     marketJobs: MarketJobRunner;
     marketDependencies?: RecipeMarketDependencies;
-    economy?: Pick<MarketEconomyRepository, 'find' | 'latest'>;
+    economy?: Pick<MarketEconomyRepository, 'find' | 'latest'> &
+      Partial<Pick<MarketEconomyRepository, 'listAttempts'>>;
     repositories: Repositories;
     snapshotTtlMs: number;
     workerId: string;

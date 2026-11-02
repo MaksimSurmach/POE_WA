@@ -109,7 +109,8 @@ export async function evaluateAndPublishCatalog(
     leagueName?: string;
     now?: Date;
     marketDependencies?: RecipeMarketDependencies;
-    economy?: Pick<MarketEconomyRepository, 'find' | 'latest'>;
+    economy?: Pick<MarketEconomyRepository, 'find' | 'latest'> &
+      Partial<Pick<MarketEconomyRepository, 'listAttempts'>>;
     logger?: Logger;
     metrics?: Metrics;
   },
@@ -175,10 +176,31 @@ export async function evaluateAndPublishCatalog(
         ])
       : [],
   );
+  const attempts = (await options.economy?.listAttempts?.()) ?? [];
+  const verified = (snapshot: StoredMarketEconomySnapshot | null) => {
+    if (!snapshot) return null;
+    // A completed HTTP attempt verifies the old payload; cache reads never advance freshness.
+    const checks = attempts.filter(
+      (a) =>
+        a.snapshotId === snapshot.id &&
+        a.league === snapshot.league &&
+        a.category === snapshot.category &&
+        a.status === 'succeeded' &&
+        (a.cacheStatus === 'fetched' || a.cacheStatus === 'revalidated') &&
+        a.completedAt &&
+        Date.parse(a.completedAt) <= now.getTime() &&
+        Date.parse(a.startedAt) <= Date.parse(a.completedAt),
+    );
+    const time = Math.max(
+      Date.parse(snapshot.capturedAt),
+      ...checks.map((a) => Date.parse(a.startedAt)),
+    );
+    return { ...snapshot, verifiedAt: new Date(time).toISOString() };
+  };
   const economySummary = await options.economy?.latest(league, 'Currency');
-  const currencyExchange = economySummary
-    ? await options.economy!.find(economySummary.id)
-    : null;
+  const currencyExchange = verified(
+    economySummary ? await options.economy!.find(economySummary.id) : null,
+  );
   const materialEconomies = new Map<string, StoredMarketEconomySnapshot>();
   for (const category of [
     'Currency',
@@ -187,12 +209,15 @@ export async function evaluateAndPublishCatalog(
     'Resonator',
   ] as const) {
     const latest = await options.economy?.latest(league, category);
-    const snapshot = latest ? await options.economy?.find(latest.id) : null;
+    const snapshot = verified(
+      latest ? await options.economy!.find(latest.id) : null,
+    );
     if (
       snapshot &&
       snapshot.league === league &&
-      now.getTime() >= Date.parse(snapshot.capturedAt) &&
-      now.getTime() - Date.parse(snapshot.capturedAt) <= 30 * 60_000
+      now.getTime() >= Date.parse(snapshot.verifiedAt ?? snapshot.capturedAt) &&
+      now.getTime() - Date.parse(snapshot.verifiedAt ?? snapshot.capturedAt) <=
+        30 * 60_000
     )
       materialEconomies.set(category, snapshot);
   }
@@ -488,7 +513,7 @@ async function evaluateFreshRecipe(
       if (!line || line.price.amount === null) continue;
       const converted = await convertPrice(
         { amount: String(line.price.amount), currency: line.price.currency },
-        new Date(snapshot.capturedAt),
+        new Date(snapshot.verifiedAt ?? snapshot.capturedAt),
       );
       if (!converted) continue;
       materialPriceMap[id] = converted;
@@ -501,6 +526,7 @@ async function evaluateFreshRecipe(
         bulkSupported: true,
         currency: line.price.currency,
         capturedAt: snapshot.capturedAt,
+        ...(snapshot.verifiedAt ? { verifiedAt: snapshot.verifiedAt } : {}),
         snapshotId: snapshot.id,
       };
       break;

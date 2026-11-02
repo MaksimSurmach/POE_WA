@@ -14,6 +14,7 @@ import type {
 
 export type StoredMarketEconomySnapshot = NinjaEconomySnapshot & {
   readonly id: string;
+  readonly verifiedAt?: string;
 };
 export interface MarketEconomyRepository {
   assertReady(): Promise<void>;

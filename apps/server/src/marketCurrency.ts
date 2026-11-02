@@ -26,15 +26,15 @@ export async function convertMarketQuote(input: {
     return null;
   const exchange = await input.economy.find(input.exchangeSnapshotId);
   const day = 86_400_000;
+  const verifiedAt = exchange?.verifiedAt ?? exchange?.capturedAt ?? '';
   if (
     !exchange ||
     exchange.league !== input.target.league ||
     exchange.category !== 'Currency' ||
     exchange.priceBasis !== 'currency-exchange' ||
-    input.now < Date.parse(exchange.capturedAt) ||
-    input.now - Date.parse(exchange.capturedAt) > day ||
-    Math.abs(Date.parse(input.capturedAt) - Date.parse(exchange.capturedAt)) >
-      day
+    input.now < Date.parse(verifiedAt) ||
+    input.now - Date.parse(verifiedAt) > day ||
+    Math.abs(Date.parse(input.capturedAt) - Date.parse(verifiedAt)) > day
   )
     return null;
   const divine = exchange.lines.find(

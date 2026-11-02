@@ -220,6 +220,15 @@ export function RecipePage() {
             <time dateTime={source.capturedAt}>
               {new Date(source.capturedAt).toLocaleString('en-US')}
             </time>
+            {source.verifiedAt && source.verifiedAt !== source.capturedAt ? (
+              <>
+                {' '}
+                · Rechecked{' '}
+                <time dateTime={source.verifiedAt}>
+                  {new Date(source.verifiedAt).toLocaleString('en-US')}
+                </time>
+              </>
+            ) : null}
           </p>
         ))}
         <p>
