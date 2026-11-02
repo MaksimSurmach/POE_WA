@@ -34,7 +34,7 @@ links, and import a JSON snapshot. See [observation format](docs/market-observat
 [data source capabilities](docs/market-data-sources.md), and the
 [M1 implementation plan](docs/plans/2026-10-29-crafter-market-intelligence.md).
 
-The working beta adds versioned JSON catalog import, structured Trade queries, a separately configured session-capable search/fetch provider, matching, supply history and scenario-based craft economics. Automatic Trade access is off by default; live Trade verification remains blocked by a login challenge. See [beta setup, secure environment variables and verification](docs/market-engine-beta.md). Asking prices, base estimates and completed transactions remain different evidence types.
+The working beta adds versioned JSON catalog import, structured Trade queries, a separately configured session-capable search/fetch provider, matching, supply history and scenario-based craft economics. Automatic Trade access is off by default. Owner-configured live search/fetch is verified: five profiles, 12 persisted real observations including retained revisions, and one source-backed approximate RF cost/spread scenario. Other profiles still lack complete current cost models. See [beta setup, secure environment variables and verification](docs/market-engine-beta.md). Asking prices, base estimates and completed transactions remain different evidence types.
 
 ### Public economy collection
 
