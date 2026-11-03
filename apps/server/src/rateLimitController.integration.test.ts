@@ -21,6 +21,37 @@ beforeEach(async () => {
 });
 
 describe('PostgreSQL GGG rate-limit coordination', () => {
+  it.each([429, 503])(
+    'preserves orphaned headerless legacy cooldown after HTTP %s',
+    async (status) => {
+      let now = start;
+      const gate = new GggRateLimitController({
+        repository: repositories.rateLimits,
+        clock: () => now,
+        sleep: async (milliseconds) => {
+          now = new Date(now.getTime() + milliseconds);
+        },
+      });
+      await gate.observeResponse('trade-search', {
+        status,
+        headers: new Headers({ 'Retry-After': '120' }),
+      });
+      await gate.observeResponse('trade-search', {
+        status: 200,
+        headers: new Headers({
+          'X-Rate-Limit-Policy': 'trade-search-request-limit',
+        }),
+      });
+      expect(
+        (await repositories.rateLimits.list()).find(
+          (state) => state.policy === 'poe-trade',
+        ),
+      ).toMatchObject({ endpoints: [], lastStatus: status });
+      await gate.waitForPermit('trade-exchange');
+      expect(now.getTime() - start.getTime()).toBeGreaterThanOrEqual(120_000);
+    },
+  );
+
   it('preserves an orphaned legacy exchange cooldown before the new endpoint responds', async () => {
     let now = start;
     const gate = new GggRateLimitController({
