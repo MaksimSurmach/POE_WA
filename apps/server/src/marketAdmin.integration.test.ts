@@ -805,6 +805,59 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     );
   });
 
+  it('fails an interrupted cycle without locking it ahead of an in-flight job commit', async () => {
+    const id = await enqueue();
+    await seedCycle(id);
+    const inFlight = await pool.connect();
+    await inFlight.query('begin');
+    await inFlight.query("set local statement_timeout='1s'");
+    await inFlight.query(
+      'select id from jobs where refresh_cycle_id=$1 for update',
+      [id],
+    );
+    const failing = store.failCycle(id, 'REFRESH_WORKER_INTERRUPTED').then(
+      () => null,
+      (error: unknown) => error,
+    );
+    try {
+      await expect
+        .poll(
+          async () =>
+            (
+              await pool.query(
+                "select count(*)::int as waiting from pg_stat_activity where datname=current_database() and query like 'update jobs set status=%' and wait_event_type='Lock'",
+              )
+            ).rows[0]?.waiting,
+        )
+        .toBe(1);
+      await inFlight.query(
+        'update refresh_cycles set updated_at=now() where id=$1',
+        [id],
+      );
+      await inFlight.query('commit');
+      expect(await failing).toBeNull();
+      expect(
+        (
+          await pool.query('select status from refresh_cycles where id=$1', [
+            id,
+          ])
+        ).rows[0]?.status,
+      ).toBe('failed');
+      expect(
+        (
+          await pool.query(
+            'select status from jobs where refresh_cycle_id=$1',
+            [id],
+          )
+        ).rows[0]?.status,
+      ).toBe('failed');
+    } finally {
+      await inFlight.query('rollback').catch(() => undefined);
+      inFlight.release();
+      await failing;
+    }
+  });
+
   it('does not expire a queued run that a worker claims during reconciliation', async () => {
     const id = await enqueue();
     await pool.query(

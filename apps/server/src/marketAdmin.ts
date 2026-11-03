@@ -365,11 +365,11 @@ export function createMarketAdminStore(options: {
   async function failCycle(id: string, code: string) {
     await transaction(async (client) => {
       await client.query(
-        `update refresh_cycles set status='failed',finished_at=now(),updated_at=now(),error_message=$2 where id=$1 and status in ('queued','running')`,
+        `update jobs set status='failed',last_error=$2,locked_at=null,locked_by=null,updated_at=now() where refresh_cycle_id=$1 and status in ('queued','running','retry')`,
         [id, code],
       );
       await client.query(
-        `update jobs set status='failed',last_error=$2,locked_at=null,locked_by=null,updated_at=now() where refresh_cycle_id=$1 and status in ('queued','running','retry')`,
+        `update refresh_cycles set status='failed',finished_at=now(),updated_at=now(),error_message=$2 where id=$1 and status in ('queued','running')`,
         [id, code],
       );
     });
