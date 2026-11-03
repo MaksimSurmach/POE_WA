@@ -13,7 +13,8 @@
 - Jobs use explicit queued/running/retry/terminal transitions.
 - A delayed provider retry remains in its original refresh cycle. The orchestrator
   waits for retries to succeed or exhaust before evaluation, within the queue's
-  one-hour bound. Cancellation interrupts that wait. Retry scheduling alone must
+  one-hour bound, reserving fifteen minutes for final prices and publication.
+  Cancellation interrupts that wait. Retry scheduling alone must
   not fail the cycle with `REFRESH_INCOMPLETE` or discard its pending jobs.
 - Snapshots require stable IDs, a provider status from 100 through 599, and an
   expiry strictly after capture time.
