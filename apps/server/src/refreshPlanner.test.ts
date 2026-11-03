@@ -1,13 +1,16 @@
+import { fixtureMarketDependencies } from './testkit/recipeMarket.js';
 import {
   createInMemoryRepositories,
   type JsonRecord,
   type Recipe,
-  validateRecipeV1,
 } from '@poe-worksmith/domain';
-import { validRecipeV1Fixture } from '@poe-worksmith/domain/fixtures';
+import {
+  canonicalRecipeFixture,
+  fixtureRecipe,
+} from '@poe-worksmith/domain/fixtures';
 import { describe, expect, it, vi } from 'vitest';
 
-import { planCatalogRefresh } from './refreshPlanner.js';
+import { planCatalogRefresh as planRefresh } from './refreshPlanner.js';
 
 const now = new Date('2026-07-20T00:00:00.000Z');
 const snapshotTtlMs = 5 * 60 * 1000;
@@ -34,24 +37,10 @@ async function seedCurrentLeague(
 }
 
 function recipe(id: string, querySuffix: string): Recipe {
-  const definition = validateRecipeV1({
-    ...validRecipeV1Fixture,
-    baseRequirements: {
-      ...validRecipeV1Fixture.baseRequirements,
-      tradeQuery: {
-        ...validRecipeV1Fixture.baseRequirements.tradeQuery,
-        query: { query: { type: `Base ${querySuffix}` } },
-      },
-    },
-    finishingCosts: [],
+  const definition = fixtureRecipe({
+    ...canonicalRecipeFixture,
+    base: { ...canonicalRecipeFixture.base, baseId: `Base ${querySuffix}` },
     id,
-    output: {
-      ...validRecipeV1Fixture.output,
-      tradeQuery: {
-        ...validRecipeV1Fixture.output.tradeQuery,
-        query: { query: { type: `Output ${querySuffix}` } },
-      },
-    },
     title: `Recipe ${querySuffix}`,
   });
 
@@ -61,7 +50,7 @@ function recipe(id: string, querySuffix: string): Recipe {
     contentHash: `content-${id}`,
     craftMethod: 'harvest',
     definition: { ...definition } as JsonRecord,
-    gameVersion: definition.gameVersion,
+    gameVersion: definition.patch,
     guideMarkdown: '# Guide',
     id,
     tags: definition.tags,
@@ -255,4 +244,65 @@ describe('catalog refresh planner', () => {
       jobsEnqueued: 3,
     });
   });
+});
+
+function planCatalogRefresh(
+  repositories: Parameters<typeof planRefresh>[0],
+  options: Parameters<typeof planRefresh>[1],
+) {
+  return planRefresh(repositories, {
+    ...options,
+    marketDependencies: fixtureMarketDependencies,
+  });
+}
+
+it('refreshes old partial handbook observations without deleting original evidence', async () => {
+  const repositories = await repositoriesWithSharedMaterial();
+  const options: Parameters<typeof planRefresh>[1] = {
+    cycleId: '77777777-7777-4777-8777-777777777777',
+    league: refreshLeague,
+    now,
+    snapshotTtlMs,
+    marketDependencies: async (input) =>
+      (await fixtureMarketDependencies(input)).map((d) =>
+        d.query
+          ? {
+              ...d,
+              query: {
+                ...d.query,
+                query: {
+                  ...d.query.query,
+                  handbookTarget: 'cache-policy-fixture',
+                },
+              },
+            }
+          : d,
+      ),
+  };
+  const initial = await planRefresh(repositories, options);
+  for (const q of initial.queries)
+    await repositories.snapshots.save({
+      capturedAt: new Date(now.getTime() - 1000),
+      dedupeKey: `old:${q.canonicalHash}`,
+      expiresAt: new Date(now.getTime() + snapshotTtlMs),
+      leagueId: initial.cycle.leagueId,
+      marketQueryId: q.marketQuery.id,
+      payload: { coverage: 'partial', listings: [], totalResults: 340 },
+      providerStatus: 200,
+      refreshCycleId: initial.cycle.id,
+    });
+  const next = await planRefresh(repositories, {
+    ...options,
+    cycleId: '88888888-8888-4888-8888-888888888888',
+  });
+  expect(next.report.cacheHits).toBe(0);
+  expect(next.report.cacheMisses).toBe(initial.queries.length);
+  expect(
+    (
+      await repositories.snapshots.findLatest(
+        initial.queries[0]!.marketQuery.id,
+        initial.cycle.leagueId,
+      )
+    )?.dedupeKey,
+  ).toMatch(/^old:/);
 });

@@ -1,14 +1,14 @@
+import { fixtureMarketDependencies } from './testkit/recipeMarket.js';
+import { type JsonRecord, type Recipe } from '@poe-worksmith/domain';
 import {
-  type JsonRecord,
-  type Recipe,
-  validateRecipeV1,
-} from '@poe-worksmith/domain';
-import { validRecipeV1Fixture } from '@poe-worksmith/domain/fixtures';
+  canonicalRecipeFixture,
+  fixtureRecipe,
+} from '@poe-worksmith/domain/fixtures';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
-import { planCatalogRefresh } from './refreshPlanner.js';
+import { planCatalogRefresh as planRefresh } from './refreshPlanner.js';
 import { createPostgresRepositories } from './repositories/postgresRepositories.js';
 
 const pool = createDatabasePool(loadDatabaseConfig());
@@ -39,24 +39,10 @@ beforeEach(async () => {
 });
 
 function recipe(id: string, querySuffix: string): Recipe {
-  const definition = validateRecipeV1({
-    ...validRecipeV1Fixture,
-    baseRequirements: {
-      ...validRecipeV1Fixture.baseRequirements,
-      tradeQuery: {
-        ...validRecipeV1Fixture.baseRequirements.tradeQuery,
-        query: { query: { type: `Base ${querySuffix}` } },
-      },
-    },
-    finishingCosts: [],
+  const definition = fixtureRecipe({
+    ...canonicalRecipeFixture,
+    base: { ...canonicalRecipeFixture.base, baseId: `Base ${querySuffix}` },
     id,
-    output: {
-      ...validRecipeV1Fixture.output,
-      tradeQuery: {
-        ...validRecipeV1Fixture.output.tradeQuery,
-        query: { query: { type: `Output ${querySuffix}` } },
-      },
-    },
     title: `Recipe ${querySuffix}`,
   });
   return {
@@ -65,7 +51,7 @@ function recipe(id: string, querySuffix: string): Recipe {
     contentHash: `content-${id}`,
     craftMethod: 'harvest',
     definition: { ...definition } as JsonRecord,
-    gameVersion: definition.gameVersion,
+    gameVersion: definition.patch,
     guideMarkdown: '# Guide',
     id,
     tags: definition.tags,
@@ -121,3 +107,13 @@ describe('catalog refresh planner with PostgreSQL', () => {
     });
   });
 });
+
+function planCatalogRefresh(
+  repositories: Parameters<typeof planRefresh>[0],
+  options: Parameters<typeof planRefresh>[1],
+) {
+  return planRefresh(repositories, {
+    ...options,
+    marketDependencies: fixtureMarketDependencies,
+  });
+}

@@ -24,7 +24,8 @@ const mockFetchResponse = {
       },
       listing: {
         account: { name: index < 2 ? 'same-seller' : `seller-${index}` },
-        fee: { amount: 1, currency: 'gold' },
+        fee:
+          index === 0 ? { feeType: 'listed' } : { amount: 1, currency: 'gold' },
         indexed: `2026-07-19T23:${String(59 - index).padStart(2, '0')}:00.000Z`,
         price: { amount: index + 10, currency: 'divine' },
       },
@@ -33,6 +34,85 @@ const mockFetchResponse = {
 };
 
 describe('PoE Trade Merchant client', () => {
+  it('aborts rate-limit waits and rejects subsequent requests during shutdown', async () => {
+    let entered!: () => void;
+    const waiting = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+    const fetcher = vi.fn<typeof fetch>();
+    const client = new PoeTradeClient({
+      userAgent: 'test',
+      fetch: fetcher,
+      rateLimits: {
+        waitForPermit: async (_endpoint, signal) => {
+          entered();
+          return new Promise((_resolve, reject) =>
+            signal!.addEventListener('abort', () => reject(signal!.reason), {
+              once: true,
+            }),
+          );
+        },
+        observeResponse: vi.fn().mockResolvedValue({}),
+      },
+    });
+    const request = {
+      league: 'Fixture League',
+      query: { exchange: { have: ['chaos'], want: ['divine'] } },
+      schemaVersion: 1 as const,
+    };
+    const result = client.search(request);
+    await waiting;
+    client.stop();
+    await expect(result).rejects.toMatchObject({
+      code: 'MARKET_COLLECTION_CANCELLED',
+    });
+    await expect(client.search(request)).rejects.toMatchObject({
+      code: 'MARKET_COLLECTION_CANCELLED',
+    });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it('keeps exchange offer IDs unique within one listing', async () => {
+    const client = new PoeTradeClient({
+      baseUrl: 'https://trade.test',
+      fetch: async () =>
+        Response.json({
+          id: 'exchange-id',
+          result: {
+            listing: {
+              id: 'listing-id',
+              listing: {
+                account: { name: 'seller' },
+                indexed: '2026-07-19T23:59:00+00:00',
+                offers: [
+                  {
+                    exchange: { amount: 2, currency: 'chaos' },
+                    item: { amount: 1, currency: 'alt' },
+                  },
+                  {
+                    exchange: { amount: 3, currency: 'chaos' },
+                    item: { amount: 2, currency: 'alt' },
+                  },
+                ],
+              },
+            },
+          },
+          total: 1,
+        }),
+      userAgent: 'OAuth poe-worksmith/0.0.0 (contact: test@example.com)',
+    });
+
+    const result = await client.search({
+      league: 'Settlers',
+      query: { exchange: { have: ['chaos'], want: ['alt'] } },
+      schemaVersion: 1,
+    });
+    expect(result.listings.map(({ id }) => id)).toEqual([
+      'listing-id:0',
+      'listing-id:1',
+    ]);
+  });
+
   it('forces Merchant search and returns the ordered top ten without seller dedupe', async () => {
     const calls: { init: RequestInit | undefined; url: string }[] = [];
     const rateLimits = {
@@ -88,10 +168,9 @@ describe('PoE Trade Merchant client', () => {
       ['trade-fetch'],
     ]);
     expect(circuits.recordFailure).not.toHaveBeenCalled();
-    expect(rateLimits.waitForPermit.mock.calls).toEqual([
-      ['trade-search'],
-      ['trade-fetch'],
-    ]);
+    expect(
+      rateLimits.waitForPermit.mock.calls.map(([endpoint]) => [endpoint]),
+    ).toEqual([['trade-search'], ['trade-fetch']]);
     expect(
       rateLimits.observeResponse.mock.calls.map(([endpoint]) => endpoint),
     ).toEqual(['trade-search', 'trade-fetch']);
@@ -123,9 +202,10 @@ describe('PoE Trade Merchant client', () => {
     expect(
       result.listings.filter(({ account }) => account === 'same-seller'),
     ).toHaveLength(2);
+    expect(result.listings.some(({ fee }) => fee === null)).toBe(true);
     expect(result.listings[0]).toMatchObject({
       ageSeconds: 60,
-      fee: { amount: '1', currency: 'gold' },
+      fee: null,
       item: { baseType: 'Large Cluster Jewel', ilvl: 84 },
       price: { amount: '10', currency: 'divine' },
     });
@@ -180,6 +260,49 @@ describe('PoE Trade Merchant client', () => {
     });
     expect(query).toEqual({
       exchange: { have: ['divine'], want: ['chaos'] },
+    });
+  });
+
+  it('fills the exchange listing sample from offers beyond the first ten rows', async () => {
+    const result = Object.fromEntries(
+      Array.from({ length: 11 }, (_, index) => [
+        `offer-${index}`,
+        {
+          id: `offer-${index}`,
+          listing: {
+            account: { name: `seller-${index}` },
+            indexed: '2026-07-19T23:59:00+00:00',
+            offers:
+              index === 10
+                ? [
+                    {
+                      exchange: { amount: 1, currency: 'chaos' },
+                      item: { amount: 1, currency: 'alt' },
+                    },
+                  ]
+                : [],
+          },
+        },
+      ]),
+    );
+    const client = new PoeTradeClient({
+      baseUrl: 'https://trade.test',
+      fetch: async () =>
+        Response.json({ id: 'exchange-id', result, total: 11 }),
+      userAgent: 'OAuth poe-worksmith/0.0.0 (contact: test@example.com)',
+    });
+
+    await expect(
+      client.search({
+        league: 'Settlers',
+        query: { exchange: { have: ['chaos'], want: ['alt'] } },
+        schemaVersion: 1,
+      }),
+    ).resolves.toMatchObject({
+      listings: [
+        { id: 'offer-10:0', price: { amount: '1', currency: 'chaos' } },
+      ],
+      totalResults: 11,
     });
   });
 

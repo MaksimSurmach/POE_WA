@@ -18,6 +18,7 @@ const uniqueEntityIds = z
   });
 
 export const canonicalCraftMethodSchema = z.discriminatedUnion('kind', [
+  z.strictObject({ currency: entityIdSchema, kind: z.literal('currency') }),
   z.strictObject({ kind: z.literal('harvest-reforge'), tag: entityIdSchema }),
   z.strictObject({
     fossils: uniqueEntityIds,

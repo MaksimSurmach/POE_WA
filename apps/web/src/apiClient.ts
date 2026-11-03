@@ -7,6 +7,12 @@ import {
   recipeResponseSchema,
   type RefreshProgressResponse,
   refreshProgressResponseSchema,
+  type CurrentLeagueResponse,
+  currentLeagueResponseSchema,
+  type LeaguesResponse,
+  leaguesResponseSchema,
+  type RefreshTriggerResponse,
+  refreshTriggerResponseSchema,
 } from '@poe-worksmith/contracts';
 
 type Contract<T> = {
@@ -29,9 +35,14 @@ export function createApiClient(
 ) {
   const root = baseUrl.replace(/\/$/, '');
 
-  async function request<T>(path: string, contract: Contract<T>): Promise<T> {
+  async function request<T>(
+    path: string,
+    contract: Contract<T>,
+    method: 'GET' | 'POST' = 'GET',
+  ): Promise<T> {
     const response = await fetchImplementation(`${root}${path}`, {
       headers: { accept: 'application/json' },
+      ...(method === 'POST' ? { method } : {}),
     });
     const payload: unknown = await response.json();
     const result = contract.safeParse(payload);
@@ -54,6 +65,15 @@ export function createApiClient(
     },
     getRefreshFreshness(): Promise<RefreshProgressResponse> {
       return request('/api/refresh', refreshProgressResponseSchema);
+    },
+    triggerPriceRefresh(): Promise<RefreshTriggerResponse> {
+      return request('/api/refresh', refreshTriggerResponseSchema, 'POST');
+    },
+    getCurrentLeague(): Promise<CurrentLeagueResponse> {
+      return request('/api/leagues/current', currentLeagueResponseSchema);
+    },
+    getLeagues(): Promise<LeaguesResponse> {
+      return request('/api/leagues', leaguesResponseSchema);
     },
   };
 }

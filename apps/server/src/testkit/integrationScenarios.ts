@@ -31,11 +31,14 @@ const prices: Record<string, readonly number[]> = {
   'fixture:material:legacy': [3],
   'fixture:material:production:jagged': [2],
   'fixture:material:production:resonator': [1],
+  'fixture:material:production:alteration': [0.08],
+  'fixture:material:production:transmutation': [0.03],
   'fixture:output:a': [100],
   'fixture:output:b': [120],
   'fixture:output:c': [150],
   'fixture:output:d': [180],
-  'fixture:output:production': [100],
+  'fixture:output:production:alteration': [100],
+  'fixture:output:production:jagged': [100],
   'fixture:output:legacy': [70, 71, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92],
 };
 export async function integrationScenario(
@@ -62,14 +65,10 @@ export async function integrationScenario(
   ) => {
     script[hashes[expectedDefaultQueryKeys.indexOf(key)]!] = steps;
   };
-  if (name === 'publish-at-95')
-    set('fixture:output:legacy', [
-      { type: 'success', result: result('fixture:output:legacy', 11) },
-    ]);
+  if (name === 'publish-at-95' || name === 'reject-below-95')
+    set('fixture:output:boundary-one', [{ type: 'malformed' }]);
   if (name === 'reject-below-95')
-    set('fixture:output:legacy', [
-      { type: 'success', result: result('fixture:output:legacy', 10) },
-    ]);
+    set('fixture:output:boundary-two', [{ type: 'malformed' }]);
   if (name === 'retry-429-then-success')
     set('fixture:material:lifeforce', [
       { type: 'error', errorCode: 'PROVIDER_RATE_LIMITED' },

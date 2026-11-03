@@ -148,6 +148,20 @@
       "when": 1793322233970,
       "tag": "0020_heavy_maginty",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793582768510,
+      "tag": "0021_awesome_jigsaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793627444089,
+      "tag": "0022_single_method_cost",
+      "breakpoints": true
     }
   ]
 }

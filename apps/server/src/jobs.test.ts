@@ -9,6 +9,7 @@ import {
   CATALOG_REFRESH_QUEUE,
   CATALOG_REFRESH_SCHEDULE_KEY,
   createJobBoss,
+  ManualRefreshProducer,
   LEAGUE_RESOLVE_QUEUE,
   LEAGUE_RESOLVE_SCHEDULE_KEY,
   PgBossJobRunner,
@@ -108,6 +109,37 @@ describe('pg-boss job runner', () => {
 });
 
 describe('catalog refresh scheduler', () => {
+  it('starts an API-only refresh queue producer and enqueues the shared job', async () => {
+    const fake = fakeBoss();
+    const producer = new ManualRefreshProducer(fake as unknown as PgBoss);
+
+    await producer.start();
+    await expect(producer.triggerRefresh()).resolves.toBe('manual-cycle-id');
+
+    expect(fake.createQueue).toHaveBeenCalledWith(
+      CATALOG_REFRESH_QUEUE,
+      expect.objectContaining({ policy: 'exclusive' }),
+    );
+    expect(fake.send).toHaveBeenCalledWith(
+      CATALOG_REFRESH_QUEUE,
+      { source: 'manual' },
+      expect.objectContaining({ singletonKey: 'catalog-refresh' }),
+    );
+    await producer.stop(5000);
+  });
+
+  it('cleans up a failed API-only producer start', async () => {
+    const fake = fakeBoss();
+    fake.createQueue.mockRejectedValueOnce(new Error('queue unavailable'));
+    const producer = new ManualRefreshProducer(fake as unknown as PgBoss);
+
+    await expect(producer.start()).rejects.toThrow('queue unavailable');
+    expect(fake.stop).toHaveBeenCalledWith({
+      close: false,
+      graceful: false,
+    });
+  });
+
   it('registers exclusive refresh and cleanup schedules with stable keys', async () => {
     const fake = fakeBoss();
     const scheduler = new CatalogRefreshScheduler({

@@ -7,6 +7,7 @@ import {
 import { catalogFixtures } from './catalog.js';
 
 const defaultGuide = {
+  baseTradeUrl: null,
   gameVersion: 'Settlers 3.25',
   confidence: 'medium',
   base: {
@@ -121,6 +122,22 @@ const defaultGuide = {
     },
   ],
   selectedEstimatorId: 'third-cheapest',
+  method: {
+    baseCost: null,
+    expectedBases: null,
+    marketStatus: 'unavailable',
+    priceSources: [],
+    id: 'fixture',
+    name: 'Fixture method',
+    expectedCost: null,
+    evidence: null,
+    expectedExecutions: [],
+    materialsPerAttempt: null,
+    steps: [],
+  },
+  targetSignature: 'fixture',
+  verification: 'unverified',
+  uncertainties: [],
 } satisfies Omit<RecipeDetailView, 'evaluation' | 'recipe' | 'snapshot'>;
 
 function createDetail(

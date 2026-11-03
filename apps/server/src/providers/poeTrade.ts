@@ -9,6 +9,9 @@ import {
   type ProviderMoney,
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
+import { domainErrorCodeSchema } from '@poe-worksmith/contracts';
+import type { MarketCollectionAdapter } from '../marketCollection.js';
+import { recipeQueryTarget } from '../recipeMarket.js';
 
 import type { ProviderCircuitGate } from '../circuitBreaker.js';
 import type { RateLimitGate } from '../rateLimitController.js';
@@ -43,6 +46,39 @@ const searchResponseSchema = z
     total: z.number().int().nonnegative(),
   })
   .loose();
+const exchangeSideSchema = z
+  .object({
+    amount: z.number().finite().positive(),
+    currency: z.string().trim().min(1),
+    stock: z.number().finite().nonnegative().optional(),
+  })
+  .loose();
+const exchangeListingSchema = z.object({
+  id: z.string().min(1),
+  listing: z.object({
+    account: z.object({ name: z.string().min(1) }).loose(),
+    indexed: z.iso.datetime({ offset: true }),
+    offers: z.array(
+      z
+        .object({ exchange: exchangeSideSchema, item: exchangeSideSchema })
+        .loose(),
+    ),
+  }),
+});
+const exchangeResponseSchema = z
+  .object({
+    id: z.string().min(1),
+    result: z
+      .union([
+        z.record(z.string(), exchangeListingSchema),
+        z.array(exchangeListingSchema).max(0),
+      ])
+      .transform((result) =>
+        Array.isArray(result) ? result : Object.values(result),
+      ),
+    total: z.number().int().nonnegative(),
+  })
+  .loose();
 const fetchedListingSchema = z
   .object({
     id: z.string().min(1),
@@ -50,8 +86,8 @@ const fetchedListingSchema = z
     listing: z
       .object({
         account: z.object({ name: z.string().min(1) }).loose(),
-        fee: moneySchema.nullish(),
-        indexed: z.iso.datetime(),
+        fee: z.unknown().optional(),
+        indexed: z.iso.datetime({ offset: true }),
         price: moneySchema,
       })
       .loose(),
@@ -76,6 +112,11 @@ export type PoeTradeFetch = (
 
 export class PoeTradeClient implements MarketSearchProvider {
   readonly id = 'poe-trade';
+  readonly #collectionTimeoutMs: number;
+  readonly #collectionSource: MarketCollectionAdapter | undefined;
+  readonly #allowRequests: boolean;
+  #accessBlocked = false;
+  readonly #shutdown = new AbortController();
   readonly #baseUrl: URL;
   readonly #clock: () => Date;
   readonly #circuits: ProviderCircuitGate | undefined;
@@ -88,6 +129,9 @@ export class PoeTradeClient implements MarketSearchProvider {
 
   constructor(options: {
     baseUrl?: string;
+    collectionSource?: MarketCollectionAdapter;
+    collectionTimeoutMs?: number;
+    allowRequests?: boolean;
     circuits?: ProviderCircuitGate;
     clock?: () => Date;
     fetch?: PoeTradeFetch;
@@ -97,6 +141,9 @@ export class PoeTradeClient implements MarketSearchProvider {
     requestTimeoutMs?: number;
     userAgent: string;
   }) {
+    this.#collectionTimeoutMs = options.collectionTimeoutMs ?? 15 * 60_000;
+    this.#collectionSource = options.collectionSource;
+    this.#allowRequests = options.allowRequests ?? true;
     this.#baseUrl = new URL(options.baseUrl ?? defaultBaseUrl);
     this.#circuits = options.circuits;
     this.#clock = options.clock ?? (() => new Date());
@@ -116,7 +163,98 @@ export class PoeTradeClient implements MarketSearchProvider {
     }
   }
 
+  stop() {
+    this.#shutdown.abort();
+  }
+
   async search(request: MarketSearchRequest): Promise<MarketSearchResult> {
+    if (this.#shutdown.signal.aborted)
+      throw new DomainError('MARKET_COLLECTION_CANCELLED');
+    if (!this.#allowRequests || this.#accessBlocked)
+      throw new DomainError('MARKET_ACCESS_BLOCKED');
+    if (request.query.handbookTarget) {
+      if (
+        !this.#collectionSource ||
+        this.#collectionSource.descriptor.access !== 'authorized'
+      )
+        throw new DomainError('MARKET_ACCESS_BLOCKED');
+      const target = recipeQueryTarget(request.query.handbookTarget);
+      if (target.league !== request.league)
+        throw new DomainError('MARKET_QUERY_INVALID');
+      const batch = await this.#collectionSource.collect({
+        target,
+        // Batch time includes shared rate-limit waits; transport timeouts apply to each HTTP call.
+        signal: AbortSignal.any([
+          this.#shutdown.signal,
+          AbortSignal.timeout(this.#collectionTimeoutMs),
+        ]),
+      });
+      if (this.#shutdown.signal.aborted || batch.cancelled)
+        throw new DomainError('MARKET_COLLECTION_CANCELLED');
+      if (batch.errorCode) {
+        if (
+          [
+            'PROVIDER_AUTH_FAILED',
+            'PROVIDER_ACCESS_DENIED',
+            'PROVIDER_CHALLENGE',
+            'MARKET_ACCESS_BLOCKED',
+          ].includes(batch.errorCode)
+        )
+          this.#accessBlocked = true;
+        const code = domainErrorCodeSchema.safeParse(batch.errorCode);
+        throw new DomainError(
+          code.success ? code.data : 'MARKET_COLLECTION_FAILED',
+        );
+      }
+      if (!batch.capturedAt) throw new DomainError('PROVIDER_RESPONSE_INVALID');
+      if ((batch.reportedTotal ?? 0) > 0 && batch.fetchedCount === 0)
+        throw new DomainError('MARKET_COLLECTION_FAILED');
+      const fetchedAt = new Date(batch.capturedAt);
+      return {
+        provider: this.id,
+        fetchedAt,
+        coverage: batch.coverage,
+        sortedPageComplete:
+          batch.coverage === 'partial' &&
+          batch.inexact === false &&
+          batch.fetchedCount === batch.returnedCount &&
+          batch.returnedCount > 0 &&
+          (batch.reportedTotal ?? 0) > batch.returnedCount &&
+          z
+            .object({ sort: z.object({ price: z.literal('asc') }) })
+            .safeParse(batch.searchEvidence?.request).success,
+        totalResults: batch.reportedTotal ?? batch.listings.length,
+        listings: batch.listings.flatMap((row) =>
+          row.price === null ||
+          !row.currency ||
+          !row.externalId ||
+          typeof row.item.seller !== 'string'
+            ? []
+            : [
+                {
+                  id: row.externalId,
+                  account: row.item.seller,
+                  ageSeconds: row.listedAt
+                    ? Math.max(
+                        0,
+                        Math.floor(
+                          (fetchedAt.getTime() - Date.parse(row.listedAt)) /
+                            1000,
+                        ),
+                      )
+                    : 0,
+                  indexedAt: new Date(row.listedAt ?? batch.capturedAt!),
+                  fee:
+                    row.fee === undefined
+                      ? null
+                      : { amount: String(row.fee), currency: 'gold' },
+                  price: { amount: String(row.price), currency: row.currency },
+                  item: { ...row.item, rawListing: row.rawListing ?? null },
+                },
+              ],
+        ),
+      };
+    }
     const league = request.league.trim();
     if (league.length === 0) throw new DomainError('MARKET_QUERY_INVALID');
     const preparedSearch = buildSearchRequest(request.query);
@@ -129,6 +267,40 @@ export class PoeTradeClient implements MarketSearchProvider {
       headers: this.#headers(true),
       method: 'POST',
     });
+    if (preparedSearch.kind === 'exchange') {
+      const exchange = parseProviderResponse(
+        exchangeResponseSchema,
+        rawSearch,
+        this.id,
+        'trade-search',
+        this.#logger,
+      );
+      const fetchedAt = this.#clock();
+      const listings = exchange.result
+        .flatMap((entry) =>
+          entry.listing.offers.flatMap((offer, offerIndex) => {
+            const { exchange: have, item: want } = offer;
+            return have.amount > 0 && want.amount > 0
+              ? [
+                  normalizeExchangeListing(
+                    { ...entry, id: `${entry.id}:${offerIndex}` },
+                    have.amount / want.amount,
+                    have.currency,
+                    fetchedAt,
+                    offer,
+                  ),
+                ]
+              : [];
+          }),
+        )
+        .slice(0, maximumListings);
+      return {
+        fetchedAt,
+        listings,
+        provider: this.id,
+        totalResults: exchange.total,
+      };
+    }
     const search = parseProviderResponse(
       searchResponseSchema,
       rawSearch,
@@ -195,19 +367,25 @@ export class PoeTradeClient implements MarketSearchProvider {
       'provider.request.started',
     );
     await this.#circuits?.beforeRequest(endpoint);
-    await this.#rateLimits?.waitForPermit(endpoint);
     let response: Response;
     try {
+      await this.#rateLimits?.waitForPermit(endpoint, this.#shutdown.signal);
+      this.#shutdown.signal.throwIfAborted();
       response = await this.#fetch(url, {
         ...init,
-        signal: AbortSignal.timeout(this.#requestTimeoutMs),
+        signal: AbortSignal.any([
+          this.#shutdown.signal,
+          AbortSignal.timeout(this.#requestTimeoutMs),
+        ]),
       });
     } catch (error) {
-      const providerError =
-        error instanceof DomainError
+      const providerError = this.#shutdown.signal.aborted
+        ? new DomainError('MARKET_COLLECTION_CANCELLED')
+        : error instanceof DomainError
           ? error
           : new DomainError('PROVIDER_UNAVAILABLE', { cause: error });
-      await this.#circuits?.recordFailure(endpoint, providerError);
+      if (providerError.code !== 'MARKET_COLLECTION_CANCELLED')
+        await this.#circuits?.recordFailure(endpoint, providerError);
       this.#logger?.warn(
         { endpoint, provider: this.id, errorCode: providerError.code },
         'provider.request.failed',
@@ -224,9 +402,13 @@ export class PoeTradeClient implements MarketSearchProvider {
       throw providerError;
     }
 
+    if (this.#shutdown.signal.aborted)
+      throw new DomainError('MARKET_COLLECTION_CANCELLED');
     await this.#rateLimits?.observeResponse(endpoint, response);
 
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403)
+        this.#accessBlocked = true;
       const providerError = mapHttpError(response.status);
       await this.#circuits?.recordFailure(endpoint, providerError);
       this.#logger?.warn(
@@ -259,6 +441,10 @@ export class PoeTradeClient implements MarketSearchProvider {
       (performance.now() - started) / 1000,
     );
 
+    if (response.headers.get('content-type')?.includes('text/html')) {
+      this.#accessBlocked = true;
+      throw new DomainError('PROVIDER_CHALLENGE');
+    }
     try {
       return (await response.json()) as unknown;
     } catch (error) {
@@ -310,17 +496,43 @@ function normalizeListing(
   fetchedAt: Date,
 ): MarketListing {
   const indexedAt = new Date(entry.listing.indexed);
+  const fee = moneySchema.safeParse(entry.listing.fee);
   return {
     account: entry.listing.account.name,
     ageSeconds: Math.max(
       0,
       Math.floor((fetchedAt.getTime() - indexedAt.getTime()) / 1000),
     ),
-    fee: entry.listing.fee ? normalizeMoney(entry.listing.fee) : null,
+    fee: fee.success ? normalizeMoney(fee.data) : null,
     id: entry.id,
     indexedAt,
     item: entry.item,
     price: normalizeMoney(entry.listing.price),
+  };
+}
+
+function normalizeExchangeListing(
+  entry: z.infer<typeof exchangeListingSchema>,
+  unitPrice: number,
+  currency: string,
+  fetchedAt: Date,
+  offer: z.infer<typeof exchangeListingSchema>['listing']['offers'][number],
+): MarketListing {
+  const indexedAt = new Date(entry.listing.indexed);
+  return {
+    account: entry.listing.account.name,
+    ageSeconds: Math.max(
+      0,
+      Math.floor((fetchedAt.getTime() - indexedAt.getTime()) / 1000),
+    ),
+    fee: null,
+    id: entry.id,
+    indexedAt,
+    item: {
+      stock: offer.item.stock ?? null,
+      rawOffer: jsonObjectSchema.parse(offer),
+    },
+    price: { amount: String(unitPrice), currency },
   };
 }
 

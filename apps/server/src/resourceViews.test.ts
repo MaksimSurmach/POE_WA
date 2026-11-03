@@ -7,10 +7,14 @@ import {
 import {
   createInMemoryRepositories,
   transitionRefreshCycle,
+  hashMarketQuery,
+  validateRecipeDocument,
+  type TradeQueryGenerator,
 } from '@poe-worksmith/domain';
 import { describe, expect, it } from 'vitest';
 
 import { synchronizeRecipeCatalog } from './recipes/synchronizeRecipes.js';
+import { generateRecipeMarketQuery } from './recipeMarket.js';
 import { createResourceReaders } from './resourceViews.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
 
@@ -18,7 +22,7 @@ const correlationId = '44444444-4444-4444-8444-444444444444';
 const recipesPath = fileURLToPath(new URL('../../../recipes', import.meta.url));
 const presentationPath = fileURLToPath(
   new URL(
-    '../presentation/poe1/3.26.0/physical-large-cluster.json',
+    '../presentation/poe1/3.29.3.3/physical-large-cluster.json',
     import.meta.url,
   ),
 );
@@ -36,19 +40,26 @@ describe('repository-backed resource views', () => {
     );
 
     expect(report).toMatchObject({
-      created: ['physical-large-cluster-jagged'],
+      created: [
+        'physical-large-cluster-alteration',
+        'physical-large-cluster-jagged',
+      ],
     });
     const catalog = catalogResponseSchema.parse(
       await readers.readCatalog(correlationId),
     );
     expect(catalog.state).toBe('loading');
-    expect(catalog.data?.entries).toHaveLength(1);
-    expect(catalog.data?.entries[0]).toMatchObject({
+    expect(catalog.data?.entries).toHaveLength(2);
+    expect(
+      catalog.data?.entries.find(
+        ({ recipe }) => recipe.id === 'physical-large-cluster-jagged',
+      ),
+    ).toMatchObject({
       evaluation: { status: 'loading' },
       recipe: {
         id: 'physical-large-cluster-jagged',
         minimumCapital: null,
-        title: 'Physical Large Cluster Jewel',
+        title: 'Physical Cluster Jewel · 3 Notables',
       },
     });
 
@@ -62,13 +73,13 @@ describe('repository-backed resource views', () => {
         {
           costPerAttempt: null,
           name: 'Jagged Fossil',
-          quantityPerAttempt: 30,
+          quantityPerAttempt: 1,
           unitPrice: null,
         },
         {
           costPerAttempt: null,
           name: 'Primitive Chaotic Resonator',
-          quantityPerAttempt: 30,
+          quantityPerAttempt: 1,
           unitPrice: null,
         },
       ],
@@ -76,14 +87,14 @@ describe('repository-backed resource views', () => {
       presentation: {
         base: { name: 'Large Cluster Jewel' },
         materials: [
-          { name: 'Jagged Fossil', quantity: 30 },
-          { name: 'Primitive Chaotic Resonator', quantity: 30 },
+          { name: 'Jagged Fossil', quantity: 1 },
+          { name: 'Primitive Chaotic Resonator', quantity: 1 },
         ],
         target: {
           modifiers: [
             { label: 'Battle-Hardened' },
-            { label: 'Furious Assault' },
             { label: 'Master the Fundamentals' },
+            { label: 'Furious Assault' },
           ],
         },
         version: 1,
@@ -103,6 +114,207 @@ describe('repository-backed resource views', () => {
       ),
     );
   });
+
+  it('omits a catalog item preview when its base has no presentation metadata', async () => {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    const readers = createResourceReaders(repositories, {
+      get: () => null,
+      version: () => '1',
+    });
+
+    const catalog = catalogResponseSchema.parse(
+      await readers.readCatalog(correlationId),
+    );
+    expect(catalog.data?.entries[0]).not.toHaveProperty('itemPreview');
+  });
+
+  it('links the recipe base to a league-specific PoE Trade search', async () => {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Mercenaries',
+      isCurrent: true,
+      metadata: {},
+      name: 'Mercenaries',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: new Date('2026-11-02T00:00:00.000Z'),
+    });
+    const trade: TradeQueryGenerator = {
+      generate: async ({ league, setup }) => {
+        expect(league).toBe('Mercenaries');
+        expect(setup.target).toEqual({
+          allOf: [],
+          anyOf: [],
+          minimumMatched: null,
+        });
+        expect(setup.base.itemLevel).toBe(83);
+        expect(setup.base.variant).toMatchObject({
+          kind: 'cluster-jewel',
+          passiveCount: 8,
+          smallPassiveStatId: 'physical-damage',
+        });
+        return {
+          diagnostics: [],
+          ok: true,
+          value: {
+            diagnostics: { gameDataVersion: '3.26.0', mappingVersion: 'test' },
+            hash: 'base-query',
+            query: {
+              query: {
+                type: 'Large Cluster Jewel',
+                filters: { misc_filters: { filters: { ilvl: { min: 83 } } } },
+              },
+            },
+          },
+        };
+      },
+    };
+    const readers = createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+      trade,
+    );
+    const detail = recipeResponseSchema.parse(
+      await readers.readRecipe(correlationId, 'physical-large-cluster-jagged'),
+    );
+    const url = new URL(detail.data!.baseTradeUrl!);
+    expect(url.pathname).toContain('/trade/search/Mercenaries');
+    expect(JSON.parse(url.searchParams.get('q') ?? 'null')).toMatchObject({
+      query: {
+        type: 'Large Cluster Jewel',
+        filters: { misc_filters: { filters: { ilvl: { min: 83 } } } },
+      },
+      sort: { price: 'asc' },
+    });
+    const unavailable = await createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+      {
+        generate: async () => {
+          throw new Error('mapping store unavailable');
+        },
+      },
+    ).readRecipe(correlationId, 'physical-large-cluster-jagged');
+    expect(
+      recipeResponseSchema.parse(unavailable).data?.baseTradeUrl,
+    ).toBeNull();
+  });
+
+  it.each([false, true])(
+    'exposes current economics and withholds expired prices (expired=%s)',
+    async (expired) => {
+      const repositories = createInMemoryRepositories();
+      await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+      const league = await repositories.leagues.upsert({
+        endAt: null,
+        game: 'poe1',
+        gggId: 'Mercenaries',
+        isCurrent: true,
+        metadata: {},
+        name: 'Mercenaries',
+        realm: 'pc',
+        startAt: null,
+        syncedAt: new Date('2026-11-02T00:00:00.000Z'),
+      });
+      const cycle = await repositories.cycles.save({
+        completedQueries: 0,
+        completedRecipes: 0,
+        errorMessage: null,
+        failedQueries: 0,
+        failedRecipes: 0,
+        finishedAt: null,
+        id: '11111111-1111-4111-8111-111111111111',
+        leagueId: league.id,
+        publishedAt: null,
+        requestedAt: new Date('2026-11-02T00:00:00.000Z'),
+        startedAt: null,
+        status: 'queued',
+        totalQueries: 0,
+        totalRecipes: 1,
+      });
+      const running = await repositories.cycles.save(
+        transitionRefreshCycle(cycle, 'running', new Date()),
+      );
+      await repositories.evaluations.save({
+        confidence: 'low',
+        currency: 'chaos',
+        errorCode: null,
+        estimatedSalePrice: '10',
+        evaluatedAt: new Date('2026-11-02T00:00:00.000Z'),
+        expectedCraftCost: '3.75',
+        lastSuccessfulAt: new Date('2026-11-02T00:00:00.000Z'),
+        leagueId: league.id,
+        marginPercent: '62.5',
+        observationId: null,
+        profit: '6.25',
+        recipeId: 'physical-large-cluster-jagged',
+        refreshCycleId: running.id,
+        sourceSnapshotDedupeKey: 'fixture',
+        status: 'success',
+        methodCost: {
+          expiresAt: expired ? '2020-01-01T00:00:00Z' : '2099-01-01T00:00:00Z',
+          recipeContentHash: (
+            await repositories.recipes.findById('physical-large-cluster-jagged')
+          )?.contentHash,
+          expectedCost: { amount: '3.75', currency: 'chaos' },
+          materialsPerAttempt: { amount: '1.5', currency: 'chaos' },
+          steps: [
+            {
+              id: 'roll-with-fossil',
+              materials: [
+                {
+                  costPerAttempt: { amount: '1', currency: 'chaos' },
+                  itemId: 'jagged-fossil',
+                  unitPrice: { amount: '1', currency: 'chaos' },
+                },
+              ],
+            },
+          ],
+        },
+      });
+      await repositories.cycles.save({ ...running, completedRecipes: 1 });
+      await repositories.cycles.publish(running.id, new Date());
+      const readers = createResourceReaders(
+        repositories,
+        await loadItemPresentationCatalog(presentationPath),
+      );
+
+      const detail = recipeResponseSchema.parse(
+        await readers.readRecipe(
+          correlationId,
+          'physical-large-cluster-jagged',
+        ),
+      );
+      expect(detail.data?.evaluation).toMatchObject({
+        status: expired ? 'stale' : 'success',
+        profit: expired ? null : { amount: 6.25, currency: 'chaos' },
+      });
+      expect(detail.data?.method).toMatchObject({
+        expectedCost: expired ? null : { amount: 3.75, currency: 'chaos' },
+        materialsPerAttempt: { amount: 1.5, currency: 'chaos' },
+        steps: [
+          {
+            materials: [
+              {
+                costPerAttempt: { amount: 1, currency: 'chaos' },
+                itemId: 'jagged-fossil',
+                unitPrice: { amount: 1, currency: 'chaos' },
+              },
+              {
+                costPerAttempt: null,
+                itemId: 'primitive-chaotic-resonator',
+                unitPrice: null,
+              },
+            ],
+          },
+        ],
+      });
+    },
+  );
 
   it('does not present a published catalog after its league rolls over', async () => {
     const repositories = createInMemoryRepositories();
@@ -163,3 +375,76 @@ describe('repository-backed resource views', () => {
     });
   });
 });
+
+it.each([false, true])(
+  'omits expired raw output snapshot even without a published evaluation (expired=%s)',
+  async (expired) => {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    const league = await repositories.leagues.upsert({
+      game: 'poe1',
+      realm: 'pc',
+      gggId: 'Standard',
+      name: 'Standard',
+      isCurrent: true,
+      startAt: null,
+      endAt: null,
+      syncedAt: new Date(),
+      metadata: {},
+    });
+    const recipe = (await repositories.recipes.findById(
+      'physical-large-cluster-jagged',
+    ))!;
+    const trade: TradeQueryGenerator = {
+      generate: async () => ({
+        ok: true,
+        diagnostics: [],
+        value: {
+          hash: 'fixture',
+          diagnostics: {
+            gameDataVersion: '3.29.3.3',
+            mappingVersion: 'fixture',
+          },
+          query: { query: { type: 'Large Cluster Jewel' } },
+        },
+      }),
+    };
+    const query = await generateRecipeMarketQuery(
+      trade,
+      validateRecipeDocument(recipe.definition),
+      league.gggId,
+    );
+    const id = '33333333-3333-4333-8333-333333333333';
+    const cycleId = '55555555-5555-4555-8555-555555555555';
+    await repositories.marketQueries.save({
+      id,
+      recipeId: recipe.id,
+      active: true,
+      canonicalHash: await hashMarketQuery({ league: league.gggId, ...query }),
+      provider: query.provider,
+      query: query.query,
+    });
+    await repositories.snapshots.save({
+      marketQueryId: id,
+      leagueId: league.id,
+      refreshCycleId: cycleId,
+      dedupeKey: 'fixture-stale',
+      capturedAt: new Date(expired ? '2019-01-01' : Date.now()),
+      expiresAt: new Date(expired ? '2020-01-01' : '2099-01-01'),
+      providerStatus: 200,
+      payload: { listings: [], totalResults: 0, coverage: 'partial' },
+    });
+    const readers = createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+      trade,
+    );
+    const response = await readers.readRecipe(correlationId, recipe.id);
+    expect(response.data?.snapshot === null).toBe(expired);
+    if (!expired)
+      expect(response.data?.snapshot).toMatchObject({
+        coverage: 'partial',
+        listings: [],
+      });
+  },
+);

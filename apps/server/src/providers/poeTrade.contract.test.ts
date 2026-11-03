@@ -57,7 +57,14 @@ describe('PoE Trade provider contracts', () => {
       listings: [],
     });
     await expect(client.search(request(exchangeQuery))).resolves.toMatchObject({
-      listings: [],
+      listings: [
+        {
+          account: 'fixture-seller-1',
+          id: 'fixture-offer-1:0',
+          price: { amount: '0.1', currency: 'chaos' },
+        },
+      ],
+      totalResults: 1,
     });
     expect(calls).toEqual([
       'https://trade.fixture/api/trade/search/Fixture%20League',

@@ -114,6 +114,8 @@ const itemSchema = z
     ilvl: z.number().int().optional(),
     corrupted: z.boolean().optional(),
     fractured: z.boolean().optional(),
+    synthesised: z.boolean().optional(),
+    enchantMods: z.array(modifierSchema).optional(),
     influences: z.record(z.string(), z.boolean()).optional(),
     explicitMods: z.array(modifierSchema).optional(),
     implicitMods: z.array(modifierSchema).optional(),
@@ -133,7 +135,10 @@ const itemSchema = z
           .record(
             z.string(),
             z.array(
-              z.tuple([z.string(), z.array(z.number().int().nonnegative())]),
+              z.tuple([
+                z.string(),
+                z.array(z.number().int().nonnegative()).nullable(),
+              ]),
             ),
           )
           .optional(),
@@ -179,7 +184,13 @@ const fetchSchema = z.object({
 });
 const jsonRecord = z.record(z.string(), z.json());
 
-const origins = ['explicit', 'implicit', 'crafted', 'fractured'] as const;
+const origins = [
+  'explicit',
+  'implicit',
+  'crafted',
+  'fractured',
+  'enchant',
+] as const;
 function modifierLines(item: z.infer<typeof itemSchema>) {
   return origins.flatMap((origin) =>
     (item[`${origin}Mods`] ?? []).map((mod) =>
@@ -213,9 +224,18 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
           .join('(-?\\d+(?:\\.\\d+)?)') +
         '$';
       for (const line of lines) {
-        if (line.hash !== undefined && line.hash !== id) continue;
+        if (
+          line.hash !== undefined &&
+          ![
+            id,
+            id.split('|')[0],
+            id.split('.')[1],
+            id.split('.')[1]?.split('|')[0],
+          ].includes(line.hash)
+        )
+          continue;
         const match = new RegExp(pattern).exec(line.description);
-        if (!match?.[1]) continue;
+        if (!match) continue;
         const indexes =
           item.extended?.hashes?.[origin]?.find(([hash]) => hash === id)?.[1] ??
           [];
@@ -229,7 +249,7 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
           : undefined;
         mods.push({
           id,
-          value: Number(match[1]),
+          value: match[1] === undefined ? 1 : Number(match[1]),
           ...(tier !== undefined ? { tier } : {}),
         });
       }
@@ -310,6 +330,7 @@ export function normalizeTradeCompatibleListing(
       ...(item.verified !== undefined
         ? {
             corrupted: item.corrupted ?? false,
+            synthesised: item.synthesised ?? false,
             fractured:
               item.fractured ??
               modifierLines(item).some((line) => line.origin === 'fractured'),
@@ -325,7 +346,8 @@ export function normalizeTradeCompatibleListing(
         : {}),
       // Patch comes from the explicitly configured search scope, not from an inferred current league.
       patch: target.patch,
-      normalizationVersion: 'trade-compatible-v2',
+      realm: target.realm,
+      normalizationVersion: 'trade-compatible-v3',
       seller: listing.account.name,
       status: 'listed',
       ...(listing.price ? { currency: listing.price.currency } : {}),
@@ -333,7 +355,7 @@ export function normalizeTradeCompatibleListing(
       modsComplete: false,
       verifiedAbsentStats,
       ...(resistanceEvidenceComplete ? { elementalResistances } : {}),
-      ...(modArraysPresent
+      ...(modArraysPresent || item.verified !== undefined
         ? {
             influences: Object.entries(item.influences ?? {})
               .filter(([, present]) => present)
@@ -359,7 +381,10 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     }
   >();
   readonly #clock: () => Date;
-  readonly #economy: Pick<MarketEconomyRepository, 'find'> | undefined;
+  readonly #economy:
+    | (Pick<MarketEconomyRepository, 'find'> &
+        Partial<Pick<MarketEconomyRepository, 'latest'>>)
+    | undefined;
   #denied = false;
   connectionStatus: NonNullable<MarketCollectionSource['connectionStatus']> =
     'UNAVAILABLE';
@@ -369,7 +394,8 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     options: {
       fetcher?: typeof fetch;
       clock?: () => Date;
-      economy?: Pick<MarketEconomyRepository, 'find'>;
+      economy?: Pick<MarketEconomyRepository, 'find'> &
+        Partial<Pick<MarketEconomyRepository, 'latest'>>;
     } = {},
   ) {
     this.#config = config;
@@ -597,6 +623,11 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     const rawResults = jsonRecord.parse(response.data).result;
     if (!Array.isArray(rawResults))
       throw new DomainError('PROVIDER_RESPONSE_INVALID');
+    const exchangeSnapshotId =
+      target.tradeSearch?.exchangeSnapshotId ??
+      (target.tradeSearch?.includeOtherCurrencies
+        ? (await this.#economy?.latest?.(target.league, 'Currency'))?.id
+        : undefined);
     const listings = await Promise.all(
       rawResults.map(async (entry) => {
         if (entry === null) return null;
@@ -611,9 +642,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
           now: this.#clock().getTime(),
           dataKind: 'observed',
           ...(this.#economy ? { economy: this.#economy } : {}),
-          ...(target.tradeSearch.exchangeSnapshotId
-            ? { exchangeSnapshotId: target.tradeSearch.exchangeSnapshotId }
-            : {}),
+          ...(exchangeSnapshotId ? { exchangeSnapshotId } : {}),
         });
         return converted?.exchange
           ? {

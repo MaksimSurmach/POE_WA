@@ -1,25 +1,26 @@
-import type { CatalogEntry, CatalogResponse } from '@poe-worksmith/contracts';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Link, NavLink, Outlet, Route, Routes } from 'react-router-dom';
+import type {
+  CatalogEntry,
+  CatalogResponse,
+  CurrentLeagueResponse,
+} from '@poe-worksmith/contracts';
+import { useEffect, useMemo, useState, useRef } from 'react';
+import { Link, Outlet, Route, Routes } from 'react-router-dom';
 
 import {
   defaultCatalogFilters,
-  filterAndSortCatalog,
-  snapshotAgeSeconds,
+  formatMarginPercent,
+  filterCatalog,
   type CatalogFilters,
 } from './catalog.js';
 import {
-  EvaluationStatus,
-  FreshnessIndicator,
   Money,
   ProfitBadge,
   StatusPanel,
-  Tag,
+  economicClass,
 } from './components.js';
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
-import { RefreshFreshness } from './refreshFreshness.js';
-import { MarketPage } from './MarketPage.js';
+import { ItemTooltip } from './ItemTooltip.js';
 
 const apiClient = createApiClient();
 
@@ -28,28 +29,9 @@ function AppShell() {
     <>
       <header className="app-header">
         <div className="app-header__inner">
-          <Link className="brand" to="/" aria-label="POE Worksmith home">
-            <span>POE</span> Worksmith
+          <Link className="brand" to="/" aria-label="Worksmith Handbook home">
+            <span>Worksmith</span> Handbook
           </Link>
-          <nav aria-label="Primary navigation">
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? 'nav-link is-active' : 'nav-link'
-              }
-              to="/"
-              end
-            >
-              Рынок
-            </NavLink>
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? 'nav-link is-active' : 'nav-link'
-              }
-              to="/catalog"
-            >
-              Рецепты
-            </NavLink>
-          </nav>
         </div>
       </header>
       <main className="app-main">
@@ -63,29 +45,126 @@ function CatalogRoute() {
   const [filters, setFilters] = useState<CatalogFilters>(defaultCatalogFilters);
   const [response, setResponse] = useState<CatalogResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const catalogEntries = response?.data?.entries ?? [];
+  const [league, setLeague] = useState<CurrentLeagueResponse['data'] | null>(
+    null,
+  );
+  const refreshBaseline = useRef<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState('');
+  useEffect(() => {
+    apiClient
+      .getCurrentLeague()
+      .then((r) => setLeague(r.data))
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    let active = true;
+    apiClient
+      .getRefreshFreshness()
+      .then((r) => {
+        if (active && r.data.active) {
+          refreshBaseline.current = r.data.published?.id ?? null;
+          setRefreshing(true);
+          setRefreshMessage('Price refresh running.');
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (!refreshing) return;
+    let active = true;
+    const queuedAt = Date.now();
+    const poll = setInterval(() => {
+      apiClient
+        .getRefreshFreshness()
+        .then(async (r) => {
+          if (!active) return;
+          if (
+            (r.data.lastAttempt?.id ?? null) === refreshBaseline.current &&
+            Date.now() - queuedAt > 60_000
+          ) {
+            setRefreshing(false);
+            setRefreshMessage(
+              'Refresh has not started. Check worker status and try again.',
+            );
+            return;
+          }
+          const cycle = r.data.active ?? r.data.lastAttempt;
+          if (cycle)
+            setRefreshMessage(
+              `${r.data.state}: ${cycle.completedQueries + cycle.failedQueries}/${cycle.totalQueries} queries`,
+            );
+          if (
+            ['published', 'failed'].includes(r.data.state) &&
+            r.data.lastAttempt?.id !== refreshBaseline.current
+          ) {
+            const [catalog, currentLeague] = await Promise.all([
+              apiClient.getCatalog(),
+              apiClient.getCurrentLeague(),
+            ]);
+            if (active) {
+              setResponse(catalog);
+              setLeague(currentLeague.data);
+              setRefreshing(false);
+            }
+          }
+        })
+        .catch(() => {
+          if (active) {
+            setRefreshing(false);
+            setRefreshMessage('Price refresh status unavailable.');
+          }
+        });
+    }, 2000);
+    return () => {
+      active = false;
+      clearInterval(poll);
+    };
+  }, [refreshing]);
+  async function refreshPrices() {
+    setRefreshing(true);
+    setRefreshMessage('Requesting price refresh…');
+    try {
+      const freshness = (await apiClient.getRefreshFreshness()).data;
+      refreshBaseline.current = freshness.active
+        ? (freshness.published?.id ?? null)
+        : (freshness.lastAttempt?.id ?? null);
+      if (freshness.active) {
+        setRefreshMessage('A price refresh is already running.');
+        return;
+      }
+      const result = await apiClient.triggerPriceRefresh();
+      if (!result.data.accepted) refreshBaseline.current = null;
+      setRefreshMessage(
+        result.data.accepted
+          ? 'Price refresh queued.'
+          : 'A refresh is already queued or running.',
+      );
+    } catch {
+      setRefreshing(false);
+      setRefreshMessage(
+        'Price refresh unavailable. Check the server connection and configured source access.',
+      );
+    }
+  }
+  const entries = response?.data?.entries ?? [];
+  const marketUpdatedAt = entries
+    .map(({ snapshot }) => snapshot?.capturedAt)
+    .filter((timestamp): timestamp is string => Boolean(timestamp))
+    .sort()
+    .at(-1);
   const categories = useMemo(
     () =>
-      [...new Set(catalogEntries.map(({ recipe }) => recipe.category))].sort(),
-    [catalogEntries],
+      [...new Set([...entries.map(({ recipe }) => recipe.category)])].sort(),
+    [entries],
   );
-  const methods = useMemo(
-    () =>
-      [
-        ...new Set(catalogEntries.map(({ recipe }) => recipe.craftMethod)),
-      ].sort(),
-    [catalogEntries],
+  const filteredEntries = useMemo(
+    () => filterCatalog(entries, filters),
+    [entries, filters],
   );
-  const tags = useMemo(
-    () =>
-      [...new Set(catalogEntries.flatMap(({ recipe }) => recipe.tags))].sort(),
-    [catalogEntries],
-  );
-  const entries = useMemo(
-    () => filterAndSortCatalog(catalogEntries, filters),
-    [catalogEntries, filters],
-  );
-
   useEffect(() => {
     let active = true;
     apiClient
@@ -108,281 +187,254 @@ function CatalogRoute() {
     setFilters((current) => ({ ...current, [key]: value }));
   }
 
-  if (loadError) {
-    return (
-      <>
-        <CatalogTitle />
-        <StatusPanel tone="danger" title="Catalog unavailable">
-          The server did not return a valid catalog. Retry after the deployment
-          is healthy.
-        </StatusPanel>
-      </>
-    );
-  }
-
-  if (!response) {
-    return (
-      <>
-        <CatalogTitle />
-        <StatusPanel tone="info" title="Loading catalog" />
-      </>
-    );
-  }
-
-  if (catalogEntries.length === 0) {
-    return (
-      <section className="empty-state" aria-labelledby="empty-catalog-heading">
-        <h1 id="empty-catalog-heading">Catalog is empty</h1>
-        <p>Add a validated recipe to publish the first catalog.</p>
-      </section>
-    );
-  }
-
   return (
     <>
       <section className="catalog-heading" aria-labelledby="catalog-heading">
         <div>
-          <h1 id="catalog-heading">Craft catalog</h1>
-          <p>Compare expected cost, sale price, and market freshness.</p>
+          <h1 id="catalog-heading">Worksmith Handbook</h1>
+          <p>
+            {league
+              ? `${league.discovery === 'confirmed' ? '' : 'Last known league: '}${league.name} · Last checked ${new Date(league.syncedAt).toLocaleString('en-US')}`
+              : 'League unavailable'}
+          </p>
+          {marketUpdatedAt ? (
+            <p>
+              Market updated{' '}
+              <time dateTime={marketUpdatedAt}>
+                {new Intl.DateTimeFormat('en-US', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }).format(new Date(marketUpdatedAt))}
+              </time>
+            </p>
+          ) : null}
         </div>
-        <div
-          className="catalog-meta"
-          aria-label="Catalog publication and refresh status"
-        >
-          <RefreshFreshness />
+        <div className="handbook-refresh">
+          <button
+            type="button"
+            disabled={refreshing}
+            onClick={() => void refreshPrices()}
+          >
+            {refreshing ? 'Refreshing…' : 'Refresh Prices'}
+          </button>
+          <span role="status">{refreshMessage}</span>
         </div>
       </section>
 
-      {response.state === 'loading' ? (
-        <StatusPanel tone="info" title="Market evaluation pending">
-          Recipe definitions are loaded from Git. Prices will appear after the
-          first successful refresh.
+      {loadError ? (
+        <StatusPanel tone="danger" title="Recipes unavailable">
+          The recipe list could not be loaded. Try again when the service is
+          available.
         </StatusPanel>
       ) : null}
 
-      <details className="catalog-filters" open>
-        <summary>Filters and sorting</summary>
-        <div className="catalog-filters__grid">
-          <Filter label="Search">
-            <input
-              type="search"
-              placeholder="Search recipes"
-              value={filters.search}
-              onChange={(event) => updateFilter('search', event.target.value)}
-            />
-          </Filter>
-          <Filter label="Category">
-            <select
-              value={filters.category}
-              onChange={(event) => updateFilter('category', event.target.value)}
-            >
-              <option value="all">All categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </Filter>
-          <Filter label="Tag">
-            <select
-              value={filters.tag}
-              onChange={(event) => updateFilter('tag', event.target.value)}
-            >
-              <option value="all">All tags</option>
-              {tags.map((tag) => (
-                <option key={tag} value={tag}>
-                  {tag}
-                </option>
-              ))}
-            </select>
-          </Filter>
-          <Filter label="Craft method">
-            <select
-              value={filters.method}
-              onChange={(event) => updateFilter('method', event.target.value)}
-            >
-              <option value="all">All methods</option>
-              {methods.map((method) => (
-                <option key={method} value={method}>
-                  {method}
-                </option>
-              ))}
-            </select>
-          </Filter>
-          <Filter label="Budget">
-            <select
-              value={filters.budget}
-              onChange={(event) => updateFilter('budget', event.target.value)}
-            >
-              <option value="all">Any budget</option>
-              <option value="2">Up to 2 div</option>
-              <option value="5">Up to 5 div</option>
-              <option value="10">Up to 10 div</option>
-            </select>
-          </Filter>
-          <Filter label="Status">
-            <select
-              value={filters.status}
-              onChange={(event) => updateFilter('status', event.target.value)}
-            >
-              <option value="all">All statuses</option>
-              <option value="success">Ready</option>
-              <option value="stale">Stale</option>
-              <option value="loading">Loading</option>
-              <option value="partial">Partial</option>
-              <option value="error">Error</option>
-            </select>
-          </Filter>
-          <Filter label="Sort by">
-            <select
-              value={filters.sort}
-              onChange={(event) =>
-                updateFilter(
-                  'sort',
-                  event.target.value as CatalogFilters['sort'],
-                )
-              }
-            >
-              <option value="profit">Profit: high to low</option>
-              <option value="margin">Margin: high to low</option>
-              <option value="capital">Capital: low to high</option>
-              <option value="freshness">Freshness: newest first</option>
-            </select>
-          </Filter>
-          <button
-            className="clear-filters"
-            type="button"
-            onClick={() => setFilters(defaultCatalogFilters)}
-          >
-            Clear filters
-          </button>
-        </div>
-      </details>
-
-      {entries.length === 0 ? (
-        <section className="empty-state" aria-labelledby="no-results-heading">
-          <h2 id="no-results-heading">No recipes match these filters</h2>
-          <p>Clear the filters to return to the published catalog.</p>
-          <button
-            type="button"
-            onClick={() => setFilters(defaultCatalogFilters)}
-          >
-            Clear filters
-          </button>
+      {!response && !loadError ? (
+        <StatusPanel tone="info" title="Loading recipes" />
+      ) : entries.length === 0 &&
+        !filters.search.trim() &&
+        filters.category === 'all' ? (
+        <section className="empty-state" aria-labelledby="empty-heading">
+          <h2 id="empty-heading">No crafting targets available</h2>
+          <p>Crafting recipes will appear here.</p>
         </section>
       ) : (
-        <section className="catalog-table" aria-label="Ranked recipe catalog">
-          <div className="catalog-table__header" aria-hidden="true">
-            <span>Recipe</span>
-            <span>Category</span>
-            <span>Capital</span>
-            <span>Cost</span>
-            <span>Sale</span>
-            <span>Profit</span>
-            <span>Margin</span>
-            <span>Listings</span>
-            <span>Freshness</span>
-            <span>Status</span>
-            <span />
-          </div>
-          {entries.map((entry) => (
-            <CatalogRow entry={entry} key={entry.recipe.id} />
-          ))}
-        </section>
+        <>
+          <section
+            className="handbook-controls"
+            aria-label="Crafting target search and item types"
+          >
+            <label className="catalog-search">
+              <span className="visually-hidden">Search items</span>
+              <input
+                type="search"
+                placeholder="Search items or targets…"
+                value={filters.search}
+                onChange={(event) => updateFilter('search', event.target.value)}
+              />
+            </label>
+            <label>
+              Tag{' '}
+              <select
+                value={filters.tag ?? 'all'}
+                onChange={(e) => updateFilter('tag', e.target.value)}
+              >
+                <option value="all">All tags</option>
+                {[...new Set(entries.flatMap((e) => e.recipe.tags))]
+                  .sort()
+                  .map((tag) => (
+                    <option key={tag}>{tag}</option>
+                  ))}
+              </select>
+            </label>
+            <label>
+              Sort{' '}
+              <select
+                value={filters.sort ?? 'title'}
+                onChange={(e) =>
+                  updateFilter('sort', e.target.value as CatalogFilters['sort'])
+                }
+              >
+                <option value="title">Target</option>
+                <option value="cost">Expected cost</option>
+                <option value="profit">Profit</option>
+                <option value="roi">ROI</option>
+                <option value="freshness">Freshness</option>
+              </select>
+            </label>
+            <div
+              className="category-filters"
+              role="group"
+              aria-label="Filter by item type"
+            >
+              <button
+                aria-pressed={filters.category === 'all'}
+                onClick={() => updateFilter('category', 'all')}
+                type="button"
+              >
+                All
+              </button>
+              {categories.map((category) => (
+                <button
+                  aria-pressed={filters.category === category}
+                  key={category}
+                  onClick={() => updateFilter('category', category)}
+                  type="button"
+                >
+                  {category.replaceAll('-', ' ')}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {filteredEntries.length === 0 ? (
+            <p className="handbook-empty">No items match these filters.</p>
+          ) : (
+            <section
+              className="craft-target-list"
+              aria-label="Crafting targets"
+            >
+              {filteredEntries.map((entry) => (
+                <RecipeTargetRow entry={entry} key={entry.recipe.id} />
+              ))}
+            </section>
+          )}
+        </>
       )}
     </>
   );
 }
 
-function CatalogTitle() {
+function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
+  const snapshot = entry.snapshot;
+  const ask = entry.evaluation.estimatedSalePrice;
+  const itemType = entry.recipe.category.replaceAll('-', ' ');
+  const method = entry.recipe.craftMethod.replaceAll('-', ' ');
   return (
-    <section className="catalog-heading" aria-labelledby="catalog-heading">
-      <div>
-        <h1 id="catalog-heading">Craft catalog</h1>
-        <p>Compare expected cost, sale price, and market freshness.</p>
-      </div>
-    </section>
-  );
-}
-
-function Filter({ children, label }: { children: ReactNode; label: string }) {
-  return (
-    <label className="filter-control">
-      <span>{label}</span>
-      {children}
-    </label>
-  );
-}
-
-function CatalogRow({ entry }: { entry: CatalogEntry }) {
-  const { evaluation, recipe, snapshot } = entry;
-  const ageSeconds = snapshotAgeSeconds(entry, new Date().toISOString());
-
-  return (
-    <Link className="catalog-row" to={`/recipes/${recipe.id}`}>
-      <div className="catalog-row__identity">
-        <strong>{recipe.title}</strong>
-        <span className="tag-list" aria-label={`${recipe.title} tags`}>
-          {recipe.tags.map((tag) => (
-            <Tag key={tag}>{tag}</Tag>
-          ))}
-        </span>
-      </div>
-      <CatalogCell label="Category">{recipe.category}</CatalogCell>
-      <CatalogCell label="Capital">
-        <Money price={recipe.minimumCapital} />
-      </CatalogCell>
-      <CatalogCell label="Cost">
-        <Money price={evaluation.expectedCraftCost} />
-      </CatalogCell>
-      <CatalogCell label="Sale">
-        <Money price={evaluation.estimatedSalePrice} />
-      </CatalogCell>
-      <CatalogCell label="Profit">
-        {evaluation.profit ? (
-          <ProfitBadge
-            amount={evaluation.profit.amount}
-            currency={evaluation.profit.currency}
-          />
+    <article className="craft-target-card">
+      <div className="craft-target-card__identity">
+        {entry.itemPreview ? (
+          <ItemTooltip item={entry.itemPreview} />
         ) : (
-          '—'
+          <ItemArtwork iconUrl={null} itemType={itemType} />
         )}
-      </CatalogCell>
-      <CatalogCell label="Margin">
-        {evaluation.marginPercent === null
-          ? '—'
-          : `${evaluation.marginPercent}%`}
-      </CatalogCell>
-      <CatalogCell label="Listings">
-        {snapshot?.totalResults ?? '—'}
-      </CatalogCell>
-      <CatalogCell label="Freshness">
-        {ageSeconds === null ? (
-          '—'
-        ) : (
-          <FreshnessIndicator ageSeconds={ageSeconds} />
-        )}
-      </CatalogCell>
-      <CatalogCell label="Status">
-        <EvaluationStatus status={evaluation.status} />
-      </CatalogCell>
-      <span className="catalog-row__action">View recipe</span>
-    </Link>
+        <div className="craft-target-card__copy">
+          <Link to={`/recipes/${entry.recipe.id}`} title={entry.recipe.title}>
+            <strong>{entry.recipe.title}</strong>
+          </Link>
+          <div className="craft-target-card__details">
+            <span>{itemType}</span>
+            <span>{method}</span>
+            <span>Patch {entry.recipe.patch ?? 'unverified'}</span>
+          </div>
+          {entry.evaluation.status === 'stale' &&
+          entry.evaluation.lastSuccessfulAt ? (
+            <small className="craft-target-card__freshness">
+              Older prices ·{' '}
+              <time dateTime={entry.evaluation.lastSuccessfulAt}>
+                {new Intl.DateTimeFormat('en-US', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }).format(new Date(entry.evaluation.lastSuccessfulAt))}
+              </time>
+            </small>
+          ) : null}
+        </div>
+      </div>
+      <div className="craft-target-card__market">
+        <div className="craft-target-card__metrics">
+          <div>
+            <small>Expected cost</small>
+            <Money price={entry.evaluation.expectedCraftCost} />
+          </div>
+          <div>
+            <small>Cheapest confirmed ask</small>
+            {ask ? <Money price={ask} /> : <strong>—</strong>}
+          </div>
+          <div>
+            <small>Profit</small>
+            {entry.evaluation.profit ? (
+              <ProfitBadge {...entry.evaluation.profit} />
+            ) : (
+              <strong>—</strong>
+            )}
+          </div>
+          <div>
+            <small>ROI</small>
+            <strong className={economicClass(entry.evaluation.marginPercent)}>
+              {entry.evaluation.marginPercent === null
+                ? '—'
+                : formatMarginPercent(entry.evaluation.marginPercent)}
+            </strong>
+          </div>
+          <div>
+            <small>Verified sellers</small>
+            <strong>{snapshot ? snapshot.listings.length : '—'}</strong>
+          </div>
+          <div>
+            <small>Market confidence</small>
+            <strong>{entry.evaluation.confidence ?? 'Unknown'}</strong>
+          </div>
+        </div>
+        {snapshot ? (
+          <small>
+            {snapshot.coverage ?? 'Unknown'} coverage
+            {snapshot.sortedPageComplete
+              ? ' (complete lowest-price page)'
+              : ''}{' '}
+            · {new Date(snapshot.capturedAt).toLocaleString('en-US')}
+            {snapshot.expiresAt && Date.parse(snapshot.expiresAt) < Date.now()
+              ? ' · Stale'
+              : ''}
+          </small>
+        ) : null}
+      </div>
+    </article>
   );
 }
 
-function CatalogCell({
-  children,
-  label,
+function ItemArtwork({
+  iconUrl,
+  itemType,
 }: {
-  children: ReactNode;
-  label: string;
+  iconUrl: string | null;
+  itemType: string;
 }) {
-  return (
-    <span className="catalog-cell">
-      <span className="catalog-cell__label">{label}</span>
-      <span className="catalog-cell__value">{children}</span>
+  const [failed, setFailed] = useState(false);
+  return iconUrl && !failed ? (
+    <img
+      alt=""
+      className="craft-target-card__art"
+      loading="lazy"
+      onError={() => setFailed(true)}
+      referrerPolicy="no-referrer"
+      src={iconUrl}
+    />
+  ) : (
+    <span
+      aria-hidden="true"
+      className="craft-target-card__art craft-target-card__art--fallback"
+    >
+      {itemType.slice(0, 1).toLocaleUpperCase()}
     </span>
   );
 }
@@ -391,8 +443,7 @@ export function App() {
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Route index element={<MarketPage />} />
-        <Route path="catalog" element={<CatalogRoute />} />
+        <Route index element={<CatalogRoute />} />
         <Route path="recipes/:recipeId" element={<RecipePage />} />
       </Route>
     </Routes>

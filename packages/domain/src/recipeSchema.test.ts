@@ -1,156 +1,169 @@
 import { describe, expect, it } from 'vitest';
-
+import { canonicalRecipeFixture, fixtureRecipe } from './fixtures/recipes.js';
 import {
-  invalidRecipeV1Fixture,
-  validRecipeV1Fixture,
-} from './fixtures/recipes.js';
-import {
-  RecipeValidationError,
-  recipeV1Schema,
-  RECIPE_UNKNOWN_FIELD_POLICY,
-  validateRecipeV1,
+  recipeTargetSignature,
+  validateRecipeDocument,
 } from './recipeSchema.js';
+import {
+  calculateMethodMaterialEconomics,
+  compareCraftWithAsk,
+} from './recipeEconomics.js';
 
-function validationError(input: unknown) {
-  try {
-    validateRecipeV1(input);
-    throw new Error('Expected recipe validation to fail');
-  } catch (error) {
-    expect(error).toBeInstanceOf(RecipeValidationError);
-    return error as RecipeValidationError;
-  }
-}
-
-describe('recipe schema v1', () => {
-  it('creates a parser-independent canonical recipe from a valid fixture', () => {
-    const recipe = validateRecipeV1(validRecipeV1Fixture);
-
-    expect(recipe).toMatchObject({
-      estimator: { n: 10, strategy: 'median_top_n' },
-      id: 'physical-large-cluster',
-      schemaVersion: 1,
-      success: { expectedAttempts: 6, mode: 'expected_attempts' },
-    });
-    expect(recipe.tags).toEqual(['cluster-jewel', 'profit']);
-  });
-
-  it('reports a concrete path for a missing required field', () => {
-    const missingSummary: Record<string, unknown> = {
-      ...validRecipeV1Fixture,
-    };
-    delete missingSummary.summary;
-
-    expect(validationError(missingSummary).issues).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ code: 'invalid_type', path: 'summary' }),
-      ]),
-    );
-  });
-
-  it('reports a concrete nested path for an invalid fixture', () => {
-    expect(validationError(invalidRecipeV1Fixture).issues).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'too_small',
-          path: 'materials[0].quantityPerAttempt',
-        }),
-      ]),
-    );
-  });
-
-  it('rejects unknown fields at top-level and nested schema boundaries', () => {
-    expect(RECIPE_UNKNOWN_FIELD_POLICY).toBe('reject');
-    const topLevel = validationError({
-      ...validRecipeV1Fixture,
-      wikiUrl: 'https://example.invalid',
-    });
-    const nested = validationError({
-      ...validRecipeV1Fixture,
-      materials: [{ ...validRecipeV1Fixture.materials[0], unit: 'lifeforce' }],
-    });
-
-    expect(topLevel.issues).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'unrecognized_keys',
-          path: 'wikiUrl',
-        }),
-      ]),
-    );
-    expect(nested.issues).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'unrecognized_keys',
-          path: 'materials[0].unit',
-        }),
-      ]),
-    );
-  });
-
-  it('allows open JSON only inside explicit query and metadata payloads', () => {
-    const parsed = recipeV1Schema.parse({
-      ...validRecipeV1Fixture,
-      craftSteps: [
-        {
-          ...validRecipeV1Fixture.craftSteps[0],
-          metadata: { arbitraryProviderMetadata: { supported: true } },
-        },
-      ],
-    });
-
-    expect(parsed.craftSteps[0]?.metadata).toEqual({
-      arbitraryProviderMetadata: { supported: true },
-    });
-  });
-
-  it('enforces one manual success model and strategy-specific estimator bounds', () => {
-    const mixedSuccess = validationError({
-      ...validRecipeV1Fixture,
-      success: {
-        expectedAttempts: 4,
-        mode: 'probability',
-        probability: 0.25,
+const price = { amount: '2', currency: 'chaos' };
+describe('single-method recipes', () => {
+  it('shares the output signature across methods while keeping independent costs', () => {
+    const first = canonicalRecipeFixture;
+    const second = fixtureRecipe({
+      ...first,
+      id: 'another-method',
+      craft: {
+        ...first.craft,
+        id: 'currency',
+        method: { kind: 'currency', currency: 'chaos-orb' },
+        expectedExecutions: first.craft.expectedExecutions?.map((e) => ({
+          ...e,
+          count: 12,
+        })),
       },
     });
-    const invalidEstimator = validationError({
-      ...validRecipeV1Fixture,
-      estimator: { n: 12, strategy: 'nth_cheapest' },
+    expect(second.targetSignature).toBe(first.targetSignature);
+    const cost = (recipe: typeof first) =>
+      calculateMethodMaterialEconomics({
+        currency: 'chaos',
+        materialPrices: { 'primal-crystallised-lifeforce': price },
+        method: recipe.craft,
+      }).expectedCost?.amount;
+    expect(cost(first)).toBe('1800');
+    expect(cost(second)).toBe('3600');
+    const different = fixtureRecipe({
+      ...first,
+      target: {
+        ...first.target,
+        prefixes: [{ kind: 'explicit', modId: 'different-mod' }],
+      },
     });
-
-    expect(mixedSuccess.issues).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ path: 'success.expectedAttempts' }),
-      ]),
-    );
-    expect(invalidEstimator.issues).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ path: 'estimator.n' }),
-      ]),
+    expect(different.targetSignature).not.toBe(first.targetSignature);
+  });
+  it('rejects legacy shapes, alternatives, changed signatures and dangling execution counts', () => {
+    expect(() => validateRecipeDocument({ schemaVersion: 1 })).toThrow();
+    expect(() =>
+      validateRecipeDocument({
+        ...canonicalRecipeFixture,
+        craft: { ...canonicalRecipeFixture.craft, variants: [] },
+      }),
+    ).toThrow();
+    expect(() =>
+      validateRecipeDocument({
+        ...canonicalRecipeFixture,
+        base: { ...canonicalRecipeFixture.base, itemLevel: 1 },
+      }),
+    ).toThrow(/signature/);
+    expect(() =>
+      fixtureRecipe({
+        ...canonicalRecipeFixture,
+        craft: {
+          ...canonicalRecipeFixture.craft,
+          expectedExecutions: [
+            {
+              ...canonicalRecipeFixture.craft.expectedExecutions?.[0],
+              stepId: 'missing',
+            },
+          ],
+        },
+      }),
+    ).toThrow(/Unknown step/);
+    expect(recipeTargetSignature(canonicalRecipeFixture)).toBe(
+      canonicalRecipeFixture.targetSignature,
     );
   });
-
-  it('supports both manual success models and every estimator strategy', () => {
+  it('rejects duplicate modifiers across affix groups and evidence from another patch', () => {
+    expect(() =>
+      fixtureRecipe({
+        ...canonicalRecipeFixture,
+        target: {
+          prefixes: [{ kind: 'explicit', modId: 'duplicate' }],
+          suffixes: [{ kind: 'explicit', modId: 'duplicate' }],
+          implicits: [],
+          other: [],
+        },
+      }),
+    ).toThrow(/Duplicate/);
+    expect(() =>
+      fixtureRecipe({ ...canonicalRecipeFixture, patch: 'another-patch' }),
+    ).toThrow(/evidence patch/);
+  });
+  it('keeps per-attempt costs but withholds an unknown multistage estimate', () => {
+    const method = {
+      ...canonicalRecipeFixture.craft,
+      expectedExecutions: undefined,
+    };
+    const result = calculateMethodMaterialEconomics({
+      currency: 'chaos',
+      materialPrices: { 'primal-crystallised-lifeforce': price },
+      method,
+    });
+    expect(result.expectedCost).toBeNull();
+    expect(result.materialsPerAttempt?.amount).toBe('300');
     expect(
-      recipeV1Schema.parse({
-        ...validRecipeV1Fixture,
-        success: { mode: 'probability', probability: 0.25 },
-      }).success,
-    ).toEqual({ mode: 'probability', probability: 0.25 });
-
-    const estimators = [
-      { strategy: 'cheapest' },
-      { n: 3, strategy: 'nth_cheapest' },
-      { n: 5, strategy: 'median_top_n' },
-      { n: 5, strategy: 'mean_top_n' },
-      { percentile: 25, strategy: 'percentile' },
-    ];
-    for (const estimator of estimators) {
-      expect(
-        recipeV1Schema.safeParse({
-          ...validRecipeV1Fixture,
-          estimator,
-        }).success,
-      ).toBe(true);
-    }
+      compareCraftWithAsk({
+        basePrice: price,
+        materialCost: null,
+        expectedBases: 1,
+        ask: price,
+        currency: 'chaos',
+      }).profit,
+    ).toBeNull();
+  });
+  it('sums reroll and finishing executions independently per finished item', () => {
+    const source = canonicalRecipeFixture.craft;
+    const step = source.steps[0]!;
+    const evidence = source.expectedExecutions![0]!.evidence;
+    const result = calculateMethodMaterialEconomics({
+      currency: 'chaos',
+      materialPrices: {
+        reroll: { amount: '2', currency: 'chaos' },
+        finish: { amount: '5', currency: 'chaos' },
+      },
+      method: {
+        ...source,
+        steps: [
+          {
+            ...step,
+            id: 'roll',
+            materials: [{ itemId: 'reroll', quantity: 2 }],
+          },
+          {
+            ...step,
+            id: 'finish',
+            materials: [{ itemId: 'finish', quantity: 1 }],
+          },
+        ],
+        expectedExecutions: [
+          { stepId: 'roll', count: 10, evidence },
+          { stepId: 'finish', count: 2, evidence },
+        ],
+      },
+    });
+    expect(result.expectedCost).toEqual({ amount: '50', currency: 'chaos' });
+  });
+  it('includes replacement bases, preserves losses and rejects cross-currency ROI', () => {
+    const input = {
+      basePrice: price,
+      materialCost: { amount: '10', currency: 'chaos' },
+      expectedBases: 3,
+      ask: { amount: '8', currency: 'chaos' },
+      currency: 'chaos',
+    };
+    expect(compareCraftWithAsk(input)).toEqual({
+      expectedCraftCost: '16',
+      profit: '-8',
+      marginPercent: '-50',
+    });
+    expect(
+      compareCraftWithAsk({
+        ...input,
+        ask: { amount: '8', currency: 'divine' },
+      }).profit,
+    ).toBeNull();
   });
 });

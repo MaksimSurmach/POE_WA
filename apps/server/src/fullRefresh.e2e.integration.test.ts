@@ -142,11 +142,11 @@ async function run(
 }
 
 describe('full refresh PostgreSQL E2E', () => {
-  it('runs production orchestration and publishes one consistent 20-recipe cycle', async () => {
+  it('runs production orchestration and publishes one consistent 21-recipe cycle', async () => {
     const result = await run('all-success', { orchestrator: true });
     const hashes = await expectedDefaultQueryHashes(result.currentLeague.gggId);
     expect(result.publication).toMatchObject({
-      completedRecipes: 20,
+      completedRecipes: 21,
       failedRecipes: 0,
       published: true,
     });
@@ -166,7 +166,7 @@ describe('full refresh PostgreSQL E2E', () => {
     expect(rows.rows[0]).toEqual({
       snapshots: String(hashes.length),
       observations: String(hashes.length),
-      evaluations: '20',
+      evaluations: '21',
     });
     const readers = createResourceReaders(repositories, {
       get: () => null,
@@ -176,7 +176,7 @@ describe('full refresh PostgreSQL E2E', () => {
     expect(catalog.state).toBe('success');
     if (catalog.state !== 'success')
       throw new Error('Catalog was not published');
-    expect(catalog.data.entries).toHaveLength(20);
+    expect(catalog.data.entries).toHaveLength(21);
   });
 
   it('reuses same-league snapshots within TTL and refreshes after expiry', async () => {
@@ -191,13 +191,13 @@ describe('full refresh PostgreSQL E2E', () => {
     expect(third.provider.totalCalls()).toBe(first.provider.totalCalls());
   });
 
-  it('enforces the 95% publication boundary with one shared legacy query', async () => {
+  it('enforces the 95% publication boundary with independent failed target queries', async () => {
     await run('all-success');
     const at95 = await run('publish-at-95', {
       now: new Date('2026-07-20T12:05:01.000Z'),
     });
     expect(at95.publication).toMatchObject({
-      completedRecipes: 19,
+      completedRecipes: 20,
       failedRecipes: 1,
       published: true,
     });
@@ -205,7 +205,7 @@ describe('full refresh PostgreSQL E2E', () => {
       now: new Date('2026-07-20T12:10:02.000Z'),
     });
     expect(rejected.publication).toMatchObject({
-      completedRecipes: 18,
+      completedRecipes: 19,
       failedRecipes: 2,
       published: false,
     });

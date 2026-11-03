@@ -7,7 +7,7 @@ import {
 
 import { StatusPanel } from './components.js';
 
-const successfulAtFormatter = new Intl.DateTimeFormat('en', {
+export const successfulAtFormatter = new Intl.DateTimeFormat('en', {
   day: 'numeric',
   hour: 'numeric',
   minute: '2-digit',

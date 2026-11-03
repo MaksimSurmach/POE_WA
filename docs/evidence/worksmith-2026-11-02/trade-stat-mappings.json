@@ -1,0 +1,36 @@
+{
+  "source": "https://www.pathofexile.com/api/trade/data/stats",
+  "checkedAt": "2026-11-02",
+  "entries": [
+    {
+      "id": "explicit.stat_4188581520",
+      "text": "1 Added Passive Skill is Battle-Hardened",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3415827027",
+      "text": "1 Added Passive Skill is Furious Assault",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3585232432",
+      "text": "1 Added Passive Skill is Master the Fundamentals",
+      "type": "explicit"
+    },
+    {
+      "id": "enchant.stat_3086156145",
+      "text": "Adds # Passive Skills",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_4079888060",
+      "text": "# Added Passive Skills are Jewel Sockets",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|12",
+      "text": "Added Small Passive Skills grant: 12% increased Physical Damage",
+      "type": "enchant"
+    }
+  ]
+}

@@ -2,7 +2,6 @@ import {
   aggregateMarketListings,
   type CanonicalJsonObject,
   type CanonicalJsonValue,
-  type CanonicalRecipeV1,
   DomainError,
   type DomainErrorCode,
   type MarketListing,
@@ -10,18 +9,26 @@ import {
   type Recipe,
   type RecipeEvaluation,
   type Repositories,
+  calculateMethodMaterialEconomics,
+  expectedMethodMaterialUsage,
+  compareCraftWithAsk,
   hashMarketQuery,
   transitionRefreshCycle,
   validateRecipeDocument,
 } from '@poe-worksmith/domain';
-import { calculateRecipeEconomics } from '@poe-worksmith/domain/economics';
+
 import { z } from 'zod';
 import {
-  legacyRecipeMarketDependencies,
   type RecipeMarketDependencies,
+  comparableRecipeListings,
 } from './recipeMarket.js';
 import type { Logger } from 'pino';
 import type { Metrics } from './observability/metrics.js';
+import { convertMarketQuote } from './marketCurrency.js';
+import type {
+  MarketEconomyRepository,
+  StoredMarketEconomySnapshot,
+} from './marketEconomy.js';
 
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
   z.union([
@@ -51,6 +58,8 @@ const listingSchema = z.strictObject({
   price: moneySchema,
 });
 const snapshotPayloadSchema = z.object({
+  coverage: z.enum(['complete', 'partial', 'unknown']).optional(),
+  sortedPageComplete: z.boolean().optional(),
   listings: z.array(listingSchema),
   totalResults: z.number().int().nonnegative(),
 });
@@ -58,12 +67,14 @@ const snapshotPayloadSchema = z.object({
 type FreshEvaluation = Readonly<{
   confidence: 'low' | 'medium' | 'high';
   currency: string;
-  estimatedSalePrice: string;
-  expectedCraftCost: string;
-  marginPercent: string;
+  estimatedSalePrice: string | null;
+  expectedCraftCost: string | null;
+  marginPercent: string | null;
   observationId: number | null;
-  profit: string;
-  sourceSnapshotDedupeKey: string;
+  profit: string | null;
+  sourceSnapshotDedupeKey: string | null;
+  status?: 'success' | 'partial';
+  methodCost?: Record<string, unknown>;
 }>;
 
 export type FreshRecipeEvaluator = (
@@ -98,6 +109,8 @@ export async function evaluateAndPublishCatalog(
     leagueName?: string;
     now?: Date;
     marketDependencies?: RecipeMarketDependencies;
+    economy?: Pick<MarketEconomyRepository, 'find' | 'latest'> &
+      Partial<Pick<MarketEconomyRepository, 'listAttempts'>>;
     logger?: Logger;
     metrics?: Metrics;
   },
@@ -163,10 +176,61 @@ export async function evaluateAndPublishCatalog(
         ])
       : [],
   );
+  const attempts = (await options.economy?.listAttempts?.()) ?? [];
+  const verified = (snapshot: StoredMarketEconomySnapshot | null) => {
+    if (!snapshot) return null;
+    // A completed HTTP attempt verifies the old payload; cache reads never advance freshness.
+    const checks = attempts.filter(
+      (a) =>
+        a.snapshotId === snapshot.id &&
+        a.league === snapshot.league &&
+        a.category === snapshot.category &&
+        a.status === 'succeeded' &&
+        (a.cacheStatus === 'fetched' || a.cacheStatus === 'revalidated') &&
+        a.completedAt &&
+        Date.parse(a.completedAt) <= now.getTime() &&
+        Date.parse(a.startedAt) <= Date.parse(a.completedAt),
+    );
+    const time = Math.max(
+      Date.parse(snapshot.capturedAt),
+      ...checks.map((a) => Date.parse(a.startedAt)),
+    );
+    return { ...snapshot, verifiedAt: new Date(time).toISOString() };
+  };
+  const economySummary = await options.economy?.latest(league, 'Currency');
+  const currencyExchange = verified(
+    economySummary ? await options.economy!.find(economySummary.id) : null,
+  );
+  const materialEconomies = new Map<string, StoredMarketEconomySnapshot>();
+  for (const category of [
+    'Currency',
+    'Essence',
+    'Fossil',
+    'Resonator',
+  ] as const) {
+    const latest = await options.economy?.latest(league, category);
+    const snapshot = verified(
+      latest ? await options.economy!.find(latest.id) : null,
+    );
+    if (
+      snapshot &&
+      snapshot.league === league &&
+      now.getTime() >= Date.parse(snapshot.verifiedAt ?? snapshot.capturedAt) &&
+      now.getTime() - Date.parse(snapshot.verifiedAt ?? snapshot.capturedAt) <=
+        30 * 60_000
+    )
+      materialEconomies.set(category, snapshot);
+  }
   const evaluateRecipe =
     options.evaluateRecipe ??
     ((recipe, context) =>
-      evaluateFreshRecipe(recipe, context, options.marketDependencies));
+      evaluateFreshRecipe(
+        recipe,
+        context,
+        options.marketDependencies,
+        currencyExchange,
+        [...materialEconomies.values()],
+      ));
   const evaluations: RecipeEvaluation[] = [];
   let completedRecipes = 0;
   let failedRecipes = 0;
@@ -186,51 +250,60 @@ export async function evaluateAndPublishCatalog(
         ...fresh,
         errorCode: null,
         evaluatedAt: now,
-        lastSuccessfulAt: now,
+        lastSuccessfulAt: fresh.status === 'partial' ? null : now,
         leagueId: cycle.leagueId,
         recipeId: recipe.id,
         refreshCycleId: cycle.id,
-        status: 'success',
+        status: fresh.status ?? 'success',
+        methodCost: {
+          ...fresh.methodCost,
+          recipeContentHash: recipe.contentHash,
+        },
       };
       completedRecipes += 1;
     } catch (cause) {
       const error = toDomainError(cause);
       const fallback = previousByRecipe.get(recipe.id);
-      evaluation = reusableEvaluation(fallback)
-        ? {
-            confidence: fallback.confidence,
-            currency: fallback.currency,
-            errorCode: error.code,
-            estimatedSalePrice: fallback.estimatedSalePrice,
-            evaluatedAt: now,
-            expectedCraftCost: fallback.expectedCraftCost,
-            lastSuccessfulAt: fallback.lastSuccessfulAt ?? fallback.evaluatedAt,
-            leagueId: cycle.leagueId,
-            marginPercent: fallback.marginPercent,
-            observationId: fallback.observationId,
-            profit: fallback.profit,
-            recipeId: recipe.id,
-            refreshCycleId: cycle.id,
-            sourceSnapshotDedupeKey: fallback.sourceSnapshotDedupeKey,
-            status: 'stale',
-          }
-        : {
-            confidence: null,
-            currency: null,
-            errorCode: error.code,
-            estimatedSalePrice: null,
-            evaluatedAt: now,
-            expectedCraftCost: null,
-            lastSuccessfulAt: null,
-            leagueId: cycle.leagueId,
-            marginPercent: null,
-            observationId: null,
-            profit: null,
-            recipeId: recipe.id,
-            refreshCycleId: cycle.id,
-            sourceSnapshotDedupeKey: null,
-            status: 'error',
-          };
+      evaluation =
+        reusableEvaluation(fallback) &&
+        fallback.methodCost?.recipeContentHash === recipe.contentHash
+          ? {
+              confidence: fallback.confidence,
+              currency: fallback.currency,
+              errorCode: error.code,
+              estimatedSalePrice: fallback.estimatedSalePrice,
+              evaluatedAt: now,
+              expectedCraftCost: fallback.expectedCraftCost,
+              lastSuccessfulAt:
+                fallback.lastSuccessfulAt ?? fallback.evaluatedAt,
+              leagueId: cycle.leagueId,
+              marginPercent: fallback.marginPercent,
+              observationId: fallback.observationId,
+              profit: fallback.profit,
+              recipeId: recipe.id,
+              refreshCycleId: cycle.id,
+              sourceSnapshotDedupeKey: fallback.sourceSnapshotDedupeKey,
+              methodCost: fallback.methodCost ?? null,
+              status: 'stale',
+            }
+          : {
+              confidence: null,
+              currency: null,
+              errorCode: error.code,
+              estimatedSalePrice: null,
+              evaluatedAt: now,
+              expectedCraftCost: null,
+              lastSuccessfulAt: null,
+              leagueId: cycle.leagueId,
+              marginPercent: null,
+              observationId: null,
+              profit: null,
+              recipeId: recipe.id,
+              refreshCycleId: cycle.id,
+              sourceSnapshotDedupeKey: null,
+              methodCost: null,
+              status: 'error',
+            };
       failedRecipes += 1;
       if (evaluation.status === 'stale') staleFallbacks += 1;
     }
@@ -309,6 +382,8 @@ async function evaluateFreshRecipe(
     repositories: Repositories;
   },
   marketDependencies?: RecipeMarketDependencies,
+  currencyExchange?: StoredMarketEconomySnapshot | null,
+  materialEconomies: readonly StoredMarketEconomySnapshot[] = [],
 ): Promise<FreshEvaluation> {
   let definition;
   try {
@@ -316,127 +391,253 @@ async function evaluateFreshRecipe(
   } catch (cause) {
     throw new DomainError('RECIPE_INVALID', { cause });
   }
-  const dependencies = marketDependencies
-    ? await marketDependencies({ league: context.league, recipe: definition })
-    : definition.schemaVersion === 1
-      ? legacyRecipeMarketDependencies({ recipe: definition })
-      : (() => {
-          throw new DomainError('RECIPE_INVALID');
-        })();
+  if (!marketDependencies) throw new DomainError('RECIPE_INVALID');
+  const dependencies = await marketDependencies({
+    league: context.league,
+    recipe: definition,
+  });
   const baseDependency = dependencies.find(({ kind }) => kind === 'base');
   const targetDependency = dependencies.find(({ kind }) => kind === 'target');
-  if (!baseDependency || !targetDependency)
+  if (!baseDependency?.query || !targetDependency?.query)
     throw new DomainError('RECIPE_INVALID');
-  const base = await resolveMarket(baseDependency.query, context);
-  const materials = await Promise.all(
+  const optionalMarket = async (
+    query: import('./recipeMarket.js').RecipeMarketQuery,
+    requiredStock?: number,
+  ) => {
+    try {
+      return await resolveMarket(query, context, requiredStock);
+    } catch (error) {
+      if (
+        error instanceof DomainError &&
+        ['SNAPSHOT_MISSING', 'SNAPSHOT_EXPIRED'].includes(error.code)
+      )
+        return null;
+      throw error;
+    }
+  };
+  const usage = expectedMethodMaterialUsage(definition.craft);
+  const base = await optionalMarket(baseDependency.query);
+  const materialMarkets = await Promise.all(
     dependencies
       .filter(({ kind }) => kind === 'material')
-      .map(
-        async (material) =>
-          [
-            material.materialId!,
-            (await resolveMarket(material.query, context)).aggregation.cheapest,
-          ] as const,
-      ),
-  );
-  const finishing = await Promise.all(
-    dependencies
-      .filter(({ kind }) => kind === 'finishing')
-      .map(
-        async (item) =>
-          [
-            item.materialId!,
-            (await resolveMarket(item.query, context)).aggregation.cheapest,
-          ] as const,
-      ),
+      .map(async (material) => {
+        const result = material.query
+          ? await optionalMarket(
+              material.query,
+              usage?.[material.materialId!] ?? Infinity,
+            )
+          : null;
+        return {
+          capturedAt: result?.snapshotCapturedAt ?? context.now,
+          id: material.materialId!,
+          price: result?.aggregation.cheapest ?? null,
+          topOfBook: result?.topOfBook ?? null,
+        };
+      }),
   );
   const output = await resolveMarket(targetDependency.query, context);
-  const result = calculateRecipeEconomics({
-    aggregation: output.aggregation,
-    basePrice: base.aggregation.cheapest,
-    currency: output.aggregation.currency,
-    finishingPrices: Object.fromEntries(finishing),
-    materialPrices: Object.fromEntries(materials),
-    recipe: economicsRecipe(definition),
-  });
-  if (!result.ok) throw new DomainError(result.errorCode);
-
-  const observations = await context.repositories.observations.listRecent(
-    output.marketQueryId,
-    context.leagueId,
-    new Date(0),
+  const currency = output?.aggregation.sampleSize
+    ? output?.aggregation.currency
+    : (base?.aggregation.currency ?? 'chaos');
+  const conversionEvidence: NonNullable<
+    Awaited<ReturnType<typeof convertMarketQuote>>
+  >['exchange'][] = [];
+  const convertPrice = async (
+    price: { amount: string; currency: string } | null,
+    capturedAt: Date,
+  ) => {
+    if (!price) return null;
+    if (!currencyExchange || !['chaos', 'divine'].includes(currency))
+      return price.currency === currency ? price : null;
+    const converted = await convertMarketQuote({
+      money: price,
+      currency: currency as 'chaos' | 'divine',
+      target: { league: context.league },
+      capturedAt: capturedAt.toISOString(),
+      exchangeSnapshotId: currencyExchange.id,
+      economy: {
+        find: async (id) =>
+          id === currencyExchange.id ? currencyExchange : null,
+      },
+      now: context.now.getTime(),
+      dataKind: 'observed',
+    });
+    if (converted?.exchange) conversionEvidence.push(converted.exchange);
+    return converted?.money ?? null;
+  };
+  const basePrice = await convertPrice(
+    base?.aggregation.cheapest ?? null,
+    base?.snapshotCapturedAt ?? context.now,
   );
+  const materialEntries = await Promise.all(
+    materialMarkets.map(
+      async ({ capturedAt, id, price, topOfBook }) =>
+        [id, await convertPrice(price ?? topOfBook, capturedAt)] as const,
+    ),
+  );
+  const materialPriceMap = Object.fromEntries(materialEntries);
+  const bulkSupported = new Set(
+    materialMarkets.filter((m) => m.price).map((m) => m.id),
+  );
+  const materialEvidence: Record<string, unknown> = Object.fromEntries(
+    materialMarkets
+      .filter((m) => m.price ?? m.topOfBook)
+      .map((m) => [
+        m.id,
+        {
+          itemId: m.id,
+          league: context.league,
+          source: 'poe-trade-exchange',
+          priceBasis: 'asking',
+          currency: (m.price ?? m.topOfBook)!.currency,
+          bulkSupported: Boolean(m.price),
+          capturedAt: m.capturedAt.toISOString(),
+        },
+      ]),
+  );
+  if (basePrice && base)
+    materialEvidence.base = {
+      itemId: 'base',
+      league: context.league,
+      source: 'poe-trade',
+      priceBasis: 'asking',
+      currency: basePrice.currency,
+      capturedAt: base.snapshotCapturedAt.toISOString(),
+    };
+  for (const dependency of dependencies.filter((d) => d.kind === 'material')) {
+    const id = dependency.materialId!;
+    // Ninja is the bulk estimate; a single exchange offer must cover expected consumption.
+
+    for (const snapshot of materialEconomies) {
+      const line = snapshot.lines.find((line) => line.detailsId === id);
+      if (!line || line.price.amount === null) continue;
+      const converted = await convertPrice(
+        { amount: String(line.price.amount), currency: line.price.currency },
+        new Date(snapshot.verifiedAt ?? snapshot.capturedAt),
+      );
+      if (!converted) continue;
+      materialPriceMap[id] = converted;
+      bulkSupported.add(id);
+      materialEvidence[id] = {
+        itemId: id,
+        league: snapshot.league,
+        source: snapshot.source,
+        priceBasis: 'economy-estimate',
+        bulkSupported: true,
+        currency: line.price.currency,
+        capturedAt: snapshot.capturedAt,
+        ...(snapshot.verifiedAt ? { verifiedAt: snapshot.verifiedAt } : {}),
+        snapshotId: snapshot.id,
+      };
+      break;
+    }
+  }
+  const outputEstimate = output?.aggregation.estimators.find(
+    ({ id }) => id === 'cheapest',
+  )?.price;
+  const materialEconomics = calculateMethodMaterialEconomics({
+    currency,
+    materialPrices: materialPriceMap,
+    method: definition.craft,
+  });
+  const evidenceValid =
+    definition.verification.status === 'verified' &&
+    definition.verification.leagues.includes(context.league) &&
+    definition.craft.expectedExecutions?.every(
+      ({ evidence }) => evidence.patch === definition.patch,
+    ) &&
+    definition.craft.baseConsumption?.evidence.patch === definition.patch;
+  const salePrice = outputEstimate?.amount ?? null;
+  const comparison = compareCraftWithAsk({
+    basePrice,
+    currency,
+    materialCost:
+      evidenceValid &&
+      usage &&
+      Object.keys(usage).every((id) => bulkSupported.has(id))
+        ? materialEconomics.expectedCost
+        : null,
+    expectedBases: evidenceValid
+      ? (definition.craft.baseConsumption?.expectedBases ?? null)
+      : null,
+    ask: outputEstimate ?? null,
+  });
+  const { expectedCraftCost } = comparison;
+  const methodCost = {
+    ...materialEconomics,
+    recipeContentHash: recipe.contentHash,
+    expiresAt: new Date(
+      Math.min(
+        output?.snapshotExpiresAt.getTime() ?? Infinity,
+        base?.snapshotExpiresAt.getTime() ?? Infinity,
+        context.now.getTime() + 30 * 60_000,
+      ),
+    ).toISOString(),
+    source: output
+      ? {
+          capturedAt: output.snapshotCapturedAt.toISOString(),
+          sampleSize: output.aggregation.sampleSize,
+          priceBasis: 'asking',
+          coverage: output.coverage,
+          sortedPageComplete: output.sortedPageComplete,
+        }
+      : null,
+    marketStatus: output
+      ? output.coverage !== 'complete'
+        ? 'partial'
+        : output.aggregation.sampleSize
+          ? 'priced'
+          : 'empty'
+      : 'unavailable',
+    materialEvidence,
+    baseCost: basePrice,
+    expectedBases: evidenceValid
+      ? (definition.craft.baseConsumption?.expectedBases ?? null)
+      : null,
+    currencyExchange: conversionEvidence[0] ?? null,
+    expectedCost:
+      expectedCraftCost === null
+        ? null
+        : { amount: expectedCraftCost, currency },
+  };
+  const observations = output
+    ? await context.repositories.observations.listRecent(
+        output.marketQueryId,
+        context.leagueId,
+        new Date(0),
+      )
+    : [];
   const observation = observations.find(
     ({ observedAt }) =>
-      observedAt.getTime() === output.snapshotCapturedAt.getTime(),
+      observedAt.getTime() === output?.snapshotCapturedAt.getTime(),
   );
   return {
-    confidence: confidence(output.aggregation.sampleSize),
-    currency: result.value.profit.currency,
-    estimatedSalePrice: result.value.estimatedSalePrice.amount,
-    expectedCraftCost: result.value.breakdown.expectedCraftCost.amount,
-    marginPercent: result.value.marginPercent,
+    confidence:
+      output?.coverage === 'complete'
+        ? confidence(output.aggregation.sampleSize)
+        : 'low',
+    currency,
+    estimatedSalePrice: salePrice,
+    expectedCraftCost,
+    marginPercent: comparison.marginPercent,
     observationId: observation?.id ?? null,
-    profit: result.value.profit.amount,
-    sourceSnapshotDedupeKey: output.snapshotDedupeKey,
-  };
-}
-
-function economicsRecipe(
-  definition: ReturnType<typeof validateRecipeDocument>,
-): CanonicalRecipeV1 {
-  if (definition.schemaVersion === 1) return definition;
-  return {
-    baseRequirements: {
-      baseType: definition.base.baseId,
-      tradeQuery: {
-        provider: 'poe-trade',
-        query: { placeholder: true },
-        schemaVersion: 1,
-      },
-    },
-    category: definition.category,
-    craftSteps: [{ id: 'craft', title: definition.craft.method.kind }],
-    estimator: { strategy: 'median_top_n', n: 10 },
-    finishingCosts: [],
-    gameVersion: definition.gameDataVersion,
-    id: definition.id,
-    materials: (definition.craft.resourceConsumption?.materials ?? []).map(
-      ({ itemId, quantity }) => ({
-        id: itemId,
-        label: itemId,
-        quantityPerAttempt: quantity,
-        tradeQuery: {
-          provider: 'poe-trade',
-          query: { placeholder: true },
-          schemaVersion: 1,
-        },
-      }),
-    ),
-    output: {
-      label: definition.title,
-      tradeQuery: {
-        provider: 'poe-trade',
-        query: { placeholder: true },
-        schemaVersion: 1,
-      },
-    },
-    schemaVersion: 1,
-    success: { mode: 'expected_attempts', expectedAttempts: 1 },
-    summary: definition.summary ?? definition.title,
-    tags: [...definition.tags],
-    title: definition.title,
+    profit: comparison.profit,
+    sourceSnapshotDedupeKey: output?.snapshotDedupeKey ?? null,
+    status:
+      salePrice === null || expectedCraftCost === null ? 'partial' : 'success',
+    methodCost,
   };
 }
 
 async function resolveMarket(
-  tradeQuery: CanonicalRecipeV1['baseRequirements']['tradeQuery'],
+  tradeQuery: import('./recipeMarket.js').RecipeMarketQuery,
   context: {
     leagueId: string;
     league: string;
     now: Date;
     repositories: Repositories;
   },
+  requiredStock?: number,
 ) {
   const canonicalHash = await hashMarketQuery({
     league: context.league,
@@ -459,18 +660,45 @@ async function resolveMarket(
   if (!payload.success) {
     throw new DomainError('SNAPSHOT_INVALID', { cause: payload.error });
   }
-  const listings: MarketListing[] = payload.data.listings.map((listing) => ({
+  let listings: MarketListing[] = payload.data.listings.map((listing) => ({
     ...listing,
     indexedAt: new Date(listing.indexedAt),
   }));
-  const currency = listings[0]?.price.currency ?? 'unknown';
+  listings = comparableRecipeListings(
+    tradeQuery.query,
+    listings,
+    snapshot.capturedAt,
+    context.now,
+  );
+  const topOfBook = aggregateMarketListings({
+    currency: listings[0]?.price.currency ?? 'unknown',
+    listings,
+    totalListings: payload.data.totalResults,
+  }).cheapest;
+  if (requiredStock !== undefined)
+    listings = listings.filter(
+      (row) =>
+        typeof row.item.stock === 'number' && row.item.stock >= requiredStock,
+    );
+  const currency = tradeQuery.query.handbookTarget
+    ? 'chaos'
+    : (listings[0]?.price.currency ?? 'unknown');
   const aggregation = aggregateMarketListings({
     currency,
-    listings,
+    listings:
+      tradeQuery.query.handbookTarget &&
+      payload.data.coverage !== 'complete' &&
+      !payload.data.sortedPageComplete
+        ? []
+        : listings,
     totalListings: payload.data.totalResults,
   });
   return {
     aggregation,
+    topOfBook,
+    coverage: payload.data.coverage ?? 'unknown',
+    sortedPageComplete: payload.data.sortedPageComplete ?? false,
+    snapshotExpiresAt: snapshot.expiresAt,
     marketQueryId: marketQuery.id,
     snapshotCapturedAt: snapshot.capturedAt,
     snapshotDedupeKey: snapshot.dedupeKey,
@@ -482,16 +710,10 @@ function reusableEvaluation(
 ): evaluation is RecipeEvaluation & {
   currency: string;
   estimatedSalePrice: string;
-  expectedCraftCost: string;
-  marginPercent: string;
-  profit: string;
 } {
   return Boolean(
     evaluation?.currency &&
     evaluation.estimatedSalePrice &&
-    evaluation.expectedCraftCost &&
-    evaluation.marginPercent &&
-    evaluation.profit &&
     ['success', 'stale', 'partial'].includes(evaluation.status),
   );
 }

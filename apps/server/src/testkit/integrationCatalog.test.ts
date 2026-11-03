@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import {
   expectedDefaultQueryHashes,
   expectedDefaultQueryKeys,
+  integrationMarketDependencies,
   integrationRecipeIds,
   loadIntegrationCatalog,
 } from './integrationCatalog.js';
@@ -32,18 +33,15 @@ const availability = (
   ).reason;
 
 describe('integration catalog', () => {
-  it('has the exact unique 20-recipe v1/v2 matrix and query manifest', async () => {
+  it('has the exact unique 21-recipe canonical matrix and query manifest', async () => {
     const recipes = await loadIntegrationCatalog();
-    expect(recipes).toHaveLength(20);
+    expect(recipes).toHaveLength(21);
     expect(recipes.map(({ definition }) => definition.id).sort()).toEqual(
       [...integrationRecipeIds].sort(),
     );
     expect(
-      recipes.filter(({ definition }) => definition.schemaVersion === 2),
-    ).toHaveLength(16);
-    expect(
-      recipes.filter(({ definition }) => definition.schemaVersion === 1),
-    ).toHaveLength(4);
+      recipes.every(({ definition }) => definition.schemaVersion === 3),
+    ).toBe(true);
     expect(new Set(await expectedDefaultQueryHashes())).toHaveLength(
       expectedDefaultQueryKeys.length,
     );
@@ -51,7 +49,7 @@ describe('integration catalog', () => {
   it('loads 19 checked-in synthetic sources deterministically', async () => {
     const directory = new URL('./recipes/', import.meta.url);
     expect(
-      (await readdir(directory)).filter((file) => file.endsWith('.md')),
+      (await readdir(directory)).filter((file) => file.endsWith('.json')),
     ).toHaveLength(19);
     const first = await loadIntegrationCatalog();
     const second = await loadIntegrationCatalog();
@@ -60,6 +58,27 @@ describe('integration catalog', () => {
     ).toEqual(
       second.map(({ definition, markdown }) => ({ definition, markdown })),
     );
+  });
+  it('keeps the physical cluster recipes on distinct target queries', async () => {
+    const recipes = await loadIntegrationCatalog();
+    const outputs = await Promise.all(
+      [
+        'physical-large-cluster-alteration',
+        'physical-large-cluster-jagged',
+      ].map(async (id) => {
+        const recipe = recipes.find((entry) => entry.definition.id === id)!;
+        const dependencies = await integrationMarketDependencies({
+          league: 'Fixture League',
+          recipe: recipe.definition,
+        });
+        return dependencies.find(({ kind }) => kind === 'target')?.query?.query
+          .fixtureKey;
+      }),
+    );
+    expect(outputs).toEqual([
+      'fixture:output:production:alteration',
+      'fixture:output:production:jagged',
+    ]);
   });
   it.each([
     [12, [null, null, null, null]],

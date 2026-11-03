@@ -11,6 +11,8 @@ import {
   marketCollectionRunResponseSchema,
   marketTargetResponseSchema,
   marketWorkbenchResponseSchema,
+  marketStarterLibraryResponseSchema,
+  marketStarterMarketSnapshotSchema,
 } from '@poe-worksmith/contracts';
 import { DomainError, type RateLimitState } from '@poe-worksmith/domain';
 import type {
@@ -25,7 +27,11 @@ import { randomUUID } from 'node:crypto';
 
 import { analyzeBeltSnapshot } from './beltComparability.js';
 import { activeCatalogTargets, importMarketCatalog } from './marketCatalog.js';
-import { generateMarketTradeQuery } from './marketTradeQuery.js';
+import { marketStarterLibrary } from './marketStarterLibrary.js';
+import {
+  generateMarketTradeQuery,
+  marketTradeUrl,
+} from './marketTradeQuery.js';
 import { evaluateBeltOpportunity } from './beltOpportunity.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
 import {
@@ -43,6 +49,64 @@ import {
   marketDigest,
   type MarketResearchRepository,
 } from './marketResearch.js';
+
+const starterItems: Record<string, { iconUrl: string; type: string }> = {
+  'Cloak of Flame': {
+    iconUrl:
+      'https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9Cb2R5SW50MUF1bmlxdWUiLCJ3IjoyLCJoIjozLCJzY2FsZSI6MX1d/41c15c6511/BodyInt1Aunique.png',
+    type: 'Scholar’s Robe',
+  },
+  'Quill Rain': {
+    iconUrl:
+      'https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvV2VhcG9ucy9Ud29IYW5kV2VhcG9ucy9Cb3dzL0JvdzJ1bmlxdWUiLCJ3IjoyLCJoIjozLCJzY2FsZSI6MX1d/5c5cad82e8/Bow2unique.png',
+    type: 'Short Bow',
+  },
+  'Replica Dragonfang’s Flight': {
+    iconUrl:
+      'https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQW11bGV0cy9NYWxhY2hhaSdzIEJyaWxsaWFuY2VBbXVsZXQiLCJ3IjoxLCJoIjoxLCJzY2FsZSI6MX1d/a1548914e0/Malachai%27s%20BrillianceAmulet.png',
+    type: 'Onyx Amulet',
+  },
+};
+const uniqueStarterItems = new Set(Object.keys(starterItems));
+const genericStarterBases = new Set(['Elder-influenced helmet', 'Helmet']);
+function starterTradeUrl(baseTypes: string[], league: string) {
+  const item = baseTypes.find((baseType) => uniqueStarterItems.has(baseType));
+  const baseType = item
+    ? starterItems[item]?.type
+    : baseTypes.length === 1
+      ? baseTypes[0]
+      : null;
+  if (!baseType || (!item && genericStarterBases.has(baseType))) return null;
+  const unique = Boolean(item);
+  const query = {
+    query: {
+      status: { option: 'online' },
+      ...(item
+        ? {
+            name: item.replace(/[’‘]/g, "'"),
+            type: baseType.replace(/[’‘]/g, "'"),
+          }
+        : { type: baseType.replace(/[’‘]/g, "'") }),
+      stats: [{ type: 'and', filters: [] }],
+      filters: {
+        type_filters: {
+          filters: { rarity: { option: unique ? 'unique' : 'nonunique' } },
+        },
+      },
+    },
+    sort: { price: 'asc' },
+  };
+  return marketTradeUrl(league, query);
+}
+
+type StarterSnapshot = {
+  snapshot: NonNullable<Awaited<ReturnType<MarketEconomyRepository['find']>>>;
+  summary: Awaited<ReturnType<MarketEconomyRepository['list']>>[number];
+};
+const starterSnapshotCache = new WeakMap<
+  MarketEconomyRepository,
+  Map<string, StarterSnapshot>
+>();
 
 export function registerMarketResearchRoutes(
   api: FastifyInstance<
@@ -70,6 +134,120 @@ export function registerMarketResearchRoutes(
         }
       : source,
   );
+  api.get('/api/market/starter-library', async (request) => {
+    const repositoryCache: Map<string, StarterSnapshot> = economyRepository
+      ? (starterSnapshotCache.get(economyRepository) ??
+        new Map<string, StarterSnapshot>())
+      : new Map<string, StarterSnapshot>();
+    if (economyRepository && !starterSnapshotCache.has(economyRepository))
+      starterSnapshotCache.set(economyRepository, repositoryCache);
+    const latestByLeague = new Map(repositoryCache);
+    if (economyRepository) {
+      await Promise.all(
+        [...new Set(marketStarterLibrary.map((target) => target.league))].map(
+          async (league) => {
+            try {
+              const summary = await economyRepository.latest(
+                league,
+                'BaseType',
+              );
+              if (!summary) {
+                latestByLeague.delete(league);
+                repositoryCache.delete(league);
+                return;
+              }
+              const cached = latestByLeague.get(league);
+              if (cached?.summary.id === summary.id) return;
+              const snapshot = await economyRepository.find(summary.id);
+              if (!snapshot) {
+                latestByLeague.delete(league);
+                repositoryCache.delete(league);
+                return;
+              }
+              const entry = { snapshot, summary };
+              const current = repositoryCache.get(league);
+              const currentIsNewer =
+                current &&
+                (current.summary.capturedAt > summary.capturedAt ||
+                  (current.summary.capturedAt === summary.capturedAt &&
+                    current.summary.id < summary.id));
+              if (currentIsNewer) {
+                latestByLeague.set(league, current);
+                return;
+              }
+              latestByLeague.set(league, entry);
+              repositoryCache.set(league, entry);
+            } catch (error) {
+              latestByLeague.delete(league);
+              repositoryCache.delete(league);
+              request.log.warn(
+                { err: error, league },
+                'Could not read the latest BaseType snapshot for one league',
+              );
+            }
+          },
+        ),
+      );
+    }
+    return marketStarterLibraryResponseSchema.parse({
+      correlationId: request.id,
+      data: marketStarterLibrary.map((target) => {
+        const latest = latestByLeague.get(target.league);
+        const latestBaseTypes = latest?.snapshot;
+        const summary = latest?.summary;
+        const baseType =
+          target.baseTypes.length === 1
+            ? target.baseTypes[0]?.trim().toLowerCase()
+            : null;
+        const lines = baseType
+          ? (latestBaseTypes?.lines.filter(
+              (entry) =>
+                entry.baseType?.trim().toLowerCase() === baseType ||
+                entry.name?.trim().toLowerCase() === baseType,
+            ) ?? [])
+          : [];
+        const uniqueLine = lines.length === 1 ? lines[0] : null;
+        // Item-level and influence variants are not a price for the unqualified base.
+        const exactBaseLine =
+          uniqueLine?.detailsId === baseTypeSlug(target.baseTypes[0] ?? '');
+        const marketSnapshot =
+          lines.length && latestBaseTypes && summary
+            ? marketStarterMarketSnapshotSchema.safeParse({
+                capturedAt: latestBaseTypes.capturedAt,
+                iconUrl: lines.find((entry) => entry.iconUrl)?.iconUrl ?? null,
+                league: latestBaseTypes.league,
+                listingCount: sumCounts(lines.map((line) => line.listingCount)),
+                observationCount: sumCounts(
+                  lines.map((line) => line.observationCount),
+                ),
+                price: {
+                  amount: exactBaseLine
+                    ? (uniqueLine?.price.amount ?? null)
+                    : null,
+                  currency: uniqueLine?.price.currency ?? 'chaos',
+                },
+                sourceUrl: summary.endpoint,
+                variantCount: lines.length,
+              })
+            : null;
+        if (marketSnapshot && !marketSnapshot.success)
+          request.log.warn(
+            { issues: marketSnapshot.error.issues },
+            'Ignoring invalid BaseType snapshot data for the starter library',
+          );
+        return {
+          ...target,
+          artworkUrl:
+            target.baseTypes
+              .map((baseType) => starterItems[baseType]?.iconUrl)
+              .find(Boolean) ?? null,
+          marketSnapshot: marketSnapshot?.success ? marketSnapshot.data : null,
+          tradeUrl: starterTradeUrl(target.baseTypes, target.league),
+        };
+      }),
+    });
+  });
+
   api.get('/api/market', async (request) => {
     const unavailable = () =>
       marketWorkbenchResponseSchema.parse({
@@ -524,6 +702,20 @@ export function registerMarketResearchRoutes(
       });
     },
   );
+}
+
+function sumCounts(counts: (number | null)[]) {
+  return counts.reduce<number | null>(
+    (total, count) => (count === null ? total : (total ?? 0) + count),
+    null,
+  );
+}
+
+function baseTypeSlug(baseType: string) {
+  return baseType
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 function requireCollectionStore(

@@ -55,4 +55,16 @@ describe('typed API client', () => {
       headers: { accept: 'application/json' },
     });
   });
+
+  it('posts a manual price refresh through the shared contract', async () => {
+    const payload = { correlationId, data: { accepted: true } };
+    const fetchMock = vi.fn().mockResolvedValue(response(payload));
+    const client = createApiClient('', fetchMock);
+
+    await expect(client.triggerPriceRefresh()).resolves.toEqual(payload);
+    expect(fetchMock).toHaveBeenCalledWith('/api/refresh', {
+      headers: { accept: 'application/json' },
+      method: 'POST',
+    });
+  });
 });

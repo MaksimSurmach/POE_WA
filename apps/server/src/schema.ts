@@ -282,6 +282,11 @@ export const recipeEvaluations = pgTable(
     marginPercent: numeric('margin_percent', { precision: 12, scale: 6 }),
     confidence: text('confidence'),
     errorCode: text('error_code'),
+    historicalMethodCosts: jsonb('variant_costs').$type<Record<
+      string,
+      unknown
+    > | null>(),
+    methodCost: jsonb('method_cost').$type<Record<string, unknown> | null>(),
     evaluatedAt: timestamp('evaluated_at', { withTimezone: true }).notNull(),
     lastSuccessfulAt: timestamp('last_successful_at', { withTimezone: true }),
     ...timestamps,

@@ -4,6 +4,10 @@ import { DomainError } from '@poe-worksmith/domain';
 import { marketDigest } from './marketResearch.js';
 import { tradeMappingVersion, tradeStatMappings } from './tradeStatMappings.js';
 
+export function marketTradeUrl(league: string, query: object) {
+  return `https://www.pathofexile.com/trade/search/${encodeURIComponent(league)}?q=${encodeURIComponent(JSON.stringify(query))}`;
+}
+
 /** Unsupported/free-text requirements fail before any HTTP request. */
 export function generateMarketTradeQuery(
   target: MarketTarget,
@@ -75,6 +79,8 @@ export function generateMarketTradeQuery(
   if (target.qualityMin != null) misc.quality = { min: target.qualityMin };
   const corrupted = rules?.corrupted ?? target.corrupted;
   if (corrupted != null) misc.corrupted = { option: String(corrupted) };
+  if (target.synthesised !== undefined)
+    misc.synthesised_item = { option: String(target.synthesised) };
   if (search.fractured !== undefined)
     misc.fractured_item = { option: String(search.fractured) };
   const stats: Array<{
@@ -88,24 +94,28 @@ export function generateMarketTradeQuery(
       : {}),
     filters: group.filters.map((stat) => ({
       id: stat.id,
-      value: {
-        ...(stat.min !== undefined
-          ? {
-              min:
-                scope === 'broad'
-                  ? stat.min - Math.abs(stat.min) * 0.2
-                  : stat.min,
-            }
-          : {}),
-        ...(stat.max !== undefined
-          ? {
-              max:
-                scope === 'broad'
-                  ? stat.max + Math.abs(stat.max) * 0.2
-                  : stat.max,
-            }
-          : {}),
-      },
+      ...(stat.id.includes('|')
+        ? {}
+        : {
+            value: {
+              ...(stat.min !== undefined
+                ? {
+                    min:
+                      scope === 'broad'
+                        ? stat.min - Math.abs(stat.min) * 0.2
+                        : stat.min,
+                  }
+                : {}),
+              ...(stat.max !== undefined
+                ? {
+                    max:
+                      scope === 'broad'
+                        ? stat.max + Math.abs(stat.max) * 0.2
+                        : stat.max,
+                  }
+                : {}),
+            },
+          }),
     })),
   }));
   // Influence filters use Trade's pseudo flags; stat IDs are sourced with the other mappings.
@@ -133,7 +143,15 @@ export function generateMarketTradeQuery(
       filters: {
         type_filters: { filters: { rarity: { option: search.rarity } } },
         misc_filters: { filters: misc },
-        trade_filters: { filters: { price: { option: search.currency } } },
+        trade_filters: {
+          filters: {
+            price: {
+              ...(search.includeOtherCurrencies
+                ? {}
+                : { option: search.currency }),
+            },
+          },
+        },
       },
     },
     sort: { price: 'asc' },
@@ -161,7 +179,7 @@ export function generateMarketTradeQuery(
       scope,
       request,
     }),
-    // The website accepts the encoded query directly; no search request is needed to inspect it.
+    // Rich searches stay compressed so they fit the existing 2048-character URL contract.
     url: `https://www.pathofexile.com/trade/search/${encodeURIComponent(target.league)}/${gzipSync(JSON.stringify(request)).toString('base64url')}`,
   };
 }

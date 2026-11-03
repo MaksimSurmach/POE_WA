@@ -1,0 +1,51 @@
+{
+  "gameDataVersion": "3.29.3.3",
+  "metadataVersion": "1",
+  "metadata": {
+    "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge": {
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase3.png",
+      "itemClass": "Jewel",
+      "name": "Large Cluster Jewel"
+    },
+    "physical-damage": {
+      "name": "12% increased Physical Damage"
+    },
+    "mod:battle-hardened": {
+      "generationType": "prefix",
+      "name": "Battle-Hardened"
+    },
+    "mod:furious-assault": {
+      "generationType": "suffix",
+      "name": "Furious Assault"
+    },
+    "mod:master-the-fundamentals": {
+      "generationType": "prefix",
+      "name": "Master the Fundamentals"
+    },
+    "jagged-fossil": {
+      "itemClass": "Fossil",
+      "name": "Jagged Fossil",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvSmFnZ2VkRm9zc2lsIiwic2NhbGUiOjF9XQ/ca9c17d7d9/JaggedFossil.png"
+    },
+    "primitive-chaotic-resonator": {
+      "itemClass": "Resonator",
+      "name": "Primitive Chaotic Resonator",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvUmVyb2xsMXgxQSIsInNjYWxlIjoxfV0/9c7dcd6158/Reroll1x1A.png"
+    },
+    "vivid-crystallised-lifeforce": {
+      "itemClass": "Currency",
+      "name": "Vivid Crystallised Lifeforce",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvSGFydmVzdC9WaXZpZExpZmVmb3JjZSIsInNjYWxlIjoxfV0/a355b8a5a2/VividLifeforce.png"
+    },
+    "orb-of-alteration": {
+      "itemClass": "Currency",
+      "name": "Orb of Alteration",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lSZXJvbGxNYWdpYyIsInNjYWxlIjoxfV0/6308fc8ca2/CurrencyRerollMagic.png"
+    },
+    "orb-of-transmutation": {
+      "itemClass": "Currency",
+      "name": "Orb of Transmutation",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lVcGdyYWRlVG9NYWdpYyIsInNjYWxlIjoxfV0/ded9e8ee63/CurrencyUpgradeToMagic.png"
+    }
+  }
+}

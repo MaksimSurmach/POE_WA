@@ -1,13 +1,17 @@
-# Recipe authoring
+# Manual recipe authoring
 
-1. Copy `recipe.template.md` to `recipes/<unique-id>/recipe.md`.
-2. Replace every placeholder while preserving `schemaVersion: 1`.
-3. Run `pnpm recipes:validate` before committing.
-4. Preview database changes with `pnpm recipes:sync --dry-run`.
-5. Apply them with `pnpm recipes:sync` after migrations are current.
+Copy `docs/recipe.template.json` to `recipes/<category>/<id>.json`.
+The JSON-only recursive catalog requires unique IDs and schema version 3.
+One recipe defines one exact output and one craft procedure. A second method
+requires another recipe; identical outputs share their computed target signature.
 
-Git is the recipe source of truth. A removed `recipe.md` is soft-disabled by
-the next sync; its database row and evaluation history are retained.
+Group output modifiers under `target.prefixes`, `suffixes`, `implicits` and
+`other`. Define the acquired item under `startingBase` and the finished item
+under `base`. Enter dated calculator evidence, per-stage expected executions
+per finished item, and expected base consumption. Missing evidence or quantities
+withhold expected cost and ROI. Do not infer a multi-stage total from one roll's
+success probability. Material IDs must match verified exchange or Ninja details IDs.
 
-Validation reports the file and field for duplicate IDs, schema errors, unsafe
-or missing image assets, malformed front matter, and invalid Markdown content.
+Git is the recipe source of truth. Removing a recipe soft-disables it on the
+next sync; database rows, raw snapshots and evaluation history remain.
+Run `pnpm recipes:validate` and `pnpm recipes:sync --dry-run` before committing.

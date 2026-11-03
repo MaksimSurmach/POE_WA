@@ -14,7 +14,8 @@ import {
 export function configuredCollectionSource(
   rateLimits: RateLimitGate,
   environment: Record<string, string | undefined> = process.env,
-  economy?: Pick<MarketEconomyRepository, 'find'>,
+  economy?: Pick<MarketEconomyRepository, 'find'> &
+    Partial<Pick<MarketEconomyRepository, 'latest'>>,
 ) {
   if (environment.MARKET_COLLECTION_SOURCE !== 'trade-compatible')
     return configuredMarketCollectionSource(
@@ -54,5 +55,40 @@ export function configuredCollectionSource(
       return { ...descriptor, connectionStatus: transport.connectionStatus };
     },
     collect: source.collect,
+  };
+}
+
+/** Adapt the existing durable collection owner to queued recipe refreshes. */
+export function managedCollectionSource(
+  manager: import('./marketCollection.js').MarketCollectionManager,
+  research: Pick<
+    import('./marketResearch.js').MarketResearchRepository,
+    'saveTarget'
+  >,
+): import('./marketCollection.js').MarketCollectionAdapter {
+  return {
+    get descriptor() {
+      return manager.source;
+    },
+    async collect({ target, signal }) {
+      const stored = await research.saveTarget(target);
+      const run = await manager.collectNow(stored.id, signal);
+      return {
+        batchCount: run.batchCount,
+        cancelled: run.status === 'cancelled',
+        cached: run.cached,
+        ...(run.inexact === undefined ? {} : { inexact: run.inexact }),
+        capturedAt: run.capturedAt,
+        coverage: run.coverage ?? 'unknown',
+        currency: run.currency,
+        fetchedCount: run.fetchedCount,
+        listings: run.listings,
+        reportedTotal: run.reportedTotal,
+        returnedCount: run.returnedCount,
+        errorCode: run.errorCode,
+        retryAt: run.retryAt,
+        searchEvidence: run.searchEvidence,
+      };
+    },
   };
 }

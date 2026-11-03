@@ -12,8 +12,8 @@ import { integrationScenario } from './integrationScenarios.js';
 describe('integration scenarios', () =>
   it.each([
     ['all-success', 13, 12],
-    ['publish-at-95', 11, 10],
-    ['reject-below-95', 10, 9],
+    ['publish-at-95', 13, 12],
+    ['reject-below-95', 13, 12],
   ] as const)(
     '%s keeps one shared legacy query with %i raw and %i effective listings',
     async (name, raw, effective) => {
@@ -57,4 +57,26 @@ it('keeps ten effective listings from an eleven-row normal result', async () => 
   expect(
     selectPriceEstimate(aggregation, { strategy: 'median_top_n', n: 10 }).price,
   ).toEqual(expect.any(Object));
+});
+
+it('fails one or two independent target queries for the publication threshold', async () => {
+  const hashes = await expectedDefaultQueryHashes();
+  for (const [scenario, failed] of [
+    ['publish-at-95', 1],
+    ['reject-below-95', 2],
+  ] as const) {
+    const script = await integrationScenario(scenario);
+    expect(
+      ['fixture:output:boundary-one', 'fixture:output:boundary-two'].filter(
+        (key) =>
+          script[
+            hashes[
+              expectedDefaultQueryKeys.indexOf(
+                key as (typeof expectedDefaultQueryKeys)[number],
+              )
+            ]!
+          ]?.[0]?.type === 'malformed',
+      ),
+    ).toHaveLength(failed);
+  }
 });

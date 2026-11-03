@@ -1,0 +1,365 @@
+{
+  "kind": "permissioned-live-observation",
+  "date": "2026-11-02",
+  "executionCommit": "626920a2976ff64825d60ea4f90334f8cd1345a4",
+  "finalFollowupCommit": "b772c0257f4897022d238772525f926ec14c52b3",
+  "followupScope": "HTTP revalidation freshness uses existing successful HTTP attempt receipts; final local/CI validation covers the follow-up. Live values and source payloads are unchanged.",
+  "environment": {
+    "node": "22.13.0",
+    "pnpm": "11.8.0",
+    "postgresMajor": 17,
+    "league": "Allflame",
+    "loopbackOnly": true,
+    "sessionCredentialUsed": false,
+    "source": "owner-permitted trade-compatible",
+    "automatedSchedules": "Jan 1 only during QA"
+  },
+  "path": "Git JSON sync -> registered mapping -> existing Trade search/fetch and durable raw store -> current normalizer -> exact matcher and seller dedup -> source prices/materials -> sole-method economics -> published catalog/detail -> browser",
+  "refresh": {
+    "completedQueries": 7,
+    "completedRecipes": 2,
+    "failedQueries": 0,
+    "failedRecipes": 0,
+    "finishedAt": "2026-11-02T15:24:35.527Z",
+    "id": "c2ce6924-4a75-424b-89a1-93b9ad89a8fb",
+    "publishedAt": "2026-11-02T15:24:35.527Z",
+    "requestedAt": "2026-11-02T15:23:07.291Z",
+    "startedAt": "2026-11-02T15:23:07.291Z",
+    "status": "published",
+    "totalQueries": 7,
+    "totalRecipes": 2
+  },
+  "cacheNote": "Final cycle used three fresh live base/target caches and recollected four material queries; Ninja was checked through the existing cache/client. No fixture/replay/manual import was used.",
+  "evaluations": [
+    {
+      "profit": null,
+      "status": "partial",
+      "recipeId": "physical-large-cluster-alteration",
+      "confidence": "low",
+      "methodCost": {
+        "steps": [
+          {
+            "id": "transmute-base",
+            "title": "Make the base magic",
+            "action": "Use one Orb of Transmutation on the normal base.",
+            "success": null,
+            "materials": [
+              {
+                "itemId": "orb-of-transmutation",
+                "unitPrice": {
+                  "amount": "0.002917",
+                  "currency": "chaos"
+                },
+                "costPerAttempt": {
+                  "amount": "0.002917",
+                  "currency": "chaos"
+                },
+                "quantityPerAttempt": 1
+              }
+            ],
+            "continueWhen": "The item is magic.",
+            "failureAction": "Continue when the Orb of Transmutation succeeds."
+          },
+          {
+            "id": "roll-alteration",
+            "title": "Roll with Alterations",
+            "action": "Use Orbs of Alteration until the two target notables appear together.",
+            "success": {
+              "evidence": {
+                "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX3BoeXNpY2FsX2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&method=0%2C1&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d",
+                "patch": "3.29.3.3",
+                "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+                "artifact": "docs/evidence/worksmith-2026-11-02/coe-alteration.json",
+                "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, magic starting rarity, Orb of Alteration, AND Battle-Hardened + Furious Assault. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+                "verifiedAt": "2026-11-02",
+                "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+              },
+              "probability": 0.00072
+            },
+            "materials": [
+              {
+                "itemId": "orb-of-alteration",
+                "unitPrice": {
+                  "amount": "0.07844",
+                  "currency": "chaos"
+                },
+                "costPerAttempt": {
+                  "amount": "0.07844",
+                  "currency": "chaos"
+                },
+                "quantityPerAttempt": 1
+              }
+            ],
+            "continueWhen": "The item has Battle-Hardened and Furious Assault.",
+            "failureAction": "Repeat on the same base."
+          }
+        ],
+        "source": {
+          "coverage": "complete",
+          "capturedAt": "2026-11-02T14:59:55.013Z",
+          "priceBasis": "asking",
+          "sampleSize": 0,
+          "sortedPageComplete": false
+        },
+        "baseCost": {
+          "amount": "9",
+          "currency": "chaos"
+        },
+        "expiresAt": "2026-11-02T15:29:55.013Z",
+        "expectedCost": {
+          "amount": "117.956077",
+          "currency": "chaos"
+        },
+        "marketStatus": "empty",
+        "expectedBases": 1,
+        "currencyExchange": null,
+        "materialEvidence": {
+          "base": {
+            "itemId": "base",
+            "league": "Allflame",
+            "source": "poe-trade",
+            "currency": "chaos",
+            "capturedAt": "2026-11-02T15:10:53.574Z",
+            "priceBasis": "asking"
+          },
+          "orb-of-alteration": {
+            "itemId": "orb-of-alteration",
+            "league": "Allflame",
+            "source": "poe.ninja",
+            "currency": "chaos",
+            "capturedAt": "2026-11-02T15:23:07.581Z",
+            "priceBasis": "economy-estimate",
+            "snapshotId": "c675724a-b2d5-4db9-8aa7-cf12b41d9420",
+            "bulkSupported": true
+          },
+          "orb-of-transmutation": {
+            "itemId": "orb-of-transmutation",
+            "league": "Allflame",
+            "source": "poe.ninja",
+            "currency": "chaos",
+            "capturedAt": "2026-11-02T15:23:07.581Z",
+            "priceBasis": "economy-estimate",
+            "snapshotId": "c675724a-b2d5-4db9-8aa7-cf12b41d9420",
+            "bulkSupported": true
+          }
+        },
+        "recipeContentHash": "7135a5bd0def0350dfc94b96d9de41a205dd10011d926d12ffb0eaa34df231b1",
+        "materialsPerAttempt": null
+      },
+      "roiPercent": null,
+      "evaluatedAt": "2026-11-02T16:24:35.527+01:00",
+      "expectedCraftCost": 117.956077,
+      "estimatedSalePrice": null
+    },
+    {
+      "profit": -1254.5039,
+      "status": "success",
+      "recipeId": "physical-large-cluster-jagged",
+      "confidence": "high",
+      "methodCost": {
+        "steps": [
+          {
+            "id": "roll-with-fossil",
+            "title": "Roll with a Jagged Fossil",
+            "action": "Use one Jagged Fossil in a one-socket resonator on an item-level 83+ base.",
+            "success": {
+              "evidence": {
+                "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=4%2C13&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NDIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+                "patch": "3.29.3.3",
+                "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+                "artifact": "docs/evidence/worksmith-2026-11-02/coe-jagged.json",
+                "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, one Jagged Fossil, AND Battle-Hardened + Furious Assault + Master the Fundamentals. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+                "verifiedAt": "2026-11-02",
+                "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+              },
+              "probability": 0.00976
+            },
+            "materials": [
+              {
+                "itemId": "jagged-fossil",
+                "unitPrice": {
+                  "amount": "19",
+                  "currency": "chaos"
+                },
+                "costPerAttempt": {
+                  "amount": "19",
+                  "currency": "chaos"
+                },
+                "quantityPerAttempt": 1
+              },
+              {
+                "itemId": "primitive-chaotic-resonator",
+                "unitPrice": {
+                  "amount": "0.9913",
+                  "currency": "chaos"
+                },
+                "costPerAttempt": {
+                  "amount": "0.9913",
+                  "currency": "chaos"
+                },
+                "quantityPerAttempt": 1
+              }
+            ],
+            "continueWhen": "The item has Battle-Hardened, Furious Assault and Master the Fundamentals.",
+            "failureAction": "Repeat on the same base."
+          }
+        ],
+        "source": {
+          "coverage": "complete",
+          "capturedAt": "2026-11-02T15:00:35.073Z",
+          "priceBasis": "asking",
+          "sampleSize": 23,
+          "sortedPageComplete": false
+        },
+        "baseCost": {
+          "amount": "9",
+          "currency": "chaos"
+        },
+        "expiresAt": "2026-11-02T15:30:35.073Z",
+        "expectedCost": {
+          "amount": "2068.1039",
+          "currency": "chaos"
+        },
+        "marketStatus": "priced",
+        "expectedBases": 1,
+        "currencyExchange": null,
+        "materialEvidence": {
+          "base": {
+            "itemId": "base",
+            "league": "Allflame",
+            "source": "poe-trade",
+            "currency": "chaos",
+            "capturedAt": "2026-11-02T15:10:53.574Z",
+            "priceBasis": "asking"
+          },
+          "jagged-fossil": {
+            "itemId": "jagged-fossil",
+            "league": "Allflame",
+            "source": "poe.ninja",
+            "currency": "chaos",
+            "capturedAt": "2026-11-02T15:23:07.858Z",
+            "priceBasis": "economy-estimate",
+            "snapshotId": "de51b707-4e08-4ee7-9f5f-6e932a15e486",
+            "bulkSupported": true
+          },
+          "primitive-chaotic-resonator": {
+            "itemId": "primitive-chaotic-resonator",
+            "league": "Allflame",
+            "source": "poe.ninja",
+            "currency": "chaos",
+            "capturedAt": "2026-11-02T15:23:07.939Z",
+            "priceBasis": "economy-estimate",
+            "snapshotId": "a1bee88a-2ee1-4c57-85e5-ae1eed30dfe2",
+            "bulkSupported": true
+          }
+        },
+        "recipeContentHash": "570a66169a6437f8532107b5b2e876a9c407837cfe057c10c565b12d466dd2fc",
+        "materialsPerAttempt": {
+          "amount": "19.9913",
+          "currency": "chaos"
+        }
+      },
+      "roiPercent": -60.659617,
+      "evaluatedAt": "2026-11-02T16:24:35.527+01:00",
+      "expectedCraftCost": 2068.1039,
+      "estimatedSalePrice": 813.6
+    }
+  ],
+  "base": {
+    "rawRows": 100,
+    "reportedTotal": 156,
+    "coverage": "partial",
+    "sortedPageComplete": true,
+    "verifiedSellers": 85,
+    "cheapestChaos": 9
+  },
+  "rawSnapshotMetadata": [
+    {
+      "scope": "starting-base",
+      "rawRows": 100,
+      "coverage": "partial",
+      "provider": "poe-trade",
+      "dedupeKey": "market:8e1e61d8-d51d-4078-8ffd-50714d16d663:14d685500c8e9801fe29bd9f67a668de050a403c3ef0839ef7c38433447c48be",
+      "expiresAt": "2026-11-02T16:40:53.574+01:00",
+      "capturedAt": "2026-11-02T16:10:53.574+01:00",
+      "totalResults": 156,
+      "sortedPageComplete": true
+    },
+    {
+      "scope": "crafted-item",
+      "rawRows": 69,
+      "coverage": "complete",
+      "provider": "poe-trade",
+      "dedupeKey": "market:e74a6286-3b63-4cce-b50a-aae057e44e8d:bb7fc79b5ea692d14fcf4d563b1f00324b02ced0670456ac5eada87f5d8f01db",
+      "expiresAt": "2026-11-02T16:30:35.073+01:00",
+      "capturedAt": "2026-11-02T16:00:35.073+01:00",
+      "totalResults": 69,
+      "sortedPageComplete": null
+    },
+    {
+      "scope": "crafted-item",
+      "rawRows": 0,
+      "coverage": "complete",
+      "provider": "poe-trade",
+      "dedupeKey": "market:e74a6286-3b63-4cce-b50a-aae057e44e8d:882e61251ddba83039030c33e07ff081b4e28d4ead8bfc55bc6852cf79b4aa96",
+      "expiresAt": "2026-11-02T16:29:55.013+01:00",
+      "capturedAt": "2026-11-02T15:59:55.013+01:00",
+      "totalResults": 0,
+      "sortedPageComplete": null
+    },
+    {
+      "scope": "starting-base",
+      "rawRows": 100,
+      "coverage": "partial",
+      "provider": "poe-trade",
+      "dedupeKey": "market:e74a6286-3b63-4cce-b50a-aae057e44e8d:14d685500c8e9801fe29bd9f67a668de050a403c3ef0839ef7c38433447c48be",
+      "expiresAt": "2026-11-02T16:22:39.008+01:00",
+      "capturedAt": "2026-11-02T15:52:39.008+01:00",
+      "totalResults": 156,
+      "sortedPageComplete": null
+    },
+    {
+      "scope": "cluster-jewel",
+      "rawRows": 0,
+      "coverage": "complete",
+      "provider": "poe-trade",
+      "dedupeKey": "market:adbe7a24-6974-4395-b97b-900d0acbb792:bdf89b11067d8792d8f57a6f0634b56911c6ad08410d8a0bb222345f709f39f7",
+      "expiresAt": "2026-11-02T15:56:04.835+01:00",
+      "capturedAt": "2026-11-02T15:26:04.835+01:00",
+      "totalResults": 0,
+      "sortedPageComplete": null
+    },
+    {
+      "scope": "cluster-jewel",
+      "rawRows": 0,
+      "coverage": "complete",
+      "provider": "poe-trade",
+      "dedupeKey": "market:adbe7a24-6974-4395-b97b-900d0acbb792:724cff2abaa0d6fb66186d0dcea4ce3128fd93fe0bd5f1e615a4962013f1a790",
+      "expiresAt": "2026-11-02T15:54:33.88+01:00",
+      "capturedAt": "2026-11-02T15:24:33.88+01:00",
+      "totalResults": 0,
+      "sortedPageComplete": null
+    },
+    {
+      "scope": "cluster-jewel",
+      "rawRows": 0,
+      "coverage": "partial",
+      "provider": "poe-trade",
+      "dedupeKey": "market:adbe7a24-6974-4395-b97b-900d0acbb792:ad105e437e171602919fe6c05187d757d88fdc0e0b0f185886af1d0f9352358a",
+      "expiresAt": "2026-11-02T15:53:02.916+01:00",
+      "capturedAt": "2026-11-02T15:23:02.916+01:00",
+      "totalResults": 82,
+      "sortedPageComplete": null
+    }
+  ],
+  "limitations": [
+    "Asking prices are not completed sales.",
+    "CoE probabilities/expected consumption are rounded displays; cost and ROI are indicative.",
+    "The first sorted base page is complete; overall search coverage is partial (100/156).",
+    "Mixed-currency page ordering uses Trade sorting; conversion uses contemporaneous Ninja rates.",
+    "After snapshot expiry, public views withhold cost/profit/ROI.",
+    "Original raw source observations remain in the isolated local PostgreSQL runtime; this receipt omits seller identities and source payloads."
+  ],
+  "presentationFollowupCommit": "fc655ecc485b9397093c0b3beefe8687af052e04",
+  "presentationNote": "Dated live captures precede the final profit/ROI color correction. economics-colors-fixture.png is explicitly labelled static presentation verification; it is not live evidence."
+}

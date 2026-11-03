@@ -1,0 +1,53 @@
+{
+  "finalCodeCommit": "fc655ecc485b9397093c0b3beefe8687af052e04",
+  "reviews": [
+    {
+      "name": "Initial substantive review",
+      "isError": false,
+      "numTurns": 4,
+      "sessionId": "4a810864-9d6f-485f-a4c4-c9ba4de18474",
+      "permissionDenials": [],
+      "originalOutputSha256": "5a7d179834962a009343384eb4f58c486dadab90a5259ea14ec61b61a192cd1b"
+    },
+    {
+      "name": "Full re-review",
+      "isError": false,
+      "numTurns": 36,
+      "sessionId": "4a810864-9d6f-485f-a4c4-c9ba4de18474",
+      "permissionDenials": [],
+      "originalOutputSha256": "900472de4cb65f8e5966ec7701577e25b3b709a6a439168884b457dc00b3bda2"
+    },
+    {
+      "name": "Page coverage / bulk / lifecycle re-review",
+      "isError": false,
+      "numTurns": 10,
+      "sessionId": "4a810864-9d6f-485f-a4c4-c9ba4de18474",
+      "permissionDenials": [],
+      "originalOutputSha256": "bb178655f45151956459560a87d65bee5f615ca955e9feb4d27ce2910fab25dd"
+    },
+    {
+      "name": "Normalizer / raw evidence re-review",
+      "isError": false,
+      "numTurns": 13,
+      "sessionId": "4a810864-9d6f-485f-a4c4-c9ba4de18474",
+      "permissionDenials": [],
+      "originalOutputSha256": "d0a9e3ee5cf8dca7ddf8f6960d130e8b9cc7d6d35800a2b8e7c331072265bc78"
+    },
+    {
+      "name": "Final HTTP revalidation verification",
+      "isError": false,
+      "numTurns": 7,
+      "sessionId": "4a810864-9d6f-485f-a4c4-c9ba4de18474",
+      "permissionDenials": [],
+      "originalOutputSha256": "4f9f966abe1d19de85d33e8dc899f83ac89ceb5d559be8446e12f9ec0d5ecaff"
+    },
+    {
+      "name": "Final presentation delta review",
+      "isError": false,
+      "numTurns": 5,
+      "sessionId": "4a810864-9d6f-485f-a4c4-c9ba4de18474",
+      "permissionDenials": [],
+      "originalOutputSha256": "21b9d29aaabd4e5054827673b888b9cb71c2ea10235042f35d642843f3abd113"
+    }
+  ]
+}

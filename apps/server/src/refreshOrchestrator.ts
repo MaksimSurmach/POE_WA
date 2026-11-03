@@ -1,6 +1,7 @@
 import {
   DomainError,
   type Repositories,
+  type RefreshCycle,
   transitionRefreshCycle,
 } from '@poe-worksmith/domain';
 
@@ -21,6 +22,7 @@ import type { RecipeMarketDependencies } from './recipeMarket.js';
 import type { Logger } from 'pino';
 import { operationLogger } from './observability/operationContext.js';
 import type { Metrics } from './observability/metrics.js';
+import type { MarketEconomyRepository } from './marketEconomy.js';
 
 type MarketJobRunner = Pick<MarketJobProcessor, 'runAvailable'>;
 
@@ -31,31 +33,41 @@ export type FullRefreshReport = Readonly<{
 }>;
 
 export class FullRefreshOrchestrator {
+  readonly #collectMaterialPrices: (() => Promise<void>) | undefined;
   readonly #clock: () => Date;
   readonly #league: RefreshLeagueContext;
   readonly #marketJobs: MarketJobRunner;
   readonly #repositories: Repositories;
   readonly #marketDependencies: RecipeMarketDependencies | undefined;
+  readonly #economy:
+    | (Pick<MarketEconomyRepository, 'find' | 'latest'> &
+        Partial<Pick<MarketEconomyRepository, 'listAttempts'>>)
+    | undefined;
   readonly #snapshotTtlMs: number;
   readonly #workerId: string;
   readonly #logger: Logger | undefined;
   readonly #metrics: Metrics | undefined;
 
   constructor(options: {
+    collectMaterialPrices?: () => Promise<void>;
     clock?: () => Date;
     league: RefreshLeagueContext;
     marketJobs: MarketJobRunner;
     marketDependencies?: RecipeMarketDependencies;
+    economy?: Pick<MarketEconomyRepository, 'find' | 'latest'> &
+      Partial<Pick<MarketEconomyRepository, 'listAttempts'>>;
     repositories: Repositories;
     snapshotTtlMs: number;
     workerId: string;
     logger?: Logger;
     metrics?: Metrics;
   }) {
+    this.#collectMaterialPrices = options.collectMaterialPrices;
     this.#clock = options.clock ?? (() => new Date());
     this.#league = Object.freeze({ ...options.league });
     this.#marketJobs = options.marketJobs;
     this.#marketDependencies = options.marketDependencies;
+    this.#economy = options.economy;
     this.#repositories = options.repositories;
     this.#snapshotTtlMs = options.snapshotTtlMs;
     this.#workerId = options.workerId.trim();
@@ -101,6 +113,7 @@ export class FullRefreshOrchestrator {
         );
       }
 
+      await this.#collectPrices(cycle);
       const jobs = await this.#marketJobs.runAvailable(
         `${this.#workerId}:${cycle.id}`,
         now,
@@ -112,6 +125,7 @@ export class FullRefreshOrchestrator {
         throw new DomainError('REFRESH_INCOMPLETE');
       }
 
+      await this.#collectPrices(cycle);
       const publication = await evaluateAndPublishCatalog(this.#repositories, {
         cycleId: cycle.id,
         league: this.#league.leagueGggId,
@@ -122,6 +136,7 @@ export class FullRefreshOrchestrator {
         ...(this.#marketDependencies
           ? { marketDependencies: this.#marketDependencies }
           : {}),
+        ...(this.#economy ? { economy: this.#economy } : {}),
       });
       logger?.info('refresh.completed');
       this.#metrics?.refreshDuration.observe(
@@ -141,6 +156,22 @@ export class FullRefreshOrchestrator {
         { outcome: 'failed' },
         (performance.now() - started) / 1000,
       );
+      throw error;
+    }
+  }
+  async #collectPrices(cycle: RefreshCycle) {
+    if (cycle.status !== 'running') return;
+    try {
+      await this.#collectMaterialPrices?.();
+    } catch (cause) {
+      const error =
+        cause instanceof DomainError
+          ? cause
+          : new DomainError('PERSISTENCE_UNAVAILABLE', { cause });
+      await this.#repositories.cycles.save({
+        ...transitionRefreshCycle(cycle, 'failed', this.#clock()),
+        errorMessage: error.code,
+      });
       throw error;
     }
   }

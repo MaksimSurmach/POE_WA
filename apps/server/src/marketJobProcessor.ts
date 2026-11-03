@@ -1,3 +1,4 @@
+import { comparableRecipeListings } from './recipeMarket.js';
 import {
   aggregateMarketListings,
   canonicalizeMarketQuery,
@@ -144,6 +145,7 @@ export class MarketJobProcessor {
       result,
       payload.leagueId,
       this.#snapshotTtlMs,
+      marketQuery.query as CanonicalJsonObject,
     );
   }
 
@@ -176,12 +178,17 @@ export class MarketJobProcessor {
       succeeded: 0,
     };
 
+    const startedAt = this.#clock().getTime();
     await Promise.all(
       Array.from({ length: this.#concurrency }, async () => {
         for (;;) {
-          const job = await this.#repositories.jobs.claimNext(workerId, now, [
-            'recipe_refresh',
-          ]);
+          const job = await this.#repositories.jobs.claimNext(
+            workerId,
+            new Date(
+              now.getTime() + Math.max(0, this.#clock().getTime() - startedAt),
+            ),
+            ['recipe_refresh'],
+          );
           if (!job) return;
           if (this.#logger)
             operationLogger(this.#logger, jobContext(job)).info(
@@ -283,11 +290,19 @@ function prepareResult(
   result: MarketSearchResult,
   leagueId: string,
   snapshotTtlMs: number,
+  query: CanonicalJsonObject,
 ): PreparedMarketJob {
-  const currency = result.listings[0]?.price.currency ?? 'unknown';
+  const currency = query.handbookTarget
+    ? 'chaos'
+    : (result.listings[0]?.price.currency ?? 'unknown');
   const aggregation = aggregateMarketListings({
     currency,
-    listings: result.listings,
+    listings: comparableRecipeListings(
+      query,
+      result.listings,
+      result.fetchedAt,
+      result.fetchedAt,
+    ),
     totalListings: result.totalResults,
   });
   const snapshot: NewRawSnapshot = {
@@ -301,6 +316,10 @@ function prepareResult(
         ...listing,
         indexedAt: listing.indexedAt.toISOString(),
       })),
+      coverage:
+        result.coverage ??
+        (result.totalResults > result.listings.length ? 'partial' : 'complete'),
+      sortedPageComplete: result.sortedPageComplete ?? false,
       provider: result.provider,
       totalResults: result.totalResults,
     },
@@ -321,6 +340,8 @@ function prepareResult(
     refreshCycleId: job.refreshCycleId!,
     sampleSize: aggregation.sampleSize,
     summary: {
+      coverage: result.coverage ?? 'unknown',
+      sortedPageComplete: result.sortedPageComplete ?? false,
       ageBuckets: aggregation.ageBuckets,
       estimators: aggregation.estimators,
       totalListings: aggregation.totalListings,

@@ -87,4 +87,24 @@ describe('LeagueResolver', () => {
       code: 'POE_NINJA_LEAGUES_UNAVAILABLE',
     } satisfies Partial<DomainError>);
   });
+  it('uses the actual Trade website league catalogue and only PC entries', async () => {
+    let requested = '';
+    const client = new HttpPoeTradeLeagueClient({
+      userAgent: 'test',
+      requestTimeoutMs: 1000,
+      fetch: async (input) => {
+        requested = String(input);
+        return response({
+          result: [
+            { id: 'Allflame', realm: 'pc' },
+            { id: 'Console Only', realm: 'xbox' },
+          ],
+        });
+      },
+    });
+    expect(await client.fetchLeagueIds()).toEqual(['Allflame']);
+    expect(requested).toBe(
+      'https://www.pathofexile.com/api/trade/data/leagues',
+    );
+  });
 });

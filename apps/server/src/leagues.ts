@@ -1,7 +1,11 @@
 import { DomainError, type LeagueRepository } from '@poe-worksmith/domain';
 import { z } from 'zod';
 
-const tradeSchema = z.array(z.object({ id: z.string().min(1) }).loose());
+const tradeSchema = z.object({
+  result: z.array(
+    z.object({ id: z.string().min(1), realm: z.string() }).loose(),
+  ),
+});
 const ninjaSchema = z.array(
   z.object({ id: z.string().min(1), name: z.string().min(1) }).loose(),
 );
@@ -31,14 +35,16 @@ export class HttpPoeTradeLeagueClient implements PoeTradeLeagueClient {
     return (
       await request(
         this.#fetch,
-        'https://api.pathofexile.com/trade/data/leagues',
+        'https://www.pathofexile.com/api/trade/data/leagues',
         this.#timeout,
         this.#userAgent,
         'POE_TRADE_LEAGUES_UNAVAILABLE',
         'POE_TRADE_LEAGUES_INVALID',
         tradeSchema,
       )
-    ).map((league) => league.id);
+    ).result
+      .filter((league) => league.realm === 'pc')
+      .map((league) => league.id);
   }
 }
 export class HttpPoeNinjaLeagueClient implements PoeNinjaLeagueClient {

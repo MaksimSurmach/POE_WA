@@ -2,58 +2,142 @@ import { describe, expect, it } from 'vitest';
 
 import {
   defaultCatalogFilters,
-  filterAndSortCatalog,
-  snapshotAgeSeconds,
+  filterMarketTargets,
+  formatMarginPercent,
+  filterCatalog,
+  getPriceStatus,
+  lowestAskInCurrency,
+  marketTargetItemType,
+  marketTargetTitle,
+  type MarketListTarget,
 } from './catalog.js';
 import { catalogFixtures } from './mocks/catalog.js';
 
-describe('catalog filtering and ranking', () => {
-  it('filters every supported dimension and keeps no-results distinct', () => {
+describe('recipe catalog search and item type filters', () => {
+  it('keeps lowest asks comparable by currency', () => {
+    const snapshot = catalogFixtures[0]!.snapshot!;
+    const listings = [
+      {
+        ...snapshot.listings[0]!,
+        price: { amount: 2, currency: 'divine' as const },
+      },
+      {
+        ...snapshot.listings[1]!,
+        price: { amount: 30, currency: 'chaos' as const },
+      },
+      {
+        ...snapshot.listings[2]!,
+        price: { amount: 12, currency: 'chaos' as const },
+      },
+    ];
+
     expect(
-      filterAndSortCatalog(catalogFixtures, {
-        ...defaultCatalogFilters,
-        category: 'weapon',
-        method: 'fossil',
-        status: 'partial',
-        tag: 'bow',
-      }).map(({ recipe }) => recipe.id),
-    ).toEqual(['no-listings-bow']);
+      lowestAskInCurrency({ ...snapshot, listings }, 'chaos')?.price.amount,
+    ).toBe(12);
     expect(
-      filterAndSortCatalog(catalogFixtures, {
-        ...defaultCatalogFilters,
-        budget: '2',
-      }).every(
-        ({ recipe }) =>
-          recipe.minimumCapital !== null && recipe.minimumCapital.amount <= 2,
+      lowestAskInCurrency({ ...snapshot, listings }, 'divine')?.price.amount,
+    ).toBe(2);
+    expect(
+      lowestAskInCurrency({ ...snapshot, listings }, null),
+    ).toBeUndefined();
+  });
+
+  it('shows every item type and filters by category', () => {
+    expect(
+      new Set(
+        filterCatalog(catalogFixtures, defaultCatalogFilters).map(
+          ({ recipe }) => recipe.category,
+        ),
       ),
-    ).toBe(true);
+    ).toEqual(
+      new Set(['amulet', 'boots', 'cluster-jewel', 'gloves', 'ring', 'weapon']),
+    );
     expect(
-      filterAndSortCatalog(catalogFixtures, {
+      filterCatalog(catalogFixtures, {
+        ...defaultCatalogFilters,
+        category: 'ring',
+      }).map(({ recipe }) => recipe.id),
+    ).toEqual(['low-margin-ring']);
+  });
+
+  it('reports price freshness from the server evaluation status', () => {
+    expect(getPriceStatus('success')).toBe('Updated');
+    expect(getPriceStatus('stale')).toBe('Outdated');
+    expect(getPriceStatus('partial')).toBe('Partial');
+    expect(getPriceStatus('loading')).toBe('Updating');
+    expect(getPriceStatus('error')).toBe('Unavailable');
+  });
+
+  it('rounds ROI percentages without displaying negative zero', () => {
+    expect(formatMarginPercent(33.3333)).toBe('33.3%');
+    expect(formatMarginPercent(50)).toBe('50.0%');
+    expect(formatMarginPercent(-0.04)).toBe('0.0%');
+  });
+
+  it('searches item names and summaries without using hidden recipe tags', () => {
+    expect(
+      filterCatalog(catalogFixtures, {
+        ...defaultCatalogFilters,
+        category: 'cluster-jewel',
+        search: 'physical',
+      }).map(({ recipe }) => recipe.id),
+    ).toContain('profitable-cluster');
+    expect(
+      filterCatalog(catalogFixtures, {
         ...defaultCatalogFilters,
         search: 'not a recipe',
       }),
     ).toEqual([]);
   });
 
-  it('sorts profit, capital, and freshness deterministically', () => {
+  it('restores starter market targets with item-type filtering and English titles', () => {
+    const targets: MarketListTarget[] = [
+      {
+        name: 'Toxic Rain — колчан',
+        slot: 'Колчан',
+        baseTypes: ['Broadhead Arrow Quiver'],
+        builds: ['Toxic Rain Pathfinder'],
+        sources: [],
+      },
+      {
+        name: 'Winter Orb — перчатки',
+        slot: 'Перчатки',
+        baseTypes: ['Warlock Gloves'],
+        builds: ['Winter Orb Occultist'],
+        sources: [],
+      },
+    ];
+
+    expect(marketTargetItemType('Колчан')).toBe('quiver');
+    expect(marketTargetItemType('Жезл')).toBe('weapon');
     expect(
-      filterAndSortCatalog(catalogFixtures, defaultCatalogFilters)[0]?.recipe
-        .id,
-    ).toBe('profitable-cluster');
-    const capitalRanking = filterAndSortCatalog(catalogFixtures, {
-      ...defaultCatalogFilters,
-      sort: 'capital',
-    });
-    expect(capitalRanking[0]?.recipe.id).toBe('low-margin-ring');
-    expect(capitalRanking.at(-1)?.recipe.id).toBe('invalid-recipe');
+      [
+        'Пояс',
+        'Ботинки',
+        'Кольцо',
+        'Щит',
+        'Самоцвет',
+        'Кластерный самоцвет',
+      ].map(marketTargetItemType),
+    ).toEqual(['belt', 'boots', 'ring', 'shield', 'jewel', 'cluster-jewel']);
+    expect(marketTargetTitle(targets[0]!)).toBe('Broadhead Arrow Quiver');
     expect(
-      filterAndSortCatalog(catalogFixtures, {
+      filterMarketTargets(targets, {
         ...defaultCatalogFilters,
-        sort: 'freshness',
-      })[0]?.recipe.id,
-    ).toBe('profitable-cluster');
+        category: 'quiver',
+      }),
+    ).toEqual([targets[0]]);
     expect(
-      snapshotAgeSeconds(catalogFixtures[0]!, '2026-07-20T00:02:00.000Z'),
-    ).toBe(120);
+      filterMarketTargets(targets, {
+        ...defaultCatalogFilters,
+        search: 'winter orb',
+      }),
+    ).toEqual([targets[1]]);
+    expect(
+      filterMarketTargets(targets, {
+        ...defaultCatalogFilters,
+        search: 'occultist',
+      }),
+    ).toEqual([targets[1]]);
   });
 });

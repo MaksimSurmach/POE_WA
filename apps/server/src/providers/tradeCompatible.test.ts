@@ -1,3 +1,4 @@
+import type { CanonicalJsonValue } from '@poe-worksmith/domain';
 import { describe, expect, it, vi } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { beltDemoFixture } from '../beltDemoFixture.js';
@@ -5,6 +6,7 @@ import {
   createMarketTarget,
   createImportedMarketSnapshot,
 } from '../marketResearch.js';
+import { comparableRecipeListings } from '../recipeMarket.js';
 import { analyzeBeltSnapshot } from '../beltComparability.js';
 import { generateMarketTradeQuery } from '../marketTradeQuery.js';
 import {
@@ -76,6 +78,41 @@ const config = loadTradeCompatibleConfig({
 });
 
 describe('Trade-compatible queries and transport', () => {
+  it('normalizes an observed cluster enum hash with null magnitude indexes', async () => {
+    const raw = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.cluster-modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    const row = normalizeTradeCompatibleListing(raw.result[0], tradeTarget());
+    expect(row.item.mods).toContainEqual({
+      id: 'enchant.stat_3948993189|12',
+      value: 1,
+    });
+    expect(row.item.mods).toContainEqual({
+      id: 'explicit.stat_4188581520',
+      value: 1,
+      tier: 1,
+    });
+  });
+
+  it('omits a currency restriction when comparing converted mixed-currency asks', () => {
+    const target = tradeTarget();
+    const request = generateMarketTradeQuery({
+      ...target,
+      tradeSearch: { ...target.tradeSearch!, includeOtherCurrencies: true },
+    }).request;
+    expect(request.query.filters.trade_filters.filters.price).toEqual({});
+    expect(
+      generateMarketTradeQuery(target).request.query.filters.trade_filters
+        .filters.price,
+    ).toEqual({ option: 'chaos' });
+  });
+
   it('normalizes the sanitized November 1 object-mod response and preserves crafted origin', async () => {
     const raw = JSON.parse(
       await readFile(
@@ -431,4 +468,46 @@ describe('Trade-compatible queries and transport', () => {
       }),
     ).toThrow('HTTPS origin without credentials');
   });
+});
+
+it('derives absent influences from full normal Trade items and revalidates historical raw observations', async () => {
+  const capture = JSON.parse(
+    await readFile(
+      new URL(
+        './fixtures/tradeCompatible/fetch.normal-cluster.json',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
+  const target = createMarketTarget(capture.target);
+  const normalized = normalizeTradeCompatibleListing(capture.result[0], target);
+  expect(normalized.item.influences).toEqual([]);
+  const legacyItem: Record<string, CanonicalJsonValue> = {
+    ...normalized.item,
+    normalizationVersion: 'trade-compatible-v2',
+    rawListing: capture.result[0],
+  };
+  delete legacyItem.influences;
+  const capturedAt = new Date('2026-11-02T15:10:53Z');
+  const matches = comparableRecipeListings(
+    { handbookTarget: JSON.stringify(capture.target) },
+    [
+      {
+        id: 'normal-cluster-sanitized',
+        account: 'sanitized-seller',
+        ageSeconds: 0,
+        indexedAt: capturedAt,
+        fee: null,
+        item: legacyItem,
+        price: { amount: '9', currency: 'chaos' },
+      },
+    ],
+    capturedAt,
+    capturedAt,
+  );
+  expect(matches).toHaveLength(1);
+  expect(matches[0]?.item.influences).toEqual([]);
+  expect(matches[0]?.price).toEqual({ amount: '9', currency: 'chaos' });
+  expect(legacyItem).not.toHaveProperty('influences');
 });

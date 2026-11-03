@@ -5,7 +5,20 @@ import {
   type MarketAggregation,
   selectPriceEstimate,
 } from './priceEstimators.js';
-import type { CanonicalRecipeV1 } from './recipeSchema.js';
+import type { EstimatorConfiguration } from './priceEstimators.js';
+
+export type EconomicsInput = {
+  estimator: EstimatorConfiguration;
+  materials: readonly {
+    id: string;
+    label: string;
+    quantityPerAttempt: number;
+  }[];
+  finishingCosts: readonly { id: string; label: string; quantity: number }[];
+  success:
+    | { mode: 'probability'; probability: number }
+    | { mode: 'expected_attempts'; expectedAttempts: number };
+};
 
 const ExactDecimal = Decimal.clone({
   precision: 40,
@@ -84,7 +97,7 @@ export function calculateRecipeEconomics(input: {
   currency: string;
   finishingPrices: Readonly<Record<string, DecimalMoney | null | undefined>>;
   materialPrices: Readonly<Record<string, DecimalMoney | null | undefined>>;
-  recipe: CanonicalRecipeV1;
+  recipe: EconomicsInput;
 }): EconomicsCalculationResult {
   const currency = input.currency.trim();
   const reasons: EconomicsFailureReason[] = [];
@@ -241,7 +254,7 @@ export function calculateRecipeEconomics(input: {
       breakdown: {
         base: costLine(
           'base',
-          input.recipe.baseRequirements.baseType,
+          'Starting base',
           new ExactDecimal(1),
           basePrice,
           currency,
@@ -412,7 +425,7 @@ function failureCode(
   return 'CALCULATION_FAILED';
 }
 
-function estimatorId(configuration: CanonicalRecipeV1['estimator']) {
+function estimatorId(configuration: EstimatorConfiguration) {
   switch (configuration.strategy) {
     case 'cheapest':
       return 'cheapest';

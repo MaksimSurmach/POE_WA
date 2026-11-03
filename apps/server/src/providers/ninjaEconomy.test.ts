@@ -14,6 +14,7 @@ const bases = {
       name: 'Example Belt',
       baseType: 'Example Belt',
       detailsId: 'example-belt-85',
+      icon: 'https://web.poecdn.com/image/Art/2DItems/Belts/LeatherBelt.png',
       chaosValue: 20,
       listingCount: 6,
       count: 9,
@@ -77,6 +78,8 @@ describe('public Ninja economy connector', () => {
       sourceUpdatedAt: null,
       lines: [
         {
+          iconUrl:
+            'https://web.poecdn.com/image/Art/2DItems/Belts/LeatherBelt.png',
           price: { amount: 20, currency: 'chaos' },
           listingCount: 6,
           observationCount: 9,
@@ -106,6 +109,33 @@ describe('public Ninja economy connector', () => {
     expect(Object.isFrozen(base.snapshot.raw)).toBe(true);
     expect(Object.isFrozen(base.snapshot.lines[0]?.price)).toBe(true);
     expect(base.snapshot.raw).toEqual(bases);
+  });
+
+  it('discards malformed and non-CDN artwork without dropping market lines', async () => {
+    const fetch = vi.fn<NinjaEconomyFetch>(async () =>
+      Response.json({
+        lines: [
+          { ...bases.lines[0], icon: 'http://web.poecdn.com/unsafe.png' },
+          { ...bases.lines[0], id: 13, icon: { unexpected: true } },
+          {
+            ...bases.lines[0],
+            id: 14,
+            icon: 'https://user:pass@web.poecdn.com/item.png',
+          },
+          {
+            ...bases.lines[0],
+            id: 15,
+            icon: `https://web.poecdn.com/${'a'.repeat(2048)}`,
+          },
+        ],
+      }),
+    );
+    const client = new NinjaEconomyClient({ fetch, userAgent });
+    const result = await client.fetchSnapshot(request);
+
+    expect(result.snapshot.lines.map(({ iconUrl }) => iconUrl)).toEqual(
+      Array(4).fill(null),
+    );
   });
 
   it('coalesces requests and retains capture times on cache hits', async () => {

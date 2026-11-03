@@ -1,5 +1,20 @@
 {
   "id": "fixture-exchange-1",
-  "result": [],
-  "total": 0
+  "result": {
+    "fixture-key": {
+      "id": "fixture-offer-1",
+      "item": null,
+      "listing": {
+        "indexed": "2026-07-19T23:59:00+00:00",
+        "account": { "name": "fixture-seller-1" },
+        "offers": [
+          {
+            "exchange": { "currency": "chaos", "amount": 20 },
+            "item": { "currency": "alt", "amount": 200 }
+          }
+        ]
+      }
+    }
+  },
+  "total": 1
 }

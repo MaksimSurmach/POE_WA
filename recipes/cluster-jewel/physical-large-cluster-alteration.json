@@ -1,0 +1,174 @@
+{
+  "base": {
+    "baseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "magic",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "physical-damage"
+    }
+  },
+  "category": "cluster-jewel",
+  "notes": "The magic two-notable item is a distinct market target; it is not directly comparable to the rare three-notable Jagged Fossil craft.",
+  "craft": {
+    "evidence": {
+      "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX3BoeXNpY2FsX2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&method=0%2C1&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d",
+      "verifiedAt": "2026-11-02",
+      "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, magic starting rarity, Orb of Alteration, AND Battle-Hardened + Furious Assault. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+      "artifact": "docs/evidence/worksmith-2026-11-02/coe-alteration.json",
+      "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+    },
+    "method": {
+      "currency": "orb-of-alteration",
+      "kind": "currency"
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX3BoeXNpY2FsX2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&method=0%2C1&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d",
+        "verifiedAt": "2026-11-02",
+        "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, magic starting rarity, Orb of Alteration, AND Battle-Hardened + Furious Assault. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+        "artifact": "docs/evidence/worksmith-2026-11-02/coe-alteration.json",
+        "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+      }
+    },
+    "uncertainties": [
+      "Indicative estimate: Craft of Exile displays rounded probability and expected consumption. Asking prices do not establish completed sales."
+    ],
+    "id": "alteration",
+    "name": "Alteration \u00b7 2 Notables",
+    "steps": [
+      {
+        "action": "Use one Orb of Transmutation on the normal base.",
+        "continueWhen": "The item is magic.",
+        "failureAction": "Continue when the Orb of Transmutation succeeds.",
+        "id": "transmute-base",
+        "materials": [
+          {
+            "itemId": "orb-of-transmutation",
+            "quantity": 1
+          }
+        ],
+        "title": "Make the base magic"
+      },
+      {
+        "action": "Use Orbs of Alteration until the two target notables appear together.",
+        "continueWhen": "The item has Battle-Hardened and Furious Assault.",
+        "failureAction": "Repeat on the same base.",
+        "id": "roll-alteration",
+        "materials": [
+          {
+            "itemId": "orb-of-alteration",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "evidence": {
+            "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX3BoeXNpY2FsX2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&method=0%2C1&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d",
+            "verifiedAt": "2026-11-02",
+            "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, magic starting rarity, Orb of Alteration, AND Battle-Hardened + Furious Assault. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+            "artifact": "docs/evidence/worksmith-2026-11-02/coe-alteration.json",
+            "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+          },
+          "probability": 0.00072
+        },
+        "title": "Roll with Alterations"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 1,
+        "evidence": {
+          "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX3BoeXNpY2FsX2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&method=0%2C1&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d",
+          "verifiedAt": "2026-11-02",
+          "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, magic starting rarity, Orb of Alteration, AND Battle-Hardened + Furious Assault. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+          "artifact": "docs/evidence/worksmith-2026-11-02/coe-alteration.json",
+          "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+        },
+        "stepId": "transmute-base"
+      },
+      {
+        "count": 1389,
+        "evidence": {
+          "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX3BoeXNpY2FsX2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&method=0%2C1&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d",
+          "verifiedAt": "2026-11-02",
+          "settings": "PoE 1 physical Large Cluster Jewel, clean ilvl 83, magic starting rarity, Orb of Alteration, AND Battle-Hardened + Furious Assault. No fractured, influence or synthesis. The 8-passive base shares this mod pool.",
+          "artifact": "docs/evidence/worksmith-2026-11-02/coe-alteration.json",
+          "assumptions": "Independent rerolls on the same reusable base. Expected uses are the calculator's rounded display, so cost and ROI are indicative. No finishing or recovery consumes extra resources."
+        },
+        "stepId": "roll-alteration"
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "normal",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "physical-damage"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame", "Hardcore Allflame", "Standard", "Hardcore"],
+    "checkedAt": "2026-11-02",
+    "sources": [
+      "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX3BoeXNpY2FsX2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&method=0%2C1&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d",
+      "https://beta.craftofexile.com/changelog",
+      "https://www.pathofexile.com/api/trade/data/stats"
+    ],
+    "notes": "Current CoE 3.29.3.3 affix assignments and calculator configurations checked on 2026-11-02. Trade IDs revalidated against the public current stats catalogue. The mapping-only game-data manifest contains base identity, no affix weights; probability comes solely from the archived CoE evidence."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "physical-large-cluster-alteration",
+  "schemaVersion": 3,
+  "summary": "Magic 8-passive Large Cluster Jewel with Battle-Hardened and Furious Assault, rolled with Alterations.",
+  "tags": ["physical", "alteration"],
+  "targetSignature": "3.29.3.3:1d67d59c6f78c5ec829e79d690580643",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:battle-hardened"
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:furious-assault"
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Physical Cluster Jewel \u00b7 2 Notables"
+}

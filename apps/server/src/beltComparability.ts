@@ -15,6 +15,7 @@ const evidence = z
     modsComplete: z.boolean().optional(),
     verifiedAbsentStats: z.array(z.string()).optional(),
     fractured: z.boolean().optional(),
+    synthesised: z.boolean().optional(),
     elementalResistances: z
       .object({
         fire: z.number().finite(),
@@ -110,6 +111,12 @@ export function analyzeBeltSnapshot(
             item.influences?.includes(influence),
           ),
       );
+    if (target.synthesised !== undefined)
+      check(
+        'synthesis',
+        item.synthesised,
+        item.synthesised === target.synthesised,
+      );
     if (target.tradeSearch) {
       if (target.influences !== undefined)
         check(
@@ -141,11 +148,21 @@ export function analyzeBeltSnapshot(
             (stat.max !== undefined && entry.value! > stat.max)
           )
             continue;
-          if (stat.maxTier !== undefined && !entry.tier) {
+          if (
+            (stat.maxTier !== undefined ||
+              stat.minTier !== undefined ||
+              stat.exactTier !== undefined) &&
+            !entry.tier
+          ) {
             uncertain++;
             continue;
           }
           if (stat.maxTier !== undefined && entry.tier! > stat.maxTier)
+            continue;
+          if (
+            (stat.minTier !== undefined && entry.tier! < stat.minTier) ||
+            (stat.exactTier !== undefined && entry.tier !== stat.exactTier)
+          )
             continue;
           matched++;
         }

@@ -10,7 +10,7 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
-import { createV2RecipeMarketDependencies } from './recipeMarket.js';
+import { createRecipeMarketDependencies } from './recipeMarket.js';
 import { loadRecipeCatalog } from './recipes/loader.js';
 import { synchronizeRecipes } from './recipes/synchronizeRecipes.js';
 import { createPostgresRepositories } from './repositories/index.js';
@@ -25,7 +25,7 @@ const pool = createDatabasePool(loadDatabaseConfig());
 const repositories = createPostgresRepositories(pool);
 const manifestPath = fileURLToPath(
   new URL(
-    '../mappings/poe-trade/3.26.0/physical-large-cluster.json',
+    '../mappings/poe-trade/3.29.3.3/physical-large-cluster.json',
     import.meta.url,
   ),
 );
@@ -38,6 +38,9 @@ const metadata = {
           { type: 'Large Cluster Jewel' },
           { type: 'Jagged Fossil' },
           { type: 'Primitive Chaotic Resonator' },
+          { type: 'Vivid Crystallised Lifeforce' },
+          { type: 'Orb of Alteration' },
+          { type: 'Orb of Transmutation' },
         ],
       },
     ],
@@ -47,7 +50,7 @@ const metadata = {
       {
         entries: [
           { id: 'enchant.stat_3086156145' },
-          { id: 'enchant.stat_3948993189' },
+          { id: 'enchant.stat_3948993189|12' },
           { id: 'enchant.stat_4079888060' },
           { id: 'explicit.stat_4188581520' },
           { id: 'explicit.stat_3415827027' },
@@ -79,21 +82,24 @@ describe('production catalog initialization', () => {
     );
     await pool.query(
       `insert into game_data_versions (game, patch_version, source, source_revision, manifest_hash, status)
-       values ('poe1', '3.26.0', 'fixture', 'fixture', 'fixture', 'importing')`,
+       values ('poe1', '3.29.3.3', 'fixture', 'fixture', 'fixture', 'importing')`,
     );
     await expect(importTradeMappings(pool, manifest)).rejects.toThrow(
       'TRADE_MAPPING_VERSION_NOT_FOUND',
     );
     await pool.query(
-      `update game_data_versions set status = 'active' where patch_version = '3.26.0'`,
+      `update game_data_versions set status = 'active' where patch_version = '3.29.3.3'`,
     );
     await importTradeMappings(pool, manifest);
-    const [recipe] = await loadRecipeCatalog(recipesPath);
-    if (!recipe || recipe.definition.schemaVersion !== 2)
+    const recipes = await loadRecipeCatalog(recipesPath);
+    const recipe = recipes.find(
+      ({ definition }) => definition.id === 'physical-large-cluster-jagged',
+    );
+    if (!recipe || recipe.definition.schemaVersion !== 3)
       throw new Error('Expected physical large cluster schema-v2 recipe');
     await synchronizeRecipes(repositories.recipes, [recipe], readFile);
 
-    const dependencies = await createV2RecipeMarketDependencies({
+    const dependencies = await createRecipeMarketDependencies({
       resolveResource: createPostgresResourceResolver(pool),
       trade: new RegisteredTradeQueryGenerator(
         createPostgresTradeMappingCatalog(pool),
@@ -108,6 +114,51 @@ describe('production catalog initialization', () => {
       'material',
       'material',
       'target',
+    ]);
+    expect(dependencies.map((dependency) => dependency.materialId)).toEqual([
+      undefined,
+      'jagged-fossil',
+      'primitive-chaotic-resonator',
+      undefined,
+    ]);
+    expect(
+      dependencies
+        .filter(({ kind }) => kind === 'material')
+        .map(({ query }) => query?.query),
+    ).toEqual([
+      { exchange: { have: ['chaos'], want: ['jagged-fossil'] } },
+      {
+        exchange: {
+          have: ['chaos'],
+          want: ['primitive-chaotic-resonator'],
+        },
+      },
+    ]);
+    const alterationRecipe = recipes.find(
+      ({ definition }) => definition.id === 'physical-large-cluster-alteration',
+    );
+    if (!alterationRecipe) throw new Error('Expected Alteration recipe');
+    const alterationDependencies = await createRecipeMarketDependencies({
+      resolveResource: createPostgresResourceResolver(pool),
+      trade: new RegisteredTradeQueryGenerator(
+        createPostgresTradeMappingCatalog(pool),
+        [clusterJewelVariantFilter],
+        [mappedTargetFilter],
+      ),
+    })({ league: 'Mercenaries', recipe: alterationRecipe.definition });
+    expect(alterationDependencies.map(({ materialId }) => materialId)).toEqual([
+      undefined,
+      'orb-of-alteration',
+      'orb-of-transmutation',
+      undefined,
+    ]);
+    expect(
+      alterationDependencies
+        .filter(({ kind }) => kind === 'material')
+        .map(({ query }) => query?.query),
+    ).toEqual([
+      { exchange: { have: ['chaos'], want: ['alt'] } },
+      { exchange: { have: ['chaos'], want: ['transmute'] } },
     ]);
   });
 });

@@ -1,0 +1,13 @@
+# Canonical recipe schema
+
+`recipeSchema` and `validateRecipeDocument` in `packages/domain/src/recipeSchema.ts` are the only recipe contract. `loadRecipeCatalog` loads JSON files recursively from category directories, validates the entire catalog, and rejects duplicate IDs. No YAML, V1/V2 adapters or alternate catalog are supported.
+
+One recipe ID identifies one output specification and one method. `base` describes the output item; `startingBase` and `craft.startingMods` describe acquisition conditions. `target.prefixes`, `suffixes`, `implicits` and `other` contain canonical modifier IDs with supported tier/value constraints. Target signatures are derived by `recipeTargetSignature`; method and starting state are excluded. The signature must agree with the file's output. Identical targets in the same league reuse their finished search and prices; method costs remain independent.
+
+`craft` contains one ID, name, method type, ordered steps, per-step materials, success conditions, failure/recovery behavior and uncertainties. Expected executions are authored per completed item, with evidence for every resource-consuming stage. `baseConsumption.expectedBases` includes replacements. Finishing and recovery operations are ordinary ordered stages with their own expected executions. No automatic multiplication of a multi-stage procedure by 1/p occurs.
+
+Evidence includes URL, exact settings, patch, check date, archived artifact and assumptions. Verification explicitly lists the supported leagues. Missing evidence, unsupported league, missing unit prices, unknown quantities or currency mismatch withhold expected total/ROI; known step costs remain available. Historical calculator values are not live prices. The two production recipes target different rarities and notables and must never share asks. Same-output/different-method behavior is proved with labelled fixtures.
+
+The queue uses the existing Trade-compatible collection manager, including durable pause/access-denial state, limiter, retries and raw observations. Existing query snapshots cache base/material requests by league and normalized query. Economy snapshots cache consumables by league/category/source/currency/capture time. Refreshed recipe evaluations record the authored content hash so an old method cost cannot be applied to an edited recipe.
+
+To author a recipe, copy `recipe.template.json` outside the live catalog, change its fields and signature, then save it under `recipes/<category>/<id>.json`. Run `pnpm recipes:validate` and `pnpm recipes:sync --dry-run` before sync. Never copy probability evidence without reproducing its exact configuration.

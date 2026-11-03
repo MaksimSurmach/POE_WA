@@ -1,4 +1,4 @@
-import type { Price, RecipeEvaluation } from '@poe-worksmith/contracts';
+import type { Price, Profit, RecipeEvaluation } from '@poe-worksmith/contracts';
 import type { ReactNode } from 'react';
 
 const compactNumber = new Intl.NumberFormat('en-US', {
@@ -20,11 +20,19 @@ export function Money({ price }: { price: Price | null }) {
   );
 }
 
-export function ProfitBadge({ amount, currency }: Price) {
+export function economicClass(value: number | null) {
+  return value === null || value === 0
+    ? 'economic-unknown'
+    : value > 0
+      ? 'economic-positive'
+      : 'economic-negative';
+}
+
+export function ProfitBadge({ amount, currency }: Profit) {
   const sign = amount > 0 ? '+' : '';
 
   return (
-    <span className={amount > 0 ? 'profit profit--positive' : 'profit'}>
+    <span className={`profit ${economicClass(amount)}`}>
       {sign}
       {compactNumber.format(amount)} {currencyLabel[currency]}
     </span>
@@ -59,10 +67,6 @@ export function FreshnessIndicator({ ageSeconds }: { ageSeconds: number }) {
       {formatAge(ageSeconds)}
     </span>
   );
-}
-
-export function Tag({ children }: { children: ReactNode }) {
-  return <span className="tag">{children}</span>;
 }
 
 const evaluationLabel: Record<RecipeEvaluation['status'], string> = {

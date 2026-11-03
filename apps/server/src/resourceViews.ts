@@ -1,29 +1,42 @@
 import {
+  generateRecipeMarketQuery,
+  comparableRecipeListings,
+} from './recipeMarket.js';
+import {
   type CatalogEntry,
   type CatalogResponse,
   type DomainErrorCode,
   domainErrorCodeSchema,
   type Price,
+  type Profit,
   type RecipeDetailView,
   type RecipeEvaluation as ApiRecipeEvaluation,
   type RecipeResponse,
   type RefreshStatus,
+  recipeMethodViewSchema,
+  marketSnapshotSchema,
 } from '@poe-worksmith/contracts';
 import {
   DomainError,
+  type CanonicalJsonObject,
   type Recipe as StoredRecipe,
   type RecipeEvaluation,
   type Repositories,
   validateRecipeDocument,
+  hashMarketQuery,
+  type TradeQueryGenerator,
 } from '@poe-worksmith/domain';
 import {
   createRecipeItemPresentation,
+  createObservedItemPresentation,
   type ItemPresentationCatalog,
 } from './itemPresentation.js';
+import { marketTradeUrl } from './marketTradeQuery.js';
 
 export function createResourceReaders(
   repositories: Repositories,
   presentationCatalog: ItemPresentationCatalog,
+  trade?: TradeQueryGenerator,
 ) {
   return {
     async readCatalog(correlationId: string): Promise<CatalogResponse> {
@@ -44,9 +57,29 @@ export function createResourceReaders(
           evaluation,
         ]),
       );
-      const entries = recipes
-        .sort((left, right) => left.id.localeCompare(right.id))
-        .map((recipe) => toCatalogEntry(recipe, evaluations.get(recipe.id)));
+      const entries = await Promise.all(
+        recipes
+          .sort((left, right) => left.id.localeCompare(right.id))
+          .map(async (recipe) => {
+            const evaluation = currentEvaluation(
+              recipe,
+              evaluations.get(recipe.id),
+            );
+            const snapshot = await latestOutputSnapshot({
+              currentLeague,
+              evaluation,
+              recipe,
+              repositories,
+              trade,
+            });
+            return toCatalogEntry(
+              recipe,
+              evaluation,
+              presentationCatalog,
+              snapshot,
+            );
+          }),
+      );
 
       return resourceResponse(
         correlationId,
@@ -74,13 +107,43 @@ export function createResourceReaders(
       if (!recipe || !recipe.active) {
         throw new DomainError('PERSISTENCE_NOT_FOUND');
       }
-      const evaluation = published?.evaluations.find(
-        (candidate) => candidate.recipeId === recipe.id,
+      const definition = validateRecipeDocument(recipe.definition);
+      const generatedBase =
+        trade && currentLeague
+          ? await generateRecipeMarketQuery(
+              trade,
+              definition,
+              currentLeague.gggId,
+              true,
+            ).catch(() => null)
+          : null;
+      const baseTradeUrl =
+        generatedBase && currentLeague
+          ? marketTradeUrl(currentLeague.gggId, {
+              query: generatedBase.query.query,
+              sort: { price: 'asc' },
+            })
+          : null;
+      const evaluation = currentEvaluation(
+        recipe,
+        published?.evaluations.find(
+          (candidate) => candidate.recipeId === recipe.id,
+        ),
       );
 
       return resourceResponse(
         correlationId,
-        toRecipeDetail(recipe, evaluation, presentationCatalog),
+        {
+          ...toRecipeDetail(recipe, evaluation, presentationCatalog),
+          baseTradeUrl,
+          snapshot: await latestOutputSnapshot({
+            currentLeague,
+            evaluation,
+            recipe,
+            repositories,
+            trade,
+          }),
+        },
         published?.cycle.publishedAt ?? null,
         refreshStatus(progress.active?.status ?? progress.published?.status),
       );
@@ -121,12 +184,122 @@ function resourceResponse<T>(
 function toCatalogEntry(
   recipe: StoredRecipe,
   evaluation?: RecipeEvaluation,
+  presentationCatalog?: ItemPresentationCatalog,
+  snapshot?: CatalogEntry['snapshot'],
 ): CatalogEntry {
+  const definition = validateRecipeDocument(recipe.definition);
+  let itemPreview: CatalogEntry['itemPreview'];
+  if (presentationCatalog?.get(definition.base.baseId)) {
+    try {
+      itemPreview = createRecipeItemPresentation({
+        catalog: presentationCatalog,
+        recipe: definition,
+      }).target;
+    } catch (cause) {
+      if (!(cause instanceof DomainError) || cause.code !== 'RECIPE_INVALID')
+        throw cause;
+    }
+  }
   return {
     evaluation: toEvaluation(recipe.id, evaluation),
+    ...(itemPreview ? { itemPreview } : {}),
     recipe: toRecipeSummary(recipe, evaluation),
-    snapshot: null,
+    snapshot: snapshot ?? null,
   };
+}
+
+async function latestOutputSnapshot(input: {
+  currentLeague: Awaited<ReturnType<Repositories['leagues']['findCurrent']>>;
+  evaluation: RecipeEvaluation | undefined;
+  recipe: StoredRecipe;
+  repositories: Repositories;
+  trade: TradeQueryGenerator | undefined;
+}): Promise<CatalogEntry['snapshot']> {
+  if (!input.currentLeague) return null;
+  const definition = validateRecipeDocument(input.recipe.definition);
+  if (!input.trade) return null;
+  const result = await generateRecipeMarketQuery(
+    input.trade,
+    definition,
+    input.currentLeague.gggId,
+  ).catch(() => null);
+  if (!result) return null;
+  const queryHash = await hashMarketQuery({
+    league: input.currentLeague.gggId,
+    provider: 'poe-trade',
+    query: result.query,
+    schemaVersion: 1,
+  });
+  const marketQuery =
+    await input.repositories.marketQueries.findByCanonicalHash(queryHash);
+  if (!marketQuery) return null;
+  const snapshot = await input.repositories.snapshots.findLatest(
+    marketQuery.id,
+    input.currentLeague.id,
+  );
+  if (
+    !snapshot ||
+    snapshot.expiresAt.getTime() <= Date.now() ||
+    (input.evaluation?.sourceSnapshotDedupeKey &&
+      snapshot.dedupeKey !== input.evaluation.sourceSnapshotDedupeKey)
+  )
+    return null;
+  const listings = Array.isArray(snapshot.payload.listings)
+    ? snapshot.payload.listings
+    : [];
+  const parsed = marketSnapshotSchema.safeParse({
+    id: String(snapshot.id),
+    queryHash,
+    capturedAt: snapshot.capturedAt.toISOString(),
+    expiresAt: snapshot.expiresAt.toISOString(),
+    coverage: snapshot.payload.coverage ?? 'unknown',
+    sortedPageComplete: snapshot.payload.sortedPageComplete === true,
+    totalResults: snapshot.payload.totalResults,
+    listings: comparableRecipeListings(
+      result.query,
+      listings.flatMap((value) => {
+        if (!value || typeof value !== 'object') return [];
+        const row = value as Record<string, unknown>;
+        const price = row.price as Record<string, unknown> | undefined;
+        const amount =
+          typeof price?.amount === 'string'
+            ? Number(price.amount)
+            : price?.amount;
+        if (
+          typeof row.id !== 'string' ||
+          typeof row.account !== 'string' ||
+          typeof row.indexedAt !== 'string' ||
+          typeof row.ageSeconds !== 'number' ||
+          typeof amount !== 'number' ||
+          (price?.currency !== 'chaos' && price?.currency !== 'divine')
+        )
+          return [];
+        return [
+          {
+            id: row.id,
+            account: row.account,
+            fee: null,
+            item: (row.item as CanonicalJsonObject) ?? {},
+            indexedAt: new Date(row.indexedAt),
+            ageSeconds: row.ageSeconds,
+            price: { amount: String(amount), currency: price.currency },
+          },
+        ];
+      }),
+      snapshot.capturedAt,
+      new Date(),
+    ).map((row) => ({
+      id: row.id,
+      seller: row.account,
+      indexedAt: row.indexedAt.toISOString(),
+      ageSeconds: row.ageSeconds,
+      price: { amount: Number(row.price.amount), currency: row.price.currency },
+      ...(createObservedItemPresentation(row.item)
+        ? { itemPreview: createObservedItemPresentation(row.item)! }
+        : {}),
+    })),
+  });
+  return parsed.success ? parsed.data : null;
 }
 
 function toRecipeSummary(recipe: StoredRecipe, evaluation?: RecipeEvaluation) {
@@ -134,6 +307,7 @@ function toRecipeSummary(recipe: StoredRecipe, evaluation?: RecipeEvaluation) {
   return {
     category: recipe.category,
     craftMethod: recipe.craftMethod,
+    patch: definition.patch,
     id: recipe.id,
     minimumCapital: price(evaluation?.expectedCraftCost, evaluation?.currency),
     summary: definition.summary ?? recipe.title,
@@ -148,6 +322,7 @@ function toEvaluation(
 ): ApiRecipeEvaluation {
   if (!evaluation) {
     return {
+      confidence: null,
       errorCode: null,
       estimatedSalePrice: null,
       evaluatedAt: null,
@@ -161,6 +336,7 @@ function toEvaluation(
     };
   }
   return {
+    confidence: evaluation.confidence,
     errorCode: errorCode(evaluation.errorCode),
     estimatedSalePrice: price(
       evaluation.estimatedSalePrice,
@@ -170,7 +346,7 @@ function toEvaluation(
     expectedCraftCost: price(evaluation.expectedCraftCost, evaluation.currency),
     lastSuccessfulAt: evaluation.lastSuccessfulAt?.toISOString() ?? null,
     marginPercent: finiteNumber(evaluation.marginPercent),
-    profit: price(evaluation.profit, evaluation.currency),
+    profit: profit(evaluation.profit, evaluation.currency),
     recipeId,
     snapshotId: null,
     status: evaluation.status,
@@ -183,109 +359,82 @@ function toRecipeDetail(
   presentationCatalog?: ItemPresentationCatalog,
 ): RecipeDetailView {
   const definition = validateRecipeDocument(recipe.definition);
-  if (definition.schemaVersion === 2) {
-    if (!presentationCatalog) throw new DomainError('RECIPE_INVALID');
-    return toV2RecipeDetail(
-      recipe,
-      evaluation,
-      definition,
-      presentationCatalog,
-    );
-  }
-  const salePrice = price(evaluation?.estimatedSalePrice, evaluation?.currency);
-  const estimatorId = estimatorLabel(definition.estimator);
-  const requirements = [
-    definition.baseRequirements.itemClass
-      ? `Item class: ${definition.baseRequirements.itemClass}`
-      : null,
-    definition.baseRequirements.minItemLevel
-      ? `Minimum item level: ${definition.baseRequirements.minItemLevel}`
-      : null,
-    ...(definition.baseRequirements.influences ?? []).map(
-      (influence) => `Influence: ${influence}`,
-    ),
-  ].filter((value): value is string => value !== null);
-
-  return {
-    base: {
-      name: definition.baseRequirements.baseType,
-      requirements,
-    },
-    confidence: evaluation?.confidence ?? null,
-    costBreakdown: null,
-    craftSteps: definition.craftSteps.map((step) => step.title),
-    estimators: salePrice
-      ? [{ id: estimatorId, label: estimatorId, price: salePrice }]
-      : [],
-    evaluation: toEvaluation(recipe.id, evaluation),
-    gameVersion: recipe.gameVersion,
-    materials: definition.materials.map((material) => ({
-      costPerAttempt: null,
-      name: material.label,
-      quantityPerAttempt: material.quantityPerAttempt,
-      unitPrice: null,
-    })),
-    recipe: toRecipeSummary(recipe, evaluation),
-    presentation: {
-      base: {
-        canonicalId: definition.baseRequirements.baseType,
-        iconUrl: null,
-        itemClass: definition.baseRequirements.itemClass ?? 'Unknown',
-        itemLevel: definition.baseRequirements.minItemLevel ?? null,
-        modifiers: [],
-        name: definition.baseRequirements.baseType,
-        properties: requirements.map((label) => ({
-          id: label,
-          label,
-          value: null,
-        })),
-        rarity: null,
-        role: 'base',
-      },
-      materials: definition.materials.map((material) => ({
-        canonicalId: material.label,
-        iconUrl: null,
-        itemClass: 'Unknown',
-        name: material.label,
-        quantity: material.quantityPerAttempt,
-        role: 'material',
-        totalPrice: null,
-        unitPrice: null,
-      })),
-      target: {
-        canonicalId: definition.baseRequirements.baseType,
-        iconUrl: null,
-        itemClass: definition.baseRequirements.itemClass ?? 'Unknown',
-        itemLevel: definition.baseRequirements.minItemLevel ?? null,
-        modifiers: [],
-        name: definition.baseRequirements.baseType,
-        properties: [],
-        rarity: null,
-        role: 'target',
-      },
-      version: 1,
-    },
-    requiredMods: tradeStatIds(definition.output.tradeQuery.query),
-    selectedEstimatorId: salePrice ? estimatorId : null,
-    snapshot: null,
-  };
-}
-
-function toV2RecipeDetail(
-  recipe: StoredRecipe,
-  evaluation: RecipeEvaluation | undefined,
-  definition: Extract<
-    ReturnType<typeof validateRecipeDocument>,
-    { schemaVersion: 2 }
-  >,
-  presentationCatalog: ItemPresentationCatalog,
-): RecipeDetailView {
+  if (!presentationCatalog) throw new DomainError('RECIPE_INVALID');
   const salePrice = price(evaluation?.estimatedSalePrice, evaluation?.currency);
   const presentation = createRecipeItemPresentation({
     catalog: presentationCatalog,
     recipe: definition,
   });
+  const procedure = definition.craft;
+  const method = (() => {
+    const saved = evaluation?.methodCost;
+    const savedRecord =
+      saved && typeof saved === 'object'
+        ? (saved as Record<string, unknown>)
+        : {};
+    const savedSteps = Array.isArray(savedRecord.steps)
+      ? savedRecord.steps.filter(
+          (step): step is Record<string, unknown> =>
+            Boolean(step) && typeof step === 'object',
+        )
+      : [];
+    const cost = recipeMethodViewSchema.safeParse({
+      baseCost: persistedPrice(savedRecord.baseCost),
+      expectedBases:
+        typeof savedRecord.expectedBases === 'number'
+          ? savedRecord.expectedBases
+          : (procedure.baseConsumption?.expectedBases ?? null),
+      marketStatus: ['priced', 'empty', 'partial'].includes(
+        String(savedRecord.marketStatus),
+      )
+        ? savedRecord.marketStatus
+        : 'unavailable',
+      priceSources:
+        savedRecord.materialEvidence &&
+        typeof savedRecord.materialEvidence === 'object'
+          ? Object.values(savedRecord.materialEvidence)
+          : [],
+      expectedCost: persistedPrice(savedRecord.expectedCost),
+      evidence: procedure.evidence ?? null,
+      expectedExecutions: procedure.expectedExecutions ?? [],
+      id: procedure.id,
+      materialsPerAttempt: persistedPrice(savedRecord.materialsPerAttempt),
+      name: procedure.name,
+      steps: procedure.steps.map((step) => ({
+        action: step.action,
+        continueWhen: step.continueWhen,
+        failureAction: step.failureAction,
+        id: step.id,
+        materials: step.materials.map((material) => {
+          const savedStep = savedSteps.find((value) => value.id === step.id);
+          const savedMaterials = Array.isArray(savedStep?.materials)
+            ? savedStep.materials.filter(
+                (item): item is Record<string, unknown> =>
+                  Boolean(item) && typeof item === 'object',
+              )
+            : [];
+          const savedMaterial = savedMaterials.find(
+            (value) => value.itemId === material.itemId,
+          );
+          return {
+            costPerAttempt: persistedPrice(savedMaterial?.costPerAttempt),
+            itemId: material.itemId,
+            name:
+              presentationCatalog.get(material.itemId)?.name ??
+              material.itemId.replaceAll('-', ' '),
+            quantityPerAttempt: material.quantity,
+            unitPrice: persistedPrice(savedMaterial?.unitPrice),
+          };
+        }),
+        success: step.success ?? null,
+        title: step.title,
+      })),
+    });
+    if (!cost.success) throw new DomainError('RECIPE_INVALID');
+    return cost.data;
+  })();
   return {
+    baseTradeUrl: null,
     base: {
       name: presentation.base.name,
       requirements: presentation.base.properties.map(({ label, value }) =>
@@ -294,9 +443,9 @@ function toV2RecipeDetail(
     },
     confidence: evaluation?.confidence ?? null,
     costBreakdown: null,
-    craftSteps: definition.content.craftSteps.map(({ title }) => title),
+    craftSteps: definition.craft.steps.map(({ title }) => title),
     estimators: salePrice
-      ? [{ id: 'median-top-10', label: 'median top 10', price: salePrice }]
+      ? [{ id: 'cheapest', label: 'Cheapest ask', price: salePrice }]
       : [],
     evaluation: toEvaluation(recipe.id, evaluation),
     gameVersion: definition.gameDataVersion,
@@ -309,8 +458,12 @@ function toV2RecipeDetail(
     presentation,
     recipe: toRecipeSummary(recipe, evaluation),
     requiredMods: presentation.target.modifiers.map(({ label }) => label),
-    selectedEstimatorId: salePrice ? 'median-top-10' : null,
+    selectedEstimatorId: salePrice ? 'cheapest' : null,
     snapshot: null,
+    method,
+    targetSignature: definition.targetSignature,
+    verification: definition.verification.status,
+    uncertainties: definition.craft.uncertainties,
   };
 }
 
@@ -322,6 +475,27 @@ function price(
   if (amount === null || amount < 0) return null;
   if (rawCurrency !== 'chaos' && rawCurrency !== 'divine') return null;
   return { amount, currency: rawCurrency };
+}
+
+function profit(
+  rawAmount: string | null | undefined,
+  rawCurrency: string | null | undefined,
+): Profit | null {
+  const amount = finiteNumber(rawAmount);
+  if (amount === null) return null;
+  if (rawCurrency !== 'chaos' && rawCurrency !== 'divine') return null;
+  return { amount, currency: rawCurrency };
+}
+
+function persistedPrice(value: unknown): Price | null {
+  if (!value || typeof value !== 'object') return null;
+  const { amount, currency } = value as Record<string, unknown>;
+  return price(
+    typeof amount === 'string' || typeof amount === 'number'
+      ? String(amount)
+      : null,
+    typeof currency === 'string' ? currency : null,
+  );
 }
 
 function finiteNumber(value: string | null | undefined) {
@@ -349,17 +523,27 @@ function refreshStatus(
   return value === 'completed' ? 'idle' : (value ?? 'idle');
 }
 
-function estimatorLabel(estimator: { strategy: string }) {
-  return estimator.strategy.replaceAll('_', ' ');
-}
-
-function tradeStatIds(value: unknown): string[] {
-  if (Array.isArray(value)) return value.flatMap(tradeStatIds);
-  if (!value || typeof value !== 'object') return [];
-  const record = value as Record<string, unknown>;
-  const current =
-    typeof record.id === 'string' && record.id.includes('.stat_')
-      ? [record.id]
-      : [];
-  return [...current, ...Object.values(record).flatMap(tradeStatIds)];
+function currentEvaluation(
+  recipe: StoredRecipe,
+  evaluation: RecipeEvaluation | undefined,
+) {
+  if (evaluation?.methodCost?.recipeContentHash !== recipe.contentHash)
+    return undefined;
+  const expiresAt = evaluation.methodCost.expiresAt;
+  if (typeof expiresAt === 'string' && Date.parse(expiresAt) <= Date.now()) {
+    return {
+      ...evaluation,
+      status: 'stale' as const,
+      estimatedSalePrice: null,
+      expectedCraftCost: null,
+      profit: null,
+      marginPercent: null,
+      methodCost: {
+        ...evaluation.methodCost,
+        expectedCost: null,
+        marketStatus: 'unavailable',
+      },
+    };
+  }
+  return evaluation;
 }

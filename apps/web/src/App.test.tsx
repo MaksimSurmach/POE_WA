@@ -3,12 +3,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { App } from './App.js';
-import { formatAge, Money } from './components.js';
+import { formatAge, Money, ProfitBadge, economicClass } from './components.js';
 
 describe('application shell', () => {
   it('renders catalog and recipe routes inside the shared shell', () => {
     const catalog = renderToStaticMarkup(
-      <MemoryRouter initialEntries={['/catalog']}>
+      <MemoryRouter initialEntries={['/']}>
         <App />
       </MemoryRouter>,
     );
@@ -18,10 +18,11 @@ describe('application shell', () => {
       </MemoryRouter>,
     );
 
-    expect(catalog).toContain('Craft catalog');
-    expect(catalog).toContain('Loading catalog');
+    expect(catalog).toContain('Worksmith Handbook');
+    expect(catalog).toContain('Loading recipes');
+    expect(catalog).not.toContain('Рынок');
     expect(recipe).toContain('Loading recipe');
-    expect(recipe).toContain('Back to catalog');
+    expect(recipe).toContain('Recipes');
   });
 });
 
@@ -43,3 +44,19 @@ describe('shared presentation primitives', () => {
     expect(formatAge(172800)).toBe('2 d ago');
   });
 });
+
+it.each([
+  [-3.5, 'economic-negative', '-3.5'],
+  [4, 'economic-positive', '+4'],
+  [0, 'economic-unknown', '0'],
+] as const)(
+  'renders signed economics with readable polarity for %s',
+  (amount, tone, label) => {
+    const html = renderToStaticMarkup(
+      <ProfitBadge amount={amount} currency="chaos" />,
+    );
+    expect(html).toContain(tone);
+    expect(html).toContain(`${label} c`);
+    expect(economicClass(amount)).toBe(tone);
+  },
+);

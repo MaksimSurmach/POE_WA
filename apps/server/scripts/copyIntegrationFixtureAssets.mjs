@@ -6,23 +6,23 @@ const server = dirname(dirname(fileURLToPath(import.meta.url)));
 const syntheticSource = join(server, 'src/testkit/recipes');
 const assets = join(server, 'dist/testkit/recipe-assets');
 const syntheticDestination = join(assets, 'synthetic');
-const productionSource = join(
-  server,
-  '../../recipes/physical-large-cluster/recipe.md',
-);
-const productionDestination = join(
-  assets,
-  'production/physical-large-cluster/recipe.md',
-);
+const productionSources = [
+  {
+    source: join(server, '../../recipes/cluster-jewel'),
+    destination: join(assets, 'production/cluster-jewel'),
+  },
+];
 
 const files = (await readdir(syntheticSource)).filter((file) =>
-  file.endsWith('.md'),
+  file.endsWith('.json'),
 );
 if (files.length !== 19)
   throw new Error(`Expected 19 synthetic recipes, found ${files.length}`);
-await stat(productionSource);
+await Promise.all(productionSources.map(({ source }) => stat(source)));
 await rm(assets, { force: true, recursive: true });
 await mkdir(syntheticDestination, { recursive: true });
 await cp(syntheticSource, syntheticDestination, { recursive: true });
-await mkdir(dirname(productionDestination), { recursive: true });
-await cp(productionSource, productionDestination);
+for (const { destination, source } of productionSources) {
+  await mkdir(dirname(destination), { recursive: true });
+  await cp(source, destination, { recursive: true });
+}

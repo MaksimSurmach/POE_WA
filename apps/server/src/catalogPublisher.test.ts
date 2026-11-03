@@ -1,3 +1,4 @@
+import { fixtureMarketDependencies } from './testkit/recipeMarket.js';
 import {
   createInMemoryRepositories,
   DomainError,
@@ -6,9 +7,11 @@ import {
   type Recipe,
   type RefreshCycle,
   type Repositories,
-  validateRecipeV1,
 } from '@poe-worksmith/domain';
-import { validRecipeV1Fixture } from '@poe-worksmith/domain/fixtures';
+import {
+  canonicalRecipeFixture,
+  fixtureRecipe,
+} from '@poe-worksmith/domain/fixtures';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -107,6 +110,78 @@ function evaluator(failingIds: readonly string[] = []): FreshRecipeEvaluator {
 }
 
 describe('catalog evaluation and publication', () => {
+  it('publishes known costs when there is no output ask yet', async () => {
+    const repositories = createInMemoryRepositories();
+    await seedCycle(repositories, 'cycle-partial-output', 1);
+
+    const report = await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-partial-output',
+      evaluateRecipe: async () => ({
+        confidence: 'low',
+        currency: 'chaos',
+        estimatedSalePrice: null,
+        expectedCraftCost: '100',
+        marginPercent: null,
+        observationId: null,
+        profit: null,
+        sourceSnapshotDedupeKey: 'snapshot-recipe-01',
+        status: 'partial',
+      }),
+      league: 'Mercenaries',
+      now,
+    });
+
+    expect(report).toMatchObject({ completedRecipes: 1, published: true });
+    expect(report.evaluations[0]).toMatchObject({
+      estimatedSalePrice: null,
+      expectedCraftCost: '100',
+      lastSuccessfulAt: null,
+      marginPercent: null,
+      profit: null,
+      status: 'partial',
+    });
+  });
+
+  it('keeps a priced sale result as stale when expected craft cost is unknown', async () => {
+    const repositories = createInMemoryRepositories();
+    await seedCycle(repositories, 'cycle-unknown', 1);
+    await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-unknown',
+      evaluateRecipe: async () => ({
+        confidence: 'low',
+        currency: 'chaos',
+        estimatedSalePrice: '100',
+        expectedCraftCost: null,
+        marginPercent: null,
+        observationId: null,
+        profit: null,
+        sourceSnapshotDedupeKey: 'snapshot-recipe-01',
+        methodCost: {
+          fossil: { materialsPerAttempt: { amount: '1', currency: 'chaos' } },
+        },
+      }),
+      league: 'Mercenaries',
+      now,
+    });
+
+    await seedCycle(repositories, 'cycle-unknown-next', 1);
+    const result = await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-unknown-next',
+      evaluateRecipe: evaluator(['recipe-01']),
+      league: 'Mercenaries',
+      now: new Date(now.getTime() + 1000),
+    });
+
+    expect(result.evaluations[0]).toMatchObject({
+      estimatedSalePrice: '100',
+      expectedCraftCost: null,
+      status: 'stale',
+      methodCost: {
+        fossil: { materialsPerAttempt: { amount: '1', currency: 'chaos' } },
+      },
+    });
+  });
+
   it('publishes at 95%, marks fallback stale, and rejects below threshold', async () => {
     const repositories = createInMemoryRepositories();
     await seedCycle(repositories, 'cycle-baseline', 20);
@@ -164,16 +239,14 @@ describe('catalog evaluation and publication', () => {
 
   it('calculates a fresh recipe from its persisted market snapshots', async () => {
     const repositories = createInMemoryRepositories();
-    const definition = validateRecipeV1(validRecipeV1Fixture);
+    const definition = fixtureRecipe(canonicalRecipeFixture);
     await repositories.recipes.save(
       storedRecipe(definition.id, { ...definition } as JsonRecord),
     );
-    const tradeQueries = [
-      definition.baseRequirements.tradeQuery,
-      ...definition.materials.map(({ tradeQuery }) => tradeQuery),
-      ...definition.finishingCosts.map(({ tradeQuery }) => tradeQuery),
-      definition.output.tradeQuery,
-    ];
+    const marketDependencies = fixtureMarketDependencies;
+    const tradeQueries = (
+      await marketDependencies({ recipe: definition, league: 'Mercenaries' })
+    ).map(({ query }) => query);
     const league = await repositories.leagues.upsert({
       endAt: null,
       game: 'poe1',
@@ -194,27 +267,27 @@ describe('catalog evaluation and publication', () => {
     for (const [queryIndex, tradeQuery] of tradeQueries.entries()) {
       const canonicalHash = await hashMarketQuery({
         league: 'Mercenaries',
-        provider: tradeQuery.provider,
-        query: tradeQuery.query,
-        schemaVersion: tradeQuery.schemaVersion,
+        provider: tradeQuery!.provider,
+        query: tradeQuery!.query,
+        schemaVersion: tradeQuery!.schemaVersion,
       });
       const marketQueryId = `query-${queryIndex}`;
       await repositories.marketQueries.save({
         active: true,
         canonicalHash,
         id: marketQueryId,
-        provider: tradeQuery.provider,
-        query: tradeQuery.query,
+        provider: tradeQuery!.provider,
+        query: tradeQuery!.query,
         recipeId: definition.id,
       });
-      const startingPrices = [10, 0.01, 1, 1000];
+      const startingPrices = [10, 0.01, 1000];
       const listings = Array.from({ length: 10 }, (_, listingIndex) => ({
         account: `seller-${listingIndex}`,
         ageSeconds: 60,
         fee: null,
         id: `${marketQueryId}-listing-${listingIndex}`,
         indexedAt: new Date(now.getTime() - 60_000).toISOString(),
-        item: {},
+        item: { stock: 10000 },
         price: {
           amount: String(
             startingPrices[queryIndex]! +
@@ -229,7 +302,12 @@ describe('catalog evaluation and publication', () => {
         expiresAt: new Date(now.getTime() + 300_000),
         leagueId: league.id,
         marketQueryId,
-        payload: { listings, provider: 'poe-trade', totalResults: 10 },
+        payload: {
+          coverage: 'complete',
+          listings,
+          provider: 'poe-trade',
+          totalResults: 10,
+        },
         providerStatus: 200,
         refreshCycleId: refreshCycle.id,
       });
@@ -249,6 +327,7 @@ describe('catalog evaluation and publication', () => {
 
     const report = await evaluateAndPublishCatalog(repositories, {
       cycleId: refreshCycle.id,
+      marketDependencies: fixtureMarketDependencies,
       league: 'Mercenaries',
       now,
     });

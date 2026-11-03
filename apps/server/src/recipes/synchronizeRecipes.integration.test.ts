@@ -1,5 +1,7 @@
-import { validateRecipeV1 } from '@poe-worksmith/domain';
-import { validRecipeV1Fixture } from '@poe-worksmith/domain/fixtures';
+import {
+  canonicalRecipeFixture,
+  fixtureRecipe,
+} from '@poe-worksmith/domain/fixtures';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { loadDatabaseConfig } from '../config.js';
@@ -12,11 +14,11 @@ const pool = createDatabasePool(loadDatabaseConfig());
 const repository = createPostgresRepositories(pool).recipes;
 const readAsset = async () => Buffer.from('unused');
 
-function loadedRecipe(id = validRecipeV1Fixture.id): LoadedRecipe {
+function loadedRecipe(id = canonicalRecipeFixture.id): LoadedRecipe {
   return {
     assets: [],
-    definition: validateRecipeV1({
-      ...validRecipeV1Fixture,
+    definition: fixtureRecipe({
+      ...canonicalRecipeFixture,
       id,
       title: id,
     }),

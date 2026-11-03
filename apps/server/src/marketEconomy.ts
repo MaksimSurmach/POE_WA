@@ -14,10 +14,15 @@ import type {
 
 export type StoredMarketEconomySnapshot = NinjaEconomySnapshot & {
   readonly id: string;
+  readonly verifiedAt?: string;
 };
 export interface MarketEconomyRepository {
   assertReady(): Promise<void>;
   list(): Promise<MarketEconomySummary[]>;
+  latest(
+    league: string,
+    category: MarketEconomyCategory,
+  ): Promise<MarketEconomySummary | null>;
   save(
     snapshot: StoredMarketEconomySnapshot,
   ): Promise<StoredMarketEconomySnapshot>;
@@ -83,4 +88,45 @@ export function previewEconomy(snapshot: StoredMarketEconomySnapshot) {
     lines: snapshot.lines.slice(0, 200),
     truncated: snapshot.lines.length > 200,
   });
+}
+
+/** The handbook uses the same client cache, attempt history and stored economy snapshots as the market API. */
+export async function collectRecipeMaterialPrices(
+  league: string,
+  client: NinjaEconomyClient,
+  repository: MarketEconomyRepository,
+) {
+  for (const category of [
+    'Currency',
+    'Essence',
+    'Fossil',
+    'Resonator',
+  ] as const) {
+    const attempt = newEconomyAttempt({ league, category });
+    await repository.saveAttempt(attempt);
+    try {
+      const result = await client.fetchSnapshot({ league, category });
+      if (!result.archiveAllowed) throw new Error('ECONOMY_ARCHIVE_DISALLOWED');
+      const snapshot = await repository.save(
+        newStoredEconomySnapshot(result.snapshot),
+      );
+      await repository.saveAttempt({
+        ...attempt,
+        completedAt: new Date().toISOString(),
+        status: 'succeeded',
+        cacheStatus: result.cacheStatus,
+        snapshotId: snapshot.id,
+      });
+    } catch (error) {
+      await repository.saveAttempt({
+        ...attempt,
+        completedAt: new Date().toISOString(),
+        status: 'failed',
+        errorCode:
+          error instanceof Error && 'code' in error
+            ? String(error.code)
+            : 'ECONOMY_UNAVAILABLE',
+      });
+    }
+  }
 }
