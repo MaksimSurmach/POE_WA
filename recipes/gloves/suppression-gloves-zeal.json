@@ -14,7 +14,7 @@
     }
   },
   "category": "gloves",
-  "notes": "A concrete, selected catalog target derived from the source Sheet. Exact numeric thresholds/base selection are explicit authoring choices, not measured demand or verified calculator results. Sheet C003 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices.",
+  "notes": "A concrete, selected catalog target derived from the source Sheet. Exact numeric thresholds/base selection are explicit authoring choices, not measured demand or verified calculator results. Sheet C003 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices. Current CoE evidence independently checked2026-11-03; this selected single-stage core requires no optional implicit or bench finish.",
   "craft": {
     "id": "suppression-gloves-zeal",
     "name": "Suppression Gloves · Attack Speed",
@@ -30,24 +30,72 @@
       }
     ],
     "uncertainties": [
-      "Expected executions per completed item and full expected material/base consumption have not been independently reproduced for this exact recipe. Expected total and ROI must stay unavailable.",
-      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established."
+      "Indicative CoE model: displayed probability and expected essence uses are rounded. Real spending and completed sales are not established.",
+      "The acquisition is an already fractured14% suppression rare base. Its actual asking price and gold fee need fresh market evidence; self-fracturing and any Eldritch/bench finish are outside this method."
     ],
     "steps": [
       {
         "id": "essence-roll",
         "title": "Roll life with the fractured suffix",
         "action": "Acquire rare Dragonscale Gauntlets with at least 14% fractured Spell Suppression. Use Deafening Essence of Zeal.",
-        "continueWhen": "Life at least 100 with essence attack speed at least 16%.",
+        "continueWhen": "Life at least 100 with essence attack speed at least 17%.",
         "failureAction": "Repeat the paid essence on the same base; only the fractured suppression is protected. Keep lower outcomes as separately priced salvage, never as matches for this SKU.",
         "materials": [
           {
             "itemId": "deafening-essence-of-zeal",
             "quantity": 1
           }
-        ]
+        ],
+        "success": {
+          "evidence": {
+            "method": "Manually checked current Craft of Exile calculator; rounded displayed success and mean consumption, complete outcome plus ordinary paid failure reroll",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?group=6&item=1360&class=31&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C15%2C87&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+            "verifiedAt": "2026-11-03",
+            "settings": "PoE 1 Dragonscale Gauntlets STR/DEX, rare ilvl85, no influence/corruption/synthesis, acquired +14% fractured Spell Suppression. Deafening Essence of Zeal; require life T2 or better (100–129). The essence guarantees 17–18% Attack Speed. No finishing or open-affix condition.",
+            "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-zeal.json",
+            "assumptions": "Independent essence rerolls on the same already acquired fractured rare base; one essence per attempt, one base per finished item, no Scouring, replacement or finishing operation. CoE rounded mean 15 uses makes costs/ROI indicative; no in-game spending, purchase, sale or whole-build validation."
+          },
+          "probability": 0.068
+        }
       }
-    ]
+    ],
+    "evidence": {
+      "method": "Manually checked current Craft of Exile calculator; rounded displayed success and mean consumption, complete outcome plus ordinary paid failure reroll",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?group=6&item=1360&class=31&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C15%2C87&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "verifiedAt": "2026-11-03",
+      "settings": "PoE 1 Dragonscale Gauntlets STR/DEX, rare ilvl85, no influence/corruption/synthesis, acquired +14% fractured Spell Suppression. Deafening Essence of Zeal; require life T2 or better (100–129). The essence guarantees 17–18% Attack Speed. No finishing or open-affix condition.",
+      "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-zeal.json",
+      "assumptions": "Independent essence rerolls on the same already acquired fractured rare base; one essence per attempt, one base per finished item, no Scouring, replacement or finishing operation. CoE rounded mean 15 uses makes costs/ROI indicative; no in-game spending, purchase, sale or whole-build validation."
+    },
+    "expectedExecutions": [
+      {
+        "stepId": "essence-roll",
+        "count": 15,
+        "evidence": {
+          "method": "Manually checked current Craft of Exile calculator; rounded displayed success and mean consumption, complete outcome plus ordinary paid failure reroll",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?group=6&item=1360&class=31&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C15%2C87&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verifiedAt": "2026-11-03",
+          "settings": "PoE 1 Dragonscale Gauntlets STR/DEX, rare ilvl85, no influence/corruption/synthesis, acquired +14% fractured Spell Suppression. Deafening Essence of Zeal; require life T2 or better (100–129). The essence guarantees 17–18% Attack Speed. No finishing or open-affix condition.",
+          "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-zeal.json",
+          "assumptions": "Independent essence rerolls on the same already acquired fractured rare base; one essence per attempt, one base per finished item, no Scouring, replacement or finishing operation. CoE rounded mean 15 uses makes costs/ROI indicative; no in-game spending, purchase, sale or whole-build validation."
+        }
+      }
+    ],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Manually checked current Craft of Exile calculator; rounded displayed success and mean consumption, complete outcome plus ordinary paid failure reroll",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?group=6&item=1360&class=31&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C15%2C87&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+        "verifiedAt": "2026-11-03",
+        "settings": "PoE 1 Dragonscale Gauntlets STR/DEX, rare ilvl85, no influence/corruption/synthesis, acquired +14% fractured Spell Suppression. Deafening Essence of Zeal; require life T2 or better (100–129). The essence guarantees 17–18% Attack Speed. No finishing or open-affix condition.",
+        "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-zeal.json",
+        "assumptions": "Independent essence rerolls on the same already acquired fractured rare base; one essence per attempt, one base per finished item, no Scouring, replacement or finishing operation. CoE rounded mean 15 uses makes costs/ROI indicative; no in-game spending, purchase, sale or whole-build validation."
+      }
+    }
   },
   "startingBase": {
     "baseId": "base:dragonscale-gauntlets",
@@ -65,20 +113,22 @@
   },
   "patch": "3.29.3.3",
   "verification": {
-    "status": "unverified",
-    "leagues": [],
+    "status": "verified",
+    "leagues": ["Allflame"],
     "checkedAt": "2026-11-03",
     "sources": [
-      "https://docs.google.com/spreadsheets/d/1w4IrNdvXMkJD4EB5o-qsOVpbTR69cnQ5-2lh-DwVbKM/edit?gid=264173426#gid=264173426"
+      "https://beta.craftofexile.com/?group=6&item=1360&class=31&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C15%2C87&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "https://beta.craftofexile.com/changelog",
+      "https://www.pathofexile.com/api/trade/data/stats"
     ],
-    "notes": "Current public Trade items/stats/static metadata checked on 2026-11-03. This checks mapping identities, not recipe success probability, live acquisition or profitability."
+    "notes": "Current CoE3.29.3.3 checked through the public UI: exact pre-acquired14% fracture, lifeT2+ requirement, correct Deafening Essence, full successful bundle and ordinary paid same-base failure reroll. Expected mean 15 is a rounded calculator value. This verifies the scoped crafting model, not executed game purchases, sales, profitability or whole-build fit."
   },
   "gameDataVersion": "3.29.3.3",
   "id": "suppression-gloves-zeal",
   "schemaVersion": 3,
-  "summary": "Suppression Gloves · Attack Speed. Unverified source-sheet craft; selected exact target.",
-  "tags": ["research-2026-11-03", "sheet-c003"],
-  "targetSignature": "3.29.3.3:a1e26bd816d1918fb3c9627049833900",
+  "summary": "Suppression Gloves · Attack Speed. Checked single-stage essence model; rounded expected 15 uses. Eligible fresh asking prices remain separate.",
+  "tags": ["life", "spell-suppression", "attack-speed", "fractured"],
+  "targetSignature": "3.29.3.3:779d9871b55e661e0481b722f49ea531",
   "target": {
     "prefixes": [
       {
@@ -99,7 +149,7 @@
         "excluded": false,
         "kind": "explicit",
         "modId": "mod:attack-speed",
-        "minimumValue": 16
+        "minimumValue": 17
       }
     ],
     "implicits": [],

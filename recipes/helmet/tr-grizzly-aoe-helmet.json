@@ -121,7 +121,7 @@
   "id": "tr-grizzly-aoe-helmet",
   "schemaVersion": 3,
   "summary": "Toxic Rain Helmet · Exact 10% AoE. Scoped MAX-1288 procedure.",
-  "tags": ["research-2026-11-03", "max-1288"],
+  "tags": ["toxic-rain", "life", "spell-suppression", "aoe", "eldritch"],
   "targetSignature": "3.29.3.3:45b466b789ed30500c3de3eafe441ee9",
   "target": {
     "prefixes": [

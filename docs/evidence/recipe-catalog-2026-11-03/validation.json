@@ -4,22 +4,33 @@
   "catalog": {
     "recipes": 15,
     "existingVerified": 2,
-    "newUnverified": 13,
+    "newScopedCalculatorVerified": 2,
+    "newUnverified": 11,
     "sourceSheetCandidatesPreserved": 16
   },
   "checks": {
     "recipesValidate": "PASS: canonical CLI loaded 15 recipes",
     "currentPublicTradeMetadata": "PASS: loadAndValidateTradeMappingManifest validated 52 entries against current official items/stats endpoints",
     "serverBuild": "PASS",
-    "serverUnit": { "files": 47, "passed": 296 },
-    "domainUnit": { "files": 10, "passed": 64 },
-    "focusedRegression": { "files": 4, "passed": 22 },
+    "serverUnit": {
+      "files": 47,
+      "passed": 297
+    },
+    "domainUnit": {
+      "files": 10,
+      "passed": 64
+    },
+    "focusedRegression": {
+      "files": 5,
+      "passed": 26
+    },
     "postgresSamePatchReplacement": "Regression included; execution delegated to parent release test database",
     "staging": "Owned by parent release pass, not claimed by this artifact",
-    "gameCraftOrSale": "NOT_RUN"
+    "gameCraftOrSale": "NOT_RUN",
+    "currentCoE": "PASS: actual public3.29.3.3 calculator; pre-acquired rareDragonscale85 fractured14suppression; Zeal6.8%/15uses and Fear4.57%/22uses; successful complete outcomes plus ordinary paid failure rerolls"
   },
   "limits": [
-    "New recipe mapping identities and selected output contracts are checked; full crafting expectations remain unverified and unavailable.",
+    "Four recipes have scoped indicative CoE expected-cost models; eleven new recipes lack full expectations and remain unverified. Game spending/sales are not established.",
     "All source-sheet prices/liquidity labels are assumptions, not fresh observations.",
     "No source Sheet edits or shared application database writes were performed by the recipe subtask."
   ]

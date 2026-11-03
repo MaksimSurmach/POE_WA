@@ -80,7 +80,7 @@
   "id": "stygian-life-resistances-fossils",
   "schemaVersion": 3,
   "summary": "Stygian Vise · Life, Fire and Cold · Fossils. Unverified source-sheet craft; selected exact target.",
-  "tags": ["research-2026-11-03", "sheet-c002"],
+  "tags": ["life", "resistances", "fossils", "abyss"],
   "targetSignature": "3.29.3.3:ffa04f1ca1055064be4ab948d843e319",
   "target": {
     "prefixes": [

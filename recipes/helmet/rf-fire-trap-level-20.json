@@ -84,7 +84,7 @@
   "id": "rf-fire-trap-level-20",
   "schemaVersion": 3,
   "summary": "Elder Fire Trap Helmet · Level 20 Supports. Scoped MAX-1288 procedure.",
-  "tags": ["research-2026-11-03", "sheet-c011"],
+  "tags": ["righteous-fire", "fire-trap", "burning-damage", "elder", "aoe"],
   "targetSignature": "3.29.3.3:2c9846ea304eefce88248dd462841d73",
   "target": {
     "prefixes": [

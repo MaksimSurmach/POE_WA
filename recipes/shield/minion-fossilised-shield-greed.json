@@ -82,7 +82,7 @@
   "id": "minion-fossilised-shield-greed",
   "schemaVersion": 3,
   "summary": "Fossilised Shield · +1 Minion Gems. Scoped MAX-1288 procedure.",
-  "tags": ["research-2026-11-03", "max-1288"],
+  "tags": ["minion", "gem-levels", "life", "resistances"],
   "targetSignature": "3.29.3.3:4f16b4c09bc3ef4ed19cbc0f7d02f16b",
   "target": {
     "prefixes": [

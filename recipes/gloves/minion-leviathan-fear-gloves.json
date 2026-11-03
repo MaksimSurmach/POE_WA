@@ -102,7 +102,7 @@
   "id": "minion-leviathan-fear-gloves",
   "schemaVersion": 3,
   "summary": "Minion Gloves · Fractured 34% Chaos Resistance. Scoped MAX-1288 procedure.",
-  "tags": ["research-2026-11-03", "max-1288"],
+  "tags": ["minion", "life", "chaos-resistance", "fractured", "eldritch"],
   "targetSignature": "3.29.3.3:b1f8c70684c206114755b716e476a22c",
   "target": {
     "prefixes": [
@@ -111,6 +111,12 @@
         "kind": "explicit",
         "modId": "mod:life",
         "minimumValue": 100
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:minion-damage",
+        "minimumValue": 26
       }
     ],
     "suffixes": [
@@ -120,12 +126,6 @@
         "modId": "mod:fractured-chaos-resistance",
         "minimumValue": 34,
         "maximumValue": 34
-      },
-      {
-        "excluded": false,
-        "kind": "explicit",
-        "modId": "mod:minion-damage",
-        "minimumValue": 26
       },
       {
         "excluded": false,

@@ -82,7 +82,7 @@
   "id": "minion-bone-helmet-greed",
   "schemaVersion": 3,
   "summary": "Bone Helmet · +2 Minion Gems. Scoped MAX-1288 procedure.",
-  "tags": ["research-2026-11-03", "max-1288"],
+  "tags": ["minion", "gem-levels", "life", "resistances"],
   "targetSignature": "3.29.3.3:dc9daa7d4031b41b996276114275f792",
   "target": {
     "prefixes": [

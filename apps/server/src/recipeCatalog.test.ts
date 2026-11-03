@@ -58,6 +58,13 @@ async function mappedTrade() {
             }),
           ),
       );
+      const exchangeIds = new Set(
+        identities.resources.map((r: { id: string }) => r.id),
+      );
+      for (const mapping of validated.mappings) {
+        if (mapping.entityKind === 'resource' && mapping.payload?.exchangeId)
+          expect(exchangeIds.has(mapping.payload.exchangeId)).toBe(true);
+      }
       return { mappings: validated.mappings };
     }),
   );
@@ -88,6 +95,8 @@ async function mappedTrade() {
             m.entityKind === 'mod' && m.canonicalId === target.modId,
         );
         if (!mapping) throw new Error(`Unmapped target ${target.modId}`);
+        if (target.kind === 'fractured' || target.kind === 'implicit')
+          expect(mapping.externalId.startsWith(`${target.kind}.`)).toBe(true);
         return { ok: true, diagnostics: [], value: { id: mapping.externalId } };
       },
     },
@@ -155,11 +164,70 @@ describe('authored source catalog integrity', () => {
       expect(
         view.target.modifiers.every((m) => !m.label.startsWith('mod:')),
       ).toBe(true);
-      if (definition.tags.includes('research-2026-11-03')) {
+      expect(
+        definition.tags.some((tag) => /^(max-|research-|sheet-)/.test(tag)),
+      ).toBe(false);
+      if (definition.verification.status === 'unverified') {
         expect(definition.verification.status).toBe('unverified');
         expect(definition.craft.expectedExecutions).toBeUndefined();
         expect(definition.craft.baseConsumption).toBeUndefined();
       }
+    }
+  });
+
+  it('ties the two current single-stage expectations to archived exact calculator settings', async () => {
+    const catalog = await recipes();
+    expect(
+      catalog.filter((r) => r.definition.verification.status === 'verified'),
+    ).toHaveLength(4);
+    for (const method of ['zeal', 'fear']) {
+      const recipe = catalog.find(
+        (r) => r.definition.id === `suppression-gloves-${method}`,
+      )?.definition;
+      if (!recipe?.craft.evidence)
+        throw new Error('Missing checked essence recipe');
+      const receipt = JSON.parse(
+        await readFile(new URL(recipe.craft.evidence.artifact, root), 'utf8'),
+      );
+      const url = new URL(receipt.calculatorURL);
+      const details = JSON.parse(
+        Buffer.from(url.searchParams.get('details') ?? '', 'base64').toString(
+          'utf8',
+        ),
+      );
+      const requirements = JSON.parse(
+        Buffer.from(url.searchParams.get('reqs') ?? '', 'base64').toString(
+          'utf8',
+        ),
+      );
+      expect(details).toMatchObject({
+        i: 'Metadata/Items/Armours/Gloves/GlovesStrDex8',
+        l: 85,
+        r: 'rare',
+        if: [],
+        m: [{ k: 'ChanceToSuppressSpells5__', v: [14], f: ['f'] }],
+      });
+      expect(requirements).toEqual([
+        { t: 'and', m: null, e: [{ i: '1022', t: '2', b: true, s: null }] },
+      ]);
+      expect(recipe.craft.steps[0]?.success?.probability).toBe(
+        receipt.displayed.successPercent / 100,
+      );
+      expect(recipe.craft.expectedExecutions?.[0]?.count).toBe(
+        receipt.displayed.expectedEssences,
+      );
+      expect(recipe.craft.baseConsumption?.expectedBases).toBe(1);
+      expect(recipe.verification.leagues).toEqual(['Allflame']);
+      const damage = Object.values(recipe.target)
+        .flat()
+        .find(
+          (c) =>
+            c.modId ===
+            (method === 'zeal' ? 'mod:attack-speed' : 'mod:minion-damage'),
+        );
+      expect(damage?.minimumValue).toBe(
+        receipt.method.guaranteedModifier.range[0],
+      );
     }
   });
 
@@ -217,7 +285,7 @@ describe('authored source catalog integrity', () => {
         influences: {},
         explicitMods: [
           '+110 to maximum Life',
-          '16% increased Attack Speed',
+          '17% increased Attack Speed',
           ...(fracturedSuppression
             ? []
             : ['+14% chance to Suppress Spell Damage']),

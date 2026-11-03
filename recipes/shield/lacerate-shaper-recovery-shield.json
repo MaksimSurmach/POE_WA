@@ -82,7 +82,7 @@
   "id": "lacerate-shaper-recovery-shield",
   "schemaVersion": 3,
   "summary": "Shaper Life-on-Block Shield · Greed. Scoped MAX-1288 procedure.",
-  "tags": ["research-2026-11-03", "max-1288"],
+  "tags": ["life", "block", "shaper", "resistances"],
   "targetSignature": "3.29.3.3:6041b26de80ff0293263a998195386e8",
   "target": {
     "prefixes": [

@@ -1,0 +1,80 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "access": "Actual current public Craft of Exile beta UI through Codex browser. No game purchases or trading. No source Sheet edits.",
+  "calculatorURL": "https://beta.craftofexile.com/?group=6&item=1360&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C7%2C51&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=31",
+  "patchSource": {
+    "url": "https://beta.craftofexile.com/changelog",
+    "currentPatch": "3.29.3.3",
+    "visibleChangelogDate": "2026-10-31",
+    "checkedOn": "2026-11-03"
+  },
+  "startingItem": {
+    "base": "Dragonscale Gauntlets",
+    "metadataId": "Metadata/Items/Armours/Gloves/GlovesStrDex8",
+    "itemClass": "Gloves (STR/DEX)",
+    "itemLevel": 85,
+    "rarity": "rare",
+    "influences": [],
+    "fracturedModifier": {
+      "id": "ChanceToSuppressSpells5__",
+      "value": 14,
+      "tier": 1
+    },
+    "corrupted": false,
+    "synthesised": false,
+    "procurement": "Buy an already qualified rare fractured base. Setting up the simulator input is not a free in-game fracture operation or proof of an executed purchase."
+  },
+  "method": {
+    "name": "Deafening Essence of Fear",
+    "perAttemptQuantity": 1,
+    "guaranteedModifier": {
+      "kind": "prefix",
+      "stat": "Minions deal increased Damage",
+      "range": [28, 30]
+    }
+  },
+  "requirements": {
+    "group": "AND",
+    "stat": "flat maximum Life",
+    "canonicalId": "IncreasedLife7 or IncreasedLife8",
+    "CoERequirementId": "1022",
+    "minimumTier": null,
+    "maximumTier": 2,
+    "acceptedLifeRange": [100, 129],
+    "otherRequirements": "The acquired fracture is retained, and the selected Deafening Essence guarantees the remaining target modifier; no open affix, bench, Eldritch implicit or finishing requirement."
+  },
+  "displayed": {
+    "successPercent": 4.57,
+    "oneOutOfTries": 22,
+    "expectedEssences": 22,
+    "calculatorText": "Success chance :\n1 out of 22 tries\n4.57%\nExpected costs :\n22\nDeafening Essence of Fear"
+  },
+  "successfulOutcome": {
+    "life": 126,
+    "minionDamage": 30,
+    "fracturedSuppression": 14,
+    "evidenceKind": "Simulate this outcome generated the complete selected bundle. This proves reachability, not empirical spending or sale."
+  },
+  "ordinaryPaidReroll": {
+    "method": "Deafening Essence of Fear",
+    "quantity": 1,
+    "sameBaseReused": true,
+    "fracturedSuppressionAfter": 14,
+    "targetLifeAfter": null,
+    "outcome": "REJECT: life >=100 missing; pay another essence on the same base",
+    "guaranteedModifierAfter": 28,
+    "otherUnfracturedModifiersReplaced": true,
+    "scouringRequired": false
+  },
+  "baseConsumption": {
+    "expectedBases": 1,
+    "basis": "The essence reroll retained the pre-acquired fracture, base identity, item level and influence state in the ordinary paid action; no base destruction/replacement stage is included."
+  },
+  "limits": [
+    "Displayed probability and mean uses are rounded CoE model values, not observed in-game craft frequencies. Costs based on the rounded mean are indicative.",
+    "Acquisition price must come from fresh eligible base asks, not the simulator setup or its internal default prices. Gold fees, completed sales, liquidity and build equivalence are unverified.",
+    "The complex minion-Leviathan/Fear/bench/Ember chain is different and does not inherit this single-stage expected count."
+  ],
+  "uiRecoveryNote": "After Simulate this outcome, explicitly reselect the intended essence before the ordinary paid action. An initial attempted Fear action used the prior Zeal selection; it is excluded from Fear paid-action evidence. The subsequent explicitly selected Fear action added minion damage28, removed the prior nonfractured modifiers, retained14fracture and cost one Fear."
+}

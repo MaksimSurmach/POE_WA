@@ -71,7 +71,7 @@
   "id": "stygian-life-resistances-envy",
   "schemaVersion": 3,
   "summary": "Stygian Vise · Life, Fire and Chaos · Envy. Unverified source-sheet craft; selected exact target.",
-  "tags": ["research-2026-11-03", "sheet-c002"],
+  "tags": ["life", "resistances", "chaos-resistance", "abyss"],
   "targetSignature": "3.29.3.3:28be21f0dd60c334322647173b573ee3",
   "target": {
     "prefixes": [

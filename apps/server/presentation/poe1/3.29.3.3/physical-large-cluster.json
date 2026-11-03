@@ -117,7 +117,7 @@
     },
     "mod:minion-damage": {
       "name": "Increased Minion Damage",
-      "generationType": "suffix"
+      "generationType": "prefix"
     },
     "mod:ailment-avoidance": {
       "name": "Chance to Avoid Elemental Ailments",

@@ -93,7 +93,7 @@
   "id": "minion-convoking-wand-four-fossil",
   "schemaVersion": 3,
   "summary": "Convoking Wand · +2 Minion Spells. Unverified source-sheet craft; selected exact target.",
-  "tags": ["research-2026-11-03", "sheet-c007"],
+  "tags": ["minion", "gem-levels", "spells", "fossils"],
   "targetSignature": "3.29.3.3:160012a65633f3a57df189c3bb3e604a",
   "target": {
     "prefixes": [

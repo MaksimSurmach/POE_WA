@@ -105,8 +105,8 @@
       },
       "recoveredFormulaText": {},
       "recipeIds": ["suppression-gloves-zeal"],
-      "decision": "CATALOG_PROJECTION_UNVERIFIED",
-      "reason": "Exact selected target/method recorded in corresponding recipe; full source lead remains broader."
+      "decision": "CATALOG_PROJECTION_SCOPED_MODEL_CHECKED",
+      "reason": "Selected one-stage core checked in current CoE3.29.3.3: acquired14suppression fracture, exact Deafening Essence, lifeT2+, successful outcome and paid same-base reroll. Rounded mean15Zeal/22Fear; does not verify source liquidity/demand/prices or optional finishing."
     },
     {
       "id": "C004",
@@ -138,8 +138,8 @@
       },
       "recoveredFormulaText": {},
       "recipeIds": ["suppression-gloves-fear"],
-      "decision": "CATALOG_PROJECTION_UNVERIFIED",
-      "reason": "Exact selected target/method recorded in corresponding recipe; full source lead remains broader."
+      "decision": "CATALOG_PROJECTION_SCOPED_MODEL_CHECKED",
+      "reason": "Selected one-stage core checked in current CoE3.29.3.3: acquired14suppression fracture, exact Deafening Essence, lifeT2+, successful outcome and paid same-base reroll. Rounded mean15Zeal/22Fear; does not verify source liquidity/demand/prices or optional finishing."
     },
     {
       "id": "C005",

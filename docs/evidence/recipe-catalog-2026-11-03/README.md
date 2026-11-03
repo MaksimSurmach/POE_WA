@@ -1,10 +1,19 @@
 # Source recipe catalog — 2026-11-03
 
-The handbook contains 15 JSON recipes: the two existing checked physical cluster
-methods and 13 new **unverified** exact targets. New rows can collect comparable
-asking prices and material unit prices. Full expected craft cost and ROI remain
-unavailable: no probabilities, expected executions or base-consumption totals
-were invented. The currency identity 1 Chaos Orb = 1 chaos prices fixed bench
+The handbook contains 15 JSON recipes: two existing checked physical cluster
+methods, two newly checked single-stage suppression-glove methods and 11 new
+**unverified** exact targets. All rows can collect comparable asking prices and
+material unit prices. The eleven unverified methods have no invented expected
+executions/base consumption and withhold full expected craft cost and ROI.
+
+Current public CoE3.29.3.3 checked on2026-11-03 gives rounded mean15Zeal uses
+(6.8%) or22Fear uses(4.57%) for acquired rareDragonscale85 with fractured14%
+suppression and lifeT2+100–129. Zeal guarantees17–18%attack speed; Fear
+guarantees28–30%minion damage as a prefix. Exact calculator URLs, complete
+successful outcomes and ordinary paid failure rerolls are archived in
+`coe-suppression-zeal.json` and `coe-suppression-fear.json`. These are indicative
+calculator expectations on one reusable acquired base, not empirical spending
+or completed sales. Scope is currentlyAllflame only. The currency identity 1 Chaos Orb = 1 chaos prices fixed bench
 fees without requesting an invalid chaos-to-chaos exchange.
 
 ## Sources and scope
@@ -39,9 +48,10 @@ bow, not independently re-executed on the helmet. Native implicit floors only
 narrow the declared base identity; they do not add a crafting operation.
 
 No in-game purchases, crafting, completed sales, whole-build equivalence, optimum
-method or profitability are established. The new wand/suppression/belt lines are
-source hypotheses with complete selected stopping rules; they are not accepted
-MAX-1288 finalists or calculator-verified methods.
+method or profitability are established. The new wand/belt/boot lines remain source hypotheses with complete selected
+stopping rules. The two simple suppression-glove lines now have separately
+checked current calculator models; this does not validate optional implicit or
+bench finishing from the broader source Sheet.
 
 ## Import and run
 
@@ -73,7 +83,9 @@ an access blocker; source captures must not be replayed as fresh observations.
   sync of all 15; all 16 source candidates retained.
 - Current official public items/stats validated the new mapping manifest (52 IDs).
 - Every current recipe's base/target/material resolves; presentation labels are
-  readable. New recipes have no full expected-cost model.
+  readable. Eleven new recipes have no full expected-cost model; two simple glove methods
+  have bounded current CoE evidence. Product tags contain game concepts only;
+  provenance IDs stay in source evidence.
 - Regression: a fractured suppression roll matches; the same numeric ordinary
   suppression on a different fracture cannot match.
 - Regression: exact fractured starting origin/value reaches the search and

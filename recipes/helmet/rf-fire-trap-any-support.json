@@ -84,7 +84,7 @@
   "id": "rf-fire-trap-any-support",
   "schemaVersion": 3,
   "summary": "Elder Fire Trap Helmet · Any Support Tier. Scoped MAX-1288 procedure.",
-  "tags": ["research-2026-11-03", "sheet-c011"],
+  "tags": ["righteous-fire", "fire-trap", "burning-damage", "elder", "aoe"],
   "targetSignature": "3.29.3.3:cad83c782eab5974e3dbd84a2776c235",
   "target": {
     "prefixes": [
