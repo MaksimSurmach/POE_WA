@@ -48,8 +48,15 @@ describe('refresh cancellation', () => {
     expect(refreshFailureCode(failure, operator.signal, worker.signal)).toBe(
       'REFRESH_WORKER_INTERRUPTED',
     );
+    const cancelled = new DomainError('MARKET_COLLECTION_CANCELLED');
+    expect(refreshFailureCode(cancelled, operator.signal, worker.signal)).toBe(
+      'REFRESH_WORKER_INTERRUPTED',
+    );
     operator.abort();
     expect(refreshFailureCode(failure, operator.signal, worker.signal)).toBe(
+      'MARKET_COLLECTION_CANCELLED',
+    );
+    expect(refreshFailureCode(cancelled, operator.signal, worker.signal)).toBe(
       'MARKET_COLLECTION_CANCELLED',
     );
     expect(
