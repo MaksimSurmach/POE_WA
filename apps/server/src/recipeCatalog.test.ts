@@ -179,7 +179,7 @@ describe('authored source catalog integrity', () => {
     const catalog = await recipes();
     expect(
       catalog.filter((r) => r.definition.verification.status === 'verified'),
-    ).toHaveLength(4);
+    ).toHaveLength(7);
     for (const method of ['zeal', 'fear']) {
       const recipe = catalog.find(
         (r) => r.definition.id === `suppression-gloves-${method}`,
@@ -228,6 +228,56 @@ describe('authored source catalog integrity', () => {
       expect(damage?.minimumValue).toBe(
         receipt.method.guaranteedModifier.range[0],
       );
+    }
+  });
+
+  it('binds Stygian and wand per-finished material totals to their exact archived AND requirements', async () => {
+    const catalog = await recipes();
+    for (const id of [
+      'stygian-life-resistances-envy',
+      'stygian-life-resistances-fossils',
+      'minion-convoking-wand-four-fossil',
+    ]) {
+      const recipe = catalog.find((r) => r.definition.id === id)?.definition;
+      if (!recipe?.craft.evidence)
+        throw new Error('Missing checked single-stage recipe');
+      const receipt = JSON.parse(
+        await readFile(new URL(recipe.craft.evidence.artifact, root), 'utf8'),
+      );
+      const url = new URL(receipt.calculatorURL);
+      const details = JSON.parse(
+        Buffer.from(url.searchParams.get('details') ?? '', 'base64').toString(
+          'utf8',
+        ),
+      );
+      const requirements = JSON.parse(
+        Buffer.from(url.searchParams.get('reqs') ?? '', 'base64').toString(
+          'utf8',
+        ),
+      );
+      expect(details).toMatchObject({
+        i: receipt.startingItem.metadataId,
+        l: recipe.startingBase.itemLevel,
+        r: recipe.startingBase.rarity,
+        if: [],
+      });
+      expect(requirements).toEqual(receipt.requirements);
+      expect(recipe.craft.steps).toHaveLength(1);
+      const executions = recipe.craft.expectedExecutions?.[0]?.count;
+      expect(executions).toBe(receipt.displayed.expectedExecutions);
+      expect(
+        Object.fromEntries(
+          recipe.craft.steps[0]?.materials.map((m) => [
+            m.itemId,
+            (m.quantity ?? 0) * (executions ?? 0),
+          ]) ?? [],
+        ),
+      ).toEqual(receipt.displayed.expectedMaterials);
+      expect(recipe.craft.steps[0]?.success?.probability).toBeCloseTo(
+        receipt.displayed.successPercent / 100,
+        10,
+      );
+      expect(recipe.craft.baseConsumption?.expectedBases).toBe(1);
     }
   });
 

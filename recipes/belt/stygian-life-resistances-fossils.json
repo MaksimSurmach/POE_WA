@@ -25,8 +25,8 @@
     },
     "startingMods": [],
     "uncertainties": [
-      "Expected executions per completed item and full expected material/base consumption have not been independently reproduced for this exact recipe. Expected total and ROI must stay unavailable.",
-      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established."
+      "Indicative CoE model: displayed probability and mean use count are rounded. Real spending, sales, liquidity and whole-build fit are not established.",
+      "Only the exact declared output core is modelled. Optional finishing, catalysts, corruption, gold fees and purchase execution are outside scope."
     ],
     "steps": [
       {
@@ -48,9 +48,57 @@
             "itemId": "potent-chaotic-resonator",
             "quantity": 1
           }
-        ]
+        ],
+        "success": {
+          "evidence": {
+            "method": "Manually checked current Craft of Exile calculator; rounded displayed probability/mean consumption and complete outcome plus ordinary paid failure reroll",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=4%2C17%7C18&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMV1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM4IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM5IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=98",
+            "verifiedAt": "2026-11-03",
+            "settings": "Rare uninfluenced Stygian Vise ilvl85, no corruption/fracture/synthesis or catalyst quality. One Prismatic Fossil + one Pristine Fossil in one Potent Chaotic Resonator per attempt. AND lifeT1(130–144), fire resistanceT2orbetter(42–48), cold resistanceT2orbetter(42–48). No finishing stage.",
+            "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-stygian-fossils.json",
+            "assumptions": "Independent rerolls on the same reusable acquired rare base, one material set per attempt. Current CoE displayed mean 942 sets is rounded; cost/ROI remain indicative. No replacement or finishing stage, in-game spending, executed purchase, sale or whole-build validation."
+          },
+          "probability": 0.00106
+        }
       }
-    ]
+    ],
+    "evidence": {
+      "method": "Manually checked current Craft of Exile calculator; rounded displayed probability/mean consumption and complete outcome plus ordinary paid failure reroll",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=4%2C17%7C18&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMV1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM4IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM5IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=98",
+      "verifiedAt": "2026-11-03",
+      "settings": "Rare uninfluenced Stygian Vise ilvl85, no corruption/fracture/synthesis or catalyst quality. One Prismatic Fossil + one Pristine Fossil in one Potent Chaotic Resonator per attempt. AND lifeT1(130–144), fire resistanceT2orbetter(42–48), cold resistanceT2orbetter(42–48). No finishing stage.",
+      "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-stygian-fossils.json",
+      "assumptions": "Independent rerolls on the same reusable acquired rare base, one material set per attempt. Current CoE displayed mean 942 sets is rounded; cost/ROI remain indicative. No replacement or finishing stage, in-game spending, executed purchase, sale or whole-build validation."
+    },
+    "expectedExecutions": [
+      {
+        "stepId": "roll-core",
+        "count": 942,
+        "evidence": {
+          "method": "Manually checked current Craft of Exile calculator; rounded displayed probability/mean consumption and complete outcome plus ordinary paid failure reroll",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=4%2C17%7C18&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMV1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM4IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM5IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=98",
+          "verifiedAt": "2026-11-03",
+          "settings": "Rare uninfluenced Stygian Vise ilvl85, no corruption/fracture/synthesis or catalyst quality. One Prismatic Fossil + one Pristine Fossil in one Potent Chaotic Resonator per attempt. AND lifeT1(130–144), fire resistanceT2orbetter(42–48), cold resistanceT2orbetter(42–48). No finishing stage.",
+          "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-stygian-fossils.json",
+          "assumptions": "Independent rerolls on the same reusable acquired rare base, one material set per attempt. Current CoE displayed mean 942 sets is rounded; cost/ROI remain indicative. No replacement or finishing stage, in-game spending, executed purchase, sale or whole-build validation."
+        }
+      }
+    ],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Manually checked current Craft of Exile calculator; rounded displayed probability/mean consumption and complete outcome plus ordinary paid failure reroll",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=4%2C17%7C18&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMV1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM4IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM5IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=98",
+        "verifiedAt": "2026-11-03",
+        "settings": "Rare uninfluenced Stygian Vise ilvl85, no corruption/fracture/synthesis or catalyst quality. One Prismatic Fossil + one Pristine Fossil in one Potent Chaotic Resonator per attempt. AND lifeT1(130–144), fire resistanceT2orbetter(42–48), cold resistanceT2orbetter(42–48). No finishing stage.",
+        "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-stygian-fossils.json",
+        "assumptions": "Independent rerolls on the same reusable acquired rare base, one material set per attempt. Current CoE displayed mean 942 sets is rounded; cost/ROI remain indicative. No replacement or finishing stage, in-game spending, executed purchase, sale or whole-build validation."
+      }
+    }
   },
   "startingBase": {
     "baseId": "Metadata/Items/Belts/BeltAbyss",
@@ -68,18 +116,20 @@
   },
   "patch": "3.29.3.3",
   "verification": {
-    "status": "unverified",
-    "leagues": [],
+    "status": "verified",
+    "leagues": ["Allflame"],
     "checkedAt": "2026-11-03",
     "sources": [
-      "https://docs.google.com/spreadsheets/d/1w4IrNdvXMkJD4EB5o-qsOVpbTR69cnQ5-2lh-DwVbKM/edit?gid=264173426#gid=264173426"
+      "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=4%2C17%7C18&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMV1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM4IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM5IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=98",
+      "https://beta.craftofexile.com/changelog",
+      "https://www.pathofexile.com/api/trade/data/stats"
     ],
-    "notes": "Current public Trade items/stats/static metadata checked on 2026-11-03. This checks mapping identities, not recipe success probability, live acquisition or profitability."
+    "notes": "Exact current CoE3.29.3.3 selected base/method/target checked; ordinary paid failure retained the base and the complete successful output was generated. Rounded expected 942 sets; scoped indicative model only, not verified game spending, sales or build demand."
   },
   "gameDataVersion": "3.29.3.3",
   "id": "stygian-life-resistances-fossils",
   "schemaVersion": 3,
-  "summary": "Stygian Vise · Life, Fire and Cold · Fossils. Unverified source-sheet craft; selected exact target.",
+  "summary": "Stygian Vise · Life, Fire and Cold · Fossils. Current scoped CoE model: rounded expected 942 sets; fresh market prices stay separate.",
   "tags": ["life", "resistances", "fossils", "abyss"],
   "targetSignature": "3.29.3.3:ffa04f1ca1055064be4ab948d843e319",
   "target": {

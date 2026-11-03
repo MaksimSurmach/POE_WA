@@ -1,0 +1,81 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "calculatorURL": "https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&flags=&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+  "access": "Actual current public CoE calculator UI; ordinary paid reroll plus conditional full successful outcome. No game purchases, crafting or sales.",
+  "patchSource": {
+    "url": "https://beta.craftofexile.com/changelog",
+    "changelogDate": "2026-10-31",
+    "patch": "3.29.3.3"
+  },
+  "settings": "Rare uninfluenced Convoking Wand ilvl84, no corruption/fracture/synthesis. One Corroded + Jagged + Metallic + Shuddering Fossil in one Prime Chaotic Resonator per attempt. AND +1allMinionSkillGems and +1allSpellSkillGems. Stop at functional+2; no open suffix, trigger or bench finish required. Native implicit minion damage is preserved; no numerical implicit floor is required.",
+  "startingItem": {
+    "metadataId": "Metadata/Items/Weapons/OneHandWeapons/Wands/WandAtlas1",
+    "itemLevel": 84,
+    "rarity": "rare",
+    "influences": [],
+    "fractured": false,
+    "corrupted": false,
+    "synthesised": false
+  },
+  "requirements": [
+    {
+      "t": "and",
+      "m": null,
+      "e": [
+        {
+          "i": "769",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "262",
+          "t": null,
+          "b": true,
+          "s": null
+        }
+      ]
+    }
+  ],
+  "displayed": {
+    "successPercent": 8.34,
+    "oneOutOfTries": 12,
+    "expectedExecutions": 12,
+    "expectedMaterials": {
+      "corroded-fossil": 12,
+      "jagged-fossil": 12,
+      "metallic-fossil": 12,
+      "shuddering-fossil": 12,
+      "prime-chaotic-resonator": 12
+    }
+  },
+  "ordinaryPaidFailure": {
+    "materialsConsumed": {
+      "corroded-fossil": 1,
+      "jagged-fossil": 1,
+      "metallic-fossil": 1,
+      "shuddering-fossil": 1,
+      "prime-chaotic-resonator": 1
+    },
+    "finishedTargetMatched": false,
+    "sameBaseRetained": true,
+    "scouringRequired": false,
+    "minionGemLevel": null,
+    "spellGemLevel": 1,
+    "nativeImplicitMinionDamagePreserved": true
+  },
+  "conditionalFullSuccessfulOutcome": {
+    "evidenceKind": "Simulate this outcome proves reachability, not empirical spending or frequency",
+    "minionGemLevel": 1,
+    "spellGemLevel": 1,
+    "nativeImplicitMinionDamage": 30,
+    "explicitMinionDamage": 10
+  },
+  "expectedBases": 1,
+  "limits": [
+    "Displayed odds and mean consumption are rounded current CoE estimates; costs using them are indicative.",
+    "The successful generated item and single ordinary failure are not independent-frequency measurements or evidence of a sale.",
+    "Fresh actual eligible acquisition/material/output asks must be collected separately; no internal CoE default prices are used by the product. No optional finish, catalyst, corruption, trigger or build equivalence is included."
+  ]
+}

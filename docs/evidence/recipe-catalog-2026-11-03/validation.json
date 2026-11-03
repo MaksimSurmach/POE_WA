@@ -4,8 +4,8 @@
   "catalog": {
     "recipes": 15,
     "existingVerified": 2,
-    "newScopedCalculatorVerified": 2,
-    "newUnverified": 11,
+    "newScopedCalculatorVerified": 5,
+    "newUnverified": 8,
     "sourceSheetCandidatesPreserved": 16
   },
   "checks": {
@@ -27,10 +27,15 @@
     "postgresSamePatchReplacement": "Regression included; execution delegated to parent release test database",
     "staging": "Owned by parent release pass, not claimed by this artifact",
     "gameCraftOrSale": "NOT_RUN",
-    "currentCoE": "PASS: actual public3.29.3.3 calculator; pre-acquired rareDragonscale85 fractured14suppression; Zeal6.8%/15uses and Fear4.57%/22uses; successful complete outcomes plus ordinary paid failure rerolls"
+    "currentCoE": "PASS: actual public3.29.3.3 calculator; pre-acquired rareDragonscale85 fractured14suppression; Zeal6.8%/15uses and Fear4.57%/22uses; successful complete outcomes plus ordinary paid failure rerolls",
+    "currentCoEAdditional": "PASS: EnvyStygian613essences; Pristine+PrismaticStygian942materialsets; +2Convoking4fossils12sets. Exact ANDrequirements, ordinary paidfailures, nativeimplicit/basepreservation and complete successfuloutputs observed in current publicUI.",
+    "additionalCatalogRegression": {
+      "files": 3,
+      "passed": 13
+    }
   },
   "limits": [
-    "Four recipes have scoped indicative CoE expected-cost models; eleven new recipes lack full expectations and remain unverified. Game spending/sales are not established.",
+    "Seven recipes have scoped indicative CoE expected-cost models; eight new recipes lack full expectations and remain unverified. Game spending/sales are not established.",
     "All source-sheet prices/liquidity labels are assumptions, not fresh observations.",
     "No source Sheet edits or shared application database writes were performed by the recipe subtask."
   ]

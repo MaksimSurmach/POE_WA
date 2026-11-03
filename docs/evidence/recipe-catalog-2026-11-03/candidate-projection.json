@@ -72,8 +72,8 @@
         "stygian-life-resistances-envy",
         "stygian-life-resistances-fossils"
       ],
-      "decision": "CATALOG_PROJECTION_UNVERIFIED",
-      "reason": "Exact selected target/method recorded in corresponding recipe; full source lead remains broader."
+      "decision": "CATALOG_PROJECTION_SCOPED_MODEL_CHECKED",
+      "reason": "Exact selected core and current CoE3.29.3.3 whole single-stage material model checked. Source price/liquidity/demand assumptions and optional finishes remain unverified; see corresponding coe-stygian-*.json or coe-convoking-wand.json."
     },
     {
       "id": "C003",
@@ -247,8 +247,8 @@
         "Salvage / что продавать дешевле": "+2 без minion damage; +1 minion + высокий minion damage"
       },
       "recipeIds": ["minion-convoking-wand-four-fossil"],
-      "decision": "CATALOG_PROJECTION_UNVERIFIED",
-      "reason": "Exact selected target/method recorded in corresponding recipe; full source lead remains broader."
+      "decision": "CATALOG_PROJECTION_SCOPED_MODEL_CHECKED",
+      "reason": "Exact selected core and current CoE3.29.3.3 whole single-stage material model checked. Source price/liquidity/demand assumptions and optional finishes remain unverified; see corresponding coe-stygian-*.json or coe-convoking-wand.json."
     },
     {
       "id": "C008",
