@@ -437,6 +437,71 @@ describe('authored source catalog integrity', () => {
     );
   });
 
+  it('requires the acquired Bone Helmet minion damage implicit and rejects an explicit substitute or lower roll', async () => {
+    const recipe = (await recipes()).find(
+      (r) => r.definition.id === 'minion-bone-helmet-greed',
+    )?.definition;
+    if (!recipe) throw new Error('Missing Bone Helmet recipe');
+    const query = await generateRecipeMarketQuery(
+      await mappedTrade(),
+      recipe,
+      'Fixture League',
+      true,
+    );
+    expect(query.query).toMatchObject({
+      query: {
+        stats: [
+          {
+            type: 'and',
+            filters: [{ id: 'implicit.stat_1589917703', value: { min: 15 } }],
+          },
+        ],
+      },
+    });
+    const target = recipeQueryTarget(query.query.handbookTarget);
+    const raw = (implicitValue: number | null) => ({
+      id: String(implicitValue),
+      listing: {
+        price: { amount: 10, currency: 'chaos' },
+        account: { name: 'fixture' },
+      },
+      item: {
+        verified: true,
+        baseType: 'Bone Helmet',
+        frameType: 2,
+        league: 'Fixture League',
+        ilvl: 75,
+        influences: {},
+        fractured: false,
+        implicitMods:
+          implicitValue === null
+            ? []
+            : [`Minions deal ${implicitValue}% increased Damage`],
+        explicitMods:
+          implicitValue === null ? ['Minions deal 18% increased Damage'] : [],
+      },
+    });
+    const now = new Date('2026-11-03T00:00:00.000Z');
+    const snapshot = createImportedMarketSnapshot(
+      {
+        targetId: target.id,
+        capturedAt: now.toISOString(),
+        sourceUrl: 'https://example.com/fixture',
+        currency: 'chaos',
+        dataKind: 'demo',
+        listings: [15, 14, null].map((value) =>
+          normalizeTradeCompatibleListing(raw(value), target),
+        ),
+      },
+      target,
+      now,
+    );
+    const rows = analyzeBeltSnapshot(target, snapshot, now.getTime()).rows;
+    expect(rows[0]?.status, JSON.stringify(rows)).toBe('MATCH');
+    expect(rows[1]?.status).toBe('REJECT');
+    expect(rows[2]?.status).not.toBe('MATCH');
+  });
+
   it('accepts fractured suppression and excludes the same numeric explicit roll on a different fracture', async () => {
     const recipe = (await recipes()).find(
       (r) => r.definition.id === 'suppression-gloves-zeal',

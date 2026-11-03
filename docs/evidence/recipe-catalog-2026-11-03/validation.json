@@ -14,7 +14,7 @@
     "serverBuild": "PASS",
     "serverUnit": {
       "files": 47,
-      "passed": 303
+      "passed": 304
     },
     "domainUnit": {
       "files": 10,
@@ -42,6 +42,11 @@
     "exactLevelFocusedRegression": {
       "files": 6,
       "passed": 51
+    },
+    "boneAcquisitionImplicit": "PASS: startingMods implicit minion damage>=15 reaches actual mapped search; normalized15implicit matches,14implicit and18explicit substitute do not. All15 finished query hashes and14other starting hashes unchanged frombd97ec6; only Bone starting hash changes.",
+    "boneFocusedRegression": {
+      "files": 3,
+      "passed": 18
     }
   },
   "limits": [

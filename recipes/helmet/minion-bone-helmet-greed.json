@@ -22,17 +22,24 @@
       "kind": "currency",
       "currency": "deafening-essence-of-greed"
     },
-    "startingMods": [],
+    "startingMods": [
+      {
+        "modId": "mod:implicit-minion-damage",
+        "kind": "implicit",
+        "minimumValue": 15
+      }
+    ],
     "uncertainties": [
       "Current calculator probability and mean essence use are rounded; expected spending is indicative.",
       "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established.",
-      "Starting-base acquisition must use exactly item level 75. Higher item levels can change the affix pool and require a separate cost model."
+      "Starting-base acquisition must use exactly item level 75. Higher item levels can change the affix pool and require a separate cost model.",
+      "Acquire the Bone Helmet with at least 15% increased minion damage as an existing implicit. Greed and the resistance bench do not provide a missing input implicit."
     ],
     "steps": [
       {
         "id": "essence-greed",
         "title": "Roll minion levels and life",
-        "action": "Use Deafening Essence of Greed on the acquired rare base.",
+        "action": "Use Deafening Essence of Greed on the acquired rare Bone Helmet with at least 15% increased minion damage as an existing implicit.",
         "continueWhen": "+2 to Level of all Minion Skill Gems, at least one open suffix and no native Fire Resistance.",
         "failureAction": "If any stopping condition fails, repeat the essence on the same rare base; the native implicit is preserved. Do not pay for the bench before the whole core passes.",
         "materials": [

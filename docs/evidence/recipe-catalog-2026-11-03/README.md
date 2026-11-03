@@ -138,3 +138,13 @@ material observations remain reusable by their unchanged query hashes. Starting
 queries change and must be collected again. `exact-level-query-proof.json`
 records before/after production hashes against8dda1c3 for all15 recipes: every
 finished hash is unchanged and every starting hash changes.
+
+Bone Helmet acquisition additionally requires the existing minion damage implicit
+at least 15%, matching the checked input and final target. This prerequisite uses
+`startingMods` with kind `implicit` and the existing mapped Trade stat. Greed and
+the resistance bench do not supply a missing implicit. `coe-bone-input-guard.json`
+records the bounded source check, including a tooltip/emulator discrepancy that
+is not treated as proof of in-game replacement. `bone-input-query-proof.json`
+shows this follow-up changes only Bone’s starting query; all 15 finished queries
+and the other 14 starting queries remain unchanged from bd97ec6. Synchronize the
+one changed recipe and refresh its starting-base query before reusing its EV.

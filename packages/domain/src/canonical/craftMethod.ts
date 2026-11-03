@@ -31,7 +31,7 @@ export const canonicalStartingModSchema = z
   .strictObject({
     modId: entityIdSchema,
     tier: z.number().int().min(1).max(20).optional(),
-    kind: z.enum(['explicit', 'fractured']).optional(),
+    kind: z.enum(['explicit', 'fractured', 'implicit']).optional(),
     minimumValue: z.number().finite().optional(),
     maximumValue: z.number().finite().optional(),
   })

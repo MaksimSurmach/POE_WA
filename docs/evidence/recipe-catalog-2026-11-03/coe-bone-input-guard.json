@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "scope": "Acquired Bone Helmet input prerequisite only; no claim that this proves current in-game implicit replacement.",
+  "sourceCalculatorArtifact": "docs/evidence/recipe-catalog-2026-11-03/coe-bone-greed.json",
+  "requiredAcquiredImplicit": {
+    "modId": "mod:implicit-minion-damage",
+    "kind": "implicit",
+    "minimumValue": 15,
+    "tradeStatId": "implicit.stat_1589917703"
+  },
+  "rationale": "The checked model starts with18% native minion damage in the15–20% range and preserves it; the finished target requires>=15. Greed and the fire bench do not restore a missing implicit. Acquisition query must enforce this existing input.",
+  "currentCoEDiscrepancy": {
+    "selectedCurrency": "Lesser Eldritch Ichor",
+    "visibleTooltip": "This replaces any existing implicit modifiers other than Searing Exarch implicit modifiers.",
+    "observedActualUIAction": "Applying one Ichor to the saved rare Bone75 model displayed both existing18% minion damage and an Eater6% physical damage taken as lightning modifier.",
+    "disposition": "The tooltip and emulator rendering are inconsistent. Neither is promoted to proof of in-game replacement; the explicit prerequisite is enforced independently.",
+    "tooltipSummary": "Adds a Lesser Eater of Worlds implicit to supported armour slots, including helmets."
+  },
+  "expectationChange": "No probability or material expectation changes:1907 rounded Greed uses then one3Chaos bench on one eligible acquired base. Only Bone starting-base query changes; all finished queries remain unchanged."
+}
