@@ -1,0 +1,272 @@
+{
+  "date": "2026-10-30",
+  "rule": "Terminal scope decision, notcertificationofentirebuild or economicrecipe. Tree3.28label alone neitherprovesbroken norconfirms3.29; actualmigrationresult separate.",
+  "profiles": [
+    {
+      "profile_id": "rf-fire-trap-helmet",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "FT/SearingBondOfDetonation inhelmet; standardRF itself outsidehelmet",
+      "source_ids": [
+        "BC07"
+      ],
+      "finding": "Supports pair only; RF/SRI socketing expressly excluded.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "lacerate-block-shield",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "Intermediate Shaper life-block shield beforeSurrender",
+      "source_ids": [
+        "BC03"
+      ],
+      "finding": "Current guide permits4%; old planned synthBuckler is not this craft.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "lacerate-budget-belt",
+      "build_scope_verdict": "EXCLUDED_FROM_SPECIFIC_FINALISTS",
+      "selected_variant": "Generic resistance-gap filler beforeunique",
+      "source_ids": [
+        "BC03"
+      ],
+      "finding": "No differentiated mandatory bundle; Ryslatha is actual plan.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "spectre-minion-helmet",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "LowBudgetEndGame rare beforeDarkMonarch",
+      "source_ids": [
+        "BC02"
+      ],
+      "finding": "Life plus+1/2minion; exact95life and templatecombinedcraft are not universal floors.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "spectre-minion-shield",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "Low/Medium rare beforeBitterbind",
+      "source_ids": [
+        "BC02"
+      ],
+      "finding": "Minion+1/life; other suffixes depend oncharacter, not perfectplanrolls.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "spectre-fear-gloves",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "Medium upgrade, Fear and life with miniondamageimplicit",
+      "source_ids": [
+        "BC02"
+      ],
+      "finding": "Armourbase preference and needed attributes/resistance; Unnerve is alternative requiringplayerhits.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "spectre-budget-belt",
+      "build_scope_verdict": "EXCLUDED_FROM_SPECIFIC_FINALISTS",
+      "selected_variant": "Generic rarealternative; planusesDarknessEnthroned",
+      "source_ids": [
+        "BC02"
+      ],
+      "finding": "No mandatory quantitative recipe; includejewelpackage in comparison.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "srs-nonpoison-helmet",
+      "build_scope_verdict": "SUPPORTED_SHARED_OPTIONAL_UPGRADE",
+      "selected_variant": "Non-poison SRS guide: optional +1/2 minion levels and life; shared item family with Spectre low-budget helmet",
+      "source_ids": [
+        "BC11",
+        "BC20"
+      ],
+      "finding": "Current author Non-Poison table explicitly recommends minion levels; detailed helmet text treats them as bonus. Linked PoB poison sets do not cancel that recommendation. Merge item recipe with spectre-minion-helmet, keep non-poison application optional; no non-poison PoB runtime proof claimed.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "srs-recovery-shield",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "EarlyEndGame rare beforeAegis/MoM",
+      "source_ids": [
+        "BC11",
+        "BC20"
+      ],
+      "finding": "Current guide requests life recovery, spell block and life. Linked early PoB lacks spell block; do not silently downgrade guide requirement. Aegis ES recovery/MoM is a different defensive package.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "worb-es-implicit-gloves",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "CI FinalSetup Warlock ES+Exposure+Unnerve",
+      "source_ids": [
+        "BC06"
+      ],
+      "finding": "Remove life requirement; ideal377ES isnotminimum; life-flask cancarryutility.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "worb-es-body",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "CI FinalSetup ESbody",
+      "source_ids": [
+        "BC06"
+      ],
+      "finding": "No minimum1196ES fromidealplan; genericES craft notpromoted.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "tr-plus3-bow",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "Endgame7/8 Thicket; notUltraEndgame9Widowhail",
+      "source_ids": [
+        "BC04"
+      ],
+      "finding": "Sixguideexplicits and6links; originalidealquality/enchant nottransferred. ActualPoBcomparison retained.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "tr-basic-quiver",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "Basic/Endgame life+AS+oneDoT",
+      "source_ids": [
+        "BC04"
+      ],
+      "finding": "FracturedDoT is inputaid only; planned54craftedlife isnotlife100commercialfloor.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "tr-hunter-quiver",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "VeryHighBudget9 planpairedWidowhail",
+      "source_ids": [
+        "BC04"
+      ],
+      "finding": "DoubleDoT/life/AS; pairedplan notmechanicalrestriction toWidowhail.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "tr-aoe-helmet",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "Endgame7/8/9 lifebasedTR",
+      "source_ids": [
+        "BC04"
+      ],
+      "finding": "Guide100life andAoE10/+1; suppression/resistancescharacterdependent. Costefficiency notreservation.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "worb-shaper-helmet-lead",
+      "build_scope_verdict": "EXCLUDED_FROM_SPECIFIC_FINALISTS",
+      "selected_variant": "SeparateRedditrecipe, notLexyuCI/Willclash",
+      "source_ids": [
+        "BC06"
+      ],
+      "finding": "Noverifiedmatchingfullbuild; remainsarchivedlead outsidefinalists.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "rf-life-stacking-helmet",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "RFChiefLifeStack socketedRF; notstandardRF+FT",
+      "source_ids": [
+        "BC08"
+      ],
+      "finding": "Horror/Burning/life70+ target; experimentalSRI notpromoted.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "lacerate-as-gloves",
+      "build_scope_verdict": "EXCLUDED_FROM_SPECIFIC_FINALISTS",
+      "selected_variant": "Generic earlylife/AS/res glovelead",
+      "source_ids": [
+        "BC03"
+      ],
+      "finding": "Currentlinkedplan uses suppression/physicalDoTimplicit instead; noexactstage matching thisbundle.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "tr-aoe-dot-gloves",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "EndgameTR+secondaryCausticArrow",
+      "source_ids": [
+        "BC04"
+      ],
+      "finding": "AoE37–43 iswholecharacter target, notglovefloor; projectilepierce isnotTRpoddamage.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "tr-budget-belt",
+      "build_scope_verdict": "EXCLUDED_FROM_SPECIFIC_FINALISTS",
+      "selected_variant": "EarlyEndgame Heavy beforeTidesOfTime",
+      "source_ids": [
+        "BC04"
+      ],
+      "finding": "Strengthcanbeimplicit; genericfiller notfinalcraftcandidate.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "shrapnel-strength-pierce-quiver",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "NonMagebloodstrengthstack ReplicaIronCommander",
+      "source_ids": [
+        "BC05"
+      ],
+      "finding": "Baseimplicitpierce+explicit2pierce+arrow+Strength required; optionalpremiumfinish separatelygated.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    },
+    {
+      "profile_id": "shrapnel-strength-attributes-belt",
+      "build_scope_verdict": "SUPPORTED_SCOPED_DEMAND",
+      "selected_variant": "NonMageblood Hunter/ElderHeavy",
+      "source_ids": [
+        "BC05"
+      ],
+      "finding": "T1attributes+Strength; catalysts scaleactualrolls, nofree14%fromordinaryT1.",
+      "value_policy": "Plannedrolls areexamples, notinferredminimums; nohistoricalweek assigned.",
+      "proof_level": "Primaryauthorrecommendation plus decodedpublishedset whereavailable; actualruntime comparison onlywhereexplicitly linked.",
+      "live_game_tested": false
+    }
+  ]
+}

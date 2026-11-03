@@ -10,7 +10,10 @@ import {
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
 import { domainErrorCodeSchema } from '@poe-worksmith/contracts';
-import type { MarketCollectionAdapter } from '../marketCollection.js';
+import {
+  isCompleteSortedPriceSample,
+  type MarketCollectionAdapter,
+} from '../marketCollection.js';
 import { recipeQueryTarget } from '../recipeMarket.js';
 
 import type { ProviderCircuitGate } from '../circuitBreaker.js';
@@ -215,6 +218,7 @@ export class PoeTradeClient implements MarketSearchProvider {
         fetchedAt,
         coverage: batch.coverage,
         sortedPageComplete:
+          batch.sortedSampleComplete === undefined &&
           batch.coverage === 'partial' &&
           batch.inexact === false &&
           batch.fetchedCount === batch.returnedCount &&
@@ -223,6 +227,9 @@ export class PoeTradeClient implements MarketSearchProvider {
           z
             .object({ sort: z.object({ price: z.literal('asc') }) })
             .safeParse(batch.searchEvidence?.request).success,
+        sortedSampleComplete:
+          batch.sortedSampleComplete === true &&
+          isCompleteSortedPriceSample(batch, target),
         totalResults: batch.reportedTotal ?? batch.listings.length,
         listings: batch.listings.flatMap((row) =>
           row.price === null ||
@@ -262,17 +269,21 @@ export class PoeTradeClient implements MarketSearchProvider {
       `/api/trade/${preparedSearch.kind}/${encodeURIComponent(league)}`,
       this.#baseUrl,
     );
-    const rawSearch = await this.#request('trade-search', searchUrl, {
-      body: JSON.stringify(preparedSearch.body),
-      headers: this.#headers(true),
-      method: 'POST',
-    });
+    const rawSearch = await this.#request(
+      preparedSearch.kind === 'exchange' ? 'trade-exchange' : 'trade-search',
+      searchUrl,
+      {
+        body: JSON.stringify(preparedSearch.body),
+        headers: this.#headers(true),
+        method: 'POST',
+      },
+    );
     if (preparedSearch.kind === 'exchange') {
       const exchange = parseProviderResponse(
         exchangeResponseSchema,
         rawSearch,
         this.id,
-        'trade-search',
+        'trade-exchange',
         this.#logger,
       );
       const fetchedAt = this.#clock();

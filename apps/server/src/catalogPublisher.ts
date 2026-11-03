@@ -60,6 +60,7 @@ const listingSchema = z.strictObject({
 const snapshotPayloadSchema = z.object({
   coverage: z.enum(['complete', 'partial', 'unknown']).optional(),
   sortedPageComplete: z.boolean().optional(),
+  sortedSampleComplete: z.boolean().optional(),
   listings: z.array(listingSchema),
   totalResults: z.number().int().nonnegative(),
 });
@@ -526,9 +527,30 @@ async function evaluateFreshRecipe(
       priceBasis: 'asking',
       currency: basePrice.currency,
       capturedAt: base.snapshotCapturedAt.toISOString(),
+      sortedSampleComplete: base.sortedSampleComplete,
+      totalResults: base.aggregation.totalListings,
     };
   for (const dependency of dependencies.filter((d) => d.kind === 'material')) {
     const id = dependency.materialId!;
+    if (id === 'chaos-orb') {
+      const unitPrice = await convertPrice(
+        { amount: '1', currency: 'chaos' },
+        context.now,
+      );
+      if (unitPrice) {
+        materialPriceMap[id] = unitPrice;
+        bulkSupported.add(id);
+        materialEvidence[id] = {
+          itemId: id,
+          league: context.league,
+          source: 'currency-unit',
+          bulkSupported: true,
+          currency: unitPrice.currency,
+          capturedAt: context.now.toISOString(),
+        };
+      }
+      continue;
+    }
     // Ninja is the bulk estimate; a single exchange offer must cover expected consumption.
 
     for (const snapshot of materialEconomies) {
@@ -630,6 +652,7 @@ async function evaluateFreshRecipe(
           priceBasis: 'asking',
           coverage: output.coverage,
           sortedPageComplete: output.sortedPageComplete,
+          sortedSampleComplete: output.sortedSampleComplete,
         }
       : null,
     marketStatus: output
@@ -663,7 +686,7 @@ async function evaluateFreshRecipe(
   );
   return {
     confidence:
-      output?.coverage === 'complete'
+      output?.coverage === 'complete' && !base?.sortedSampleComplete
         ? confidence(output.aggregation.sampleSize)
         : 'low',
     currency,
@@ -738,7 +761,8 @@ async function resolveMarket(
     listings:
       tradeQuery.query.handbookTarget &&
       payload.data.coverage !== 'complete' &&
-      !payload.data.sortedPageComplete
+      !payload.data.sortedPageComplete &&
+      !payload.data.sortedSampleComplete
         ? []
         : listings,
     totalListings: payload.data.totalResults,
@@ -748,6 +772,7 @@ async function resolveMarket(
     topOfBook,
     coverage: payload.data.coverage ?? 'unknown',
     sortedPageComplete: payload.data.sortedPageComplete ?? false,
+    sortedSampleComplete: payload.data.sortedSampleComplete ?? false,
     snapshotExpiresAt: snapshot.expiresAt,
     marketQueryId: marketQuery.id,
     snapshotCapturedAt: snapshot.capturedAt,

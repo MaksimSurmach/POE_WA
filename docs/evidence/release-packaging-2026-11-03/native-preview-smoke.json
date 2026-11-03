@@ -1,0 +1,68 @@
+{
+  "date": "2026-11-03",
+  "node": "22.23.4",
+  "vite": "8.1.5",
+  "kind": "actual-native-built-preview-read-only",
+  "frontend": "http://127.0.0.1:4174",
+  "backend": "http://127.0.0.1:3000",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html",
+      "headersCase": "same-origin"
+    },
+    {
+      "path": "/assets/index-BNgmnjtx.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "headersCase": "same-origin"
+    },
+    {
+      "path": "/admin/market",
+      "status": 200,
+      "contentType": "text/html",
+      "headersCase": "same-origin"
+    },
+    {
+      "path": "/api/catalog",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "headersCase": "same-origin"
+    },
+    {
+      "path": "/api/refresh",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "headersCase": "same-origin"
+    },
+    {
+      "path": "/api/leagues/current",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "headersCase": "same-origin"
+    },
+    {
+      "path": "/api/admin/market/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "headersCase": "same-origin"
+    },
+    {
+      "path": "/api/admin/market/status",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8",
+      "headersCase": "cross-origin",
+      "errorCode": "OPERATOR_AUTH_REQUIRED"
+    },
+    {
+      "path": "/api/admin/market/status",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8",
+      "headersCase": "forwarded",
+      "errorCode": "OPERATOR_AUTH_REQUIRED"
+    }
+  ],
+  "mutationRequests": 0,
+  "containerRuntimeTested": false
+}

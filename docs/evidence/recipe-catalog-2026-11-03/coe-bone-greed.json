@@ -1,0 +1,129 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "calculatorURL": "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbWzE4XV0sImUiOltdLCJwIjp7ImFybW91ciI6MjExLCJlbmVyZ3lzaGllbGQiOjQ1fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX0seyJ0Ijoibm90IiwibSI6bnVsbCwiZSI6W3siaSI6IjEwMzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+  "patchSource": "https://beta.craftofexile.com/changelog",
+  "access": "Actual current public CoE UI: computed exact joint requirements, ordinary paid essence failure, conditionally generated complete core, actual paid bench finish and Spending Details denomination checked. No game transaction.",
+  "settings": "Acquired rare uninfluenced item level 75, unfractured, uncorrupted and unsynthesised, preserving native minion damage 15–20%. Deafening Essence of Greed guarantees 91–105 life. Stop only with +2 to all Minion Skill Gems AND at least one open suffix AND no native Fire Resistance. Then bench 29–35% Fire Resistance once for 3 Chaos Orbs.",
+  "startingItem": {
+    "i": "Metadata/Items/Armours/Helmets/HelmetAtlas1",
+    "m": [],
+    "ns": 0,
+    "s": [],
+    "q": null,
+    "qt": null,
+    "l": 75,
+    "r": "rare",
+    "if": [],
+    "ip": [[18]],
+    "e": [],
+    "p": {
+      "armour": 211,
+      "energyshield": 45
+    },
+    "di": [],
+    "ig": 0,
+    "ms": 0,
+    "f": ["a"],
+    "pt": null,
+    "id": null
+  },
+  "requirements": [
+    {
+      "t": "and",
+      "m": null,
+      "e": [
+        {
+          "i": "769",
+          "t": "1",
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "special:open-suffix",
+          "t": "1",
+          "b": true,
+          "s": null
+        }
+      ]
+    },
+    {
+      "t": "not",
+      "m": null,
+      "e": [
+        {
+          "i": "1038",
+          "t": null,
+          "b": true,
+          "s": null
+        }
+      ]
+    }
+  ],
+  "guaranteedEssenceLife": {
+    "minimum": 91,
+    "maximum": 105,
+    "evidence": "Current selected Deafening Essence of Greed tooltip and ordinary paid output range"
+  },
+  "displayed": {
+    "successPercent": 0.0525,
+    "oneOutOfTries": 1907,
+    "expectedEssences": 1907,
+    "visibleCalculationExcerpt": "Success chance: 1 out of 1907 tries; 0.0525%; Expected costs: 1907 Deafening Essence of Greed"
+  },
+  "perFinishedItem": {
+    "essence-greed": 1907,
+    "craft-fire-resistance": 1,
+    "baseConsumption": 1,
+    "materials": {
+      "deafening-essence-of-greed": 1907,
+      "chaos-orb": 3
+    }
+  },
+  "ordinaryPaidFailure": {
+    "materialsConsumed": {
+      "deafening-essence-of-greed": 1
+    },
+    "life": 99,
+    "minionGems": 0,
+    "nativeMinionDamage": 18,
+    "observedOtherMods": {
+      "coldResistance": 9,
+      "lifeRegeneration": 14.13,
+      "stunRecovery": 24
+    },
+    "verdict": "Reject missing minion gem levels; reroll with another paid essence on the same base",
+    "scouringRequired": false
+  },
+  "conditionalCore": {
+    "life": 100,
+    "minionGems": 2,
+    "nativeMinionDamage": 18,
+    "prefixes": 3,
+    "suffixes": 2,
+    "nativeFireResistance": false,
+    "evidenceKind": "Conditionally generated complete core, not an empirical mean-spend run"
+  },
+  "paidBenchFinish": {
+    "materialsConsumed": {
+      "chaos-orb": 3
+    },
+    "spendingDetails": {
+      "item": "Chaos Orb",
+      "unitPrice": 1,
+      "quantity": 3,
+      "total": 3
+    },
+    "craftedFireResistance": 30,
+    "craftedRange": [29, 35],
+    "lifePreserved": 100,
+    "minionGemsPreserved": 2,
+    "nativeMinionDamagePreserved": 18,
+    "finishedTargetMatched": true
+  },
+  "limits": [
+    "Displayed probability and mean uses are rounded; total spending is indicative.",
+    "No native fire resistance is required at the stopping condition so the fixed Fire Resistance suffix is compatible; this is more restrictive than accepting any open suffix. Historical means without that exclusion are not reused.",
+    "A single successful core does not establish empirical spending, completed sales or whole-build equivalence. Acquired rare base and implicit range are priced separately."
+  ]
+}

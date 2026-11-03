@@ -346,114 +346,138 @@ describe('catalog evaluation and publication', () => {
     ).toBe(true);
   });
 
-  it('calculates a fresh recipe from its persisted market snapshots', async () => {
-    const repositories = createInMemoryRepositories();
-    const definition = fixtureRecipe(canonicalRecipeFixture);
-    await repositories.recipes.save(
-      storedRecipe(definition.id, { ...definition } as JsonRecord),
-    );
-    const marketDependencies = fixtureMarketDependencies;
-    const tradeQueries = (
-      await marketDependencies({ recipe: definition, league: 'Mercenaries' })
-    ).map(({ query }) => query);
-    const league = await repositories.leagues.upsert({
-      endAt: null,
-      game: 'poe1',
-      gggId: 'Mercenaries',
-      isCurrent: true,
-      metadata: {},
-      name: 'Mercenaries',
-      realm: 'pc',
-      startAt: null,
-      syncedAt: now,
-    });
-    const refreshCycle = {
-      ...cycle('cycle-fresh', 1, tradeQueries.length),
-      leagueId: league.id,
-    };
-    await repositories.cycles.save(refreshCycle);
-
-    for (const [queryIndex, tradeQuery] of tradeQueries.entries()) {
-      const canonicalHash = await hashMarketQuery({
-        league: 'Mercenaries',
-        provider: tradeQuery!.provider,
-        query: tradeQuery!.query,
-        schemaVersion: tradeQuery!.schemaVersion,
-      });
-      const marketQueryId = `query-${queryIndex}`;
-      await repositories.marketQueries.save({
-        active: true,
-        canonicalHash,
-        id: marketQueryId,
-        provider: tradeQuery!.provider,
-        query: tradeQuery!.query,
-        recipeId: definition.id,
-      });
-      const startingPrices = [10, 0.01, 1000];
-      const listings = Array.from({ length: 10 }, (_, listingIndex) => ({
-        account: `seller-${listingIndex}`,
-        ageSeconds: 60,
-        fee: null,
-        id: `${marketQueryId}-listing-${listingIndex}`,
-        indexedAt: new Date(now.getTime() - 60_000).toISOString(),
-        item: { stock: 10000 },
-        price: {
-          amount: String(
-            startingPrices[queryIndex]! +
-              listingIndex * (queryIndex === 1 ? 0.001 : 1),
-          ),
-          currency: 'chaos',
+  it.each(['primal-crystallised-lifeforce', 'chaos-orb'])(
+    'calculates a fresh recipe with %s from its persisted market snapshots',
+    async (materialId) => {
+      const repositories = createInMemoryRepositories();
+      const definition = fixtureRecipe({
+        ...canonicalRecipeFixture,
+        craft: {
+          ...canonicalRecipeFixture.craft,
+          steps: canonicalRecipeFixture.craft.steps.map((step) => ({
+            ...step,
+            materials: step.materials.map((material) => ({
+              ...material,
+              itemId: materialId,
+            })),
+          })),
         },
-      }));
-      await repositories.snapshots.save({
-        capturedAt: now,
-        dedupeKey: `snapshot-${queryIndex}`,
-        expiresAt: new Date(now.getTime() + 300_000),
+      });
+      await repositories.recipes.save(
+        storedRecipe(definition.id, { ...definition } as JsonRecord),
+      );
+      const marketDependencies = fixtureMarketDependencies;
+      const tradeQueries = (
+        await marketDependencies({ recipe: definition, league: 'Mercenaries' })
+      ).map(({ query }) => query);
+      const league = await repositories.leagues.upsert({
+        endAt: null,
+        game: 'poe1',
+        gggId: 'Mercenaries',
+        isCurrent: true,
+        metadata: {},
+        name: 'Mercenaries',
+        realm: 'pc',
+        startAt: null,
+        syncedAt: now,
+      });
+      const refreshCycle = {
+        ...cycle('cycle-fresh', 1, tradeQueries.length),
         leagueId: league.id,
-        marketQueryId,
-        payload: {
-          coverage: 'complete',
-          listings,
-          provider: 'poe-trade',
-          totalResults: 10,
-        },
-        providerStatus: 200,
-        refreshCycleId: refreshCycle.id,
+      };
+      await repositories.cycles.save(refreshCycle);
+
+      for (const [queryIndex, tradeQuery] of tradeQueries.entries()) {
+        const canonicalHash = await hashMarketQuery({
+          league: 'Mercenaries',
+          provider: tradeQuery!.provider,
+          query: tradeQuery!.query,
+          schemaVersion: tradeQuery!.schemaVersion,
+        });
+        const marketQueryId = `query-${queryIndex}`;
+        await repositories.marketQueries.save({
+          active: true,
+          canonicalHash,
+          id: marketQueryId,
+          provider: tradeQuery!.provider,
+          query: tradeQuery!.query,
+          recipeId: definition.id,
+        });
+        const startingPrices = [10, 0.01, 1000];
+        const listings = Array.from({ length: 10 }, (_, listingIndex) => ({
+          account: `seller-${listingIndex}`,
+          ageSeconds: 60,
+          fee: null,
+          id: `${marketQueryId}-listing-${listingIndex}`,
+          indexedAt: new Date(now.getTime() - 60_000).toISOString(),
+          item: { stock: 10000 },
+          price: {
+            amount: String(
+              startingPrices[queryIndex]! +
+                listingIndex * (queryIndex === 1 ? 0.001 : 1),
+            ),
+            currency: 'chaos',
+          },
+        }));
+        await repositories.snapshots.save({
+          capturedAt: now,
+          dedupeKey: `snapshot-${queryIndex}`,
+          expiresAt: new Date(now.getTime() + 300_000),
+          leagueId: league.id,
+          marketQueryId,
+          payload: {
+            coverage: 'complete',
+            listings,
+            provider: 'poe-trade',
+            totalResults: 10,
+          },
+          providerStatus: 200,
+          refreshCycleId: refreshCycle.id,
+        });
+        await repositories.observations.save({
+          cheapestPrice: listings[0]!.price.amount,
+          currency: 'chaos',
+          leagueId,
+          marketQueryId,
+          medianTopNPrice: null,
+          nthPrice: null,
+          observedAt: now,
+          refreshCycleId: refreshCycle.id,
+          sampleSize: 10,
+          summary: {},
+        });
+      }
+
+      const report = await evaluateAndPublishCatalog(repositories, {
+        cycleId: refreshCycle.id,
+        marketDependencies: fixtureMarketDependencies,
+        league: 'Mercenaries',
+        now,
       });
-      await repositories.observations.save({
-        cheapestPrice: listings[0]!.price.amount,
+
+      expect(report).toMatchObject({
+        completedRecipes: 1,
+        failedRecipes: 0,
+        published: true,
+      });
+      expect(report.evaluations[0]).toMatchObject({
+        confidence: 'high',
         currency: 'chaos',
-        leagueId,
-        marketQueryId,
-        medianTopNPrice: null,
-        nthPrice: null,
-        observedAt: now,
-        refreshCycleId: refreshCycle.id,
-        sampleSize: 10,
-        summary: {},
+        errorCode: null,
+        status: 'success',
       });
-    }
-
-    const report = await evaluateAndPublishCatalog(repositories, {
-      cycleId: refreshCycle.id,
-      marketDependencies: fixtureMarketDependencies,
-      league: 'Mercenaries',
-      now,
-    });
-
-    expect(report).toMatchObject({
-      completedRecipes: 1,
-      failedRecipes: 0,
-      published: true,
-    });
-    expect(report.evaluations[0]).toMatchObject({
-      confidence: 'high',
-      currency: 'chaos',
-      errorCode: null,
-      status: 'success',
-    });
-    expect(Number(report.evaluations[0]?.profit)).toBeGreaterThan(0);
-  });
+      expect(Number(report.evaluations[0]?.profit)).toBeGreaterThan(0);
+      if (materialId === 'chaos-orb')
+        expect(report.evaluations[0]?.methodCost).toMatchObject({
+          steps: [
+            { materials: [{ unitPrice: { amount: '1', currency: 'chaos' } }] },
+          ],
+          materialEvidence: {
+            'chaos-orb': { source: 'currency-unit', currency: 'chaos' },
+          },
+        });
+    },
+  );
 
   it('does not use stale evaluations from a previous league', async () => {
     const repositories = createInMemoryRepositories();

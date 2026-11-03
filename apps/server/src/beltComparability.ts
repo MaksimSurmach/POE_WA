@@ -96,6 +96,12 @@ export function analyzeBeltSnapshot(
         item.itemLevel,
         item.itemLevel !== undefined && item.itemLevel >= target.minItemLevel,
       );
+    if (target.maxItemLevel != null)
+      check(
+        'target maximum item level',
+        item.itemLevel,
+        item.itemLevel !== undefined && item.itemLevel <= target.maxItemLevel,
+      );
     if (target.corrupted != null)
       check(
         'target corruption',

@@ -123,13 +123,14 @@ export async function planCatalogRefresh(
       marketQuery.id,
       league.leagueId,
     );
-    const oldPartialHandbook =
+    const incompleteHandbookSample =
       dependency.query.handbookTarget &&
       snapshot?.payload.coverage === 'partial' &&
-      snapshot.payload.sortedPageComplete === undefined;
+      !snapshot.payload.sortedPageComplete &&
+      !snapshot.payload.sortedSampleComplete;
     const cache =
       isFreshSnapshot(snapshot, now, options.snapshotTtlMs) &&
-      !oldPartialHandbook
+      !incompleteHandbookSample
         ? 'hit'
         : 'miss';
     if (cache === 'hit') cacheHits += 1;

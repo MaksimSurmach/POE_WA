@@ -1,0 +1,463 @@
+{
+  "schema_version": "max1288-final-decisions/1",
+  "date": "2026-10-30",
+  "status": "ALL_22_PROFILES_HAVE_TERMINAL_RESEARCH_DECISIONS",
+  "acceptance_boundary": "This gate closes content/mechanics scope, not purchases, every build, optimal recipes, live client or proven profit. Rejected leads are retained and cannot become ready targets through this batch.",
+  "profiles": [
+    {
+      "profile_id": "rf-fire-trap-helmet",
+      "checked_date": "2026-10-30",
+      "build_scope": "FT/SearingBondOfDetonation inhelmet; standardRF itself outsidehelmet",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "ACCEPTED_SCOPED_RECIPE",
+      "canonical_profile_id": "rf-fire-trap-helmet",
+      "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+      "recipe_ref": "final-recipes.json",
+      "scope": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25.",
+      "base_conditions": {
+        "base": "Archdemon Crown",
+        "ilvl": 83,
+        "rarity": "rare",
+        "influence": "Elder only",
+        "fractured": false,
+        "corrupted": false,
+        "native_implicit": "+2 socketed skill gems / -2 socketed support gems",
+        "acquisition": "Paid existing Elder base. First10 dated official Trade asks all ilvl83,1 Divine each; real offers establish obtainable input without relying on theoretical82.",
+        "acquisition_ref": "followup-market-rf/elder-archdemon-base82.asks.json",
+        "price_kind": "dated asking prices, not purchases/sales"
+      },
+      "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+      "outside_scope": [
+        "Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation.",
+        "No life/resistance floor, sockets/links/quality minimum, sale or optimality included."
+      ],
+      "recipe_profile_id": "rf-fire-trap-helmet"
+    },
+    {
+      "profile_id": "lacerate-block-shield",
+      "checked_date": "2026-10-30",
+      "build_scope": "Intermediate Shaper life-block shield beforeSurrender",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "ACCEPTED_SCOPED_RECIPE",
+      "canonical_profile_id": "lacerate-block-shield",
+      "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+      "recipe_ref": "final-recipes.json",
+      "scope": "Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield.",
+      "base_conditions": {
+        "base": "Pinnacle Tower Shield",
+        "ilvl": 70,
+        "rarity": "normal or rare acquired Shaper base",
+        "influence": "Shaper only",
+        "fractured": false,
+        "corrupted": false,
+        "native_implicit": "+20-30 life; verified21",
+        "acquisition": "Explicit paid Shaper base input; UI influence toggle represents acquired state and is not a free in-game influence operation. Natural Pinnacle floor70 confirmed; old68 representative rejected.",
+        "price": null,
+        "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+      },
+      "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+      "outside_scope": [
+        "No armour, suppression, resistance-cap or endgame Synthesised replacement claim. Shaper acquired-input market price not measured here."
+      ],
+      "recipe_profile_id": "lacerate-block-shield"
+    },
+    {
+      "profile_id": "lacerate-budget-belt",
+      "checked_date": "2026-10-30",
+      "build_scope": "Generic resistance-gap filler beforeunique",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "lacerate-budget-belt",
+      "reason": "Generic resistance-gap filler; linked plan uses Ryslatha. No bounded differentiated rare target is established for this batch.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "spectre-minion-helmet",
+      "checked_date": "2026-10-30",
+      "build_scope": "LowBudgetEndGame rare beforeDarkMonarch",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "ACCEPTED_SCOPED_RECIPE",
+      "canonical_profile_id": "spectre-minion-helmet",
+      "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+      "recipe_ref": "final-recipes.json",
+      "scope": "Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction.",
+      "base_conditions": {
+        "base": "Bone Helmet",
+        "ilvl": 75,
+        "rarity": "normal or rare",
+        "influence": "none",
+        "fractured": false,
+        "corrupted": false,
+        "native_implicit": "15-20% minion damage; natural fresh example16, retained prior full finish18",
+        "acquisition": "Ordinary base at75; natural base requires73 and reaches+2 minion floor75. Buy/drop eligible base, no fractured+2 input assumed.",
+        "price": null,
+        "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+      },
+      "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+      "outside_scope": [
+        "92life is accepted only where current author does not require100. No100 guarantee, exact Praetor defence/gem/bench replication, Wraithlord/Dark Monarch replacement or current character-cap claim."
+      ],
+      "recipe_profile_id": "spectre-minion-helmet"
+    },
+    {
+      "profile_id": "spectre-minion-shield",
+      "checked_date": "2026-10-30",
+      "build_scope": "Low/Medium rare beforeBitterbind",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "ACCEPTED_SCOPED_RECIPE",
+      "canonical_profile_id": "spectre-minion-shield",
+      "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+      "recipe_ref": "final-recipes.json",
+      "scope": "Life-based Spectre low-budget +1 minion/life rare shield; ordinary minion implicit preserved.",
+      "base_conditions": {
+        "base": "Fossilised Spirit Shield",
+        "ilvl": 60,
+        "rarity": "normal or rare",
+        "influence": "none",
+        "fractured": false,
+        "corrupted": false,
+        "native_implicit": "Minions deal5-10% increased damage; verified6",
+        "acquisition": "Ordinary eligible base, requires59;60 is reachable and satisfies+1 mod floor. Do not substitute synthetic input missing native implicit.",
+        "price": null,
+        "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+      },
+      "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+      "outside_scope": [
+        "No Shaper recovery, suppression, Bitterbind equivalence or resistance-cap claim. Natural summoner shield family selected; generic INT shield pool not substituted."
+      ],
+      "recipe_profile_id": "spectre-minion-shield"
+    },
+    {
+      "profile_id": "spectre-fear-gloves",
+      "checked_date": "2026-10-30",
+      "build_scope": "Medium upgrade, Fear and life with miniondamageimplicit",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "ACCEPTED_SCOPED_RECIPE",
+      "canonical_profile_id": "spectre-fear-gloves",
+      "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+      "recipe_ref": "final-recipes.json",
+      "scope": "Guide-family life/chaos/minion glove upgrade, author-compatible armour option and cheaper ES-base variant kept separate.",
+      "base_conditions": {
+        "base": "Leviathan Gauntlets",
+        "ilvl": 85,
+        "rarity": "rare",
+        "influence": "none initially; Exarch finish",
+        "fractured_chaos": 34,
+        "corrupted": false,
+        "quality_requirement": "none for this explicit/implicit scope; no20%quality or armour floor claimed",
+        "acquisition": "Actual dated listed Havoc Touch rare: fractured34 chaos,13Divine+3641gold fee. Imported all4 observed modifiers through public advanced item importer; re-export verified base,85,4mods and actual fracture. No purchase.",
+        "acquisition_ref": "closure-recovery/glove-base-market/leviathan-public-rows.json",
+        "listing_id": "30589d6c8f809a15cd03c9fac7deed044e9471216fe6511e6fbc7c36f6b70aac"
+      },
+      "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+      "outside_scope": [
+        "Plain listing paste lost all modifiers in beta importer and is explicitly rejected; only advanced re-import is accepted.",
+        "34 and35 fractures are distinct valued inputs. No promise of planned20-22implicit, full armour/ES, character attribute/resistance caps, purchase completion or profit.",
+        "Current official patch offers changed Fractured Fossils and new bench rerolls. Those are not needed by this ordinary-currency purchase route and are not silently claimed optimal."
+      ],
+      "recipe_profile_id": "spectre-fear-gloves"
+    },
+    {
+      "profile_id": "spectre-budget-belt",
+      "checked_date": "2026-10-30",
+      "build_scope": "Generic rarealternative; planusesDarknessEnthroned",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "spectre-budget-belt",
+      "reason": "Generic rare alternative; source plans use Darkness Enthroned and jewel packages. No bounded comparative recipe accepted.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "srs-nonpoison-helmet",
+      "checked_date": "2026-10-30",
+      "build_scope": "Non-poison SRS guide: optional +1/2 minion levels and life; shared item family with Spectre low-budget helmet",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "MERGED_INTO_ACCEPTED_RECIPE",
+      "canonical_profile_id": "spectre-minion-helmet",
+      "reason": "Same +1/2minion-level/life item family; current Non-Poison guide recommendation is an optional cross-build application, not a separate mandatory minimum or verified non-poison PoB.",
+      "recipe_ref": "final-recipes.json",
+      "required_gap_status": "CLOSED_BY_NORMALIZATION",
+      "outside_scope": [
+        "No non-poison-specific PoB execution or damage-equivalence claim."
+      ],
+      "recipe_profile_id": "spectre-minion-helmet"
+    },
+    {
+      "profile_id": "srs-recovery-shield",
+      "checked_date": "2026-10-30",
+      "build_scope": "EarlyEndGame rare beforeAegis/MoM",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "srs-recovery-shield",
+      "reason": "Guide asks life recovery AND spell block AND life; current early plan and tested life-block example do not prove the complete same-item defensive bundle. Aegis/MoM is a different variant.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "worb-es-implicit-gloves",
+      "checked_date": "2026-10-30",
+      "build_scope": "CI FinalSetup Warlock ES+Exposure+Unnerve",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "worb-es-implicit-gloves",
+      "reason": "CI applicability and implicit origins resolved, but no completed ES explicit craft with paid failure handling and both implicits. Generic life requirement rejected.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "worb-es-body",
+      "checked_date": "2026-10-30",
+      "build_scope": "CI FinalSetup ESbody",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "worb-es-body",
+      "reason": "CI high-ES need is supported, but ideal1196ES is not a minimum and no bounded full route was verified. Excluded as a promoted craft, not as a build need.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "tr-plus3-bow",
+      "checked_date": "2026-10-30",
+      "build_scope": "Endgame7/8 Thicket; notUltraEndgame9Widowhail",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "ACCEPTED_SCOPED_RECIPE",
+      "canonical_profile_id": "tr-plus3-bow",
+      "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+      "recipe_ref": "final-recipes.json",
+      "scope": "3.29 standard endgame Thicket: natural uninfluenced base preparation executed once in beta, completed ordinary modifier recipe with paid same-base recovery executed in stable; sockets/links use a separately sourced fixed bench plan. No live purchase/gameplay/profit claim.",
+      "base_conditions": {
+        "base": "Thicket Bow",
+        "item_level": 78,
+        "influences": [
+          "Hunter"
+        ],
+        "quality": 20,
+        "socket_count": 6,
+        "linked_socket_count": 6,
+        "socket_colours": "Any colour is compatible in3.29. White is the default; no mandatory Chromatic fee.",
+        "no_fracture": true,
+        "uncorrupted": true,
+        "unmirrored": true,
+        "not_synthesised": true
+      },
+      "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+      "outside_scope": [],
+      "recipe_profile_id": "tr-plus3-bow"
+    },
+    {
+      "profile_id": "tr-basic-quiver",
+      "checked_date": "2026-10-30",
+      "build_scope": "Basic/Endgame life+AS+oneDoT",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "tr-basic-quiver",
+      "reason": "Current guide supports a basic upgrade, but exact selected rolling tiers and whole life/AS/DoT finishing route have not passed the recipe gate. No arbitrary universal floor introduced.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "tr-hunter-quiver",
+      "checked_date": "2026-10-30",
+      "build_scope": "VeryHighBudget9 planpairedWidowhail",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "tr-hunter-quiver",
+      "reason": "Prior simulation tested two DoT suffixes only. Full required life/AS and prefix/suffix cleanup were not demonstrated; do not promote partial odds to a complete recipe.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "tr-aoe-helmet",
+      "checked_date": "2026-10-30",
+      "build_scope": "Endgame7/8/9 lifebasedTR",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "ACCEPTED_SCOPED_RECIPE",
+      "canonical_profile_id": "tr-aoe-helmet",
+      "reason": "Named base, finite paid steps, failure handling and finished bundle verified at the explicitly stated scope.",
+      "recipe_ref": "final-recipes.json",
+      "scope": "TR guide-family benchmark: life>=100, suppression, a useful elemental resistance, +1 socketedAoE with exactly10% craftedAoE, and cost-efficiency/lightning-taken implicits. Exact10 is this selected benchmark, not a universal character minimum.",
+      "base_conditions": {
+        "base": "Grizzly Pelt",
+        "ilvl": 85,
+        "rarity": "normal or rare",
+        "influence": "none initially; Eldritch finish",
+        "fractured": false,
+        "corrupted": false,
+        "natural_requirement": "level78,Dex194",
+        "acquisition": "Ordinary natural Grizzly85; exact base identity resolved. No Lion/Majestic mismatch, no purchased suppression fracture assumed.",
+        "price": null,
+        "price_status": "NOT_PRICED_IN_THIS_MECHANICS_RECEIPT"
+      },
+      "required_gap_status": "CLOSED_FOR_DECLARED_SCOPE",
+      "outside_scope": [
+        "One21coldres does not prove this character capped;8supp is not PoB14supp. No exact127life/48fire/45lightning replica or whole-build equivalence. Numeric100life met in saved final."
+      ],
+      "recipe_profile_id": "tr-aoe-helmet"
+    },
+    {
+      "profile_id": "worb-shaper-helmet-lead",
+      "checked_date": "2026-10-30",
+      "build_scope": "SeparateRedditrecipe, notLexyuCI/Willclash",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "worb-shaper-helmet-lead",
+      "reason": "Separate Reddit variant lacks a verified matching full build in this batch; cannot borrow the Lexyu CI/Willclash proof.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "rf-life-stacking-helmet",
+      "checked_date": "2026-10-30",
+      "build_scope": "RFChiefLifeStack socketedRF; notstandardRF+FT",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "rf-life-stacking-helmet",
+      "reason": "Distinct socketed-RF life-stack target. Horror, suffix-lock, reforge-life and full-prefix failure branches were not executed; experimentalSRI not promoted.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "lacerate-as-gloves",
+      "checked_date": "2026-10-30",
+      "build_scope": "Generic earlylife/AS/res glovelead",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "lacerate-as-gloves",
+      "reason": "Generic early lead; linked plan has suppression/physical-DoT implicit variant. No exact staged AS bundle and complete recipe were corroborated.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "tr-aoe-dot-gloves",
+      "checked_date": "2026-10-30",
+      "build_scope": "EndgameTR+secondaryCausticArrow",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "tr-aoe-dot-gloves",
+      "reason": "Implicit origins and whole-character AoE scope resolved; no finished life/AS/AoE/resistance and implicit chain accepted. Planned roll values are not made minimums.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "tr-budget-belt",
+      "checked_date": "2026-10-30",
+      "build_scope": "EarlyEndgame Heavy beforeTidesOfTime",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "tr-budget-belt",
+      "reason": "Valid early Heavy Belt example, retained as control. Generic life/resistance/Strength filler lacks a bounded commercial target or completed recipe in this batch.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "shrapnel-strength-pierce-quiver",
+      "checked_date": "2026-10-30",
+      "build_scope": "NonMagebloodstrengthstack ReplicaIronCommander",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "shrapnel-strength-pierce-quiver",
+      "reason": "Premium guaranteed finish rejected: arrow+Strength+fracturedpierce may leave wrong occupied slots; annul can remove desired mods. Limited-budget three-core stop remains a lead, not a verified whole premium route.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    },
+    {
+      "profile_id": "shrapnel-strength-attributes-belt",
+      "checked_date": "2026-10-30",
+      "build_scope": "NonMageblood Hunter/ElderHeavy",
+      "build_evidence_ref": "closure-builds/build-scope-verdicts.json",
+      "production_ready": false,
+      "profit": null,
+      "decision": "REJECTED_FROM_FINALISTS",
+      "canonical_profile_id": "shrapnel-strength-attributes-belt",
+      "reason": "Essence-stage target observed, but whole influence acquisition, optional cleanup, catalyst and exact final-state route was not executed. Do not present stage counts as whole-craft proof.",
+      "recipe_ref": null,
+      "required_gap_status": "CLOSED_BY_EXCLUSION",
+      "outside_scope": [
+        "Original lead retained; exclusion does not establish impossibility or an obsolete build."
+      ]
+    }
+  ]
+}

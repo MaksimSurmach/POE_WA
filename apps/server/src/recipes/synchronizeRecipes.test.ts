@@ -46,14 +46,15 @@ describe('recipe synchronization', () => {
       repositories.recipes,
     );
 
-    expect(first.created).toEqual([
-      'physical-large-cluster-alteration',
-      'physical-large-cluster-jagged',
-    ]);
-    expect(second.unchanged).toEqual([
-      'physical-large-cluster-alteration',
-      'physical-large-cluster-jagged',
-    ]);
+    expect(first.created).toHaveLength(15);
+    expect(first.created).toEqual(
+      expect.arrayContaining([
+        'physical-large-cluster-alteration',
+        'physical-large-cluster-jagged',
+      ]),
+    );
+    expect(first.failed).toEqual([]);
+    expect(second.unchanged).toEqual(first.created);
   });
 
   it('hashes normalized recipe data and referenced asset bytes', async () => {

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { CronExpressionParser } from 'cron-parser';
+import { defaultAdminSettings, validateAdminSettings } from './marketAdmin.js';
 
 import {
   loadRuntimeConfig,
@@ -35,12 +37,38 @@ describe('runtime configuration', () => {
       poeUserAgent: 'OAuth poe-worksmith/0.0.0 (contact: local-development)',
       poeRequestTimeoutMs: 15_000,
       port: 4100,
-      refreshCron: '0 */4 * * *',
+      refreshCron: '0 * * * *',
       refreshTimezone: 'UTC',
       retentionBatchSize: 500,
       shutdownTimeoutMs: 30_000,
       snapshotTtlMs: 1_800_000,
     });
+  });
+
+  it('keeps a 45-minute catalog refresh usable through the next hourly interval without extending reuse', () => {
+    const config = loadRuntimeConfig(environment);
+    const settings = defaultAdminSettings({
+      refreshCron: config.refreshCron,
+      requestTimeoutMs: config.poeRequestTimeoutMs,
+      concurrency: config.marketConcurrency,
+      snapshotTtlMs: config.snapshotTtlMs,
+    });
+    expect(settings).toMatchObject({
+      refreshCron: '0 * * * *',
+      snapshotReuseTtlMs: 30 * 60_000,
+      freshnessWarningMs: 60 * 60_000,
+      maximumQuoteAgeMs: 2 * 60 * 60_000,
+    });
+    const schedule = CronExpressionParser.parse(settings.refreshCron, {
+      tz: 'UTC',
+      currentDate: new Date('2026-11-03T00:00:00Z'),
+    });
+    const first = schedule.next().getTime();
+    const interval = schedule.next().getTime() - first;
+    expect(interval).toBe(60 * 60_000);
+    expect(45 * 60_000 + interval).toBeLessThan(settings.maximumQuoteAgeMs);
+    expect(settings.snapshotReuseTtlMs).toBeLessThan(45 * 60_000);
+    expect(validateAdminSettings(settings, 'UTC')).toEqual(settings);
   });
 
   it('allows a dedicated entrypoint to override APP_MODE', () => {

@@ -6,7 +6,8 @@ Use Node 22, pnpm 11 and PostgreSQL 17. For an existing database, back it up and
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm db:migrate
+test -f .env.development || cp .env.development.example .env.development
+pnpm db:setup
 pnpm build
 pnpm recipes:validate
 pnpm recipes:sync
@@ -14,6 +15,13 @@ pnpm start
 # In another terminal:
 pnpm --filter @poe-worksmith/web dev
 ```
+
+Open [the local handbook](http://127.0.0.1:5173). To inspect the built frontend
+instead, keep `pnpm start` running and use `pnpm --filter @poe-worksmith/web preview`
+after `pnpm build`, then open [the local preview](http://127.0.0.1:4173).
+Both frontend modes bind to loopback and proxy `/api` to the native API on port
+3000, preserving the Host header. Refresh and [market administration](docs/market-administration.md)
+use this local workflow.
 
 The combined server and worker are needed for **Refresh Prices**. `start:market` is a historical research API entrypoint and does not serve the handbook. The UI uses the existing exclusive refresh queue, PostgreSQL rate limiter, Trade-compatible collection owner and economy snapshot cache. Only verified comparable asks enter valuations. The cheapest ask drives indicative profit/ROI; the median is secondary information. Listings are asking prices, not confirmed sales.
 
@@ -38,8 +46,12 @@ The default combined mode exposes liveness at `/health/live` and database
 readiness at `/health/ready` on `127.0.0.1:3000`.
 
 The worker owns PostgreSQL-backed full-refresh and retention schedules. The
-refresh runs every four hours by default, uses an exclusive pg-boss queue across
-all worker instances, and reuses the queue job ID as the refresh-cycle ID. The
+refresh runs hourly by default, uses an exclusive pg-boss queue across
+all worker instances, and reuses the queue job ID as the refresh-cycle ID. Fresh
+installations reuse snapshots for up to 30 minutes, warn after one hour and
+withhold quotes older than two hours. This allows a bounded full-catalog refresh
+to complete before its earliest inputs expire; source timestamps remain visible.
+Existing saved operator settings are preserved on upgrade. The
 cleanup runs daily and removes raw snapshots after 72 hours, observations after
 14 days, and old completed jobs in bounded batches while preserving active and
 published cycles. `SIGINT` and `SIGTERM` stop HTTP intake, wait for active jobs
@@ -67,13 +79,30 @@ Authentication and schema errors are terminal. A failed refresh never replaces
 the last published catalog; eligible recipes can use their prior evaluations as
 explicitly stale fallback data.
 
-Build and run the same application in Docker with environment configuration:
+Build and run the backend and built frontend in Docker after applying forward
+migrations. For an existing database, back it up first; the migration command
+starts PostgreSQL and preserves its data:
 
 ```bash
+docker compose --profile app run --build --rm app node dist/migrate.js
 docker compose --profile app up --build
 ```
 
-The image defaults to combined mode. Override its command with
+Open [the Docker handbook](http://127.0.0.1:8080). The web service serves the built
+assets and proxies public `/api` reads to `app:3000`; the API is also bound to
+`127.0.0.1:3000` on the host. Migrations are an explicit prerequisite, not an
+automatic container startup operation.
+If `app` is recreated separately, run `docker compose --profile app restart web`
+to refresh nginx's upstream address.
+
+Docker networking does not satisfy direct-loopback operator access. Refresh
+writes and `/api/admin/market` remain rejected through container port mappings
+and the web proxy. Use the native API plus the local frontend workflow above
+for those controls. Proxy headers do not grant operator access.
+Stop `app` and `web` with `docker compose --profile app stop app web` before
+starting the native API on the same port; PostgreSQL and its data remain in place.
+
+The server image defaults to combined mode. Override its command with
 `node dist/entrypoints/api.js` or `node dist/entrypoints/worker.js` for split
 deployments.
 

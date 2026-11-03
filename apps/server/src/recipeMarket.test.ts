@@ -8,7 +8,10 @@ import {
   noVariantFilter,
   mappedTargetFilter,
 } from '@poe-worksmith/domain';
-import { createRecipeMarketDependencies } from './recipeMarket.js';
+import {
+  createRecipeMarketDependencies,
+  recipeQueryTarget,
+} from './recipeMarket.js';
 
 const trade = new RegisteredTradeQueryGenerator(
   {
@@ -27,7 +30,7 @@ const trade = new RegisteredTradeQueryGenerator(
           id:
             target.modId === 'different'
               ? 'explicit.stat_2'
-              : 'explicit.stat_1',
+              : `${target.kind}.stat_1`,
         },
       };
     },
@@ -81,6 +84,103 @@ describe('recipe market dependencies', () => {
     });
     expect(result.find((d) => d.kind === 'material')?.query?.query).toEqual({
       exchange: { have: ['chaos'], want: ['primal-crystallised-lifeforce'] },
+    });
+  });
+  it('prices the exact model input level while allowing higher-level finished comparables', async () => {
+    const result = await dependencies({
+      recipe: canonicalRecipeFixture,
+      league: 'Fixture League',
+    });
+    const base = result.find((d) => d.kind === 'base');
+    const finished = result.find((d) => d.kind === 'target');
+    const level = canonicalRecipeFixture.startingBase.itemLevel;
+    expect(base?.query?.query).toMatchObject({
+      query: {
+        filters: {
+          misc_filters: { filters: { ilvl: { min: level, max: level } } },
+        },
+      },
+    });
+    expect(recipeQueryTarget(base?.query?.query.handbookTarget)).toMatchObject({
+      minItemLevel: level,
+      maxItemLevel: level,
+    });
+    expect(
+      recipeQueryTarget(finished?.query?.query.handbookTarget).maxItemLevel,
+    ).toBeUndefined();
+  });
+
+  it('requires the priced starting affix itself to be fractured at its authored value', async () => {
+    const recipe = fixtureRecipe({
+      ...canonicalRecipeFixture,
+      startingBase: {
+        ...canonicalRecipeFixture.startingBase,
+        rarity: 'rare',
+        state: { corrupted: false, fractured: true, synthesised: false },
+      },
+      craft: {
+        ...canonicalRecipeFixture.craft,
+        startingMods: [
+          {
+            modId: 'suppression',
+            kind: 'fractured',
+            minimumValue: 14,
+            maximumValue: 14,
+          },
+        ],
+      },
+    });
+    const base = (
+      await dependencies({ recipe, league: 'Fixture League' })
+    ).find((d) => d.kind === 'base');
+    expect(base?.query?.query).toMatchObject({
+      query: {
+        stats: [
+          {
+            filters: [{ id: 'fractured.stat_1', value: { min: 14, max: 14 } }],
+          },
+        ],
+      },
+    });
+    expect(recipeQueryTarget(base?.query?.query.handbookTarget)).toMatchObject({
+      tradeSearch: {
+        fractured: true,
+        groups: [{ filters: [{ id: 'fractured.stat_1', min: 14, max: 14 }] }],
+      },
+    });
+    expect(() =>
+      fixtureRecipe({
+        ...recipe,
+        craft: {
+          ...recipe.craft,
+          startingMods: [
+            {
+              modId: 'suppression',
+              kind: 'fractured',
+              minimumValue: 15,
+              maximumValue: 14,
+            },
+          ],
+        },
+      }),
+    ).toThrow(/minimumValue/);
+  });
+  it('does not request a Chaos Orb to Chaos Orb exchange for bench fees', async () => {
+    const recipe = fixtureRecipe({
+      ...canonicalRecipeFixture,
+      craft: {
+        ...canonicalRecipeFixture.craft,
+        steps: canonicalRecipeFixture.craft.steps.map((step) => ({
+          ...step,
+          materials: [{ itemId: 'chaos-orb', quantity: 4 }],
+        })),
+      },
+    });
+    const result = await dependencies({ recipe, league: 'Fixture League' });
+    expect(result.find((d) => d.kind === 'material')).toEqual({
+      kind: 'material',
+      materialId: 'chaos-orb',
+      query: null,
     });
   });
 });

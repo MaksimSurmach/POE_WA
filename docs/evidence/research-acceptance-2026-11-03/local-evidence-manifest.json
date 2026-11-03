@@ -1,0 +1,226 @@
+{
+  "root": "research/build-demand/2026-10-30-manual",
+  "portability": "Referenced raw files verified locally; not copied into this Git evidence bundle.",
+  "files": {
+    "closure-bases/../followup-helm/minion-helmet-chain/plus2-finish.ax.txt": {
+      "sha256": "5f739ffc9cc18e86f1aba67d9c8c87b140fe1d93ba6867ef37a697da8e5d98c5",
+      "bytes": 9989
+    },
+    "closure-bases/../followup-helm/minion-helmet-chain/results.json": {
+      "sha256": "07d7c3d1cebf998028395b36287abbcb8b011309b74e9ba5a2df2ccfc24eed65",
+      "bytes": 2089
+    },
+    "closure-bases/bone75-greed-failure.dom.txt": {
+      "sha256": "eaa009b07e6ebc8a9e2e8261aedc977f0d8f40d53055f3bc1dfe2caa6666bf65",
+      "bytes": 61409
+    },
+    "closure-bases/bone75-natural.dom.txt": {
+      "sha256": "d7e4bca9a845799f8c3de72a3dde1daf8d69bc5791909fe961876ba18d030a6a",
+      "bytes": 59292
+    },
+    "closure-bases/bone75-paid-scour.dom.txt": {
+      "sha256": "91ab5e4c23387649f9615300b839e4d628976846661d979d079d62a70bbaecd2",
+      "bytes": 60094
+    },
+    "closure-bases/fear-leviathan-bench.item.txt": {
+      "sha256": "e0db63fc4e19c8b9aab82dfbf2ebbfaa9604b5616fea2062d7bc0657b9f3ed15",
+      "bytes": 712
+    },
+    "closure-bases/fear-leviathan-calculator.dom.txt": {
+      "sha256": "de834118fb03d2ce7234bd0e2a986fc6bcbfcc5f66f46a433d8e1efaf447d373",
+      "bytes": 66101
+    },
+    "closure-bases/fear-leviathan-core.item.txt": {
+      "sha256": "379f70b6aa1dc0ff3b7430f788734d80dce9396bb6319fd8279ae979d7d16666",
+      "bytes": 608
+    },
+    "closure-bases/fear-leviathan-finish.item.txt": {
+      "sha256": "558cabcfa8b879c45172cfe085927277f1e9a212f1c8747f6c7fd5f7cb506a30",
+      "bytes": 849
+    },
+    "closure-bases/fear-leviathan-finish.png": {
+      "sha256": "3b8d24bad74cf76b4569901c41faafc3f8618879e66d25213206afa71c4f0948",
+      "bytes": 122059
+    },
+    "closure-bases/fear-leviathan-import-verified.item.txt": {
+      "sha256": "967afb921d4ee2172cff8d796bea4b0319aa17dd829fdbb0a9bbfd585464abe7",
+      "bytes": 561
+    },
+    "closure-bases/fear-leviathan-paid-regal.item.txt": {
+      "sha256": "45df6b14b5c8197f2f9f7edc1b6130d07e91b46bc0882b410c8b3f7e7f9bf8e6",
+      "bytes": 549
+    },
+    "closure-bases/fear-leviathan-paid-scour.item.txt": {
+      "sha256": "5f9d21885bcf18ecca55766a15e28c2e14e841463224485414b99fac41c5c9f7",
+      "bytes": 431
+    },
+    "closure-bases/fear-leviathan-retry-failure.item.txt": {
+      "sha256": "1fedfbf82330d95fc62c88699a0ab02c7ff0650fdd88a31d6920e624be081a4a",
+      "bytes": 733
+    },
+    "closure-bases/fossilised60-calculator.dom.txt": {
+      "sha256": "99775382d582f35586838e2f0f2358a59aae8283c9a1f1b3c64f1100426d580e",
+      "bytes": 51972
+    },
+    "closure-bases/fossilised60-finish.dom.txt": {
+      "sha256": "6eb4d286b5b3809852025273bde6971d3b85e3d7f67cb35c64dccc2900aa9325",
+      "bytes": 52288
+    },
+    "closure-bases/fossilised60-finish.png": {
+      "sha256": "5a9b48232d134e2c2ec9e06f7019e836ebd78fb73458dac99ca25c47fd6b66ab",
+      "bytes": 119033
+    },
+    "closure-bases/fossilised60-greed-retry-failure.dom.txt": {
+      "sha256": "c7c20a2126375d270f882f8117a4eb0b341326766ce8d1de7a89cb63fd95a770",
+      "bytes": 69940
+    },
+    "closure-bases/fossilised60-natural.dom.txt": {
+      "sha256": "21287085fa175e6609dda9a7d67c4220a88d570f92f9904a0869e53f661a3f2e",
+      "bytes": 51209
+    },
+    "closure-bases/grizzly85-natural.dom.txt": {
+      "sha256": "a452575e853afdfb71781bc8b4fc60650b72e916f361b6606b48d11d916f06ca",
+      "bytes": 57444
+    },
+    "closure-bases/leviathan85-envy-prefracture.dom.txt": {
+      "sha256": "6fce60a71dd950f5461615d84c28d95ff9479421f9b37bbe488277a40fc377d5",
+      "bytes": 65793
+    },
+    "closure-bases/leviathan85-fracture-attempt1.dom.txt": {
+      "sha256": "07a0850f810d66b085edbc31a9b3dab1cd819126eaf648e0cdf158d5a3725e46",
+      "bytes": 65098
+    },
+    "closure-bases/leviathan85-fracture-attempt2.item.txt": {
+      "sha256": "82ca11b69c8436a9037c93dcdfc4a787b7f3cb8b8a19d4bebf3afe30711596da",
+      "bytes": 601
+    },
+    "closure-bases/leviathan85-fracture-attempt3.item.txt": {
+      "sha256": "3d5867a96fb3f2cb589ad709d52a37a9aab1a19769164350ecb4d169bbd20367",
+      "bytes": 741
+    },
+    "closure-bases/leviathan85-natural.dom.txt": {
+      "sha256": "98f1a8815285823123212acfee0745e980742d1c9e637cdffa06c682178d421c",
+      "bytes": 64086
+    },
+    "closure-bases/leviathan85-wrong-fracture-scour.item.txt": {
+      "sha256": "9559db8a364fa818ad22a0bcaee35212b0cb4bf9b705310847811cb7ef34a7f6",
+      "bytes": 284
+    },
+    "closure-bases/pinnacle70-finish.item.txt": {
+      "sha256": "d22117d322ac28f165f2442b4553cbd8f1d583101f9ba691b8725c4682748894",
+      "bytes": 779
+    },
+    "closure-bases/pinnacle70-finish.png": {
+      "sha256": "9e5a931bde212e5ba6bc0060b278b4dbd6ad5f070e6fa6b803207136ae567e97",
+      "bytes": 117059
+    },
+    "closure-bases/pinnacle70-greed-retry-failure.dom.txt": {
+      "sha256": "9c75c68f29771a388834a1e22b845fd8e1b13a1fa9f08c3db5b3a84b2da4e4eb",
+      "bytes": 52762
+    },
+    "closure-bases/pinnacle70-natural.dom.txt": {
+      "sha256": "c18ec92838b35ce35b2355cca161039c0c4aa647ab56bb128ccb24de9fafc09f",
+      "bytes": 47101
+    },
+    "closure-bases/pinnacle70-paid-scour.item.txt": {
+      "sha256": "dabadafca37a78802b70bd8d827957b50c77ab7c644667baa5f6f95fa13f4af1",
+      "bytes": 265
+    },
+    "closure-bases/pinnacle70-recovery3-reject.item.txt": {
+      "sha256": "253b06a1a4679f3272ea479412fb3d98b6bcc7945a3ac30c62aee81bcdfa6b56",
+      "bytes": 669
+    },
+    "closure-bases/pinnacle70-shaper-acquired.item.txt": {
+      "sha256": "dabadafca37a78802b70bd8d827957b50c77ab7c644667baa5f6f95fa13f4af1",
+      "bytes": 265
+    },
+    "closure-bases/rf83-any-calculator-url.txt": {
+      "sha256": "c5ad008dac66e3ecd2c53a1f5d6e728d7502cbc80649b443e145390d456329ba",
+      "bytes": 1181
+    },
+    "closure-bases/rf83-any-calculator.dom.txt": {
+      "sha256": "9ec43a05455fb7faa88dcbff32ac515a84e81867330bcf2d08a9f16f28c0dd79",
+      "bytes": 62604
+    },
+    "closure-bases/rf83-any-finish.dom.txt": {
+      "sha256": "96b88d3f9e44649f94f0af50cd645cce50ee2c09dfdb9f96baab37b21032a166",
+      "bytes": 62392
+    },
+    "closure-bases/rf83-reforge-failure.dom.txt": {
+      "sha256": "060069c0fd1c52b2c09c6488bbf1fb5b1220c48996c5d06b1fc6f5bf86682f99",
+      "bytes": 66296
+    },
+    "closure-bases/rf83-tier20-calculator-url.txt": {
+      "sha256": "7cde1f794834a35b1451a6a56dcb9fc7252e650987f680e57ef5eb6ea6669833",
+      "bytes": 657
+    },
+    "closure-bases/rf83-tier20-calculator.dom.txt": {
+      "sha256": "248e939b8df23c986592b3bca09bf491c78af1261cbe0566d36fb97af75a8b4e",
+      "bytes": 61570
+    },
+    "closure-bases/rf83-tier20-finish.item.txt": {
+      "sha256": "57b175eec9d49f02c260aa2dac456edac7db0d8afbe4a51306824bc064a555bd",
+      "bytes": 1111
+    },
+    "closure-bases/rf83-tier20-finish.png": {
+      "sha256": "1da4a93db4062ec0e8fc7f65a4b4566994b7791d8869222fdc8adebd7d35662c",
+      "bytes": 135229
+    },
+    "closure-bases/tr-grizzly-bench.item.txt": {
+      "sha256": "527e66d09eae2b6127b3b93f8b28cbf9123083117046bb9cdc7ab5317cf815ca",
+      "bytes": 695
+    },
+    "closure-bases/tr-grizzly-exarch.item.txt": {
+      "sha256": "77bb70d9b346f29404a99df0e7f6662d9717524fc13761ade550b52ed9fa410a",
+      "bytes": 823
+    },
+    "closure-bases/tr-grizzly-finish.item.txt": {
+      "sha256": "f6e7f6aaace79e6193354f1d239926875314fb0012a9584737b8624181e79ea0",
+      "bytes": 976
+    },
+    "closure-bases/tr-grizzly-finish.png": {
+      "sha256": "2ba2b09ec928ebdabb522eaf552a8848538d2ea40017043ca331c22738974e62",
+      "bytes": 141016
+    },
+    "closure-bases/tr-grizzly-greed-retry-failure.item.txt": {
+      "sha256": "de7309fc4d3a028a373617ef9f842ad37411b42260332104438f4180283439a1",
+      "bytes": 884
+    },
+    "closure-bases/tr-grizzly-outcome1.item.txt": {
+      "sha256": "d76a2c5ec4ee7e8aca040eac914e211863501511923326bef2d71d0d08350bab",
+      "bytes": 542
+    },
+    "closure-bases/tr-grizzly-paid-scour.dom.txt": {
+      "sha256": "ba6e267775913587dbcbd652c1ace63806d118e84289bcb0131c955b7432b343",
+      "bytes": 60175
+    },
+    "closure-bases/warlock85-natural.dom.txt": {
+      "sha256": "d6cbad51b3d0f86d38e61e04ab4865459ad6a5c8c5f33be9de3402b247f4b371",
+      "bytes": 64379
+    },
+    "closure-builds/bench-current-manifest.json": {
+      "sha256": "7e8606d70d871c8e672e2450739697cc0f8d80504433b037efcca16d42e7596c",
+      "bytes": 239
+    },
+    "closure-builds/bench-preparation-selected.json": {
+      "sha256": "49998235b24c28faa9fd25120ca921e8f51b35a0650a54ca5400cf156f271c1a",
+      "bytes": 14982
+    },
+    "closure-builds/tr-pob-comparison.json": {
+      "sha256": "98dced7cec950cb62253413c338c7c959f004daa96cd546170d263f9b2df7fb2",
+      "bytes": 1757
+    },
+    "closure-recovery/bow-base-preparation/results.json": {
+      "sha256": "2538e5d8f294f1a145a86cc74e75dc4901720547b9e0a4db6e3743cf78ac19d4",
+      "bytes": 3382
+    },
+    "closure-recovery/bow-paid-final-export.json": {
+      "sha256": "d365673d3574a5fa106b3fe7a8cb25303666bcca24bf9dff8553769233941719",
+      "bytes": 3849
+    },
+    "closure-recovery/bow-paid-finished-items.json": {
+      "sha256": "062e7699ce95a8b6ff57de9c4051ab72a014c5a424fb754c75b83abfd4329e6d",
+      "bytes": 8426
+    }
+  }
+}

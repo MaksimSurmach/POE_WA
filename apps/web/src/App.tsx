@@ -372,7 +372,7 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
             {ask ? <Money price={ask} /> : <strong>—</strong>}
           </div>
           <div>
-            <small>Profit</small>
+            <small>Indicative profit</small>
             {entry.evaluation.profit ? (
               <ProfitBadge {...entry.evaluation.profit} />
             ) : (
@@ -401,7 +401,12 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
             {snapshot.coverage ?? 'Unknown'} coverage
             {snapshot.sortedPageComplete
               ? ' (complete lowest-price page)'
-              : ''}{' '}
+              : snapshot.sortedSampleComplete
+                ? ` (sorted price sample: 20/${snapshot.totalResults} offers)`
+                : ''}{' '}
+            {snapshot.listings.length > 0 && snapshot.listings.length <= 2
+              ? ' · Thin market'
+              : ''}
             · {new Date(snapshot.capturedAt).toLocaleString('en-US')}
             {snapshot.expiresAt && Date.parse(snapshot.expiresAt) < Date.now()
               ? ' · Stale'

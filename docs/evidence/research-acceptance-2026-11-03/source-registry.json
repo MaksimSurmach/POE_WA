@@ -1,0 +1,1772 @@
+{
+  "seed": [
+    {
+      "id": "S01",
+      "title": "poe.ninja — supported API",
+      "url": "https://poe.ninja/docs/api",
+      "kind": "official_api",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Supported public API is economy. Internal builds/profiles/character/PoB interfaces are not available to third-party apps; do not use unofficial bulk endpoints."
+    },
+    {
+      "id": "S02",
+      "title": "GGG Developer overview",
+      "url": "https://www.pathofexile.com/developer/docs",
+      "kind": "official_api",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "New application registrations are currently paused. Use documented surfaces and existing approved access where available; do not make this research depend on new approval."
+    },
+    {
+      "id": "S03",
+      "title": "GGG API Reference",
+      "url": "https://www.pathofexile.com/developer/docs/reference",
+      "kind": "official_api",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Ladder data and authenticated account character equipment have different scopes. account:characters is not an unrestricted all-player historical equipment API."
+    },
+    {
+      "id": "S04",
+      "title": "PoB BuildSiteTools.lua",
+      "url": "https://github.com/PathOfBuildingCommunity/PathOfBuilding/blob/dev/src/Modules/BuildSiteTools.lua",
+      "kind": "primary_code",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "The official client handles known public pobb.in shares. Inspect the pinned implementation for import formats; this is not a public bulk-discovery API."
+    },
+    {
+      "id": "S05",
+      "title": "RePoE PoE1 exports",
+      "url": "https://repoe-fork.github.io/poe1.html",
+      "kind": "reference_data",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Reference base/mod/stat/crafting datasets; pin revision and patch. A dictionary is not a demand dataset and does not independently prove a crafting probability."
+    },
+    {
+      "id": "S06",
+      "title": "Craft of Exile",
+      "url": "https://www.craftofexile.com/",
+      "kind": "craft_tool",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Calculator, simulator and Affinities are useful research tools. Select PoE1 and an explicit patch. A supported public automation API was not verified."
+    },
+    {
+      "id": "S07",
+      "title": "Affinities announcement by its author",
+      "url": "https://www.reddit.com/r/pathofexile/comments/139t1ss",
+      "kind": "reddit_primary",
+      "checked_date": "2026-10-30",
+      "access_status": "search_extract_reviewed",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "2023 author explanation: skill/ascendancy/slot to bases and popular affixes, considering uniques. Check cohort/version/date in the tool before reusing statistics."
+    },
+    {
+      "id": "S08",
+      "title": "poe.ninja data dumps",
+      "url": "https://poe.ninja/poe1/data",
+      "kind": "dataset_candidate",
+      "checked_date": "2026-10-30",
+      "access_status": "page_found_payload_unverified",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Public page exists; available file manifests, coverage and permitted reuse were not inspected. Do not assume it contains historical character equipment or rare listing prices."
+    },
+    {
+      "id": "S09",
+      "title": "poe.ninja PoE1 character selection",
+      "url": "https://poe.ninja/docs/character-not-listed-poe1",
+      "kind": "official_methodology",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Leaderboard-derived coverage is selected, not a random census of buyers. Capture selection and exclusions for every cohort."
+    },
+    {
+      "id": "S10",
+      "title": "Pohx RF Chieftain",
+      "url": "https://mobalytics.gg/poe/builds/pohx-righteous-fire-chieftain",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Guide points to an Elder pseudo-link Fire Trap helmet as an upgrade; exact mechanics, item set and trade value still require verification."
+    },
+    {
+      "id": "S11",
+      "title": "Lacerate Gladiator gear",
+      "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Rare recovery-on-block shield and rare belt options coexist with unique substitutes. Separate budget tiers and do not assume intermediate rares sell."
+    },
+    {
+      "id": "S12",
+      "title": "Spectre Summoner gear",
+      "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Minion helmets/shields/gloves and rare budget belts; distinguish later unique substitutions and special-origin chest modifiers."
+    },
+    {
+      "id": "S13",
+      "title": "BalorMage SRS gear",
+      "url": "https://www.poe-vault.com/guides/balormage-summon-raging-spirits-necromancer-gear-jewels-flasks",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Poison/non-poison requirements must not be merged solely because both use SRS. Shield and helmet requirements depend on variant."
+    },
+    {
+      "id": "S14",
+      "title": "Winter Orb gear",
+      "url": "https://www.poe-vault.com/guides/winter-orb-occultist-gear-flasks",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Rare high-ES gloves/body coexist with a unique helmet in this variant. Check exact item set, CI interaction and implicit eligibility."
+    },
+    {
+      "id": "S15",
+      "title": "Toxic Rain gear",
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-flasks",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Bow, quiver and helmet upgrade hypotheses; distinguish basic versus advanced influenced quivers. Author cost estimates are not current market prices."
+    },
+    {
+      "id": "S16",
+      "title": "Lacerate PoB links",
+      "url": "https://www.poe-vault.com/guides/lacerate-gladiator-passive-skill-tree-gem-links",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Separate low/mid/high budget PoBs; budget labels are not calendar weeks."
+    },
+    {
+      "id": "S17",
+      "title": "Lacerate shared low-budget PoB",
+      "url": "https://pobb.in/i8A9gJKkJ8TR",
+      "kind": "pob",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.28",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Public page title reports 3.28 while guide is labelled 3.29. Record mismatch for review; no raw XML was downloaded in this preparation."
+    },
+    {
+      "id": "S18",
+      "title": "Spectre PoB links",
+      "url": "https://www.poe-vault.com/guides/the-spectre-summoner-pob-passive-skill-tree-gem-links",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Guide links to a planned PoB, not a sampled historical player."
+    },
+    {
+      "id": "S19",
+      "title": "Spectre shared PoB",
+      "url": "https://pobb.in/0rBi20lhVp9l",
+      "kind": "pob",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.28",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Public page reports 3.28 and custom configuration despite guide 3.29. Resolve compatibility; planned equipment is not measured adoption."
+    },
+    {
+      "id": "S20",
+      "title": "Winter Orb shared PoB",
+      "url": "https://pobb.in/gngEnRjrh1ou",
+      "kind": "pob",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Public page reports 3.29 CI variant. Treat as author design; do not count it as a player census or mix life priorities across variants."
+    },
+    {
+      "id": "S21",
+      "title": "Retired Cold Snap of Power guide",
+      "url": "https://www.poe-vault.com/guides/cold-snap-of-power-occultist-build-guide",
+      "kind": "guide_negative_control",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Guide changelog retires the build after a mechanic change. A patch label alone is not evidence that the build remains viable."
+    },
+    {
+      "id": "S22",
+      "title": "Reddit: intermediate crafts and market fit",
+      "url": "https://www.reddit.com/r/pathofexile/comments/1rzd86n/need_some_direction_in_crafting/",
+      "kind": "reddit",
+      "checked_date": "2026-10-30",
+      "access_status": "search_extract_reviewed",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Player discussion warns that expensive mirror-tier endpoints need not imply demand for intermediate rares. Qualitative hypothesis only."
+    },
+    {
+      "id": "S23",
+      "title": "Reddit: Winter Orb Shaper helmet",
+      "url": "https://www.reddit.com/r/PathOfExileBuilds/comments/1vgkaur/winter_orb_shaper_helmet_crafting_guide_329/",
+      "kind": "reddit_craft_lead",
+      "checked_date": "2026-10-30",
+      "access_status": "search_extract_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "A distinct rare-helmet variant is a lead for investigation, not evidence that all Winter Orb users need it or that reported costs remain valid."
+    },
+    {
+      "id": "S24",
+      "title": "Craft of Exile changelog",
+      "url": "https://www.craftofexile.com/changelog",
+      "kind": "official_tool_history",
+      "checked_date": "2026-10-30",
+      "access_status": "page_reviewed",
+      "source_declared_patch": null,
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Use to investigate dataset and mechanic revisions. Current Affinities cohort freshness and week coverage were not established by this preparation."
+    },
+    {
+      "id": "S25",
+      "title": "Reddit 3.29 crafting AMA",
+      "url": "https://www.reddit.com/r/PathOfExileBuilds/comments/1vc1e72/ama_crafting_ama_for_329_curse_of_the_allflame/",
+      "kind": "reddit_craft_lead",
+      "checked_date": "2026-10-30",
+      "access_status": "search_extract_reviewed",
+      "source_declared_patch": "3.29",
+      "inspection": "Public web text/search extract; not a downloaded character dataset.",
+      "finding": "Author warns about old weapon-affix recipes across patches. Use dated comments as leads; verify against pinned game data."
+    }
+  ],
+  "new_sources": [
+    {
+      "id": "N1",
+      "url": "https://www.craftofexile.com/",
+      "finding": "Affinities UI: merged softcore top 15000 ladders; last crawl 2024-08-20 11:00 EST Settlers; not current Allflame; patch indicator 3.29 refers to game data",
+      "checked_at": "2026-10-30"
+    },
+    {
+      "id": "N2",
+      "url": "https://www.poewiki.net/wiki/List_of_modifiers_for_shields_%28minion_type%29",
+      "finding": "Minion shield +1 and life distinct prefixes; +1 ilvl 60; base minion damage implicit. Wiki revision 1244639; exact 3.29 revision unverified.",
+      "checked_at": "2026-10-30"
+    },
+    {
+      "id": "N3",
+      "url": "https://pohx.net/crafts/elder-rf-helmet/",
+      "finding": "RF-in-helmet life-stacking/SRI totem; not standard RF + Fire Trap; linked support and life",
+      "checked_at": "2026-10-30"
+    },
+    {
+      "id": "N4",
+      "url": "https://pobb.in/0rBi20lhVp9l/raw",
+      "finding": "Decoded public author PoB active item set, planned not observed; displayed version 3.28",
+      "checked_at": "2026-10-30"
+    },
+    {
+      "id": "N5",
+      "url": "https://www.poe-vault.com/guides/balormage-summon-raging-spirits-necromancer-gear-jewels-flasks",
+      "finding": "Title says poison; page contains separate Non-Poison and Poison tables. Non-poison helmet life/res/attributes +1–2 minion; levels described as bonus in detailed section.",
+      "checked_at": "2026-10-30"
+    },
+    {
+      "id": "N6",
+      "url": "https://pobarchives.com/craft/poe/hhJbX69b",
+      "finding": "3.29 crafted minion helmet example; fractured +2, resistance essence, ES; simulation is not a current price quote or demand",
+      "checked_at": "2026-10-30"
+    }
+  ],
+  "helm_shield": [
+    {
+      "id": "HS01",
+      "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
+      "author_or_lineage": "PoEVault",
+      "source_date": "2026-07-22",
+      "source_declared_patch": "3.29",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Shield section: Shaper recovery, life/armour, optional resistances; skip rare if The Surrender affordable."
+    },
+    {
+      "id": "HS02",
+      "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+      "author_or_lineage": "GhazzyTV",
+      "source_date": "2026-07-31",
+      "source_declared_patch": "3.29",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Helmet and shield priorities; helmet later replaced by Spectre variant Dark Monarch/Wraithlord."
+    },
+    {
+      "id": "HS03",
+      "url": "https://www.poe-vault.com/guides/balormage-summon-raging-spirits-necromancer-gear-jewels-flasks",
+      "author_or_lineage": "BalorMage",
+      "source_date": "2026-07-26",
+      "source_declared_patch": "3.29",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Despite Poison title, explicitly includes Non-Poison and Poison tables. Both list rare recovery shield/Aegis alternative. Non-Poison table lists +1-2 minion helmet."
+    },
+    {
+      "id": "HS04",
+      "url": "https://pohx.net/crafts/elder-ft-helmet/",
+      "author_or_lineage": "Pohx",
+      "source_date": null,
+      "source_declared_patch": null,
+      "kind": "primary_craft_guide",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "FT/Searing Bond of Detonation socketed; Elder Burn+Conc. Allflame currency widgets not independent current cost evidence."
+    },
+    {
+      "id": "HS05",
+      "url": "https://pohx.net/crafts/elder-rf-helmet/",
+      "author_or_lineage": "Pohx",
+      "source_date": null,
+      "source_declared_patch": null,
+      "kind": "primary_craft_guide",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "RF socketed; life-stacking/SRI totem variant, Horror+Burn; differs from FT helmet."
+    },
+    {
+      "id": "HS06",
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-flasks",
+      "author_or_lineage": "PathofEvening",
+      "source_date": "2026-09-17",
+      "source_declared_patch": "3.29",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Evasion helmet: AoE+socketed AoE level, suppression/life/res; Exarch mana efficiency + Eater phys taken lightning."
+    },
+    {
+      "id": "HS07",
+      "url": "https://www.reddit.com/r/PathOfExileBuilds/comments/1vgkaur/winter_orb_shaper_helmet_crafting_guide_329/",
+      "author_or_lineage": "Better_Shake220",
+      "source_date": null,
+      "source_declared_patch": "3.29",
+      "kind": "primary_recipe_post",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Archdemon/Shaper/Horror/Hypothermia/spell crit/Area support; Allflame/veiled steps require independent mechanical verification. Comment usage percentages discarded."
+    },
+    {
+      "id": "HS08",
+      "url": "https://repoe-fork.github.io/poe1.html",
+      "author_or_lineage": "RePoE fork",
+      "source_date": null,
+      "source_declared_patch": "3.29.3.3",
+      "kind": "datamined_game_data",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Downloaded mods, bases, essence and bench files with SHA256; retained relevant rows. Pins content, does not establish runtime crafting probability."
+    },
+    {
+      "id": "HS09",
+      "url": "https://www.poe-vault.com/guides/crafting-basic-shields",
+      "author_or_lineage": "GhazzyTV",
+      "source_date": "2024-07-25",
+      "source_declared_patch": null,
+      "kind": "older_craft_guide",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Pristine fossil life shield with Shaper/Warlord recovery; old craft text, exact current affixes crosschecked RePoE. Same author as Spectre; not independent recommendation for that build."
+    },
+    {
+      "id": "HS10",
+      "url": "https://poedb.tw/us/The_Surrender",
+      "author_or_lineage": "PoEDB",
+      "source_date": null,
+      "source_declared_patch": null,
+      "kind": "item_reference",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Current item block: 250-500 flat life on block. Flat recovery not equivalent to5% life recovery; market cost unknown."
+    },
+    {
+      "id": "HS11",
+      "url": "https://poedb.tw/us/Aegis_Aurora",
+      "author_or_lineage": "PoEDB",
+      "source_date": null,
+      "source_declared_patch": null,
+      "kind": "item_reference",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Armour-scaled ES recovery, not life recovery; SRS guide couples alternative with MoM. Do not silently mix defence variants."
+    },
+    {
+      "id": "HS12",
+      "url": "https://poedb.tw/us/The_Dark_Monarch",
+      "author_or_lineage": "PoEDB",
+      "source_date": null,
+      "source_declared_patch": null,
+      "kind": "item_reference",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Multiple minion-type variants; Spectre one doubles Raised Spectres and prevents other minions. Generic Animated Weapons default is not Spectre variant."
+    },
+    {
+      "id": "HS13",
+      "url": "https://poedb.tw/us/Wraithlord",
+      "author_or_lineage": "PoEDB",
+      "source_date": null,
+      "source_declared_patch": null,
+      "kind": "item_reference",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Abyss-socket Spectre count alternative prevents non-Spectre minions; changes utility/AG setup."
+    },
+    {
+      "id": "HS14",
+      "url": "https://poedb.tw/us/Willclash",
+      "author_or_lineage": "PoEDB",
+      "source_date": null,
+      "source_declared_patch": null,
+      "kind": "item_reference",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Spell block and elemental damage per power charge; rare WOrb helmet incurs build-dependent opportunity cost."
+    },
+    {
+      "id": "HS15",
+      "url": "https://pobarchives.com/craft/poe/hhJbX69b",
+      "author_or_lineage": "zemzemkoko",
+      "source_date": "2026-09-26",
+      "source_declared_patch": "3.29.3.3",
+      "kind": "simulated_craft_example",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Fractured+2/double-res/ES/minion-count craft is not a life target. Conflicting displayed totals and simulation censoring prevent using its headline as cost estimate."
+    },
+    {
+      "id": "HS16",
+      "url": "https://www.poe-vault.com/guides/balormage-summon-raging-spirits-necromancer-pob-passive-skill-tree-gem-links",
+      "author_or_lineage": "BalorMage",
+      "source_date": "2026-07-26",
+      "source_declared_patch": "3.29",
+      "kind": "guide",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Links combined public PoB with starter/mid/minmax sets; explicitly distinguishes non-poison low/hybrid and higher poison."
+    },
+    {
+      "id": "HS17",
+      "url": "https://pobb.in/7_6IS6EVRZfT",
+      "author_or_lineage": "BalorMage",
+      "source_date": null,
+      "source_declared_patch": "3.29",
+      "kind": "planned_pob_metadata",
+      "checked_date": "2026-10-30",
+      "access_status": "web_text_reviewed",
+      "finding": "Public page says Level100 MoM SRS Necromancer3.29; custom AG config. Raw not decoded by this agent; no adoption measurement."
+    }
+  ],
+  "other_slots": [
+    {
+      "id": "OS01",
+      "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+      "kind": "author_guide",
+      "lineage": "GhazzyTV Spectre",
+      "patch_label": "3.29",
+      "displayed_updated": "2026-07-31 11:19 timezone unspecified",
+      "reviewed_sections": [
+        "Gloves",
+        "Belt"
+      ],
+      "finding": "Fear gloves and optional low-budget rare belt; Darkness Enthroned preferred. Unnerve requires player hit.",
+      "wording_is_not": "observed player adoption or present market price",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS02",
+      "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
+      "kind": "author_guide",
+      "lineage": "PoEVault Lacerate",
+      "patch_label": "3.29",
+      "displayed_updated": "2026-07-22 19:02 timezone unspecified",
+      "reviewed_sections": [
+        "Gloves",
+        "Belt"
+      ],
+      "finding": "Rare gloves and resistance-filling Stygian alternative; two named unique belt competitors.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS03",
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-flasks",
+      "kind": "author_guide",
+      "lineage": "PathofEvening TR",
+      "patch_label": "3.29",
+      "displayed_updated": "2026-09-17 22:40 timezone unspecified",
+      "reviewed_sections": [
+        "Bow",
+        "Quiver",
+        "Gloves",
+        "Belt"
+      ],
+      "finding": "Basic vs Hunter quiver, crafted bow vs Widowhail, rare belt before unique, evasion gloves.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS04",
+      "url": "https://www.poe-vault.com/guides/winter-orb-occultist-gear-flasks",
+      "kind": "author_guide",
+      "lineage": "Lexyu Winter Orb",
+      "patch_label": "3.29",
+      "displayed_updated": "2026-07-29 16:12 timezone unspecified",
+      "reviewed_sections": [
+        "Gear Overview",
+        "Gloves"
+      ],
+      "finding": "Two separate eldritch origins listed; maximum-life preference conflicts with the linked CI plan.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS05",
+      "url": "https://www.poe-vault.com/guides/shrapnel-ballista-hierophant-gear-flasks",
+      "kind": "author_guide",
+      "lineage": "POEGuy Shrapnel",
+      "patch_label": "3.29",
+      "displayed_updated": "2026-08-21 00:22 timezone unspecified",
+      "reviewed_sections": [
+        "Summary",
+        "Quiver",
+        "Belt",
+        "More Maxing"
+      ],
+      "finding": "Strength-stacking quiver and belt. Quiver finish omits needed prefix vacancies. Warlord variant loses essence-pierce fracture.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS06",
+      "url": "https://pobb.in/0rBi20lhVp9l",
+      "raw_url": "https://pobb.in/0rBi20lhVp9l/raw",
+      "kind": "author_planned_pob",
+      "lineage": "GhazzyTV Spectre",
+      "patch_label": "3.28",
+      "access": "HTML text reviewed; direct raw request HTTP 403",
+      "finding": "Patch mismatch retained; no new raw item-set extraction claimed.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS07",
+      "url": "https://pobb.in/gngEnRjrh1ou",
+      "raw_url": "https://pobb.in/gngEnRjrh1ou/raw",
+      "kind": "author_planned_pob",
+      "lineage": "Lexyu Winter Orb",
+      "patch_label": "3.29",
+      "access": "HTML text reviewed; direct raw request HTTP 403",
+      "finding": "CI heading and life=1; rejects life as a functional CI target. Full set pending.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS08",
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-passive-skill-tree-gem-links",
+      "kind": "author_guide_pob_pointer",
+      "lineage": "PathofEvening TR",
+      "patch_label": "3.29",
+      "finding": "Published known share NlUa8ZnB3YGK, not bulk discovery.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS09",
+      "url": "https://pobb.in/NlUa8ZnB3YGK",
+      "kind": "author_planned_pob",
+      "lineage": "PathofEvening TR",
+      "patch_label": "3.29",
+      "access": "HTML text and notes only; no XML extraction",
+      "finding": "Visible loadout Widowhail; early notes mention Quill Rain or Dread-crafted Short Bow. Alternative loadouts not enumerated.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS10",
+      "url": "https://repoe-fork.github.io/poe1.html",
+      "kind": "community_game_reference",
+      "lineage": "RePoE-fork extracted game data",
+      "patch_label": "3.29.3.3",
+      "access": "index plus six public JSON exports downloaded and hashed",
+      "finding": "58 selected mods, 10 bases, four essences, five bench entries retained. Content hashes pin observed files; does not prove GGG patch fidelity or simulator behavior.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS11",
+      "url": "https://www.poewiki.net/wiki/Deafening_Essence_of_Fear",
+      "kind": "reference_attempt",
+      "access": "HTTP 403",
+      "finding": "Not used as evidence.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS12",
+      "url": "https://www.poewiki.net/wiki/List_of_modifiers_for_quivers",
+      "kind": "reference_attempt",
+      "access": "HTTP 403",
+      "finding": "Not used as evidence.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS13",
+      "url": "https://www.poewiki.net/wiki/List_of_Eater_of_Worlds_implicit_modifiers",
+      "kind": "reference_attempt",
+      "access": "HTTP 403",
+      "finding": "Not used as evidence.",
+      "checked_date": "2026-10-30"
+    },
+    {
+      "id": "OS14",
+      "url": "https://www.poewiki.net/wiki/List_of_Searing_Exarch_implicit_modifiers",
+      "kind": "reference_attempt",
+      "access": "HTTP 403",
+      "finding": "Not used as evidence.",
+      "checked_date": "2026-10-30"
+    }
+  ],
+  "cohorts": [
+    {
+      "id": "C01",
+      "url": "https://poe.ninja/poe1/builds/allflame?timemachine=week-1&skills=Righteous+Fire",
+      "kind": "equipped_character_snapshot_ui",
+      "checked_date": "2026-10-30",
+      "source_date": null,
+      "source_time_label": "Week 1",
+      "lineage": "poe.ninja Experience ladder; 20 selected Chieftain, account IDs distinct",
+      "details": "cohort-rf-week1/observations.json and shields.json; not transaction evidence."
+    },
+    {
+      "id": "C02",
+      "url": "https://poe.ninja/poe1/builds/allflame?timemachine=week-1&skills=Raise+Spectre&class=Necromancer",
+      "kind": "equipped_character_snapshot_ui",
+      "checked_date": "2026-10-30",
+      "source_date": null,
+      "source_time_label": "Week 1",
+      "lineage": "poe.ninja Experience ladder; 20 selected Necromancer, account IDs distinct",
+      "details": "cohort-spectre-week1/observations.json; not transaction evidence."
+    }
+  ],
+  "build_patch_followup": [
+    {
+      "id": "BP01",
+      "url": "https://www.pathofexile.com/forum/view-thread/4010618",
+      "lineage": "Grinding Gear Games / Kelly_GGG",
+      "displayed_source_date": "2026-10-12",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29 / 3.30",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "official_game_announcement",
+      "facts": [
+        "GGG announces Allflame end on 2026-11-09 at 13:00 PST and 3.30 release on 2026-11-13 PST.",
+        "A present-day observation cannot be assigned to the league-start research windows."
+      ]
+    },
+    {
+      "id": "BP02",
+      "url": "https://mobalytics.gg/poe/builds/pohx-righteous-fire-chieftain",
+      "lineage": "Pohx",
+      "displayed_source_date": "2026-08-07",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "RF Chieftain guide declares Fire Trap as single-target skill.",
+        "It also says Scorching Ray of Immolation with Spell Totem is to be tested; that sentence does not establish completion or equal variant compatibility."
+      ],
+      "prior_source_ids": [
+        "S10"
+      ]
+    },
+    {
+      "id": "BP03",
+      "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
+      "lineage": "PoEVault editorial",
+      "displayed_source_date": "2026-07-22 19:02",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Shaper recovery shield is intermediate; author says skip it if The Surrender is affordable.",
+        "Rare Stygian is a resistance-filling option; Belt of the Deceiver and Ryslatha’s Coil compete.",
+        "Price adjectives are guide claims, not current market observations."
+      ],
+      "prior_source_ids": [
+        "S11",
+        "HS01",
+        "OS02"
+      ]
+    },
+    {
+      "id": "BP04",
+      "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+      "lineage": "GhazzyTV",
+      "displayed_source_date": "2026-07-31 11:19",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Rare minion-level helmet precedes Raised Spectres Dark Monarch; Wraithlord is a holdover.",
+        "Rare minion shield later competes with Bitterbind Point; guide wants +1 Spectre unveil or +2 projectiles substitute and a source of Arcane Surge.",
+        "Rare belt is a budget option; Darkness Enthroned requires appropriate Ghastly Eye Jewels."
+      ],
+      "prior_source_ids": [
+        "S12",
+        "HS02",
+        "OS01"
+      ]
+    },
+    {
+      "id": "BP05",
+      "url": "https://www.poe-vault.com/guides/ghazzy-tv-spectre-summoner-necromancer-gear-progression",
+      "lineage": "GhazzyTV",
+      "displayed_source_date": "2026-07-31 11:19",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Medium budget switches to Spectre Dark Monarch, removing non-Spectre minions; Wraithlord is alternative."
+      ],
+      "independence": "Same author/build as BP04; not an independent second recommendation"
+    },
+    {
+      "id": "BP06",
+      "url": "https://www.poe-vault.com/guides/ghazzytvs-spectre-necromancer-build-guide-changelog",
+      "lineage": "GhazzyTV",
+      "displayed_source_date": "2026-07-31 11:19",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "3.29 entry describes budget/gem changes; Dark Monarch replacement of Wraithlord appears under 3.27."
+      ],
+      "independence": "Same author/build as BP04"
+    },
+    {
+      "id": "BP07",
+      "url": "https://www.poe-vault.com/guides/balormage-summon-raging-spirits-necromancer-gear-jewels-flasks",
+      "lineage": "BalorMage",
+      "displayed_source_date": "2026-07-26 17:41",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Page title says Poison but tables separate Non-Poison and Poison.",
+        "Non-Poison table includes minion-level rare helmet.",
+        "Recovery shield competes with Aegis Aurora combined with Mind over Matter; do not substitute life recovery for ES recovery."
+      ],
+      "prior_source_ids": [
+        "S13",
+        "HS03"
+      ]
+    },
+    {
+      "id": "BP08",
+      "url": "https://www.poe-vault.com/guides/winter-orb-occultist-gear-flasks",
+      "lineage": "Lexyu",
+      "displayed_source_date": "2026-07-29 16:12",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Charge setup uses Willclash.",
+        "Glove priorities include Maximum Life and flask list includes life flask, despite linked PoB displaying CI and Life 1.",
+        "This internal inconsistency remains unresolved; life is not promoted to a required CI mod."
+      ],
+      "prior_source_ids": [
+        "S14",
+        "OS04"
+      ]
+    },
+    {
+      "id": "BP09",
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-flasks",
+      "lineage": "PathofEvening",
+      "displayed_source_date": "2026-09-17 22:40",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Meta-crafted bow competes with high-budget Widowhail paired with near-perfect quiver.",
+        "Basic versus Hunter dual-multiplier quivers are distinct stages.",
+        "Rare life/resistance/strength belts bridge to The Tides of Time."
+      ],
+      "prior_source_ids": [
+        "S15",
+        "HS06",
+        "OS03"
+      ]
+    },
+    {
+      "id": "BP10",
+      "url": "https://www.poe-vault.com/guides/shrapnel-ballista-hierophant-gear-flasks",
+      "lineage": "POEGuy",
+      "displayed_source_date": "2026-08-21 00:22",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Replica Iron Commander strength setup has crafted Hunter belt and fractured essence-pierce quiver.",
+        "Mageblood has a separate flask configuration.",
+        "Bound by Destiny/Warlord path uses a different quiver, not proof that the fractured target supports influence."
+      ],
+      "prior_source_ids": [
+        "OS05"
+      ]
+    },
+    {
+      "id": "BP11",
+      "url": "https://pohx.net/crafts/elder-ft-helmet/",
+      "lineage": "Pohx",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Fire Trap or Searing Bond of Detonation helmet uses Burning Damage plus Concentrated Effect.",
+        "Page forbids RF or Scorching Ray of Immolation in this item."
+      ],
+      "prior_source_ids": [
+        "HS04"
+      ]
+    },
+    {
+      "id": "BP12",
+      "url": "https://pohx.net/crafts/elder-rf-helmet/",
+      "lineage": "Pohx",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "RF-in-helmet life-stacking/SRI variant uses Burning Damage, Horror elemental multiplier and life.",
+        "Concentrated Effect is optional with radius cost."
+      ],
+      "prior_source_ids": [
+        "HS05"
+      ]
+    },
+    {
+      "id": "BP13",
+      "url": "https://pobb.in/i8A9gJKkJ8TR",
+      "lineage": "PoEVault Lacerate linked plan",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": "3.28",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "author_linked_planned_pob",
+      "facts": [
+        "Public PoB page heading declares 3.28. A planned build, not an equipped-character or transaction observation.",
+        "Conflicts with guide 3.29 label; no author explanation for this exact pair established."
+      ],
+      "prior_source_ids": [
+        "S17"
+      ],
+      "absolute_publication_date": null,
+      "raw_xml_rechecked": false
+    },
+    {
+      "id": "BP14",
+      "url": "https://pobb.in/0rBi20lhVp9l",
+      "lineage": "GhazzyTV Spectre linked plan",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": "3.28",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "author_linked_planned_pob",
+      "facts": [
+        "Public PoB page heading declares 3.28. A planned build, not an equipped-character or transaction observation.",
+        "Conflicts with guide 3.29 label; no author explanation for this exact pair established."
+      ],
+      "prior_source_ids": [
+        "S19"
+      ],
+      "absolute_publication_date": null,
+      "raw_xml_rechecked": false
+    },
+    {
+      "id": "BP15",
+      "url": "https://pobb.in/gngEnRjrh1ou",
+      "lineage": "Lexyu Winter Orb linked plan",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "author_linked_planned_pob",
+      "facts": [
+        "Public PoB page heading declares 3.29. A planned build, not an equipped-character or transaction observation.",
+        "Heading says CI MoM; Life is 1. Guide life stat and life flask remain inconsistent."
+      ],
+      "prior_source_ids": [
+        "S20"
+      ],
+      "absolute_publication_date": null,
+      "raw_xml_rechecked": false
+    },
+    {
+      "id": "BP16",
+      "url": "https://pobb.in/7_6IS6EVRZfT",
+      "lineage": "BalorMage SRS linked plan",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "author_linked_planned_pob",
+      "facts": [
+        "Public PoB page heading declares 3.29. A planned build, not an equipped-character or transaction observation."
+      ],
+      "prior_source_ids": [
+        "HS17"
+      ],
+      "absolute_publication_date": null,
+      "raw_xml_rechecked": false
+    },
+    {
+      "id": "BP17",
+      "url": "https://mobalytics.gg/poe/builds/ronarray-bleed-lacerate-eviscerate-gladiator",
+      "lineage": "Ronarray",
+      "displayed_source_date": "2026-07-20",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Distinct Lacerate plus Eviscerate variant; gear shown includes rare Shagreen Tower Shield and Olesya’s Delight.",
+        "Author warns some linked PoBs may be older.",
+        "No recover-life text found in rendered page: cannot independently confirm the exact recovery bundle."
+      ],
+      "independence": "Distinct named author from seed PoEVault; exact author dependence unknown",
+      "supports": "archetype only; not exact affix demand"
+    },
+    {
+      "id": "BP18",
+      "url": "https://guides.lootkeeper.com/poe/bild-toksichnyj-dozhd",
+      "lineage": "Lootkeeper editorial",
+      "displayed_source_date": "2026-10-09",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Dated update 2026-10-09 fixes purchase links; 2026-07-31 changelog names 3.29 changes.",
+        "Widowhail requires maximum-stage quiver; agrees on the dependency in BP09.",
+        "Named author and independence from PathofEvening not established. Commercial build/currency site; no market estimates accepted."
+      ],
+      "independence": "UNKNOWN; separate domain is not proof of separate build origin"
+    },
+    {
+      "id": "BP19",
+      "url": "https://www.reddit.com/r/PathOfExileBuilds/comments/1hz1r6j/how_i_leaguestart_winter_orb_and_you_can_too/",
+      "lineage": "FoxXy440",
+      "displayed_source_date": "2026-07-18 (in-body edit)",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Edited author post discusses 3.29 Winter Orb; older body recommends Willclash and links prior league PoBs.",
+        "Dated edit does not prove every older loadout was revalidated."
+      ],
+      "independence": "Distinct author from Lexyu and Better_Shake220; same exact defensive variant not established"
+    },
+    {
+      "id": "BP20",
+      "url": "https://www.pathofexile.com/forum/view-thread/3294531",
+      "lineage": "ACGIFT#1167",
+      "displayed_source_date": "2026-07-23 (last edited)",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Author says PoB still lists 3.28 because updater was not available at posting.",
+        "This is exploding/homing SRS, a distinct damage mechanism; not confirmation of BalorMage non-poison hit SRS helmet demand."
+      ],
+      "independence": "Distinct author; different variant excluded from exact-bundle corroboration"
+    },
+    {
+      "id": "BP21",
+      "url": "https://suckyboysiegeballista.org/",
+      "lineage": "BigCookies companion / POEGuy build",
+      "displayed_source_date": "2026-09-23",
+      "date_basis": "displayed publication/update, timezone unspecified unless stated",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_guide",
+      "facts": [
+        "Companion says progression is made by BigCookies and build by POEGuy.",
+        "Supports continuing publication for the author lineage; does not add an independent Shrapnel build recommendation."
+      ],
+      "independence": "Same POEGuy build lineage"
+    },
+    {
+      "id": "BP22",
+      "url": "https://poedb.tw/us/The_Surrender",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Default item recovers 250-500 flat life on block. Separate Foulborn variants shown; do not silently price ES-recovery variant as life recovery."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP23",
+      "url": "https://poedb.tw/us/Aegis_Aurora",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Default item recovers ES equal to 2% of armour on block; not life."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP24",
+      "url": "https://poedb.tw/us/The_Dark_Monarch",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Default displayed block is Animated Weapons. Variant list explicitly includes doubled Raised Spectres and prohibition of other minion types."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP25",
+      "url": "https://poedb.tw/us/Wraithlord",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Four Abyssal sockets, minion gem levels, Spectres per Ghastly Eye Jewel, and no non-Spectre minions."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP26",
+      "url": "https://poedb.tw/us/Bitterbind_Point",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Spectres gain Arcane Surge when player does. Has a veiled-mod slot; generic item block alone does not prove availability of exact +1 Spectre unveil."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP27",
+      "url": "https://poedb.tw/us/Darkness_Enthroned",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Current item block has 50-100% socketed Abyss Jewel effect. Embedded Community Wiki paragraph still says 75%; use current block and preserve disagreement."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP28",
+      "url": "https://poedb.tw/us/Widowhail",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Default item increases bonuses from equipped quiver by 150-250%; rolled/corrupted versions require separate comparison."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP29",
+      "url": "https://poedb.tw/us/The_Tides_of_Time",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Life/mana/utility charge rolls are independently 0-3 every three seconds, so target roll matters."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP30",
+      "url": "https://poedb.tw/us/Willclash",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Spell block and elemental damage depend on Power Charges; charge-generation and loss properties matter for substitution."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP31",
+      "url": "https://poedb.tw/us/Ryslathas_Coil",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Minimum and maximum physical attack damage rolls move in opposite directions; exact roll pair matters."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP32",
+      "url": "https://poedb.tw/us/Belt_of_the_Deceiver",
+      "lineage": "PoEDB community reference",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": null,
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "community_item_reference",
+      "facts": [
+        "Default item includes physical damage, life, resistance and Intimidate. Foulborn variants are separately displayed."
+      ],
+      "patch_fidelity": "UNKNOWN; no independently pinned 3.29 snapshot in this followup"
+    },
+    {
+      "id": "BP33",
+      "url": "https://www.youtube.com/watch?v=U-MULKNylFE",
+      "lineage": "UNKNOWN",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; no absolute author date established",
+      "declared_patch": "3.29 (search title only)",
+      "access": "Direct open failed: online fetch throttled; search title only",
+      "kind": "failed_public_access_attempt",
+      "facts": [
+        "Search found Spectre guide candidate; direct open was throttled. Not accepted for dated independent validation."
+      ],
+      "accepted": false
+    },
+    {
+      "id": "BP34",
+      "url": "https://www.reddit.com/r/PathOfExileBuilds/comments/1vgkaur/winter_orb_shaper_helmet_crafting_guide_329/",
+      "lineage": "Better_Shake220",
+      "displayed_source_date": null,
+      "date_basis": "UNKNOWN; relative 2mo label not converted",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "primary_author_recipe",
+      "prior_source_ids": [
+        "S23",
+        "HS07"
+      ],
+      "facts": [
+        "Shaper Archdemon/Horror/Hypothermia/crit/Area/veil recipe remains publicly visible.",
+        "Comments dispute the opportunity cost of replacing Willclash; no numerical prevalence, headline craft price or claimed DPS accepted.",
+        "No dated exact full-build validation established."
+      ]
+    },
+    {
+      "id": "BP35",
+      "url": "https://www.poe-vault.com/guides/cold-snap-of-power-occultist-build-guide",
+      "lineage": "Lexyu",
+      "displayed_source_date": "2026-07-29 16:17",
+      "date_basis": "Displayed date, timezone unspecified; dated changelog also lists retirement",
+      "declared_patch": "3.29",
+      "access": "public web text reviewed 2026-10-30",
+      "kind": "retired_author_guide_negative_control",
+      "prior_source_ids": [
+        "S21"
+      ],
+      "facts": [
+        "Despite 3.29 title, page is marked Out Of Date and says retired 2026-07-29 because Corpse Pact/Devour interaction no longer works on shattered enemies.",
+        "This is Cold Snap of Power; not a new check of the separately mentioned old Ice Nova or EA controls."
+      ]
+    }
+  ],
+  "market_followup": [
+    {
+      "id": "MK01",
+      "url": "https://www.pathofexile.com/trade/search/Allflame",
+      "date": "2026-10-30",
+      "kind": "public_ui_current_asking_prices",
+      "evidence": "followup-market/rare-observations.json"
+    },
+    {
+      "id": "MK02",
+      "url": "https://poe.ninja/poe1/economy/allflame/unique-armours",
+      "date": "2026-10-30",
+      "kind": "public_ui_aggregates",
+      "evidence": "followup-market/aggregate-prices.json"
+    },
+    {
+      "id": "MK03",
+      "url": "https://www.pathofexile.com/trade/search/Allflame",
+      "date": "2026-10-30",
+      "kind": "public_ui_preferred_base_and_support_thresholds",
+      "evidence": "followup-market-rf/preferred-base-and-support20.md"
+    }
+  ],
+  "helm_followup": [
+    {
+      "id": "FH01",
+      "url": "https://www.pathofexile.com/forum/view-thread/3985332",
+      "lineage": "Grinding Gear Games",
+      "kind": "official_patch",
+      "patch": "3.29.0",
+      "checked_at": "2026-10-30",
+      "finding": "Helmet Exarch reduced attack mana cost was replaced by Mana Cost Efficiency. This does not say reservation efficiency. Ordinary non-unique Synthesis item acquisition changed; old guides need version checks."
+    },
+    {
+      "id": "FH02",
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-flasks",
+      "lineage": "PathofEvening",
+      "kind": "build_guide",
+      "patch": "3.29",
+      "source_date": "2026-09-17",
+      "checked_at": "2026-10-30",
+      "finding": "Helmet wants Mana Cost Efficiency and physical hits taken as lightning implicits; AoE10/+1 socketed AoE, suppression, life100, resistances. Earlier research reservation wording is a transcription error."
+    },
+    {
+      "id": "FH03",
+      "url": "https://www.sirgog.com/wp-content/uploads/2023/08/Phys-As-Chaos-Helm-Notes-2.pdf",
+      "lineage": "sirgog",
+      "kind": "independent_historical_craft_guide",
+      "patch": "Crucible historical; URL2023-08",
+      "checked_at": "2026-10-30",
+      "finding": "Independent author describes finishing explicit helmet before separately rolling Ember/Ichor implicits. Historical target and costs are not carried to 3.29; this supports the ordering concept only."
+    },
+    {
+      "id": "FH04",
+      "url": "https://poedb.tw/us/Orb_of_Dominance",
+      "lineage": "PoEDB game data",
+      "kind": "datamined_reference",
+      "patch": null,
+      "checked_at": "2026-10-30",
+      "finding": "Elder Burning Damage level20 at ilvl82 upgrades to elevated level25. This provides a mechanical candidate for observed Burning25; actual cohort item origin is not proven. Exalt/Harvest cannot ordinarily roll elevated25."
+    },
+    {
+      "id": "FH05",
+      "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
+      "lineage": "PoEVault editorial",
+      "kind": "build_guide",
+      "patch": "3.29",
+      "source_date": "2026-07-22",
+      "checked_at": "2026-10-30",
+      "finding": "Shield target recovery5 or budget4; life/armour/resistance bonuses; any compatible base can work. Surrender is the stated later replacement. No claim about current market cost."
+    },
+    {
+      "id": "FH06",
+      "url": "https://www.poewiki.net/wiki/Eldritch_implicit_modifier",
+      "lineage": "PoE Wiki",
+      "kind": "unavailable",
+      "checked_at": "2026-10-30",
+      "finding": "Direct web retrieval returned403. Search snippets alone do not close current eligibility requirements."
+    },
+    {
+      "id": "FH07",
+      "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+      "lineage": "GhazzyTV",
+      "kind": "build_guide",
+      "patch": "3.29",
+      "source_date": "2026-07-31",
+      "checked_at": "2026-10-30",
+      "finding": "Rare minion-base shield prioritises +1 all minion skills, life and deficit-filling resistances. Higher-budget replacement is Bitterbind Point with variant-specific unveiling. Does not prescribe Deafening Greed or130life minimum."
+    },
+    {
+      "id": "FH08",
+      "url": "https://pohx.net/crafts/elder-ft-helmet/",
+      "lineage": "Pohx",
+      "kind": "primary_craft_guide_fresh_reopen",
+      "patch": null,
+      "checked_at": "2026-10-30",
+      "finding": "Any Conc+Burn on Elder82+ Archdemon/pure armour; open prefix+1AoE finish. Skill restriction FT/Searing Bond of Detonation, excludes socketed RF. Optional mana-exalt/annul/beast not adopted.",
+      "local_detail": "rf-chain/source.json"
+    }
+  ],
+  "other_followup": [
+    {
+      "id": "FO01",
+      "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+      "version_and_lineage": "GhazzyTV; page dated2026-07-31; Allflame navigation",
+      "findings_and_limit": "Fear/chaos fracture glove path and one of two Exarch variants; lower rare belt vs Darkness Enthroned+jewels. Same author lineage as originalOS01; not a new independent cohort."
+    },
+    {
+      "id": "FO02",
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-flasks",
+      "version_and_lineage": "PathofEvening; page dated2026-09-17; heading3.29",
+      "findings_and_limit": "Bow/quiver targets; glove Pierce+ChaosDoT pair; rare belt replaced by Tides of Time. Same author lineage as originalOS03; source thresholds are examples, not measured demand."
+    },
+    {
+      "id": "FO03",
+      "url": "https://www.poe-vault.com/guides/shrapnel-ballista-hierophant-gear-flasks",
+      "version_and_lineage": "POEGuy; page dated2026-08-21; body patch3.29",
+      "findings_and_limit": "Fracture-pierce quiver then Rage/arrow; Hunter/Elder belt. Guide omits two-prefix-vacancy precondition and suggests league bench. Same originalOS05 lineage."
+    },
+    {
+      "id": "FO04",
+      "url": "https://www.poe-vault.com/guides/winter-orb-occultist-gear-flasks",
+      "version_and_lineage": "Lexyu; page dated2026-07-29; Allflame heading",
+      "findings_and_limit": "Separate ColdExposure/Unnerve implicit slots; page includes life and life flask despite CI-linked plan in prior pass. Same originalOS04 lineage."
+    },
+    {
+      "id": "FO05",
+      "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
+      "version_and_lineage": "PoEVault; page dated2026-07-22; Allflame heading",
+      "findings_and_limit": "Early glove attack speed optional; eldritch bases later. Belt unique substitutions. Same originalOS02 lineage."
+    },
+    {
+      "id": "FO06",
+      "url": "https://www.craftofexile.com/?cl=en",
+      "version_and_lineage": "Public homepage; checked2026-10-30",
+      "findings_and_limit": "Data declared3.29; recommends beta for full functionality including Allflame. All saved simulations in this directory use stable ordinary crafting."
+    },
+    {
+      "id": "FO07",
+      "url": "https://beta.craftofexile.com/changelog?game=poe1",
+      "version_and_lineage": "Public changelog; checked2026-10-30",
+      "findings_and_limit": "Lists Allflame simulation/emulation/calculation support2026-07-26 and data3.29.3.1.2 updated2026-08-12; no beta run claimed."
+    },
+    {
+      "id": "FO08",
+      "url": "https://www.pathofexile.com/forum/view-thread/3985332",
+      "version_and_lineage": "GGG3.29.0 primary patch notes; checked2026-10-30",
+      "findings_and_limit": "New bench reroll1/reroll3 options; Fractured Fossils now randomly fracture and exclude fractured/influenced items. These are untested alternatives, not a guaranteed better recipe."
+    }
+  ],
+  "closure_builds": [
+    {
+      "id": "BC01",
+      "url": "https://www.pathofexile.com/forum/view-thread/3985332",
+      "checked_date": "2026-10-30",
+      "kind": "primary_patch_or_author_guide",
+      "lineage": "Oneauthorlineageperguide; repeatedreadsnotindependentvotes"
+    },
+    {
+      "id": "BC02",
+      "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+      "checked_date": "2026-10-30",
+      "kind": "primary_patch_or_author_guide",
+      "lineage": "Oneauthorlineageperguide; repeatedreadsnotindependentvotes"
+    },
+    {
+      "id": "BC03",
+      "url": "https://www.poe-vault.com/guides/lacerate-gladiator-gear-jewels-flasks",
+      "checked_date": "2026-10-30",
+      "kind": "primary_patch_or_author_guide",
+      "lineage": "Oneauthorlineageperguide; repeatedreadsnotindependentvotes"
+    },
+    {
+      "id": "BC04",
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-flasks",
+      "checked_date": "2026-10-30",
+      "kind": "primary_patch_or_author_guide",
+      "lineage": "Oneauthorlineageperguide; repeatedreadsnotindependentvotes"
+    },
+    {
+      "id": "BC05",
+      "url": "https://www.poe-vault.com/guides/shrapnel-ballista-hierophant-gear-flasks",
+      "checked_date": "2026-10-30",
+      "kind": "primary_patch_or_author_guide",
+      "lineage": "Oneauthorlineageperguide; repeatedreadsnotindependentvotes"
+    },
+    {
+      "id": "BC06",
+      "url": "https://www.poe-vault.com/guides/winter-orb-occultist-gear-flasks",
+      "checked_date": "2026-10-30",
+      "kind": "primary_patch_or_author_guide",
+      "lineage": "Oneauthorlineageperguide; repeatedreadsnotindependentvotes"
+    },
+    {
+      "id": "BC07",
+      "url": "https://pohx.net/crafts/elder-ft-helmet/",
+      "checked_date": "2026-10-30",
+      "kind": "primary_patch_or_author_guide",
+      "lineage": "Oneauthorlineageperguide; repeatedreadsnotindependentvotes"
+    },
+    {
+      "id": "BC08",
+      "url": "https://pohx.net/crafts/elder-rf-helmet/",
+      "checked_date": "2026-10-30",
+      "kind": "primary_patch_or_author_guide",
+      "lineage": "Oneauthorlineageperguide; repeatedreadsnotindependentvotes"
+    },
+    {
+      "id": "BC09",
+      "url": "https://pobb.in/i8A9gJKkJ8TR/raw",
+      "checked_date": "2026-10-30",
+      "kind": "published_author_plan",
+      "sha256": "a538f8430dcf1139263c036b1c30f97360045281b2287f20ddf8f2dafb69b9c3",
+      "evidence": "i8A9gJKkJ8TR.xml"
+    },
+    {
+      "id": "BC10",
+      "url": "https://pobb.in/0rBi20lhVp9l/raw",
+      "checked_date": "2026-10-30",
+      "kind": "published_author_plan",
+      "sha256": "3e773495a27d52fdf0869c489dab84a7ab52dc72e5c7ac101c6893f2c03545e2",
+      "evidence": "0rBi20lhVp9l.xml"
+    },
+    {
+      "id": "BC11",
+      "url": "https://pobb.in/7_6IS6EVRZfT/raw",
+      "checked_date": "2026-10-30",
+      "kind": "published_author_plan",
+      "sha256": "acc0648339051aae659d7d0d3a292c183ca9bd5b31dc067c6674b1e936f3f091",
+      "evidence": "7_6IS6EVRZfT.xml"
+    },
+    {
+      "id": "BC12",
+      "url": "https://pobb.in/gngEnRjrh1ou/raw",
+      "checked_date": "2026-10-30",
+      "kind": "published_author_plan",
+      "sha256": "eac9e6daffe6d766d0fc20927d4761b4329dc9f3cb678c4f06e76a05d6289c3a",
+      "evidence": "gngEnRjrh1ou.xml"
+    },
+    {
+      "id": "BC13",
+      "url": "https://pobb.in/NlUa8ZnB3YGK/raw",
+      "checked_date": "2026-10-30",
+      "kind": "published_author_plan",
+      "sha256": "1fecbc1c885dc824d4330aedec0d6e4450231a73da48e8f031e02514d4544902",
+      "evidence": "NlUa8ZnB3YGK.xml"
+    },
+    {
+      "id": "BC14",
+      "url": "https://pobb.in/fw66mh2PgIPK/raw",
+      "checked_date": "2026-10-30",
+      "kind": "published_author_plan",
+      "sha256": "d87eca64e431b90d88a306e5e15dad0340ddc6c0a954b0a5ecfa7b5c467a1b84",
+      "evidence": "fw66mh2PgIPK.xml"
+    },
+    {
+      "id": "BC15",
+      "url": "https://www.pathofexile.com/forum/view-forum/patch-notes",
+      "checked_date": "2026-10-30",
+      "kind": "official_patch_index_or_note"
+    },
+    {
+      "id": "BC16",
+      "url": "https://www.pathofexile.com/forum/view-thread/3991672",
+      "checked_date": "2026-10-30",
+      "kind": "official_patch_index_or_note"
+    },
+    {
+      "id": "BC17",
+      "url": "https://www.pathofexile.com/forum/view-thread/3994431",
+      "checked_date": "2026-10-30",
+      "kind": "official_patch_index_or_note"
+    },
+    {
+      "id": "BC18",
+      "url": "https://www.pathofexile.com/forum/view-thread/3996516",
+      "checked_date": "2026-10-30",
+      "kind": "official_patch_index_or_note"
+    },
+    {
+      "id": "BC19",
+      "url": "https://www.pathofexile.com/forum/view-thread/4001117",
+      "checked_date": "2026-10-30",
+      "kind": "official_patch_index_or_note"
+    },
+    {
+      "id": "BC20",
+      "url": "https://www.poe-vault.com/guides/balormage-summon-raging-spirits-necromancer-gear-jewels-flasks",
+      "checked_date": "2026-10-30",
+      "kind": "primary_author_guide"
+    }
+  ],
+  "closure_recovery": [
+    {
+      "id": "RC01",
+      "kind": "primary_game_patch_notes",
+      "url": "https://www.pathofexile.com/forum/view-thread/3985332",
+      "retrieved_date": "2026-10-30",
+      "locations": [
+        "Gem Socket Changes, lines239-245",
+        "Item Changes, lines655-662",
+        "New Content and Features, line112"
+      ],
+      "findings": [
+        "In3.29 any gem may enter any equipment socket regardless of colour. Matching RGB grants gem quality; default sockets are white. Socket count and links remain distinct requirements.",
+        "Fractured Fossils randomly fracture a modifier and exclude fractured or influenced items. The patch text does not establish preservation of an existing Insanity modifier or equivalence to a prepared Fracturing Orb attempt.",
+        "New bench random-modifier rerolls are not targeted annuls and do not establish a safe two-mod cleanup."
+      ],
+      "not_claimed": [
+        "Later live-client patch parity",
+        "A Fractured Fossil can repair a wrong fracture",
+        "Any automatic3.29optimality claim"
+      ]
+    },
+    {
+      "id": "RC02",
+      "kind": "primary_build_author",
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-flasks",
+      "retrieved_date": "2026-10-30",
+      "author": "PathofEvening",
+      "page_date": "2026-09-17",
+      "locations": [
+        "Bow section, lines89-106"
+      ],
+      "findings": [
+        "Standard endgame Thicket example has+1gems,+2support,80+increasedChaosDoT,17-19AS,18-20craftedChaosMulti,multimod.",
+        "Widowhail is described as a different much-higher-budget quiver package."
+      ],
+      "not_claimed": [
+        "The author5-8Div estimate is a current measured budget or minimum"
+      ]
+    },
+    {
+      "id": "RC03",
+      "kind": "primary_build_author",
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-passive-skill-tree-gem-links",
+      "retrieved_date": "2026-10-30",
+      "locations": [
+        "Main6-Link(Bow)"
+      ],
+      "findings": [
+        "Main bow contains Toxic Rain,Mirage Archer,Void Manipulation,Vicious Projectiles,Efficacy,Empower in one6link.",
+        "Current3.29 compatibility followsRC01; do not add a mandatory4G1B1R colouring step."
+      ]
+    },
+    {
+      "id": "RC04",
+      "kind": "primary_build_author",
+      "url": "https://www.poe-vault.com/guides/shrapnel-ballista-hierophant-gear-flasks",
+      "retrieved_date": "2026-10-30",
+      "author": "POEGuy",
+      "page_date": "2026-08-21",
+      "locations": [
+        "Quiver,lines112-129"
+      ],
+      "findings": [
+        "Start uncorrupted,uninfluenced,unfractured Penetrating Arrow Quiver ilvl81+; Insanity supplies2pierce explicit; annul to exactly4 while retainingpierce; Fracturing Orb targetsoneof4; wrongfracture returns to a new base.",
+        "Rage untiladditionalarrow is an allowed limited-budget stopping point.",
+        "Premium wording states at least one suffix vacancy beforeCannotAttack and twoExalts; this is insufficient without two prefix vacancies and suffix occupancy.",
+        "Guide explicitly acknowledges annul loss ofStrength orarrow; a deterministic premium route cannot be inferred."
+      ],
+      "not_claimed": [
+        "The budget3core stop is identical to the premium6mod planned quiver"
+      ]
+    },
+    {
+      "id": "RC05",
+      "kind": "primary_game_publisher_video",
+      "url": "https://www.youtube.com/watch?v=F5dO2Gg01VU",
+      "retrieved_date": "2026-10-30",
+      "publisher": "Verified Path of Exile YouTube channel",
+      "locations": [
+        "11:19-12:12",
+        "12:34-12:40",
+        "29:09-31:15"
+      ],
+      "access": "Verified title/channel through browser; exported authored/unspecified Russian captions through browser built-in transcript export; summarized only.",
+      "findings": [
+        "Allflame uses an eligible normal crafting currency plus Dead Mans Sulphur; each ghost is an outcome of that operation on the original item; keep only one. Stronger operations need more sulphur.",
+        "Kishara Ducat is a distinct one-mod-isolation operation; it is not a targeted guarantee that all3corequiver mods survive.",
+        "Socket colours no longer restrict equipment gem compatibility; sockets and links still matter."
+      ],
+      "not_claimed": [
+        "A fixed numberofpreviews forFracturingOrb",
+        "An exact sulphurfee orintangibilitymodel",
+        "A guaranteed selected pierce fracture or protected annul"
+      ]
+    },
+    {
+      "id": "RC06",
+      "kind": "primary_tool_UI_execution",
+      "url": "https://www.craftofexile.com/",
+      "retrieved_date": "2026-10-30",
+      "findings": [
+        "Public stable simulator declared3.29Allflame.12step paidScourconfig ran100000actions,31finishedbows,162Scours.",
+        "UI says beta is preferred for full functionality. Ordinary bow currencies/bench route executed onstable; nobetaAllflame run asserted."
+      ],
+      "evidence": [
+        "bow-paid-final-export.json",
+        "bow-paid-results.ax.txt",
+        "bow-paid-items.ax.txt",
+        "bow-paid-results.png",
+        "bow-paid-items.png"
+      ]
+    },
+    {
+      "id": "RC07",
+      "kind": "primary_tool_UI_observation",
+      "url": "https://beta.craftofexile.com/",
+      "retrieved_date": "2026-10-30",
+      "findings": [
+        "PenetratingArrowQuiver selected in beta; ordinary table confirms nonattackLife andDamagewithBowSkills prefixes,attackadditionalarrow suffix,attackblockingbench suffix.",
+        "FracturingOrb tooltip atilvl81 saysrareitemwithatleast4mods; normalitemisrejected.",
+        "Item-ilvl100pool capture is not ilvl81simulation proof; later81entry wasobserved but browsertransport timedout before execution."
+      ],
+      "evidence": [
+        "beta-quiver-pool.ax.txt"
+      ],
+      "not_claimed": [
+        "A betaquivercraft completed",
+        "A FracturedFossil was applied",
+        "An Allflame attempt executed"
+      ]
+    },
+    {
+      "id": "RC08",
+      "kind": "secondary_datamined_item_wording_with_stale_embedded_wiki",
+      "url": "https://poedb.tw/us/Fractured_Fossil",
+      "retrieved_date": "2026-10-30",
+      "findings": [
+        "Currentitemheaderagrees withGGG randomfracture and exclusionoffractured/influenceditems.",
+        "Embeddedcommunitywiki loweronthe samepage stilldescribesoldmirror/splitmechanic; rejectedas3.29mechanicsproof."
+      ],
+      "not_used_for": [
+        "Exact currentresonatorrerollsemantics",
+        "Prices orconversionrates"
+      ]
+    },
+    {
+      "id": "RC09",
+      "kind": "primary_market_public_UI",
+      "url": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAE3WPwWoDMQxEf6XM2QS6aUriH-ilf1BCUG1tavDaiy0vhEX_XpzQsj30JqGZN6MVVUhahV2RZwk5waKya4U-I0MN5DYzLN55CSRflJ7eqCWJLBXmbq6wH-uPjJKHwRiicHkcgofFWMhJK-x33XEZTsP-5fg6HE4wWCg27vlTSLD7ZzXwofZ4DztSrKxnPW-gj7DLZt-MjoSvudz-PERlyq3srjEvXKGqBlOo7h9EiEv87XM8qIHLpbRZeqEN9d6t01S_Adnd3_tHAQAA",
+      "retrieved_date": "2026-10-30",
+      "findings": [
+        "Three bounded official Trade UI searches; no auth changes or endpoint use.",
+        "Warlock ilvl85+fracturedChaos31+:51matches; canonical35fractureordinarybase listed6Divine plus4324goldfee.",
+        "Leviathan distinct armour base:65matches; clean35fracturemagicbase listed16Divine plus1767goldfee.",
+        "Asks only, not sales or acquired items."
+      ],
+      "evidence": [
+        "glove-base-market/query.json",
+        "glove-base-market/observations.json",
+        "glove-base-market/warlock-detail.png",
+        "glove-base-market/leviathan-query.json",
+        "glove-base-market/leviathan-observations.json",
+        "glove-base-market/leviathan-detail.png"
+      ]
+    },
+    {
+      "id": "RC10",
+      "kind": "primary_tool_UI_execution",
+      "url": "https://beta.craftofexile.com/",
+      "retrieved_date": "2026-10-30",
+      "findings": [
+        "Natural Thicket78:20actualWhetstones,Alchemy,HunterExalted,Scour;23actions. NativepublicExport confirmsq20,ilvl78,normal,m[],Hunter influence.",
+        "No sockets generated or executed."
+      ],
+      "evidence": [
+        "bow-base-preparation/results.json",
+        "bow-base-preparation/prepared-item.json",
+        "bow-base-preparation/final.ax.txt",
+        "bow-base-preparation/paid-scour-outcome.png"
+      ]
+    },
+    {
+      "id": "RC11",
+      "kind": "retained_current_game_data_extract",
+      "path": "../closure-builds/bench-preparation-selected.json",
+      "retrieved_date": "2026-10-30",
+      "version": "RePoE3.29.3.3,root-retainedsnapshot",
+      "sha256": "49998235b24c28faa9fd25120ca921e8f51b35a0650a54ca5400cf156f271c1a",
+      "findings": [
+        "Bow6sockets350Jewellers;6links1500Fusing.",
+        "Removebench1Scour;multimod2Div;CannotAttack1Div;+2support4Exalt;topChaosMulti4Chaos."
+      ],
+      "not_claimed": [
+        "Live bench execution",
+        "Cheapestmarket route",
+        "Recipeunlockperformed"
+      ]
+    }
+  ],
+  "closure_base_sources": [
+    {
+      "url": "https://beta.craftofexile.com/?game=poe1",
+      "role": "Current public UI natural base selection, emulator actions, calculator and text exports",
+      "receipts": "Local DOM/PNG/item files",
+      "id": "CB01"
+    },
+    {
+      "url": "https://www.pathofexile.com/forum/view-thread/3985332",
+      "role": "GGG official3.29 patch; lines112 bench rerolls;660 changed Fractured Fossils;665-666 mana cost efficiency; root build audit retains socket rule.",
+      "claim": "Fossil/new bench alternatives exist; ordinary route is feasible, not proven cheapest.",
+      "id": "CB02"
+    },
+    {
+      "url": "https://www.poe-vault.com/guides/the-spectre-summoner-gear-jewels-flasks",
+      "role": "Author guide lineage, life/chaos/minion glove target. Exact current compatibility and stage audit in ../closure-builds/.",
+      "id": "CB03"
+    },
+    {
+      "url": "https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-flasks",
+      "role": "Current TR guide lineage;100life, res asneeded, AoE and mana cost implicit target; character cap not claimed.",
+      "id": "CB04"
+    }
+  ]
+}

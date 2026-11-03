@@ -88,18 +88,60 @@ export class GggRateLimitController implements RateLimitGate {
     signal?: AbortSignal,
   ): Promise<RateLimitState> {
     const normalizedEndpoint = normalizeEndpoint(endpoint);
+    // Reuse retained exchange restrictions before the new endpoint has a mapping.
+    const fallbackPolicy =
+      normalizedEndpoint === 'trade-exchange'
+        ? 'trade-exchange-request-limit'
+        : this.#fallbackPolicy;
     for (;;) {
       throwIfAborted(signal);
+      const retainedStates = ['trade', 'trade-exchange'].includes(
+        normalizedEndpoint,
+      )
+        ? await this.#repository.list()
+        : [];
+      if (
+        retainedStates.some(
+          (state) =>
+            [401, 403].includes(state.lastStatus ?? 0) &&
+            (state.endpoints.some((name) =>
+              [
+                'trade',
+                'trade-search',
+                'trade-fetch',
+                'trade-exchange',
+              ].includes(name),
+            ) ||
+              [
+                'poe-trade',
+                'trade-search-request-limit',
+                'trade-fetch-request-limit',
+                'trade-exchange-request-limit',
+              ].includes(state.policy)),
+        )
+      )
+        throw new DomainError('MARKET_ACCESS_BLOCKED');
       const now = this.#clock();
+      const legacyBlockedUntil =
+        retainedStates
+          .find((state) => state.policy === 'poe-trade')
+          ?.blockedUntil.getTime() ?? 0;
+      if (
+        normalizedEndpoint === 'trade-exchange' &&
+        legacyBlockedUntil > now.getTime()
+      ) {
+        await this.#sleep(legacyBlockedUntil - now.getTime(), signal);
+        continue;
+      }
       const permit = await this.#repository.acquire({
         conservativeDelayMs: this.#conservativeDelayMs,
         endpoint: normalizedEndpoint,
-        fallbackPolicy: this.#fallbackPolicy,
+        fallbackPolicy,
         now,
       });
       throwIfAborted(signal);
       if (
-        normalizedEndpoint === 'trade' &&
+        ['trade', 'trade-exchange'].includes(normalizedEndpoint) &&
         (permit.state.lastStatus === 401 || permit.state.lastStatus === 403)
       )
         throw new DomainError('MARKET_ACCESS_BLOCKED');
@@ -113,6 +155,10 @@ export class GggRateLimitController implements RateLimitGate {
 
   observeResponse(endpoint: string, response: RateLimitedResponse) {
     const normalizedEndpoint = normalizeEndpoint(endpoint);
+    const fallbackPolicy =
+      normalizedEndpoint === 'trade-exchange'
+        ? 'trade-exchange-request-limit'
+        : this.#fallbackPolicy;
     const now = this.#clock();
     if (
       !Number.isInteger(response.status) ||
@@ -124,7 +170,7 @@ export class GggRateLimitController implements RateLimitGate {
     const parsed = parseRateLimitHeaders(response.headers, {
       conservativeBlockMs: this.#conservativeBlockMs,
       conservativeDelayMs: this.#conservativeDelayMs,
-      fallbackPolicy: this.#fallbackPolicy,
+      fallbackPolicy,
       now,
       safetyFactor: this.#safetyFactor,
       status: response.status,
@@ -132,7 +178,7 @@ export class GggRateLimitController implements RateLimitGate {
     return this.#repository.observe({
       blockedUntil: new Date(now.getTime() + parsed.blockedForMs),
       endpoint: normalizeIdentifier(endpoint, normalizedEndpoint),
-      fallbackPolicy: this.#fallbackPolicy,
+      fallbackPolicy,
       minimumDelayMs: parsed.minimumDelayMs,
       now,
       policy: parsed.policy,

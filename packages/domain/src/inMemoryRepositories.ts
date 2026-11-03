@@ -595,7 +595,15 @@ export function createInMemoryRepositories(): Repositories {
       },
       async list() {
         return [...rateLimitStates.values()]
-          .filter(({ endpoints }) => endpoints.length > 0)
+          .filter(
+            ({ endpoints, lastStatus, policy, blockedUntil, lastResponseAt }) =>
+              endpoints.length > 0 ||
+              lastStatus === 401 ||
+              lastStatus === 403 ||
+              (policy === 'poe-trade' &&
+                lastResponseAt !== null &&
+                blockedUntil > lastResponseAt),
+          )
           .sort((left, right) => left.policy.localeCompare(right.policy))
           .map(clone);
       },

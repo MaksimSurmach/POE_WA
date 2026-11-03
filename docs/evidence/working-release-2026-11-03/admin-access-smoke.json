@@ -1,0 +1,35 @@
+{
+  "checks": [
+    {
+      "check": "nonlocal Host",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "check": "foreign Origin",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "check": "proxy spoof",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "check": "cross-site",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "check": "invalid timeout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "check": "stale version",
+      "expected": 409,
+      "actual": 409
+    }
+  ],
+  "unchangedVersion": 1
+}

@@ -370,10 +370,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             providers: [runClient],
             repositories,
             retryDelayMs: config.marketRetryDelayMs,
-            snapshotTtlMs: Math.min(
-              settings.snapshotReuseTtlMs,
-              settings.maximumQuoteAgeMs,
-            ),
+            snapshotTtlMs: settings.maximumQuoteAgeMs,
           });
           const report = await new FullRefreshOrchestrator({
             collectMaterialPrices: async () => {
@@ -386,10 +383,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             repositories,
             logger,
             metrics,
-            snapshotTtlMs: Math.min(
-              settings.snapshotReuseTtlMs,
-              settings.maximumQuoteAgeMs,
-            ),
+            snapshotTtlMs: settings.snapshotReuseTtlMs,
             maximumQuoteAgeMs: settings.maximumQuoteAgeMs,
             signal,
             ...(scope.scope === 'recipe' ? { recipeId: scope.recipeId } : {}),

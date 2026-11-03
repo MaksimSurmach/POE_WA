@@ -45,13 +45,14 @@
       }
     },
     "uncertainties": [
-      "Indicative estimate: Craft of Exile displays rounded probability and expected consumption. Asking prices do not establish completed sales."
+      "Indicative estimate: Craft of Exile displays rounded probability and expected consumption. Asking prices do not establish completed sales.",
+      "Starting-base acquisition must use exactly item level 83. Higher item levels can change the affix pool and require a separate cost model."
     ],
     "id": "alteration",
     "name": "Alteration \u00b7 2 Notables",
     "steps": [
       {
-        "action": "Use one Orb of Transmutation on the normal base.",
+        "action": "Use one Orb of Transmutation on the normal base of exactly item level 83.",
         "continueWhen": "The item is magic.",
         "failureAction": "Continue when the Orb of Transmutation succeeds.",
         "id": "transmute-base",

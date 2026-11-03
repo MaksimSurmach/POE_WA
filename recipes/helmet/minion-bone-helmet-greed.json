@@ -1,0 +1,205 @@
+{
+  "base": {
+    "baseId": "base:bone-helmet",
+    "influences": [],
+    "itemLevel": 75,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "category": "helmet",
+  "notes": "Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. 92life is accepted only where current author does not require100. No100 guarantee, exact Praetor defence/gem/bench replication, Wraithlord/Dark Monarch replacement or current character-cap claim.",
+  "craft": {
+    "id": "minion-bone-helmet-greed",
+    "name": "Bone Helmet · +2 Minion Gems",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-greed"
+    },
+    "startingMods": [
+      {
+        "modId": "mod:implicit-minion-damage",
+        "kind": "implicit",
+        "minimumValue": 15
+      }
+    ],
+    "uncertainties": [
+      "Current calculator probability and mean essence use are rounded; expected spending is indicative.",
+      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established.",
+      "Starting-base acquisition must use exactly item level 75. Higher item levels can change the affix pool and require a separate cost model.",
+      "Acquire the Bone Helmet with at least 15% increased minion damage as an existing implicit. Greed and the resistance bench do not provide a missing input implicit."
+    ],
+    "steps": [
+      {
+        "id": "essence-greed",
+        "title": "Roll minion levels and life",
+        "action": "Use Deafening Essence of Greed on the acquired rare Bone Helmet with at least 15% increased minion damage as an existing implicit.",
+        "continueWhen": "+2 to Level of all Minion Skill Gems, at least one open suffix and no native Fire Resistance.",
+        "failureAction": "If any stopping condition fails, repeat the essence on the same rare base; the native implicit is preserved. Do not pay for the bench before the whole core passes.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-greed",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "probability": 0.000525,
+          "evidence": {
+            "method": "Current public CoE joint gem level, open suffix and no-fire calculation; ordinary paid failure and complete paid bench finish checked",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbWzE4XV0sImUiOltdLCJwIjp7ImFybW91ciI6MjExLCJlbmVyZ3lzaGllbGQiOjQ1fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX0seyJ0Ijoibm90IiwibSI6bnVsbCwiZSI6W3siaSI6IjEwMzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+            "verifiedAt": "2026-11-03",
+            "settings": "Acquired rare uninfluenced item level 75, unfractured, uncorrupted and unsynthesised, preserving native minion damage 15–20%. Deafening Essence of Greed guarantees 91–105 life. Stop only with +2 to all Minion Skill Gems AND at least one open suffix AND no native Fire Resistance. Then bench 29–35% Fire Resistance once for 3 Chaos Orbs.",
+            "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-bone-greed.json",
+            "assumptions": "Expected 1907 rounded essence uses per completed item, including failures of the joint gem/vacancy/no-fire condition; one 3 Chaos Orb bench application and one acquired base. Same rare base reused, no Scouring. Any bench roll succeeds. No completed game craft, purchase, sale or whole-build fit is established."
+          }
+        }
+      },
+      {
+        "id": "craft-fire-resistance",
+        "title": "Craft resistance",
+        "action": "Bench craft 29–35% Fire Resistance in the open suffix.",
+        "continueWhen": "Required minion level, essence life and crafted Fire Resistance.",
+        "failureAction": "All 29–35% bench rolls pass. If the suffix is unavailable, the core did not satisfy the stopping conditions; return to paid essence rerolls.",
+        "materials": [
+          {
+            "itemId": "chaos-orb",
+            "quantity": 3
+          }
+        ],
+        "success": {
+          "probability": 1,
+          "evidence": {
+            "method": "Current public CoE joint gem level, open suffix and no-fire calculation; ordinary paid failure and complete paid bench finish checked",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbWzE4XV0sImUiOltdLCJwIjp7ImFybW91ciI6MjExLCJlbmVyZ3lzaGllbGQiOjQ1fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX0seyJ0Ijoibm90IiwibSI6bnVsbCwiZSI6W3siaSI6IjEwMzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+            "verifiedAt": "2026-11-03",
+            "settings": "Acquired rare uninfluenced item level 75, unfractured, uncorrupted and unsynthesised, preserving native minion damage 15–20%. Deafening Essence of Greed guarantees 91–105 life. Stop only with +2 to all Minion Skill Gems AND at least one open suffix AND no native Fire Resistance. Then bench 29–35% Fire Resistance once for 3 Chaos Orbs.",
+            "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-bone-greed.json",
+            "assumptions": "Expected 1907 rounded essence uses per completed item, including failures of the joint gem/vacancy/no-fire condition; one 3 Chaos Orb bench application and one acquired base. Same rare base reused, no Scouring. Any bench roll succeeds. No completed game craft, purchase, sale or whole-build fit is established."
+          }
+        }
+      }
+    ],
+    "evidence": {
+      "method": "Current public CoE joint gem level, open suffix and no-fire calculation; ordinary paid failure and complete paid bench finish checked",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbWzE4XV0sImUiOltdLCJwIjp7ImFybW91ciI6MjExLCJlbmVyZ3lzaGllbGQiOjQ1fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX0seyJ0Ijoibm90IiwibSI6bnVsbCwiZSI6W3siaSI6IjEwMzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+      "verifiedAt": "2026-11-03",
+      "settings": "Acquired rare uninfluenced item level 75, unfractured, uncorrupted and unsynthesised, preserving native minion damage 15–20%. Deafening Essence of Greed guarantees 91–105 life. Stop only with +2 to all Minion Skill Gems AND at least one open suffix AND no native Fire Resistance. Then bench 29–35% Fire Resistance once for 3 Chaos Orbs.",
+      "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-bone-greed.json",
+      "assumptions": "Expected 1907 rounded essence uses per completed item, including failures of the joint gem/vacancy/no-fire condition; one 3 Chaos Orb bench application and one acquired base. Same rare base reused, no Scouring. Any bench roll succeeds. No completed game craft, purchase, sale or whole-build fit is established."
+    },
+    "expectedExecutions": [
+      {
+        "stepId": "essence-greed",
+        "count": 1907,
+        "evidence": {
+          "method": "Current public CoE joint gem level, open suffix and no-fire calculation; ordinary paid failure and complete paid bench finish checked",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbWzE4XV0sImUiOltdLCJwIjp7ImFybW91ciI6MjExLCJlbmVyZ3lzaGllbGQiOjQ1fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX0seyJ0Ijoibm90IiwibSI6bnVsbCwiZSI6W3siaSI6IjEwMzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+          "verifiedAt": "2026-11-03",
+          "settings": "Acquired rare uninfluenced item level 75, unfractured, uncorrupted and unsynthesised, preserving native minion damage 15–20%. Deafening Essence of Greed guarantees 91–105 life. Stop only with +2 to all Minion Skill Gems AND at least one open suffix AND no native Fire Resistance. Then bench 29–35% Fire Resistance once for 3 Chaos Orbs.",
+          "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-bone-greed.json",
+          "assumptions": "Expected 1907 rounded essence uses per completed item, including failures of the joint gem/vacancy/no-fire condition; one 3 Chaos Orb bench application and one acquired base. Same rare base reused, no Scouring. Any bench roll succeeds. No completed game craft, purchase, sale or whole-build fit is established."
+        }
+      },
+      {
+        "stepId": "craft-fire-resistance",
+        "count": 1,
+        "evidence": {
+          "method": "Current public CoE joint gem level, open suffix and no-fire calculation; ordinary paid failure and complete paid bench finish checked",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbWzE4XV0sImUiOltdLCJwIjp7ImFybW91ciI6MjExLCJlbmVyZ3lzaGllbGQiOjQ1fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX0seyJ0Ijoibm90IiwibSI6bnVsbCwiZSI6W3siaSI6IjEwMzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+          "verifiedAt": "2026-11-03",
+          "settings": "Acquired rare uninfluenced item level 75, unfractured, uncorrupted and unsynthesised, preserving native minion damage 15–20%. Deafening Essence of Greed guarantees 91–105 life. Stop only with +2 to all Minion Skill Gems AND at least one open suffix AND no native Fire Resistance. Then bench 29–35% Fire Resistance once for 3 Chaos Orbs.",
+          "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-bone-greed.json",
+          "assumptions": "Expected 1907 rounded essence uses per completed item, including failures of the joint gem/vacancy/no-fire condition; one 3 Chaos Orb bench application and one acquired base. Same rare base reused, no Scouring. Any bench roll succeeds. No completed game craft, purchase, sale or whole-build fit is established."
+        }
+      }
+    ],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Current public CoE joint gem level, open suffix and no-fire calculation; ordinary paid failure and complete paid bench finish checked",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbWzE4XV0sImUiOltdLCJwIjp7ImFybW91ciI6MjExLCJlbmVyZ3lzaGllbGQiOjQ1fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX0seyJ0Ijoibm90IiwibSI6bnVsbCwiZSI6W3siaSI6IjEwMzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+        "verifiedAt": "2026-11-03",
+        "settings": "Acquired rare uninfluenced item level 75, unfractured, uncorrupted and unsynthesised, preserving native minion damage 15–20%. Deafening Essence of Greed guarantees 91–105 life. Stop only with +2 to all Minion Skill Gems AND at least one open suffix AND no native Fire Resistance. Then bench 29–35% Fire Resistance once for 3 Chaos Orbs.",
+        "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-bone-greed.json",
+        "assumptions": "Expected 1907 rounded essence uses per completed item, including failures of the joint gem/vacancy/no-fire condition; one 3 Chaos Orb bench application and one acquired base. Same rare base reused, no Scouring. Any bench roll succeeds. No completed game craft, purchase, sale or whole-build fit is established."
+      }
+    }
+  },
+  "startingBase": {
+    "baseId": "base:bone-helmet",
+    "influences": [],
+    "itemLevel": 75,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame"],
+    "checkedAt": "2026-11-03",
+    "sources": [
+      "https://beta.craftofexile.com/?group=9&item=1100&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldEF0bGFzMSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo3NSwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbWzE4XV0sImUiOltdLCJwIjp7ImFybW91ciI6MjExLCJlbmVyZ3lzaGllbGQiOjQ1fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&method=3%2C2%2C20&flags=&ilvl=75&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX0seyJ0Ijoibm90IiwibSI6bnVsbCwiZSI6W3siaSI6IjEwMzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+      "https://beta.craftofexile.com/changelog"
+    ],
+    "notes": "Current public 3.29.3.3 exact joint calculator model checked on 2026-11-03: 1907 rounded Greed uses, then one paid 3 Chaos Orb bench. Native implicit and essence life guarantees verified. Scoped indicative cost model only; no game trade or full-build fit claim."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "minion-bone-helmet-greed",
+  "schemaVersion": 3,
+  "summary": "Roll +2 all minion gems and essence life on a Bone Helmet, then craft Fire Resistance in a free suffix.",
+  "tags": ["minion", "gem-levels", "life", "resistances"],
+  "targetSignature": "3.29.3.3:dc9daa7d4031b41b996276114275f792",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:life",
+        "minimumValue": 91
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:minion-gems",
+        "minimumValue": 2
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:crafted-fire-resistance",
+        "minimumValue": 29
+      }
+    ],
+    "implicits": [
+      {
+        "excluded": false,
+        "kind": "implicit",
+        "modId": "mod:implicit-minion-damage",
+        "minimumValue": 15
+      }
+    ],
+    "other": []
+  },
+  "title": "Bone Helmet · +2 Minion Gems"
+}

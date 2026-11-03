@@ -1,0 +1,160 @@
+{
+  "base": {
+    "baseId": "base:dragonscale-gauntlets",
+    "influences": [],
+    "itemLevel": 85,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": true,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "category": "gloves",
+  "notes": "A concrete, selected catalog target derived from the source Sheet. Exact numeric thresholds/base selection are explicit authoring choices, not measured demand or verified calculator results. Sheet C004 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices. Current CoE evidence independently checked2026-11-03; this selected single-stage core requires no optional implicit or bench finish.",
+  "craft": {
+    "id": "suppression-gloves-fear",
+    "name": "Suppression Gloves · Minion Damage",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-fear"
+    },
+    "startingMods": [
+      {
+        "modId": "mod:fractured-suppression",
+        "kind": "fractured",
+        "minimumValue": 14
+      }
+    ],
+    "uncertainties": [
+      "Indicative CoE model: displayed probability and expected essence uses are rounded. Real spending and completed sales are not established.",
+      "The acquisition is an already fractured14% suppression rare base. Its actual asking price and gold fee need fresh market evidence; self-fracturing and any Eldritch/bench finish are outside this method.",
+      "Starting-base acquisition must use exactly item level 85. Higher item levels can change the affix pool and require a separate cost model."
+    ],
+    "steps": [
+      {
+        "id": "essence-roll",
+        "title": "Roll life with the fractured suffix",
+        "action": "Acquire rare Dragonscale Gauntlets with at least 14% fractured Spell Suppression. Use Deafening Essence of Fear.",
+        "continueWhen": "Life at least 100 with essence minion damage at least 28%.",
+        "failureAction": "Repeat the paid essence on the same base; only the fractured suppression is protected. Keep lower outcomes as separately priced salvage, never as matches for this SKU.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-fear",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "evidence": {
+            "method": "Manually checked current Craft of Exile calculator; rounded displayed success and mean consumption, complete outcome plus ordinary paid failure reroll",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?group=6&item=1360&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C7%2C51&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=31",
+            "verifiedAt": "2026-11-03",
+            "settings": "PoE 1 Dragonscale Gauntlets STR/DEX, rare ilvl85, no influence/corruption/synthesis, acquired +14% fractured Spell Suppression. Deafening Essence of Fear; require life T2 or better (100–129). The essence guarantees 28–30% increased Minion Damage as a prefix. No finishing or open-affix condition.",
+            "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-fear.json",
+            "assumptions": "Independent essence rerolls on the same already acquired fractured rare base; one essence per attempt, one base per finished item, no Scouring, replacement or finishing operation. CoE rounded mean 22 uses makes costs/ROI indicative; no in-game spending, purchase, sale or whole-build validation."
+          },
+          "probability": 0.045700000000000005
+        }
+      }
+    ],
+    "evidence": {
+      "method": "Manually checked current Craft of Exile calculator; rounded displayed success and mean consumption, complete outcome plus ordinary paid failure reroll",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?group=6&item=1360&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C7%2C51&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=31",
+      "verifiedAt": "2026-11-03",
+      "settings": "PoE 1 Dragonscale Gauntlets STR/DEX, rare ilvl85, no influence/corruption/synthesis, acquired +14% fractured Spell Suppression. Deafening Essence of Fear; require life T2 or better (100–129). The essence guarantees 28–30% increased Minion Damage as a prefix. No finishing or open-affix condition.",
+      "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-fear.json",
+      "assumptions": "Independent essence rerolls on the same already acquired fractured rare base; one essence per attempt, one base per finished item, no Scouring, replacement or finishing operation. CoE rounded mean 22 uses makes costs/ROI indicative; no in-game spending, purchase, sale or whole-build validation."
+    },
+    "expectedExecutions": [
+      {
+        "stepId": "essence-roll",
+        "count": 22,
+        "evidence": {
+          "method": "Manually checked current Craft of Exile calculator; rounded displayed success and mean consumption, complete outcome plus ordinary paid failure reroll",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?group=6&item=1360&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C7%2C51&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=31",
+          "verifiedAt": "2026-11-03",
+          "settings": "PoE 1 Dragonscale Gauntlets STR/DEX, rare ilvl85, no influence/corruption/synthesis, acquired +14% fractured Spell Suppression. Deafening Essence of Fear; require life T2 or better (100–129). The essence guarantees 28–30% increased Minion Damage as a prefix. No finishing or open-affix condition.",
+          "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-fear.json",
+          "assumptions": "Independent essence rerolls on the same already acquired fractured rare base; one essence per attempt, one base per finished item, no Scouring, replacement or finishing operation. CoE rounded mean 22 uses makes costs/ROI indicative; no in-game spending, purchase, sale or whole-build validation."
+        }
+      }
+    ],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Manually checked current Craft of Exile calculator; rounded displayed success and mean consumption, complete outcome plus ordinary paid failure reroll",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?group=6&item=1360&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C7%2C51&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=31",
+        "verifiedAt": "2026-11-03",
+        "settings": "PoE 1 Dragonscale Gauntlets STR/DEX, rare ilvl85, no influence/corruption/synthesis, acquired +14% fractured Spell Suppression. Deafening Essence of Fear; require life T2 or better (100–129). The essence guarantees 28–30% increased Minion Damage as a prefix. No finishing or open-affix condition.",
+        "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-fear.json",
+        "assumptions": "Independent essence rerolls on the same already acquired fractured rare base; one essence per attempt, one base per finished item, no Scouring, replacement or finishing operation. CoE rounded mean 22 uses makes costs/ROI indicative; no in-game spending, purchase, sale or whole-build validation."
+      }
+    }
+  },
+  "startingBase": {
+    "baseId": "base:dragonscale-gauntlets",
+    "influences": [],
+    "itemLevel": 85,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": true,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame"],
+    "checkedAt": "2026-11-03",
+    "sources": [
+      "https://beta.craftofexile.com/?group=6&item=1360&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9HbG92ZXMvR2xvdmVzU3RyRGV4OCIsIm0iOlt7ImsiOiJDaGFuY2VUb1N1cHByZXNzU3BlbGxzNV9fIiwidiI6WzE0XSwiZiI6WyJmIl0sInAiOm51bGx9XSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7ImFybW91ciI6MTIyLCJldmFzaW9uIjoxMjV9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C7%2C51&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=31",
+      "https://beta.craftofexile.com/changelog",
+      "https://www.pathofexile.com/api/trade/data/stats"
+    ],
+    "notes": "Current CoE3.29.3.3 checked through the public UI: exact pre-acquired14% fracture, lifeT2+ requirement, correct Deafening Essence, full successful bundle and ordinary paid same-base failure reroll. Expected mean 22 is a rounded calculator value. This verifies the scoped crafting model, not executed game purchases, sales, profitability or whole-build fit."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "suppression-gloves-fear",
+  "schemaVersion": 3,
+  "summary": "Use Fear essences on Dragonscale Gauntlets with acquired fractured spell suppression until at least 100 life; the essence grants minion damage.",
+  "tags": ["minion", "life", "spell-suppression", "fractured"],
+  "targetSignature": "3.29.3.3:13506e25f47ba5c01d9b7146b8d91aed",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:life",
+        "minimumValue": 100
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:minion-damage",
+        "minimumValue": 28
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "fractured",
+        "modId": "mod:fractured-suppression",
+        "minimumValue": 14
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Suppression Gloves · Minion Damage"
+}

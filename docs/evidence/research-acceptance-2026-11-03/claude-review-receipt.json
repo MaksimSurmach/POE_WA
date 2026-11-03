@@ -1,0 +1,17 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 205763,
+  "num_turns": 27,
+  "session_id": "6fd72721-1532-4e72-943c-9b23b4359a9b",
+  "permission_denials": [],
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "command": "claude -p --tools Read,Glob,Grep --allowedTools Read Glob Grep --max-turns 18 --output-format json",
+  "reviewScope": "Existing original MAX-1288 source files; no code edits, source recollection or database actions",
+  "inputManifestSha256": "8bcaf1263f481ed27efebeaf86a3ead9fe4a82ac94f143fde41475f70c81076e",
+  "reviewSha256": "0d8f8e63ee9c7fbfd7bf1ca50fa2a3514665671ee15c2cc43bdf198c3fd113d9",
+  "captureLimit": "CLI JSON result records session summary and reviewer output; tool-by-tool transcript not attached."
+}

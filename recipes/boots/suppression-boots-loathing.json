@@ -1,0 +1,165 @@
+{
+  "base": {
+    "baseId": "base:slink-boots",
+    "influences": [],
+    "itemLevel": 85,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": true,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "category": "boots",
+  "notes": "A concrete, selected catalog target derived from the source Sheet. Exact numeric thresholds/base selection are explicit authoring choices, not measured demand or verified calculator results. Sheet C005 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices.",
+  "craft": {
+    "id": "suppression-boots-loathing",
+    "name": "Suppression Boots · Ailment Avoidance and Movement",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-loathing"
+    },
+    "startingMods": [
+      {
+        "modId": "mod:fractured-suppression",
+        "kind": "fractured",
+        "minimumValue": 14
+      }
+    ],
+    "uncertainties": [
+      "Indicative model: current CoE8.44% and mean12 are rounded; no game spending/sales or whole-character ailment immunity is established.",
+      "Onlysuppression+avoidance+25movement core is modelled; no life floor, Eldritch repairs or bench finish. Pre-acquiredfracture and actual goldfee/prices require separate acquisition evidence.",
+      "Starting-base acquisition must use exactly item level 85. Higher item levels can change the affix pool and require a separate cost model."
+    ],
+    "steps": [
+      {
+        "id": "essence-loathing",
+        "title": "Roll movement and ailment avoidance",
+        "action": "Acquire rare Slink Boots with at least 14% fractured Spell Suppression. Use Deafening Essence of Loathing.",
+        "continueWhen": "At least 31% chance to Avoid Elemental Ailments and at least 25% increased Movement Speed.",
+        "failureAction": "Repeat the paid essence on the same base if movement is absent or too low. This smallest procedure omits speculative Eldritch prefix repair and stops on the required functional output.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-loathing",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "evidence": {
+            "method": "Manually checked current Craft of Exile calculator; rounded displayed odds/mean uses plus complete outcome and ordinary paid failure reroll",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?group=2&item=1251&class=8&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c0RleDkiLCJtIjpbeyJrIjoiQ2hhbmNlVG9TdXBwcmVzc1NwZWxsczVfXyIsInYiOlsxNF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJldmFzaW9uIjoyNDl9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C13%2C79&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzMjY2IiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+            "verifiedAt": "2026-11-03",
+            "settings": "Acquired rare Slink Boots ilvl85, +14%fracturedSpellSuppression, no influence/corruption/synthesis. Deafening Essence of Loathing guarantees31–35%chance toAvoidElementalAilments. Require nativeMovementSpeedT3orbetter(25%or30% at85;35%tierrequires86 and is unavailable). No life, open affix, Eldritch repair or bench finish condition.",
+            "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-boots.json",
+            "assumptions": "One pre-acquired rare14%fracture base reused through independent essence rerolls; one DeafeningLoathing per attempt and noScouring or finishing stage. Displayed mean12 is rounded; indicative cost only, no game spending, acquisition execution, sales or whole-build validation."
+          },
+          "probability": 0.0844
+        }
+      }
+    ],
+    "evidence": {
+      "method": "Manually checked current Craft of Exile calculator; rounded displayed odds/mean uses plus complete outcome and ordinary paid failure reroll",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?group=2&item=1251&class=8&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c0RleDkiLCJtIjpbeyJrIjoiQ2hhbmNlVG9TdXBwcmVzc1NwZWxsczVfXyIsInYiOlsxNF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJldmFzaW9uIjoyNDl9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C13%2C79&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzMjY2IiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "verifiedAt": "2026-11-03",
+      "settings": "Acquired rare Slink Boots ilvl85, +14%fracturedSpellSuppression, no influence/corruption/synthesis. Deafening Essence of Loathing guarantees31–35%chance toAvoidElementalAilments. Require nativeMovementSpeedT3orbetter(25%or30% at85;35%tierrequires86 and is unavailable). No life, open affix, Eldritch repair or bench finish condition.",
+      "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-boots.json",
+      "assumptions": "One pre-acquired rare14%fracture base reused through independent essence rerolls; one DeafeningLoathing per attempt and noScouring or finishing stage. Displayed mean12 is rounded; indicative cost only, no game spending, acquisition execution, sales or whole-build validation."
+    },
+    "expectedExecutions": [
+      {
+        "stepId": "essence-loathing",
+        "count": 12,
+        "evidence": {
+          "method": "Manually checked current Craft of Exile calculator; rounded displayed odds/mean uses plus complete outcome and ordinary paid failure reroll",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?group=2&item=1251&class=8&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c0RleDkiLCJtIjpbeyJrIjoiQ2hhbmNlVG9TdXBwcmVzc1NwZWxsczVfXyIsInYiOlsxNF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJldmFzaW9uIjoyNDl9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C13%2C79&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzMjY2IiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verifiedAt": "2026-11-03",
+          "settings": "Acquired rare Slink Boots ilvl85, +14%fracturedSpellSuppression, no influence/corruption/synthesis. Deafening Essence of Loathing guarantees31–35%chance toAvoidElementalAilments. Require nativeMovementSpeedT3orbetter(25%or30% at85;35%tierrequires86 and is unavailable). No life, open affix, Eldritch repair or bench finish condition.",
+          "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-boots.json",
+          "assumptions": "One pre-acquired rare14%fracture base reused through independent essence rerolls; one DeafeningLoathing per attempt and noScouring or finishing stage. Displayed mean12 is rounded; indicative cost only, no game spending, acquisition execution, sales or whole-build validation."
+        }
+      }
+    ],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Manually checked current Craft of Exile calculator; rounded displayed odds/mean uses plus complete outcome and ordinary paid failure reroll",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?group=2&item=1251&class=8&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c0RleDkiLCJtIjpbeyJrIjoiQ2hhbmNlVG9TdXBwcmVzc1NwZWxsczVfXyIsInYiOlsxNF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJldmFzaW9uIjoyNDl9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C13%2C79&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzMjY2IiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+        "verifiedAt": "2026-11-03",
+        "settings": "Acquired rare Slink Boots ilvl85, +14%fracturedSpellSuppression, no influence/corruption/synthesis. Deafening Essence of Loathing guarantees31–35%chance toAvoidElementalAilments. Require nativeMovementSpeedT3orbetter(25%or30% at85;35%tierrequires86 and is unavailable). No life, open affix, Eldritch repair or bench finish condition.",
+        "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-suppression-boots.json",
+        "assumptions": "One pre-acquired rare14%fracture base reused through independent essence rerolls; one DeafeningLoathing per attempt and noScouring or finishing stage. Displayed mean12 is rounded; indicative cost only, no game spending, acquisition execution, sales or whole-build validation."
+      }
+    }
+  },
+  "startingBase": {
+    "baseId": "base:slink-boots",
+    "influences": [],
+    "itemLevel": 85,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": true,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame"],
+    "checkedAt": "2026-11-03",
+    "sources": [
+      "https://beta.craftofexile.com/?group=2&item=1251&class=8&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c0RleDkiLCJtIjpbeyJrIjoiQ2hhbmNlVG9TdXBwcmVzc1NwZWxsczVfXyIsInYiOlsxNF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJldmFzaW9uIjoyNDl9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C13%2C79&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzMjY2IiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "https://beta.craftofexile.com/changelog",
+      "https://www.pathofexile.com/api/trade/data/stats"
+    ],
+    "notes": "Current CoE3.29.3.3 exactsingle-stage modelchecked; rareSlink85 with14fracturedsuppression, Loathing31–35avoidance andmovementT3+. Full30movement31avoid14fracture outcome and ordinary15movementfailure+samefracture observed. Rounded12uses is indicative; no game purchase/sale or buildfit claim."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "suppression-boots-loathing",
+  "schemaVersion": 3,
+  "summary": "Use Loathing essences on Slink Boots with acquired fractured spell suppression until at least 25% movement speed; the essence grants ailment avoidance.",
+  "tags": [
+    "spell-suppression",
+    "ailment-avoidance",
+    "movement-speed",
+    "fractured"
+  ],
+  "targetSignature": "3.29.3.3:a5cc2da623d09beeeed8f0b5180fea11",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:movement-speed",
+        "minimumValue": 25
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "fractured",
+        "modId": "mod:fractured-suppression",
+        "minimumValue": 14
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:ailment-avoidance",
+        "minimumValue": 31
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Suppression Boots · Ailment Avoidance and Movement"
+}

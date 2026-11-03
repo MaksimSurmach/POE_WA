@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "a2ab279",
+  "sessionId": "4a1f1ec7-7c12-4e82-a1a9-6b3e340e9597",
+  "firstPass": {
+    "turns": 51,
+    "durationMs": 241932,
+    "outcome": "error_max_turns"
+  },
+  "conclusion": {
+    "turns": 1,
+    "durationMs": 73030,
+    "outcome": "success"
+  },
+  "permissionDenials": [],
+  "scope": "Partial independent integrated-source review, no reproducible P1/P2 in inspected code; not GitHub approval; subsequent calculator/TTL/sampling changes require separate validation"
+}

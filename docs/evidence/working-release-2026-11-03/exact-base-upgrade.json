@@ -1,0 +1,126 @@
+{
+  "all15BaseLinksHaveExactLevel": true,
+  "oldProfitHiddenForAllRecipes": true,
+  "recipes": [
+    {
+      "id": "lacerate-shaper-recovery-shield",
+      "level": {
+        "min": 70,
+        "max": 70
+      },
+      "verification": "unverified"
+    },
+    {
+      "id": "minion-bone-helmet-greed",
+      "level": {
+        "min": 75,
+        "max": 75
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "minion-convoking-wand-four-fossil",
+      "level": {
+        "min": 84,
+        "max": 84
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "minion-fossilised-shield-greed",
+      "level": {
+        "min": 60,
+        "max": 60
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "minion-leviathan-fear-gloves",
+      "level": {
+        "min": 85,
+        "max": 85
+      },
+      "verification": "unverified"
+    },
+    {
+      "id": "physical-large-cluster-alteration",
+      "level": {
+        "min": 83,
+        "max": 83
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "physical-large-cluster-jagged",
+      "level": {
+        "min": 83,
+        "max": 83
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "rf-fire-trap-any-support",
+      "level": {
+        "min": 83,
+        "max": 83
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "rf-fire-trap-level-20",
+      "level": {
+        "min": 83,
+        "max": 83
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "stygian-life-resistances-envy",
+      "level": {
+        "min": 85,
+        "max": 85
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "stygian-life-resistances-fossils",
+      "level": {
+        "min": 85,
+        "max": 85
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "suppression-boots-loathing",
+      "level": {
+        "min": 85,
+        "max": 85
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "suppression-gloves-fear",
+      "level": {
+        "min": 85,
+        "max": 85
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "suppression-gloves-zeal",
+      "level": {
+        "min": 85,
+        "max": 85
+      },
+      "verification": "verified"
+    },
+    {
+      "id": "tr-grizzly-aoe-helmet",
+      "level": {
+        "min": 85,
+        "max": 85
+      },
+      "verification": "unverified"
+    }
+  ]
+}

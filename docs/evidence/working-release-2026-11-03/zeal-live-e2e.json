@@ -1,0 +1,44 @@
+{
+  "kind": "permissioned-live-observation",
+  "localDate": "2026-11-03",
+  "sourceCommit": "4b59d65",
+  "recipeId": "suppression-gloves-zeal",
+  "verification": "verified",
+  "evaluation": {
+    "recipeId": "suppression-gloves-zeal",
+    "confidence": "low",
+    "status": "success",
+    "evaluatedAt": "2026-11-03T00:29:46.711Z",
+    "expectedCraftCost": {
+      "amount": 2713.05,
+      "currency": "chaos"
+    },
+    "estimatedSalePrice": {
+      "amount": 14325.5,
+      "currency": "chaos"
+    },
+    "profit": {
+      "amount": 11612.45,
+      "currency": "chaos"
+    },
+    "marginPercent": 428.021968,
+    "snapshotId": null,
+    "lastSuccessfulAt": "2026-11-03T00:29:46.711Z",
+    "errorCode": null
+  },
+  "source": {
+    "capturedAt": "2026-11-03T00:29:06.598Z",
+    "expiresAt": "2026-11-03T02:29:06.598Z",
+    "coverage": "complete",
+    "sortedPageComplete": false,
+    "totalResults": 1
+  },
+  "verifiedListings": 1,
+  "costBreakdown": null,
+  "limits": [
+    "Calculator mean is rounded and indicative.",
+    "One comparable seller does not establish liquidity or completed sales.",
+    "Exact fractured suppression origin and numeric floor are matched against raw current Trade item data.",
+    "These broad-base baseline economics are superseded by the final exact-item-level acquisition gate; original observations and arithmetic are retained."
+  ]
+}

@@ -68,7 +68,14 @@ async function league(name = 'Fixture League') {
 
 async function run(
   scenario: IntegrationScenarioName,
-  options: { name?: string; now?: Date; orchestrator?: boolean } = {},
+  options: {
+    name?: string;
+    now?: Date;
+    orchestrator?: boolean;
+    reuseTtlMs?: number;
+    maximumQuoteAgeMs?: number;
+    batchDurationMs?: number;
+  } = {},
 ) {
   const currentLeague = await league(options.name);
   const clock = new FixedClock(options.now);
@@ -83,7 +90,7 @@ async function run(
     providers: [provider],
     repositories,
     retryDelayMs: 1,
-    snapshotTtlMs,
+    snapshotTtlMs: options.maximumQuoteAgeMs ?? snapshotTtlMs,
   });
   const context = {
     leagueGggId: currentLeague.gggId,
@@ -94,7 +101,7 @@ async function run(
     league: context,
     marketDependencies: integrationMarketDependencies,
     now: clock.now(),
-    snapshotTtlMs,
+    snapshotTtlMs: options.reuseTtlMs ?? snapshotTtlMs,
   });
   if (options.orchestrator) {
     const report = await new FullRefreshOrchestrator({
@@ -104,12 +111,15 @@ async function run(
       marketJobs: {
         async runAvailable(...args) {
           const batch = await processor.runAvailable(...args);
-          clock.advanceMilliseconds(10_000);
+          clock.advanceMilliseconds(options.batchDurationMs ?? 10_000);
           return batch;
         },
       },
       repositories,
-      snapshotTtlMs,
+      snapshotTtlMs: options.reuseTtlMs ?? snapshotTtlMs,
+      ...(options.maximumQuoteAgeMs === undefined
+        ? {}
+        : { maximumQuoteAgeMs: options.maximumQuoteAgeMs }),
       workerId: 'e2e',
     }).run(plan.cycle.id);
     return {
@@ -135,6 +145,9 @@ async function run(
     leagueName: currentLeague.name,
     marketDependencies: integrationMarketDependencies,
     now: clock.now(),
+    ...(options.maximumQuoteAgeMs === undefined
+      ? {}
+      : { maximumQuoteAgeMs: options.maximumQuoteAgeMs }),
   });
   return {
     clock,
@@ -183,6 +196,53 @@ describe('full refresh PostgreSQL E2E', () => {
     if (catalog.state !== 'success')
       throw new Error('Catalog was not published');
     expect(catalog.data.entries).toHaveLength(21);
+  });
+
+  it('keeps quotes usable after reuse expires while requiring new observations on the next refresh', async () => {
+    const reuseTtlMs = 60_000;
+    const maximumQuoteAgeMs = 2 * 60 * 60_000;
+    const result = await run('all-success', {
+      orchestrator: true,
+      reuseTtlMs,
+      maximumQuoteAgeMs,
+      batchDurationMs: 90_000,
+    });
+    expect(result.publication).toMatchObject({
+      published: true,
+      failedRecipes: 0,
+    });
+    const snapshots = await pool.query<{ captured_at: Date; expires_at: Date }>(
+      'select captured_at,expires_at from raw_snapshots where refresh_cycle_id=$1 order by id',
+      [result.plan.cycle.id],
+    );
+    expect(snapshots.rows.length).toBe(result.plan.report.totalQueries);
+    for (const row of snapshots.rows) {
+      expect(
+        result.clock.now().getTime() - row.captured_at.getTime(),
+      ).toBeGreaterThan(reuseTtlMs);
+      expect(row.expires_at.getTime() - row.captured_at.getTime()).toBe(
+        maximumQuoteAgeMs,
+      );
+      expect(row.expires_at.getTime()).toBeGreaterThan(
+        result.clock.now().getTime(),
+      );
+    }
+    const next = await planCatalogRefresh(repositories, {
+      league: result.context,
+      marketDependencies: integrationMarketDependencies,
+      now: result.clock.now(),
+      snapshotTtlMs: reuseTtlMs,
+    });
+    expect(next.report.cacheHits).toBe(0);
+    expect(next.report.cacheMisses).toBe(result.plan.report.totalQueries);
+    expect(
+      (
+        await pool.query(
+          'select captured_at,expires_at from raw_snapshots where refresh_cycle_id=$1 order by id',
+          [result.plan.cycle.id],
+        )
+      ).rows,
+    ).toEqual(snapshots.rows);
   });
 
   it('reuses same-league snapshots within TTL and refreshes after expiry', async () => {

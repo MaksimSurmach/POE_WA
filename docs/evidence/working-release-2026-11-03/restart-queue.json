@@ -1,0 +1,84 @@
+{
+  "phase": "actual API/worker stop, API-only restart, durable queue while worker offline",
+  "snapshotsUnchanged": true,
+  "before": {
+    "raw_snapshots": {
+      "rows": 28,
+      "hash": "1e519537fbb618cde9ab8af08b227578"
+    },
+    "aggregated_observations": {
+      "rows": 28,
+      "hash": "9a2dbb43e651cbb5485c239c53ad76c5"
+    },
+    "recipe_evaluations": {
+      "rows": 20,
+      "hash": "396dc4518cc7b195e9eb511bd92d7a42"
+    },
+    "market_economy_snapshots": {
+      "rows": 5,
+      "hash": "ed3108332b00607eec35bb2fc3ea2200"
+    }
+  },
+  "after": {
+    "raw_snapshots": {
+      "rows": 28,
+      "hash": "1e519537fbb618cde9ab8af08b227578"
+    },
+    "aggregated_observations": {
+      "rows": 28,
+      "hash": "9a2dbb43e651cbb5485c239c53ad76c5"
+    },
+    "recipe_evaluations": {
+      "rows": 20,
+      "hash": "396dc4518cc7b195e9eb511bd92d7a42"
+    },
+    "market_economy_snapshots": {
+      "rows": 5,
+      "hash": "ed3108332b00607eec35bb2fc3ea2200"
+    }
+  },
+  "settingsVersion": 4,
+  "settingsUnchanged": true,
+  "queuedRun": {
+    "id": "04922dc6-320c-408f-ac0c-85dccc00817d",
+    "scope": "economy",
+    "recipeId": null,
+    "source": "manual",
+    "status": "queued",
+    "requestedAt": "2026-11-03T00:12:52.747Z",
+    "startedAt": null,
+    "finishedAt": null,
+    "cancelRequested": false,
+    "errorCode": null,
+    "durationMs": null,
+    "completedQueries": 0,
+    "failedQueries": 0,
+    "totalQueries": 0,
+    "sourceFreshness": null,
+    "cooldownUntil": null
+  },
+  "workerHealthyWhileQueued": false,
+  "afterWorkerRestart": {
+    "id": "04922dc6-320c-408f-ac0c-85dccc00817d",
+    "scope": "economy",
+    "recipeId": null,
+    "source": "manual",
+    "status": "succeeded",
+    "requestedAt": "2026-11-03T00:12:52.747Z",
+    "startedAt": "2026-11-03T00:12:53.977Z",
+    "finishedAt": "2026-11-03T00:12:54.462Z",
+    "cancelRequested": false,
+    "errorCode": null,
+    "durationMs": 485.31,
+    "completedQueries": 4,
+    "failedQueries": 0,
+    "totalQueries": 4,
+    "sourceFreshness": "2026-11-03T00:12:54.459Z",
+    "cooldownUntil": null
+  },
+  "workerAfterRestart": {
+    "healthy": true,
+    "heartbeatAt": "2026-11-03T00:13:44.037Z",
+    "settingsVersion": 4
+  }
+}

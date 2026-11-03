@@ -1,0 +1,109 @@
+{
+  "recipes": [
+    {
+      "id": "lacerate-shaper-recovery-shield",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 1,
+      "verification": "unverified"
+    },
+    {
+      "id": "minion-bone-helmet-greed",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 1,
+      "verification": "unverified"
+    },
+    {
+      "id": "minion-convoking-wand-four-fossil",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 5,
+      "verification": "unverified"
+    },
+    {
+      "id": "minion-fossilised-shield-greed",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 1,
+      "verification": "unverified"
+    },
+    {
+      "id": "minion-leviathan-fear-gloves",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 2,
+      "verification": "unverified"
+    },
+    {
+      "id": "physical-large-cluster-alteration",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 2,
+      "verification": "verified"
+    },
+    {
+      "id": "physical-large-cluster-jagged",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 2,
+      "verification": "verified"
+    },
+    {
+      "id": "rf-fire-trap-any-support",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 1,
+      "verification": "unverified"
+    },
+    {
+      "id": "rf-fire-trap-level-20",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 1,
+      "verification": "unverified"
+    },
+    {
+      "id": "stygian-life-resistances-envy",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 1,
+      "verification": "unverified"
+    },
+    {
+      "id": "stygian-life-resistances-fossils",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 3,
+      "verification": "unverified"
+    },
+    {
+      "id": "suppression-boots-loathing",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 1,
+      "verification": "unverified"
+    },
+    {
+      "id": "suppression-gloves-fear",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 1,
+      "verification": "unverified"
+    },
+    {
+      "id": "suppression-gloves-zeal",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 1,
+      "verification": "unverified"
+    },
+    {
+      "id": "tr-grizzly-aoe-helmet",
+      "base": 1,
+      "target": 1,
+      "materialQueries": 4,
+      "verification": "unverified"
+    }
+  ]
+}

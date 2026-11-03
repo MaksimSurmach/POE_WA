@@ -1,0 +1,74 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=13&item=905&method=3%2C19%2C99&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQmVsdHMvQmVsdEFieXNzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMV1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDIyIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIxMDM4IiwidCI6IjIiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=98",
+  "access": "Actual current public CoE calculator UI; ordinary paid reroll plus conditional full successful outcome. No game purchases, crafting or sales.",
+  "patchSource": {
+    "url": "https://beta.craftofexile.com/changelog",
+    "changelogDate": "2026-10-31",
+    "patch": "3.29.3.3"
+  },
+  "settings": "Rare uninfluenced Stygian Vise ilvl85, no corruption/fracture/synthesis or catalyst quality. Deafening Essence of Envy guarantees31–35%Chaos Resistance. AND lifeT1(130–144) and fire resistanceT2orbetter(42–48). No open affix or optional finishing requirement.",
+  "startingItem": {
+    "metadataId": "Metadata/Items/Belts/BeltAbyss",
+    "itemLevel": 85,
+    "rarity": "rare",
+    "influences": [],
+    "fractured": false,
+    "corrupted": false,
+    "synthesised": false
+  },
+  "requirements": [
+    {
+      "t": "and",
+      "m": null,
+      "e": [
+        {
+          "i": "1022",
+          "t": "1",
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "1038",
+          "t": "2",
+          "b": true,
+          "s": null
+        }
+      ]
+    }
+  ],
+  "displayed": {
+    "successPercent": 0.163,
+    "oneOutOfTries": 613,
+    "expectedExecutions": 613,
+    "expectedMaterials": {
+      "deafening-essence-of-envy": 613
+    }
+  },
+  "ordinaryPaidFailure": {
+    "materialsConsumed": {
+      "deafening-essence-of-envy": 1
+    },
+    "finishedTargetMatched": false,
+    "sameBaseRetained": true,
+    "scouringRequired": false,
+    "life": null,
+    "fireResistance": null,
+    "chaosResistance": 35,
+    "nativeAbyssSocketPreserved": true
+  },
+  "conditionalFullSuccessfulOutcome": {
+    "evidenceKind": "Simulate this outcome proves reachability, not empirical spending or frequency",
+    "life": 139,
+    "fireResistance": 46,
+    "chaosResistance": 33,
+    "extraColdResistance": 41
+  },
+  "expectedBases": 1,
+  "limits": [
+    "Displayed odds and mean consumption are rounded current CoE estimates; costs using them are indicative.",
+    "The successful generated item and single ordinary failure are not independent-frequency measurements or evidence of a sale.",
+    "Fresh actual eligible acquisition/material/output asks must be collected separately; no internal CoE default prices are used by the product. No optional finish, catalyst, corruption, trigger or build equivalence is included."
+  ]
+}

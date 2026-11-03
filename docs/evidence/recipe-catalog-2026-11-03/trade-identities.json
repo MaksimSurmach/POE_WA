@@ -1,0 +1,345 @@
+{
+  "checkedAt": "2026-11-03",
+  "sources": [
+    "https://www.pathofexile.com/api/trade/data/stats",
+    "https://www.pathofexile.com/api/trade/data/items",
+    "https://www.pathofexile.com/api/trade/data/static"
+  ],
+  "scope": "Public identity validation only; no prices or probabilities.",
+  "stats": [
+    {
+      "id": "explicit.stat_3299347043",
+      "text": "+# to maximum Life",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3372524247",
+      "text": "+#% to Fire Resistance",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_4220027924",
+      "text": "+#% to Cold Resistance",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2923486259",
+      "text": "+#% to Chaos Resistance",
+      "type": "explicit"
+    },
+    {
+      "id": "fractured.stat_2923486259",
+      "text": "+#% to Chaos Resistance",
+      "type": "fractured"
+    },
+    {
+      "id": "explicit.stat_3680664274",
+      "text": "+#% chance to Suppress Spell Damage",
+      "type": "explicit"
+    },
+    {
+      "id": "fractured.stat_3680664274",
+      "text": "+#% chance to Suppress Spell Damage",
+      "type": "fractured"
+    },
+    {
+      "id": "explicit.stat_681332047",
+      "text": "#% increased Attack Speed",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1589917703",
+      "text": "Minions deal #% increased Damage",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3005472710",
+      "text": "#% chance to Avoid Elemental Ailments",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2250533757",
+      "text": "#% increased Movement Speed",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2162097452",
+      "text": "+# to Level of all Minion Skill Gems",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_124131830",
+      "text": "+# to Level of all Spell Skill Gems",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2680613507",
+      "text": "Socketed Gems are Supported by Level # Burning Damage",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2388360415",
+      "text": "Socketed Gems are Supported by Level # Concentrated Effect",
+      "type": "explicit"
+    },
+    {
+      "id": "crafted.stat_2551600084",
+      "text": "+# to Level of Socketed AoE Gems",
+      "type": "crafted"
+    },
+    {
+      "id": "crafted.stat_280731498",
+      "text": "#% increased Area of Effect",
+      "type": "crafted"
+    },
+    {
+      "id": "crafted.stat_3372524247",
+      "text": "+#% to Fire Resistance",
+      "type": "crafted"
+    },
+    {
+      "id": "explicit.stat_2442647190",
+      "text": "Recover #% of Life when you Block",
+      "type": "explicit"
+    },
+    {
+      "id": "implicit.stat_1589917703",
+      "text": "Minions deal #% increased Damage",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_3299347043",
+      "text": "+# to maximum Life",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_4101445926",
+      "text": "#% increased Mana Cost Efficiency",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_425242359",
+      "text": "#% of Physical Damage from Hits taken as Lightning Damage",
+      "type": "implicit"
+    },
+    {
+      "id": "crafted.stat_4080418644",
+      "text": "+# to Strength",
+      "type": "crafted"
+    },
+    {
+      "id": "explicit.stat_2843100721",
+      "text": "+# to Level of Socketed Gems",
+      "type": "explicit"
+    },
+    {
+      "id": "crafted.stat_4154259475",
+      "text": "+# to Level of Socketed Support Gems",
+      "type": "crafted"
+    },
+    {
+      "id": "crafted.stat_4055307827",
+      "text": "+#% to Chaos Damage over Time Multiplier",
+      "type": "crafted"
+    }
+  ],
+  "bases": [
+    {
+      "type": "Stygian Vise"
+    },
+    {
+      "type": "Stygian Vise",
+      "text": "Darkness Enthroned Stygian Vise",
+      "name": "Darkness Enthroned",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Slink Boots"
+    },
+    {
+      "type": "Leviathan Gauntlets"
+    },
+    {
+      "type": "Dragonscale Gauntlets"
+    },
+    {
+      "type": "Bone Helmet"
+    },
+    {
+      "type": "Grizzly Pelt"
+    },
+    {
+      "type": "Archdemon Crown"
+    },
+    {
+      "type": "Fossilised Spirit Shield"
+    },
+    {
+      "type": "Pinnacle Tower Shield"
+    },
+    {
+      "type": "Bone Helmet",
+      "text": "Ancient Skull Bone Helmet",
+      "name": "Ancient Skull",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Slink Boots",
+      "text": "Atziri's Step Slink Boots",
+      "name": "Atziri's Step",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Slink Boots",
+      "text": "Doryani's Delusion Slink Boots (Legacy)",
+      "name": "Doryani's Delusion",
+      "disc": "legacy",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Slink Boots",
+      "text": "Farrul's Chase Slink Boots",
+      "name": "Farrul's Chase",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Pinnacle Tower Shield",
+      "text": "Lioneye's Remorse Pinnacle Tower Shield",
+      "name": "Lioneye's Remorse",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Pinnacle Tower Shield",
+      "text": "Magna Eclipsis Pinnacle Tower Shield",
+      "name": "Magna Eclipsis",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Fossilised Spirit Shield",
+      "text": "Manastorm Fossilised Spirit Shield (Legacy)",
+      "name": "Manastorm",
+      "disc": "legacy",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Bone Helmet",
+      "text": "Maw of Mischief Bone Helmet",
+      "name": "Maw of Mischief",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Dragonscale Gauntlets",
+      "text": "Surgebinders Dragonscale Gauntlets",
+      "name": "Surgebinders",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Dragonscale Gauntlets",
+      "text": "Worldcarver Dragonscale Gauntlets",
+      "name": "Worldcarver",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Convoking Wand"
+    },
+    {
+      "type": "Thicket Bow"
+    }
+  ],
+  "resources": [
+    {
+      "id": "chaos",
+      "name": "Chaos Orb"
+    },
+    {
+      "id": "corroded-fossil",
+      "name": "Corroded Fossil"
+    },
+    {
+      "id": "deafening-essence-of-envy",
+      "name": "Deafening Essence of Envy"
+    },
+    {
+      "id": "deafening-essence-of-fear",
+      "name": "Deafening Essence of Fear"
+    },
+    {
+      "id": "deafening-essence-of-greed",
+      "name": "Deafening Essence of Greed"
+    },
+    {
+      "id": "deafening-essence-of-loathing",
+      "name": "Deafening Essence of Loathing"
+    },
+    {
+      "id": "deafening-essence-of-zeal",
+      "name": "Deafening Essence of Zeal"
+    },
+    {
+      "id": "jagged-fossil",
+      "name": "Jagged Fossil"
+    },
+    {
+      "id": "lesser-eldritch-ember",
+      "name": "Lesser Eldritch Ember"
+    },
+    {
+      "id": "lesser-eldritch-ichor",
+      "name": "Lesser Eldritch Ichor"
+    },
+    {
+      "id": "metallic-fossil",
+      "name": "Metallic Fossil"
+    },
+    {
+      "id": "scour",
+      "name": "Orb of Scouring"
+    },
+    {
+      "id": "potent-chaotic-resonator",
+      "name": "Potent Chaotic Resonator"
+    },
+    {
+      "id": "prime-chaotic-resonator",
+      "name": "Prime Chaotic Resonator"
+    },
+    {
+      "id": "prismatic-fossil",
+      "name": "Prismatic Fossil"
+    },
+    {
+      "id": "pristine-fossil",
+      "name": "Pristine Fossil"
+    },
+    {
+      "id": "shuddering-fossil",
+      "name": "Shuddering Fossil"
+    },
+    {
+      "id": "wild-lifeforce",
+      "name": "Wild Crystallised Lifeforce"
+    }
+  ]
+}

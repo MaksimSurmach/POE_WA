@@ -1,0 +1,68 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "calculatorURL": "https://beta.craftofexile.com/?group=2&item=1251&class=8&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb290cy9Cb290c0RleDkiLCJtIjpbeyJrIjoiQ2hhbmNlVG9TdXBwcmVzc1NwZWxsczVfXyIsInYiOlsxNF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg1LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJldmFzaW9uIjoyNDl9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=3%2C13%2C79&flags=&ilvl=85&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzMjY2IiwidCI6IjMiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+  "patchSource": "https://beta.craftofexile.com/changelog",
+  "access": "Actual current public CoEUI; no game purchases/crafting/sales",
+  "settings": "Acquired rare Slink Boots ilvl85, +14%fracturedSpellSuppression, no influence/corruption/synthesis. Deafening Essence of Loathing guarantees31–35%chance toAvoidElementalAilments. Require nativeMovementSpeedT3orbetter(25%or30% at85;35%tierrequires86 and is unavailable). No life, open affix, Eldritch repair or bench finish condition.",
+  "startingItem": {
+    "metadataId": "Metadata/Items/Armours/Boots/BootsDex9",
+    "itemLevel": 85,
+    "rarity": "rare",
+    "influences": [],
+    "fracturedModifier": {
+      "id": "ChanceToSuppressSpells5__",
+      "value": 14
+    }
+  },
+  "requirements": [
+    {
+      "t": "and",
+      "m": null,
+      "e": [
+        {
+          "i": "3266",
+          "t": "3",
+          "b": true,
+          "s": null
+        }
+      ]
+    }
+  ],
+  "displayed": {
+    "successPercent": 8.44,
+    "oneOutOfTries": 12,
+    "expectedExecutions": 12,
+    "expectedMaterials": {
+      "deafening-essence-of-loathing": 12
+    }
+  },
+  "essenceGuarantee": {
+    "ailmentAvoidanceRange": [31, 35],
+    "kind": "suffix"
+  },
+  "ordinaryPaidFailure": {
+    "materialsConsumed": {
+      "deafening-essence-of-loathing": 1
+    },
+    "movementSpeed": 15,
+    "ailmentAvoidance": 35,
+    "fracturedSuppression": 14,
+    "sameBaseRetained": true,
+    "scouringRequired": false,
+    "verdict": "REJECT:15movement below25; repeat paid essence on same base"
+  },
+  "conditionalFullSuccessfulOutcome": {
+    "movementSpeed": 30,
+    "ailmentAvoidance": 31,
+    "fracturedSuppression": 14,
+    "additionalHybridLife": 25,
+    "evidenceKind": "Generated complete bundle proves reachability, not empirical spend orfrequency"
+  },
+  "expectedBases": 1,
+  "limits": [
+    "Life is optional in the Sheet and not part of this selected functional target; do not claim100life.",
+    "Acquiredfracture setup does not prove a purchase or free in-gamefracturing; acquiredbaseprice/goldfee are separate.",
+    "Displayed odds/mean rounded; onlyAllflame scopedmodel currentlychecked."
+  ]
+}

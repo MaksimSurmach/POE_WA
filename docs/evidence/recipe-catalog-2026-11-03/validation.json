@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-11-03",
+  "node": "22.23.4",
+  "catalog": {
+    "recipes": 15,
+    "existingVerified": 2,
+    "newScopedCalculatorVerified": 10,
+    "newUnverified": 3,
+    "sourceSheetCandidatesPreserved": 16
+  },
+  "checks": {
+    "recipesValidate": "PASS: canonical CLI loaded 15 recipes",
+    "currentPublicTradeMetadata": "PASS: loadAndValidateTradeMappingManifest validated 52 entries against current official items/stats endpoints",
+    "serverBuild": "PASS",
+    "serverUnit": {
+      "files": 47,
+      "passed": 304
+    },
+    "domainUnit": {
+      "files": 10,
+      "passed": 64
+    },
+    "focusedRegression": {
+      "files": 5,
+      "passed": 26
+    },
+    "postgresSamePatchReplacement": "Regression included; execution delegated to parent release test database",
+    "staging": "Owned by parent release pass, not claimed by this artifact",
+    "gameCraftOrSale": "NOT_RUN",
+    "currentCoE": "PASS: actual public3.29.3.3 calculator; pre-acquired rareDragonscale85 fractured14suppression; Zeal6.8%/15uses and Fear4.57%/22uses; successful complete outcomes plus ordinary paid failure rerolls",
+    "currentCoEAdditional": "PASS: EnvyStygian613essences; Pristine+PrismaticStygian942materialsets; +2Convoking4fossils12sets. Exact ANDrequirements, ordinary paidfailures, nativeimplicit/basepreservation and complete successfuloutputs observed in current publicUI.",
+    "additionalCatalogRegression": {
+      "files": 3,
+      "passed": 22
+    },
+    "currentCoEBootsAndRF": "PASS: LoathingSlink85fracture14/movementT3+8.44%/12; current rebuilt RF2840+2845+openprefix>=1 gives94or910reforges, eachfollowedbyactual4Chaosbench. Fullcompletedoutputsandordinarypaidfailures observed.",
+    "extraClaudeModelReview": "NOT_RUN: ClaudeCode5-hourlimit reached; resets05:50Europe/Warsaw. Earlier completed source/runtime reviews retained; no approval inferred.",
+    "currentCoEMinionGreed": "PASS: Bone75 +2/open suffix/NOT native fire gives 0.0525%/1907 Greed; Fossilised60 +1/open suffix/NOT native fire gives 0.594%/169 Greed. Current life guarantees91–105/130–144 and native implicit ranges checked; both complete cores received one actual paid29–35Fire bench for3Chaos, producing30Fire.",
+    "queryInputStability": "PASS: all15 base, startingBase, startingMods, target and targetSignature inputs equal01ee916; models and summaries only",
+    "exactItemLevel": "PASS: optional maximum item level reaches actual Trade request, raw Buy Base query, local matcher and all15 starting searches; effective belt minimum above maximum rejects. Finished query hashes are byte-identical to8dda1c3; all15 starting hashes differ.",
+    "upgradeInvalidation": "PASS: actual prior-policy catalog published fixture economics, then full15 sync changed all content hashes; catalog/detail hide oldEV without mutating stored history. Current15 policy uncertainties explicitly require exact input level.",
+    "exactLevelFocusedRegression": {
+      "files": 6,
+      "passed": 51
+    },
+    "boneAcquisitionImplicit": "PASS: startingMods implicit minion damage>=15 reaches actual mapped search; normalized15implicit matches,14implicit and18explicit substitute do not. All15 finished query hashes and14other starting hashes unchanged frombd97ec6; only Bone starting hash changes.",
+    "boneFocusedRegression": {
+      "files": 3,
+      "passed": 18
+    }
+  },
+  "limits": [
+    "Twelve recipes have scoped indicative CoE expected-cost models, including ten newly checked methods; three new multi-stage recipes lack full expectations and remain unverified. Game spending/sales are not established.",
+    "All source-sheet prices/liquidity labels are assumptions, not fresh observations.",
+    "No source Sheet edits or shared application database writes were performed by the recipe subtask."
+  ]
+}

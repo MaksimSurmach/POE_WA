@@ -42,6 +42,7 @@ export type MarketCollectionBatch = {
   inexact?: boolean;
   sourceUrl?: string;
   searchEvidence?: MarketCollectionRun['searchEvidence'];
+  sortedSampleComplete?: boolean;
 };
 
 export interface MarketCollectionAdapter {
@@ -182,7 +183,7 @@ export function configuredMarketCollectionSource(value?: string) {
   }
 }
 
-/** Runs one search then fetches at most 1,000 details in sequential groups of 10. */
+/** Handbook prices sample 20 sorted IDs; research retains the 1,000-detail cap. */
 export function createBatchedMarketCollectionSource(options: {
   descriptor: MarketCollectionSource;
   rateLimits: RateLimitGate;
@@ -227,13 +228,18 @@ export function createBatchedMarketCollectionSource(options: {
         ids.some((id) => id.trim().length === 0 || id.length > 256)
       )
         throw new DomainError('PROVIDER_RESPONSE_INVALID');
-      const selectedIds = ids.slice(0, 1000);
+      const handbookSample = ['starting-base', 'crafted-item'].includes(
+        target.slot,
+      );
+      // shortcut: sample 20 sorted asks; use research collection when deeper coverage is needed.
+      const selectedIds = ids.slice(0, handbookSample ? 20 : 1000);
       const listings: MarketImportListing[] = [];
       let cached = search.cached;
       let batchCount = 0;
       let errorCode: string | null = null;
       let cancelled = false;
       function buildBatch(): MarketCollectionBatch {
+        cancelled ||= signal.aborted;
         const partial =
           cancelled ||
           errorCode !== null ||
@@ -243,7 +249,7 @@ export function createBatchedMarketCollectionSource(options: {
           (search.data.reportedTotal !== null &&
             ids.length < search.data.reportedTotal) ||
           listings.length !== selectedIds.length;
-        return {
+        const batch: MarketCollectionBatch = {
           batchCount,
           cached,
           capturedAt: search.data.capturedAt,
@@ -261,6 +267,12 @@ export function createBatchedMarketCollectionSource(options: {
           ...(cancelled ? { cancelled: true } : {}),
           ...(errorCode ? { errorCode } : {}),
         };
+        return handbookSample
+          ? {
+              ...batch,
+              sortedSampleComplete: isCompleteSortedPriceSample(batch, target),
+            }
+          : batch;
       }
       await onProgress?.(buildBatch());
       for (
@@ -329,6 +341,40 @@ export function createBatchedMarketCollectionSource(options: {
       return buildBatch();
     },
   };
+}
+
+/** Proof covers the selected prefix, never the provider's whole result page. */
+export function isCompleteSortedPriceSample(
+  batch: MarketCollectionBatch,
+  target: MarketTarget,
+) {
+  const evidence = batch.searchEvidence;
+  const prefix = evidence?.ids.slice(0, 20) ?? [];
+  const sort = evidence?.request?.sort;
+  return (
+    ['starting-base', 'crafted-item'].includes(target.slot) &&
+    target.tradeSearch?.scope === 'strict' &&
+    evidence?.request?.scope === 'strict' &&
+    batch.coverage === 'partial' &&
+    !batch.cancelled &&
+    !batch.errorCode &&
+    batch.inexact === false &&
+    batch.fetchedCount === 20 &&
+    batch.listings.length === 20 &&
+    batch.reportedTotal !== null &&
+    batch.reportedTotal > 20 &&
+    evidence?.ids.length === batch.returnedCount &&
+    batch.reportedTotal >= batch.returnedCount &&
+    prefix.length === 20 &&
+    new Set(prefix).size === 20 &&
+    prefix.every((id) => batch.listings.some((row) => row.externalId === id)) &&
+    typeof sort === 'object' &&
+    sort !== null &&
+    !Array.isArray(sort) &&
+    Object.keys(sort).length === 1 &&
+    'price' in sort &&
+    sort.price === 'asc'
+  );
 }
 
 async function rateLimitedRequest<T>(
@@ -810,7 +856,13 @@ export class MarketCollectionManager {
           onProgress: async (batch) => {
             validateCollectionBatch(batch);
             checkpoint = await this.#store.saveRun(
-              this.#withBatch(initial, { ...batch, coverage: 'partial' }),
+              this.#withBatch(initial, {
+                ...batch,
+                coverage: 'partial',
+                ...(batch.sortedSampleComplete === undefined
+                  ? {}
+                  : { sortedSampleComplete: false }),
+              }),
             );
           },
           beforeRequest: async () => {
@@ -947,6 +999,9 @@ export class MarketCollectionManager {
       ...(batch.inexact !== undefined ? { inexact: batch.inexact } : {}),
       ...(batch.sourceUrl ? { sourceUrl: batch.sourceUrl } : {}),
       ...(batch.searchEvidence ? { searchEvidence: batch.searchEvidence } : {}),
+      ...(batch.sortedSampleComplete === undefined
+        ? {}
+        : { sortedSampleComplete: batch.sortedSampleComplete }),
       currency: batch.currency,
       listings: listings.map((listing) => ({
         ...listing,
@@ -969,6 +1024,9 @@ export class MarketCollectionManager {
     return marketCollectionRunSchema.parse({
       ...run,
       ...patch,
+      ...(run.sortedSampleComplete === undefined
+        ? {}
+        : { sortedSampleComplete: false }),
       status,
       completedAt: this.#clock().toISOString(),
     });

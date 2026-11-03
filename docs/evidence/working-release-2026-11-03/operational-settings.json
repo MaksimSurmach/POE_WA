@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-03",
+  "environment": "private local TLS staging",
+  "settingsResponse": {
+    "version": 8,
+    "configured": {
+      "automaticRefreshEnabled": true,
+      "scheduledCollectionEnabled": true,
+      "collectionsPaused": false,
+      "manualRefreshEnabled": true,
+      "refreshCron": "0 * * * *",
+      "requestTimeoutMs": 15000,
+      "collectionConcurrency": 2,
+      "snapshotReuseTtlMs": 300000,
+      "freshnessWarningMs": 3600000,
+      "maximumQuoteAgeMs": 7200000,
+      "rawRetentionHours": 2160,
+      "historyRetentionDays": 730
+    },
+    "effective": {
+      "automaticRefreshEnabled": true,
+      "scheduledCollectionEnabled": true,
+      "collectionsPaused": false,
+      "manualRefreshEnabled": true,
+      "refreshCron": "0 * * * *",
+      "requestTimeoutMs": 15000,
+      "collectionConcurrency": 2,
+      "snapshotReuseTtlMs": 300000,
+      "freshnessWarningMs": 3600000,
+      "maximumQuoteAgeMs": 7200000,
+      "rawRetentionHours": 2160,
+      "historyRetentionDays": 730
+    },
+    "restartRequired": false,
+    "applies": "New requests and runs use current settings; active requests finish with their starting settings. Scheduler reconciles within 5 seconds.",
+    "timezone": "UTC",
+    "warnings": []
+  },
+  "cleanupSchedule": "0 0 1 1 * (retained for evidence)",
+  "note": "Five-minute local reuse; shipped new-install default remains thirty minutes. Hourly automatic/scheduled collection enabled after both live gates."
+}

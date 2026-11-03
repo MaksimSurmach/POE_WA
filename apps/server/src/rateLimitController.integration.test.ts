@@ -21,6 +21,97 @@ beforeEach(async () => {
 });
 
 describe('PostgreSQL GGG rate-limit coordination', () => {
+  it.each([429, 503])(
+    'preserves orphaned headerless legacy cooldown after HTTP %s',
+    async (status) => {
+      let now = start;
+      const gate = new GggRateLimitController({
+        repository: repositories.rateLimits,
+        clock: () => now,
+        sleep: async (milliseconds) => {
+          now = new Date(now.getTime() + milliseconds);
+        },
+      });
+      await gate.observeResponse('trade-search', {
+        status,
+        headers: new Headers({ 'Retry-After': '120' }),
+      });
+      await gate.observeResponse('trade-search', {
+        status: 200,
+        headers: new Headers({
+          'X-Rate-Limit-Policy': 'trade-search-request-limit',
+        }),
+      });
+      expect(
+        (await repositories.rateLimits.list()).find(
+          (state) => state.policy === 'poe-trade',
+        ),
+      ).toMatchObject({ endpoints: [], lastStatus: status });
+      await gate.waitForPermit('trade-exchange');
+      expect(now.getTime() - start.getTime()).toBeGreaterThanOrEqual(120_000);
+    },
+  );
+
+  it('preserves an orphaned legacy exchange cooldown before the new endpoint responds', async () => {
+    let now = start;
+    const gate = new GggRateLimitController({
+      repository: repositories.rateLimits,
+      clock: () => now,
+      sleep: async (milliseconds) => {
+        now = new Date(now.getTime() + milliseconds);
+      },
+    });
+    await gate.observeResponse('trade-search', {
+      status: 429,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'trade-exchange-request-limit',
+        'Retry-After': '120',
+      }),
+    });
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'trade-search-request-limit',
+      }),
+    });
+    await gate.waitForPermit('trade-exchange');
+    expect(now.getTime() - start.getTime()).toBeGreaterThanOrEqual(120_000);
+    expect(
+      (await repositories.rateLimits.list()).find(
+        (state) => state.policy === 'trade-exchange-request-limit',
+      ),
+    ).toMatchObject({ endpoints: ['trade-exchange'], lastStatus: 429 });
+  });
+
+  it('retains orphaned access denial before any new Trade endpoint is admitted', async () => {
+    const gate = new GggRateLimitController({
+      repository: repositories.rateLimits,
+      clock: () => start,
+    });
+    await gate.observeResponse('trade-search', {
+      status: 403,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'trade-exchange-request-limit',
+      }),
+    });
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'trade-search-request-limit',
+      }),
+    });
+    expect(
+      (await repositories.rateLimits.list()).find(
+        (state) => state.policy === 'trade-exchange-request-limit',
+      ),
+    ).toMatchObject({ endpoints: [], lastStatus: 403 });
+    for (const endpoint of ['trade-search', 'trade-fetch', 'trade-exchange']) {
+      await expect(gate.waitForPermit(endpoint)).rejects.toMatchObject({
+        code: 'MARKET_ACCESS_BLOCKED',
+      });
+    }
+  });
+
   it('retains all trade policies and known windows through headerless responses', async () => {
     let now = start;
     const repository = repositories.rateLimits;

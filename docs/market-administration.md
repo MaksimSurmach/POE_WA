@@ -48,8 +48,9 @@ retains its server-side token configuration.
 Settings live in `market_admin_settings`, with a monotonically increasing
 `version`. Every patch requires that version; concurrent/stale writes return 409.
 Unknown fields, invalid relationships and values outside the limits return 400.
-Initial TTL is capped at the default 30-minute maximum quote age, and the seed is
-validated before insertion. An operator can later raise both values together.
+Initial snapshot reuse is capped at 30 minutes; quote usability is separate and
+defaults to two hours, with a one-hour warning. The seed is validated before
+insertion. Existing saved settings are preserved on upgrade.
 History retention must be at least as long as raw retention; a shorter history
 would otherwise remove a row while its raw payload should still be retained.
 Settings changes and run/cancel requests are audited transactionally. Legacy
@@ -62,12 +63,12 @@ unavailable audit store prevents new legacy writes.
 | Scheduled observations  | Enabled globally                      | Individual profiles remain opt-in                                               |
 | Pause new collections   | Off                                   | Blocks new scheduled/manual observations and refreshes                          |
 | Manual refresh          | Enabled                               | Available when unpaused and a worker is healthy                                 |
-| Refresh cron            | `0 */4 * * *`                         | Five-field cron; at least five minutes between occurrences; deployment timezone |
+| Refresh cron            | `0 * * * *`                           | Five-field cron; at least five minutes between occurrences; deployment timezone |
 | Market request timeout  | Deployment value, normally 15 seconds | 1–30 seconds; applies to new Trade transport and poe.ninja requests             |
 | Collection concurrency  | Deployment value, normally 4          | 1–4, capped by `MARKET_CONCURRENCY`                                             |
 | Snapshot reuse TTL      | Normally 30 minutes                   | 1 second–2 hours, no greater than maximum quote age                             |
-| Freshness warning       | 15 minutes                            | 1 minute–maximum quote age                                                      |
-| Maximum quote age       | 30 minutes                            | 1 minute–2 hours                                                                |
+| Freshness warning       | 1 hour                                | 1 minute–maximum quote age                                                      |
+| Maximum quote age       | 2 hours                               | 1 minute–2 hours                                                                |
 | Raw retention           | 90 days                               | 24 hours–90 days                                                                |
 | Price-history retention | 730 days                              | 14–730 days                                                                     |
 
@@ -81,8 +82,10 @@ Per-profile interval settings and provider authorization continue to apply.
 
 Collection interval determines **when to request new observations**. Reuse TTL
 determines **whether an existing observation can avoid another request**. Maximum
-quote age determines **whether a price remains usable**. The default four-hour
-schedule and 30-minute TTL leave a freshness gap; the UI warns about it.
+quote age determines **whether a price remains usable**. Fresh installations
+refresh hourly and allow quotes for two hours, covering a bounded 35–45-minute
+full-catalog run without treating old inputs as newly captured. The UI warns
+when the collection interval exceeds maximum quote age.
 Retention controls storage, not freshness. A longer retention or TTL never
 changes an observation's capture time. Shorter quote-age settings invalidate
 existing price views immediately, without deleting evaluations. Unprovable older

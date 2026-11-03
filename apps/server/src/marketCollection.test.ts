@@ -337,6 +337,52 @@ describe('managed collection runner', () => {
     returnedCount: 1,
   };
 
+  it.each([false, true])(
+    'persists sorted-sample proof only after successful completion, interruption=%s',
+    async (interrupted) => {
+      const store = makeStore();
+      const manager = new MarketCollectionManager({
+        store,
+        adapter: {
+          descriptor: {
+            id: 'sample-checkpoint',
+            name: 'fixture',
+            access: 'authorized',
+            dataKind: 'observed',
+            reason: null,
+          },
+          async collect({ onProgress }) {
+            const batch: MarketCollectionBatch = {
+              ...fixture,
+              coverage: 'partial',
+              sortedSampleComplete: true,
+              fetchedCount: 20,
+              returnedCount: 100,
+              reportedTotal: 340,
+              listings: Array.from({ length: 20 }, (_, index) =>
+                listing(`sample-${index}`, 10),
+              ),
+            };
+            await onProgress?.(batch);
+            expect([...store.runs.values()][0]?.sortedSampleComplete).toBe(
+              false,
+            );
+            if (interrupted)
+              throw new Error('interrupted before terminal result');
+            return batch;
+          },
+        },
+      });
+      const run = await manager.runNow(target.id);
+      expect(await waitUntilDone(store, run.id)).toMatchObject({
+        status: interrupted ? 'failed' : 'partial',
+        sortedSampleComplete: !interrupted,
+        listingCount: 20,
+      });
+      await manager.stop();
+    },
+  );
+
   it.each([
     [401, false, 'PROVIDER_AUTH_FAILED'],
     [403, false, 'PROVIDER_ACCESS_DENIED'],

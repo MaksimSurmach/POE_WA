@@ -1,0 +1,67 @@
+{
+  "seed-candidate-profiles.json": {
+    "source": "poe-build-research-v1/candidate_profiles.json",
+    "bytes": 30983,
+    "sha256": "9f17b57f90fc78089cdee51aec02643069397ff003d694fe68b39e768a9d1c6b"
+  },
+  "seed-sources.json": {
+    "source": "poe-build-research-v1/sources.json",
+    "bytes": 13064,
+    "sha256": "f8d6b94e168bf85a5b073b1103fa9a901547746461517b8101200802e9d3eca4"
+  },
+  "seed-review-findings.json": {
+    "source": "poe-build-research-v1/review_findings.json",
+    "bytes": 3575,
+    "sha256": "2b8d9d4d268cffdfbbb7a3d4eccbe2ade54e3b6871a54185a33d5a2f5603007b"
+  },
+  "research-plan.md": {
+    "source": "poe-build-research-v1/RESEARCH_PLAN.md",
+    "bytes": 32401,
+    "sha256": "dc4b0b3acf2a3169cd0a02a6e6ba882c47c6c272f19cc81fdb078f6217d9a16d"
+  },
+  "final-recipes.json": {
+    "source": "research/build-demand/2026-10-30-manual/final-recipes.json",
+    "bytes": 24375,
+    "sha256": "2aea998ff77aca18908182f8ad35152458b6ee555d284ab70b8c056bad8a2cac"
+  },
+  "final-decisions.json": {
+    "source": "research/build-demand/2026-10-30-manual/final-decisions.json",
+    "bytes": 23741,
+    "sha256": "faa8a70509b813ec42a5656b11b49c01d4d2f04f040d3c7ff4776872b6a0cbd0"
+  },
+  "coverage.json": {
+    "source": "research/build-demand/2026-10-30-manual/coverage.json",
+    "bytes": 2732,
+    "sha256": "df7afb4d46cb1aac25d9d053bff849a1934eb991cf14143614d4bb2eedf82571"
+  },
+  "bundle_stats.json": {
+    "source": "research/build-demand/2026-10-30-manual/bundle_stats.json",
+    "bytes": 4566,
+    "sha256": "9c2ba241df357fcc22e2348eb87ab9640aa9f50f8321e767c01b15ce2c4038ce"
+  },
+  "checkpoint.json": {
+    "source": "research/build-demand/2026-10-30-manual/checkpoint.json",
+    "bytes": 1096,
+    "sha256": "b3a502028e5b444413c5dd960caf4ed70939c2e62bba1ebf788398b76b970af5"
+  },
+  "source-registry.json": {
+    "source": "research/build-demand/2026-10-30-manual/source_registry.json",
+    "bytes": 77125,
+    "sha256": "3d1f2bbf84cd26fa13f6b3526694020176061bb9989feaf6b5a70c5fed592bbb"
+  },
+  "closure-bases-results.json": {
+    "source": "research/build-demand/2026-10-30-manual/closure-bases/results.json",
+    "bytes": 20135,
+    "sha256": "1eb7838b2dda193fe6642c08c02fb0787a438a8456d650da110e8965f0458a52"
+  },
+  "closure-build-scope-verdicts.json": {
+    "source": "research/build-demand/2026-10-30-manual/closure-builds/build-scope-verdicts.json",
+    "bytes": 13973,
+    "sha256": "65ea54857330f07e4ad6b79a94d9ebd3080ad4578b545dc180ffdd93f57381a3"
+  },
+  "closure-recovery-validation.json": {
+    "source": "research/build-demand/2026-10-30-manual/closure-recovery/validation.json",
+    "bytes": 990,
+    "sha256": "d93899bcd1d1aedb71934253f042dbbf71b6a2be7f2ec145f65590a1571b1bc4"
+  }
+}

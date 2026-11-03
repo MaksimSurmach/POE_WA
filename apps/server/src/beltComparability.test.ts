@@ -61,6 +61,29 @@ function snapshot(items: object[]) {
 }
 
 describe('belt comparability v1', () => {
+  it('rejects higher-level input offers even when their base and all required affixes match', () => {
+    const exact = { ...target, minItemLevel: 84, maxItemLevel: 84 };
+    const missingLevel = { ...item };
+    Reflect.deleteProperty(missingLevel, 'itemLevel');
+    const snap = snapshot([item, { ...item, itemLevel: 85 }, missingLevel]);
+    const result = analyzeBeltSnapshot(exact, snap, now.getTime());
+    expect(result.rows.map((row) => row.status)).toEqual([
+      'MATCH',
+      'REJECT',
+      'PARTIAL',
+    ]);
+    expect(result.rows[1]?.reasons).toContain(
+      'target maximum item level: mismatch',
+    );
+    expect(
+      analyzeBeltSnapshot(
+        target,
+        snapshot([{ ...item, itemLevel: 85 }]),
+        now.getTime(),
+      ).rows[0]?.status,
+    ).toBe('MATCH');
+  });
+
   it('rejects hard mismatches and marks unknown tier partial without mutating raw evidence', () => {
     const snap = snapshot([
       item,

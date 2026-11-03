@@ -269,6 +269,7 @@ async function latestOutputSnapshot(input: {
     expiresAt: snapshot.expiresAt.toISOString(),
     coverage: snapshot.payload.coverage ?? 'unknown',
     sortedPageComplete: snapshot.payload.sortedPageComplete === true,
+    sortedSampleComplete: snapshot.payload.sortedSampleComplete === true,
     totalResults: snapshot.payload.totalResults,
     listings: comparableRecipeListings(
       result.query,

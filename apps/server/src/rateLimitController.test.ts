@@ -9,6 +9,164 @@ import {
 const start = new Date('2026-07-20T00:00:00.000Z');
 
 describe('GGG rate-limit controller', () => {
+  it('does not import ordinary generic pacing or a named search cooldown into exchange', async () => {
+    const repository = createInMemoryRepositories().rateLimits;
+    const old = new GggRateLimitController({ repository, clock: () => start });
+    await old.observeResponse('trade-search', {
+      status: 200,
+      headers: new Headers(),
+    });
+    expect(
+      (await repository.list())
+        .find((s) => s.policy === 'poe-trade')
+        ?.nextRequestAt.getTime(),
+    ).toBeGreaterThan(start.getTime());
+    await old.observeResponse('trade-search', {
+      status: 429,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'trade-search-request-limit',
+        'Retry-After': '120',
+      }),
+    });
+    let now = start;
+    const gate = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      sleep: async (ms) => {
+        now = new Date(now.getTime() + ms);
+      },
+    });
+    await gate.waitForPermit('trade-exchange');
+    expect(now).toEqual(start);
+  });
+
+  it.each([
+    [429, false],
+    [429, true],
+    [503, false],
+    [503, true],
+  ] as const)(
+    'preserves generic Retry-After before first exchange permit: status=%s orphan=%s',
+    async (status, orphaned) => {
+      const repository = createInMemoryRepositories().rateLimits;
+      let now = start;
+      const old = new GggRateLimitController({ repository, clock: () => now });
+      await old.observeResponse('trade-search', {
+        status,
+        headers: new Headers({ 'Retry-After': '120' }),
+      });
+      if (orphaned)
+        await old.observeResponse('trade-search', {
+          status: 200,
+          headers: new Headers({
+            'X-Rate-Limit-Policy': 'trade-search-request-limit',
+            'X-Rate-Limit-Rules': 'client',
+            'X-Rate-Limit-Client': '10:1:1',
+            'X-Rate-Limit-Client-State': '0:1:0',
+          }),
+        });
+      const gate = new GggRateLimitController({
+        repository,
+        clock: () => now,
+        sleep: async (ms) => {
+          now = new Date(now.getTime() + ms);
+        },
+      });
+      await gate.waitForPermit('trade-exchange');
+      expect(now.getTime() - start.getTime()).toBe(120_000);
+    },
+  );
+
+  it.each([
+    ['trade-search', 'trade-exchange'],
+    ['trade-exchange', 'trade-search'],
+    ['trade-exchange', 'trade-fetch'],
+  ])(
+    'shares access denial from %s with %s without sharing pacing',
+    async (denied, next) => {
+      const repository = createInMemoryRepositories().rateLimits;
+      await new GggRateLimitController({ repository }).observeResponse(denied, {
+        status: 403,
+        headers: new Headers({
+          'X-Rate-Limit-Policy': `${denied}-request-limit`,
+        }),
+      });
+      await expect(
+        new GggRateLimitController({ repository }).waitForPermit(next),
+      ).rejects.toMatchObject({ code: 'MARKET_ACCESS_BLOCKED' });
+    },
+  );
+
+  it.each(['trade-search', 'trade-fetch', 'trade-exchange'])(
+    'blocks %s when only an orphaned retained exchange-policy denial is visible',
+    async (endpoint) => {
+      const repository = createInMemoryRepositories().rateLimits;
+      const old = new GggRateLimitController({ repository });
+      const headers = new Headers({
+        'X-Rate-Limit-Policy': 'trade-exchange-request-limit',
+      });
+      await old.observeResponse('trade-search', { status: 403, headers });
+      headers.set('X-Rate-Limit-Policy', 'trade-search-request-limit');
+      await old.observeResponse('trade-search', { status: 200, headers });
+      const orphaned = (await repository.list()).filter(
+        (state) => state.policy === 'trade-exchange-request-limit',
+      );
+      expect(orphaned).toMatchObject([{ endpoints: [], lastStatus: 403 }]);
+      const acquire = vi.spyOn(repository, 'acquire');
+      const gate = new GggRateLimitController({
+        repository: { ...repository, list: async () => orphaned },
+      });
+      await expect(gate.waitForPermit(endpoint)).rejects.toMatchObject({
+        code: 'MARKET_ACCESS_BLOCKED',
+      });
+      expect(acquire).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([429, 401, 403])(
+    'preserves an orphaned legacy exchange restriction before the new endpoint first responds: %s',
+    async (status) => {
+      const repository = createInMemoryRepositories().rateLimits;
+      let now = start;
+      const old = new GggRateLimitController({ repository, clock: () => now });
+      const headers = new Headers({
+        'X-Rate-Limit-Policy': 'trade-exchange-request-limit',
+        'X-Rate-Limit-Rules': 'client',
+        'X-Rate-Limit-Client': '10:1:1',
+        'X-Rate-Limit-Client-State': '0:1:0',
+        ...(status === 429 ? { 'Retry-After': '120' } : {}),
+      });
+      await old.observeResponse('trade-search', { status, headers });
+      headers.set('X-Rate-Limit-Policy', 'trade-search-request-limit');
+      headers.delete('Retry-After');
+      await old.observeResponse('trade-search', { status: 200, headers });
+      const gate = new GggRateLimitController({
+        repository,
+        clock: () => now,
+        sleep: async (ms) => {
+          now = new Date(now.getTime() + ms);
+        },
+      });
+      if (status === 429) {
+        await gate.waitForPermit('trade-exchange');
+        expect(now.getTime() - start.getTime()).toBe(120_000);
+        expect(
+          (await repository.list()).find(
+            (s) => s.policy === 'trade-exchange-request-limit',
+          ),
+        ).toMatchObject({ endpoints: ['trade-exchange'], lastStatus: status });
+      } else {
+        await expect(
+          gate.waitForPermit('trade-exchange'),
+        ).rejects.toMatchObject({ code: 'MARKET_ACCESS_BLOCKED' });
+        expect(now).toEqual(start);
+        expect(
+          (await repository.list()).some((s) => s.lastStatus === status),
+        ).toBe(true);
+      }
+    },
+  );
+
   it('retains all trade policies and known windows through headerless responses', async () => {
     let now = start;
     const repository = createInMemoryRepositories().rateLimits;

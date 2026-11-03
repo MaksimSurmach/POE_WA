@@ -145,7 +145,7 @@ export function createPostgresTradeMappingCatalog(
       discriminator: string | null;
       payload: Record<string, unknown>;
     }>(
-      `select pm.external_id, pm.discriminator, pm.payload, pm.source_revision from provider_mappings pm join game_data_versions gdv on gdv.id = pm.game_data_version_id where gdv.patch_version = $1 and pm.provider = 'poe-trade' and pm.entity_kind = $2 and pm.canonical_id = $3 and pm.status = 'active'`,
+      `select pm.external_id, pm.discriminator, pm.payload, pm.source_revision from provider_mappings pm join game_data_versions gdv on gdv.id = pm.game_data_version_id where gdv.patch_version = $1 and gdv.status = 'active' and pm.provider = 'poe-trade' and pm.entity_kind = $2 and pm.canonical_id = $3 and pm.status = 'active'`,
       [gameDataVersion, entityKind, canonicalId],
     );
     return rows.rows;
@@ -219,7 +219,7 @@ export function createPostgresResourceResolver(pool: Pool) {
       external_id: string;
       payload: Record<string, unknown>;
     }>(
-      `select pm.external_id, pm.payload from provider_mappings pm join game_data_versions gdv on gdv.id = pm.game_data_version_id where gdv.patch_version = $1 and pm.provider = 'poe-trade' and pm.entity_kind = 'resource' and pm.canonical_id = $2 and pm.status = 'active'`,
+      `select pm.external_id, pm.payload from provider_mappings pm join game_data_versions gdv on gdv.id = pm.game_data_version_id where gdv.patch_version = $1 and gdv.status = 'active' and pm.provider = 'poe-trade' and pm.entity_kind = 'resource' and pm.canonical_id = $2 and pm.status = 'active'`,
       [gameDataVersion, itemId],
     );
     if (result.rowCount !== 1) return null;

@@ -52,8 +52,8 @@ export function normalizeCanonicalCraftSetup(
     },
     method,
     startingMods: [...setup.startingMods].sort((left, right) =>
-      `${left.modId}:${left.tier ?? ''}`.localeCompare(
-        `${right.modId}:${right.tier ?? ''}`,
+      `${left.modId}:${left.tier ?? ''}:${left.kind ?? ''}:${left.minimumValue ?? ''}:${left.maximumValue ?? ''}`.localeCompare(
+        `${right.modId}:${right.tier ?? ''}:${right.kind ?? ''}:${right.minimumValue ?? ''}:${right.maximumValue ?? ''}`,
       ),
     ),
     target: {

@@ -46,13 +46,14 @@
       }
     },
     "uncertainties": [
-      "Indicative estimate: Craft of Exile displays rounded probability and expected consumption. Asking prices do not establish completed sales."
+      "Indicative estimate: Craft of Exile displays rounded probability and expected consumption. Asking prices do not establish completed sales.",
+      "Starting-base acquisition must use exactly item level 83. Higher item levels can change the affix pool and require a separate cost model."
     ],
     "id": "jagged-fossil",
     "name": "Jagged Fossil \u00b7 3 Notables",
     "steps": [
       {
-        "action": "Use one Jagged Fossil in a one-socket resonator on an item-level 83+ base.",
+        "action": "Use one Jagged Fossil in a one-socket resonator on a base of exactly item level 83.",
         "continueWhen": "The item has Battle-Hardened, Furious Assault and Master the Fundamentals.",
         "failureAction": "Repeat on the same base.",
         "id": "roll-with-fossil",

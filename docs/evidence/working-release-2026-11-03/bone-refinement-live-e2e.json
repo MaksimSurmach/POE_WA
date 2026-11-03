@@ -1,0 +1,74 @@
+{
+  "kind": "permissioned-live-final-bone-refinement",
+  "date": "2026-11-03",
+  "executionSource": "31d0971 final built source",
+  "refresh": {
+    "id": "3de1e7e1-0a58-453f-ac69-9733cb9ba85d",
+    "scope": "recipe",
+    "recipeId": "minion-bone-helmet-greed",
+    "source": "manual",
+    "status": "succeeded",
+    "requestedAt": "2026-11-03T01:52:56.753Z",
+    "startedAt": "2026-11-03T01:52:58.056Z",
+    "finishedAt": "2026-11-03T01:54:19.090Z",
+    "cancelRequested": false,
+    "errorCode": null,
+    "durationMs": 81033.885,
+    "completedQueries": 3,
+    "failedQueries": 0,
+    "totalQueries": 3,
+    "sourceFreshness": "2026-11-03T01:52:59.296Z",
+    "cooldownUntil": "2026-11-03T01:57:58.859Z"
+  },
+  "publication": {
+    "id": "3de1e7e1-0a58-453f-ac69-9733cb9ba85d",
+    "status": "published",
+    "total_recipes": 1,
+    "completed_recipes": 1,
+    "failed_recipes": 0,
+    "requested_at": "2026-11-03T02:52:58.064+01:00",
+    "started_at": "2026-11-03T02:52:58.064+01:00",
+    "finished_at": "2026-11-03T02:54:19.09+01:00",
+    "published_at": "2026-11-03T02:54:19.09+01:00",
+    "error_message": null,
+    "created_at": "2026-11-03T02:52:58.079+01:00",
+    "updated_at": "2026-11-03T02:54:19.09+01:00",
+    "total_queries": 3,
+    "completed_queries": 3,
+    "failed_queries": 0,
+    "league_id": "58a071e4-faf4-4e46-a78a-0978f1f683b6"
+  },
+  "beforeSyncBoneHidden": true,
+  "other14EvaluationsExactlyUnchanged": true,
+  "guard": {
+    "itemLevel": 75,
+    "implicitMinimumMinionDamage": 15,
+    "stat": "implicit.stat_1589917703"
+  },
+  "evaluation": {
+    "recipeId": "minion-bone-helmet-greed",
+    "confidence": "low",
+    "status": "partial",
+    "evaluatedAt": "2026-11-03T01:54:19.090Z",
+    "expectedCraftCost": {
+      "amount": 9348.3,
+      "currency": "chaos"
+    },
+    "estimatedSalePrice": null,
+    "profit": null,
+    "marginPercent": null,
+    "snapshotId": null,
+    "lastSuccessfulAt": null,
+    "errorCode": null
+  },
+  "catalogCounts": {
+    "expectedCosts": 12,
+    "askingPrices": 11,
+    "modeledSpreads": 9
+  },
+  "limits": [
+    "Asking prices are not completed sales.",
+    "No in-game crafting or currency purchases were performed.",
+    "The explicit input guard does not establish Eldritch implicit replacement mechanics in the live game."
+  ]
+}

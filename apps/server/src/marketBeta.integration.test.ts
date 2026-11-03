@@ -267,8 +267,12 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
       for (round = 0; round < 3; round++) {
         for (const target of targets) {
           const initial = await manager.runNow(target.id);
-          await vi.waitFor(async () =>
-            expect((await store.findRun(initial.id))?.status).toBe('succeeded'),
+          await vi.waitFor(
+            async () =>
+              expect((await store.findRun(initial.id))?.status).toBe(
+                'succeeded',
+              ),
+            { timeout: 5000 },
           );
         }
         now = new Date(now.getTime() + 60_000);

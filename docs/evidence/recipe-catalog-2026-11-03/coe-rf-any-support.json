@@ -1,0 +1,116 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "calculatorURL": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&class=73&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d",
+  "patchSource": "https://beta.craftofexile.com/changelog",
+  "access": "Actual current public CoEUI: rebuilt requirements, recomputed joint probability, ordinary paid50Wild failure, conditional successful core, then actual paid bench and SpendingDetails checked. No game purchase/craft/sale.",
+  "settings": "Acquired rare Elder-only Archdemon Crown ilvl83, unfractured/uncorrupted/unsynthesised, native+2socketedSkillGems/-2socketedSupportGems. Harvest ReforgeFire50Wild perattempt. AND ConcentratedEffect supportanytier + BurningDamage supportanytier + at least1OpenPrefix. Then once bench8–10%AoE/+1socketedAoEGems for4Chaos; all8–10values satisfy the target, no exact10retry.",
+  "startingItem": {
+    "metadataId": "Metadata/Items/Armours/Helmets/HelmetStrIntRitual3",
+    "itemLevel": 83,
+    "rarity": "rare",
+    "influences": ["elder"],
+    "fractured": false,
+    "corrupted": false,
+    "synthesised": false,
+    "nativeImplicit": {
+      "socketedSkillGems": 2,
+      "socketedSupportGems": -2
+    },
+    "procurement": "Acquire an existing eligible Elder rare; changing the simulator input is not a free in-game influence operation or executed purchase."
+  },
+  "requirements": [
+    {
+      "t": "and",
+      "m": null,
+      "e": [
+        {
+          "i": "2840",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "2845",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "special:open-prefix",
+          "t": "1",
+          "b": true,
+          "s": null
+        }
+      ]
+    }
+  ],
+  "currentIdentityAudit": {
+    "currentIDs": {
+      "2840": "Elder PREFIX increased AreaDamage / SocketedGems supported byConcentratedEffect",
+      "2845": "Elder SUFFIX increased BurningDamage / SocketedGems supported byBurningDamage"
+    },
+    "oldResearchIDs": {
+      "2839": "Now Shaper NearbyEnemies take increasedElementalDamage",
+      "2844": "Now Elder IgniteDuration / ImmolateSupport"
+    },
+    "disposition": "October30 rawresearch links are historical and not used for the new expectation. Current UI requirements were rebuilt; active November2legacycatalog links were independently checked and already correct."
+  },
+  "displayed": {
+    "successPercent": 1.07,
+    "oneOutOfTries": 94,
+    "expectedReforges": 94,
+    "expectedWildLifeforce": 4700
+  },
+  "perFinishedItem": {
+    "reforge-fire": 94,
+    "craft-aoe": 1,
+    "baseConsumption": 1,
+    "materials": {
+      "wild-crystallised-lifeforce": 4700,
+      "chaos-orb": 4
+    }
+  },
+  "ordinaryPaidFailure": {
+    "method": "Harvest ReforgeFire",
+    "materialsConsumed": {
+      "wild-crystallised-lifeforce": 50
+    },
+    "observedOtherSupport": "MinionLife20, neither requiredsupport",
+    "observedOtherMods": {
+      "fireResistance": 22,
+      "intelligence": 10
+    },
+    "verdict": "REJECT forboth targetscopes; repeat paidReforgeFire on samebase",
+    "sameElder83BaseAndNativeImplicitRetained": true,
+    "scouringRequired": false
+  },
+  "conditionalCore": {
+    "concentratedEffectLevel": 16,
+    "burningDamageLevel": 16,
+    "openPrefixesBeforeBench": 1,
+    "evidenceKind": "Generated complete required core; not an empirical expected-spend run"
+  },
+  "paidBenchFinish": {
+    "materialsConsumed": {
+      "chaos-orb": 4
+    },
+    "spendingDetails": {
+      "item": "Chaos Orb",
+      "unitPrice": 1,
+      "quantity": 4,
+      "total": 4
+    },
+    "craftedAoE": 10,
+    "socketedAoEGems": 1,
+    "bothSupportsPreserved": true,
+    "Elder83AndNativeImplicitPreserved": true,
+    "finishedTargetMatched": true
+  },
+  "limits": [
+    "Current displayed probability and mean uses are rounded; derived total is indicative.",
+    "No sockets/links/quality/life/resistance floor, exact10AoE or elevated25support is included.",
+    "This is a socketedFireTrap/SearingBondOfDetonation helmet; RF itself is outside this helmet. No all-build equivalence, completed sale, goldfee or acquisition execution is established.",
+    "One bench application is needed percompleteditem because any8–10roll succeeds; all rejected core attempts are included in the joint supports+vacancy probability."
+  ]
+}

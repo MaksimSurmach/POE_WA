@@ -1,0 +1,27 @@
+{
+  "kind": "actual-browser-cancellation",
+  "reason": "Tighten acquired-base level to the exact calculator input; old broad-base cycle intentionally superseded",
+  "run": {
+    "id": "d63f30a3-1e46-44ec-b70a-0b76f1314edc",
+    "scope": "all",
+    "recipeId": null,
+    "source": "manual",
+    "status": "cancelled",
+    "requestedAt": "2026-11-03T00:36:24.844Z",
+    "startedAt": "2026-11-03T00:36:26.250Z",
+    "finishedAt": "2026-11-03T01:06:57.146Z",
+    "cancelRequested": true,
+    "errorCode": "MARKET_COLLECTION_CANCELLED",
+    "durationMs": 1830895.233,
+    "completedQueries": 29,
+    "failedQueries": 1,
+    "totalQueries": 46,
+    "sourceFreshness": "2026-11-03T01:04:57.684Z",
+    "cooldownUntil": null
+  },
+  "previousCatalogUnchanged": true,
+  "rawRowsBefore": 57,
+  "rawRowsAfter": 57,
+  "allPreviousRawRowsUnchanged": true,
+  "nextStep": "Reuse matching completed target/material observations; collect exact-level bases in a new cycle"
+}

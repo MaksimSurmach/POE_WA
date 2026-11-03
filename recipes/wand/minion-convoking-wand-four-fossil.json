@@ -1,0 +1,169 @@
+{
+  "base": {
+    "baseId": "base:convoking-wand",
+    "influences": [],
+    "itemLevel": 84,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "category": "wand",
+  "notes": "A concrete, selected catalog target derived from the source Sheet. Exact numeric thresholds/base selection are explicit authoring choices, not measured demand or verified calculator results. Sheet C007 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices.",
+  "craft": {
+    "id": "minion-convoking-wand-four-fossil",
+    "name": "Convoking Wand · +2 Minion Spells",
+    "method": {
+      "kind": "fossil",
+      "fossils": [
+        "corroded-fossil",
+        "jagged-fossil",
+        "metallic-fossil",
+        "shuddering-fossil"
+      ],
+      "resonatorSockets": 4
+    },
+    "startingMods": [],
+    "uncertainties": [
+      "Indicative CoE model: displayed probability and mean use count are rounded. Real spending, sales, liquidity and whole-build fit are not established.",
+      "Only the exact declared output core is modelled. Optional finishing, catalysts, corruption, gold fees and purchase execution are outside scope.",
+      "Starting-base acquisition must use exactly item level 84. Higher item levels can change the affix pool and require a separate cost model."
+    ],
+    "steps": [
+      {
+        "id": "four-fossil-roll",
+        "title": "Roll both gem prefixes",
+        "action": "Use Corroded, Jagged, Metallic and Shuddering Fossils in one four-socket chaotic resonator on the acquired uninfluenced rare Convoking Wand.",
+        "continueWhen": "+1 to Level of all Spell Skill Gems AND +1 to Level of all Minion Skill Gems on the same wand.",
+        "failureAction": "Repeat the paid fossil combination on the same base; previous explicit modifiers are discarded. Stop at this functional +2 target. No unverified trigger, multimod or other finish is required.",
+        "materials": [
+          {
+            "itemId": "corroded-fossil",
+            "quantity": 1
+          },
+          {
+            "itemId": "jagged-fossil",
+            "quantity": 1
+          },
+          {
+            "itemId": "metallic-fossil",
+            "quantity": 1
+          },
+          {
+            "itemId": "shuddering-fossil",
+            "quantity": 1
+          },
+          {
+            "itemId": "prime-chaotic-resonator",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "evidence": {
+            "method": "Manually checked current Craft of Exile calculator; rounded displayed probability/mean consumption and complete outcome plus ordinary paid failure reroll",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&flags=&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+            "verifiedAt": "2026-11-03",
+            "settings": "Rare uninfluenced Convoking Wand ilvl84, no corruption/fracture/synthesis. One Corroded + Jagged + Metallic + Shuddering Fossil in one Prime Chaotic Resonator per attempt. AND +1allMinionSkillGems and +1allSpellSkillGems. Stop at functional+2; no open suffix, trigger or bench finish required. Native implicit minion damage is preserved; no numerical implicit floor is required.",
+            "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-convoking-wand.json",
+            "assumptions": "Independent rerolls on the same reusable acquired rare base, one material set per attempt. Current CoE displayed mean 12 sets is rounded; cost/ROI remain indicative. No replacement or finishing stage, in-game spending, executed purchase, sale or whole-build validation."
+          },
+          "probability": 0.0834
+        }
+      }
+    ],
+    "evidence": {
+      "method": "Manually checked current Craft of Exile calculator; rounded displayed probability/mean consumption and complete outcome plus ordinary paid failure reroll",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&flags=&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "verifiedAt": "2026-11-03",
+      "settings": "Rare uninfluenced Convoking Wand ilvl84, no corruption/fracture/synthesis. One Corroded + Jagged + Metallic + Shuddering Fossil in one Prime Chaotic Resonator per attempt. AND +1allMinionSkillGems and +1allSpellSkillGems. Stop at functional+2; no open suffix, trigger or bench finish required. Native implicit minion damage is preserved; no numerical implicit floor is required.",
+      "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-convoking-wand.json",
+      "assumptions": "Independent rerolls on the same reusable acquired rare base, one material set per attempt. Current CoE displayed mean 12 sets is rounded; cost/ROI remain indicative. No replacement or finishing stage, in-game spending, executed purchase, sale or whole-build validation."
+    },
+    "expectedExecutions": [
+      {
+        "stepId": "four-fossil-roll",
+        "count": 12,
+        "evidence": {
+          "method": "Manually checked current Craft of Exile calculator; rounded displayed probability/mean consumption and complete outcome plus ordinary paid failure reroll",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&flags=&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verifiedAt": "2026-11-03",
+          "settings": "Rare uninfluenced Convoking Wand ilvl84, no corruption/fracture/synthesis. One Corroded + Jagged + Metallic + Shuddering Fossil in one Prime Chaotic Resonator per attempt. AND +1allMinionSkillGems and +1allSpellSkillGems. Stop at functional+2; no open suffix, trigger or bench finish required. Native implicit minion damage is preserved; no numerical implicit floor is required.",
+          "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-convoking-wand.json",
+          "assumptions": "Independent rerolls on the same reusable acquired rare base, one material set per attempt. Current CoE displayed mean 12 sets is rounded; cost/ROI remain indicative. No replacement or finishing stage, in-game spending, executed purchase, sale or whole-build validation."
+        }
+      }
+    ],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Manually checked current Craft of Exile calculator; rounded displayed probability/mean consumption and complete outcome plus ordinary paid failure reroll",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&flags=&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+        "verifiedAt": "2026-11-03",
+        "settings": "Rare uninfluenced Convoking Wand ilvl84, no corruption/fracture/synthesis. One Corroded + Jagged + Metallic + Shuddering Fossil in one Prime Chaotic Resonator per attempt. AND +1allMinionSkillGems and +1allSpellSkillGems. Stop at functional+2; no open suffix, trigger or bench finish required. Native implicit minion damage is preserved; no numerical implicit floor is required.",
+        "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-convoking-wand.json",
+        "assumptions": "Independent rerolls on the same reusable acquired rare base, one material set per attempt. Current CoE displayed mean 12 sets is rounded; cost/ROI remain indicative. No replacement or finishing stage, in-game spending, executed purchase, sale or whole-build validation."
+      }
+    }
+  },
+  "startingBase": {
+    "baseId": "base:convoking-wand",
+    "influences": [],
+    "itemLevel": 84,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame"],
+    "checkedAt": "2026-11-03",
+    "sources": [
+      "https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&flags=&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "https://beta.craftofexile.com/changelog",
+      "https://www.pathofexile.com/api/trade/data/stats"
+    ],
+    "notes": "Exact current CoE3.29.3.3 selected base/method/target checked; ordinary paid failure retained the base and the complete successful output was generated. Rounded expected 12 sets; scoped indicative model only, not verified game spending, sales or build demand."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "minion-convoking-wand-four-fossil",
+  "schemaVersion": 3,
+  "summary": "Use Corroded, Jagged, Metallic and Shuddering fossils for a Convoking Wand with +1 all spell gems and +1 all minion gems.",
+  "tags": ["minion", "gem-levels", "spells", "fossils"],
+  "targetSignature": "3.29.3.3:160012a65633f3a57df189c3bb3e604a",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:spell-gems",
+        "minimumValue": 1
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:minion-gems",
+        "minimumValue": 1
+      }
+    ],
+    "suffixes": [],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Convoking Wand · +2 Minion Spells"
+}
