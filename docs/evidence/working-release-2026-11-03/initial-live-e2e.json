@@ -1,0 +1,101 @@
+{
+  "kind": "permissioned-live-observation",
+  "localDate": "2026-11-03",
+  "sourceCommit": "4a36744299bf7a57b53e63fe0c02a265bfcc0de2",
+  "environment": {
+    "app": "staging",
+    "postgres": "17.11",
+    "tlsVerified": true,
+    "node": "22.23.4",
+    "league": "Allflame",
+    "sessionCredentialUsed": false,
+    "automatedSchedules": false
+  },
+  "refresh": {
+    "id": "73826a4e-4270-41da-9798-e5cd9e6cf1a2",
+    "scope": "all",
+    "recipeId": null,
+    "source": "manual",
+    "status": "succeeded",
+    "requestedAt": "2026-11-02T23:56:44.965Z",
+    "startedAt": "2026-11-02T23:56:46.079Z",
+    "finishedAt": "2026-11-03T00:11:28.672Z",
+    "cancelRequested": false,
+    "errorCode": null,
+    "durationMs": 882592.482,
+    "completedQueries": 7,
+    "failedQueries": 0,
+    "totalQueries": 7,
+    "sourceFreshness": "2026-11-03T00:03:31.912Z",
+    "cooldownUntil": null
+  },
+  "rows": [
+    {
+      "recipeId": "physical-large-cluster-alteration",
+      "evaluation": {
+        "recipeId": "physical-large-cluster-alteration",
+        "confidence": "low",
+        "status": "partial",
+        "evaluatedAt": "2026-11-03T00:11:28.672Z",
+        "expectedCraftCost": {
+          "amount": 124.663852,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T00:01:48.555Z",
+        "expiresAt": "2026-11-03T00:31:48.555Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "totalResults": 0
+      },
+      "verifiedListings": 0
+    },
+    {
+      "recipeId": "physical-large-cluster-jagged",
+      "evaluation": {
+        "recipeId": "physical-large-cluster-jagged",
+        "confidence": "high",
+        "status": "success",
+        "evaluatedAt": "2026-11-03T00:11:28.672Z",
+        "expectedCraftCost": {
+          "amount": 1248.5647,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 820.2,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": -428.3647,
+          "currency": "chaos"
+        },
+        "marginPercent": -34.30857,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-03T00:11:28.672Z",
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T00:03:31.912Z",
+        "expiresAt": "2026-11-03T00:33:31.912Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "totalResults": 68
+      },
+      "verifiedListings": 24
+    }
+  ],
+  "limits": [
+    "Asking prices, not completed sales.",
+    "Rounded checked calculator expected uses are indicative.",
+    "No fixture, replay, retimestamp or manual market import was used.",
+    "Later integrated runtime/recipe changes need their own final checks.",
+    "These broad-base baseline economics are superseded by the final exact-item-level acquisition gate; original observations and arithmetic are retained."
+  ]
+}

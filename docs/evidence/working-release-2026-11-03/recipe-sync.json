@@ -1,0 +1,82 @@
+{
+  "gameDataVersion": "c3086dd9-73b4-41ac-bd16-25b1100a7b3f",
+  "reports": [
+    {
+      "catalogPath": "/Users/maksimsurmach/.codex/worktrees/poe-working-release/recipes",
+      "dryRun": true,
+      "created": [
+        "lacerate-shaper-recovery-shield",
+        "minion-bone-helmet-greed",
+        "minion-convoking-wand-four-fossil",
+        "minion-fossilised-shield-greed",
+        "minion-leviathan-fear-gloves",
+        "rf-fire-trap-any-support",
+        "rf-fire-trap-level-20",
+        "stygian-life-resistances-envy",
+        "stygian-life-resistances-fossils",
+        "suppression-boots-loathing",
+        "suppression-gloves-fear",
+        "suppression-gloves-zeal",
+        "tr-grizzly-aoe-helmet"
+      ],
+      "disabled": [],
+      "failed": [],
+      "unchanged": [
+        "physical-large-cluster-alteration",
+        "physical-large-cluster-jagged"
+      ],
+      "updated": []
+    },
+    {
+      "catalogPath": "/Users/maksimsurmach/.codex/worktrees/poe-working-release/recipes",
+      "dryRun": false,
+      "created": [
+        "lacerate-shaper-recovery-shield",
+        "minion-bone-helmet-greed",
+        "minion-convoking-wand-four-fossil",
+        "minion-fossilised-shield-greed",
+        "minion-leviathan-fear-gloves",
+        "rf-fire-trap-any-support",
+        "rf-fire-trap-level-20",
+        "stygian-life-resistances-envy",
+        "stygian-life-resistances-fossils",
+        "suppression-boots-loathing",
+        "suppression-gloves-fear",
+        "suppression-gloves-zeal",
+        "tr-grizzly-aoe-helmet"
+      ],
+      "disabled": [],
+      "failed": [],
+      "unchanged": [
+        "physical-large-cluster-alteration",
+        "physical-large-cluster-jagged"
+      ],
+      "updated": []
+    },
+    {
+      "catalogPath": "/Users/maksimsurmach/.codex/worktrees/poe-working-release/recipes",
+      "dryRun": true,
+      "created": [],
+      "disabled": [],
+      "failed": [],
+      "unchanged": [
+        "lacerate-shaper-recovery-shield",
+        "minion-bone-helmet-greed",
+        "minion-convoking-wand-four-fossil",
+        "minion-fossilised-shield-greed",
+        "minion-leviathan-fear-gloves",
+        "physical-large-cluster-alteration",
+        "physical-large-cluster-jagged",
+        "rf-fire-trap-any-support",
+        "rf-fire-trap-level-20",
+        "stygian-life-resistances-envy",
+        "stygian-life-resistances-fossils",
+        "suppression-boots-loathing",
+        "suppression-gloves-fear",
+        "suppression-gloves-zeal",
+        "tr-grizzly-aoe-helmet"
+      ],
+      "updated": []
+    }
+  ]
+}

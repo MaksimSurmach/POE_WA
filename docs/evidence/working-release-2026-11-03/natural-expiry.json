@@ -1,0 +1,19 @@
+{
+  "kind": "natural-expiry-observation",
+  "recipeId": "physical-large-cluster-jagged",
+  "evaluation": {
+    "recipeId": "physical-large-cluster-jagged",
+    "confidence": "high",
+    "status": "stale",
+    "evaluatedAt": "2026-11-03T00:11:28.672Z",
+    "expectedCraftCost": null,
+    "estimatedSalePrice": null,
+    "profit": null,
+    "marginPercent": null,
+    "snapshotId": null,
+    "lastSuccessfulAt": "2026-11-03T00:11:28.672Z",
+    "errorCode": null
+  },
+  "policy": "Increasing maximum quote age did not extend the existing immutable expiry; expired expected cost/profit/ROI were withheld.",
+  "replayedOrRetimestamped": false
+}

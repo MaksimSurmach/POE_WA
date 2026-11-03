@@ -1,0 +1,197 @@
+{
+  "migrationsBefore": 22,
+  "migrationsAfter": 24,
+  "preservedTables": 23,
+  "before": {
+    "aggregated_observations": {
+      "rows": 21,
+      "hash": "72f06ab3c334cd63ebc8e35d81919daf"
+    },
+    "belt_price_updates": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "canonical_entities": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "catalog_state": {
+      "rows": 1,
+      "hash": "00aaf8499b945c5304e1e11d477551e9"
+    },
+    "craft_probability_results": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "game_data_versions": {
+      "rows": 1,
+      "hash": "a70bbb3688d2d37977492344535279e9"
+    },
+    "jobs": {
+      "rows": 34,
+      "hash": "becc4b70db603a800e361844651dc9bb"
+    },
+    "market_collection_runs": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_collection_settings": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_economy_attempts": {
+      "rows": 1,
+      "hash": "56d96eddecfea1eaae804c07a22c3281"
+    },
+    "market_economy_snapshots": {
+      "rows": 1,
+      "hash": "abcf2b520cf303d81d635319053433db"
+    },
+    "market_queries": {
+      "rows": 14,
+      "hash": "37bc13ad3912f955fbe2ffe04e0d277a"
+    },
+    "market_research_snapshots": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_targets": {
+      "rows": 14,
+      "hash": "2b8ecab1fbf255e270643eacda05f535"
+    },
+    "poe_leagues": {
+      "rows": 2,
+      "hash": "f5e9db3ea04163c8fe62497974a6202b"
+    },
+    "provider_circuits": {
+      "rows": 2,
+      "hash": "c28ae3e4111f2701bffd35384d205b56"
+    },
+    "provider_mappings": {
+      "rows": 9,
+      "hash": "11b8657035dcd1c2e917492e515c806c"
+    },
+    "rate_limit_endpoint_policies": {
+      "rows": 3,
+      "hash": "36b42ab83bcb1fc2c0e98c317247e8aa"
+    },
+    "rate_limit_states": {
+      "rows": 4,
+      "hash": "592c0cfd8f95c456c1e3fd5d35adb0e7"
+    },
+    "raw_snapshots": {
+      "rows": 21,
+      "hash": "2bbf43ef1fae23832c296a21cb8e63a4"
+    },
+    "recipe_evaluations": {
+      "rows": 18,
+      "hash": "8095cce3f342e5e891db89676d9baf47"
+    },
+    "recipes": {
+      "rows": 2,
+      "hash": "56c6fb547269c698e7449d7c0d698ae8"
+    },
+    "refresh_cycles": {
+      "rows": 9,
+      "hash": "8d65f78cea2af17233da2ca220e20764"
+    }
+  },
+  "after": {
+    "aggregated_observations": {
+      "rows": 21,
+      "hash": "72f06ab3c334cd63ebc8e35d81919daf"
+    },
+    "belt_price_updates": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "canonical_entities": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "catalog_state": {
+      "rows": 1,
+      "hash": "00aaf8499b945c5304e1e11d477551e9"
+    },
+    "craft_probability_results": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "game_data_versions": {
+      "rows": 1,
+      "hash": "a70bbb3688d2d37977492344535279e9"
+    },
+    "jobs": {
+      "rows": 34,
+      "hash": "becc4b70db603a800e361844651dc9bb"
+    },
+    "market_collection_runs": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_collection_settings": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_economy_attempts": {
+      "rows": 1,
+      "hash": "56d96eddecfea1eaae804c07a22c3281"
+    },
+    "market_economy_snapshots": {
+      "rows": 1,
+      "hash": "abcf2b520cf303d81d635319053433db"
+    },
+    "market_queries": {
+      "rows": 14,
+      "hash": "37bc13ad3912f955fbe2ffe04e0d277a"
+    },
+    "market_research_snapshots": {
+      "rows": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_targets": {
+      "rows": 14,
+      "hash": "2b8ecab1fbf255e270643eacda05f535"
+    },
+    "poe_leagues": {
+      "rows": 2,
+      "hash": "f5e9db3ea04163c8fe62497974a6202b"
+    },
+    "provider_circuits": {
+      "rows": 2,
+      "hash": "c28ae3e4111f2701bffd35384d205b56"
+    },
+    "provider_mappings": {
+      "rows": 9,
+      "hash": "11b8657035dcd1c2e917492e515c806c"
+    },
+    "rate_limit_endpoint_policies": {
+      "rows": 3,
+      "hash": "36b42ab83bcb1fc2c0e98c317247e8aa"
+    },
+    "rate_limit_states": {
+      "rows": 4,
+      "hash": "592c0cfd8f95c456c1e3fd5d35adb0e7"
+    },
+    "raw_snapshots": {
+      "rows": 21,
+      "hash": "2bbf43ef1fae23832c296a21cb8e63a4"
+    },
+    "recipe_evaluations": {
+      "rows": 18,
+      "hash": "8095cce3f342e5e891db89676d9baf47"
+    },
+    "recipes": {
+      "rows": 2,
+      "hash": "56c6fb547269c698e7449d7c0d698ae8"
+    },
+    "refresh_cycles": {
+      "rows": 9,
+      "hash": "8d65f78cea2af17233da2ca220e20764"
+    }
+  },
+  "backupRestore": "passed",
+  "tls": "verified private local CA, rejectUnauthorized true",
+  "postgres": "17.11",
+  "source": "read-only backup of existing development data; isolated restore"
+}
