@@ -27,11 +27,21 @@
         }
       ],
       "itemLevel": 68,
-      "probability": 0.00117,
-      "expectedAttempts": 857,
-      "fossil": "serrated-fossil",
-      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
-      "status": "SCOPED_CALCULATOR_VERIFIED"
+      "probability": 6.77e-5,
+      "expectedAttempts": 14767,
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED",
+      "comparison": {
+        "fossil": "serrated-fossil",
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
+        "probability": 0.00117,
+        "expectedAttempts": 857,
+        "bulkCost": "unconfirmed"
+      },
+      "method": {
+        "kind": "currency",
+        "currency": "chaos-orb"
+      }
     },
     {
       "id": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads",
@@ -57,11 +67,21 @@
         }
       ],
       "itemLevel": 68,
-      "probability": 0.00331,
-      "expectedAttempts": 303,
-      "fossil": "serrated-fossil",
-      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads.json",
-      "status": "SCOPED_CALCULATOR_VERIFIED"
+      "probability": 0.000191,
+      "expectedAttempts": 5223,
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED",
+      "comparison": {
+        "fossil": "serrated-fossil",
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads.json",
+        "probability": 0.00331,
+        "expectedAttempts": 303,
+        "bulkCost": "unconfirmed"
+      },
+      "method": {
+        "kind": "currency",
+        "currency": "chaos-orb"
+      }
     },
     {
       "id": "cold-large-cluster-sadist-snowstorm-widespread-destruction",
@@ -117,11 +137,21 @@
         }
       ],
       "itemLevel": 68,
-      "probability": 0.000423,
-      "expectedAttempts": 2363,
-      "fossil": "serrated-fossil",
-      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender.json",
-      "status": "SCOPED_CALCULATOR_VERIFIED"
+      "probability": 0.000179,
+      "expectedAttempts": 5586,
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED",
+      "comparison": {
+        "fossil": "serrated-fossil",
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender.json",
+        "probability": 0.000423,
+        "expectedAttempts": 2363,
+        "bulkCost": "unconfirmed"
+      },
+      "method": {
+        "kind": "currency",
+        "currency": "chaos-orb"
+      }
     },
     {
       "id": "chaos-large-cluster-grim-oath-touch-of-cruelty-wicked-pall",
@@ -177,11 +207,21 @@
         }
       ],
       "itemLevel": 68,
-      "probability": 0.0032700000000000003,
-      "expectedAttempts": 306,
-      "fossil": "serrated-fossil",
-      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak.json",
-      "status": "SCOPED_CALCULATOR_VERIFIED"
+      "probability": 0.000159,
+      "expectedAttempts": 6296,
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED",
+      "comparison": {
+        "fossil": "serrated-fossil",
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak.json",
+        "probability": 0.0032700000000000003,
+        "expectedAttempts": 306,
+        "bulkCost": "unconfirmed"
+      },
+      "method": {
+        "kind": "currency",
+        "currency": "chaos-orb"
+      }
     },
     {
       "id": "fire-large-cluster-prismatic-heart-smoking-remains-widespread-destruction",
@@ -267,11 +307,21 @@
         }
       ],
       "itemLevel": 68,
-      "probability": 0.00151,
-      "expectedAttempts": 661,
-      "fossil": "serrated-fossil",
-      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak.json",
-      "status": "SCOPED_CALCULATOR_VERIFIED"
+      "probability": 9.17e-5,
+      "expectedAttempts": 10907,
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED",
+      "comparison": {
+        "fossil": "serrated-fossil",
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak.json",
+        "probability": 0.00151,
+        "expectedAttempts": 661,
+        "bulkCost": "unconfirmed"
+      },
+      "method": {
+        "kind": "currency",
+        "currency": "chaos-orb"
+      }
     }
   ]
 }

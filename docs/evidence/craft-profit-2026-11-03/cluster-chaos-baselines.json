@@ -1,7 +1,7 @@
 {
   "checkedAt": "2026-11-03",
   "patch": "3.29.3.3",
-  "scope": "Five observed current ordinary Chaos Orb baselines for existing Serrated targets. These are explicit alternative procedures, not a substituted Serrated price. Existing catalog recipes were not changed.",
+  "scope": "Five observed current ordinary Chaos Orb baselines for existing Serrated targets. These are explicit alternative procedures, not a substituted Serrated price. At observation capture, catalog recipes were not changed; five are subsequently selected as standalone Chaos procedures in cluster-targets.json.",
   "access": "Actual current Craft of Exile UI: selected Currencies/Chaos Orb, retained exact damage-family/ilvl68/fullAND3notables, read current permutation probability and expectedChaos count, applied one paid ordinary Chaos Orb and inspected the failed output for every target.",
   "methodSemantics": "One Chaos Orb per independent rare-item reroll. Chaos unit identity is1chaos, so modelled material amount equals the displayed mean use count; eligible acquired-base cost remains separate. No resonator,Scour,Annul,bench,Vesper orSulphur operation.",
   "models": [

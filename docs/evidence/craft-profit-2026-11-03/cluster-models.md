@@ -6,23 +6,32 @@ unsynthesised Large Clusters at exactly item level 68. Procurement and finished
 comparables require exactly 8 passives, 2 jewel sockets and the stated small-passive
 damage variant. All three named notables are required together in one AND group.
 
-| Variant and full target                                          | Single fossil | Displayed chance | Rounded paired uses |
-| ---------------------------------------------------------------- | ------------- | ---------------: | ------------------: |
-| Bow: Arcing Shot / Martial Prowess / Vicious Skewering           | Serrated      |           0.117% |                 857 |
-| Bow: Arcing Shot / Martial Prowess / Tempered Arrowheads         | Serrated      |           0.331% |                 303 |
-| Cold: Sadist / Snowstorm / Widespread Destruction                | Prismatic     |          0.0391% |                2561 |
-| Shield attack: Fuel the Fight / Heavy Hitter / Veteran Defender  | Serrated      |          0.0423% |                2363 |
-| Chaos: Grim Oath / Touch of Cruelty / Wicked Pall                | Aberrant      |           0.243% |                 412 |
-| Chaos: Touch of Cruelty / Unholy Grace / Wicked Pall             | Aberrant      |            1.31% |                  77 |
-| Two handed: Brutal Infamy / Fuel the Fight / Smite the Weak      | Serrated      |           0.327% |                 306 |
-| Two handed: Brutal Infamy / Feed the Fury / Smite the Weak       | Serrated      |           0.151% |                 661 |
-| Fire: Prismatic Heart / Smoking Remains / Widespread Destruction | Prismatic     |           0.326% |                 307 |
+| Variant and full target                                          | Selected method | Displayed chance | Rounded material uses |
+| ---------------------------------------------------------------- | --------------- | ---------------: | --------------------: |
+| Bow: Arcing Shot / Martial Prowess / Vicious Skewering           | Chaos Orb       |         0.00677% |           14767 Chaos |
+| Bow: Arcing Shot / Martial Prowess / Tempered Arrowheads         | Chaos Orb       |          0.0191% |            5223 Chaos |
+| Cold: Sadist / Snowstorm / Widespread Destruction                | Prismatic       |          0.0391% |            2561 pairs |
+| Shield attack: Fuel the Fight / Heavy Hitter / Veteran Defender  | Chaos Orb       |          0.0179% |            5586 Chaos |
+| Chaos: Grim Oath / Touch of Cruelty / Wicked Pall                | Aberrant        |           0.243% |             412 pairs |
+| Chaos: Touch of Cruelty / Unholy Grace / Wicked Pall             | Aberrant        |            1.31% |              77 pairs |
+| Two handed: Brutal Infamy / Fuel the Fight / Smite the Weak      | Chaos Orb       |          0.0159% |            6296 Chaos |
+| Two handed: Brutal Infamy / Feed the Fury / Smite the Weak       | Chaos Orb       |         0.00917% |           10907 Chaos |
+| Fire: Prismatic Heart / Smoking Remains / Widespread Destruction | Prismatic       |           0.326% |             307 pairs |
 
-Every use consumes one listed fossil and one Primitive Chaotic Resonator.
-Expected base consumption is one. Ordinary paid failed rerolls were observed
-for all nine targets; each missed the complete triple and retained its family
-and item level. Repeat on the same rare base; no Scouring, Annul, bench or base
-replacement is part of these single-stage methods.
+One Chaos use consumes one ordinary Chaos Orb; one fossil pair consumes the
+listed fossil plus one Primitive Chaotic Resonator. Expected base consumption is
+one, with acquisition cost additional. Ordinary paid failed rerolls were observed
+for every selected procedure; each missed the complete triple and retained its
+family and item level. Repeat on the same rare base; no Scouring, Annul, bench or
+base replacement is part of these single-stage methods.
+
+The five Chaos procedures are expensive cost baselines, not profit recommendations.
+Their probabilities and expected uses come exclusively from ordinary Chaos rerolls.
+Serrated remains a comparison requiring fewer attempts, but its bulk cost for the
+required quantity is unconfirmed. An observed top-of-book price does not establish
+supply for hundreds of uses; the current Ninja feed omits Serrated. There is no
+fabricated fossil price, automatic material substitution or mixed-method chance.
+Whether Serrated is cheaper requires a separate sufficient-quantity quote.
 
 The calculator header displays its unrolled 8–12 passive family range. The
 notable-affix calculation uses the selected Large Cluster damage-family pool;
@@ -30,12 +39,15 @@ exactly 8 passives and 2 sockets are enforced as acquisition and market constrai
 not a separately rolled success condition. Notable positioning, additional
 useful modifiers, quality and Intangibility are outside the target.
 
-Each `cluster-<recipe-id>.json` receipt stores observed current requirement IDs,
-prefix/suffix origins, displayed probability and paired mean, and the ordinary
-failed-roll notables. Replay URLs canonicalize replaceable starting explicit
-mods to empty; a chaotic fossil replaces those modifiers. All nine normalized
-replay links were reopened in the current UI and reproduced their probabilities
-and paired-use expectations; see `cluster-replay-validation.json`.
+Original `cluster-<recipe-id>.json` receipts preserve the nine fossil observations,
+requirement IDs, prefix/suffix origins, probability, paired mean and ordinary failed
+rolls. All nine normalized fossil replay links were reopened in the current UI;
+see `cluster-replay-validation.json`. The five selected Chaos procedures use
+`cluster-chaos-<recipe-id>.json`, bound to the actual current UI observations in
+`cluster-chaos-baselines.json`. The manifest points to the selected receipt and
+retains the original Serrated receipt as a comparison. Replay URLs canonicalize
+replaceable explicit mods to empty; the family, exact level and complete AND
+requirements are identical across each fossil/Chaos comparison.
 
 The two alternative checks in `cluster-route-comparisons.json` show why a
 same-element fossil is not automatically best: cold Frigid gave 41568 paired uses

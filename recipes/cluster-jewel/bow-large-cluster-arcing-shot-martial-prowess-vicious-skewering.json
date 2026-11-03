@@ -16,87 +16,83 @@
     }
   },
   "category": "cluster-jewel",
-  "notes": "Only the named three-notable core is required. Acquire an 8-passive, 2-socket base of the exact damage variant and authored item level. Notable positioning and extra affixes are outside this target.",
+  "notes": "Only the named three-notable core is required. Acquire an 8-passive, 2-socket base of the exact damage variant and authored item level. Notable positioning and extra affixes are outside this target. The selected cost model is ordinary Chaos rerolling. Serrated uses fewer attempts but its bulk material cost is unconfirmed; it is retained only as an comparison without a confirmed bulk cost.",
   "craft": {
     "evidence": {
-      "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+      "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed Chaos Orb reroll observed",
       "patch": "3.29.3.3",
-      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
       "verifiedAt": "2026-11-03",
-      "settings": "Rare Bow Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Arcing Shot, Martial Prowess, Vicious Skewering. No finishing step.",
-      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
-      "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 857 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+      "settings": "Rare Bow Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One ordinary Chaos Orb per independent reroll; no resonator. All three notables required together: Arcing Shot, Martial Prowess, Vicious Skewering. No finishing step.",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
+      "assumptions": "Use the same acquired eligible rare base until the full triple appears. Rounded current calculator expectation is 14767 Chaos Orbs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted. The Serrated comparison without a confirmed bulk cost is not used in this cost or probability model."
     },
     "method": {
-      "fossils": ["serrated-fossil"],
-      "kind": "fossil",
-      "resonatorSockets": 1
+      "currency": "chaos-orb",
+      "kind": "currency"
     },
     "startingMods": [],
     "baseConsumption": {
       "expectedBases": 1,
       "evidence": {
-        "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+        "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed Chaos Orb reroll observed",
         "patch": "3.29.3.3",
-        "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
         "verifiedAt": "2026-11-03",
-        "settings": "Rare Bow Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Arcing Shot, Martial Prowess, Vicious Skewering. No finishing step.",
-        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
-        "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 857 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+        "settings": "Rare Bow Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One ordinary Chaos Orb per independent reroll; no resonator. All three notables required together: Arcing Shot, Martial Prowess, Vicious Skewering. No finishing step.",
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
+        "assumptions": "Use the same acquired eligible rare base until the full triple appears. Rounded current calculator expectation is 14767 Chaos Orbs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted. The Serrated comparison without a confirmed bulk cost is not used in this cost or probability model."
       }
     },
     "uncertainties": [
       "Current calculator probability and mean uses are rounded; expected spending is indicative.",
       "Starting-base acquisition must use exactly item level 68. Higher item levels can change the affix pool and require a separate cost model.",
       "Exactly 8 passives and 2 jewel sockets are required; no particular notable layout or Vesper outcome advantage is modelled.",
-      "Comparable prices are asking prices; these do not establish completed sales or positive profit."
+      "Comparable prices are asking prices; these do not establish completed sales or positive profit.",
+      "Ordinary Chaos rerolling is an expensive baseline. Serrated requires fewer attempts, but its bulk cost is unconfirmed; no profitability is promised."
     ],
     "id": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering",
-    "name": "Serrated · 3 Notables",
+    "name": "Chaos Orb · 3 Notables",
     "steps": [
       {
-        "action": "Use one Serrated Fossil in one Primitive Chaotic Resonator on the acquired eligible rare base.",
+        "action": "Use one ordinary Chaos Orb on the acquired eligible rare base.",
         "continueWhen": "All three are present together: Arcing Shot, Martial Prowess, Vicious Skewering.",
-        "failureAction": "Repeat on the same rare base with another fossil/resonator pair. No Scouring or replacement base is required.",
-        "id": "roll-with-fossil",
+        "failureAction": "Repeat on the same rare base with another Chaos Orb. No Scouring or replacement base is required.",
+        "id": "roll-with-chaos",
         "materials": [
           {
-            "itemId": "serrated-fossil",
-            "quantity": 1
-          },
-          {
-            "itemId": "primitive-chaotic-resonator",
+            "itemId": "chaos-orb",
             "quantity": 1
           }
         ],
         "success": {
           "evidence": {
-            "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+            "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed Chaos Orb reroll observed",
             "patch": "3.29.3.3",
-            "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+            "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
             "verifiedAt": "2026-11-03",
-            "settings": "Rare Bow Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Arcing Shot, Martial Prowess, Vicious Skewering. No finishing step.",
-            "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
-            "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 857 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+            "settings": "Rare Bow Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One ordinary Chaos Orb per independent reroll; no resonator. All three notables required together: Arcing Shot, Martial Prowess, Vicious Skewering. No finishing step.",
+            "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
+            "assumptions": "Use the same acquired eligible rare base until the full triple appears. Rounded current calculator expectation is 14767 Chaos Orbs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted. The Serrated comparison without a confirmed bulk cost is not used in this cost or probability model."
           },
-          "probability": 0.00117
+          "probability": 6.77e-5
         },
         "title": "Roll all three notables together"
       }
     ],
     "expectedExecutions": [
       {
-        "count": 857,
+        "count": 14767,
         "evidence": {
-          "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+          "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed Chaos Orb reroll observed",
           "patch": "3.29.3.3",
-          "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
           "verifiedAt": "2026-11-03",
-          "settings": "Rare Bow Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Arcing Shot, Martial Prowess, Vicious Skewering. No finishing step.",
-          "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
-          "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 857 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+          "settings": "Rare Bow Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One ordinary Chaos Orb per independent reroll; no resonator. All three notables required together: Arcing Shot, Martial Prowess, Vicious Skewering. No finishing step.",
+          "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
+          "assumptions": "Use the same acquired eligible rare base until the full triple appears. Rounded current calculator expectation is 14767 Chaos Orbs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted. The Serrated comparison without a confirmed bulk cost is not used in this cost or probability model."
         },
-        "stepId": "roll-with-fossil"
+        "stepId": "roll-with-chaos"
       }
     ]
   },
@@ -122,15 +118,15 @@
     "leagues": ["Allflame"],
     "checkedAt": "2026-11-03",
     "sources": [
-      "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
       "https://beta.craftofexile.com/changelog"
     ],
-    "notes": "The scoped current calculator probability and complete single-stage expected-material model were checked in public UI, together with an ordinary paid failure and same-base recovery. No game transaction or profit claim."
+    "notes": "The current ordinary Chaos calculator probability and complete single-stage expected-material model were checked in public UI, together with an ordinary paid failure and same-base recovery. This expensive baseline does not establish profit; Serrated remains an alternative without a confirmed bulk cost."
   },
   "gameDataVersion": "3.29.3.3",
   "id": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering",
   "schemaVersion": 3,
-  "summary": "8-passive bow damage Large Cluster Jewel with Arcing Shot, Martial Prowess and Vicious Skewering, rolled with Serrated Fossils.",
+  "summary": "8-passive bow damage Large Cluster Jewel with Arcing Shot, Martial Prowess and Vicious Skewering, rolled with Chaos Orbs; an expensive baseline with no profit claim.",
   "tags": ["bow", "cluster-jewel", "three-notables"],
   "targetSignature": "3.29.3.3:0c33dc8afdbce827f2e1224138274d5e",
   "target": {
