@@ -46,6 +46,7 @@ export const marketSnapshotSchema = z
     expiresAt: z.iso.datetime().optional(),
     coverage: z.enum(['complete', 'partial', 'unknown']).optional(),
     sortedPageComplete: z.boolean().optional(),
+    sortedSampleComplete: z.boolean().optional(),
     totalResults: z.number().int().nonnegative(),
     listings: z.array(listingSchema),
   })
@@ -193,6 +194,8 @@ export const recipeMethodViewSchema = z.strictObject({
       itemId: z.string(),
       priceBasis: z.enum(['asking', 'economy-estimate']).optional(),
       bulkSupported: z.boolean().optional(),
+      sortedSampleComplete: z.boolean().optional(),
+      totalResults: z.number().int().nonnegative().optional(),
       verifiedAt: z.iso.datetime().optional(),
       source: z.string(),
       league: z.string(),

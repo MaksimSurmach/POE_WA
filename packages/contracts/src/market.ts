@@ -809,6 +809,7 @@ export const marketCollectionRunSchema = z.strictObject({
   inexact: z.boolean().optional(),
   sourceUrl: httpsUrl.optional(),
   searchEvidence: marketCollectionSearchEvidenceSchema.optional(),
+  sortedSampleComplete: z.boolean().optional(),
   currency: z.enum(['chaos', 'divine']).nullable(),
   listings: z
     .array(marketCollectionListingSchema)

@@ -401,7 +401,9 @@ function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
             {snapshot.coverage ?? 'Unknown'} coverage
             {snapshot.sortedPageComplete
               ? ' (complete lowest-price page)'
-              : ''}{' '}
+              : snapshot.sortedSampleComplete
+                ? ` (sorted price sample: 20/${snapshot.totalResults} offers)`
+                : ''}{' '}
             · {new Date(snapshot.capturedAt).toLocaleString('en-US')}
             {snapshot.expiresAt && Date.parse(snapshot.expiresAt) < Date.now()
               ? ' · Stale'

@@ -92,6 +92,15 @@ export function managedCollectionSource(
         errorCode: run.errorCode,
         retryAt: run.retryAt,
         searchEvidence: run.searchEvidence,
+        ...(run.sortedSampleComplete === undefined
+          ? {}
+          : {
+              sortedSampleComplete:
+                run.sortedSampleComplete &&
+                !run.cancelRequested &&
+                !run.errorCode &&
+                run.status === 'partial',
+            }),
       };
     },
   };

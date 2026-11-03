@@ -48,6 +48,9 @@ describe('authored recipe to provider to published economics', () => {
     'complete',
     'partial',
     'capped',
+    'sample',
+    'base-sample',
+    'sample-incomplete',
     'thin-stock',
     'ninja-bulk',
     'ninja-unconvertible',
@@ -111,7 +114,7 @@ describe('authored recipe to provider to published economics', () => {
       const collect = vi.fn<MarketCollectionAdapter['collect']>(
         async ({ target }) => {
           const base = target.tradeSearch?.rarity === 'normal';
-          const offers = base
+          const initialOffers = base
             ? ([[10, 'base-seller']] as const)
             : ([
                 [100, 'seller-a'],
@@ -119,12 +122,43 @@ describe('authored recipe to provider to published economics', () => {
                 [99, 'seller-b'],
                 [1, 'unknown-seller'],
               ] as const);
+          const sampled =
+            coverage === 'sample' ||
+            coverage === 'sample-incomplete' ||
+            (coverage === 'base-sample' && base);
+          const offers = sampled
+            ? [
+                ...initialOffers,
+                ...Array.from(
+                  {
+                    length:
+                      (coverage === 'sample-incomplete' ? 19 : 20) -
+                      initialOffers.length,
+                  },
+                  (_, index) => [1000 + index, 'unknown-seller'] as const,
+                ),
+              ]
+            : initialOffers;
           return {
+            ...(sampled
+              ? {
+                  sortedSampleComplete: true,
+                  searchEvidence: {
+                    queryId: 'sample',
+                    ids: Array.from(
+                      { length: 100 },
+                      (_, index) => `offer-${index}`,
+                    ),
+                    reportedTotal: 340,
+                    request: { scope: 'strict', sort: { price: 'asc' } },
+                  },
+                }
+              : {}),
             batchCount: 1,
             cached: false,
             capturedAt: now.toISOString(),
             coverage:
-              coverage === 'capped' || coverage === 'partial'
+              sampled || coverage === 'capped' || coverage === 'partial'
                 ? 'partial'
                 : 'complete',
             inexact: false,
@@ -141,8 +175,9 @@ describe('authored recipe to provider to published economics', () => {
               : {}),
             currency: 'chaos',
             fetchedCount: offers.length,
-            reportedTotal: coverage === 'capped' ? 340 : offers.length,
-            returnedCount: offers.length,
+            reportedTotal:
+              sampled || coverage === 'capped' ? 340 : offers.length,
+            returnedCount: sampled ? 100 : offers.length,
             listings: offers.map(([price, seller], index) => ({
               listedAt: '2026-11-02T12:00:00Z',
               externalId: `offer-${index}`,
@@ -319,32 +354,60 @@ describe('authored recipe to provider to published economics', () => {
         report.publication.evaluations.map((e) => [e.recipeId, e]),
       );
       expect(byId.get(first.id)).toMatchObject({
-        estimatedSalePrice: coverage !== 'partial' ? '80' : null,
+        estimatedSalePrice: !['partial', 'sample-incomplete'].includes(coverage)
+          ? '80'
+          : null,
         expectedCraftCost: ['ninja-bulk', 'ninja-revalidated'].includes(
           coverage,
         )
           ? '40'
-          : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
+          : [
+                'complete',
+                'capped',
+                'sample',
+                'base-sample',
+                'ninja-unconvertible',
+              ].includes(coverage)
             ? '22'
             : null,
         profit: ['ninja-bulk', 'ninja-revalidated'].includes(coverage)
           ? '40'
-          : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
+          : [
+                'complete',
+                'capped',
+                'sample',
+                'base-sample',
+                'ninja-unconvertible',
+              ].includes(coverage)
             ? '58'
             : null,
       });
       expect(byId.get(second.id)).toMatchObject({
-        estimatedSalePrice: coverage !== 'partial' ? '80' : null,
+        estimatedSalePrice: !['partial', 'sample-incomplete'].includes(coverage)
+          ? '80'
+          : null,
         expectedCraftCost: ['ninja-bulk', 'ninja-revalidated'].includes(
           coverage,
         )
           ? '70'
-          : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
+          : [
+                'complete',
+                'capped',
+                'sample',
+                'base-sample',
+                'ninja-unconvertible',
+              ].includes(coverage)
             ? '34'
             : null,
         profit: ['ninja-bulk', 'ninja-revalidated'].includes(coverage)
           ? '10'
-          : ['complete', 'capped', 'ninja-unconvertible'].includes(coverage)
+          : [
+                'complete',
+                'capped',
+                'sample',
+                'base-sample',
+                'ninja-unconvertible',
+              ].includes(coverage)
             ? '46'
             : null,
       });
@@ -367,16 +430,39 @@ describe('authored recipe to provider to published economics', () => {
         firstQuery!.id,
         league.id,
       );
-      expect(snapshot?.payload.listings).toHaveLength(4);
+      expect(snapshot?.payload.listings).toHaveLength(
+        coverage === 'sample' ? 20 : coverage === 'sample-incomplete' ? 19 : 4,
+      );
+      expect(snapshot?.payload.sortedSampleComplete).toBe(
+        coverage === 'sample',
+      );
+      if (coverage === 'sample')
+        expect(byId.get(first.id)).toMatchObject({
+          confidence: 'low',
+          methodCost: {
+            source: { sortedSampleComplete: true, coverage: 'partial' },
+          },
+        });
       expect(snapshot?.payload.sortedPageComplete).toBe(coverage === 'capped');
+      if (coverage === 'base-sample')
+        expect(byId.get(first.id)).toMatchObject({
+          confidence: 'low',
+          methodCost: {
+            materialEvidence: {
+              base: { sortedSampleComplete: true, totalResults: 340 },
+            },
+          },
+        });
       const observations = await repositories.observations.listRecent(
         firstQuery!.id,
         league.id,
         new Date(0),
       );
       expect(observations[0]).toMatchObject({
-        cheapestPrice: '80',
-        sampleSize: 2,
+        cheapestPrice: ['partial', 'sample-incomplete'].includes(coverage)
+          ? null
+          : '80',
+        sampleSize: ['partial', 'sample-incomplete'].includes(coverage) ? 0 : 2,
       });
     },
   );

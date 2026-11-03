@@ -299,12 +299,18 @@ function prepareResult(
     : (result.listings[0]?.price.currency ?? 'unknown');
   const aggregation = aggregateMarketListings({
     currency,
-    listings: comparableRecipeListings(
-      query,
-      result.listings,
-      result.fetchedAt,
-      result.fetchedAt,
-    ),
+    listings:
+      query.handbookTarget &&
+      result.coverage !== 'complete' &&
+      !result.sortedPageComplete &&
+      !result.sortedSampleComplete
+        ? []
+        : comparableRecipeListings(
+            query,
+            result.listings,
+            result.fetchedAt,
+            result.fetchedAt,
+          ),
     totalListings: result.totalResults,
   });
   const snapshot: NewRawSnapshot = {
@@ -322,6 +328,7 @@ function prepareResult(
         result.coverage ??
         (result.totalResults > result.listings.length ? 'partial' : 'complete'),
       sortedPageComplete: result.sortedPageComplete ?? false,
+      sortedSampleComplete: result.sortedSampleComplete ?? false,
       provider: result.provider,
       totalResults: result.totalResults,
     },
@@ -344,6 +351,7 @@ function prepareResult(
     summary: {
       coverage: result.coverage ?? 'unknown',
       sortedPageComplete: result.sortedPageComplete ?? false,
+      sortedSampleComplete: result.sortedSampleComplete ?? false,
       ageBuckets: aggregation.ageBuckets,
       estimators: aggregation.estimators,
       totalListings: aggregation.totalListings,
