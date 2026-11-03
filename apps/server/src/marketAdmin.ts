@@ -390,7 +390,14 @@ export function createMarketAdminStore(options: {
       const expired =
         run.status === 'queued' &&
         Date.now() - run.requested_at.getTime() > 60 * 60_000;
-      if (expired) await queue.cancel(run.id);
+      if (expired) {
+        const pending = await pool.query(
+          `update market_admin_runs set status='failed',finished_at=now(),error_code='REFRESH_QUEUE_EXPIRED' where id=$1 and status='queued' returning id`,
+          [run.id],
+        );
+        if (!pending.rowCount) continue;
+        await queue.cancel(run.id);
+      }
       if (
         expired ||
         !state ||

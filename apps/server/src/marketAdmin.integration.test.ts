@@ -805,6 +805,39 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     );
   });
 
+  it('does not expire a queued run that a worker claims during reconciliation', async () => {
+    const id = await enqueue();
+    await pool.query(
+      `update market_admin_runs set requested_at=now()-interval '61 minutes' where id=$1`,
+      [id],
+    );
+    let claimed = false;
+    await store.reconcile({
+      async state(runId) {
+        if (!claimed) {
+          claimed = true;
+          await boss.fetch(CATALOG_REFRESH_QUEUE);
+          expect(
+            await secondStore.claim(id, { scope: 'all', source: 'manual' }),
+          ).toBe(true);
+          await seedCycle(id);
+        }
+        return producer.state(runId);
+      },
+      cancel: (runId) => producer.cancel(runId),
+    });
+    expect(await producer.state(id)).toBe('active');
+    expect((await store.runs())[0]).toMatchObject({
+      id,
+      status: 'running',
+      errorCode: null,
+    });
+    expect(
+      (await pool.query('select status from refresh_cycles where id=$1', [id]))
+        .rows[0]?.status,
+    ).toBe('running');
+  });
+
   it('shares worker heartbeats and makes stale health visible across processes', async () => {
     expect(await store.workerHealth()).toMatchObject({
       healthy: false,
