@@ -179,7 +179,7 @@ describe('authored source catalog integrity', () => {
     const catalog = await recipes();
     expect(
       catalog.filter((r) => r.definition.verification.status === 'verified'),
-    ).toHaveLength(10);
+    ).toHaveLength(12);
     for (const method of ['zeal', 'fear']) {
       const recipe = catalog.find(
         (r) => r.definition.id === `suppression-gloves-${method}`,
@@ -328,6 +328,67 @@ describe('authored source catalog integrity', () => {
     )?.definition;
     expect(boots?.craft.expectedExecutions?.[0]?.count).toBe(12);
     expect(boots?.craft.baseConsumption?.expectedBases).toBe(1);
+  });
+
+  it('includes gem levels, suffix vacancy and fire compatibility before the single paid Greed finish', async () => {
+    const catalog = await recipes();
+    for (const [id, tier, minimumLife, mean] of [
+      ['minion-bone-helmet-greed', '1', 91, 1907],
+      ['minion-fossilised-shield-greed', null, 130, 169],
+    ] as const) {
+      const recipe = catalog.find((r) => r.definition.id === id)?.definition;
+      if (!recipe?.craft.evidence) throw new Error('Missing Greed evidence');
+      const receipt = JSON.parse(
+        await readFile(new URL(recipe.craft.evidence.artifact, root), 'utf8'),
+      );
+      const reqs = JSON.parse(
+        Buffer.from(
+          new URL(receipt.calculatorURL).searchParams.get('reqs') ?? '',
+          'base64',
+        ).toString('utf8'),
+      );
+      expect(reqs).toEqual([
+        {
+          t: 'and',
+          m: null,
+          e: [
+            { i: '769', t: tier, b: true, s: null },
+            { i: 'special:open-suffix', t: '1', b: true, s: null },
+          ],
+        },
+        { t: 'not', m: null, e: [{ i: '1038', t: null, b: true, s: null }] },
+      ]);
+      expect(recipe.craft.steps[0]?.continueWhen).toContain(
+        'no native Fire Resistance',
+      );
+      expect(
+        recipe.craft.expectedExecutions?.map((x) => [x.stepId, x.count]),
+      ).toEqual([
+        ['essence-greed', mean],
+        ['craft-fire-resistance', 1],
+      ]);
+      expect(recipe.craft.steps[1]?.materials).toEqual([
+        { itemId: 'chaos-orb', quantity: 3 },
+      ]);
+      expect(receipt.guaranteedEssenceLife.minimum).toBe(minimumLife);
+      expect(
+        recipe.target.prefixes.find((x) => x.modId === 'mod:life')
+          ?.minimumValue,
+      ).toBe(minimumLife);
+      expect(receipt.paidBenchFinish.spendingDetails).toEqual({
+        item: 'Chaos Orb',
+        unitPrice: 1,
+        quantity: 3,
+        total: 3,
+      });
+      expect(receipt.paidBenchFinish.finishedTargetMatched).toBe(true);
+      expect(recipe.craft.baseConsumption?.expectedBases).toBe(1);
+    }
+    for (const recipe of catalog) {
+      expect(recipe.definition.summary).not.toMatch(
+        /MAX-\d+|C0\d\d|Scoped .* procedure/,
+      );
+    }
   });
 
   it('preserves all sixteen Sheet candidates and separates recovered formula text from raw errors', async () => {

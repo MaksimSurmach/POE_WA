@@ -120,7 +120,7 @@
   "gameDataVersion": "3.29.3.3",
   "id": "stygian-life-resistances-envy",
   "schemaVersion": 3,
-  "summary": "Stygian Vise · Life, Fire and Chaos · Envy. Current scoped CoE model: rounded expected 613 sets; fresh market prices stay separate.",
+  "summary": "Use Envy essences for a Stygian Vise with at least 130 life, 42% Fire Resistance and 31% Chaos Resistance.",
   "tags": ["life", "resistances", "chaos-resistance", "abyss"],
   "targetSignature": "3.29.3.3:28be21f0dd60c334322647173b573ee3",
   "target": {

@@ -129,7 +129,7 @@
   "gameDataVersion": "3.29.3.3",
   "id": "stygian-life-resistances-fossils",
   "schemaVersion": 3,
-  "summary": "Stygian Vise · Life, Fire and Cold · Fossils. Current scoped CoE model: rounded expected 942 sets; fresh market prices stay separate.",
+  "summary": "Use Pristine and Prismatic fossils for a Stygian Vise with at least 130 life and 42% each Fire and Cold Resistance.",
   "tags": ["life", "resistances", "fossils", "abyss"],
   "targetSignature": "3.29.3.3:ffa04f1ca1055064be4ab948d843e319",
   "target": {

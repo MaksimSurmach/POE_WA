@@ -142,7 +142,7 @@
   "gameDataVersion": "3.29.3.3",
   "id": "minion-convoking-wand-four-fossil",
   "schemaVersion": 3,
-  "summary": "Convoking Wand · +2 Minion Spells. Current scoped CoE model: rounded expected 12 sets; fresh market prices stay separate.",
+  "summary": "Use Corroded, Jagged, Metallic and Shuddering fossils for a Convoking Wand with +1 all spell gems and +1 all minion gems.",
   "tags": ["minion", "gem-levels", "spells", "fossils"],
   "targetSignature": "3.29.3.3:160012a65633f3a57df189c3bb3e604a",
   "target": {

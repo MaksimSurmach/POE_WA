@@ -101,7 +101,7 @@
   "gameDataVersion": "3.29.3.3",
   "id": "minion-leviathan-fear-gloves",
   "schemaVersion": 3,
-  "summary": "Minion Gloves · Fractured 34% Chaos Resistance. Scoped MAX-1288 procedure.",
+  "summary": "Leviathan Gloves with acquired fractured Chaos Resistance, minion damage, life, crafted resistances and a minion damage implicit.",
   "tags": ["minion", "life", "chaos-resistance", "fractured", "eldritch"],
   "targetSignature": "3.29.3.3:b1f8c70684c206114755b716e476a22c",
   "target": {

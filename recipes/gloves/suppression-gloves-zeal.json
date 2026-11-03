@@ -126,7 +126,7 @@
   "gameDataVersion": "3.29.3.3",
   "id": "suppression-gloves-zeal",
   "schemaVersion": 3,
-  "summary": "Suppression Gloves · Attack Speed. Checked single-stage essence model; rounded expected 15 uses. Eligible fresh asking prices remain separate.",
+  "summary": "Use Zeal essences on Dragonscale Gauntlets with acquired fractured spell suppression until at least 100 life; the essence grants attack speed.",
   "tags": ["life", "spell-suppression", "attack-speed", "fractured"],
   "targetSignature": "3.29.3.3:779d9871b55e661e0481b722f49ea531",
   "target": {

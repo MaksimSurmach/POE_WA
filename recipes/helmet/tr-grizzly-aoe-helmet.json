@@ -120,7 +120,7 @@
   "gameDataVersion": "3.29.3.3",
   "id": "tr-grizzly-aoe-helmet",
   "schemaVersion": 3,
-  "summary": "Toxic Rain Helmet · Exact 10% AoE. Scoped MAX-1288 procedure.",
+  "summary": "Grizzly Pelt with life, spell suppression and Cold Resistance, finished with exactly 10% increased AoE and a reservation efficiency implicit.",
   "tags": ["toxic-rain", "life", "spell-suppression", "aoe", "eldritch"],
   "targetSignature": "3.29.3.3:45b466b789ed30500c3de3eafe441ee9",
   "target": {

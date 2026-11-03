@@ -126,7 +126,7 @@
   "gameDataVersion": "3.29.3.3",
   "id": "suppression-boots-loathing",
   "schemaVersion": 3,
-  "summary": "Suppression Boots · Ailment Avoidance and Movement. Current scoped CoE model: rounded expected12essences; no life or optional finish requirement.",
+  "summary": "Use Loathing essences on Slink Boots with acquired fractured spell suppression until at least 25% movement speed; the essence grants ailment avoidance.",
   "tags": [
     "spell-suppression",
     "ailment-avoidance",

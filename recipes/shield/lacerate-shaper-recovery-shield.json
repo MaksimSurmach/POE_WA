@@ -81,7 +81,7 @@
   "gameDataVersion": "3.29.3.3",
   "id": "lacerate-shaper-recovery-shield",
   "schemaVersion": 3,
-  "summary": "Shaper Life-on-Block Shield · Greed. Scoped MAX-1288 procedure.",
+  "summary": "Shaper Pinnacle Tower Shield with life recovery on block, essence life and crafted Fire Resistance.",
   "tags": ["life", "block", "shaper", "resistances"],
   "targetSignature": "3.29.3.3:6041b26de80ff0293263a998195386e8",
   "target": {
