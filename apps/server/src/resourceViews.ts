@@ -573,5 +573,59 @@ function currentEvaluation(
       },
     };
   }
-  return evaluation;
+  return withoutUnsupportedProfit(evaluation);
+}
+
+/** Matches the publisher's minimum before a cheapest ask may yield profit or ROI. */
+const minimumComparableSellers = 2;
+
+/**
+ * Evaluations saved before the two-seller rule may still carry profit derived
+ * from one seller's ask. Withhold that profit when the stored evidence shows
+ * fewer than two comparable sellers; keep ask and cost visible. Evaluations
+ * without any stored seller evidence are left unchanged.
+ */
+function withoutUnsupportedProfit(evaluation: RecipeEvaluation) {
+  const methodCost = evaluation.methodCost ?? {};
+  const saleEvidence = record(methodCost.saleEvidence);
+  const source = record(methodCost.source);
+  const sellers =
+    typeof saleEvidence?.comparableSellers === 'number'
+      ? saleEvidence.comparableSellers
+      : typeof source?.sampleSize === 'number'
+        ? source.sampleSize
+        : null;
+  const insufficient =
+    saleEvidence?.status === 'insufficient_sellers' ||
+    (sellers !== null && sellers < minimumComparableSellers);
+  if (
+    !insufficient ||
+    (evaluation.profit === null && evaluation.marginPercent === null)
+  )
+    return evaluation;
+  return {
+    ...evaluation,
+    status:
+      evaluation.status === 'success'
+        ? ('partial' as const)
+        : evaluation.status,
+    lastSuccessfulAt:
+      evaluation.status === 'success' ? null : evaluation.lastSuccessfulAt,
+    profit: null,
+    marginPercent: null,
+    methodCost: {
+      ...methodCost,
+      saleEvidence: {
+        comparableSellers: sellers,
+        minimumComparableSellers,
+        status: 'insufficient_sellers',
+      },
+    },
+  };
+}
+
+function record(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 }

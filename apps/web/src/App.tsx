@@ -4,7 +4,7 @@ import type {
   CurrentLeagueResponse,
 } from '@poe-worksmith/contracts';
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { Link, Outlet, Route, Routes } from 'react-router-dom';
+import { Link, NavLink, Outlet, Route, Routes } from 'react-router-dom';
 
 import {
   defaultCatalogFilters,
@@ -22,6 +22,7 @@ import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
 import { ItemTooltip } from './ItemTooltip.js';
 import { AdminMarketPage } from './AdminMarketPage.js';
+import { MarketTrendsPage } from './MarketTrendsPage.js';
 
 const apiClient = createApiClient();
 
@@ -33,6 +34,25 @@ function AppShell() {
           <Link className="brand" to="/" aria-label="Worksmith Handbook home">
             <span>Worksmith</span> Handbook
           </Link>
+          <nav aria-label="Primary" className="app-nav">
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? 'nav-link is-active' : 'nav-link'
+              }
+              end
+              to="/"
+            >
+              Recipes
+            </NavLink>
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? 'nav-link is-active' : 'nav-link'
+              }
+              to="/market"
+            >
+              Market trends
+            </NavLink>
+          </nav>
         </div>
       </header>
       <main className="app-main">
@@ -451,6 +471,7 @@ export function App() {
       <Route element={<AppShell />}>
         <Route index element={<CatalogRoute />} />
         <Route path="recipes/:recipeId" element={<RecipePage />} />
+        <Route path="market" element={<MarketTrendsPage />} />
         <Route path="admin/market" element={<AdminMarketPage />} />
       </Route>
     </Routes>

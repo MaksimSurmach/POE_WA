@@ -67,4 +67,46 @@ describe('typed API client', () => {
       method: 'POST',
     });
   });
+
+  it('requests bounded trend ranges and encodes recipe IDs', async () => {
+    const data = {
+      state: 'empty',
+      range: '30d',
+      bucketSeconds: 86400,
+      windowStart: timestamp,
+      windowEnd: timestamp,
+      league: { id: 'league', name: 'League' },
+      priceBasis: 'asking',
+      salesVolume: 'unknown',
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        response({ correlationId, data: { ...data, entries: [] } }),
+      )
+      .mockResolvedValueOnce(
+        response({
+          correlationId,
+          data: {
+            ...data,
+            recipeId: 'a/b',
+            title: 'A',
+            summary: null,
+            buckets: [],
+          },
+        }),
+      );
+    const client = createApiClient('', fetchMock);
+
+    await expect(client.getTrendOverview('30d')).resolves.toMatchObject({
+      data: { state: 'empty' },
+    });
+    await expect(client.getRecipeTrend('a/b', '30d')).resolves.toMatchObject({
+      data: { recipeId: 'a/b' },
+    });
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      '/api/trends?range=30d',
+      '/api/trends/a%2Fb?range=30d',
+    ]);
+  });
 });

@@ -13,6 +13,11 @@ import {
   leaguesResponseSchema,
   type RefreshTriggerResponse,
   refreshTriggerResponseSchema,
+  type RecipeTrendResponse,
+  recipeTrendResponseSchema,
+  type TrendOverviewResponse,
+  trendOverviewResponseSchema,
+  type TrendRange,
 } from '@poe-worksmith/contracts';
 
 type Contract<T> = {
@@ -74,6 +79,21 @@ export function createApiClient(
     },
     getLeagues(): Promise<LeaguesResponse> {
       return request('/api/leagues', leaguesResponseSchema);
+    },
+    getTrendOverview(range: TrendRange): Promise<TrendOverviewResponse> {
+      return request(
+        `/api/trends?range=${encodeURIComponent(range)}`,
+        trendOverviewResponseSchema,
+      );
+    },
+    getRecipeTrend(
+      id: string,
+      range: TrendRange,
+    ): Promise<RecipeTrendResponse> {
+      return request(
+        `/api/trends/${encodeURIComponent(id)}?range=${encodeURIComponent(range)}`,
+        recipeTrendResponseSchema,
+      );
     },
   };
 }

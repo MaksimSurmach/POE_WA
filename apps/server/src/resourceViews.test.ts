@@ -634,3 +634,163 @@ it.each([false, true])(
       });
   },
 );
+
+describe('legacy single-seller profit on the read boundary', () => {
+  async function publishLegacy(input: {
+    status: 'success' | 'stale';
+    methodCost: Record<string, unknown>;
+  }) {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    const recipeId = 'physical-large-cluster-jagged';
+    const recipe = (await repositories.recipes.findById(recipeId))!;
+    const now = new Date();
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Synthetic Seller League',
+      isCurrent: true,
+      metadata: {},
+      name: 'Synthetic Seller League',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
+    const queued = await repositories.cycles.save({
+      completedQueries: 0,
+      completedRecipes: 0,
+      errorMessage: null,
+      failedQueries: 0,
+      failedRecipes: 0,
+      finishedAt: null,
+      id: '66666666-6666-4666-8666-666666666666',
+      leagueId: league.id,
+      publishedAt: null,
+      requestedAt: now,
+      startedAt: null,
+      status: 'queued',
+      totalQueries: 0,
+      totalRecipes: 1,
+    });
+    const running = await repositories.cycles.save(
+      transitionRefreshCycle(queued, 'running', now),
+    );
+    const saved = await repositories.evaluations.save({
+      confidence: 'low',
+      currency: 'chaos',
+      errorCode: input.status === 'stale' ? 'SNAPSHOT_MISSING' : null,
+      estimatedSalePrice: '19795',
+      evaluatedAt: now,
+      expectedCraftCost: '869.28',
+      lastSuccessfulAt: now,
+      leagueId: league.id,
+      marginPercent: '2177.17',
+      observationId: null,
+      profit: '18925.72',
+      recipeId,
+      refreshCycleId: running.id,
+      sourceSnapshotDedupeKey: 'legacy-single-seller',
+      status: input.status,
+      methodCost: {
+        recipeContentHash: recipe.contentHash,
+        expiresAt: new Date(now.getTime() + 20 * 60_000).toISOString(),
+        oldestInputAt: new Date(now.getTime() - 60_000).toISOString(),
+        expectedCost: { amount: '869.28', currency: 'chaos' },
+        ...input.methodCost,
+      },
+    });
+    await repositories.cycles.save({ ...running, completedRecipes: 1 });
+    await repositories.cycles.publish(running.id, now);
+    const readers = createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+      undefined,
+      async () => 30 * 60_000,
+    );
+    const catalog = catalogResponseSchema.parse(
+      await readers.readCatalog(correlationId),
+    );
+    const detail = recipeResponseSchema.parse(
+      await readers.readRecipe(correlationId, recipeId),
+    );
+    return {
+      catalog: catalog.data?.entries.find((e) => e.recipe.id === recipeId)
+        ?.evaluation,
+      detail: detail.data?.evaluation,
+      stored: await repositories.evaluations.listByCycle(running.id),
+      saved,
+    };
+  }
+
+  const askAndCost = {
+    estimatedSalePrice: { amount: 19795, currency: 'chaos' },
+    expectedCraftCost: { amount: 869.28, currency: 'chaos' },
+  };
+
+  it.each([
+    ['source sample of one (pre-saleEvidence)', { source: { sampleSize: 1 } }],
+    [
+      'saleEvidence insufficient',
+      {
+        source: { sampleSize: 1 },
+        saleEvidence: {
+          comparableSellers: 1,
+          minimumComparableSellers: 2,
+          status: 'insufficient_sellers',
+        },
+      },
+    ],
+  ])(
+    'withholds stored profit and ROI from a %s and marks it partial in catalog and detail',
+    async (_label, methodCost) => {
+      const { catalog, detail, stored, saved } = await publishLegacy({
+        status: 'success',
+        methodCost,
+      });
+      for (const evaluation of [catalog, detail])
+        expect(evaluation).toMatchObject({
+          ...askAndCost,
+          status: 'partial',
+          profit: null,
+          marginPercent: null,
+          lastSuccessfulAt: null,
+        });
+      expect(detail).toEqual(catalog);
+      // Stored history is not rewritten; only the read view is qualified.
+      expect(stored).toEqual([saved]);
+      expect(saved.profit).toBe('18925.72');
+    },
+  );
+
+  it('keeps a legacy single-seller stale fallback stale while withholding its profit', async () => {
+    const { catalog, detail } = await publishLegacy({
+      status: 'stale',
+      methodCost: { source: { sampleSize: 1 } },
+    });
+    for (const evaluation of [catalog, detail])
+      expect(evaluation).toMatchObject({
+        ...askAndCost,
+        status: 'stale',
+        profit: null,
+        marginPercent: null,
+      });
+  });
+
+  it.each([
+    ['two sellers', { source: { sampleSize: 2 } }],
+    ['twenty sellers', { source: { sampleSize: 20 } }],
+    ['unknown seller evidence', {}],
+  ])('keeps supported profit for %s', async (_label, methodCost) => {
+    const { catalog, detail } = await publishLegacy({
+      status: 'success',
+      methodCost,
+    });
+    for (const evaluation of [catalog, detail])
+      expect(evaluation).toMatchObject({
+        ...askAndCost,
+        status: 'success',
+        profit: { amount: 18925.72, currency: 'chaos' },
+        marginPercent: 2177.17,
+      });
+  });
+});

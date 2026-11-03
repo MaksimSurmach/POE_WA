@@ -1,4 +1,4 @@
-import type { RecipeResponse } from '@poe-worksmith/contracts';
+import type { RecipeResponse, TrendRange } from '@poe-worksmith/contracts';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -11,6 +11,7 @@ import {
 import { formatMarginPercent } from './catalog.js';
 import { createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
+import { RecipeTrendPanel } from './MarketTrendsPage.js';
 
 const apiClient = createApiClient();
 
@@ -18,6 +19,7 @@ export function RecipePage() {
   const { recipeId } = useParams();
   const [response, setResponse] = useState<RecipeResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const [trendRange, setTrendRange] = useState<TrendRange>('30d');
 
   useEffect(() => {
     let active = true;
@@ -268,6 +270,19 @@ export function RecipePage() {
             </span>
           ))}
         </div>
+      </DetailSection>
+      <DetailSection title="Price history">
+        <RecipeTrendPanel
+          onRangeChange={setTrendRange}
+          range={trendRange}
+          recipeId={recipe.id}
+        />
+        <Link
+          className="recipe-link"
+          to={`/market?recipe=${encodeURIComponent(recipe.id)}&range=${trendRange}`}
+        >
+          Compare in market trends ›
+        </Link>
       </DetailSection>
       <DetailSection title="Base and target">
         <ItemTooltip item={detail.presentation.base} />

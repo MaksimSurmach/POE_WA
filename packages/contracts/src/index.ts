@@ -587,3 +587,4 @@ export type RefreshTriggerResponse = z.infer<
   typeof refreshTriggerResponseSchema
 >;
 export * from './admin.js';
+export * from './trends.js';

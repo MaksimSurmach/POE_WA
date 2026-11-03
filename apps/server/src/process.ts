@@ -61,6 +61,8 @@ import { createRefreshFreshnessReader } from './freshness.js';
 import { createMarketResearchRepository } from './repositories/marketResearchRepository.js';
 import { createMarketEconomyRepository } from './repositories/marketEconomyRepository.js';
 import { createMarketCollectionRepository } from './repositories/marketCollectionRepository.js';
+import { createPriceHistoryRepository } from './repositories/priceHistoryRepository.js';
+import { createMarketTrendsReader } from './marketTrendsApi.js';
 import { NinjaEconomyClient } from './providers/ninjaEconomy.js';
 import { MarketCollectionManager } from './marketCollection.js';
 import {
@@ -93,6 +95,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   const pool = createDatabasePool(config.database, logger);
   const repositories = createPostgresRepositories(pool);
   const economy = createMarketEconomyRepository(pool);
+  const priceHistory = createPriceHistoryRepository(pool);
   const admin = createMarketAdminStore({
     pool,
     defaults: defaultAdminSettings({
@@ -215,6 +218,11 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             client: economyClient,
             readRetention: async () => (await admin.read()).effective,
           },
+          marketTrends: createMarketTrendsReader({
+            history: priceHistory,
+            recipes: repositories.recipes,
+            findCurrentLeague: repositories.leagues.findCurrent,
+          }),
           readCircuits: repositories.providerCircuits.list,
           readOperationalDiagnostics: repositories.operationalDiagnostics.read,
           readRefreshFreshness: createRefreshFreshnessReader({
@@ -306,6 +314,11 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           snapshotsBefore: new Date(
             Date.now() - settings.historyRetentionDays * 86_400_000,
           ),
+        });
+        // Rollup moves old observations into daily summaries before deleting them.
+        await priceHistory.compact({
+          batchSize: config.retentionBatchSize,
+          dailyRetentionDays: settings.historyRetentionDays,
         });
         return new RetentionCleaner({
           batchSize: config.retentionBatchSize,

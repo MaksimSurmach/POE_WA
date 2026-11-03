@@ -11,8 +11,10 @@ cost of 869.28c, an ask of 19,795c, a profit of 18,925.72c and an ROI of 2177.17
 The ~9000% value reported earlier could not be reproduced from current data. It
 fits the same defect class, but that is not proven.
 
-All published recipes with a large positive ROI shared one property: Trade
-returned exactly one comparable listing.
+The most extreme ROI (the 2177% shield) and the thin-market gloves and boots
+rested on exactly one comparable listing. Other large positive ROIs did not:
+rf-fire-trap-level-20 and the four-fossil wand rest on 20 and 19 sorted
+comparable listings.
 
 | Recipe                            | ROI     | Cost     | Ask      | Comparable listings | Listing age |
 | --------------------------------- | ------- | -------- | -------- | ------------------- | ----------- |
@@ -92,8 +94,13 @@ at least 19 sellers.
   deep samples. Fixing that needs stricter target matching, outside this unit.
 - Asking prices are not sale evidence. Accepted ROI is still indicative, as the
   UI states.
-- Evaluations persisted before this fix keep their ROI until re-evaluated or
-  expired by the quote-age policy, including when reused as a stale fallback.
+- Evaluations persisted before this fix could keep their ROI until
+  re-evaluated, including when reused as a stale fallback. This is now closed
+  at the catalog/detail read boundary. When the stored
+  `methodCost.saleEvidence` or `methodCost.source.sampleSize` shows fewer than
+  two sellers, the view keeps ask and cost and withholds profit and ROI. It
+  marks `success` rows `partial`, and stale fallbacks stay `stale`. Stored rows
+  are not rewritten, and rows without seller evidence are left unchanged.
 - Cluster recipes in the local catalog exposed no snapshot listings, so their
   seller counts could not be checked from the API. Any with fewer than two
   sellers will now publish as `partial`.

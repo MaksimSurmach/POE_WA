@@ -39,6 +39,10 @@ import {
 import { registerMarketResearchRoutes } from './marketResearchApi.js';
 import type { MarketResearchRepository } from './marketResearch.js';
 import { registerMarketEconomyRoutes } from './marketEconomyApi.js';
+import {
+  registerMarketTrendsRoutes,
+  type MarketTrendsReader,
+} from './marketTrendsApi.js';
 import type { MarketEconomyOptions } from './marketEconomy.js';
 import type {
   MarketCollectionManager,
@@ -82,6 +86,7 @@ export function buildApi(
       | { manager: MarketCollectionManager; store: MarketCollectionStore }
       | undefined;
     marketEconomy?: MarketEconomyOptions | undefined;
+    marketTrends?: MarketTrendsReader | undefined;
     triggerRefresh?: (() => Promise<string | null>) | undefined;
   } = {},
 ) {
@@ -201,6 +206,7 @@ export function buildApi(
   );
   registerMarketEconomyRoutes(api, options.marketEconomy);
   registerMarketAdminRoutes(api, options.marketAdmin);
+  registerMarketTrendsRoutes(api, options.marketTrends);
 
   api.get('/health/live', async (request) => ({
     correlationId: request.id,
