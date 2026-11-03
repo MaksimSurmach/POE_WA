@@ -250,7 +250,7 @@ export function RecipePage() {
         ))}
         <p>
           {detail.snapshot
-            ? `${detail.snapshot.listings.length} verified sellers · ${detail.snapshot.coverage ?? 'unknown'} search coverage${detail.snapshot.sortedPageComplete ? ' (complete lowest-price page)' : detail.snapshot.sortedSampleComplete ? ` (sorted price sample: 20/${detail.snapshot.totalResults} offers)` : ''} · ${new Date(detail.snapshot.capturedAt).toLocaleString('en-US')}`
+            ? `${detail.snapshot.listings.length} verified sellers · ${detail.snapshot.coverage ?? 'unknown'} search coverage${detail.snapshot.sortedPageComplete ? ' (complete lowest-price page)' : detail.snapshot.sortedSampleComplete ? ` (sorted price sample: 20/${detail.snapshot.totalResults} offers)` : ''}${detail.snapshot.listings.length > 0 && detail.snapshot.listings.length <= 2 ? ' · Thin market' : ''} · ${new Date(detail.snapshot.capturedAt).toLocaleString('en-US')}`
             : method.marketStatus === 'empty'
               ? 'No verified comparable asking prices found.'
               : 'Comparable market data unavailable.'}
