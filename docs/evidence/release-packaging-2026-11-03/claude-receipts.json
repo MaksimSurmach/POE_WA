@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-03",
+  "reviewKind": "actual-Claude-Code-read-only-static-audit-and-recheck",
+  "reviews": [
+    {
+      "session_id": "1b3be0de-1873-4475-a854-250aa2b683a3",
+      "duration_ms": 81163,
+      "num_turns": 24,
+      "is_error": false,
+      "permission_denials": [],
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "resultFile": "claude-initial.md",
+      "sha256": "f830a78d5af00e4dc0602d8804954b5d979191d164979b67806d66d1634b8845"
+    },
+    {
+      "session_id": "1b3be0de-1873-4475-a854-250aa2b683a3",
+      "duration_ms": 42131,
+      "num_turns": 8,
+      "is_error": false,
+      "permission_denials": [],
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "resultFile": "claude-recheck.md",
+      "sha256": "0b08e5fb4cd044c0af63596a7d361c0b13d65343e8b9bed173bd113f63e3c5c3"
+    }
+  ],
+  "currentSourceHashes": {
+    "README.md": "d9056ef7b8b49e4c6efcf8fb4c926edfd4608659ed8572dd6392603414aecd8b",
+    "compose.yaml": "52bc120e9972bbf26737b620c7e48625418402a4c5c201b27d9bbb42131c5d20",
+    "deploy/nginx.conf": "5a451acaf1ec344bd0929b42fdac76c0d2ecc7ded55e132a6bd2bb2219deee2a",
+    "apps/web/package.json": "db822c9d823eb8f67d0c20044535666639e93944135f90695277f309b2c57fbb",
+    "apps/web/vite.config.ts": "7f3b6cc601d3f8caacd712ed535b35aa35f344281ee989a92f00e1afd6800377"
+  },
+  "postReviewChange": "README-only instruction to restart web after app is recreated separately.",
+  "captureLimit": "CLI JSON summaries and outputs retained; tool-by-tool transcripts not attached.",
+  "containerRuntimeTested": false
+}

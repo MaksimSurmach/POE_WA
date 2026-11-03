@@ -3,7 +3,9 @@ name: poe-worksmith
 services:
   app:
     profiles: [app]
-    build: .
+    build:
+      context: .
+      target: server
     environment:
       APP_ENV: development
       APP_HOST: 0.0.0.0
@@ -29,6 +31,16 @@ services:
         condition: service_healthy
     ports:
       - 127.0.0.1:3000:3000
+
+  web:
+    profiles: [app]
+    build:
+      context: .
+      target: web
+    depends_on:
+      - app
+    ports:
+      - 127.0.0.1:8080:8080
 
   postgres:
     image: postgres:17-alpine
