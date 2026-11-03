@@ -196,6 +196,8 @@ describe('native item property queries', () => {
 
   it.each([
     ['valid', 940, 20, 6, 100, true],
+    ['legacy percentile', 940, 20, 6, 100, true],
+    ['conflicting percentile', 940, 20, 6, 100, false],
     ['under flat ES', 940, 20, 6, 100, false],
     ['under ES', 939, 20, 6, 100, false],
     ['under quality', 940, 19, 6, 100, false],
@@ -231,7 +233,16 @@ describe('native item property queries', () => {
           explicitMods: [
             `+${_label === 'under flat ES' ? 87 : 88} to maximum Energy Shield`,
           ],
-          ...(percentile === null ? {} : { baseDefencePercentile: percentile }),
+          ...(percentile === null
+            ? {}
+            : _label === 'legacy percentile'
+              ? { baseDefencePercentile: percentile }
+              : {
+                  extended: { base_defence_percentile: percentile },
+                  ...(_label === 'conflicting percentile'
+                    ? { baseDefencePercentile: 99 }
+                    : {}),
+                }),
           ...(links === null
             ? {}
             : {

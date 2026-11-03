@@ -137,6 +137,7 @@ const itemSchema = z
       .optional(),
     extended: z
       .object({
+        base_defence_percentile: z.number().finite().min(0).max(100).optional(),
         hashes: z
           .record(
             z.string(),
@@ -330,10 +331,16 @@ export function normalizeTradeCompatibleListing(
       Number(energyShieldValue) <= 1e9
     )
       mods.push({ id: 'armour.es', value: Number(energyShieldValue) });
-  if (item.baseDefencePercentile !== undefined)
+  const baseDefencePercentile =
+    item.extended?.base_defence_percentile ?? item.baseDefencePercentile;
+  if (
+    baseDefencePercentile !== undefined &&
+    (item.baseDefencePercentile === undefined ||
+      item.baseDefencePercentile === baseDefencePercentile)
+  )
     mods.push({
       id: 'misc.base_defence_percentile',
-      value: item.baseDefencePercentile,
+      value: baseDefencePercentile,
     });
   if (quality && /^\+?\d+%$/.test(quality))
     mods.push({
