@@ -595,7 +595,10 @@ export function createInMemoryRepositories(): Repositories {
       },
       async list() {
         return [...rateLimitStates.values()]
-          .filter(({ endpoints }) => endpoints.length > 0)
+          .filter(
+            ({ endpoints, lastStatus }) =>
+              endpoints.length > 0 || lastStatus === 401 || lastStatus === 403,
+          )
           .sort((left, right) => left.policy.localeCompare(right.policy))
           .map(clone);
       },

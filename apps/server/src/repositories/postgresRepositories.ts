@@ -1707,7 +1707,7 @@ function rateLimitStateSelectSql(filter = '') {
             on mapping.policy = state.policy
           ${filter}
           group by state.policy
-          having count(mapping.endpoint) > 0
+          having count(mapping.endpoint) > 0 or state.last_status in (401, 403)
           order by state.policy`;
 }
 

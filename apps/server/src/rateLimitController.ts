@@ -100,14 +100,20 @@ export class GggRateLimitController implements RateLimitGate {
         (await this.#repository.list()).some(
           (state) =>
             [401, 403].includes(state.lastStatus ?? 0) &&
-            state.endpoints.some((name) =>
+            (state.endpoints.some((name) =>
               [
                 'trade',
                 'trade-search',
                 'trade-fetch',
                 'trade-exchange',
               ].includes(name),
-            ),
+            ) ||
+              [
+                'poe-trade',
+                'trade-search-request-limit',
+                'trade-fetch-request-limit',
+                'trade-exchange-request-limit',
+              ].includes(state.policy)),
         )
       )
         throw new DomainError('MARKET_ACCESS_BLOCKED');

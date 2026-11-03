@@ -11,6 +11,7 @@ const start = new Date('2026-07-20T00:00:00.000Z');
 describe('GGG rate-limit controller', () => {
   it.each([
     ['trade-search', 'trade-exchange'],
+    ['trade-exchange', 'trade-search'],
     ['trade-exchange', 'trade-fetch'],
   ])(
     'shares access denial from %s with %s without sharing pacing',
@@ -25,6 +26,32 @@ describe('GGG rate-limit controller', () => {
       await expect(
         new GggRateLimitController({ repository }).waitForPermit(next),
       ).rejects.toMatchObject({ code: 'MARKET_ACCESS_BLOCKED' });
+    },
+  );
+
+  it.each(['trade-search', 'trade-fetch', 'trade-exchange'])(
+    'blocks %s when only an orphaned retained exchange-policy denial is visible',
+    async (endpoint) => {
+      const repository = createInMemoryRepositories().rateLimits;
+      const old = new GggRateLimitController({ repository });
+      const headers = new Headers({
+        'X-Rate-Limit-Policy': 'trade-exchange-request-limit',
+      });
+      await old.observeResponse('trade-search', { status: 403, headers });
+      headers.set('X-Rate-Limit-Policy', 'trade-search-request-limit');
+      await old.observeResponse('trade-search', { status: 200, headers });
+      const orphaned = (await repository.list()).filter(
+        (state) => state.policy === 'trade-exchange-request-limit',
+      );
+      expect(orphaned).toMatchObject([{ endpoints: [], lastStatus: 403 }]);
+      const acquire = vi.spyOn(repository, 'acquire');
+      const gate = new GggRateLimitController({
+        repository: { ...repository, list: async () => orphaned },
+      });
+      await expect(gate.waitForPermit(endpoint)).rejects.toMatchObject({
+        code: 'MARKET_ACCESS_BLOCKED',
+      });
+      expect(acquire).not.toHaveBeenCalled();
     },
   );
 
