@@ -43,7 +43,8 @@ synthetic fixture or manual market import supplied these prices.
   not establish a sale price or liquidity.
 - Both baseline economic observations above used minimum-level acquisition and are superseded for cost acceptance by the exact-level gate.
 - The broad-base full cycle was intentionally cancelled at 29/46 completed queries; its 57 raw snapshots and previous publication stayed unchanged.
-- The final exact-base cycle is under observation. It reused 21 compatible target/material observations with their original dates and is collecting the exact-level starting bases. Its terminal receipt will be recorded before final acceptance.
+- `full-exact-live-e2e.json`: final exact-level full cycle succeeded: 46/46 queries and 15/15 recipes, with zero failures. It collected 25 queries on their first attempt and reused 21 compatible target/material observations with their original dates. The catalog exposed 12 expected costs, 11 comparable asking prices and nine modeled spreads.
+- `bone-refinement-live-e2e.json`: the subsequent scoped gate checks the final Bone Helmet implicit acquisition guard; it supersedes only that recipe and verifies the other 14 evaluations stay unchanged.
 
 Handbook collection now fetches at most the first 20 price-sorted IDs. Full
 returned IDs and search evidence are retained. A separate proof marks a complete
@@ -66,14 +67,28 @@ Calculator verification is scoped to the documented current item, stopping
 conditions, paid retries and finish. It does not prove in-game execution or
 profitability. Unmodeled full procedures retain null expected cost and ROI.
 
-Current integration checks include the genuine retry/cancellation/lock-order
-regressions and separate reuse/usable-age behavior. Final test totals and CI
-will be recorded after the remaining data-only verification updates.
+Final source checks passed: 474 unit/UI tests, 119 real PostgreSQL integration
+tests, eight backend E2E tests and seven provider-contract checks (the latter
+overlap unit coverage). Build, lint, typecheck and migration consistency passed.
+These include retry/cancellation/lock-order regressions, persisted provider
+cooldowns and separate reuse/usable-age behavior.
+
+A clean Chromium session rendered all 15 recipes at 1200px and 390px with no
+horizontal overflow, zero console errors/warnings, working search/tag filters,
+and an accessible item tooltip. The real purchase link requires item level
+85 exactly and fractured suppression >=14. Receipts and screenshots are in
+`browser-acceptance.json` and the adjacent PNG files.
 
 Fresh installations use hourly refresh, 30-minute cache reuse and a two-hour
 usable quote window. Existing saved settings are retained. This staging run uses
-the same age/reuse policy; automatic collection remains disabled until its full
-live gate succeeds.
+a two-hour usable quote window. After the live gates, hourly automatic and
+scheduled collection are enabled; staging reuses snapshots for five minutes so
+new scheduled runs reacquire market observations. Source timestamps and expiry
+remain immutable. The catalog continues to show the prior usable publication
+while the next refresh runs. The final scoped run encountered a temporary
+poe.ninja cooldown: existing usable economy quotes were retained, and the admin
+source indicator reports the failed attempt. The cleanup schedule remains disabled for this
+evidence environment.
 
 ## Limits
 
@@ -84,3 +99,9 @@ TLS acceptance CA expires after seven days; this environment has no reboot
 autostart. Containerized admin writes remain blocked by the direct-loopback
 policy. Full-repository formatting also reports older drift and byte-preserved
 source captures; changed application code/configuration is checked separately.
+
+CI for the final code head `31d0971` passed, including server and web container
+builds: [quality run](https://github.com/MaksimSurmach/POE_WA/actions/runs/41561037081).
+PR [#28](https://github.com/MaksimSurmach/POE_WA/pull/28) contains the catalog,
+pricing guards and these acceptance receipts; the final documentation commit
+receives its own CI before merge.

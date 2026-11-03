@@ -1,0 +1,545 @@
+{
+  "kind": "permissioned-live-exact-base-collection",
+  "localDate": "2026-11-03",
+  "environment": "private local PostgreSQL17 staging with verified TLS; current Allflame",
+  "executionSource": "exact-level/sampled collector through e92564f; later generic cooldown guard tested independently",
+  "refresh": {
+    "id": "fe139b47-c8d1-4d03-a9a1-1690f3102b41",
+    "scope": "all",
+    "recipeId": null,
+    "source": "manual",
+    "status": "succeeded",
+    "requestedAt": "2026-11-03T01:12:33.470Z",
+    "startedAt": "2026-11-03T01:12:34.098Z",
+    "finishedAt": "2026-11-03T01:41:45.686Z",
+    "cancelRequested": false,
+    "errorCode": null,
+    "durationMs": 1751587.69,
+    "completedQueries": 46,
+    "failedQueries": 0,
+    "totalQueries": 46,
+    "sourceFreshness": "2026-11-03T01:41:05.226Z",
+    "cooldownUntil": null
+  },
+  "publication": {
+    "completedQueries": 46,
+    "completedRecipes": 15,
+    "failedQueries": 0,
+    "failedRecipes": 0,
+    "finishedAt": "2026-11-03T01:41:45.686Z",
+    "id": "fe139b47-c8d1-4d03-a9a1-1690f3102b41",
+    "publishedAt": "2026-11-03T01:41:45.686Z",
+    "requestedAt": "2026-11-03T01:12:34.103Z",
+    "startedAt": "2026-11-03T01:12:34.103Z",
+    "status": "published",
+    "totalQueries": 46,
+    "totalRecipes": 15
+  },
+  "jobs": {
+    "collectedQueries": 25,
+    "succeeded": 25,
+    "failed": 0,
+    "attempts": 25
+  },
+  "reusedFreshQueries": 21,
+  "counts": {
+    "recipes": 15,
+    "calculatorChecked": 12,
+    "expectedCosts": 12,
+    "askingPrices": 11,
+    "modeledSpreads": 9
+  },
+  "rows": [
+    {
+      "recipeId": "lacerate-shaper-recovery-shield",
+      "verification": "unverified",
+      "evaluation": {
+        "recipeId": "lacerate-shaper-recovery-shield",
+        "confidence": "medium",
+        "status": "partial",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": null,
+        "estimatedSalePrice": {
+          "amount": 2455.8,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T00:37:06.674Z",
+        "expiresAt": "2026-11-03T02:37:06.674Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": false,
+        "totalResults": 3
+      },
+      "verifiedSellers": 3
+    },
+    {
+      "recipeId": "minion-bone-helmet-greed",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "minion-bone-helmet-greed",
+        "confidence": "low",
+        "status": "partial",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 9348.3,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T00:40:25.545Z",
+        "expiresAt": "2026-11-03T02:40:25.545Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": false,
+        "totalResults": 0
+      },
+      "verifiedSellers": 0
+    },
+    {
+      "recipeId": "minion-convoking-wand-four-fossil",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "minion-convoking-wand-four-fossil",
+        "confidence": "low",
+        "status": "success",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 3125.8,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 6548.8,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": 3423,
+          "currency": "chaos"
+        },
+        "marginPercent": 109.507966,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-03T01:41:45.686Z",
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T00:46:15.313Z",
+        "expiresAt": "2026-11-03T02:46:15.313Z",
+        "coverage": "partial",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": true,
+        "totalResults": 88
+      },
+      "verifiedSellers": 19
+    },
+    {
+      "recipeId": "minion-fossilised-shield-greed",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "minion-fossilised-shield-greed",
+        "confidence": "low",
+        "status": "success",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 832.1,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 20465,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": 19632.9,
+          "currency": "chaos"
+        },
+        "marginPercent": 2359.439971,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-03T01:41:45.686Z",
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T00:49:33.884Z",
+        "expiresAt": "2026-11-03T02:49:33.884Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": false,
+        "totalResults": 1
+      },
+      "verifiedSellers": 1
+    },
+    {
+      "recipeId": "minion-leviathan-fear-gloves",
+      "verification": "unverified",
+      "evaluation": {
+        "recipeId": "minion-leviathan-fear-gloves",
+        "confidence": "low",
+        "status": "partial",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T00:55:16.800Z",
+        "expiresAt": "2026-11-03T02:55:16.800Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": false,
+        "totalResults": 0
+      },
+      "verifiedSellers": 0
+    },
+    {
+      "recipeId": "physical-large-cluster-alteration",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "physical-large-cluster-alteration",
+        "confidence": "low",
+        "status": "partial",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 117.371915,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T00:58:59.430Z",
+        "expiresAt": "2026-11-03T02:58:59.430Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": false,
+        "totalResults": 0
+      },
+      "verifiedSellers": 0
+    },
+    {
+      "recipeId": "physical-large-cluster-jagged",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "physical-large-cluster-jagged",
+        "confidence": "low",
+        "status": "success",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 1862.8773,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 818.6,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": -1044.2773,
+          "currency": "chaos"
+        },
+        "marginPercent": -56.057224,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-03T01:41:45.686Z",
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T01:00:19.016Z",
+        "expiresAt": "2026-11-03T03:00:19.016Z",
+        "coverage": "partial",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": true,
+        "totalResults": 68
+      },
+      "verifiedSellers": 13
+    },
+    {
+      "recipeId": "rf-fire-trap-any-support",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "rf-fire-trap-any-support",
+        "confidence": "low",
+        "status": "success",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 503.211,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 280,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": -223.211,
+          "currency": "chaos"
+        },
+        "marginPercent": -44.357337,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-03T01:41:45.686Z",
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T01:04:57.684Z",
+        "expiresAt": "2026-11-03T03:04:57.684Z",
+        "coverage": "partial",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": true,
+        "totalResults": 374
+      },
+      "verifiedSellers": 20
+    },
+    {
+      "recipeId": "rf-fire-trap-level-20",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "rf-fire-trap-level-20",
+        "confidence": "low",
+        "status": "success",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 1283.715,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 3274.4,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": 1990.685,
+          "currency": "chaos"
+        },
+        "marginPercent": 155.072193,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-03T01:41:45.686Z",
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T01:25:50.211Z",
+        "expiresAt": "2026-11-03T03:25:50.211Z",
+        "coverage": "partial",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": true,
+        "totalResults": 33
+      },
+      "verifiedSellers": 20
+    },
+    {
+      "recipeId": "stygian-life-resistances-envy",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "stygian-life-resistances-envy",
+        "confidence": "low",
+        "status": "success",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 7690.02,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 1227.9,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": -6462.12,
+          "currency": "chaos"
+        },
+        "marginPercent": -84.032551,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-03T01:41:45.686Z",
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T01:28:29.606Z",
+        "expiresAt": "2026-11-03T03:28:29.606Z",
+        "coverage": "partial",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": true,
+        "totalResults": 54
+      },
+      "verifiedSellers": 20
+    },
+    {
+      "recipeId": "stygian-life-resistances-fossils",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "stygian-life-resistances-fossils",
+        "confidence": "low",
+        "status": "success",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 13341.72,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 250,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": -13091.72,
+          "currency": "chaos"
+        },
+        "marginPercent": -98.126179,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-03T01:41:45.686Z",
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T01:30:28.815Z",
+        "expiresAt": "2026-11-03T03:30:28.815Z",
+        "coverage": "partial",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": true,
+        "totalResults": 54
+      },
+      "verifiedSellers": 20
+    },
+    {
+      "recipeId": "suppression-boots-loathing",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "suppression-boots-loathing",
+        "confidence": "low",
+        "status": "success",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 340.04,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 1227.9,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": 887.86,
+          "currency": "chaos"
+        },
+        "marginPercent": 261.104576,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-03T01:41:45.686Z",
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T01:34:27.342Z",
+        "expiresAt": "2026-11-03T03:34:27.342Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": false,
+        "totalResults": 1
+      },
+      "verifiedSellers": 1
+    },
+    {
+      "recipeId": "suppression-gloves-fear",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "suppression-gloves-fear",
+        "confidence": "low",
+        "status": "partial",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 2662.82,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T01:37:46.303Z",
+        "expiresAt": "2026-11-03T03:37:46.303Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": false,
+        "totalResults": 0
+      },
+      "verifiedSellers": 0
+    },
+    {
+      "recipeId": "suppression-gloves-zeal",
+      "verification": "verified",
+      "evaluation": {
+        "recipeId": "suppression-gloves-zeal",
+        "confidence": "low",
+        "status": "success",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": {
+          "amount": 2735.55,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 14325.5,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": 11589.95,
+          "currency": "chaos"
+        },
+        "marginPercent": 423.678968,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-03T01:41:45.686Z",
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T00:29:06.598Z",
+        "expiresAt": "2026-11-03T02:29:06.598Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": false,
+        "totalResults": 1
+      },
+      "verifiedSellers": 1
+    },
+    {
+      "recipeId": "tr-grizzly-aoe-helmet",
+      "verification": "unverified",
+      "evaluation": {
+        "recipeId": "tr-grizzly-aoe-helmet",
+        "confidence": "low",
+        "status": "partial",
+        "evaluatedAt": "2026-11-03T01:41:45.686Z",
+        "expectedCraftCost": null,
+        "estimatedSalePrice": {
+          "amount": 10232.5,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "source": {
+        "capturedAt": "2026-11-03T01:41:05.226Z",
+        "expiresAt": "2026-11-03T03:41:05.226Z",
+        "coverage": "complete",
+        "sortedPageComplete": false,
+        "sortedSampleComplete": false,
+        "totalResults": 1
+      },
+      "verifiedSellers": 1
+    }
+  ],
+  "limits": [
+    "Cached completed target/material observations retain their original capture/expiry; none were retimestamped.",
+    "Asking prices and sampled sellers do not prove realized sales or liquidity.",
+    "Bone implicit acquisition guard is applied in a following scoped refresh; this row is superseded by that final refinement."
+  ]
+}
