@@ -46,8 +46,12 @@ The default combined mode exposes liveness at `/health/live` and database
 readiness at `/health/ready` on `127.0.0.1:3000`.
 
 The worker owns PostgreSQL-backed full-refresh and retention schedules. The
-refresh runs every four hours by default, uses an exclusive pg-boss queue across
-all worker instances, and reuses the queue job ID as the refresh-cycle ID. The
+refresh runs hourly by default, uses an exclusive pg-boss queue across
+all worker instances, and reuses the queue job ID as the refresh-cycle ID. Fresh
+installations reuse snapshots for up to 30 minutes, warn after one hour and
+withhold quotes older than two hours. This allows a bounded full-catalog refresh
+to complete before its earliest inputs expire; source timestamps remain visible.
+Existing saved operator settings are preserved on upgrade. The
 cleanup runs daily and removes raw snapshots after 72 hours, observations after
 14 days, and old completed jobs in bounded batches while preserving active and
 published cycles. `SIGINT` and `SIGTERM` stop HTTP intake, wait for active jobs

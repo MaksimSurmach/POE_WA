@@ -22,7 +22,7 @@ services:
       POE_LEAGUE: Mercenaries
       POE_REQUEST_TIMEOUT_MS: 15000
       POE_USER_AGENT: 'OAuth poe-worksmith/0.0.0 (contact: local-development)'
-      REFRESH_CRON: '0 */4 * * *'
+      REFRESH_CRON: '0 * * * *'
       RETENTION_BATCH_SIZE: 500
       SHUTDOWN_TIMEOUT_MS: 30000
       SNAPSHOT_TTL_MS: 1800000

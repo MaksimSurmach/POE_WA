@@ -220,7 +220,7 @@ export function buildApi(
       createRefreshFreshnessReader({
         getProgress: readRefreshProgress,
         findLatestAttempt: async () => null,
-        cron: '0 */4 * * *',
+        cron: '0 * * * *',
         timezone: 'UTC',
       })
     )();

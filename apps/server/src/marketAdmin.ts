@@ -38,8 +38,8 @@ export function defaultAdminSettings(options: {
     ),
     collectionConcurrency: Math.min(4, options.concurrency),
     snapshotReuseTtlMs: Math.min(options.snapshotTtlMs, 30 * 60_000),
-    freshnessWarningMs: 15 * 60_000,
-    maximumQuoteAgeMs: 30 * 60_000,
+    freshnessWarningMs: 60 * 60_000,
+    maximumQuoteAgeMs: 2 * 60 * 60_000,
     rawRetentionHours: 90 * 24,
     historyRetentionDays: 730,
   });
@@ -129,9 +129,9 @@ export function createMarketAdminStore(options: {
     });
     const gap = interval.next().getTime();
     const warnings: string[] = [];
-    if (interval.next().getTime() - gap > effective.snapshotReuseTtlMs)
+    if (interval.next().getTime() - gap > effective.maximumQuoteAgeMs)
       warnings.push(
-        'Collection interval exceeds snapshot reuse TTL. Quotes can expire before the next refresh; expired prices are hidden.',
+        'Collection interval exceeds maximum quote age. Quotes can expire before the next refresh; expired prices are hidden.',
       );
     if (effective.collectionConcurrency !== configured.collectionConcurrency)
       warnings.push(

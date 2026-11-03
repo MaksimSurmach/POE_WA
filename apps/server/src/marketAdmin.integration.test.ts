@@ -185,7 +185,7 @@ async function seedPublishableRun() {
 }
 
 describe('market admin PostgreSQL, queue and API integration', () => {
-  it('caps a long environment TTL at initial maximum quote age so unrelated settings and pause/resume remain usable', async () => {
+  it('caps a long environment TTL at 30-minute initial reuse so unrelated settings and pause/resume remain usable', async () => {
     await pool.query('truncate market_admin_settings');
     const seeded = defaultAdminSettings({
       refreshCron: defaults.refreshCron,
@@ -200,7 +200,7 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     await seededStore.init();
     expect((await seededStore.read()).configured).toMatchObject({
       snapshotReuseTtlMs: 30 * 60_000,
-      maximumQuoteAgeMs: 30 * 60_000,
+      maximumQuoteAgeMs: 2 * 60 * 60_000,
     });
     await seededStore.patch(
       { version: 0, settings: { requestTimeoutMs: 12_000 } },
@@ -220,11 +220,42 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     });
   });
 
+  it('does not replace persisted operator settings when fresh-install defaults change', async () => {
+    await store.patch(
+      {
+        version: 0,
+        settings: {
+          refreshCron: '0 */4 * * *',
+          maximumQuoteAgeMs: 30 * 60_000,
+          freshnessWarningMs: 15 * 60_000,
+        },
+      },
+      'operator',
+    );
+    const before = await store.read();
+    const restarted = createMarketAdminStore({
+      ...storeOptions,
+      defaults: {
+        ...defaults,
+        refreshCron: '0 * * * *',
+        maximumQuoteAgeMs: 2 * 60 * 60_000,
+        freshnessWarningMs: 60 * 60_000,
+      },
+    });
+    await restarted.init();
+    expect(await restarted.read()).toEqual(before);
+  });
+
   it('rejects inconsistent initial settings before writing them', async () => {
     await pool.query('truncate market_admin_settings');
     const invalid = createMarketAdminStore({
       ...storeOptions,
-      defaults: { ...defaults, snapshotReuseTtlMs: 60 * 60_000 },
+      defaults: {
+        ...defaults,
+        snapshotReuseTtlMs: 60 * 60_000,
+        maximumQuoteAgeMs: 30 * 60_000,
+        freshnessWarningMs: 15 * 60_000,
+      },
     });
     await expect(invalid.init()).rejects.toMatchObject({
       code: 'MARKET_QUERY_INVALID',
@@ -374,7 +405,7 @@ describe('market admin PostgreSQL, queue and API integration', () => {
       restartRequired: false,
     });
     expect(value.warnings.join(' ')).toContain(
-      'interval exceeds snapshot reuse TTL',
+      'interval exceeds maximum quote age',
     );
     expect(JSON.stringify(value)).not.toMatch(
       /authorization|sessionId|accessToken/,
@@ -427,9 +458,9 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     { rawRetentionHours: 23 },
     { historyRetentionDays: 731 },
     { rawRetentionHours: 90 * 24, historyRetentionDays: 14 },
-    { snapshotReuseTtlMs: 1_800_001 },
+    { snapshotReuseTtlMs: 3_600_001, maximumQuoteAgeMs: 3_600_000 },
     { maximumQuoteAgeMs: 60_000 },
-    { freshnessWarningMs: 1_800_001 },
+    { freshnessWarningMs: 3_600_001, maximumQuoteAgeMs: 3_600_000 },
     { refreshCron: '* * * * *' },
     { refreshCron: '0 * * * * *' },
     { refreshCron: 'not a cron' },
