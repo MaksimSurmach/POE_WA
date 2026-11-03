@@ -284,6 +284,7 @@ export function comparableRecipeListings(
   listings: readonly MarketListing[],
   capturedAt: Date,
   now: Date,
+  currency: 'chaos' | 'divine' = 'chaos',
 ) {
   if (!query.handbookTarget) return [...listings];
   const target = recipeQueryTarget(query.handbookTarget);
@@ -315,7 +316,7 @@ export function comparableRecipeListings(
       targetId: target.id,
       capturedAt: capturedAt.toISOString(),
       sourceUrl: 'https://www.pathofexile.com/trade',
-      currency: 'chaos',
+      currency,
       dataKind: 'observed',
       emptyResult: normalizedListings.length === 0,
       listings: normalizedListings
@@ -341,7 +342,7 @@ export function comparableRecipeListings(
   );
   return [
     ...aggregateMarketListings({
-      currency: 'chaos',
+      currency,
       listings: normalizedListings.filter((row) => matches.has(row.id)),
     }).listings,
   ];
