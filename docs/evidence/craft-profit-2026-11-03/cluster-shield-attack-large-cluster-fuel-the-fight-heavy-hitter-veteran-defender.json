@@ -1,0 +1,122 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=154&item=2476.7&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYXR0YWNrX2RhbWFnZV93aGlsZV9ob2xkaW5nX2Ffc2hpZWxkIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NjgzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY3OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MTkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+  "calculatorURLKind": "Canonical replay URL from actual observed UI family, method, item level and three requirement IDs. Any nonfractured explicit starting mods are cleared in the replay because a chaotic fossil reroll replaces all of them.",
+  "source": "Actual current public Craft of Exile calculator and ordinary paid emulator reroll; not an in-game craft or transaction.",
+  "settings": "Rare Attack Damage while holding a Shield Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Fuel the Fight, Heavy Hitter, Veteran Defender. No finishing step.",
+  "startingItem": {
+    "i": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "m": [],
+    "ns": 0,
+    "s": [],
+    "q": null,
+    "qt": null,
+    "l": 68,
+    "r": "rare",
+    "if": [],
+    "ip": [],
+    "e": [],
+    "p": {},
+    "di": [],
+    "ig": 0,
+    "ms": 0,
+    "f": ["a"],
+    "pt": null,
+    "at": "affliction_attack_damage_while_holding_a_shield",
+    "id": null
+  },
+  "procurementConstraints": {
+    "baseId": "base:large-cluster-shield-attack",
+    "smallPassiveStatId": "shield-attack-damage",
+    "passiveCount": 8,
+    "jewelSockets": 2,
+    "itemLevel": 68,
+    "rarity": "rare",
+    "note": "The calculator family header displays the unrolled8–12 passive range. It uses one Large Cluster affix pool for this damage variant. Exactly8passives and2sockets are mandatory acquisition/comparable constraints; random passives and unrelated numeric affixes are not separately targeted by this probability."
+  },
+  "requirements": [
+    {
+      "t": "and",
+      "m": null,
+      "e": [
+        {
+          "i": "5683",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5679",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5719",
+          "t": null,
+          "b": true,
+          "s": null
+        }
+      ]
+    }
+  ],
+  "notables": [
+    {
+      "name": "Fuel the Fight",
+      "modId": "mod:fuel-the-fight",
+      "calculatorId": "5683",
+      "origin": "prefix"
+    },
+    {
+      "name": "Heavy Hitter",
+      "modId": "mod:heavy-hitter",
+      "calculatorId": "5679",
+      "origin": "suffix"
+    },
+    {
+      "name": "Veteran Defender",
+      "modId": "mod:veteran-defender",
+      "calculatorId": "5719",
+      "origin": "prefix"
+    }
+  ],
+  "displayed": {
+    "successPercent": 0.0423,
+    "oneOutOfTries": 2363,
+    "expectedAttempts": 2363,
+    "expectedMaterials": {
+      "serrated-fossil": 2363,
+      "primitive-chaotic-resonator": 2363
+    },
+    "visibleCalculationExcerpt": "Success chance: 1 out of 2363 tries; 0.0423%; Expected costs: 2363 Serrated Fossil; 2363 Primitive Chaotic Resonator."
+  },
+  "ordinaryPaidFailure": {
+    "observedNotables": [
+      "Strike Leader",
+      "Drive the Destruction",
+      "Martial Prowess"
+    ],
+    "verdict": "REJECT: the full required triple is absent. Repeat one paid fossil/resonator pair on the same base.",
+    "materialsConsumed": {
+      "serrated-fossil": 1,
+      "primitive-chaotic-resonator": 1
+    },
+    "sameBaseFamilyAndLevelRetained": true,
+    "scouringRequired": false
+  },
+  "perFinishedItem": {
+    "roll-with-fossil": 2363,
+    "baseConsumption": 1,
+    "materials": {
+      "serrated-fossil": 2363,
+      "primitive-chaotic-resonator": 2363
+    }
+  },
+  "limits": [
+    "Rounded analytical probability and mean consumption, not an empirical completed-item sample.",
+    "No guaranteed notable positioning, additional useful fourth modifier, Intangibility, quality or Vesper multi-outcome benefit is included.",
+    "Only the stated single-fossil route was costed; a different craft may be cheaper. Positive profitability and completed sales are not established by this model.",
+    "Current live material and eligible-base asking prices must be collected separately; CoE default currency prices and historical personal prices are not imported."
+  ]
+}

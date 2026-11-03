@@ -1,0 +1,160 @@
+{
+  "base": {
+    "baseId": "base:large-cluster-shield-attack",
+    "influences": [],
+    "itemLevel": 68,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "shield-attack-damage"
+    }
+  },
+  "category": "cluster-jewel",
+  "notes": "Only the named three-notable core is required. Acquire an 8-passive, 2-socket base of the exact damage variant and authored item level. Notable positioning and extra affixes are outside this target.",
+  "craft": {
+    "evidence": {
+      "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=154&item=2476.7&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYXR0YWNrX2RhbWFnZV93aGlsZV9ob2xkaW5nX2Ffc2hpZWxkIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NjgzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY3OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MTkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "verifiedAt": "2026-11-03",
+      "settings": "Rare Attack Damage while holding a Shield Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Fuel the Fight, Heavy Hitter, Veteran Defender. No finishing step.",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender.json",
+      "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 2363 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+    },
+    "method": {
+      "fossils": ["serrated-fossil"],
+      "kind": "fossil",
+      "resonatorSockets": 1
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=154&item=2476.7&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYXR0YWNrX2RhbWFnZV93aGlsZV9ob2xkaW5nX2Ffc2hpZWxkIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NjgzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY3OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MTkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+        "verifiedAt": "2026-11-03",
+        "settings": "Rare Attack Damage while holding a Shield Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Fuel the Fight, Heavy Hitter, Veteran Defender. No finishing step.",
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender.json",
+        "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 2363 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+      }
+    },
+    "uncertainties": [
+      "Current calculator probability and mean uses are rounded; expected spending is indicative.",
+      "Starting-base acquisition must use exactly item level 68. Higher item levels can change the affix pool and require a separate cost model.",
+      "Exactly 8 passives and 2 jewel sockets are required; no particular notable layout or Vesper outcome advantage is modelled.",
+      "Comparable prices are asking prices; these do not establish completed sales or positive profit."
+    ],
+    "id": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender",
+    "name": "Serrated · 3 Notables",
+    "steps": [
+      {
+        "action": "Use one Serrated Fossil in one Primitive Chaotic Resonator on the acquired eligible rare base.",
+        "continueWhen": "All three are present together: Fuel the Fight, Heavy Hitter, Veteran Defender.",
+        "failureAction": "Repeat on the same rare base with another fossil/resonator pair. No Scouring or replacement base is required.",
+        "id": "roll-with-fossil",
+        "materials": [
+          {
+            "itemId": "serrated-fossil",
+            "quantity": 1
+          },
+          {
+            "itemId": "primitive-chaotic-resonator",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "evidence": {
+            "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=154&item=2476.7&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYXR0YWNrX2RhbWFnZV93aGlsZV9ob2xkaW5nX2Ffc2hpZWxkIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NjgzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY3OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MTkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+            "verifiedAt": "2026-11-03",
+            "settings": "Rare Attack Damage while holding a Shield Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Fuel the Fight, Heavy Hitter, Veteran Defender. No finishing step.",
+            "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender.json",
+            "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 2363 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+          },
+          "probability": 0.000423
+        },
+        "title": "Roll all three notables together"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 2363,
+        "evidence": {
+          "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=154&item=2476.7&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYXR0YWNrX2RhbWFnZV93aGlsZV9ob2xkaW5nX2Ffc2hpZWxkIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NjgzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY3OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MTkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verifiedAt": "2026-11-03",
+          "settings": "Rare Attack Damage while holding a Shield Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Fuel the Fight, Heavy Hitter, Veteran Defender. No finishing step.",
+          "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender.json",
+          "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 2363 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+        },
+        "stepId": "roll-with-fossil"
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "base:large-cluster-shield-attack",
+    "influences": [],
+    "itemLevel": 68,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "shield-attack-damage"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame"],
+    "checkedAt": "2026-11-03",
+    "sources": [
+      "https://beta.craftofexile.com/?game=poe1&group=4&class=154&item=2476.7&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYXR0YWNrX2RhbWFnZV93aGlsZV9ob2xkaW5nX2Ffc2hpZWxkIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NjgzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY3OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MTkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "https://beta.craftofexile.com/changelog"
+    ],
+    "notes": "The scoped current calculator probability and complete single-stage expected-material model were checked in public UI, together with an ordinary paid failure and same-base recovery. No game transaction or profit claim."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender",
+  "schemaVersion": 3,
+  "summary": "8-passive attack damage while holding a shield Large Cluster Jewel with Fuel the Fight, Heavy Hitter and Veteran Defender, rolled with Serrated Fossils.",
+  "tags": ["shield-attack", "cluster-jewel", "three-notables"],
+  "targetSignature": "3.29.3.3:66e07aa697ef27f84779b6b470ca85db",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:fuel-the-fight"
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:veteran-defender"
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:heavy-hitter"
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Attack Damage while holding a Shield Large Cluster · Fuel the Fight / Heavy Hitter / Veteran Defender"
+}

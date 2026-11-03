@@ -1,0 +1,160 @@
+{
+  "base": {
+    "baseId": "base:large-cluster-two-handed",
+    "influences": [],
+    "itemLevel": 68,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "two-handed-damage"
+    }
+  },
+  "category": "cluster-jewel",
+  "notes": "Only the named three-notable core is required. Acquire an 8-passive, 2-socket base of the exact damage variant and authored item level. Notable positioning and extra affixes are outside this target.",
+  "craft": {
+    "evidence": {
+      "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fZGFtYWdlX3dpdGhfdHdvX2hhbmRlZF9tZWxlZV93ZWFwb25zIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MyIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "verifiedAt": "2026-11-03",
+      "settings": "Rare Damage with Two Handed Weapons Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Brutal Infamy, Fuel the Fight, Smite the Weak. No finishing step.",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak.json",
+      "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 306 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+    },
+    "method": {
+      "fossils": ["serrated-fossil"],
+      "kind": "fossil",
+      "resonatorSockets": 1
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fZGFtYWdlX3dpdGhfdHdvX2hhbmRlZF9tZWxlZV93ZWFwb25zIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MyIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+        "verifiedAt": "2026-11-03",
+        "settings": "Rare Damage with Two Handed Weapons Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Brutal Infamy, Fuel the Fight, Smite the Weak. No finishing step.",
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak.json",
+        "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 306 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+      }
+    },
+    "uncertainties": [
+      "Current calculator probability and mean uses are rounded; expected spending is indicative.",
+      "Starting-base acquisition must use exactly item level 68. Higher item levels can change the affix pool and require a separate cost model.",
+      "Exactly 8 passives and 2 jewel sockets are required; no particular notable layout or Vesper outcome advantage is modelled.",
+      "Comparable prices are asking prices; these do not establish completed sales or positive profit."
+    ],
+    "id": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak",
+    "name": "Serrated · 3 Notables",
+    "steps": [
+      {
+        "action": "Use one Serrated Fossil in one Primitive Chaotic Resonator on the acquired eligible rare base.",
+        "continueWhen": "All three are present together: Brutal Infamy, Fuel the Fight, Smite the Weak.",
+        "failureAction": "Repeat on the same rare base with another fossil/resonator pair. No Scouring or replacement base is required.",
+        "id": "roll-with-fossil",
+        "materials": [
+          {
+            "itemId": "serrated-fossil",
+            "quantity": 1
+          },
+          {
+            "itemId": "primitive-chaotic-resonator",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "evidence": {
+            "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fZGFtYWdlX3dpdGhfdHdvX2hhbmRlZF9tZWxlZV93ZWFwb25zIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MyIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+            "verifiedAt": "2026-11-03",
+            "settings": "Rare Damage with Two Handed Weapons Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Brutal Infamy, Fuel the Fight, Smite the Weak. No finishing step.",
+            "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak.json",
+            "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 306 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+          },
+          "probability": 0.0032700000000000003
+        },
+        "title": "Roll all three notables together"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 306,
+        "evidence": {
+          "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fZGFtYWdlX3dpdGhfdHdvX2hhbmRlZF9tZWxlZV93ZWFwb25zIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MyIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verifiedAt": "2026-11-03",
+          "settings": "Rare Damage with Two Handed Weapons Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Serrated Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Brutal Infamy, Fuel the Fight, Smite the Weak. No finishing step.",
+          "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak.json",
+          "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 306 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+        },
+        "stepId": "roll-with-fossil"
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "base:large-cluster-two-handed",
+    "influences": [],
+    "itemLevel": 68,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "two-handed-damage"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame"],
+    "checkedAt": "2026-11-03",
+    "sources": [
+      "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fZGFtYWdlX3dpdGhfdHdvX2hhbmRlZF9tZWxlZV93ZWFwb25zIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MyIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "https://beta.craftofexile.com/changelog"
+    ],
+    "notes": "The scoped current calculator probability and complete single-stage expected-material model were checked in public UI, together with an ordinary paid failure and same-base recovery. No game transaction or profit claim."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak",
+  "schemaVersion": 3,
+  "summary": "8-passive damage with two handed weapons Large Cluster Jewel with Brutal Infamy, Fuel the Fight and Smite the Weak, rolled with Serrated Fossils.",
+  "tags": ["two-handed", "cluster-jewel", "three-notables"],
+  "targetSignature": "3.29.3.3:c7d9eef71fd2aa796e443e34af6d8040",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:brutal-infamy"
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:fuel-the-fight"
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:smite-the-weak"
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Damage with Two Handed Weapons Large Cluster · Brutal Infamy / Fuel the Fight / Smite the Weak"
+}

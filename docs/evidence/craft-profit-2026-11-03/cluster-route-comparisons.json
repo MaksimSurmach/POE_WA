@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-11-03",
+  "scope": "Actual current CoE alternative single-fossil calculations at68 for the same fullAND triples; not catalog-selected methods. Paid failed rolls observed in each alternative.",
+  "alternatives": [
+    {
+      "family": "cold",
+      "notables": ["Sadist", "Snowstorm", "Widespread Destruction"],
+      "fossil": "frigid-fossil",
+      "calculatorMethod": "4,8",
+      "successPercent": 0.00241,
+      "expectedPairs": 41568,
+      "paidFailureNotables": ["Snowstorm"],
+      "selectedInstead": "prismatic-fossil",
+      "selectedExpectedPairs": 2561
+    },
+    {
+      "family": "fire",
+      "notables": [
+        "Prismatic Heart",
+        "Smoking Remains",
+        "Widespread Destruction"
+      ],
+      "fossil": "scorched-fossil",
+      "calculatorMethod": "4,20",
+      "successPercent": 0.0239,
+      "expectedPairs": 4181,
+      "paidFailureNotables": [],
+      "selectedInstead": "prismatic-fossil",
+      "selectedExpectedPairs": 307
+    }
+  ],
+  "note": "Do not select an elemental fossil from the base label alone. Actual modelled joint odds differ materially."
+}

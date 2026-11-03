@@ -1,0 +1,277 @@
+{
+  "checkedAt": "2026-11-03",
+  "scope": "Nine public item-type and notable combinations. These definitions contain no account identity, personal item name, transaction, listing time or historical price. Only three required notables are targets; unrelated affixes, Intangibility and layout are outside the core target.",
+  "status": "NINE_SCOPED_MODELS_VERIFIED",
+  "targets": [
+    {
+      "id": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering",
+      "baseId": "base:large-cluster-bow",
+      "smallPassiveStatId": "bow-damage",
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "notables": [
+        {
+          "modId": "mod:arcing-shot",
+          "name": "Arcing Shot",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:martial-prowess",
+          "name": "Martial Prowess",
+          "origin": "suffix"
+        },
+        {
+          "modId": "mod:vicious-skewering",
+          "name": "Vicious Skewering",
+          "origin": "prefix"
+        }
+      ],
+      "itemLevel": 68,
+      "probability": 0.00117,
+      "expectedAttempts": 857,
+      "fossil": "serrated-fossil",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED"
+    },
+    {
+      "id": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads",
+      "baseId": "base:large-cluster-bow",
+      "smallPassiveStatId": "bow-damage",
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "notables": [
+        {
+          "modId": "mod:arcing-shot",
+          "name": "Arcing Shot",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:martial-prowess",
+          "name": "Martial Prowess",
+          "origin": "suffix"
+        },
+        {
+          "modId": "mod:tempered-arrowheads",
+          "name": "Tempered Arrowheads",
+          "origin": "prefix"
+        }
+      ],
+      "itemLevel": 68,
+      "probability": 0.00331,
+      "expectedAttempts": 303,
+      "fossil": "serrated-fossil",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED"
+    },
+    {
+      "id": "cold-large-cluster-sadist-snowstorm-widespread-destruction",
+      "baseId": "base:large-cluster-cold",
+      "smallPassiveStatId": "cold-damage",
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "notables": [
+        {
+          "modId": "mod:sadist",
+          "name": "Sadist",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:snowstorm",
+          "name": "Snowstorm",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:widespread-destruction",
+          "name": "Widespread Destruction",
+          "origin": "suffix"
+        }
+      ],
+      "itemLevel": 68,
+      "probability": 0.000391,
+      "expectedAttempts": 2561,
+      "fossil": "prismatic-fossil",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-cold-large-cluster-sadist-snowstorm-widespread-destruction.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED"
+    },
+    {
+      "id": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender",
+      "baseId": "base:large-cluster-shield-attack",
+      "smallPassiveStatId": "shield-attack-damage",
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "notables": [
+        {
+          "modId": "mod:fuel-the-fight",
+          "name": "Fuel the Fight",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:heavy-hitter",
+          "name": "Heavy Hitter",
+          "origin": "suffix"
+        },
+        {
+          "modId": "mod:veteran-defender",
+          "name": "Veteran Defender",
+          "origin": "prefix"
+        }
+      ],
+      "itemLevel": 68,
+      "probability": 0.000423,
+      "expectedAttempts": 2363,
+      "fossil": "serrated-fossil",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED"
+    },
+    {
+      "id": "chaos-large-cluster-grim-oath-touch-of-cruelty-wicked-pall",
+      "baseId": "base:large-cluster-chaos",
+      "smallPassiveStatId": "chaos-damage",
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "notables": [
+        {
+          "modId": "mod:grim-oath",
+          "name": "Grim Oath",
+          "origin": "suffix"
+        },
+        {
+          "modId": "mod:touch-of-cruelty",
+          "name": "Touch of Cruelty",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:wicked-pall",
+          "name": "Wicked Pall",
+          "origin": "prefix"
+        }
+      ],
+      "itemLevel": 68,
+      "probability": 0.00243,
+      "expectedAttempts": 412,
+      "fossil": "aberrant-fossil",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-large-cluster-grim-oath-touch-of-cruelty-wicked-pall.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED"
+    },
+    {
+      "id": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak",
+      "baseId": "base:large-cluster-two-handed",
+      "smallPassiveStatId": "two-handed-damage",
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "notables": [
+        {
+          "modId": "mod:brutal-infamy",
+          "name": "Brutal Infamy",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:fuel-the-fight",
+          "name": "Fuel the Fight",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:smite-the-weak",
+          "name": "Smite the Weak",
+          "origin": "suffix"
+        }
+      ],
+      "itemLevel": 68,
+      "probability": 0.0032700000000000003,
+      "expectedAttempts": 306,
+      "fossil": "serrated-fossil",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED"
+    },
+    {
+      "id": "fire-large-cluster-prismatic-heart-smoking-remains-widespread-destruction",
+      "baseId": "base:large-cluster-fire",
+      "smallPassiveStatId": "fire-damage",
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "notables": [
+        {
+          "modId": "mod:prismatic-heart",
+          "name": "Prismatic Heart",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:smoking-remains",
+          "name": "Smoking Remains",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:widespread-destruction",
+          "name": "Widespread Destruction",
+          "origin": "suffix"
+        }
+      ],
+      "itemLevel": 68,
+      "probability": 0.0032600000000000003,
+      "expectedAttempts": 307,
+      "fossil": "prismatic-fossil",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-fire-large-cluster-prismatic-heart-smoking-remains-widespread-destruction.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED"
+    },
+    {
+      "id": "chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall",
+      "baseId": "base:large-cluster-chaos",
+      "smallPassiveStatId": "chaos-damage",
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "notables": [
+        {
+          "modId": "mod:touch-of-cruelty",
+          "name": "Touch of Cruelty",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:unholy-grace",
+          "name": "Unholy Grace",
+          "origin": "suffix"
+        },
+        {
+          "modId": "mod:wicked-pall",
+          "name": "Wicked Pall",
+          "origin": "prefix"
+        }
+      ],
+      "itemLevel": 68,
+      "probability": 0.0131,
+      "expectedAttempts": 77,
+      "fossil": "aberrant-fossil",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED"
+    },
+    {
+      "id": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak",
+      "baseId": "base:large-cluster-two-handed",
+      "smallPassiveStatId": "two-handed-damage",
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "notables": [
+        {
+          "modId": "mod:brutal-infamy",
+          "name": "Brutal Infamy",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:feed-the-fury",
+          "name": "Feed the Fury",
+          "origin": "prefix"
+        },
+        {
+          "modId": "mod:smite-the-weak",
+          "name": "Smite the Weak",
+          "origin": "suffix"
+        }
+      ],
+      "itemLevel": 68,
+      "probability": 0.00151,
+      "expectedAttempts": 661,
+      "fossil": "serrated-fossil",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak.json",
+      "status": "SCOPED_CALCULATOR_VERIFIED"
+    }
+  ]
+}
