@@ -4,8 +4,8 @@
   "catalog": {
     "recipes": 15,
     "existingVerified": 2,
-    "newScopedCalculatorVerified": 5,
-    "newUnverified": 8,
+    "newScopedCalculatorVerified": 8,
+    "newUnverified": 5,
     "sourceSheetCandidatesPreserved": 16
   },
   "checks": {
@@ -31,11 +31,13 @@
     "currentCoEAdditional": "PASS: EnvyStygian613essences; Pristine+PrismaticStygian942materialsets; +2Convoking4fossils12sets. Exact ANDrequirements, ordinary paidfailures, nativeimplicit/basepreservation and complete successfuloutputs observed in current publicUI.",
     "additionalCatalogRegression": {
       "files": 3,
-      "passed": 13
-    }
+      "passed": 14
+    },
+    "currentCoEBootsAndRF": "PASS: LoathingSlink85fracture14/movementT3+8.44%/12; current rebuilt RF2840+2845+openprefix>=1 gives94or910reforges, eachfollowedbyactual4Chaosbench. Fullcompletedoutputsandordinarypaidfailures observed.",
+    "extraClaudeModelReview": "NOT_RUN: ClaudeCode5-hourlimit reached; resets05:50Europe/Warsaw. Earlier completed source/runtime reviews retained; no approval inferred."
   },
   "limits": [
-    "Seven recipes have scoped indicative CoE expected-cost models; eight new recipes lack full expectations and remain unverified. Game spending/sales are not established.",
+    "Ten recipes have scoped indicative CoE expected-cost models; five new recipes lack full expectations and remain unverified. Game spending/sales are not established.",
     "All source-sheet prices/liquidity labels are assumptions, not fresh observations.",
     "No source Sheet edits or shared application database writes were performed by the recipe subtask."
   ]

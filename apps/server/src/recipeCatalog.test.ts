@@ -179,7 +179,7 @@ describe('authored source catalog integrity', () => {
     const catalog = await recipes();
     expect(
       catalog.filter((r) => r.definition.verification.status === 'verified'),
-    ).toHaveLength(7);
+    ).toHaveLength(10);
     for (const method of ['zeal', 'fear']) {
       const recipe = catalog.find(
         (r) => r.definition.id === `suppression-gloves-${method}`,
@@ -279,6 +279,55 @@ describe('authored source catalog integrity', () => {
       );
       expect(recipe.craft.baseConsumption?.expectedBases).toBe(1);
     }
+  });
+
+  it('includes RF vacancy and exactly one paid finish in each current full-chain model', async () => {
+    const catalog = await recipes();
+    for (const suffix of ['any-support', 'level-20']) {
+      const recipe = catalog.find(
+        (r) => r.definition.id === `rf-fire-trap-${suffix}`,
+      )?.definition;
+      if (!recipe?.craft.evidence)
+        throw new Error('Missing current RF evidence');
+      const receipt = JSON.parse(
+        await readFile(new URL(recipe.craft.evidence.artifact, root), 'utf8'),
+      );
+      const reqs = JSON.parse(
+        Buffer.from(
+          new URL(receipt.calculatorURL).searchParams.get('reqs') ?? '',
+          'base64',
+        ).toString('utf8'),
+      );
+      const tier = suffix === 'level-20' ? '1' : null;
+      expect(reqs).toEqual([
+        {
+          t: 'and',
+          m: null,
+          e: [
+            { i: '2840', t: tier, b: true, s: null },
+            { i: '2845', t: tier, b: true, s: null },
+            { i: 'special:open-prefix', t: '1', b: true, s: null },
+          ],
+        },
+      ]);
+      expect(
+        recipe.craft.expectedExecutions?.map((x) => [x.stepId, x.count]),
+      ).toEqual([
+        ['reforge-fire', receipt.displayed.expectedReforges],
+        ['craft-aoe', 1],
+      ]);
+      expect(receipt.perFinishedItem.materials).toEqual({
+        'wild-crystallised-lifeforce': receipt.displayed.expectedReforges * 50,
+        'chaos-orb': 4,
+      });
+      expect(receipt.paidBenchFinish.finishedTargetMatched).toBe(true);
+      expect(recipe.craft.baseConsumption?.expectedBases).toBe(1);
+    }
+    const boots = catalog.find(
+      (r) => r.definition.id === 'suppression-boots-loathing',
+    )?.definition;
+    expect(boots?.craft.expectedExecutions?.[0]?.count).toBe(12);
+    expect(boots?.craft.baseConsumption?.expectedBases).toBe(1);
   });
 
   it('preserves all sixteen Sheet candidates and separates recovered formula text from raw errors', async () => {

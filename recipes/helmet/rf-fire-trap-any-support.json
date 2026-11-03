@@ -14,7 +14,7 @@
     }
   },
   "category": "helmet",
-  "notes": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation. No life/resistance floor, sockets/links/quality minimum, sale or optimality included. Sheet C011 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices.",
+  "notes": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation. No life/resistance floor, sockets/links/quality minimum, sale or optimality included. Related Sheet C011 requires Horror/Burning/life and remains a distinct unverified lead. This recipe follows the separately accepted scoped MAX-1288 FireTrap support-pair/AoE procedure; it does not satisfy the full C011 target.",
   "craft": {
     "id": "rf-fire-trap-any-support",
     "name": "Elder Fire Trap Helmet · Any Support Tier",
@@ -24,8 +24,8 @@
     },
     "startingMods": [],
     "uncertainties": [
-      "Expected executions per completed item and full expected material/base consumption have not been independently reproduced for this exact recipe. Expected total and ROI must stay unavailable.",
-      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established."
+      "Indicative model: joint support+open-prefix odds and expectedreforges are current roundedCoEvalues; actual game spending and completed sales are unverified.",
+      "Only socketedFireTrap/SearingBond supportpair+8–10AoE/+1 finish is modelled. No RF-in-helmet, elevated25supports, life/resistance/quality/socket/link floor, goldfee or whole-build equivalence."
     ],
     "steps": [
       {
@@ -39,7 +39,19 @@
             "itemId": "wild-crystallised-lifeforce",
             "quantity": 50
           }
-        ]
+        ],
+        "success": {
+          "evidence": {
+            "method": "Manually checked current CoE joint support+open-prefix probability and ordinary paidreforge; both complete core+paidbench finishes executed in public UI",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&class=73&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d",
+            "verifiedAt": "2026-11-03",
+            "settings": "Acquired rare Elder-only Archdemon Crown ilvl83, unfractured/uncorrupted/unsynthesised, native+2socketedSkillGems/-2socketedSupportGems. Harvest ReforgeFire50Wild perattempt. AND ConcentratedEffect supportanytier + BurningDamage supportanytier + at least1OpenPrefix. Then once bench8–10%AoE/+1socketedAoEGems for4Chaos; all8–10values satisfy the target, no exact10retry.",
+            "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-rf-any-support.json",
+            "assumptions": "Same acquired Elder rarebase reused,50Wild eachreforge; joint successincludesbothsupports andopenprefix. Expectedperfinisheditem: 94 roundedreforges plus exactlyone4Chaosbench; onebase, noScouring/replacement. All8–10AoErollsaccepted. No empirical game spending/sales or whole-build fit."
+          },
+          "probability": 0.010700000000000001
+        }
       },
       {
         "id": "craft-aoe",
@@ -52,9 +64,70 @@
             "itemId": "chaos-orb",
             "quantity": 4
           }
-        ]
+        ],
+        "success": {
+          "evidence": {
+            "method": "Manually checked current CoE joint support+open-prefix probability and ordinary paidreforge; both complete core+paidbench finishes executed in public UI",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&class=73&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d",
+            "verifiedAt": "2026-11-03",
+            "settings": "Acquired rare Elder-only Archdemon Crown ilvl83, unfractured/uncorrupted/unsynthesised, native+2socketedSkillGems/-2socketedSupportGems. Harvest ReforgeFire50Wild perattempt. AND ConcentratedEffect supportanytier + BurningDamage supportanytier + at least1OpenPrefix. Then once bench8–10%AoE/+1socketedAoEGems for4Chaos; all8–10values satisfy the target, no exact10retry.",
+            "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-rf-any-support.json",
+            "assumptions": "Same acquired Elder rarebase reused,50Wild eachreforge; joint successincludesbothsupports andopenprefix. Expectedperfinisheditem: 94 roundedreforges plus exactlyone4Chaosbench; onebase, noScouring/replacement. All8–10AoErollsaccepted. No empirical game spending/sales or whole-build fit."
+          },
+          "probability": 1
+        }
       }
-    ]
+    ],
+    "evidence": {
+      "method": "Manually checked current CoE joint support+open-prefix probability and ordinary paidreforge; both complete core+paidbench finishes executed in public UI",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&class=73&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d",
+      "verifiedAt": "2026-11-03",
+      "settings": "Acquired rare Elder-only Archdemon Crown ilvl83, unfractured/uncorrupted/unsynthesised, native+2socketedSkillGems/-2socketedSupportGems. Harvest ReforgeFire50Wild perattempt. AND ConcentratedEffect supportanytier + BurningDamage supportanytier + at least1OpenPrefix. Then once bench8–10%AoE/+1socketedAoEGems for4Chaos; all8–10values satisfy the target, no exact10retry.",
+      "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-rf-any-support.json",
+      "assumptions": "Same acquired Elder rarebase reused,50Wild eachreforge; joint successincludesbothsupports andopenprefix. Expectedperfinisheditem: 94 roundedreforges plus exactlyone4Chaosbench; onebase, noScouring/replacement. All8–10AoErollsaccepted. No empirical game spending/sales or whole-build fit."
+    },
+    "expectedExecutions": [
+      {
+        "stepId": "reforge-fire",
+        "count": 94,
+        "evidence": {
+          "method": "Manually checked current CoE joint support+open-prefix probability and ordinary paidreforge; both complete core+paidbench finishes executed in public UI",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&class=73&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d",
+          "verifiedAt": "2026-11-03",
+          "settings": "Acquired rare Elder-only Archdemon Crown ilvl83, unfractured/uncorrupted/unsynthesised, native+2socketedSkillGems/-2socketedSupportGems. Harvest ReforgeFire50Wild perattempt. AND ConcentratedEffect supportanytier + BurningDamage supportanytier + at least1OpenPrefix. Then once bench8–10%AoE/+1socketedAoEGems for4Chaos; all8–10values satisfy the target, no exact10retry.",
+          "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-rf-any-support.json",
+          "assumptions": "Same acquired Elder rarebase reused,50Wild eachreforge; joint successincludesbothsupports andopenprefix. Expectedperfinisheditem: 94 roundedreforges plus exactlyone4Chaosbench; onebase, noScouring/replacement. All8–10AoErollsaccepted. No empirical game spending/sales or whole-build fit."
+        }
+      },
+      {
+        "stepId": "craft-aoe",
+        "count": 1,
+        "evidence": {
+          "method": "Manually checked current CoE joint support+open-prefix probability and ordinary paidreforge; both complete core+paidbench finishes executed in public UI",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&class=73&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d",
+          "verifiedAt": "2026-11-03",
+          "settings": "Acquired rare Elder-only Archdemon Crown ilvl83, unfractured/uncorrupted/unsynthesised, native+2socketedSkillGems/-2socketedSupportGems. Harvest ReforgeFire50Wild perattempt. AND ConcentratedEffect supportanytier + BurningDamage supportanytier + at least1OpenPrefix. Then once bench8–10%AoE/+1socketedAoEGems for4Chaos; all8–10values satisfy the target, no exact10retry.",
+          "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-rf-any-support.json",
+          "assumptions": "Same acquired Elder rarebase reused,50Wild eachreforge; joint successincludesbothsupports andopenprefix. Expectedperfinisheditem: 94 roundedreforges plus exactlyone4Chaosbench; onebase, noScouring/replacement. All8–10AoErollsaccepted. No empirical game spending/sales or whole-build fit."
+        }
+      }
+    ],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Manually checked current CoE joint support+open-prefix probability and ordinary paidreforge; both complete core+paidbench finishes executed in public UI",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&class=73&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d",
+        "verifiedAt": "2026-11-03",
+        "settings": "Acquired rare Elder-only Archdemon Crown ilvl83, unfractured/uncorrupted/unsynthesised, native+2socketedSkillGems/-2socketedSupportGems. Harvest ReforgeFire50Wild perattempt. AND ConcentratedEffect supportanytier + BurningDamage supportanytier + at least1OpenPrefix. Then once bench8–10%AoE/+1socketedAoEGems for4Chaos; all8–10values satisfy the target, no exact10retry.",
+        "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-rf-any-support.json",
+        "assumptions": "Same acquired Elder rarebase reused,50Wild eachreforge; joint successincludesbothsupports andopenprefix. Expectedperfinisheditem: 94 roundedreforges plus exactlyone4Chaosbench; onebase, noScouring/replacement. All8–10AoErollsaccepted. No empirical game spending/sales or whole-build fit."
+      }
+    }
   },
   "startingBase": {
     "baseId": "Metadata/Items/Armours/Helmets/HelmetStrIntRitual3",
@@ -72,18 +145,20 @@
   },
   "patch": "3.29.3.3",
   "verification": {
-    "status": "unverified",
-    "leagues": [],
+    "status": "verified",
+    "leagues": ["Allflame"],
     "checkedAt": "2026-11-03",
     "sources": [
-      "https://docs.google.com/spreadsheets/d/1w4IrNdvXMkJD4EB5o-qsOVpbTR69cnQ5-2lh-DwVbKM/edit?gid=264173426#gid=264173426"
+      "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&class=73&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d",
+      "https://beta.craftofexile.com/changelog",
+      "https://www.pathofexile.com/api/trade/data/stats"
     ],
-    "notes": "Source mechanics were reviewed on 2026-10-30 at the scope recorded in docs/evidence/research-acceptance-2026-11-03/final-recipes.json#rf-fire-trap-helmet. Current public Trade items/stats/static metadata checked on 2026-11-03. This checks mapping identities, not recipe success probability, live acquisition or profitability."
+    "notes": "Current3.29.3.3 supports were reselected as CoE2840/2845 and OpenPrefix>=1. Recomputed 94reforges/4700Wild. Fullsupportcore then actual4ChaosAoEbench finish observed; ordinary50Wildfailure retainedElder83/nativeimplicit. This verifies the scoped indicative model, not executed game purchases/sales or whole-build fit."
   },
   "gameDataVersion": "3.29.3.3",
   "id": "rf-fire-trap-any-support",
   "schemaVersion": 3,
-  "summary": "Elder Fire Trap Helmet · Any Support Tier. Scoped MAX-1288 procedure.",
+  "summary": "Elder Fire Trap Helmet · Any Support Tier. Current joint support+vacancy model: rounded 94reforges and one4Chaosbench. Fresh market asks remain separate.",
   "tags": ["righteous-fire", "fire-trap", "burning-damage", "elder", "aoe"],
   "targetSignature": "3.29.3.3:cad83c782eab5974e3dbd84a2776c235",
   "target": {

@@ -171,8 +171,8 @@
       },
       "recoveredFormulaText": {},
       "recipeIds": ["suppression-boots-loathing"],
-      "decision": "CATALOG_PROJECTION_UNVERIFIED",
-      "reason": "Exact selected target/method recorded in corresponding recipe; full source lead remains broader."
+      "decision": "CATALOG_PROJECTION_SCOPED_MODEL_CHECKED",
+      "reason": "Current CoE3.29.3.3 checked one-stage core: acquired14fracturedsuppressionSlink85 + Loathing31–35avoidance + native25movement orbetter. Rounded12uses; optionallife/implicit/repair and sourceprices/demand remainunverified."
     },
     {
       "id": "C006",
@@ -385,9 +385,10 @@
         "Комментарий": "Чёткий покупатель и понятная ценность; проверять популярность RF на poe.ninja."
       },
       "recoveredFormulaText": {},
-      "recipeIds": ["rf-fire-trap-any-support", "rf-fire-trap-level-20"],
-      "decision": "CATALOG_PROJECTION_UNVERIFIED",
-      "reason": "Exact selected target/method recorded in corresponding recipe; full source lead remains broader."
+      "recipeIds": [],
+      "decision": "RETAINED_RESEARCH_LEAD",
+      "reason": "Sheet C011 requires Horror+Burning+life. The current checked MAX-1288 FireTrap Concentrated+Burning+AoE recipes are related alternatives, not a completed projection of that distinct Sheet target. No Horror/life odds are inferred.",
+      "relatedRecipeIds": ["rf-fire-trap-any-support", "rf-fire-trap-level-20"]
     },
     {
       "id": "C012",

@@ -1,9 +1,9 @@
 # Source recipe catalog — 2026-11-03
 
 The handbook contains 15 JSON recipes: two existing checked physical cluster
-methods, five newly checked single-stage methods and eight new
+methods, eight newly checked methods and five new
 **unverified** exact targets. All rows can collect comparable asking prices and
-material unit prices. The eight unverified methods have no invented expected
+material unit prices. The five unverified methods have no invented expected
 executions/base consumption and withhold full expected craft cost and ROI.
 
 Current public CoE3.29.3.3 checked on2026-11-03 gives rounded mean15Zeal uses
@@ -48,8 +48,8 @@ bow, not independently re-executed on the helmet. Native implicit floors only
 narrow the declared base identity; they do not add a crafting operation.
 
 No in-game purchases, crafting, completed sales, whole-build equivalence, optimum
-method or profitability are established. The boot line remains a source hypothesis. Both simple suppression-glove lines,
-two Stygian lines and the +2 wand now have separate current calculator models.
+method or profitability are established. Both simple suppression-glove lines, Loathing boots, two Stygian lines, the +2
+wand and two scoped RFsupport/AoE lines have current calculator models.
 Optional implicit, catalyst, trigger or bench finishes from broader Sheet leads
 are outside these single-stage models.
 
@@ -83,7 +83,7 @@ an access blocker; source captures must not be replayed as fresh observations.
   sync of all 15; all 16 source candidates retained.
 - Current official public items/stats validated the new mapping manifest (52 IDs).
 - Every current recipe's base/target/material resolves; presentation labels are
-  readable. Eight new recipes have no full expected-cost model; five simple methods
+  readable. Five new recipes have no full expected-cost model; eight scoped methods
   have bounded current CoE evidence. Product tags contain game concepts only;
   provenance IDs stay in source evidence.
 - Regression: a fractured suppression roll matches; the same numeric ordinary
@@ -99,3 +99,16 @@ Potent Chaotic Resonator per set), +2 Convoking12sets (four fossils and one Prim
 Chaotic Resonator per set). All exact requirements, paid failures and complete
 outputs are in `coe-stygian-envy.json`, `coe-stygian-fossils.json` and
 `coe-convoking-wand.json`. These three definitions change no existing target query.
+
+CurrentLoathing boot core:12essences,8.44%, nativeMovementT3+25 with acquired
+14suppressionfracture and guaranteed31–35avoidance. No life floor or repair is
+modelled. CurrentRFwholechain:94or910joint supports+open-prefix reforges (50Wild
+each), then exactlyone4ChaosAoEbench acceptingany8–10roll; no hidden finish
+retry. Actualpaidfinishes observed16/16supports+10AoE/+1 and20/20+8AoE/+1.
+
+The October30rawresearch RFURLs use IDs2839/2844, which now point to other
+modifiers. Those historical archives remain unchanged. NewRFmodels were rebuilt
+from currentUIIDs2840/2845 plusmandatoryOpenPrefix>=1. Existing activeNovember2
+legacycatalog URLs were checked and already use thosecorrectIDs. C011Sheet
+Horror/Burning/life remains a separate lead; these checkedMAX-1288FireTrap
+support-pair routes are related alternatives, not satisfaction of its fulltarget.
