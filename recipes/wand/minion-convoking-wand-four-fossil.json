@@ -31,7 +31,8 @@
     "startingMods": [],
     "uncertainties": [
       "Indicative CoE model: displayed probability and mean use count are rounded. Real spending, sales, liquidity and whole-build fit are not established.",
-      "Only the exact declared output core is modelled. Optional finishing, catalysts, corruption, gold fees and purchase execution are outside scope."
+      "Only the exact declared output core is modelled. Optional finishing, catalysts, corruption, gold fees and purchase execution are outside scope.",
+      "Starting-base acquisition must use exactly item level 84. Higher item levels can change the affix pool and require a separate cost model."
     ],
     "steps": [
       {

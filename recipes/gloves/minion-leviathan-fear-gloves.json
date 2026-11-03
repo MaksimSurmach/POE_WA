@@ -32,7 +32,8 @@
     ],
     "uncertainties": [
       "Expected executions per completed item and full expected material/base consumption have not been independently reproduced for this exact recipe. Expected total and ROI must stay unavailable.",
-      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established."
+      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established.",
+      "Starting-base acquisition must use exactly item level 85. Higher item levels can change the affix pool and require a separate cost model."
     ],
     "steps": [
       {

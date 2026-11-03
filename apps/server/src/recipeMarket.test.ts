@@ -86,6 +86,30 @@ describe('recipe market dependencies', () => {
       exchange: { have: ['chaos'], want: ['primal-crystallised-lifeforce'] },
     });
   });
+  it('prices the exact model input level while allowing higher-level finished comparables', async () => {
+    const result = await dependencies({
+      recipe: canonicalRecipeFixture,
+      league: 'Fixture League',
+    });
+    const base = result.find((d) => d.kind === 'base');
+    const finished = result.find((d) => d.kind === 'target');
+    const level = canonicalRecipeFixture.startingBase.itemLevel;
+    expect(base?.query?.query).toMatchObject({
+      query: {
+        filters: {
+          misc_filters: { filters: { ilvl: { min: level, max: level } } },
+        },
+      },
+    });
+    expect(recipeQueryTarget(base?.query?.query.handbookTarget)).toMatchObject({
+      minItemLevel: level,
+      maxItemLevel: level,
+    });
+    expect(
+      recipeQueryTarget(finished?.query?.query.handbookTarget).maxItemLevel,
+    ).toBeUndefined();
+  });
+
   it('requires the priced starting affix itself to be fractured at its authored value', async () => {
     const recipe = fixtureRecipe({
       ...canonicalRecipeFixture,

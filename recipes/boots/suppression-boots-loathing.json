@@ -31,7 +31,8 @@
     ],
     "uncertainties": [
       "Indicative model: current CoE8.44% and mean12 are rounded; no game spending/sales or whole-character ailment immunity is established.",
-      "Onlysuppression+avoidance+25movement core is modelled; no life floor, Eldritch repairs or bench finish. Pre-acquiredfracture and actual goldfee/prices require separate acquisition evidence."
+      "Onlysuppression+avoidance+25movement core is modelled; no life floor, Eldritch repairs or bench finish. Pre-acquiredfracture and actual goldfee/prices require separate acquisition evidence.",
+      "Starting-base acquisition must use exactly item level 85. Higher item levels can change the affix pool and require a separate cost model."
     ],
     "steps": [
       {

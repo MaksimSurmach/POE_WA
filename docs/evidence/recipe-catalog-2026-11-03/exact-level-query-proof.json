@@ -1,0 +1,129 @@
+{
+  "checkedAt": "2026-11-03",
+  "comparedTo": "8dda1c3",
+  "source": "Actual before/after generateRecipeMarketQuery implementations with current15recipes and public identity manifests; hashMarketQuery canonical production hashing",
+  "finishedQueriesUnchanged": 15,
+  "startingQueriesChanged": 15,
+  "rows": [
+    {
+      "recipeId": "lacerate-shaper-recovery-shield",
+      "finishedBefore": "61e95429d11700591da4a236032e4ccd40aebbdf3caa1e1f1a90dfc687d1f286",
+      "finishedAfter": "61e95429d11700591da4a236032e4ccd40aebbdf3caa1e1f1a90dfc687d1f286",
+      "baseBefore": "91ed97ecdae6cbfe53106c3194587803f6b8c2ecdd5b12ff189ea82bbecfd27d",
+      "baseAfter": "01b6b79dff9e79d1860b4ef26ec464fcf03cfab167c392d8360e360ea9491e2f",
+      "requiredExactItemLevel": 70
+    },
+    {
+      "recipeId": "minion-bone-helmet-greed",
+      "finishedBefore": "8b73fea674a60ce78bd2c02d528e4d18faa561de8190d13ea3003d2e26f4f82e",
+      "finishedAfter": "8b73fea674a60ce78bd2c02d528e4d18faa561de8190d13ea3003d2e26f4f82e",
+      "baseBefore": "4f3906c31a0cfc475d660440a87d54c20669833e37263488168ea45561f88bba",
+      "baseAfter": "91df8a9587c22d57440b950bf22b1ef88e741a510c7ba7ef20e9d13269b8063c",
+      "requiredExactItemLevel": 75
+    },
+    {
+      "recipeId": "minion-convoking-wand-four-fossil",
+      "finishedBefore": "d9428a72dd555e75fc1abe5097fde028f0c68a17991ef07269e11f813b574957",
+      "finishedAfter": "d9428a72dd555e75fc1abe5097fde028f0c68a17991ef07269e11f813b574957",
+      "baseBefore": "7236591eabc5ab2b3ca596f49900462360e4803f218a60d4bfb04e6f7d0490dd",
+      "baseAfter": "a25c25d1ef252251b39a9816801feb1b87434b1de296343ecb791f62e6d03293",
+      "requiredExactItemLevel": 84
+    },
+    {
+      "recipeId": "minion-fossilised-shield-greed",
+      "finishedBefore": "12ac98eae8842a26daacf6e5355028622f258e6b472d2e62c94fe2bb6fcbd8e2",
+      "finishedAfter": "12ac98eae8842a26daacf6e5355028622f258e6b472d2e62c94fe2bb6fcbd8e2",
+      "baseBefore": "e066885a9cf2a7039be2bc6ab6fbec5df07ec50a21569db80e212c546c3d9e9e",
+      "baseAfter": "80ab5de46ade62c3c3ddc0c73a338adbed7ec547eb939345a8fce13a26288793",
+      "requiredExactItemLevel": 60
+    },
+    {
+      "recipeId": "minion-leviathan-fear-gloves",
+      "finishedBefore": "150d9af60cf4a80f3154947b6c36c825a0fa0ebc43e24cb4bb31aa24c07a7958",
+      "finishedAfter": "150d9af60cf4a80f3154947b6c36c825a0fa0ebc43e24cb4bb31aa24c07a7958",
+      "baseBefore": "c97d7809fa5aeb3c4eaee70b4b347a1c20f07b4df12ca266bf25b908398cea6c",
+      "baseAfter": "9cfd03bc21b399e777868ee3e530cf59e93b1fc96e8628bce110479effe14eac",
+      "requiredExactItemLevel": 85
+    },
+    {
+      "recipeId": "physical-large-cluster-alteration",
+      "finishedBefore": "6caa800aa46b111c5321d06e0a95f32206eecc2aeb8ff1d77bd18bc6dbea50d6",
+      "finishedAfter": "6caa800aa46b111c5321d06e0a95f32206eecc2aeb8ff1d77bd18bc6dbea50d6",
+      "baseBefore": "6cd02f363b248a84ed59ecb54b2e4c8fc96c80dc8e52d2334891d1d4e9e78593",
+      "baseAfter": "0ae7fa56a07cb3d0aa36f0235ab404163dba68ecf5002ff9ae0f3d7d1f9ec019",
+      "requiredExactItemLevel": 83
+    },
+    {
+      "recipeId": "physical-large-cluster-jagged",
+      "finishedBefore": "ed2f220889e6b3752f2b0c116506bd60f0efc329739a2a833f1009f670cabd90",
+      "finishedAfter": "ed2f220889e6b3752f2b0c116506bd60f0efc329739a2a833f1009f670cabd90",
+      "baseBefore": "6cd02f363b248a84ed59ecb54b2e4c8fc96c80dc8e52d2334891d1d4e9e78593",
+      "baseAfter": "0ae7fa56a07cb3d0aa36f0235ab404163dba68ecf5002ff9ae0f3d7d1f9ec019",
+      "requiredExactItemLevel": 83
+    },
+    {
+      "recipeId": "rf-fire-trap-any-support",
+      "finishedBefore": "dbb20e35ba1bf60eabeae06a1910c969e76b4d23e0bf7d807f3012c9c89224f0",
+      "finishedAfter": "dbb20e35ba1bf60eabeae06a1910c969e76b4d23e0bf7d807f3012c9c89224f0",
+      "baseBefore": "8917e9ad7a95b80f27550c2066f711269fd69512b711a1fcc85949c0fd90124d",
+      "baseAfter": "8baa564f73fab21cae54d00ec6e10e777224546270e54d4dd9219cc099cc6612",
+      "requiredExactItemLevel": 83
+    },
+    {
+      "recipeId": "rf-fire-trap-level-20",
+      "finishedBefore": "69499669beeb57ab207ef3b33af1698a546b89ed753890db5483a2b8f344866b",
+      "finishedAfter": "69499669beeb57ab207ef3b33af1698a546b89ed753890db5483a2b8f344866b",
+      "baseBefore": "8917e9ad7a95b80f27550c2066f711269fd69512b711a1fcc85949c0fd90124d",
+      "baseAfter": "8baa564f73fab21cae54d00ec6e10e777224546270e54d4dd9219cc099cc6612",
+      "requiredExactItemLevel": 83
+    },
+    {
+      "recipeId": "stygian-life-resistances-envy",
+      "finishedBefore": "dadaabfbf82703ae7dae3ae5c384a53288d53c8635c0f55ba7709bac3682c48a",
+      "finishedAfter": "dadaabfbf82703ae7dae3ae5c384a53288d53c8635c0f55ba7709bac3682c48a",
+      "baseBefore": "b1517c9911234d69589733a1e4e94efb2a47a5d9f9c9d2d5fa3b3334269dd009",
+      "baseAfter": "bd3cd2e98c0ecf83828798903b4a48705e8f846dd3cdad1c85962873a804ba6a",
+      "requiredExactItemLevel": 85
+    },
+    {
+      "recipeId": "stygian-life-resistances-fossils",
+      "finishedBefore": "cbfff53e6cb70f7c4469caa262593c6e4de05a14edb8f5fd8b67a8b65dc13465",
+      "finishedAfter": "cbfff53e6cb70f7c4469caa262593c6e4de05a14edb8f5fd8b67a8b65dc13465",
+      "baseBefore": "b1517c9911234d69589733a1e4e94efb2a47a5d9f9c9d2d5fa3b3334269dd009",
+      "baseAfter": "bd3cd2e98c0ecf83828798903b4a48705e8f846dd3cdad1c85962873a804ba6a",
+      "requiredExactItemLevel": 85
+    },
+    {
+      "recipeId": "suppression-boots-loathing",
+      "finishedBefore": "0792bfa4cb5788568226a0adb3717dc7e6a735ad5da089a1670e76e3dc5a08ae",
+      "finishedAfter": "0792bfa4cb5788568226a0adb3717dc7e6a735ad5da089a1670e76e3dc5a08ae",
+      "baseBefore": "5a8337d5eed01c4b577f52d564dda7e4228248e2958beea834d82c98053a711f",
+      "baseAfter": "d1f9749f85c52b7b573fcaae963d7312170e87728aee76e2dd63302f16742c97",
+      "requiredExactItemLevel": 85
+    },
+    {
+      "recipeId": "suppression-gloves-fear",
+      "finishedBefore": "36f811ca6438169454cec604bd043a2cd225845adac5636bfe5f7aa6eb3e963b",
+      "finishedAfter": "36f811ca6438169454cec604bd043a2cd225845adac5636bfe5f7aa6eb3e963b",
+      "baseBefore": "76c506714d7ba44b1786568763a7214ac2ccc5dce511f0e5f19f2ce03539fdc6",
+      "baseAfter": "aa67d11a7d05ebffa5716bd013ad641b516aad806e153fd1b2d2cd53f81072ce",
+      "requiredExactItemLevel": 85
+    },
+    {
+      "recipeId": "suppression-gloves-zeal",
+      "finishedBefore": "8436d86b8c886e7c22a0d6e0ea697791f2884d0d4ac4ce96d03df2f6a8b7c417",
+      "finishedAfter": "8436d86b8c886e7c22a0d6e0ea697791f2884d0d4ac4ce96d03df2f6a8b7c417",
+      "baseBefore": "76c506714d7ba44b1786568763a7214ac2ccc5dce511f0e5f19f2ce03539fdc6",
+      "baseAfter": "aa67d11a7d05ebffa5716bd013ad641b516aad806e153fd1b2d2cd53f81072ce",
+      "requiredExactItemLevel": 85
+    },
+    {
+      "recipeId": "tr-grizzly-aoe-helmet",
+      "finishedBefore": "c15610d4e53fc7af6ec3dd8bd08aeb67e90a2d662f1bf0f3d615c6ab841ef757",
+      "finishedAfter": "c15610d4e53fc7af6ec3dd8bd08aeb67e90a2d662f1bf0f3d615c6ab841ef757",
+      "baseBefore": "162b390c78af80ff87178455f6e9c7d306c62920bd41d5f600a99f3c9d8ecebe",
+      "baseAfter": "22f3fc82498603bfaf9dbfddacdca8d83d537b677c00285183e96d62db2b3e18",
+      "requiredExactItemLevel": 85
+    }
+  ]
+}

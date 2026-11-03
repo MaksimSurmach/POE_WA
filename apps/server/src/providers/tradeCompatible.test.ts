@@ -78,6 +78,21 @@ const config = loadTradeCompatibleConfig({
 });
 
 describe('Trade-compatible queries and transport', () => {
+  it('enforces the exact model item level in the live request and rejects an empty range', () => {
+    const target = { ...tradeTarget(), minItemLevel: 84, maxItemLevel: 84 };
+    expect(
+      generateMarketTradeQuery(target).request.query.filters.misc_filters
+        .filters.ilvl,
+    ).toEqual({ min: 84, max: 84 });
+    expect(() =>
+      generateMarketTradeQuery({
+        ...target,
+        minItemLevel: 82,
+        maxItemLevel: 83,
+      }),
+    ).toThrow('The market query is invalid.');
+  });
+
   it('normalizes an observed cluster enum hash with null magnitude indexes', async () => {
     const raw = JSON.parse(
       await readFile(

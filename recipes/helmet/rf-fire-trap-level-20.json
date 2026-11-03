@@ -25,7 +25,8 @@
     "startingMods": [],
     "uncertainties": [
       "Indicative model: joint support+open-prefix odds and expectedreforges are current roundedCoEvalues; actual game spending and completed sales are unverified.",
-      "Only socketedFireTrap/SearingBond supportpair+8–10AoE/+1 finish is modelled. No RF-in-helmet, elevated25supports, life/resistance/quality/socket/link floor, goldfee or whole-build equivalence."
+      "Only socketedFireTrap/SearingBond supportpair+8–10AoE/+1 finish is modelled. No RF-in-helmet, elevated25supports, life/resistance/quality/socket/link floor, goldfee or whole-build equivalence.",
+      "Starting-base acquisition must use exactly item level 83. Higher item levels can change the affix pool and require a separate cost model."
     ],
     "steps": [
       {

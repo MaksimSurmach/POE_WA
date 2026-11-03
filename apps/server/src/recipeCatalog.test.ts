@@ -156,6 +156,27 @@ describe('authored source catalog integrity', () => {
           expect.objectContaining({ kind: 'target' }),
         ]),
       );
+      const baseQuery = await generateRecipeMarketQuery(
+        trade,
+        definition,
+        'Fixture League',
+        true,
+      );
+      const targetQuery = await generateRecipeMarketQuery(
+        trade,
+        definition,
+        'Fixture League',
+      );
+      expect(recipeQueryTarget(baseQuery.query.handbookTarget)).toMatchObject({
+        minItemLevel: definition.startingBase.itemLevel,
+        maxItemLevel: definition.startingBase.itemLevel,
+      });
+      expect(
+        recipeQueryTarget(targetQuery.query.handbookTarget).maxItemLevel,
+      ).toBeUndefined();
+      expect(definition.craft.uncertainties).toContain(
+        `Starting-base acquisition must use exactly item level ${definition.startingBase.itemLevel}. Higher item levels can change the affix pool and require a separate cost model.`,
+      );
       const view = createRecipeItemPresentation({
         catalog: presentation,
         recipe: definition,

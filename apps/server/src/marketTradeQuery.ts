@@ -73,9 +73,16 @@ export function generateMarketTradeQuery(
     )
   )
     throw new DomainError('MARKET_QUERY_INVALID');
-  const misc: Record<string, { min?: number; option?: string }> = {};
+  const misc: Record<string, { min?: number; max?: number; option?: string }> =
+    {};
   const level = Math.max(target.minItemLevel ?? 0, rules?.minItemLevel ?? 0);
-  if (level) misc.ilvl = { min: level };
+  if (target.maxItemLevel != null && level > target.maxItemLevel)
+    throw new DomainError('MARKET_QUERY_INVALID');
+  if (level || target.maxItemLevel != null)
+    misc.ilvl = {
+      ...(level ? { min: level } : {}),
+      ...(target.maxItemLevel == null ? {} : { max: target.maxItemLevel }),
+    };
   if (target.qualityMin != null) misc.quality = { min: target.qualityMin };
   const corrupted = rules?.corrupted ?? target.corrupted;
   if (corrupted != null) misc.corrupted = { option: String(corrupted) };

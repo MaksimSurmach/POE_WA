@@ -25,7 +25,8 @@
     "startingMods": [],
     "uncertainties": [
       "Current calculator probability and mean essence use are rounded; expected spending is indicative.",
-      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established."
+      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established.",
+      "Starting-base acquisition must use exactly item level 75. Higher item levels can change the affix pool and require a separate cost model."
     ],
     "steps": [
       {

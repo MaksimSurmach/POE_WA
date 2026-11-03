@@ -13,7 +13,11 @@ import {
 } from '@poe-worksmith/domain';
 import { describe, expect, it } from 'vitest';
 
-import { synchronizeRecipeCatalog } from './recipes/synchronizeRecipes.js';
+import {
+  synchronizeRecipeCatalog,
+  synchronizeRecipes,
+} from './recipes/synchronizeRecipes.js';
+import { loadRecipeCatalog } from './recipes/loader.js';
 import { generateRecipeMarketQuery } from './recipeMarket.js';
 import { createResourceReaders } from './resourceViews.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
@@ -186,7 +190,7 @@ describe('repository-backed resource views', () => {
     expect(JSON.parse(url.searchParams.get('q') ?? 'null')).toMatchObject({
       query: {
         type: 'Large Cluster Jewel',
-        filters: { misc_filters: { filters: { ilvl: { min: 83 } } } },
+        filters: { misc_filters: { filters: { ilvl: { min: 83, max: 83 } } } },
       },
       sort: { price: 'asc' },
     });
@@ -208,7 +212,28 @@ describe('repository-backed resource views', () => {
     'exposes current economics and withholds expired prices (expired=%s)',
     async (expired) => {
       const repositories = createInMemoryRepositories();
-      await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+      const currentCatalog = await loadRecipeCatalog(recipesPath);
+      const previousCatalog = currentCatalog.map((source) => ({
+        ...source,
+        definition: {
+          ...source.definition,
+          craft: {
+            ...source.definition.craft,
+            uncertainties: source.definition.craft.uncertainties.filter(
+              (note) =>
+                !note.startsWith(
+                  'Starting-base acquisition must use exactly item level',
+                ),
+            ),
+          },
+        },
+      }));
+      await synchronizeRecipes(
+        repositories.recipes,
+        previousCatalog,
+        async () => Buffer.from('fixture'),
+      );
+      const oldRecipes = await repositories.recipes.listAll();
       const league = await repositories.leagues.upsert({
         endAt: null,
         game: 'poe1',
@@ -313,6 +338,36 @@ describe('repository-backed resource views', () => {
           },
         ],
       });
+      const history = await repositories.evaluations.listByCycle(running.id);
+      const upgraded = await synchronizeRecipeCatalog(
+        recipesPath,
+        repositories.recipes,
+      );
+      expect(upgraded.updated).toHaveLength(15);
+      for (const previous of oldRecipes) {
+        expect(
+          (await repositories.recipes.findById(previous.id))?.contentHash,
+        ).not.toBe(previous.contentHash);
+      }
+      const updatedDetail = await readers.readRecipe(
+        correlationId,
+        'physical-large-cluster-jagged',
+      );
+      expect(updatedDetail.data?.evaluation).toMatchObject({
+        expectedCraftCost: null,
+        profit: null,
+        marginPercent: null,
+      });
+      expect(updatedDetail.data?.method?.expectedCost).toBeNull();
+      const updatedCatalog = await readers.readCatalog(correlationId);
+      expect(
+        updatedCatalog.data?.entries.find(
+          (entry) => entry.recipe.id === 'physical-large-cluster-jagged',
+        )?.evaluation,
+      ).toMatchObject({ expectedCraftCost: null, profit: null });
+      expect(await repositories.evaluations.listByCycle(running.id)).toEqual(
+        history,
+      );
     },
   );
 

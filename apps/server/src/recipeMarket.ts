@@ -167,6 +167,7 @@ export async function generateRecipeMarketQuery(
     requiredMods: [],
     sources: [],
     minItemLevel: item.itemLevel,
+    ...(starting ? { maxItemLevel: item.itemLevel } : {}),
     influences: [...item.influences].sort(),
     corrupted: item.state.corrupted,
     synthesised: item.state.synthesised,
@@ -192,8 +193,30 @@ export async function generateRecipeMarketQuery(
   handbookTarget.tradeSearch?.groups.forEach((g) =>
     g.filters.sort((a, b) => a.id.localeCompare(b.id)),
   );
+  // Craft odds use the authored item level. Higher levels can add affix tiers;
+  // finished comparable items still use a minimum level only.
+  const query = { ...result.value.query };
+  if (starting) {
+    const search = z
+      .object({
+        filters: z
+          .object({
+            misc_filters: z
+              .object({ filters: z.record(z.string(), z.json()) })
+              .passthrough(),
+          })
+          .passthrough(),
+      })
+      .passthrough()
+      .parse(query.query);
+    search.filters.misc_filters.filters.ilvl = {
+      min: item.itemLevel,
+      max: item.itemLevel,
+    };
+    query.query = search;
+  }
   return tradeQuery({
-    ...result.value.query,
+    ...query,
     handbookTarget: canonicalMarketJson(handbookTarget),
   });
 }

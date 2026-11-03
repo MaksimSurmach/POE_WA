@@ -277,6 +277,7 @@ export const marketTargetInputSchema = z.strictObject({
   builds: z.array(text()).max(30),
   requiredMods: z.array(text(500)).max(30),
   minItemLevel: z.number().int().min(1).max(100).nullable().optional(),
+  maxItemLevel: z.number().int().min(1).max(100).nullable().optional(),
   qualityMin: z.number().int().min(0).max(100).nullable().optional(),
   influences: z.array(text(100)).max(10).optional(),
   corrupted: z.boolean().nullable().optional(),

@@ -123,3 +123,18 @@ bench for 3 Chaos Orbs; paid finishes rolled 30% Fire Resistance on complete
 cores. The older 1465/141 means omit the no-fire condition and are not reused.
 These estimates remain indicative; low-budget names identify a build stage,
 not cheap crafting.
+
+Starting-base collection now enforces exactly the authored item level in both
+Trade search requests and local matching. Higher levels can add affix tiers and
+require another cost model. Finished-item comparables still accept higher levels.
+The Buy Base URL carries the same exact input restriction. `maxItemLevel` is an
+optional target field and requires no database migration.
+
+Upgrade: stop the previous broad-base cycle, synchronize all 15 updated recipes,
+and run a fresh cycle. Their explicit acquisition uncertainties change every
+recipe content hash, so older expected costs are hidden by existing read guards;
+historical evaluations and snapshots are retained. Completed finished-target and
+material observations remain reusable by their unchanged query hashes. Starting
+queries change and must be collected again. `exact-level-query-proof.json`
+records before/after production hashes against8dda1c3 for all15 recipes: every
+finished hash is unchanged and every starting hash changes.
