@@ -26,12 +26,7 @@ export function refreshFailureCode(
   cancellationSignal: AbortSignal,
   workerSignal?: AbortSignal,
 ) {
-  if (
-    cancellationSignal.aborted ||
-    (error instanceof DomainError &&
-      error.code === 'MARKET_COLLECTION_CANCELLED')
-  )
-    return 'MARKET_COLLECTION_CANCELLED';
+  if (cancellationSignal.aborted) return 'MARKET_COLLECTION_CANCELLED';
   if (workerSignal?.aborted) return 'REFRESH_WORKER_INTERRUPTED';
   return error instanceof DomainError ? error.code : 'INTERNAL_ERROR';
 }
