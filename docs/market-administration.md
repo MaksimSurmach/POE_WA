@@ -132,6 +132,13 @@ explicitly failed and cancelled. Reconciliation fails interrupted cycles and
 their unfinished jobs without deleting snapshots. A recovered database pool can
 resume reconciliation; transient connection errors do not permanently poison
 readiness. No provider 401/403/429, challenge or cooldown is bypassed.
+Queue expiry claims the still-queued run atomically; a worker that starts it
+concurrently keeps its active run and is not expired by the old enqueue age.
+An individual cancellation-check database failure logs a warning and retries on
+the next tick; the publication transaction still checks the cancellation flag.
+A pg-boss abort is recorded as a worker interruption, separately from an operator
+cancellation. Direct API clients can enqueue while the worker is unavailable;
+the UI disables Run now until its heartbeat is healthy.
 
 ## Retention
 

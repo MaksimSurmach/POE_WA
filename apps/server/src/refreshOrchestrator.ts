@@ -153,11 +153,11 @@ export class FullRefreshOrchestrator {
           break;
         if (
           cycle.status !== 'running' ||
-          performance.now() - started >= 60 * 60_000 ||
+          performance.now() - started >= 45 * 60_000 ||
           (jobs.retried === 0 && jobs.recovered === 0)
         )
           throw new DomainError('REFRESH_INCOMPLETE');
-        // Delayed retries remain part of this cycle, within the queue's one-hour bound.
+        // Leave fifteen minutes for final material prices and publication before queue expiry.
         await delay(1000, undefined, { signal: this.#signal });
       }
 

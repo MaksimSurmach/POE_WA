@@ -30,6 +30,10 @@ import { PoeTradeClient } from './providers/poeTrade.js';
 import { GggRateLimitController } from './rateLimitController.js';
 import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
 import { refreshLeagueContext } from './refreshLeagueContext.js';
+import {
+  refreshFailureCode,
+  watchRefreshCancellation,
+} from './refreshCancellation.js';
 import { createRecipeMarketDependencies } from './recipeMarket.js';
 import { createPostgresRepositories } from './repositories/index.js';
 import {
@@ -317,24 +321,17 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         );
         const data = { ...scope, source: rawData?.source ?? 'scheduler' };
         if (!(await admin.claim(cycleId, data))) return { skipped: true };
-        const controller = new AbortController();
+        const cancellation = watchRefreshCancellation(
+          () => admin.cancellationRequested(cycleId),
+          () =>
+            logger.warn(
+              { cycleId },
+              'refresh cancellation check failed; will retry',
+            ),
+        );
         const signal = jobSignal
-          ? AbortSignal.any([jobSignal, controller.signal])
-          : controller.signal;
-        let checking = false;
-        const check = setInterval(() => {
-          if (checking) return;
-          checking = true;
-          void admin
-            .cancellationRequested(cycleId)
-            .then((cancelled) => {
-              if (cancelled) controller.abort();
-            })
-            .catch(() => controller.abort())
-            .finally(() => {
-              checking = false;
-            });
-        }, 1000);
+          ? AbortSignal.any([jobSignal, cancellation.signal])
+          : cancellation.signal;
         const abort = () => tradeClient?.stop();
         signal.addEventListener('abort', abort, { once: true });
         try {
@@ -401,20 +398,17 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           );
           return report;
         } catch (error) {
-          const cancelled =
-            signal.aborted ||
-            (error instanceof DomainError &&
-              error.code === 'MARKET_COLLECTION_CANCELLED');
-          const code = cancelled
-            ? 'MARKET_COLLECTION_CANCELLED'
-            : error instanceof DomainError
-              ? error.code
-              : 'INTERNAL_ERROR';
+          const code = refreshFailureCode(
+            error,
+            cancellation.signal,
+            jobSignal,
+          );
+          const cancelled = code === 'MARKET_COLLECTION_CANCELLED';
           await admin.failCycle(cycleId, code);
           await admin.finish(cycleId, cancelled ? 'cancelled' : 'failed', code);
           throw error;
         } finally {
-          clearInterval(check);
+          cancellation.stop();
           signal.removeEventListener('abort', abort);
           tradeClient?.stop();
         }
