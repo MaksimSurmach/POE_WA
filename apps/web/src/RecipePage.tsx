@@ -287,7 +287,9 @@ export function RecipePage() {
         )}
         <p>
           Prices are asking prices, not confirmed sales. ROI uses the cheapest
-          verified comparable ask.
+          verified comparable ask and needs asks from at least two independent
+          sellers; a single seller&apos;s ask is shown but not used for profit
+          or ROI.
         </p>
       </DetailSection>
     </article>

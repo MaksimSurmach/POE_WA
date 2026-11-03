@@ -548,3 +548,142 @@ describe('catalog evaluation and publication', () => {
     });
   });
 });
+
+describe('sale evidence acceptance', () => {
+  async function evaluateWithTargetSellers(sellers: readonly string[]) {
+    const repositories = createInMemoryRepositories();
+    const definition = fixtureRecipe(canonicalRecipeFixture);
+    await repositories.recipes.save(
+      storedRecipe(definition.id, { ...definition } as JsonRecord),
+    );
+    const tradeQueries = (
+      await fixtureMarketDependencies({
+        recipe: definition,
+        league: 'Mercenaries',
+      })
+    ).map(({ query }) => query!);
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Mercenaries',
+      isCurrent: true,
+      metadata: {},
+      name: 'Mercenaries',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
+    const refreshCycle = {
+      ...cycle('cycle-sale-evidence', 1, tradeQueries.length),
+      leagueId: league.id,
+    };
+    await repositories.cycles.save(refreshCycle);
+    const targetIndex = tradeQueries.length - 1;
+    for (const [queryIndex, tradeQuery] of tradeQueries.entries()) {
+      const marketQueryId = `query-${queryIndex}`;
+      await repositories.marketQueries.save({
+        active: true,
+        canonicalHash: await hashMarketQuery({
+          league: 'Mercenaries',
+          provider: tradeQuery.provider,
+          query: tradeQuery.query,
+          schemaVersion: tradeQuery.schemaVersion,
+        }),
+        id: marketQueryId,
+        provider: tradeQuery.provider,
+        query: tradeQuery.query,
+        recipeId: definition.id,
+      });
+      const accounts =
+        queryIndex === targetIndex
+          ? sellers
+          : Array.from({ length: 10 }, (_, index) => `seller-${index}`);
+      const listings = accounts.map((account, listingIndex) => ({
+        account,
+        ageSeconds: 60,
+        fee: null,
+        id: `${marketQueryId}-listing-${listingIndex}`,
+        indexedAt: new Date(now.getTime() - 60_000).toISOString(),
+        item: { stock: 10000 },
+        price: {
+          amount: String(
+            (queryIndex === 0 ? 10 : queryIndex === targetIndex ? 1000 : 0.01) +
+              listingIndex,
+          ),
+          currency: 'chaos',
+        },
+      }));
+      await repositories.snapshots.save({
+        capturedAt: now,
+        dedupeKey: `snapshot-${queryIndex}`,
+        expiresAt: new Date(now.getTime() + 300_000),
+        leagueId: league.id,
+        marketQueryId,
+        payload: {
+          coverage: 'complete',
+          listings,
+          provider: 'poe-trade',
+          totalResults: listings.length,
+        },
+        providerStatus: 200,
+        refreshCycleId: refreshCycle.id,
+      });
+    }
+    const report = await evaluateAndPublishCatalog(repositories, {
+      cycleId: refreshCycle.id,
+      marketDependencies: fixtureMarketDependencies,
+      league: 'Mercenaries',
+      now,
+    });
+    expect(report).toMatchObject({ completedRecipes: 1, published: true });
+    return report.evaluations[0]!;
+  }
+
+  it.each([
+    ['one listing', ['lone-seller']],
+    ['one seller repeating the ask', ['lone-seller', 'lone-seller']],
+  ])(
+    'withholds profit and ROI when the sale ask rests on %s',
+    async (_, sellers) => {
+      const evaluation = await evaluateWithTargetSellers(sellers);
+
+      expect(evaluation).toMatchObject({
+        confidence: 'low',
+        estimatedSalePrice: '1000',
+        marginPercent: null,
+        profit: null,
+        status: 'partial',
+        methodCost: {
+          saleEvidence: {
+            comparableSellers: 1,
+            minimumComparableSellers: 2,
+            status: 'insufficient_sellers',
+          },
+        },
+      });
+      expect(evaluation.expectedCraftCost).not.toBeNull();
+      expect(evaluation.lastSuccessfulAt).toBeNull();
+    },
+  );
+
+  it('publishes profit and ROI once independent sellers corroborate the ask', async () => {
+    const evaluation = await evaluateWithTargetSellers([
+      'first-seller',
+      'second-seller',
+    ]);
+
+    expect(evaluation).toMatchObject({
+      estimatedSalePrice: '1000',
+      status: 'success',
+      methodCost: {
+        saleEvidence: {
+          comparableSellers: 2,
+          minimumComparableSellers: 2,
+          status: 'accepted',
+        },
+      },
+    });
+    expect(Number(evaluation.marginPercent)).toBeGreaterThan(0);
+    expect(Number(evaluation.profit)).toBeGreaterThan(0);
+  });
+});

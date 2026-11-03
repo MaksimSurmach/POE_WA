@@ -593,6 +593,16 @@ async function evaluateFreshRecipe(
     ) &&
     definition.craft.baseConsumption?.evidence.patch === definition.patch;
   const salePrice = outputEstimate?.amount ?? null;
+  const comparableSellers = output?.aggregation.sampleSize ?? 0;
+  // A lone seller's ask is not a competitive price; show it, but derive no profit from it.
+  const saleEvidence = {
+    comparableSellers,
+    minimumComparableSellers,
+    status:
+      comparableSellers >= minimumComparableSellers
+        ? ('accepted' as const)
+        : ('insufficient_sellers' as const),
+  };
   const comparison = compareCraftWithAsk({
     basePrice,
     currency,
@@ -605,7 +615,7 @@ async function evaluateFreshRecipe(
     expectedBases: evidenceValid
       ? (definition.craft.baseConsumption?.expectedBases ?? null)
       : null,
-    ask: outputEstimate ?? null,
+    ask: saleEvidence.status === 'accepted' ? (outputEstimate ?? null) : null,
   });
   const { expectedCraftCost } = comparison;
   const methodCost = {
@@ -662,6 +672,7 @@ async function evaluateFreshRecipe(
           ? 'priced'
           : 'empty'
       : 'unavailable',
+    ...(salePrice === null ? {} : { saleEvidence }),
     materialEvidence,
     baseCost: basePrice,
     expectedBases: evidenceValid
@@ -697,7 +708,11 @@ async function evaluateFreshRecipe(
     profit: comparison.profit,
     sourceSnapshotDedupeKey: output?.snapshotDedupeKey ?? null,
     status:
-      salePrice === null || expectedCraftCost === null ? 'partial' : 'success',
+      salePrice === null ||
+      expectedCraftCost === null ||
+      saleEvidence.status !== 'accepted'
+        ? 'partial'
+        : 'success',
     methodCost,
   };
 }
@@ -792,6 +807,9 @@ function reusableEvaluation(
     ['success', 'stale', 'partial'].includes(evaluation.status),
   );
 }
+
+/** Distinct sellers needed before the cheapest comparable ask may yield profit or ROI. */
+const minimumComparableSellers = 2;
 
 function confidence(sampleSize: number) {
   return sampleSize >= 10 ? 'high' : sampleSize >= 3 ? 'medium' : 'low';
