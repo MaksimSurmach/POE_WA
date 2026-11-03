@@ -112,6 +112,7 @@ const itemSchema = z
     rarity: z.string().optional(),
     frameType: z.number().int().optional(),
     ilvl: z.number().int().optional(),
+    baseDefencePercentile: z.number().finite().min(0).max(100).optional(),
     corrupted: z.boolean().optional(),
     fractured: z.boolean().optional(),
     synthesised: z.boolean().optional(),
@@ -121,9 +122,14 @@ const itemSchema = z
     implicitMods: z.array(modifierSchema).optional(),
     craftedMods: z.array(modifierSchema).optional(),
     fracturedMods: z.array(modifierSchema).optional(),
+    sockets: z
+      .array(z.object({ group: z.number().int().nonnegative() }))
+      .max(6)
+      .optional(),
     properties: z
       .array(
         z.object({
+          name: z.string().optional(),
           type: z.number().optional(),
           values: z.array(z.tuple([z.string(), z.number()])),
         }),
@@ -235,7 +241,12 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
         )
           continue;
         const match = new RegExp(pattern).exec(line.description);
-        if (!match) continue;
+        // The bench renders its guaranteed trigger without the Trade filter's chance placeholder.
+        const guaranteedTrigger =
+          id === 'crafted.stat_3079007202' &&
+          line.description ===
+            'Trigger a Socketed Spell when you Use a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost';
+        if (!match && !guaranteedTrigger) continue;
         const indexes =
           item.extended?.hashes?.[origin]?.find(([hash]) => hash === id)?.[1] ??
           [];
@@ -249,7 +260,11 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
           : undefined;
         mods.push({
           id,
-          value: match[1] === undefined ? 1 : Number(match[1]),
+          value: guaranteedTrigger
+            ? 100
+            : match?.[1] === undefined
+              ? 1
+              : Number(match[1]),
           ...(tier !== undefined ? { tier } : {}),
         });
       }
@@ -302,6 +317,35 @@ export function normalizeTradeCompatibleListing(
   });
   const quality = item.properties?.find((property) => property.type === 6)
     ?.values[0]?.[0];
+  const energyShield = item.properties?.filter(
+    (property) => property.name === 'Energy Shield',
+  );
+  const energyShieldValue =
+    energyShield?.length === 1 && energyShield[0]?.values.length === 1
+      ? energyShield[0].values[0]?.[0]
+      : undefined;
+  if (energyShieldValue && /^\d+$/.test(energyShieldValue))
+    if (
+      Number.isSafeInteger(Number(energyShieldValue)) &&
+      Number(energyShieldValue) <= 1e9
+    )
+      mods.push({ id: 'armour.es', value: Number(energyShieldValue) });
+  if (item.baseDefencePercentile !== undefined)
+    mods.push({
+      id: 'misc.base_defence_percentile',
+      value: item.baseDefencePercentile,
+    });
+  if (quality && /^\+?\d+%$/.test(quality))
+    mods.push({
+      id: 'misc.quality',
+      value: Number(quality.replace(/[+%]/g, '')),
+    });
+  if (item.sockets) {
+    const groups = new Map<number, number>();
+    for (const socket of item.sockets)
+      groups.set(socket.group, (groups.get(socket.group) ?? 0) + 1);
+    mods.push({ id: 'socket.links', value: Math.max(0, ...groups.values()) });
+  }
   const rarity =
     item.rarity?.toLowerCase() ??
     ['normal', 'magic', 'rare', 'unique'][item.frameType ?? -1];

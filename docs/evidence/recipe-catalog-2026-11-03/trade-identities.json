@@ -141,6 +141,161 @@
       "id": "crafted.stat_4055307827",
       "text": "+#% to Chaos Damage over Time Multiplier",
       "type": "crafted"
+    },
+    {
+      "id": "enchant.stat_3948993189|4",
+      "text": "Added Small Passive Skills grant: 12% increased Damage with Bows\nAdded Small Passive Skills grant: 12% increased Damage Over Time with Bow Skills",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|15",
+      "text": "Added Small Passive Skills grant: 12% increased Cold Damage",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|8",
+      "text": "Added Small Passive Skills grant: 12% increased Attack Damage while holding a Shield",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|16",
+      "text": "Added Small Passive Skills grant: 12% increased Chaos Damage",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|6",
+      "text": "Added Small Passive Skills grant: 12% increased Damage with Two Handed Weapons",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|13",
+      "text": "Added Small Passive Skills grant: 12% increased Fire Damage",
+      "type": "enchant"
+    },
+    {
+      "id": "explicit.stat_3212859169",
+      "text": "1 Added Passive Skill is Arcing Shot",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1152182658",
+      "text": "1 Added Passive Skill is Martial Prowess",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_567971948",
+      "text": "1 Added Passive Skill is Vicious Skewering",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2631806437",
+      "text": "1 Added Passive Skill is Tempered Arrowheads",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3638731729",
+      "text": "1 Added Passive Skill is Sadist",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1595367309",
+      "text": "1 Added Passive Skill is Snowstorm",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1678643716",
+      "text": "1 Added Passive Skill is Widespread Destruction",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3599340381",
+      "text": "1 Added Passive Skill is Fuel the Fight",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3640252904",
+      "text": "1 Added Passive Skill is Heavy Hitter",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_664010431",
+      "text": "1 Added Passive Skill is Veteran Defender",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2194205899",
+      "text": "1 Added Passive Skill is Grim Oath",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2780712583",
+      "text": "1 Added Passive Skill is Touch of Cruelty",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1616734644",
+      "text": "1 Added Passive Skill is Wicked Pall",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2068574831",
+      "text": "1 Added Passive Skill is Brutal Infamy",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_540300548",
+      "text": "1 Added Passive Skill is Smite the Weak",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2342448236",
+      "text": "1 Added Passive Skill is Prismatic Heart",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2322980282",
+      "text": "1 Added Passive Skill is Smoking Remains",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_4186213466",
+      "text": "1 Added Passive Skill is Unholy Grace",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3944525413",
+      "text": "1 Added Passive Skill is Feed the Fury",
+      "type": "explicit"
+    },
+    {
+      "id": "fractured.stat_3091578504",
+      "text": "Minions have #% increased Attack and Cast Speed",
+      "type": "fractured"
+    },
+    {
+      "id": "crafted.stat_3079007202",
+      "text": "#% chance to Trigger a Socketed Spell on Using a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost",
+      "type": "crafted"
+    },
+    {
+      "id": "enchant.stat_3086156145",
+      "text": "Adds # Passive Skills",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_4079888060",
+      "text": "# Added Passive Skills are Jewel Sockets",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|12",
+      "text": "Added Small Passive Skills grant: 12% increased Physical Damage",
+      "type": "enchant"
+    },
+    {
+      "id": "explicit.stat_4052037485",
+      "text": "+# to maximum Energy Shield (Local)",
+      "type": "explicit"
     }
   ],
   "bases": [
@@ -266,6 +421,12 @@
     },
     {
       "type": "Thicket Bow"
+    },
+    {
+      "type": "Large Cluster Jewel"
+    },
+    {
+      "type": "Twilight Regalia"
     }
   ],
   "resources": [
@@ -340,6 +501,18 @@
     {
       "id": "wild-lifeforce",
       "name": "Wild Crystallised Lifeforce"
+    },
+    {
+      "id": "deafening-essence-of-woe",
+      "name": "Deafening Essence of Woe"
+    },
+    {
+      "id": "serrated-fossil",
+      "name": "Serrated Fossil"
+    },
+    {
+      "id": "aberrant-fossil",
+      "name": "Aberrant Fossil"
     }
   ]
 }

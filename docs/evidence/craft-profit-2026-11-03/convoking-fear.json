@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-11-03",
+  "source": "https://beta.craftofexile.com/?group=17&class=123&item=411&game=poe1&method=3%2C7%2C51&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W3siayI6Ik1pbmlvbkF0dGFja0FuZENhc3RTcGVlZDZfXyIsInYiOlsyMF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjpudWxsLCJzIjpbXSwicSI6MCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbIjMwIl1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tc3VmZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+  "scope": "Rare uninfluenced Convoking Wand exactly ilvl83; pre-acquired fractured minion Attack and Cast Speed exactly20%; Deafening Essence of Fear guarantees83–94% increased minion damage; AND +1 all Minion Skill Gems and at least1 open suffix. Bench Trigger8s after success. No Annul, Vesper, self-fracture or premium hybrid damage assumed.",
+  "calculator": {
+    "successChancePercent": 0.516,
+    "meanAttemptsDisplayed": 194,
+    "withoutOpenSuffix": {
+      "successChancePercent": 0.729,
+      "meanAttemptsDisplayed": 138
+    }
+  },
+  "successOutputObserved": [
+    "Essence prefix minion damage91 (83–94)",
+    "+1 all Minion Skill Gems",
+    "fractured minion Attack/Cast Speed20%",
+    "at least1 open suffix",
+    "Trigger8s successfully added through the modpool UI"
+  ],
+  "paidFailureObserved": [
+    "one Deafening Fear consumed",
+    "minion damage90",
+    "maximum mana73",
+    "minion crit chance10",
+    "fractured minion Attack/Cast Speed20% retained",
+    "no +1minion; same base is reusable"
+  ],
+  "benchCostObserved": {
+    "chaos": 3,
+    "scouringReserve": 1,
+    "note": "UI bench choice displays3Chaos +1Scouring; reserve retained conservatively; no direct Scour action in the recipe."
+  },
+  "historicalBookAttemptsNotUsed": 90,
+  "notVerified": [
+    "in-game purchase/craft/sale",
+    "current market profitability",
+    "Annul/Vesper recovery",
+    "self-fracture cost",
+    "premium130%damage route"
+  ]
+}

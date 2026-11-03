@@ -5,6 +5,10 @@ import type {
   TradeMappingCatalog,
 } from '@poe-worksmith/domain';
 import type { Pool } from 'pg';
+import {
+  isNativeTradeFilter,
+  splitNativeTradeFilters,
+} from '@poe-worksmith/domain';
 import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 
@@ -117,12 +121,23 @@ export async function loadAndValidateTradeMappingManifest(
     const exists =
       mapping.entityKind === 'base' || mapping.entityKind === 'resource'
         ? itemTypes.has(mapping.externalId)
-        : statIds.has(mapping.externalId);
+        : statIds.has(mapping.externalId) ||
+          isNativeTradeFilter(mapping.externalId);
     if (!exists)
       throw new Error(`PROVIDER_SCHEMA_CHANGED: ${mapping.externalId}`);
-    for (const externalId of Object.keys(mapping.payload?.filters ?? {}))
-      if (!statIds.has(externalId))
+    for (const [externalId, value] of Object.entries(
+      mapping.payload?.filters ?? {},
+    )) {
+      if (isNativeTradeFilter(externalId)) {
+        splitNativeTradeFilters([
+          {
+            type: 'and',
+            filters: [{ id: externalId, value: { min: value, max: value } }],
+          },
+        ]);
+      } else if (!statIds.has(externalId))
         throw new Error(`PROVIDER_SCHEMA_CHANGED: ${externalId}`);
+    }
   }
   return {
     gameDataVersion: parsed.data.gameDataVersion,

@@ -2,6 +2,7 @@ import { PgBoss, type Job, type Db } from 'pg-boss';
 import type { AdminRefreshJob } from './marketAdmin.js';
 import type { Pool } from 'pg';
 import type { Logger } from 'pino';
+import { CATALOG_REFRESH_TIMEOUT_SECONDS } from './refreshLimits.js';
 
 export const TEST_JOB_QUEUE = 'system.test-cron';
 export const TEST_SCHEDULE_KEY = 'singleton';
@@ -124,7 +125,7 @@ export async function ensureCatalogSchedules(
 async function ensureCatalogRefreshQueue(boss: PgBoss) {
   const options = {
     deleteAfterSeconds: 7 * 24 * 60 * 60,
-    expireInSeconds: 60 * 60,
+    expireInSeconds: CATALOG_REFRESH_TIMEOUT_SECONDS,
     retryBackoff: true,
     retryDelay: 60,
     retryLimit: 0,

@@ -1,7 +1,7 @@
 {
   "patchVersion": "3.29.3.3",
   "source": "https://www.pathofexile.com/api/trade/data/items",
-  "sourceRevision": "mapping-identities-checked-2026-11-03",
+  "sourceRevision": "mapping-identities-checked-2026-11-03.craft-profit.1",
   "records": [
     {
       "kind": "base",
@@ -154,6 +154,133 @@
         "metadata": {
           "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
           "checkedAt": "2026-11-03"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:large-cluster-bow",
+        "name": "Large Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity alias only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-03",
+          "sourceBaseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+          "passiveCount": 8,
+          "jewelSockets": 2,
+          "smallPassiveStatId": "bow-damage"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:large-cluster-cold",
+        "name": "Large Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity alias only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-03",
+          "sourceBaseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+          "passiveCount": 8,
+          "jewelSockets": 2,
+          "smallPassiveStatId": "cold-damage"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:large-cluster-shield-attack",
+        "name": "Large Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity alias only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-03",
+          "sourceBaseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+          "passiveCount": 8,
+          "jewelSockets": 2,
+          "smallPassiveStatId": "shield-attack-damage"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:large-cluster-chaos",
+        "name": "Large Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity alias only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-03",
+          "sourceBaseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+          "passiveCount": 8,
+          "jewelSockets": 2,
+          "smallPassiveStatId": "chaos-damage"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:large-cluster-two-handed",
+        "name": "Large Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity alias only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-03",
+          "sourceBaseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+          "passiveCount": 8,
+          "jewelSockets": 2,
+          "smallPassiveStatId": "two-handed-damage"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:large-cluster-fire",
+        "name": "Large Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity alias only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-03",
+          "sourceBaseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+          "passiveCount": 8,
+          "jewelSockets": 2,
+          "smallPassiveStatId": "fire-damage"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:twilight-regalia-six-link",
+        "name": "Twilight Regalia",
+        "itemClass": "Body Armour",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity alias only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-03",
+          "sourceBaseId": "Metadata/Items/Armours/BodyArmours/BodyInt20",
+          "linkedSockets": 6,
+          "quality": 20,
+          "identitySource": "https://poedb.tw/us/Twilight_Regalia",
+          "baseDefencePercentile": 100
         }
       }
     }

@@ -24,6 +24,7 @@ import { operationLogger } from './observability/operationContext.js';
 import type { Metrics } from './observability/metrics.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
 import { setTimeout as delay } from 'node:timers/promises';
+import { CATALOG_REFRESH_TIMEOUT_SECONDS } from './refreshLimits.js';
 
 type MarketJobRunner = Pick<MarketJobProcessor, 'runAvailable'>;
 
@@ -153,11 +154,12 @@ export class FullRefreshOrchestrator {
           break;
         if (
           cycle.status !== 'running' ||
-          performance.now() - started >= 45 * 60_000 ||
+          performance.now() - started >=
+            (CATALOG_REFRESH_TIMEOUT_SECONDS - 15 * 60) * 1000 ||
           (jobs.retried === 0 && jobs.recovered === 0)
         )
           throw new DomainError('REFRESH_INCOMPLETE');
-        // shortcut: 45m limits new batches; share a deadline if in-flight work needs the same limit.
+        // shortcut: reserve 15m between batches; share a deadline if in-flight work needs the same limit.
         await delay(1000, undefined, { signal: this.#signal });
       }
 

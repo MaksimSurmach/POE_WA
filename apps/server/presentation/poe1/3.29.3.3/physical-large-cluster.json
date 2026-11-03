@@ -267,6 +267,165 @@
       "name": "Orb of Scouring",
       "itemClass": "Currency",
       "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lDb252ZXJ0VG9Ob3JtYWwiLCJzY2FsZSI6MX1d/a0981d67fe/CurrencyConvertToNormal.png"
+    },
+    "base:large-cluster-bow": {
+      "name": "Large Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase3.png"
+    },
+    "bow-damage": {
+      "name": "12% increased Damage with Bows\n12% increased Damage Over Time with Bow Skills"
+    },
+    "base:large-cluster-cold": {
+      "name": "Large Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase3.png"
+    },
+    "cold-damage": {
+      "name": "12% increased Cold Damage"
+    },
+    "base:large-cluster-shield-attack": {
+      "name": "Large Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase3.png"
+    },
+    "shield-attack-damage": {
+      "name": "12% increased Attack Damage while holding a Shield"
+    },
+    "base:large-cluster-chaos": {
+      "name": "Large Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase3.png"
+    },
+    "chaos-damage": {
+      "name": "12% increased Chaos Damage"
+    },
+    "base:large-cluster-two-handed": {
+      "name": "Large Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase3.png"
+    },
+    "two-handed-damage": {
+      "name": "12% increased Damage with Two Handed Weapons"
+    },
+    "base:large-cluster-fire": {
+      "name": "Large Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase3.png"
+    },
+    "fire-damage": {
+      "name": "12% increased Fire Damage"
+    },
+    "mod:arcing-shot": {
+      "name": "Arcing Shot",
+      "generationType": "prefix"
+    },
+    "mod:martial-prowess": {
+      "name": "Martial Prowess",
+      "generationType": "suffix"
+    },
+    "mod:vicious-skewering": {
+      "name": "Vicious Skewering",
+      "generationType": "prefix"
+    },
+    "mod:tempered-arrowheads": {
+      "name": "Tempered Arrowheads",
+      "generationType": "prefix"
+    },
+    "mod:sadist": {
+      "name": "Sadist",
+      "generationType": "prefix"
+    },
+    "mod:snowstorm": {
+      "name": "Snowstorm",
+      "generationType": "prefix"
+    },
+    "mod:widespread-destruction": {
+      "name": "Widespread Destruction",
+      "generationType": "suffix"
+    },
+    "mod:fuel-the-fight": {
+      "name": "Fuel the Fight",
+      "generationType": "prefix"
+    },
+    "mod:heavy-hitter": {
+      "name": "Heavy Hitter",
+      "generationType": "suffix"
+    },
+    "mod:veteran-defender": {
+      "name": "Veteran Defender",
+      "generationType": "prefix"
+    },
+    "mod:grim-oath": {
+      "name": "Grim Oath",
+      "generationType": "suffix"
+    },
+    "mod:touch-of-cruelty": {
+      "name": "Touch of Cruelty",
+      "generationType": "prefix"
+    },
+    "mod:wicked-pall": {
+      "name": "Wicked Pall",
+      "generationType": "prefix"
+    },
+    "mod:brutal-infamy": {
+      "name": "Brutal Infamy",
+      "generationType": "prefix"
+    },
+    "mod:smite-the-weak": {
+      "name": "Smite the Weak",
+      "generationType": "suffix"
+    },
+    "mod:prismatic-heart": {
+      "name": "Prismatic Heart",
+      "generationType": "prefix"
+    },
+    "mod:smoking-remains": {
+      "name": "Smoking Remains",
+      "generationType": "prefix"
+    },
+    "mod:unholy-grace": {
+      "name": "Unholy Grace",
+      "generationType": "suffix"
+    },
+    "mod:feed-the-fury": {
+      "name": "Feed the Fury",
+      "generationType": "prefix"
+    },
+    "base:twilight-regalia-six-link": {
+      "name": "Twilight Regalia (6-link, 20% quality, 100% base defence)",
+      "itemClass": "Body Armour"
+    },
+    "mod:item-energy-shield": {
+      "name": "Item Energy Shield",
+      "generationType": "other"
+    },
+    "mod:fractured-minion-attack-cast-speed": {
+      "name": "Fractured Minion Attack and Cast Speed",
+      "generationType": "suffix"
+    },
+    "mod:crafted-trigger-8s": {
+      "name": "Crafted Trigger Socketed Spell (8-second Cooldown)",
+      "generationType": "suffix"
+    },
+    "deafening-essence-of-woe": {
+      "name": "Deafening Essence of Woe",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRXNzZW5jZS9Xb2U3Iiwic2NhbGUiOjF9XQ/6bb5af5409/Woe7.png"
+    },
+    "serrated-fossil": {
+      "name": "Serrated Fossil",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvU2VycmF0ZWRGb3NzaWwiLCJzY2FsZSI6MX1d/227ff121c8/SerratedFossil.png"
+    },
+    "aberrant-fossil": {
+      "name": "Aberrant Fossil",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvQWJiZXJhbnRGb3NzaWwiLCJzY2FsZSI6MX1d/0ebc664beb/AbberantFossil.png"
+    },
+    "mod:flat-energy-shield": {
+      "name": "Local Maximum Energy Shield",
+      "generationType": "prefix"
     }
   }
 }

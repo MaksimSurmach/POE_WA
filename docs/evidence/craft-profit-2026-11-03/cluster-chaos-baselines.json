@@ -1,0 +1,471 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "scope": "Five observed current ordinary Chaos Orb baselines for existing Serrated targets. These are explicit alternative procedures, not a substituted Serrated price. Existing catalog recipes were not changed.",
+  "access": "Actual current Craft of Exile UI: selected Currencies/Chaos Orb, retained exact damage-family/ilvl68/fullAND3notables, read current permutation probability and expectedChaos count, applied one paid ordinary Chaos Orb and inspected the failed output for every target.",
+  "methodSemantics": "One Chaos Orb per independent rare-item reroll. Chaos unit identity is1chaos, so modelled material amount equals the displayed mean use count; eligible acquired-base cost remains separate. No resonator,Scour,Annul,bench,Vesper orSulphur operation.",
+  "models": [
+    {
+      "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering",
+      "baseId": "base:large-cluster-bow",
+      "smallPassiveStatId": "bow-damage",
+      "itemLevel": 68,
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "rarity": "rare",
+      "notables": [
+        {
+          "name": "Arcing Shot",
+          "modId": "mod:arcing-shot",
+          "calculatorId": "5694",
+          "origin": "prefix"
+        },
+        {
+          "name": "Martial Prowess",
+          "modId": "mod:martial-prowess",
+          "calculatorId": "5680",
+          "origin": "suffix"
+        },
+        {
+          "name": "Vicious Skewering",
+          "modId": "mod:vicious-skewering",
+          "calculatorId": "5674",
+          "origin": "prefix"
+        }
+      ],
+      "requirements": [
+        {
+          "t": "and",
+          "m": null,
+          "e": [
+            {
+              "i": "5694",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "5680",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "5674",
+              "t": null,
+              "b": true,
+              "s": null
+            }
+          ]
+        }
+      ],
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "calculatorURLKind": "Canonical clean-input replay of the observed Chaos UI configuration. Only the method differs from the selected fossil replay; the family, level and completeAND requirement are unchanged.",
+      "calculatorMethod": "0,5,0",
+      "displayed": {
+        "successPercent": 0.00677,
+        "oneOutOfTries": 14767,
+        "expectedChaosUses": 14767,
+        "visibleCalculationExcerpt": "Success chance:1 out of 14767 tries;0.00677%;Expected costs:14767Chaos Orb."
+      },
+      "perFinishedItem": {
+        "expectedBases": 1,
+        "materials": {
+          "chaos-orb": 14767
+        }
+      },
+      "ordinaryPaidFailure": {
+        "observedNotables": ["Broadside"],
+        "observedOtherAffixes": {
+          "smallPassiveDamagePercent": 2,
+          "smallPassiveColdResistancePercent": 2,
+          "smallPassiveStrength": 2
+        },
+        "materialsConsumed": {
+          "chaos-orb": 1
+        },
+        "uiSpendingAfterOneAction": 1,
+        "uiActionCount": 1,
+        "sameBaseFamilyAndLevelRetained": true,
+        "scouringRequired": false,
+        "verdict": "REJECT:the complete triple is absent; reuse the same rare base with another Chaos Orb."
+      },
+      "selectedSerratedComparison": {
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering.json",
+        "successPercent": 0.117,
+        "expectedPairs": 857,
+        "pricingStatus": "Current-league price must be established independently. Static resource availability is not a price quote."
+      }
+    },
+    {
+      "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads",
+      "baseId": "base:large-cluster-bow",
+      "smallPassiveStatId": "bow-damage",
+      "itemLevel": 68,
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "rarity": "rare",
+      "notables": [
+        {
+          "name": "Arcing Shot",
+          "modId": "mod:arcing-shot",
+          "calculatorId": "5694",
+          "origin": "prefix"
+        },
+        {
+          "name": "Martial Prowess",
+          "modId": "mod:martial-prowess",
+          "calculatorId": "5680",
+          "origin": "suffix"
+        },
+        {
+          "name": "Tempered Arrowheads",
+          "modId": "mod:tempered-arrowheads",
+          "calculatorId": "5695",
+          "origin": "prefix"
+        }
+      ],
+      "requirements": [
+        {
+          "t": "and",
+          "m": null,
+          "e": [
+            {
+              "i": "5694",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "5680",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "5695",
+              "t": null,
+              "b": true,
+              "s": null
+            }
+          ]
+        }
+      ],
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2OTUiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "calculatorURLKind": "Canonical clean-input replay of the observed Chaos UI configuration. Only the method differs from the selected fossil replay; the family, level and completeAND requirement are unchanged.",
+      "calculatorMethod": "0,5,0",
+      "displayed": {
+        "successPercent": 0.0191,
+        "oneOutOfTries": 5223,
+        "expectedChaosUses": 5223,
+        "visibleCalculationExcerpt": "Success chance:1 out of 5223 tries;0.0191%;Expected costs:5223Chaos Orb."
+      },
+      "perFinishedItem": {
+        "expectedBases": 1,
+        "materials": {
+          "chaos-orb": 5223
+        }
+      },
+      "ordinaryPaidFailure": {
+        "observedNotables": ["Tempered Arrowheads", "Vicious Skewering"],
+        "observedOtherAffixes": {
+          "smallPassiveIntelligence": 2,
+          "smallPassiveLightningResistancePercent": 3
+        },
+        "materialsConsumed": {
+          "chaos-orb": 1
+        },
+        "uiSpendingAfterOneAction": 1,
+        "uiActionCount": 1,
+        "sameBaseFamilyAndLevelRetained": true,
+        "scouringRequired": false,
+        "verdict": "REJECT:the complete triple is absent; reuse the same rare base with another Chaos Orb."
+      },
+      "selectedSerratedComparison": {
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads.json",
+        "successPercent": 0.331,
+        "expectedPairs": 303,
+        "pricingStatus": "Current-league price must be established independently. Static resource availability is not a price quote."
+      }
+    },
+    {
+      "recipeId": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender",
+      "baseId": "base:large-cluster-shield-attack",
+      "smallPassiveStatId": "shield-attack-damage",
+      "itemLevel": 68,
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "rarity": "rare",
+      "notables": [
+        {
+          "name": "Fuel the Fight",
+          "modId": "mod:fuel-the-fight",
+          "calculatorId": "5683",
+          "origin": "prefix"
+        },
+        {
+          "name": "Heavy Hitter",
+          "modId": "mod:heavy-hitter",
+          "calculatorId": "5679",
+          "origin": "suffix"
+        },
+        {
+          "name": "Veteran Defender",
+          "modId": "mod:veteran-defender",
+          "calculatorId": "5719",
+          "origin": "prefix"
+        }
+      ],
+      "requirements": [
+        {
+          "t": "and",
+          "m": null,
+          "e": [
+            {
+              "i": "5683",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "5679",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "5719",
+              "t": null,
+              "b": true,
+              "s": null
+            }
+          ]
+        }
+      ],
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=154&item=2476.7&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYXR0YWNrX2RhbWFnZV93aGlsZV9ob2xkaW5nX2Ffc2hpZWxkIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NjgzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY3OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MTkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "calculatorURLKind": "Canonical clean-input replay of the observed Chaos UI configuration. Only the method differs from the selected fossil replay; the family, level and completeAND requirement are unchanged.",
+      "calculatorMethod": "0,5,0",
+      "displayed": {
+        "successPercent": 0.0179,
+        "oneOutOfTries": 5586,
+        "expectedChaosUses": 5586,
+        "visibleCalculationExcerpt": "Success chance:1 out of 5586 tries;0.0179%;Expected costs:5586Chaos Orb."
+      },
+      "perFinishedItem": {
+        "expectedBases": 1,
+        "materials": {
+          "chaos-orb": 5586
+        }
+      },
+      "ordinaryPaidFailure": {
+        "observedNotables": ["Drive the Destruction", "Smite the Weak"],
+        "observedOtherAffixes": {
+          "smallPassiveManaRegenerationRatePercent": 4
+        },
+        "materialsConsumed": {
+          "chaos-orb": 1
+        },
+        "uiSpendingAfterOneAction": 1,
+        "uiActionCount": 1,
+        "sameBaseFamilyAndLevelRetained": true,
+        "scouringRequired": false,
+        "verdict": "REJECT:the complete triple is absent; reuse the same rare base with another Chaos Orb."
+      },
+      "selectedSerratedComparison": {
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender.json",
+        "successPercent": 0.0423,
+        "expectedPairs": 2363,
+        "pricingStatus": "Current-league price must be established independently. Static resource availability is not a price quote."
+      }
+    },
+    {
+      "recipeId": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak",
+      "baseId": "base:large-cluster-two-handed",
+      "smallPassiveStatId": "two-handed-damage",
+      "itemLevel": 68,
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "rarity": "rare",
+      "notables": [
+        {
+          "name": "Brutal Infamy",
+          "modId": "mod:brutal-infamy",
+          "calculatorId": "5705",
+          "origin": "prefix"
+        },
+        {
+          "name": "Fuel the Fight",
+          "modId": "mod:fuel-the-fight",
+          "calculatorId": "5683",
+          "origin": "prefix"
+        },
+        {
+          "name": "Smite the Weak",
+          "modId": "mod:smite-the-weak",
+          "calculatorId": "5678",
+          "origin": "suffix"
+        }
+      ],
+      "requirements": [
+        {
+          "t": "and",
+          "m": null,
+          "e": [
+            {
+              "i": "5705",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "5683",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "5678",
+              "t": null,
+              "b": true,
+              "s": null
+            }
+          ]
+        }
+      ],
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fZGFtYWdlX3dpdGhfdHdvX2hhbmRlZF9tZWxlZV93ZWFwb25zIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MyIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "calculatorURLKind": "Canonical clean-input replay of the observed Chaos UI configuration. Only the method differs from the selected fossil replay; the family, level and completeAND requirement are unchanged.",
+      "calculatorMethod": "0,5,0",
+      "displayed": {
+        "successPercent": 0.0159,
+        "oneOutOfTries": 6296,
+        "expectedChaosUses": 6296,
+        "visibleCalculationExcerpt": "Success chance:1 out of 6296 tries;0.0159%;Expected costs:6296Chaos Orb."
+      },
+      "perFinishedItem": {
+        "expectedBases": 1,
+        "materials": {
+          "chaos-orb": 6296
+        }
+      },
+      "ordinaryPaidFailure": {
+        "observedNotables": ["Battlefield Dominator"],
+        "observedOtherAffixes": {
+          "smallPassiveDamagePercent": 3,
+          "smallPassiveDexterity": 4,
+          "smallPassiveAllAttributes": 2
+        },
+        "materialsConsumed": {
+          "chaos-orb": 1
+        },
+        "uiSpendingAfterOneAction": 1,
+        "uiActionCount": 1,
+        "sameBaseFamilyAndLevelRetained": true,
+        "scouringRequired": false,
+        "verdict": "REJECT:the complete triple is absent; reuse the same rare base with another Chaos Orb."
+      },
+      "selectedSerratedComparison": {
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak.json",
+        "successPercent": 0.327,
+        "expectedPairs": 306,
+        "pricingStatus": "Current-league price must be established independently. Static resource availability is not a price quote."
+      }
+    },
+    {
+      "recipeId": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak",
+      "baseId": "base:large-cluster-two-handed",
+      "smallPassiveStatId": "two-handed-damage",
+      "itemLevel": 68,
+      "passiveCount": 8,
+      "jewelSockets": 2,
+      "rarity": "rare",
+      "notables": [
+        {
+          "name": "Brutal Infamy",
+          "modId": "mod:brutal-infamy",
+          "calculatorId": "5705",
+          "origin": "prefix"
+        },
+        {
+          "name": "Feed the Fury",
+          "modId": "mod:feed-the-fury",
+          "calculatorId": "5685",
+          "origin": "prefix"
+        },
+        {
+          "name": "Smite the Weak",
+          "modId": "mod:smite-the-weak",
+          "calculatorId": "5678",
+          "origin": "suffix"
+        }
+      ],
+      "requirements": [
+        {
+          "t": "and",
+          "m": null,
+          "e": [
+            {
+              "i": "5705",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "5685",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "5678",
+              "t": null,
+              "b": true,
+              "s": null
+            }
+          ]
+        }
+      ],
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fZGFtYWdlX3dpdGhfdHdvX2hhbmRlZF9tZWxlZV93ZWFwb25zIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "calculatorURLKind": "Canonical clean-input replay of the observed Chaos UI configuration. Only the method differs from the selected fossil replay; the family, level and completeAND requirement are unchanged.",
+      "calculatorMethod": "0,5,0",
+      "displayed": {
+        "successPercent": 0.00917,
+        "oneOutOfTries": 10907,
+        "expectedChaosUses": 10907,
+        "visibleCalculationExcerpt": "Success chance:1 out of 10907 tries;0.00917%;Expected costs:10907Chaos Orb."
+      },
+      "perFinishedItem": {
+        "expectedBases": 1,
+        "materials": {
+          "chaos-orb": 10907
+        }
+      },
+      "ordinaryPaidFailure": {
+        "observedNotables": ["Graceful Execution"],
+        "observedOtherAffixes": {
+          "smallPassiveAllAttributes": 2,
+          "smallPassiveStrength": 4
+        },
+        "materialsConsumed": {
+          "chaos-orb": 1
+        },
+        "uiSpendingAfterOneAction": 1,
+        "uiActionCount": 1,
+        "sameBaseFamilyAndLevelRetained": true,
+        "scouringRequired": false,
+        "verdict": "REJECT:the complete triple is absent; reuse the same rare base with another Chaos Orb."
+      },
+      "selectedSerratedComparison": {
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak.json",
+        "successPercent": 0.151,
+        "expectedPairs": 661,
+        "pricingStatus": "Current-league price must be established independently. Static resource availability is not a price quote."
+      }
+    }
+  ],
+  "limits": [
+    "Rounded analytical per-finished consumption, not an empirical completed-item sample.",
+    "Exactly8passives and2sockets remain acquisition/comparable constraints on the chosen Large Cluster family. Notable positioning, Intangibility and additional useful affixes are outside the target.",
+    "No current profitability or sale claim. A known numerical cost can be strongly negative.",
+    "Keep the fossil model if its current league price is established; do not silently replace or interpolate a missing fossil price with these Chaos costs."
+  ]
+}

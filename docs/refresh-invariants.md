@@ -13,7 +13,7 @@
 - Jobs use explicit queued/running/retry/terminal transitions.
 - A delayed provider retry remains in its original refresh cycle. The orchestrator
   waits for retries to succeed or exhaust before evaluation, within the queue's
-  one-hour bound, admitting no new retry batches after 45 minutes. An in-flight
+  two-hour bound, admitting no new retry batches after 105 minutes. An in-flight
   batch can use that headroom; the queue abort remains the final bound.
   Cancellation interrupts that wait. Retry scheduling alone must
   not fail the cycle with `REFRESH_INCOMPLETE` or discard its pending jobs.

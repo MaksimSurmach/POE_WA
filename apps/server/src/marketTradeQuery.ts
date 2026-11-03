@@ -1,6 +1,6 @@
 import type { MarketTarget } from '@poe-worksmith/contracts';
 import { gzipSync } from 'node:zlib';
-import { DomainError } from '@poe-worksmith/domain';
+import { DomainError, splitNativeTradeFilters } from '@poe-worksmith/domain';
 import { marketDigest } from './marketResearch.js';
 import { tradeMappingVersion, tradeStatMappings } from './tradeStatMappings.js';
 
@@ -142,12 +142,20 @@ export function generateMarketTradeQuery(
         filters: [{ id: `pseudo.pseudo_has_${name}_influence` }],
       });
   }
+  let native: ReturnType<typeof splitNativeTradeFilters>;
+  try {
+    native = splitNativeTradeFilters(stats);
+  } catch {
+    throw new DomainError('MARKET_QUERY_INVALID');
+  }
+  Object.assign(misc, native.filters.misc_filters?.filters);
   const request = {
     query: {
       status: { option: search.status },
       type: target.baseTypes[0],
-      stats,
+      stats: native.stats,
       filters: {
+        ...native.filters,
         type_filters: { filters: { rarity: { option: search.rarity } } },
         misc_filters: { filters: misc },
         trade_filters: {
