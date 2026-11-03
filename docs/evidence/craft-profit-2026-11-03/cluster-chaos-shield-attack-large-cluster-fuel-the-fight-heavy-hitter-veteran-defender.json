@@ -1,0 +1,122 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=154&item=2476.7&method=0%2C5%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYXR0YWNrX2RhbWFnZV93aGlsZV9ob2xkaW5nX2Ffc2hpZWxkIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NjgzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY3OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MTkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+  "calculatorURLKind": "Canonical clean-input replay of the observed Chaos UI configuration. Only the method differs from the selected fossil replay; the family, level and completeAND requirement are unchanged.",
+  "source": "Current public Craft of Exile UI: ordinary Chaos Orb alternative, same exact family, level and full AND triple; original Serrated evidence retained separately.",
+  "settings": "Ordinary Chaos Orb reroll: one Chaos Orb per attempt, no resonator; same exact ilvl68 family and all three notables.",
+  "startingItem": {
+    "i": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "m": [],
+    "ns": 0,
+    "s": [],
+    "q": null,
+    "qt": null,
+    "l": 68,
+    "r": "rare",
+    "if": [],
+    "ip": [],
+    "e": [],
+    "p": {},
+    "di": [],
+    "ig": 0,
+    "ms": 0,
+    "f": ["a"],
+    "pt": null,
+    "at": "affliction_attack_damage_while_holding_a_shield",
+    "id": null
+  },
+  "procurementConstraints": {
+    "baseId": "base:large-cluster-shield-attack",
+    "smallPassiveStatId": "shield-attack-damage",
+    "passiveCount": 8,
+    "jewelSockets": 2,
+    "itemLevel": 68,
+    "rarity": "rare",
+    "note": "The calculator family header displays the unrolled8–12 passive range. It uses one Large Cluster affix pool for this damage variant. Exactly8passives and2sockets are mandatory acquisition/comparable constraints; random passives and unrelated numeric affixes are not separately targeted by this probability."
+  },
+  "requirements": [
+    {
+      "t": "and",
+      "m": null,
+      "e": [
+        {
+          "i": "5683",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5679",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5719",
+          "t": null,
+          "b": true,
+          "s": null
+        }
+      ]
+    }
+  ],
+  "notables": [
+    {
+      "name": "Fuel the Fight",
+      "modId": "mod:fuel-the-fight",
+      "calculatorId": "5683",
+      "origin": "prefix"
+    },
+    {
+      "name": "Heavy Hitter",
+      "modId": "mod:heavy-hitter",
+      "calculatorId": "5679",
+      "origin": "suffix"
+    },
+    {
+      "name": "Veteran Defender",
+      "modId": "mod:veteran-defender",
+      "calculatorId": "5719",
+      "origin": "prefix"
+    }
+  ],
+  "displayed": {
+    "successPercent": 0.0179,
+    "expectedAttempts": 5586,
+    "visibleCalculationExcerpt": "Success chance:1 out of 5586 tries;0.0179%;Expected costs:5586Chaos Orb."
+  },
+  "ordinaryPaidFailure": {
+    "observedNotables": ["Drive the Destruction", "Smite the Weak"],
+    "observedOtherAffixes": {
+      "smallPassiveManaRegenerationRatePercent": 4
+    },
+    "materialsConsumed": {
+      "chaos-orb": 1
+    },
+    "uiSpendingAfterOneAction": 1,
+    "uiActionCount": 1,
+    "sameBaseFamilyAndLevelRetained": true,
+    "scouringRequired": false,
+    "verdict": "REJECT:the complete triple is absent; reuse the same rare base with another Chaos Orb."
+  },
+  "perFinishedItem": {
+    "expectedBases": 1,
+    "materials": {
+      "chaos-orb": 5586
+    }
+  },
+  "limits": [
+    "Rounded calculator expectation, not a profit or completed-sale claim.",
+    "Acquire the same exact eligible rare ilvl68, 8-passive, 2-socket base. Base acquisition costs additional.",
+    "An expensive ordinary Chaos baseline is selected because Serrated has no confirmed bulk cost for the required attempt count; no fabricated fossil price or mixed-method probability.",
+    "Notable layout, extra affixes and Vesper/Sulphur effects are excluded."
+  ],
+  "comparison": {
+    "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender.json",
+    "successPercent": 0.0423,
+    "expectedPairs": 2363,
+    "pricingStatus": "Current-league price must be established independently. Static resource availability is not a price quote."
+  },
+  "observedBaselineArtifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-baselines.json"
+}

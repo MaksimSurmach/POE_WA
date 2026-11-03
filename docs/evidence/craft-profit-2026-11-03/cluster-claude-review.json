@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-11-03",
+  "kind": "Independent read-only public-file consistency review, not formal GitHub approval or separate game execution",
+  "sessionId": "e27b2ef7-d11b-4109-b6bf-33afc9930af8",
+  "model": "claude-opus-5-5",
+  "durationMs": 206320,
+  "turns": 24,
+  "permissionDenials": [],
+  "subagentsSpawned": 0,
+  "privateMerchantHistorySupplied": false,
+  "reviewerRanValidator": false,
+  "reviewerFinding": "No blockers. Nine complete AND triples, origin/count/material/base bindings and bounded claims were internally consistent.",
+  "caveatsAndDisposition": [
+    {
+      "finding": "Two-socket constraint was prose-only within recipe schema.",
+      "disposition": "Verified current six public alias mappings each enforce8passives and2sockets; focused validator now binds those filters."
+    },
+    {
+      "finding": "Only one rebuilt replay link was reopened.",
+      "disposition": "All nine reopened after review in current UI; every displayed probability and paired expected use matched."
+    },
+    {
+      "finding": "Grim Oath paid failure record had no named notables.",
+      "disposition": "Added its actually observed chaos-family header,ilvl68 and three numeric affix observations to distinguish a genuine zero-notable failure from missing data."
+    },
+    {
+      "finding": "Validator omitted several decoded metadata/evidence-copy bindings.",
+      "disposition": "Added class/item/at/ilvl,fossilmethod,per-mod origin and all fiveURLcopy bindings."
+    }
+  ],
+  "remainingLimits": [
+    "Requirement IDs/fossilcodes and origins rely on actual current UI checks, rather than a separate published mathematical proof.",
+    "Rounded analytical consumption is indicative. No empirical completed-item sample or profit claim."
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 3,
+  "id": "twilight-regalia-six-link-woe",
+  "title": "Twilight Regalia · 6L 940+ ES · Woe T1 plan",
+  "category": "body-armour",
+  "patch": "3.29.3.3",
+  "gameDataVersion": "3.29.3.3",
+  "targetSignature": "3.29.3.3:7851b89c3d76fd33ebe3ada3328d754a",
+  "base": {
+    "baseId": "base:twilight-regalia-six-link",
+    "influences": [],
+    "itemLevel": 86,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "startingBase": {
+    "baseId": "base:twilight-regalia-six-link",
+    "influences": [],
+    "itemLevel": 86,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "craft": {
+    "id": "twilight-regalia-six-link-woe",
+    "name": "Twilight Regalia · 6L 940+ ES · Woe T1 plan",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-woe"
+    },
+    "startingMods": [],
+    "evidence": {
+      "method": "Current Craft of Exile calculator UI: conservative T1 local ES stopping plan, successful outcome and paid failure",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?group=1&class=3&item=1164&game=poe1&method=3%2C1%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9Cb2R5SW50MjAiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjoyMCwicXQiOm51bGwsImwiOjg2LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJlbmVyZ3lzaGllbGQiOjMwMn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxOTQ4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "verifiedAt": "2026-11-03",
+      "settings": "Twilight Regalia exactly ilvl86, rare uninfluenced/unfractured/uncorrupted/unsynthesised, quality20%, maximum native base ES302 (100th percentile); acquired six links must be retained. Deafening Woe flatES88–95; stop only at natural T1 local increasedES101–110. This guarantees displayedES at least940, before other ES mods.",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/twilight-woe.json",
+      "assumptions": "Displayed2.88% chance and35meanWoe are rounded for the T1 stopping event, NOT the probability of every940+ES outcome. Other early940+hybrid successes are uncredited salvage, so this is a conservative method budget. Acquired20%-quality100th-percentile6Lbase is priced as such; no free linking, quality, Sacred Orb, bench or resistance finish. Gold/time/sales unavailable."
+    },
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Current Craft of Exile calculator UI: conservative T1 local ES stopping plan, successful outcome and paid failure",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?group=1&class=3&item=1164&game=poe1&method=3%2C1%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9Cb2R5SW50MjAiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjoyMCwicXQiOm51bGwsImwiOjg2LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJlbmVyZ3lzaGllbGQiOjMwMn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxOTQ4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+        "verifiedAt": "2026-11-03",
+        "settings": "Twilight Regalia exactly ilvl86, rare uninfluenced/unfractured/uncorrupted/unsynthesised, quality20%, maximum native base ES302 (100th percentile); acquired six links must be retained. Deafening Woe flatES88–95; stop only at natural T1 local increasedES101–110. This guarantees displayedES at least940, before other ES mods.",
+        "artifact": "docs/evidence/craft-profit-2026-11-03/twilight-woe.json",
+        "assumptions": "Displayed2.88% chance and35meanWoe are rounded for the T1 stopping event, NOT the probability of every940+ES outcome. Other early940+hybrid successes are uncredited salvage, so this is a conservative method budget. Acquired20%-quality100th-percentile6Lbase is priced as such; no free linking, quality, Sacred Orb, bench or resistance finish. Gold/time/sales unavailable."
+      }
+    },
+    "expectedExecutions": [
+      {
+        "stepId": "woe-roll",
+        "count": 35,
+        "evidence": {
+          "method": "Current Craft of Exile calculator UI: conservative T1 local ES stopping plan, successful outcome and paid failure",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?group=1&class=3&item=1164&game=poe1&method=3%2C1%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9Cb2R5SW50MjAiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjoyMCwicXQiOm51bGwsImwiOjg2LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJlbmVyZ3lzaGllbGQiOjMwMn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxOTQ4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verifiedAt": "2026-11-03",
+          "settings": "Twilight Regalia exactly ilvl86, rare uninfluenced/unfractured/uncorrupted/unsynthesised, quality20%, maximum native base ES302 (100th percentile); acquired six links must be retained. Deafening Woe flatES88–95; stop only at natural T1 local increasedES101–110. This guarantees displayedES at least940, before other ES mods.",
+          "artifact": "docs/evidence/craft-profit-2026-11-03/twilight-woe.json",
+          "assumptions": "Displayed2.88% chance and35meanWoe are rounded for the T1 stopping event, NOT the probability of every940+ES outcome. Other early940+hybrid successes are uncredited salvage, so this is a conservative method budget. Acquired20%-quality100th-percentile6Lbase is priced as such; no free linking, quality, Sacred Orb, bench or resistance finish. Gold/time/sales unavailable."
+        }
+      }
+    ],
+    "uncertainties": [
+      "Conservative T1 stopping plan:2.88% is the chance of natural T1 local increasedES, not every940+ES outcome. Valuable earlier hybrid successes are not credited.",
+      "Acquire exactly ilvl86, six-linked,20%quality,100th-percentile base defence. Cost includes that prepared base; no free linking/quality/base-defence rerolls.",
+      "Other suffixes, resistance, life, attributes, bench finishing and sell-through are outside the target; compare equivalent940+ES functional items.",
+      "Displayed mean35Woe and chance2.88% are rounded. Prices are asks, not proceeds; gold and player time excluded.",
+      "Starting-base acquisition must use exactly item level 86. Higher item levels can change the affix pool and require a separate cost model."
+    ],
+    "steps": [
+      {
+        "id": "woe-roll",
+        "title": "Woe until natural T1 increased ES",
+        "action": "On the purchased ilvl86 six-linked20%-quality100th-percentile Twilight Regalia, repeat Deafening Essence of Woe. It guarantees88–95flatES.",
+        "continueWhen": "Natural T1 increased Energy Shield101–110. With nativeES302 and20%quality this gives at least940displayedES. This plan deliberately ignores earlier hybrid salvage when computing its conservative budget.",
+        "failureAction": "Pay another Woe on the same base. Links, quality and native base defence remain; non-fractured explicit mods reroll. No bench or Divine finish is required.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-woe",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "probability": 0.0288,
+          "evidence": {
+            "method": "Current Craft of Exile calculator UI: conservative T1 local ES stopping plan, successful outcome and paid failure",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?group=1&class=3&item=1164&game=poe1&method=3%2C1%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9Cb2R5SW50MjAiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjoyMCwicXQiOm51bGwsImwiOjg2LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJlbmVyZ3lzaGllbGQiOjMwMn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxOTQ4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+            "verifiedAt": "2026-11-03",
+            "settings": "Twilight Regalia exactly ilvl86, rare uninfluenced/unfractured/uncorrupted/unsynthesised, quality20%, maximum native base ES302 (100th percentile); acquired six links must be retained. Deafening Woe flatES88–95; stop only at natural T1 local increasedES101–110. This guarantees displayedES at least940, before other ES mods.",
+            "artifact": "docs/evidence/craft-profit-2026-11-03/twilight-woe.json",
+            "assumptions": "Displayed2.88% chance and35meanWoe are rounded for the T1 stopping event, NOT the probability of every940+ES outcome. Other early940+hybrid successes are uncredited salvage, so this is a conservative method budget. Acquired20%-quality100th-percentile6Lbase is priced as such; no free linking, quality, Sacred Orb, bench or resistance finish. Gold/time/sales unavailable."
+          }
+        }
+      }
+    ]
+  },
+  "target": {
+    "prefixes": [
+      {
+        "modId": "mod:flat-energy-shield",
+        "minimumValue": 88,
+        "kind": "explicit",
+        "excluded": false
+      }
+    ],
+    "suffixes": [],
+    "implicits": [],
+    "other": [
+      {
+        "modId": "mod:item-energy-shield",
+        "minimumValue": 940,
+        "kind": "pseudo",
+        "excluded": false
+      }
+    ]
+  },
+  "summary": "A conservative Woe-to-T1 plan on an acquired6L20%-quality100th-percentile base; functional output940+ES.",
+  "notes": "The model prices the chosen T1 natural percent-ES stopping event, not an optimal stop at any940+ES combination. Comparables use actual displayedES,6links,quality20 andmaximum base defence. No current profitability is asserted before fresh quotes.",
+  "tags": ["energy-shield", "essence", "six-link"],
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame"],
+    "checkedAt": "2026-11-03",
+    "sources": [
+      "https://beta.craftofexile.com/?group=1&class=3&item=1164&game=poe1&method=3%2C1%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9Cb2R5SW50MjAiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjoyMCwicXQiOm51bGwsImwiOjg2LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJlbmVyZ3lzaGllbGQiOjMwMn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxOTQ4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "https://www.pathofexile.com/api/trade/data/filters"
+    ],
+    "notes": "Current CoE exactbase/method/T1event checked at2.88%,35roundedmean. Successful981ES and ordinary473ES paid failure reproduced; actual game craft and sale not asserted."
+  }
+}

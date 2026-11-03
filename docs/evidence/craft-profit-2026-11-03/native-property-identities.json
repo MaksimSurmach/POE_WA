@@ -1,0 +1,59 @@
+{
+  "checkedAt": "2026-11-03",
+  "sources": [
+    "https://www.pathofexile.com/api/trade/data/filters",
+    "https://poedb.tw/us/Twilight_Regalia"
+  ],
+  "scope": "Public item/property identity only; no prices or probability claims.",
+  "base": {
+    "name": "Twilight Regalia",
+    "metadataId": "Metadata/Items/Armours/BodyArmours/BodyInt20"
+  },
+  "filters": [
+    {
+      "id": "armour_filters",
+      "title": "Armour Filters",
+      "hidden": true,
+      "filters": [
+        {
+          "id": "es",
+          "text": "Energy Shield",
+          "tip": "Includes base value, local modifiers, and maximum quality",
+          "minMax": true
+        },
+        {
+          "id": "base_defence_percentile",
+          "text": "Base Percentile",
+          "tip": "The percentile of all base defence rolls, averaged (0-100%)",
+          "minMax": true
+        }
+      ]
+    },
+    {
+      "id": "socket_filters",
+      "title": "Socket Filters",
+      "hidden": true,
+      "filters": [
+        {
+          "id": "links",
+          "text": "Link Groups",
+          "fullSpan": true,
+          "sockets": true,
+          "minMax": true
+        }
+      ]
+    },
+    {
+      "id": "misc_filters",
+      "title": "Miscellaneous",
+      "hidden": true,
+      "filters": [
+        {
+          "id": "quality",
+          "text": "Quality",
+          "minMax": true
+        }
+      ]
+    }
+  ]
+}

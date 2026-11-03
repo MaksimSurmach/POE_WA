@@ -10,7 +10,7 @@ import {
   canonicalRecipeFixture,
   fixtureRecipe,
 } from '@poe-worksmith/domain/fixtures';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { MarketJobProcessor } from './marketJobProcessor.js';
 import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
@@ -19,6 +19,7 @@ import { evaluateAndPublishCatalog } from './catalogPublisher.js';
 import { ProviderRetryPolicy } from './retryPolicy.js';
 
 const now = new Date('2026-07-20T00:00:00.000Z');
+afterEach(() => vi.restoreAllMocks());
 
 function storedRecipe(): Recipe {
   const definition = fixtureRecipe(canonicalRecipeFixture);
@@ -173,9 +174,16 @@ describe('full refresh orchestrator', () => {
     expect(await repositories.evaluations.listByCycle(id)).toEqual([]);
   });
 
-  it.each(['success', 'transient', 'exhausted'] as const)(
+  it.each(['success', 'transient', 'long-transient', 'exhausted'] as const)(
     'finishes a cycle with provider outcome=%s',
     async (outcome) => {
+      const longBatch = outcome === 'long-transient';
+      let elapsedOffset = 0;
+      const monotonic = performance.now.bind(performance);
+      if (longBatch)
+        vi.spyOn(performance, 'now').mockImplementation(
+          () => monotonic() + elapsedOffset,
+        );
       const started = performance.now();
       const clock = () => new Date(now.getTime() + performance.now() - started);
       const repositories = createInMemoryRepositories();
@@ -226,9 +234,12 @@ describe('full refresh orchestrator', () => {
           baseDelayMs: 250,
           random: () => 1,
         }),
-        snapshotTtlMs: 60_000,
+        snapshotTtlMs: longBatch ? 2 * 60 * 60_000 : 60_000,
       });
       const orchestrator = new FullRefreshOrchestrator({
+        collectMaterialPrices: async () => {
+          if (longBatch) elapsedOffset = 61 * 60_000;
+        },
         marketDependencies: fixtureMarketDependencies,
         clock,
         league: {
@@ -239,6 +250,7 @@ describe('full refresh orchestrator', () => {
         marketJobs,
         repositories,
         snapshotTtlMs: 60_000,
+        maximumQuoteAgeMs: longBatch ? 2 * 60 * 60_000 : 30 * 60_000,
         workerId: 'test-worker',
       });
       const cycleId = '11111111-1111-4111-8111-111111111111';
@@ -254,7 +266,7 @@ describe('full refresh orchestrator', () => {
       const repeated = await orchestrator.run(cycleId);
 
       expect(first.jobs.succeeded).toBe(first.plan.cacheMisses);
-      expect(first.jobs.retried).toBe(outcome === 'transient' ? 1 : 0);
+      expect(first.jobs.retried).toBe(outcome === 'success' ? 0 : 1);
       expect(first.publication).toMatchObject({
         completedRecipes: 1,
         failedRecipes: 0,

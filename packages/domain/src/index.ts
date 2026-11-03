@@ -19,3 +19,4 @@ export * from './recipeSchema.js';
 export * from './recipeEconomics.js';
 export * from './repositories.js';
 export * from './trade.js';
+export * from './nativeTradeFilters.js';

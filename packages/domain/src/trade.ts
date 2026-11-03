@@ -8,6 +8,10 @@ import type {
   ResolutionResult,
 } from './canonical/setup.js';
 import type { CanonicalCraftSetup } from './canonical/setup.js';
+import {
+  isNativeTradeFilter,
+  splitNativeTradeFilters,
+} from './nativeTradeFilters.js';
 
 export type ResolvedTradeBase = {
   discriminator?: string;
@@ -147,14 +151,27 @@ export class RegisteredTradeQueryGenerator implements TradeQueryGenerator {
         ];
       else stats.unshift({ type: 'and', filters: baseStats });
     }
+    let native: ReturnType<typeof splitNativeTradeFilters>;
+    try {
+      native = splitNativeTradeFilters(stats);
+    } catch {
+      return failed([
+        error(
+          'TRADE_NATIVE_FILTER_INVALID',
+          'Native item properties require one non-excluded AND range',
+        ),
+      ]);
+    }
     const query = {
       query: {
         type: base.value.id,
         filters: {
+          ...native.filters,
           misc_filters: {
             filters: {
               ilvl: { min: setup.base.itemLevel },
               ...variantFilter.value,
+              ...native.filters.misc_filters?.filters,
             },
           },
           type_filters: {
@@ -166,7 +183,7 @@ export class RegisteredTradeQueryGenerator implements TradeQueryGenerator {
             },
           },
         },
-        stats,
+        stats: native.stats,
         status: { option: 'securable' },
       },
       sort: { price: 'asc' },
@@ -198,6 +215,19 @@ export class RegisteredTradeQueryGenerator implements TradeQueryGenerator {
         target: condition,
       });
       if (!mapping.ok) return mapping;
+      if (
+        isNativeTradeFilter(mapping.value.id) &&
+        (condition.kind !== 'pseudo' ||
+          condition.exactTier !== undefined ||
+          condition.minimumTier !== undefined ||
+          condition.maximumTier !== undefined)
+      )
+        return failed<TradeFilterFragment>([
+          error(
+            'TRADE_NATIVE_FILTER_INVALID',
+            'Item properties do not have affix tiers or modifier origins',
+          ),
+        ]);
       matchRules.push({
         id: mapping.value.id,
         ...(condition.minimumTier !== undefined

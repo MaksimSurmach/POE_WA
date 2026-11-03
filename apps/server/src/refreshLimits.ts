@@ -1,0 +1,1 @@
+export const CATALOG_REFRESH_TIMEOUT_SECONDS = 2 * 60 * 60;

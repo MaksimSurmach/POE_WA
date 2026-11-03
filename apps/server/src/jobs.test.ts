@@ -292,7 +292,10 @@ describe('catalog refresh scheduler', () => {
 
     expect(fake.createQueue).toHaveBeenCalledWith(
       CATALOG_REFRESH_QUEUE,
-      expect.objectContaining({ policy: 'exclusive' }),
+      expect.objectContaining({
+        policy: 'exclusive',
+        expireInSeconds: 2 * 60 * 60,
+      }),
     );
     expect(fake.send).toHaveBeenCalledWith(
       CATALOG_REFRESH_QUEUE,

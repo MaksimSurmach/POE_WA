@@ -1,0 +1,125 @@
+{
+  "checkedAt": "2026-11-03",
+  "patch": "3.29.3.3",
+  "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=162&item=2476.15&method=4%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fY2hhb3NfZGFtYWdlIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzY4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc3MiIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NzMiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+  "calculatorURLKind": "Canonical replay URL from actual observed UI family, method, item level and three requirement IDs. Any nonfractured explicit starting mods are cleared in the replay because a chaotic fossil reroll replaces all of them.",
+  "source": "Actual current public Craft of Exile calculator and ordinary paid emulator reroll; not an in-game craft or transaction.",
+  "settings": "Rare Chaos Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Aberrant Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Touch of Cruelty, Unholy Grace, Wicked Pall. No finishing step.",
+  "startingItem": {
+    "i": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "m": [],
+    "ns": 0,
+    "s": [],
+    "q": null,
+    "qt": null,
+    "l": 68,
+    "r": "rare",
+    "if": [],
+    "ip": [],
+    "e": [],
+    "p": {},
+    "di": [],
+    "ig": 0,
+    "ms": 0,
+    "f": ["a"],
+    "pt": null,
+    "at": "affliction_chaos_damage",
+    "id": null
+  },
+  "procurementConstraints": {
+    "baseId": "base:large-cluster-chaos",
+    "smallPassiveStatId": "chaos-damage",
+    "passiveCount": 8,
+    "jewelSockets": 2,
+    "itemLevel": 68,
+    "rarity": "rare",
+    "note": "The calculator family header displays the unrolled8–12 passive range. It uses one Large Cluster affix pool for this damage variant. Exactly8passives and2sockets are mandatory acquisition/comparable constraints; random passives and unrelated numeric affixes are not separately targeted by this probability."
+  },
+  "requirements": [
+    {
+      "t": "and",
+      "m": null,
+      "e": [
+        {
+          "i": "5768",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5772",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5773",
+          "t": null,
+          "b": true,
+          "s": null
+        }
+      ]
+    }
+  ],
+  "notables": [
+    {
+      "name": "Touch of Cruelty",
+      "modId": "mod:touch-of-cruelty",
+      "calculatorId": "5768",
+      "origin": "prefix"
+    },
+    {
+      "name": "Unholy Grace",
+      "modId": "mod:unholy-grace",
+      "calculatorId": "5772",
+      "origin": "suffix"
+    },
+    {
+      "name": "Wicked Pall",
+      "modId": "mod:wicked-pall",
+      "calculatorId": "5773",
+      "origin": "prefix"
+    }
+  ],
+  "displayed": {
+    "successPercent": 1.31,
+    "oneOutOfTries": 77,
+    "expectedAttempts": 77,
+    "expectedMaterials": {
+      "aberrant-fossil": 77,
+      "primitive-chaotic-resonator": 77
+    },
+    "visibleCalculationExcerpt": "Success chance: 1 out of 77 tries; 1.31%; Expected costs: 77 Aberrant Fossil; 77 Primitive Chaotic Resonator."
+  },
+  "ordinaryPaidFailure": {
+    "observedNotables": ["Wicked Pall", "Unholy Grace"],
+    "verdict": "REJECT: the full required triple is absent. Repeat one paid fossil/resonator pair on the same base.",
+    "materialsConsumed": {
+      "aberrant-fossil": 1,
+      "primitive-chaotic-resonator": 1
+    },
+    "sameBaseFamilyAndLevelRetained": true,
+    "scouringRequired": false
+  },
+  "perFinishedItem": {
+    "roll-with-fossil": 77,
+    "baseConsumption": 1,
+    "materials": {
+      "aberrant-fossil": 77,
+      "primitive-chaotic-resonator": 77
+    }
+  },
+  "limits": [
+    "Rounded analytical probability and mean consumption, not an empirical completed-item sample.",
+    "No guaranteed notable positioning, additional useful fourth modifier, Intangibility, quality or Vesper multi-outcome benefit is included.",
+    "Only the stated single-fossil route was costed; a different craft may be cheaper. Positive profitability and completed sales are not established by this model.",
+    "Current live material and eligible-base asking prices must be collected separately; CoE default currency prices and historical personal prices are not imported."
+  ],
+  "replayValidation": {
+    "checkedAt": "2026-11-03",
+    "access": "Canonical replay URL reopened in actual current public CoE UI after clearing replaceable input explicit modifiers and preserving all three AND requirements.",
+    "displayedSuccessPercent": 1.31,
+    "displayedExpectedAttempts": 77,
+    "match": true
+  }
+}

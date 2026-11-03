@@ -305,3 +305,142 @@ Object.assign(tradeStatMappings, {
     text: '+#% to Chaos Damage over Time Multiplier',
   },
 });
+
+// Exact public Trade identities for craft-profit catalog, checked 2026-11-03.
+Object.assign(tradeStatMappings, {
+  'enchant.stat_3948993189|4': {
+    key: 'bow-damage',
+    text: 'Added Small Passive Skills grant: 12% increased Damage with Bows\nAdded Small Passive Skills grant: 12% increased Damage Over Time with Bow Skills',
+  },
+  'enchant.stat_3948993189|15': {
+    key: 'cold-damage',
+    text: 'Added Small Passive Skills grant: 12% increased Cold Damage',
+  },
+  'enchant.stat_3948993189|8': {
+    key: 'shield-attack-damage',
+    text: 'Added Small Passive Skills grant: 12% increased Attack Damage while holding a Shield',
+  },
+  'enchant.stat_3948993189|16': {
+    key: 'chaos-damage',
+    text: 'Added Small Passive Skills grant: 12% increased Chaos Damage',
+  },
+  'enchant.stat_3948993189|6': {
+    key: 'two-handed-damage',
+    text: 'Added Small Passive Skills grant: 12% increased Damage with Two Handed Weapons',
+  },
+  'enchant.stat_3948993189|13': {
+    key: 'fire-damage',
+    text: 'Added Small Passive Skills grant: 12% increased Fire Damage',
+  },
+  'explicit.stat_3212859169': {
+    key: 'mod:arcing-shot',
+    text: '1 Added Passive Skill is Arcing Shot',
+  },
+  'explicit.stat_1152182658': {
+    key: 'mod:martial-prowess',
+    text: '1 Added Passive Skill is Martial Prowess',
+  },
+  'explicit.stat_567971948': {
+    key: 'mod:vicious-skewering',
+    text: '1 Added Passive Skill is Vicious Skewering',
+  },
+  'explicit.stat_2631806437': {
+    key: 'mod:tempered-arrowheads',
+    text: '1 Added Passive Skill is Tempered Arrowheads',
+  },
+  'explicit.stat_3638731729': {
+    key: 'mod:sadist',
+    text: '1 Added Passive Skill is Sadist',
+  },
+  'explicit.stat_1595367309': {
+    key: 'mod:snowstorm',
+    text: '1 Added Passive Skill is Snowstorm',
+  },
+  'explicit.stat_1678643716': {
+    key: 'mod:widespread-destruction',
+    text: '1 Added Passive Skill is Widespread Destruction',
+  },
+  'explicit.stat_3599340381': {
+    key: 'mod:fuel-the-fight',
+    text: '1 Added Passive Skill is Fuel the Fight',
+  },
+  'explicit.stat_3640252904': {
+    key: 'mod:heavy-hitter',
+    text: '1 Added Passive Skill is Heavy Hitter',
+  },
+  'explicit.stat_664010431': {
+    key: 'mod:veteran-defender',
+    text: '1 Added Passive Skill is Veteran Defender',
+  },
+  'explicit.stat_2194205899': {
+    key: 'mod:grim-oath',
+    text: '1 Added Passive Skill is Grim Oath',
+  },
+  'explicit.stat_2780712583': {
+    key: 'mod:touch-of-cruelty',
+    text: '1 Added Passive Skill is Touch of Cruelty',
+  },
+  'explicit.stat_1616734644': {
+    key: 'mod:wicked-pall',
+    text: '1 Added Passive Skill is Wicked Pall',
+  },
+  'explicit.stat_2068574831': {
+    key: 'mod:brutal-infamy',
+    text: '1 Added Passive Skill is Brutal Infamy',
+  },
+  'explicit.stat_540300548': {
+    key: 'mod:smite-the-weak',
+    text: '1 Added Passive Skill is Smite the Weak',
+  },
+  'explicit.stat_2342448236': {
+    key: 'mod:prismatic-heart',
+    text: '1 Added Passive Skill is Prismatic Heart',
+  },
+  'explicit.stat_2322980282': {
+    key: 'mod:smoking-remains',
+    text: '1 Added Passive Skill is Smoking Remains',
+  },
+  'explicit.stat_4186213466': {
+    key: 'mod:unholy-grace',
+    text: '1 Added Passive Skill is Unholy Grace',
+  },
+  'explicit.stat_3944525413': {
+    key: 'mod:feed-the-fury',
+    text: '1 Added Passive Skill is Feed the Fury',
+  },
+  'fractured.stat_3091578504': {
+    key: 'mod:fractured-minion-attack-cast-speed',
+    text: 'Minions have #% increased Attack and Cast Speed',
+  },
+  'crafted.stat_3079007202': {
+    key: 'mod:crafted-trigger-8s',
+    text: '#% chance to Trigger a Socketed Spell on Using a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost',
+  },
+  'armour.es': {
+    key: 'item-energy-shield',
+    text: 'Item Energy Shield',
+  },
+  'socket.links': {
+    key: 'socket-links',
+    text: 'Linked Sockets',
+  },
+  'misc.quality': {
+    key: 'item-quality',
+    text: 'Item Quality',
+  },
+});
+
+Object.assign(tradeStatMappings, {
+  'misc.base_defence_percentile': {
+    key: 'base-defence-percentile',
+    text: 'Base Defence Percentile',
+  },
+});
+
+// Local is a Trade-dropdown qualifier; the item modifier line has no such suffix.
+Object.assign(tradeStatMappings, {
+  'explicit.stat_4052037485': {
+    key: 'flat-energy-shield',
+    text: '+# to maximum Energy Shield',
+  },
+});

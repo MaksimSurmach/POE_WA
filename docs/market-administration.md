@@ -129,7 +129,7 @@ publication; a publication committed first makes a late cancellation return 409.
 Partial observations and prior published prices remain available.
 
 Workers heartbeat every five seconds. pg-boss heartbeat detection covers worker
-loss; its one-hour active-job bound aborts the handler. Queue records are retained
+loss; its two-hour active-job bound aborts the handler. Queue records are retained
 for 24 hours, while a manually queued run that has not started after one hour is
 explicitly failed and cancelled. Reconciliation fails interrupted cycles and
 their unfinished jobs without deleting snapshots. A recovered database pool can

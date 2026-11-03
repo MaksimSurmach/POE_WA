@@ -95,9 +95,39 @@ function tradeQuery(query: Record<string, unknown>): RecipeMarketQuery {
   };
 }
 
+const tradeRangeSchema = z.object({
+  min: z.number().optional(),
+  max: z.number().optional(),
+});
 const generatedSearch = z.object({
   query: z.object({
     type: z.string(),
+    filters: z
+      .object({
+        armour_filters: z
+          .object({
+            filters: z.object({
+              es: tradeRangeSchema.optional(),
+              base_defence_percentile: tradeRangeSchema.optional(),
+            }),
+          })
+          .optional(),
+        socket_filters: z
+          .object({
+            filters: z.object({
+              links: tradeRangeSchema.optional(),
+            }),
+          })
+          .optional(),
+        misc_filters: z
+          .object({
+            filters: z.object({
+              quality: tradeRangeSchema.optional(),
+            }),
+          })
+          .optional(),
+      })
+      .optional(),
     stats: z
       .array(
         z.object({
@@ -105,12 +135,7 @@ const generatedSearch = z.object({
           filters: z.array(
             z.object({
               id: z.string(),
-              value: z
-                .object({
-                  min: z.number().optional(),
-                  max: z.number().optional(),
-                })
-                .optional(),
+              value: tradeRangeSchema.optional(),
             }),
           ),
         }),
@@ -152,6 +177,26 @@ export async function generateRecipeMarketQuery(
   if (!result.ok)
     throw new Error(result.diagnostics.map(({ code }) => code).join(','));
   const generated = generatedSearch.parse(result.value.query);
+  const nativeConditions = [
+    {
+      id: 'armour.es',
+      value: generated.query.filters?.armour_filters?.filters.es,
+    },
+    {
+      id: 'socket.links',
+      value: generated.query.filters?.socket_filters?.filters.links,
+    },
+    {
+      id: 'misc.quality',
+      value: generated.query.filters?.misc_filters?.filters.quality,
+    },
+    {
+      id: 'misc.base_defence_percentile',
+      value:
+        generated.query.filters?.armour_filters?.filters
+          .base_defence_percentile,
+    },
+  ].filter(({ value }) => value !== undefined);
   const item = starting ? recipe.startingBase : recipe.base;
   const handbookTarget = marketTargetInputSchema.parse({
     name: starting
@@ -179,15 +224,28 @@ export async function generateRecipeMarketQuery(
       includeOtherCurrencies: true,
       rarity: item.rarity,
       fractured: item.state.fractured,
-      groups: generated.query.stats.map((g) => ({
-        type: g.type,
-        filters: g.filters.map((stat) => ({
-          id: stat.id,
-          ...result.value.matchRules?.find((rule) => rule.id === stat.id),
-          ...(stat.value?.min !== undefined ? { min: stat.value.min } : {}),
-          ...(stat.value?.max !== undefined ? { max: stat.value.max } : {}),
+      groups: [
+        ...generated.query.stats.map((g) => ({
+          type: g.type,
+          filters: g.filters.map((stat) => ({
+            id: stat.id,
+            ...result.value.matchRules?.find((rule) => rule.id === stat.id),
+            ...(stat.value?.min !== undefined ? { min: stat.value.min } : {}),
+            ...(stat.value?.max !== undefined ? { max: stat.value.max } : {}),
+          })),
         })),
-      })),
+        ...(nativeConditions.length
+          ? [
+              {
+                type: 'and',
+                filters: nativeConditions.map(({ id, value }) => ({
+                  id,
+                  ...value,
+                })),
+              },
+            ]
+          : []),
+      ],
     },
   });
   handbookTarget.tradeSearch?.groups.forEach((g) =>

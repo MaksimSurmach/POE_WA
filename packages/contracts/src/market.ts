@@ -193,9 +193,18 @@ export const beltCraftMethodSchema = z
 
 export const tradeStatRuleSchema = z
   .strictObject({
-    id: text(200).regex(
-      /^(explicit|implicit|crafted|fractured|pseudo|enchant)\.[a-z0-9_]+(?:\|[0-9]+)?$/,
-    ),
+    id: text(200)
+      .regex(
+        /^(explicit|implicit|crafted|fractured|pseudo|enchant)\.[a-z0-9_]+(?:\|[0-9]+)?$/,
+      )
+      .or(
+        z.enum([
+          'armour.es',
+          'socket.links',
+          'misc.quality',
+          'misc.base_defence_percentile',
+        ]),
+      ),
     key: text(200).optional(),
     min: z.number().finite().optional(),
     max: z.number().finite().optional(),

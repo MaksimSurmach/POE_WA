@@ -1,0 +1,70 @@
+{
+  "checkedAt": "2026-11-03",
+  "access": "All nine canonical replay configurations reopened sequentially in the current public Craft of Exile UI. Their fullAND condition and displayed probabilities/paired expected uses matched the initial live calculations.",
+  "matches": 9,
+  "rows": [
+    {
+      "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "successPercent": 0.117,
+      "expectedAttempts": 857,
+      "matched": true
+    },
+    {
+      "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYm93X2RhbWFnZSIsImlkIjpudWxsfQ%3D%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2OTUiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "successPercent": 0.331,
+      "expectedAttempts": 303,
+      "matched": true
+    },
+    {
+      "recipeId": "cold-large-cluster-sadist-snowstorm-widespread-destruction",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=161&item=2476.14&method=4%2C17&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fY29sZF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzMzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc1MyIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "successPercent": 0.0391,
+      "expectedAttempts": 2561,
+      "matched": true
+    },
+    {
+      "recipeId": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=154&item=2476.7&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fYXR0YWNrX2RhbWFnZV93aGlsZV9ob2xkaW5nX2Ffc2hpZWxkIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NjgzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY3OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MTkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "successPercent": 0.0423,
+      "expectedAttempts": 2363,
+      "matched": true
+    },
+    {
+      "recipeId": "chaos-large-cluster-grim-oath-touch-of-cruelty-wicked-pall",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=162&item=2476.15&method=4%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fY2hhb3NfZGFtYWdlIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc2OCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NzMiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "successPercent": 0.243,
+      "expectedAttempts": 412,
+      "matched": true
+    },
+    {
+      "recipeId": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fZGFtYWdlX3dpdGhfdHdvX2hhbmRlZF9tZWxlZV93ZWFwb25zIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MyIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "successPercent": 0.327,
+      "expectedAttempts": 306,
+      "matched": true
+    },
+    {
+      "recipeId": "fire-large-cluster-prismatic-heart-smoking-remains-widespread-destruction",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=159&item=2476.12&method=4%2C17&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fZmlyZV9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzM3IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "successPercent": 0.326,
+      "expectedAttempts": 307,
+      "matched": true
+    },
+    {
+      "recipeId": "chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=162&item=2476.15&method=4%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fY2hhb3NfZGFtYWdlIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzY4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc3MiIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NzMiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "successPercent": 1.31,
+      "expectedAttempts": 77,
+      "matched": true
+    },
+    {
+      "recipeId": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C21&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fZGFtYWdlX3dpdGhfdHdvX2hhbmRlZF9tZWxlZV93ZWFwb25zIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "successPercent": 0.151,
+      "expectedAttempts": 661,
+      "matched": true
+    }
+  ]
+}

@@ -108,7 +108,7 @@ async function mappedTrade() {
 describe('authored source catalog integrity', () => {
   it('loads every current recipe with resolvable target/base identities, material slugs and readable presentation', async () => {
     const catalog = await recipes();
-    expect(catalog).toHaveLength(15);
+    expect(catalog).toHaveLength(26);
     const trade = await mappedTrade();
     const presentation = await loadItemPresentationCatalog(
       fileURLToPath(
@@ -200,7 +200,7 @@ describe('authored source catalog integrity', () => {
     const catalog = await recipes();
     expect(
       catalog.filter((r) => r.definition.verification.status === 'verified'),
-    ).toHaveLength(12);
+    ).toHaveLength(23);
     for (const method of ['zeal', 'fear']) {
       const recipe = catalog.find(
         (r) => r.definition.id === `suppression-gloves-${method}`,

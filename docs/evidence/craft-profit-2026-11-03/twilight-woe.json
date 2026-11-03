@@ -1,0 +1,42 @@
+{
+  "checkedAt": "2026-11-03",
+  "source": "https://beta.craftofexile.com/?group=1&class=3&item=1164&game=poe1&method=3%2C1%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9Cb2R5QXJtb3Vycy9Cb2R5SW50MjAiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjoyMCwicXQiOm51bGwsImwiOjg2LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6eyJlbmVyZ3lzaGllbGQiOjMwMn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIxOTQ4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+  "scope": "Twilight Regalia exactly ilvl86, rare uninfluenced/unfractured/uncorrupted/unsynthesised, quality20%, maximum native base ES302 (100th percentile); acquired six links must be retained. Deafening Woe flatES88–95; stop only at natural T1 local increasedES101–110. This guarantees displayedES at least940, before other ES mods.",
+  "calculator": {
+    "stoppingEvent": "natural T1 local increasedES (101–110) with guaranteed Woe flat88–95",
+    "successChancePercent": 2.88,
+    "meanAttemptsDisplayed": 35,
+    "notProbabilityOfEvery940ESItem": true
+  },
+  "minimumOutputES": 940,
+  "successOutputObserved": {
+    "base": "Twilight Regalia",
+    "quality": 20,
+    "nativeBaseES": 302,
+    "itemLevel": 86,
+    "essenceFlatES": 93,
+    "naturalT1PercentES": 107,
+    "displayedES": 981,
+    "otherMods": [
+      "Reflects26physical",
+      "ColdResistance11",
+      "LightningResistance44"
+    ]
+  },
+  "paidFailureObserved": {
+    "oneWoeConsumed": true,
+    "flatES": 92,
+    "displayedES": 473,
+    "maximumLife": 54,
+    "maximumMana": 45,
+    "fireResistance": 43,
+    "quality20AndSameNativeBaseRetained": true
+  },
+  "sixLinks": "Acquisition/Trade/normalization constraint; ignored by calculator affix probability. No relinking or free links assumed.",
+  "notVerified": [
+    "in-game execution or sale",
+    "current prices until live collection",
+    "optimal alternative stopping strategies",
+    "all possible940+ES probability"
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "gameDataVersion": "3.29.3.3",
-  "mappingVersion": "poe-trade-2026-11-03.recipe-catalog.1",
+  "mappingVersion": "poe-trade-2026-11-03.craft-profit.1",
   "mappings": [
     {
       "entityKind": "base",
@@ -315,6 +315,235 @@
       "payload": {
         "exchangeId": "wild-lifeforce"
       }
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:large-cluster-bow",
+      "externalId": "Large Cluster Jewel",
+      "discriminator": "jewel",
+      "payload": {
+        "filters": {
+          "enchant.stat_3086156145": 8,
+          "enchant.stat_3948993189|4": 4,
+          "enchant.stat_4079888060": 2
+        }
+      }
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:large-cluster-cold",
+      "externalId": "Large Cluster Jewel",
+      "discriminator": "jewel",
+      "payload": {
+        "filters": {
+          "enchant.stat_3086156145": 8,
+          "enchant.stat_3948993189|15": 15,
+          "enchant.stat_4079888060": 2
+        }
+      }
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:large-cluster-shield-attack",
+      "externalId": "Large Cluster Jewel",
+      "discriminator": "jewel",
+      "payload": {
+        "filters": {
+          "enchant.stat_3086156145": 8,
+          "enchant.stat_3948993189|8": 8,
+          "enchant.stat_4079888060": 2
+        }
+      }
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:large-cluster-chaos",
+      "externalId": "Large Cluster Jewel",
+      "discriminator": "jewel",
+      "payload": {
+        "filters": {
+          "enchant.stat_3086156145": 8,
+          "enchant.stat_3948993189|16": 16,
+          "enchant.stat_4079888060": 2
+        }
+      }
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:large-cluster-two-handed",
+      "externalId": "Large Cluster Jewel",
+      "discriminator": "jewel",
+      "payload": {
+        "filters": {
+          "enchant.stat_3086156145": 8,
+          "enchant.stat_3948993189|6": 6,
+          "enchant.stat_4079888060": 2
+        }
+      }
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:large-cluster-fire",
+      "externalId": "Large Cluster Jewel",
+      "discriminator": "jewel",
+      "payload": {
+        "filters": {
+          "enchant.stat_3086156145": 8,
+          "enchant.stat_3948993189|13": 13,
+          "enchant.stat_4079888060": 2
+        }
+      }
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:arcing-shot",
+      "externalId": "explicit.stat_3212859169"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:martial-prowess",
+      "externalId": "explicit.stat_1152182658"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:vicious-skewering",
+      "externalId": "explicit.stat_567971948"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:tempered-arrowheads",
+      "externalId": "explicit.stat_2631806437"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:sadist",
+      "externalId": "explicit.stat_3638731729"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:snowstorm",
+      "externalId": "explicit.stat_1595367309"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:widespread-destruction",
+      "externalId": "explicit.stat_1678643716"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:fuel-the-fight",
+      "externalId": "explicit.stat_3599340381"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:heavy-hitter",
+      "externalId": "explicit.stat_3640252904"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:veteran-defender",
+      "externalId": "explicit.stat_664010431"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:grim-oath",
+      "externalId": "explicit.stat_2194205899"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:touch-of-cruelty",
+      "externalId": "explicit.stat_2780712583"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:wicked-pall",
+      "externalId": "explicit.stat_1616734644"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:brutal-infamy",
+      "externalId": "explicit.stat_2068574831"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:smite-the-weak",
+      "externalId": "explicit.stat_540300548"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:prismatic-heart",
+      "externalId": "explicit.stat_2342448236"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:smoking-remains",
+      "externalId": "explicit.stat_2322980282"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:unholy-grace",
+      "externalId": "explicit.stat_4186213466"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:feed-the-fury",
+      "externalId": "explicit.stat_3944525413"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:twilight-regalia-six-link",
+      "externalId": "Twilight Regalia",
+      "payload": {
+        "filters": {
+          "socket.links": 6,
+          "misc.quality": 20,
+          "misc.base_defence_percentile": 100
+        }
+      }
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:item-energy-shield",
+      "externalId": "armour.es"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:fractured-minion-attack-cast-speed",
+      "externalId": "fractured.stat_3091578504"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:crafted-trigger-8s",
+      "externalId": "crafted.stat_3079007202"
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "deafening-essence-of-woe",
+      "externalId": "Deafening Essence of Woe",
+      "payload": {
+        "exchangeId": "deafening-essence-of-woe"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "serrated-fossil",
+      "externalId": "Serrated Fossil",
+      "payload": {
+        "exchangeId": "serrated-fossil"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "aberrant-fossil",
+      "externalId": "Aberrant Fossil",
+      "payload": {
+        "exchangeId": "aberrant-fossil"
+      }
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:flat-energy-shield",
+      "externalId": "explicit.stat_4052037485"
     }
   ]
 }

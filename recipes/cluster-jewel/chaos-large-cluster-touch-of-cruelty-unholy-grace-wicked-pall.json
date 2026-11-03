@@ -1,0 +1,160 @@
+{
+  "base": {
+    "baseId": "base:large-cluster-chaos",
+    "influences": [],
+    "itemLevel": 68,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "chaos-damage"
+    }
+  },
+  "category": "cluster-jewel",
+  "notes": "Only the named three-notable core is required. Acquire an 8-passive, 2-socket base of the exact damage variant and authored item level. Notable positioning and extra affixes are outside this target.",
+  "craft": {
+    "evidence": {
+      "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=162&item=2476.15&method=4%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fY2hhb3NfZGFtYWdlIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzY4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc3MiIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NzMiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "verifiedAt": "2026-11-03",
+      "settings": "Rare Chaos Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Aberrant Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Touch of Cruelty, Unholy Grace, Wicked Pall. No finishing step.",
+      "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall.json",
+      "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 77 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+    },
+    "method": {
+      "fossils": ["aberrant-fossil"],
+      "kind": "fossil",
+      "resonatorSockets": 1
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=162&item=2476.15&method=4%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fY2hhb3NfZGFtYWdlIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzY4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc3MiIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NzMiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+        "verifiedAt": "2026-11-03",
+        "settings": "Rare Chaos Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Aberrant Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Touch of Cruelty, Unholy Grace, Wicked Pall. No finishing step.",
+        "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall.json",
+        "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 77 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+      }
+    },
+    "uncertainties": [
+      "Current calculator probability and mean uses are rounded; expected spending is indicative.",
+      "Starting-base acquisition must use exactly item level 68. Higher item levels can change the affix pool and require a separate cost model.",
+      "Exactly 8 passives and 2 jewel sockets are required; no particular notable layout or Vesper outcome advantage is modelled.",
+      "Comparable prices are asking prices; these do not establish completed sales or positive profit."
+    ],
+    "id": "chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall",
+    "name": "Aberrant · 3 Notables",
+    "steps": [
+      {
+        "action": "Use one Aberrant Fossil in one Primitive Chaotic Resonator on the acquired eligible rare base.",
+        "continueWhen": "All three are present together: Touch of Cruelty, Unholy Grace, Wicked Pall.",
+        "failureAction": "Repeat on the same rare base with another fossil/resonator pair. No Scouring or replacement base is required.",
+        "id": "roll-with-fossil",
+        "materials": [
+          {
+            "itemId": "aberrant-fossil",
+            "quantity": 1
+          },
+          {
+            "itemId": "primitive-chaotic-resonator",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "evidence": {
+            "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=162&item=2476.15&method=4%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fY2hhb3NfZGFtYWdlIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzY4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc3MiIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NzMiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+            "verifiedAt": "2026-11-03",
+            "settings": "Rare Chaos Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Aberrant Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Touch of Cruelty, Unholy Grace, Wicked Pall. No finishing step.",
+            "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall.json",
+            "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 77 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+          },
+          "probability": 0.0131
+        },
+        "title": "Roll all three notables together"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 77,
+        "evidence": {
+          "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed fossil reroll observed",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=162&item=2476.15&method=4%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fY2hhb3NfZGFtYWdlIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzY4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc3MiIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NzMiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+          "verifiedAt": "2026-11-03",
+          "settings": "Rare Chaos Damage Large Cluster Jewel at exactly item level 68, unfractured, uncorrupted, uninfluenced and unsynthesised. Acquire exactly 8 passives and 2 jewel sockets. One Aberrant Fossil plus one Primitive Chaotic Resonator per independent reroll. All three notables required together: Touch of Cruelty, Unholy Grace, Wicked Pall. No finishing step.",
+          "artifact": "docs/evidence/craft-profit-2026-11-03/cluster-chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall.json",
+          "assumptions": "Use the same acquired eligible base until the full triple appears. Rounded current calculator expectation is 77 fossil/resonator pairs per completed item; one base, no Scouring, Annul, bench or Vesper/Sulphur benefit. Other affixes and notable layout are unrestricted."
+        },
+        "stepId": "roll-with-fossil"
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "base:large-cluster-chaos",
+    "influences": [],
+    "itemLevel": 68,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "chaos-damage"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame"],
+    "checkedAt": "2026-11-03",
+    "sources": [
+      "https://beta.craftofexile.com/?game=poe1&group=4&class=162&item=2476.15&method=4%2C0&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6InJhcmUiLCJpZiI6W10sImlwIjpbXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJhdCI6ImFmZmxpY3Rpb25fY2hhb3NfZGFtYWdlIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzY4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc3MiIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NzMiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "https://beta.craftofexile.com/changelog"
+    ],
+    "notes": "The scoped current calculator probability and complete single-stage expected-material model were checked in public UI, together with an ordinary paid failure and same-base recovery. No game transaction or profit claim."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall",
+  "schemaVersion": 3,
+  "summary": "8-passive chaos damage Large Cluster Jewel with Touch of Cruelty, Unholy Grace and Wicked Pall, rolled with Aberrant Fossils.",
+  "tags": ["chaos", "cluster-jewel", "three-notables"],
+  "targetSignature": "3.29.3.3:6741130bc2972be7d242dfcf436b5016",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:touch-of-cruelty"
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:wicked-pall"
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:unholy-grace"
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Chaos Damage Large Cluster · Touch of Cruelty / Unholy Grace / Wicked Pall"
+}
