@@ -147,6 +147,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   );
   let jobs: ApplicationJobScheduler | undefined;
   let tradeClient: PoeTradeClient | undefined;
+  const workerShutdown = new AbortController();
   const refreshProducer =
     modeIncludesApi(config.mode) && !modeIncludesWorker(config.mode)
       ? new ManualRefreshProducer(createJobBoss(pool, config.jobSchema, logger))
@@ -329,10 +330,12 @@ export async function runProcess(forcedMode?: ApplicationMode) {
               'refresh cancellation check failed; will retry',
             ),
         );
-        const signal = jobSignal
-          ? AbortSignal.any([jobSignal, cancellation.signal])
-          : cancellation.signal;
-        const abort = () => tradeClient?.stop();
+        const workerSignal = jobSignal
+          ? AbortSignal.any([jobSignal, workerShutdown.signal])
+          : workerShutdown.signal;
+        const signal = AbortSignal.any([workerSignal, cancellation.signal]);
+        let runClient: PoeTradeClient | undefined;
+        const abort = () => runClient?.stop();
         signal.addEventListener('abort', abort, { once: true });
         try {
           const settings = (await admin.read()).effective;
@@ -357,13 +360,14 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             );
             return report;
           }
-          tradeClient = createTradeClient(settings.requestTimeoutMs);
+          runClient = createTradeClient(settings.requestTimeoutMs);
+          tradeClient = runClient;
           const marketJobs = new MarketJobProcessor({
             concurrency: settings.collectionConcurrency,
             leaseTimeoutMs: config.jobLeaseTimeoutMs,
             logger,
             metrics,
-            providers: [tradeClient],
+            providers: [runClient],
             repositories,
             retryDelayMs: config.marketRetryDelayMs,
             snapshotTtlMs: Math.min(
@@ -401,7 +405,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           const code = refreshFailureCode(
             error,
             cancellation.signal,
-            jobSignal,
+            workerSignal,
           );
           const cancelled = code === 'MARKET_COLLECTION_CANCELLED';
           await admin.failCycle(cycleId, code);
@@ -410,7 +414,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         } finally {
           cancellation.stop();
           signal.removeEventListener('abort', abort);
-          tradeClient?.stop();
+          runClient?.stop();
         }
       },
       leagueCron: config.leagueResolveCron,
@@ -422,6 +426,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     ...(api ? { api } : {}),
     ...(refreshProducer ? { apiJobs: refreshProducer } : {}),
     afterApiClose: async () => {
+      workerShutdown.abort();
       tradeClient?.stop();
       await collectionManager?.stop();
     },

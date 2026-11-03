@@ -136,7 +136,7 @@ Queue expiry claims the still-queued run atomically; a worker that starts it
 concurrently keeps its active run and is not expired by the old enqueue age.
 An individual cancellation-check database failure logs a warning and retries on
 the next tick; the publication transaction still checks the cancellation flag.
-A pg-boss abort is recorded as a worker interruption, separately from an operator
+A pg-boss abort or runtime shutdown is recorded as a worker interruption, separately from an operator
 cancellation. Direct API clients can enqueue while the worker is unavailable;
 the UI disables Run now until its heartbeat is healthy.
 

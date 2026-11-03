@@ -157,7 +157,7 @@ export class FullRefreshOrchestrator {
           (jobs.retried === 0 && jobs.recovered === 0)
         )
           throw new DomainError('REFRESH_INCOMPLETE');
-        // Leave fifteen minutes for final material prices and publication before queue expiry.
+        // shortcut: 45m limits new batches; share a deadline if in-flight work needs the same limit.
         await delay(1000, undefined, { signal: this.#signal });
       }
 
