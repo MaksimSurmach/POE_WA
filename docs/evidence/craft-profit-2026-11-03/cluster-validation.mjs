@@ -8,6 +8,39 @@ const manifest = JSON.parse(
   ),
 );
 assert.equal(manifest.targets.length, 9);
+const mappingManifest = JSON.parse(
+  await readFile(
+    new URL(
+      'apps/server/mappings/poe-trade/3.29.3.3/recipe-catalog.json',
+      root,
+    ),
+  ),
+);
+const replay = JSON.parse(
+  await readFile(
+    new URL(
+      'docs/evidence/craft-profit-2026-11-03/cluster-replay-validation.json',
+      root,
+    ),
+  ),
+);
+const families = {
+  'base:large-cluster-bow': ['150', '2476.3', 'affliction_bow_damage'],
+  'base:large-cluster-cold': ['161', '2476.14', 'affliction_cold_damage'],
+  'base:large-cluster-shield-attack': [
+    '154',
+    '2476.7',
+    'affliction_attack_damage_while_holding_a_shield',
+  ],
+  'base:large-cluster-chaos': ['162', '2476.15', 'affliction_chaos_damage'],
+  'base:large-cluster-two-handed': [
+    '152',
+    '2476.5',
+    'affliction_damage_with_two_handed_melee_weapons',
+  ],
+  'base:large-cluster-fire': ['159', '2476.12', 'affliction_fire_damage'],
+};
+
 for (const target of manifest.targets) {
   const recipe = JSON.parse(
     await readFile(new URL(`recipes/cluster-jewel/${target.id}.json`, root)),
@@ -45,6 +78,46 @@ for (const target of manifest.targets) {
   assert.deepEqual(details.m, []);
   assert.equal(details.l, 68);
   assert.equal(details.r, 'rare');
+  const [classId, itemId, affliction] = families[target.baseId];
+  assert.equal(url.searchParams.get('class'), classId);
+  assert.equal(url.searchParams.get('item'), itemId);
+  assert.equal(url.searchParams.get('ilvl'), '68');
+  assert.equal(details.at, affliction);
+  assert.deepEqual(recipe.craft.method, {
+    kind: 'fossil',
+    fossils: [target.fossil],
+    resonatorSockets: 1,
+  });
+  const mapping = mappingManifest.mappings.find(
+    (m) => m.entityKind === 'base' && m.canonicalId === target.baseId,
+  );
+  assert.equal(mapping?.payload?.filters?.['enchant.stat_3086156145'], 8);
+  assert.equal(mapping?.payload?.filters?.['enchant.stat_4079888060'], 2);
+  for (const notable of receipt.notables) {
+    const bucket =
+      notable.origin === 'prefix'
+        ? recipe.target.prefixes
+        : recipe.target.suffixes;
+    assert.ok(bucket.some((mod) => mod.modId === notable.modId));
+  }
+  for (const evidenceURL of [
+    recipe.craft.evidence.url,
+    recipe.craft.steps[0].success.evidence.url,
+    recipe.craft.expectedExecutions[0].evidence.url,
+    recipe.craft.baseConsumption.evidence.url,
+    recipe.verification.sources[0],
+  ]) {
+    assert.equal(evidenceURL, receipt.calculatorURL);
+  }
+  const actualReplay = replay.rows.find((r) => r.recipeId === target.id);
+  assert.ok(actualReplay?.matched);
+  assert.equal(actualReplay.calculatorURL, receipt.calculatorURL);
+  assert.equal(actualReplay.successPercent, receipt.displayed.successPercent);
+  assert.equal(
+    actualReplay.expectedAttempts,
+    receipt.displayed.expectedAttempts,
+  );
+
   assert.deepEqual(reqs, [
     {
       t: 'and',

@@ -99,7 +99,15 @@
       "primitive-chaotic-resonator": 1
     },
     "sameBaseFamilyAndLevelRetained": true,
-    "scouringRequired": false
+    "scouringRequired": false,
+    "itemDisplay": "Large Cluster Jewel : Chaos Damage",
+    "itemLevel": 68,
+    "observedOtherAffixes": {
+      "smallPassiveMaximumMana": 8,
+      "smallPassiveChaosResistancePercent": 4,
+      "smallPassiveLifeRegenerationRendered": "0% in the public UI"
+    },
+    "observation": "The actual paid roll had only mana/life-regeneration/chaos-resistance modifiers and no notables; the empty notable list is an observed failure, not a missing result."
   },
   "perFinishedItem": {
     "roll-with-fossil": 412,
@@ -114,5 +122,12 @@
     "No guaranteed notable positioning, additional useful fourth modifier, Intangibility, quality or Vesper multi-outcome benefit is included.",
     "Only the stated single-fossil route was costed; a different craft may be cheaper. Positive profitability and completed sales are not established by this model.",
     "Current live material and eligible-base asking prices must be collected separately; CoE default currency prices and historical personal prices are not imported."
-  ]
+  ],
+  "replayValidation": {
+    "checkedAt": "2026-11-03",
+    "access": "Canonical replay URL reopened in actual current public CoE UI after clearing replaceable input explicit modifiers and preserving all three AND requirements.",
+    "displayedSuccessPercent": 0.243,
+    "displayedExpectedAttempts": 412,
+    "match": true
+  }
 }

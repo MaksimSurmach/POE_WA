@@ -33,8 +33,9 @@ useful modifiers, quality and Intangibility are outside the target.
 Each `cluster-<recipe-id>.json` receipt stores observed current requirement IDs,
 prefix/suffix origins, displayed probability and paired mean, and the ordinary
 failed-roll notables. Replay URLs canonicalize replaceable starting explicit
-mods to empty; a chaotic fossil replaces those modifiers. The normalized cold
-Prismatic link was reopened in the current UI and reproduced 0.0391% / 2561.
+mods to empty; a chaotic fossil replaces those modifiers. All nine normalized
+replay links were reopened in the current UI and reproduced their probabilities
+and paired-use expectations; see `cluster-replay-validation.json`.
 
 The two alternative checks in `cluster-route-comparisons.json` show why a
 same-element fossil is not automatically best: cold Frigid gave 41568 paired uses
@@ -54,3 +55,8 @@ Scope: indicative analytical expectations only. No empirical completed-item
 sample, in-game trade, positive ROI or particular notable layout is established.
 The optional bow simulation was stopped before a full success and is not used
 as expected-consumption evidence.
+
+An independent public-file Claude Code review (24 turns) found no blockers.
+Its caveats and dispositions are in `cluster-claude-review.json`. It did not
+read private merchant history, write files or run the validator. The parent
+agent ran the focused validator separately. This is not a formal GitHub approval.
