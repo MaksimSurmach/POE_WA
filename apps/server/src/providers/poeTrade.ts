@@ -269,17 +269,21 @@ export class PoeTradeClient implements MarketSearchProvider {
       `/api/trade/${preparedSearch.kind}/${encodeURIComponent(league)}`,
       this.#baseUrl,
     );
-    const rawSearch = await this.#request('trade-search', searchUrl, {
-      body: JSON.stringify(preparedSearch.body),
-      headers: this.#headers(true),
-      method: 'POST',
-    });
+    const rawSearch = await this.#request(
+      preparedSearch.kind === 'exchange' ? 'trade-exchange' : 'trade-search',
+      searchUrl,
+      {
+        body: JSON.stringify(preparedSearch.body),
+        headers: this.#headers(true),
+        method: 'POST',
+      },
+    );
     if (preparedSearch.kind === 'exchange') {
       const exchange = parseProviderResponse(
         exchangeResponseSchema,
         rawSearch,
         this.id,
-        'trade-search',
+        'trade-exchange',
         this.#logger,
       );
       const fetchedAt = this.#clock();

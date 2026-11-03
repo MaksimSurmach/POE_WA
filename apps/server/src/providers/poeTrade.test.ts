@@ -1,7 +1,8 @@
-import { DomainError } from '@poe-worksmith/domain';
+import { createInMemoryRepositories, DomainError } from '@poe-worksmith/domain';
 import { describe, expect, it, vi } from 'vitest';
 
 import { PoeTradeClient, type PoeTradeFetch } from './poeTrade.js';
+import { GggRateLimitController } from '../rateLimitController.js';
 
 const resultIds = Array.from(
   { length: 12 },
@@ -34,6 +35,69 @@ const mockFetchResponse = {
 };
 
 describe('PoE Trade Merchant client', () => {
+  it('keeps exchange and item-search policy mappings and circuits independent', async () => {
+    const repository = createInMemoryRepositories().rateLimits;
+    let now = new Date('2026-07-20T00:00:00Z');
+    const circuits = {
+      beforeRequest: vi.fn().mockResolvedValue({}),
+      recordFailure: vi.fn().mockResolvedValue({}),
+      recordSuccess: vi.fn().mockResolvedValue({}),
+    };
+    const client = new PoeTradeClient({
+      userAgent: 'fixture',
+      circuits,
+      rateLimits: new GggRateLimitController({
+        repository,
+        clock: () => now,
+        sleep: async (ms) => {
+          now = new Date(now.getTime() + ms);
+        },
+      }),
+      fetch: async (url) =>
+        Response.json(
+          { id: 'empty', result: [], total: 0 },
+          {
+            headers: {
+              'X-Rate-Limit-Policy': String(url).includes('/exchange/')
+                ? 'trade-exchange-request-limit'
+                : 'trade-search-request-limit',
+              'X-Rate-Limit-Rules': 'client',
+              'X-Rate-Limit-Client': '10:1:1',
+              'X-Rate-Limit-Client-State': '0:1:0',
+            },
+          },
+        ),
+    });
+    const exchange = {
+      league: 'Fixture',
+      query: { exchange: { have: ['chaos'], want: ['divine'] } },
+      schemaVersion: 1 as const,
+    };
+    await client.search(exchange);
+    await client.search({
+      league: 'Fixture',
+      query: { query: { type: 'Jewel' } },
+      schemaVersion: 1,
+    });
+    await client.search(exchange);
+    const states = await repository.list();
+    expect(
+      states.find((s) => s.policy === 'trade-exchange-request-limit')
+        ?.endpoints,
+    ).toEqual(['trade-exchange']);
+    expect(
+      states.find((s) => s.policy === 'trade-search-request-limit')?.endpoints,
+    ).toEqual(['trade-search']);
+    expect(circuits.beforeRequest.mock.calls).toEqual([
+      ['trade-exchange'],
+      ['trade-search'],
+      ['trade-exchange'],
+    ]);
+    expect(circuits.recordSuccess.mock.calls).toEqual(
+      circuits.beforeRequest.mock.calls,
+    );
+  });
+
   it('aborts rate-limit waits and rejects subsequent requests during shutdown', async () => {
     let entered!: () => void;
     const waiting = new Promise<void>((resolve) => {
