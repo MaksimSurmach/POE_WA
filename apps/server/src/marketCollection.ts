@@ -488,6 +488,14 @@ function emptyRateLimitState(endpoint: string) {
 }
 
 export class MarketCollectionManager {
+  readonly #readControls:
+    | (() => Promise<{
+        collectionsPaused: boolean;
+        scheduledCollectionEnabled: boolean;
+        automaticRefreshEnabled: boolean;
+        collectionConcurrency: number;
+      }>)
+    | undefined;
   readonly #active = new Map<string, AbortController>();
   readonly #adapter: MarketCollectionAdapter;
   readonly #activeRunIds = new Map<string, string>();
@@ -499,15 +507,23 @@ export class MarketCollectionManager {
   #timer: ReturnType<typeof setInterval> | undefined;
   #stopping = false;
   #accessBlocked = false;
+  #starting = 0;
 
   constructor(options: {
     adapter: MarketCollectionAdapter;
     clock?: () => Date;
     store: MarketCollectionStore;
+    readControls?: () => Promise<{
+      collectionsPaused: boolean;
+      scheduledCollectionEnabled: boolean;
+      automaticRefreshEnabled: boolean;
+      collectionConcurrency: number;
+    }>;
   }) {
     this.#adapter = options.adapter;
     this.#clock = options.clock ?? (() => new Date());
     this.#store = options.store;
+    this.#readControls = options.readControls;
   }
 
   get source() {
@@ -573,10 +589,14 @@ export class MarketCollectionManager {
     return saved;
   }
 
-  runNow(targetId: string, trigger: 'manual' | 'scheduled' = 'manual') {
+  runNow(
+    targetId: string,
+    trigger: 'manual' | 'scheduled' = 'manual',
+    activeRefresh = false,
+  ) {
     if (this.#stopping || this.#requests.size + this.#active.size >= 4)
       return Promise.reject(new DomainError('MARKET_COLLECTION_BUSY'));
-    const request = this.#runNow(targetId, trigger);
+    const request = this.#admit(targetId, trigger, activeRefresh);
     this.#requests.add(request);
     void request.then(
       () => this.#requests.delete(request),
@@ -585,7 +605,34 @@ export class MarketCollectionManager {
     return request;
   }
 
-  async #runNow(targetId: string, trigger: 'manual' | 'scheduled' = 'manual') {
+  async #admit(
+    targetId: string,
+    trigger: 'manual' | 'scheduled',
+    activeRefresh: boolean,
+  ) {
+    const controls = await this.#readControls?.();
+    if (
+      controls &&
+      ((!activeRefresh && controls.collectionsPaused) ||
+        (trigger === 'scheduled' &&
+          (!controls.scheduledCollectionEnabled ||
+            !controls.automaticRefreshEnabled)))
+    )
+      throw new DomainError('MARKET_COLLECTION_PAUSED');
+    if (
+      this.#active.size + this.#starting >=
+      (controls?.collectionConcurrency ?? 4)
+    )
+      throw new DomainError('MARKET_COLLECTION_BUSY');
+    this.#starting++;
+    try {
+      return await this.#runNow(targetId, trigger);
+    } finally {
+      this.#starting--;
+    }
+  }
+
+  async #runNow(targetId: string, trigger: 'manual' | 'scheduled') {
     const target = await this.#store.findTarget(targetId);
     if (!target) throw new DomainError('MARKET_TARGET_NOT_FOUND');
     const settings = await this.#store.findSettings(targetId);
@@ -655,7 +702,7 @@ export class MarketCollectionManager {
 
   async collectNow(targetId: string, signal: AbortSignal) {
     throwIfAborted(signal);
-    const run = await this.runNow(targetId);
+    const run = await this.runNow(targetId, 'manual', true);
     const cancel = () => this.#active.get(targetId)?.abort();
     signal.addEventListener('abort', cancel, { once: true });
     if (signal.aborted) cancel();
@@ -685,10 +732,22 @@ export class MarketCollectionManager {
       this.#adapter.descriptor.id,
     );
     if (this.source.access === 'blocked') return;
+    const controls = await this.#readControls?.();
+    if (
+      controls &&
+      (controls.collectionsPaused ||
+        !controls.scheduledCollectionEnabled ||
+        !controls.automaticRefreshEnabled)
+    )
+      return;
     const now = this.#clock();
     const settings = await this.#store.listSettings();
     for (const setting of settings) {
-      if (this.#requests.size + this.#active.size >= 4) break;
+      if (
+        this.#requests.size + this.#active.size >=
+        (controls?.collectionConcurrency ?? 4)
+      )
+        break;
       if (
         !setting.enabled ||
         setting.paused ||

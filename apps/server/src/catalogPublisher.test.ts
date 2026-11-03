@@ -110,6 +110,115 @@ function evaluator(failingIds: readonly string[] = []): FreshRecipeEvaluator {
 }
 
 describe('catalog evaluation and publication', () => {
+  it('refreshes only the selected recipe and carries unrelated expired prices without re-aging them', async () => {
+    const repositories = createInMemoryRepositories();
+    await seedCycle(repositories, 'cycle-before-selected', 2);
+    const expiresAt = new Date(now.getTime() + 5 * 60_000).toISOString();
+    const oldestInputAt = new Date(now.getTime() - 60_000).toISOString();
+    await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-before-selected',
+      evaluateRecipe: async (recipe, context) => ({
+        ...(await evaluator()(recipe, context)),
+        methodCost: { expiresAt, oldestInputAt },
+      }),
+      league: 'Mercenaries',
+      now,
+    });
+    const previous = (
+      await repositories.catalog.getPublished()
+    )?.evaluations.find(({ recipeId }) => recipeId === 'recipe-02');
+    expect(previous).toBeDefined();
+    await seedCycle(repositories, 'cycle-selected', 1);
+    const evaluated: string[] = [];
+    const report = await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-selected',
+      recipeId: 'recipe-01',
+      evaluateRecipe: async (recipe, context) => {
+        evaluated.push(recipe.id);
+        if (recipe.id !== 'recipe-01')
+          throw new DomainError('SNAPSHOT_EXPIRED');
+        return {
+          ...(await evaluator()(recipe, context)),
+          estimatedSalePrice: '120',
+        };
+      },
+      league: 'Mercenaries',
+      now: new Date(now.getTime() + 31 * 60_000),
+    });
+
+    expect(evaluated).toEqual(['recipe-01']);
+    expect(report).toMatchObject({
+      completedRecipes: 1,
+      failedRecipes: 0,
+      published: true,
+    });
+    const published = await repositories.catalog.getPublished();
+    expect(published?.cycle.id).toBe('cycle-selected');
+    expect(published?.evaluations).toHaveLength(2);
+    expect(
+      published?.evaluations.find(({ recipeId }) => recipeId === 'recipe-01'),
+    ).toMatchObject({ estimatedSalePrice: '120' });
+    expect(
+      published?.evaluations.find(({ recipeId }) => recipeId === 'recipe-02'),
+    ).toMatchObject({
+      estimatedSalePrice: previous?.estimatedSalePrice,
+      evaluatedAt: previous?.evaluatedAt,
+      lastSuccessfulAt: previous?.lastSuccessfulAt,
+      methodCost: { expiresAt, oldestInputAt },
+    });
+  });
+
+  it('refuses publication when cancellation arrives during the final recipe evaluation', async () => {
+    const repositories = createInMemoryRepositories();
+    await seedCycle(repositories, 'cycle-before-cancel', 1);
+    await evaluateAndPublishCatalog(repositories, {
+      cycleId: 'cycle-before-cancel',
+      evaluateRecipe: evaluator(),
+      league: 'Mercenaries',
+      now,
+    });
+    const previous = await repositories.catalog.getPublished();
+    await seedCycle(repositories, 'cycle-cancel-before-publish', 1);
+    const controller = new AbortController();
+
+    await expect(
+      evaluateAndPublishCatalog(repositories, {
+        cycleId: 'cycle-cancel-before-publish',
+        evaluateRecipe: async (recipe, context) => {
+          controller.abort();
+          return evaluator()(recipe, context);
+        },
+        league: 'Mercenaries',
+        now,
+        signal: controller.signal,
+      }),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+    expect(await repositories.catalog.getPublished()).toEqual(previous);
+  });
+
+  it('stops before evaluating another recipe after cancellation', async () => {
+    const repositories = createInMemoryRepositories();
+    await seedCycle(repositories, 'cycle-cancel-between-recipes', 2);
+    const controller = new AbortController();
+    const evaluated: string[] = [];
+
+    await expect(
+      evaluateAndPublishCatalog(repositories, {
+        cycleId: 'cycle-cancel-between-recipes',
+        evaluateRecipe: async (recipe, context) => {
+          evaluated.push(recipe.id);
+          controller.abort();
+          return evaluator()(recipe, context);
+        },
+        league: 'Mercenaries',
+        now,
+        signal: controller.signal,
+      }),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+    expect(evaluated).toEqual(['recipe-01']);
+    expect(await repositories.catalog.getPublished()).toBeNull();
+  });
+
   it('publishes known costs when there is no output ask yet', async () => {
     const repositories = createInMemoryRepositories();
     await seedCycle(repositories, 'cycle-partial-output', 1);

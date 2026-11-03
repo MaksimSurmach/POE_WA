@@ -547,6 +547,8 @@ export function registerMarketResearchRoutes(
         requireRepository(repository).findSnapshot(request.params.id),
       );
       if (!snapshot) throw new DomainError('MARKET_SNAPSHOT_NOT_FOUND');
+      if (snapshot.rawAvailable === false)
+        throw new DomainError('MARKET_SNAPSHOT_NOT_FOUND');
       const target = await persist(() =>
         requireRepository(repository).findTarget(snapshot.targetId),
       );

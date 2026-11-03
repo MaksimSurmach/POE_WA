@@ -1143,6 +1143,12 @@ export function createPostgresRepositories(pool: Pool): Repositories {
           const client = await pool.connect();
           try {
             await client.query('begin');
+            const adminRun = await client.query<{ cancel_requested: boolean }>(
+              'select cancel_requested from market_admin_runs where id=$1 for update',
+              [id],
+            );
+            if (adminRun.rows[0]?.cancel_requested)
+              throw new DomainError('MARKET_COLLECTION_CANCELLED');
             await client.query(
               `insert into catalog_state (id)
                values (1)
@@ -1222,6 +1228,10 @@ export function createPostgresRepositories(pool: Pool): Repositories {
                    published_at = excluded.published_at,
                    updated_at = excluded.updated_at`,
               [id, previousCycleId, publishedAt],
+            );
+            await client.query(
+              `update market_admin_runs set status='succeeded',finished_at=$2 where id=$1 and status='running'`,
+              [id, publishedAt],
             );
             await client.query('commit');
             return true;

@@ -20,11 +20,24 @@ import {
 function fakeBoss() {
   return {
     createQueue: vi.fn().mockResolvedValue(undefined),
+    updateQueue: vi.fn().mockResolvedValue(undefined),
     schedule: vi.fn().mockResolvedValue(undefined),
+    getSchedules: vi
+      .fn<() => Promise<Array<{ cron: string; timezone: string }>>>()
+      .mockResolvedValue([]),
+    unschedule: vi.fn().mockResolvedValue(undefined),
     send: vi.fn().mockResolvedValue('manual-cycle-id'),
     start: vi.fn().mockResolvedValue(undefined),
     stop: vi.fn().mockResolvedValue(undefined),
-    work: vi.fn().mockResolvedValue('worker-id'),
+    work: vi
+      .fn<
+        (
+          name: string,
+          options: unknown,
+          handler: (jobs: unknown[]) => Promise<unknown>,
+        ) => Promise<string>
+      >()
+      .mockResolvedValue('worker-id'),
   };
 }
 
@@ -109,6 +122,167 @@ describe('pg-boss job runner', () => {
 });
 
 describe('catalog refresh scheduler', () => {
+  it('unschedules disabled automatic refresh and stops its control timer', async () => {
+    vi.useFakeTimers();
+    const fake = fakeBoss();
+    fake.getSchedules.mockResolvedValue([
+      { cron: '0 */4 * * *', timezone: 'UTC' },
+    ]);
+    const heartbeat = vi.fn().mockResolvedValue(undefined);
+    const scheduler = new CatalogRefreshScheduler({
+      boss: fake as unknown as PgBoss,
+      cleanupCron: '15 2 * * *',
+      logger: pino({ level: 'silent' }),
+      refreshCron: '0 */4 * * *',
+      runCleanup: vi.fn(),
+      runRefresh: vi.fn(),
+      control: {
+        readSchedule: async () => ({
+          enabled: false,
+          cron: '0 */4 * * *',
+          timezone: 'UTC',
+        }),
+        heartbeat,
+      },
+    });
+    try {
+      await scheduler.start();
+      expect(fake.unschedule).toHaveBeenCalledWith(
+        CATALOG_REFRESH_QUEUE,
+        CATALOG_REFRESH_SCHEDULE_KEY,
+      );
+      expect(heartbeat).toHaveBeenCalledOnce();
+      await scheduler.stop(1000);
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(heartbeat).toHaveBeenCalledOnce();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      await scheduler.stop(1000);
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps unchanged schedules intact and applies a changed cron on the next reconciliation', async () => {
+    vi.useFakeTimers();
+    const fake = fakeBoss();
+    fake.getSchedules.mockResolvedValue([
+      { cron: '0 */4 * * *', timezone: 'UTC' },
+    ]);
+    const readSchedule = vi.fn().mockResolvedValue({
+      enabled: true,
+      cron: '0 */4 * * *',
+      timezone: 'UTC',
+    });
+    const heartbeat = vi.fn().mockResolvedValue(undefined);
+    const scheduler = new CatalogRefreshScheduler({
+      boss: fake as unknown as PgBoss,
+      cleanupCron: '15 2 * * *',
+      logger: pino({ level: 'silent' }),
+      refreshCron: '0 */4 * * *',
+      runCleanup: vi.fn(),
+      runRefresh: vi.fn(),
+      control: { readSchedule, heartbeat },
+    });
+    try {
+      await scheduler.start();
+      fake.schedule.mockClear();
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(fake.schedule).not.toHaveBeenCalled();
+      expect(heartbeat).toHaveBeenCalledTimes(2);
+      readSchedule.mockResolvedValue({
+        enabled: true,
+        cron: '0 * * * *',
+        timezone: 'UTC',
+      });
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(fake.schedule).toHaveBeenCalledWith(
+        CATALOG_REFRESH_QUEUE,
+        '0 * * * *',
+        { source: 'scheduler' },
+        expect.objectContaining({
+          key: CATALOG_REFRESH_SCHEDULE_KEY,
+          tz: 'UTC',
+        }),
+      );
+      expect(heartbeat).toHaveBeenCalledTimes(3);
+    } finally {
+      await scheduler.stop(1000);
+      vi.useRealTimers();
+    }
+  });
+
+  it('waits for in-flight control reconciliation before stopping pg-boss', async () => {
+    vi.useFakeTimers();
+    const fake = fakeBoss();
+    const heartbeat = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    let release = () => {};
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const scheduler = new CatalogRefreshScheduler({
+      boss: fake as unknown as PgBoss,
+      cleanupCron: '15 2 * * *',
+      logger: pino({ level: 'silent' }),
+      refreshCron: '0 */4 * * *',
+      runCleanup: vi.fn(),
+      runRefresh: vi.fn(),
+      control: {
+        readSchedule: async () => ({
+          enabled: false,
+          cron: '0 */4 * * *',
+          timezone: 'UTC',
+        }),
+        heartbeat,
+      },
+    });
+    try {
+      await scheduler.start();
+      heartbeat.mockReturnValueOnce(pending);
+      await vi.advanceTimersByTimeAsync(5000);
+      const stopping = scheduler.stop(1000);
+      await Promise.resolve();
+      expect(fake.stop).not.toHaveBeenCalled();
+      release();
+      await stopping;
+      expect(fake.stop).toHaveBeenCalledOnce();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      release();
+      await scheduler.stop(1000);
+      vi.useRealTimers();
+    }
+  });
+
+  it('forwards the pg-boss abort signal and refresh scope to the worker', async () => {
+    const fake = fakeBoss();
+    const runRefresh = vi.fn().mockResolvedValue(undefined);
+    const scheduler = new CatalogRefreshScheduler({
+      boss: fake as unknown as PgBoss,
+      cleanupCron: '15 2 * * *',
+      logger: pino({ level: 'silent' }),
+      refreshCron: '0 */4 * * *',
+      runCleanup: vi.fn(),
+      runRefresh,
+    });
+    await scheduler.start();
+    try {
+      const handler = fake.work.mock.calls.find(
+        ([name]) => name === CATALOG_REFRESH_QUEUE,
+      )?.[2];
+      if (!handler) throw new Error('Expected a refresh worker');
+      const signal = new AbortController().signal;
+      const data = {
+        source: 'manual',
+        scope: 'recipe',
+        recipeId: 'selected-recipe',
+      };
+      await handler([{ id: 'refresh-job', data, signal }]);
+      expect(runRefresh).toHaveBeenCalledWith('refresh-job', data, signal);
+    } finally {
+      await scheduler.stop(1000);
+    }
+  });
+
   it('starts an API-only refresh queue producer and enqueues the shared job', async () => {
     const fake = fakeBoss();
     const producer = new ManualRefreshProducer(fake as unknown as PgBoss);

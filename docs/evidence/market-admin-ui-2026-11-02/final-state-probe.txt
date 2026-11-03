@@ -1,0 +1,31 @@
+async page => {
+  const url='http://127.0.0.1:5179/admin/market';
+  const fixtures={};for(const key of ['settings','status','runs'])fixtures[key]=await(await page.request.get('http://127.0.0.1:5179/api/admin/market/'+key)).json();
+  const base=fixtures.runs.data[0];
+  fixtures.runs.data=[{...base,status:'running',requestedAt:new Date().toISOString(),startedAt:new Date().toISOString(),finishedAt:null,durationMs:null,errorCode:'PROVIDER_RATE_LIMITED',totalQueries:0,completedQueries:0,failedQueries:0,cancelRequested:false}];
+  fixtures.status.data.activeRun=fixtures.runs.data[0];
+  await page.route('**/api/admin/market/**',async route=>{
+    const req=route.request();if(req.method()!=='GET')throw new Error('Unexpected mutation in final read-only states');
+    const key=new URL(req.url()).pathname.split('/').pop();
+    await route.fulfill(key==='settings'?{status:503,json:{}}:{json:fixtures[key]});
+  });
+  await page.goto(url);await page.getByRole('button',{name:'Retry settings'}).waitFor();
+  const progress=page.getByRole('progressbar');await progress.waitFor();
+  if(await progress.getAttribute('value')!==null)throw new Error('Unknown progress is determinate');
+  if(!await page.getByRole('button',{name:'Pause new collections'}).isDisabled())throw new Error('Missing settings should block pause');
+  await page.getByText('Settings unavailable. Retry in Settings below.').waitFor();
+  await page.getByText('Provider rate limit reached. Wait for the recorded cooldown before retrying.').waitFor();
+  for(const width of [1440,390,320]){
+    await page.setViewportSize({width,height:width===1440?1100:844});
+    await page.evaluate(()=>scrollTo(0,0));
+    if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw new Error('Overflow in conditional state');
+    await page.screenshot({path:`/tmp/poe-ui-review-2026-11-02/final-state-${width}.png`,fullPage:true});
+  }
+  fixtures.status.data.activeRun=null;fixtures.status.data.worker.healthy=false;fixtures.status.data.collection.manualAvailable=false;
+  await page.goto('about:blank');await page.goto(url);
+  await page.getByText('Worker unavailable. Restore worker health before starting a refresh.').waitFor();
+  await page.unrouteAll({behavior:'wait'});
+  await page.goto(url);await page.getByRole('heading',{name:'Market status',exact:true}).waitFor();
+  await page.setViewportSize({width:1440,height:1100});await page.evaluate(()=>scrollTo(0,0));
+  return {unknownTotalProgress:'indeterminate',disabledPause:'adjacent reason visible',rateLimit:'guidance visible; raw code retained in details',unhealthyWorkerReason:'visible',conditionalWidths:[1440,390,320],overflow:false,mutations:0};
+}

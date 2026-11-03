@@ -161,6 +161,7 @@ export class MarketJobProcessor {
   async runAvailable(
     workerId: string,
     now: Date = this.#clock(),
+    signal?: AbortSignal,
   ): Promise<MarketJobRunReport> {
     if (workerId.trim().length === 0 || !Number.isFinite(now.getTime())) {
       throw new TypeError('workerId and now must be valid');
@@ -182,6 +183,7 @@ export class MarketJobProcessor {
     await Promise.all(
       Array.from({ length: this.#concurrency }, async () => {
         for (;;) {
+          signal?.throwIfAborted();
           const job = await this.#repositories.jobs.claimNext(
             workerId,
             new Date(

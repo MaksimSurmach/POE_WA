@@ -44,12 +44,21 @@ export function registerMarketEconomyRoutes(
     > = [];
     if (options.repository) {
       try {
+        const retention = await options.readRetention?.();
         await options.repository.cleanup?.({
           payloadBefore: new Date(
-            Date.now() - (options.rawRetentionDays ?? 90) * 86_400_000,
+            Date.now() -
+              (retention
+                ? retention.rawRetentionHours / 24
+                : (options.rawRetentionDays ?? 90)) *
+                86_400_000,
           ),
           snapshotsBefore: new Date(
-            Date.now() - (options.summaryRetentionDays ?? 730) * 86_400_000,
+            Date.now() -
+              (retention?.historyRetentionDays ??
+                options.summaryRetentionDays ??
+                730) *
+                86_400_000,
           ),
         });
         snapshots = await options.repository.list();

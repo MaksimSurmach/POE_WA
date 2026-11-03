@@ -9,6 +9,8 @@ import { describe, expect, it } from 'vitest';
 import { buildApi } from './api.js';
 import { beltDemoFixture } from './beltDemoFixture.js';
 import {
+  createImportedMarketSnapshot,
+  createMarketTarget,
   type MarketResearchRepository,
   summarizeMarketSnapshot,
 } from './marketResearch.js';
@@ -78,6 +80,58 @@ function testApi(repository?: MarketResearchRepository) {
 }
 
 describe('market workbench API', () => {
+  it('withholds belt analysis after raw retention while preserving snapshot details and summaries', async () => {
+    const repository = inMemoryTestRepository();
+    const fixture = beltDemoFixture();
+    const target = await repository.saveTarget(
+      createMarketTarget(fixture.target),
+    );
+    const original = createImportedMarketSnapshot(
+      fixture.observation(target.id),
+      target,
+    );
+    const retained = await repository.saveSnapshot({
+      ...original,
+      rawAvailable: false,
+      listings: [],
+    });
+    const api = testApi(repository);
+    try {
+      const analysis = await api.inject({
+        method: 'GET',
+        url: `/api/market/snapshots/${retained.id}/belt-analysis/v1`,
+      });
+      expect(analysis.statusCode).toBe(404);
+      expect(analysis.json().error.code).toBe('MARKET_SNAPSHOT_NOT_FOUND');
+      const detail = await api.inject({
+        method: 'GET',
+        url: `/api/market/snapshots/${retained.id}`,
+      });
+      expect(detail.statusCode).toBe(200);
+      expect(detail.json().data).toMatchObject({
+        id: retained.id,
+        rawAvailable: false,
+        count: 5,
+        median: 50,
+        listings: [],
+      });
+      const overview = await api.inject({ method: 'GET', url: '/api/market' });
+      expect(overview.statusCode).toBe(200);
+      expect(overview.json().data.snapshots).toEqual([
+        expect.objectContaining({
+          id: retained.id,
+          rawAvailable: false,
+          count: 5,
+          median: 50,
+        }),
+      ]);
+      expect(overview.json().data.snapshots[0]).not.toHaveProperty('listings');
+      expect(await repository.findSnapshot(retained.id)).toEqual(retained);
+    } finally {
+      await api.close();
+    }
+  });
+
   it('rejects unsearchable profiles and invalid cost scenarios before persistence', async () => {
     const repo = inMemoryTestRepository();
     const api = testApi(repo);

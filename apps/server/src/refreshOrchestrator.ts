@@ -23,6 +23,7 @@ import type { Logger } from 'pino';
 import { operationLogger } from './observability/operationContext.js';
 import type { Metrics } from './observability/metrics.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
+import { setTimeout as delay } from 'node:timers/promises';
 
 type MarketJobRunner = Pick<MarketJobProcessor, 'runAvailable'>;
 
@@ -47,6 +48,9 @@ export class FullRefreshOrchestrator {
   readonly #workerId: string;
   readonly #logger: Logger | undefined;
   readonly #metrics: Metrics | undefined;
+  readonly #signal: AbortSignal | undefined;
+  readonly #recipeId: string | undefined;
+  readonly #maximumQuoteAgeMs: number;
 
   constructor(options: {
     collectMaterialPrices?: () => Promise<void>;
@@ -61,6 +65,9 @@ export class FullRefreshOrchestrator {
     workerId: string;
     logger?: Logger;
     metrics?: Metrics;
+    signal?: AbortSignal;
+    recipeId?: string;
+    maximumQuoteAgeMs?: number;
   }) {
     this.#collectMaterialPrices = options.collectMaterialPrices;
     this.#clock = options.clock ?? (() => new Date());
@@ -73,6 +80,9 @@ export class FullRefreshOrchestrator {
     this.#workerId = options.workerId.trim();
     this.#logger = options.logger;
     this.#metrics = options.metrics;
+    this.#signal = options.signal;
+    this.#recipeId = options.recipeId;
+    this.#maximumQuoteAgeMs = options.maximumQuoteAgeMs ?? 30 * 60_000;
     if (
       Object.values(this.#league).some((value) => value.trim().length === 0) ||
       this.#workerId.length === 0 ||
@@ -94,6 +104,7 @@ export class FullRefreshOrchestrator {
       });
     logger?.info('refresh.started');
     try {
+      this.#signal?.throwIfAborted();
       const now = this.#clock();
       const plan = await planCatalogRefresh(this.#repositories, {
         cycleId,
@@ -103,6 +114,7 @@ export class FullRefreshOrchestrator {
           ? { marketDependencies: this.#marketDependencies }
           : {}),
         snapshotTtlMs: this.#snapshotTtlMs,
+        ...(this.#recipeId ? { recipeId: this.#recipeId } : {}),
         ...(logger ? { logger } : {}),
         ...(this.#metrics ? { metrics: this.#metrics } : {}),
       });
@@ -114,23 +126,51 @@ export class FullRefreshOrchestrator {
       }
 
       await this.#collectPrices(cycle);
-      const jobs = await this.#marketJobs.runAvailable(
-        `${this.#workerId}:${cycle.id}`,
-        now,
-      );
-      const refreshed = await this.#repositories.cycles.findById(cycle.id);
-      if (!refreshed) throw new DomainError('PERSISTENCE_NOT_FOUND');
-      cycle = refreshed;
-      if (cycle.completedQueries + cycle.failedQueries !== cycle.totalQueries) {
-        throw new DomainError('REFRESH_INCOMPLETE');
+      this.#signal?.throwIfAborted();
+      const jobs = {
+        claimed: 0,
+        failed: 0,
+        recovered: 0,
+        retried: 0,
+        succeeded: 0,
+      };
+      for (;;) {
+        const batch = await this.#marketJobs.runAvailable(
+          `${this.#workerId}:${cycle.id}`,
+          this.#clock(),
+          this.#signal,
+        );
+        jobs.claimed += batch.claimed;
+        jobs.failed += batch.failed;
+        jobs.recovered += batch.recovered;
+        jobs.retried += batch.retried;
+        jobs.succeeded += batch.succeeded;
+        this.#signal?.throwIfAborted();
+        const refreshed = await this.#repositories.cycles.findById(cycle.id);
+        if (!refreshed) throw new DomainError('PERSISTENCE_NOT_FOUND');
+        cycle = refreshed;
+        if (cycle.completedQueries + cycle.failedQueries === cycle.totalQueries)
+          break;
+        if (
+          cycle.status !== 'running' ||
+          performance.now() - started >= 45 * 60_000 ||
+          (jobs.retried === 0 && jobs.recovered === 0)
+        )
+          throw new DomainError('REFRESH_INCOMPLETE');
+        // shortcut: 45m limits new batches; share a deadline if in-flight work needs the same limit.
+        await delay(1000, undefined, { signal: this.#signal });
       }
 
       await this.#collectPrices(cycle);
+      this.#signal?.throwIfAborted();
       const publication = await evaluateAndPublishCatalog(this.#repositories, {
         cycleId: cycle.id,
         league: this.#league.leagueGggId,
         leagueName: this.#league.leagueName,
         now: this.#clock(),
+        maximumQuoteAgeMs: this.#maximumQuoteAgeMs,
+        ...(this.#recipeId ? { recipeId: this.#recipeId } : {}),
+        ...(this.#signal ? { signal: this.#signal } : {}),
         ...(logger ? { logger } : {}),
         ...(this.#metrics ? { metrics: this.#metrics } : {}),
         ...(this.#marketDependencies

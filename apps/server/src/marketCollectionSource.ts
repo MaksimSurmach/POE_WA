@@ -16,6 +16,7 @@ export function configuredCollectionSource(
   environment: Record<string, string | undefined> = process.env,
   economy?: Pick<MarketEconomyRepository, 'find'> &
     Partial<Pick<MarketEconomyRepository, 'latest'>>,
+  readTimeoutMs?: () => Promise<number>,
 ) {
   if (environment.MARKET_COLLECTION_SOURCE !== 'trade-compatible')
     return configuredMarketCollectionSource(
@@ -43,7 +44,10 @@ export function configuredCollectionSource(
     };
   const transport = new TradeCompatibleTransport(
     loadTradeCompatibleConfig(environment),
-    economy ? { economy } : {},
+    {
+      ...(economy ? { economy } : {}),
+      ...(readTimeoutMs ? { readTimeoutMs } : {}),
+    },
   );
   const source = createBatchedMarketCollectionSource({
     descriptor,

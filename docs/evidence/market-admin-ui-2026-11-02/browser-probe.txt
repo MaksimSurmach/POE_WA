@@ -1,0 +1,279 @@
+// Run through playwright-cli run-code against the owned loopback preview on port 5179.
+// GET captures live fixtures; all administrative mutations are fulfilled synthetically.
+async (page) => {
+  const root = '/tmp/poe-ui-review-2026-11-02/';
+  const url = 'http://127.0.0.1:5179/admin/market';
+  const results = { syntheticMutationsOnly: true, viewports: [], states: {} };
+  const check = (condition, message) => {
+    if (!condition) throw new Error(message);
+  };
+  const fixtures = {};
+  for (const key of ['settings', 'status', 'runs'])
+    fixtures[key] = await (
+      await page.request.get('http://127.0.0.1:5179/api/admin/market/' + key)
+    ).json();
+  await page.unrouteAll({ behavior: 'wait' });
+  await page.goto(url);
+  await page
+    .getByRole('heading', { name: 'Market status', exact: true })
+    .waitFor();
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: width === 1440 ? 1100 : 844 });
+    await page.evaluate(async () => {
+      scrollTo(0, 0);
+      await document.fonts.ready;
+      await new Promise((r) =>
+        requestAnimationFrame(() => requestAnimationFrame(r)),
+      );
+    });
+    const measurement = await page.evaluate(() => {
+      const find = (text) =>
+        [...document.querySelectorAll('button')]
+          .find((e) => e.textContent === text)
+          ?.getBoundingClientRect().top;
+      const visible = (e) =>
+        !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+      return {
+        width: innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        height: document.documentElement.scrollHeight,
+        pauseTop: find('Pause new collections'),
+        runTop: find('Run now'),
+        smallTargets: [
+          ...document.querySelectorAll(
+            '.market-admin button,.market-admin summary',
+          ),
+        ]
+          .filter(visible)
+          .filter((e) => e.getBoundingClientRect().height < 43.9)
+          .map((e) => e.textContent),
+        panelHeights: [
+          ...document.querySelectorAll(
+            '.market-admin__columns .market-admin__panel',
+          ),
+        ].map((e) => e.getBoundingClientRect().height),
+      };
+    });
+    check(measurement.scrollWidth <= width, 'Horizontal overflow ' + width);
+    check(!measurement.smallTargets.length, 'Small target ' + width);
+    check(measurement.pauseTop < 844, 'Pause outside first viewport');
+    check(measurement.runTop < 1688, 'Run outside second viewport');
+    results.viewports.push(measurement);
+    await page.screenshot({
+      path: root + `after-${width}.png`,
+      fullPage: true,
+    });
+    if (width !== 320)
+      await page.screenshot({ path: root + `after-${width}-top.png` });
+  }
+  let mode = 'base',
+    writes = [],
+    release = [];
+  let configured = structuredClone(fixtures.settings);
+  await page.route('**/api/admin/market/**', async (route) => {
+    const req = route.request(),
+      method = req.method(),
+      path = new URL(req.url()).pathname.split('/').pop();
+    if (method !== 'GET') {
+      writes.push({ method, path, body: req.postDataJSON(), synthetic: true });
+      if (path === 'pause' || path === 'resume') {
+        configured.data.version++;
+        configured.data.configured.collectionsPaused = path === 'pause';
+        configured.data.effective.collectionsPaused = path === 'pause';
+        return route.fulfill({ json: configured });
+      }
+      if (path === 'refresh')
+        return route.fulfill({ json: { data: { accepted: false, id: null } } });
+      if (mode === 'conflict') return route.fulfill({ status: 409, json: {} });
+      return route.fulfill({
+        status: 400,
+        json: {
+          correlationId: '11111111-1111-4111-8111-111111111111',
+          error: {
+            code: 'MARKET_QUERY_INVALID',
+            category: 'market',
+            disposition: 'permanent',
+            message: 'The market query is invalid.',
+            retryable: false,
+          },
+        },
+      });
+    }
+    if (
+      (mode === 'status-fail' && path === 'status') ||
+      (mode === 'settings-fail' && path === 'settings')
+    )
+      return route.fulfill({ status: 503, json: {} });
+    if (mode === 'status-hang' && path === 'status')
+      await new Promise((r) => release.push(r));
+    return route.fulfill({
+      json: path === 'settings' ? configured : fixtures[path],
+    });
+  });
+  const load = async () => {
+    await page.goto('about:blank');
+    await page.goto(url);
+    await page
+      .getByRole('heading', { name: 'Settings', exact: true })
+      .waitFor();
+  };
+  const open = async (name) => {
+    const s = page
+      .locator('.market-admin__setting-group')
+      .filter({ has: page.locator('summary').filter({ hasText: name }) });
+    if (!((await s.getAttribute('open')) !== null))
+      await s.locator('summary').click();
+  };
+  const field = (name) =>
+    page.getByRole('spinbutton', { name: new RegExp('^' + name) });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await load();
+  await open('Requests');
+  await field('Request timeout').fill('13');
+  check(
+    await page
+      .getByRole('button', { name: 'Pause new collections' })
+      .isEnabled(),
+    'Pause blocked by dirty draft',
+  );
+  await page.getByRole('button', { name: 'Pause new collections' }).click();
+  await page.getByRole('button', { name: 'Resume collections' }).waitFor();
+  check(
+    (await field('Request timeout').inputValue()) === '13',
+    'Pause discarded draft',
+  );
+  check(
+    await page.getByRole('button', { name: 'Save settings' }).isEnabled(),
+    'Dirty state lost',
+  );
+  await page.getByRole('button', { name: 'Compare latest settings' }).click();
+  await page
+    .getByText('Latest settings loaded. Your unsaved edits are kept.')
+    .waitFor();
+  check(
+    (await field('Request timeout').inputValue()) === '13',
+    'Compare discarded draft',
+  );
+  results.states.dirtyPauseAndCompare = 'passed';
+  await open('Freshness');
+  await field('Maximum quote age').fill('5');
+  const before = writes.length;
+  await page.getByRole('button', { name: 'Save settings' }).click();
+  await page.locator('[aria-invalid="true"]').first().waitFor();
+  check(writes.length === before, 'Invalid relationships reached server');
+  await page.waitForFunction(
+    () => document.activeElement?.getAttribute('aria-invalid') === 'true',
+  );
+  check(
+    await page.evaluate(
+      () => document.activeElement?.getAttribute('aria-invalid') === 'true',
+    ),
+    'Invalid input not focused',
+  );
+  check(
+    (await page.locator('[aria-invalid="true"]').count()) === 2,
+    'Missing cross-field error',
+  );
+  results.states.inlineValidation = 'passed';
+  await page.screenshot({
+    path: root + 'after-inline-errors.png',
+    fullPage: true,
+  });
+  await page.getByRole('button', { name: 'Discard edits' }).click();
+  await open('Automation');
+  await page
+    .getByRole('textbox', { name: 'Refresh schedule (cron)' })
+    .fill('* * * * *');
+  await page.getByRole('button', { name: 'Save settings' }).click();
+  await page
+    .getByText(
+      'Use a valid five-field cron schedule with at least 5 minutes between refreshes.',
+    )
+    .first()
+    .waitFor();
+  check(
+    (await page
+      .getByRole('textbox', { name: 'Refresh schedule (cron)' })
+      .getAttribute('aria-invalid')) === 'true',
+    'Server cron error not inline',
+  );
+  results.states.serverCronValidation = 'passed';
+  await page.getByRole('button', { name: 'Discard edits' }).click();
+  await open('Requests');
+  await field('Request timeout').fill('13');
+  mode = 'conflict';
+  await page.getByRole('button', { name: 'Save settings' }).click();
+  await page
+    .getByText('Settings changed elsewhere.', { exact: false })
+    .waitFor();
+  check(
+    (await field('Request timeout').inputValue()) === '13',
+    'Conflict discarded draft',
+  );
+  results.states.conflict = 'passed';
+  mode = 'status-fail';
+  await load();
+  await page
+    .getByRole('alert')
+    .filter({ hasText: 'Status unavailable' })
+    .waitFor();
+  mode = 'base';
+  await page
+    .getByRole('heading', { name: 'Market status', exact: true })
+    .waitFor({ timeout: 6500 });
+  check(
+    (await page.getByRole('alert').count()) === 0,
+    'Recovered status left stale error',
+  );
+  results.states.statusRecovery = 'passed';
+  mode = 'settings-fail';
+  await load();
+  await page.getByRole('button', { name: 'Retry settings' }).waitFor();
+  mode = 'base';
+  await page.getByRole('button', { name: 'Retry settings' }).click();
+  await page.getByRole('button', { name: 'Compare latest settings' }).waitFor();
+  check(
+    (await page.getByRole('alert').count()) === 0,
+    'Settings retry left stale error',
+  );
+  results.states.settingsRecovery = 'passed';
+  mode = 'status-hang';
+  await load();
+  await page.getByRole('button', { name: 'Resume collections' }).waitFor();
+  await page.getByRole('button', { name: 'Compare latest settings' }).click();
+  await page
+    .getByText('Latest settings loaded. Your unsaved edits are kept.')
+    .waitFor();
+  check(
+    await page
+      .getByRole('button', { name: 'Compare latest settings' })
+      .isEnabled(),
+    'Slow status blocked settings action',
+  );
+  results.states.independentSettings = 'passed';
+  await page
+    .getByRole('alert')
+    .filter({ hasText: 'request timed out' })
+    .waitFor({ timeout: 18000 });
+  results.states.boundedStatusRequest = 'passed';
+  mode = 'base';
+  for (const resolve of release) resolve();
+  release = [];
+  configured.data.configured.collectionsPaused = false;
+  configured.data.effective.collectionsPaused = false;
+  await load();
+  await page
+    .getByRole('heading', { name: 'Market status', exact: true })
+    .waitFor();
+  await page.getByRole('button', { name: 'Run now' }).click();
+  await page.getByText('Refresh was not accepted.', { exact: false }).waitFor();
+  results.states.rejectedRefreshTruthful = 'passed';
+  results.syntheticWrites = writes;
+  await page.unrouteAll({ behavior: 'wait' });
+  await page.goto(url);
+  await page
+    .getByRole('heading', { name: 'Market status', exact: true })
+    .waitFor();
+  await page.evaluate(() => scrollTo(0, 0));
+  return results;
+};

@@ -161,6 +161,12 @@ export class NinjaEconomyClient {
   readonly #cache = new Map<string, CacheEntry>();
   readonly #inFlight = new Map<string, Promise<NinjaReadResult<Snapshot>>>();
   #cooldownUntil = 0;
+  readonly #readTimeoutMs: (() => Promise<number>) | undefined;
+  get cooldownUntil() {
+    return this.#cooldownUntil > this.#now().getTime()
+      ? new Date(this.#cooldownUntil).toISOString()
+      : null;
+  }
 
   constructor(options: {
     userAgent: string;
@@ -168,6 +174,7 @@ export class NinjaEconomyClient {
     now?: () => Date;
     minRefreshMs?: number;
     maxCacheEntries?: number;
+    readTimeoutMs?: () => Promise<number>;
   }) {
     this.#userAgent = options.userAgent.trim();
     if (!this.#userAgent || /[\r\n]/u.test(this.#userAgent)) {
@@ -177,6 +184,7 @@ export class NinjaEconomyClient {
     this.#now = options.now ?? (() => new Date());
     this.#minRefreshMs = options.minRefreshMs ?? 5 * 60_000;
     this.#maxCacheEntries = options.maxCacheEntries ?? 32;
+    this.#readTimeoutMs = options.readTimeoutMs;
     for (const value of [this.#minRefreshMs, this.#maxCacheEntries]) {
       if (!Number.isSafeInteger(value) || value <= 0) {
         throw new TypeError('Cache limits must be positive safe integers');
@@ -301,7 +309,9 @@ export class NinjaEconomyClient {
         method: 'GET',
         credentials: 'omit',
         redirect: 'error',
-        signal: AbortSignal.timeout(15_000),
+        signal: AbortSignal.timeout(
+          this.#readTimeoutMs ? await this.#readTimeoutMs() : 15_000,
+        ),
         headers: {
           Accept: 'application/json',
           'User-Agent': this.#userAgent,

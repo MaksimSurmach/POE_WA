@@ -1,0 +1,72 @@
+{
+  "status": "complete",
+  "kind": "Focused UX distillation prescription, not a code-defect review or acceptance sign-off",
+  "scope": {
+    "parent_head": "e4fe03d23141daac206b68d6207d82dace9c8139",
+    "source_sha256_as_read": {
+      "apps/web/src/AdminMarketPage.tsx": "c969c2c4780f1423af03f2394552733c221839d6cbd7dd0e4c074a6c62b2458b",
+      "apps/web/src/adminMarket.css": "5b7f923c32e294612104f19c80a45dafcaf758173b63cdacdaf5117752bcdc2f"
+    },
+    "source_reads": [
+      "apps/web/src/AdminMarketPage.tsx",
+      "apps/web/src/adminMarket.css"
+    ],
+    "subsequent_implementation_not_reviewed": true
+  },
+  "reviewer": {
+    "harness": "Claude Code",
+    "route": "claude",
+    "model_requested": "claude-opus-5",
+    "model_actual": "claude-opus-5",
+    "provider_actual": "firstParty",
+    "effort_requested": "medium",
+    "effort_actual": "unverified",
+    "receipt_supported": true,
+    "independence_verified": true
+  },
+  "terminal": {
+    "exit_code": 0,
+    "is_error": false,
+    "reason": "completed",
+    "duration_seconds": 142.31,
+    "permission_denials": [],
+    "subagents_spawned": 0
+  },
+  "image_Read_receipts": [
+    {
+      "file": "before-1440.png",
+      "success": true,
+      "image_blocks": 1,
+      "sha256": "9491e03dcc9bfdacec8f9197f25b02e790bb00f4e71bf118869c6bfe40bdbdaa"
+    },
+    {
+      "file": "before-390.png",
+      "success": true,
+      "image_blocks": 1,
+      "sha256": "1374764866451307974e16ff7a32890cd42bf90de3ed33428d98fca598c48d38"
+    },
+    {
+      "file": "before-settings.png",
+      "success": true,
+      "image_blocks": 1,
+      "sha256": "ab2c722af374cc22594143cddac29bfc0b6b41e87cec01d165db678cc6013b0e"
+    }
+  ],
+  "policy": "Read/Glob/Grep only; safe-mode restricted; no MCP/hooks/session persistence; no mutating tools, shell, browser, network tools, tests or delegation. StructuredOutput is internal schema output.",
+  "browser_driven_by_claude": false,
+  "other_assessments_supplied": false,
+  "prescriptions": {
+    "count": 6,
+    "essential": 5,
+    "optional_taste": 1
+  },
+  "coverage_limits": [
+    "Only three static screenshots were available, all in one state: collections apparently accepting work, no active run, trade not configured, coverage 0/2, settings clean at version 4.",
+    "No active/queued run was observable, so the progress bar, Cancel run and cancelRequested presentation are judged from source (tsx 1032-1075), not from pixels.",
+    "Open/close behaviour of <details>, polling interaction with focus, and the dirty/Discard flow are inferred from AdminMarketPage.tsx; I did not run or drive the UI.",
+    "Error, loading, paused and unhealthy-worker renderings were not screenshotted; recommendations for them are source-derived.",
+    "Only AdminMarketPage.tsx and adminMarket.css were in scope, so shared tokens (--muted, --surface, --accent, root font size) and any global layout container were not inspected; the container-width and rem assumptions should be verified against the global stylesheet."
+  ],
+  "full_json_sha256": "f4e5b1cbaf08eec863cb0b1216f546b56dc27611cd7a7280e9dca6443dd9bd76",
+  "completed_at": "2026-11-02T19:23:08.255446+00:00"
+}

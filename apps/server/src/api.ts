@@ -1,4 +1,9 @@
 import { randomUUID, timingSafeEqual } from 'node:crypto';
+import { isLocalAdmin, needsAdminAccess } from './adminAccess.js';
+import {
+  registerMarketAdminRoutes,
+  type MarketAdminApiOptions,
+} from './marketAdminApi.js';
 
 import {
   apiErrorEnvelopeSchema,
@@ -66,6 +71,7 @@ export function buildApi(
   readLeagues?: LeagueReader,
   readCurrentLeague?: CurrentLeagueReader,
   options: {
+    marketAdmin?: MarketAdminApiOptions | undefined;
     diagnosticsToken?: string | undefined;
     readCircuits?: (() => Promise<ProviderCircuitState[]>) | undefined;
     readOperationalDiagnostics?: OperationalDiagnosticsReader | undefined;
@@ -92,11 +98,53 @@ export function buildApi(
 
   api.addHook('onRequest', async (request, reply) => {
     reply.header('x-request-id', request.id);
+    const path = request.routeOptions.url ?? request.url.split('?')[0] ?? '';
+    if (needsAdminAccess(request.method, path) && !isLocalAdmin(request))
+      throw new DomainError('OPERATOR_AUTH_REQUIRED');
+    if (path.startsWith('/api/admin/market'))
+      reply.header('cache-control', 'no-store');
+    if (
+      options.marketAdmin &&
+      !['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
+      (path.startsWith('/api/market/') || path === '/api/refresh')
+    )
+      await options.marketAdmin.store.audit(
+        request.id,
+        'legacy.write.request',
+        { method: request.method, path },
+      );
+    if (
+      options.marketAdmin &&
+      request.method === 'POST' &&
+      /\/api\/market\/(?:economy\/collect|snapshots\/import|targets\/[^/]+\/collection\/run)$/.test(
+        path,
+      )
+    ) {
+      const settings = (await options.marketAdmin.store.read()).effective;
+      if (settings.collectionsPaused)
+        throw new DomainError('MARKET_COLLECTION_PAUSED');
+      if (!settings.manualRefreshEnabled)
+        throw new DomainError('MARKET_ACCESS_BLOCKED');
+    }
+  });
+  api.addHook('onResponse', async (request, reply) => {
+    if (
+      options.marketAdmin &&
+      !['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
+      (request.url.startsWith('/api/market/') ||
+        request.url.split('?')[0] === '/api/refresh')
+    )
+      await options.marketAdmin.store.audit(request.id, 'legacy.write', {
+        method: request.method,
+        path: request.routeOptions.url,
+        statusCode: reply.statusCode,
+      });
   });
 
   api.setErrorHandler((error, request, reply) => {
     if (
-      request.url.startsWith('/api/market') &&
+      (request.url.startsWith('/api/market') ||
+        request.url.startsWith('/api/admin/market')) &&
       error &&
       typeof error === 'object' &&
       'code' in error &&
@@ -107,7 +155,11 @@ export function buildApi(
         'FST_ERR_CTP_INVALID_MEDIA_TYPE',
       ].includes(String(error.code))
     ) {
-      const invalid = new DomainError('MARKET_IMPORT_INVALID');
+      const invalid = new DomainError(
+        request.url.startsWith('/api/admin/')
+          ? 'MARKET_QUERY_INVALID'
+          : 'MARKET_IMPORT_INVALID',
+      );
       return reply
         .code(error.code === 'FST_ERR_CTP_BODY_TOO_LARGE' ? 413 : 400)
         .send(
@@ -148,6 +200,7 @@ export function buildApi(
     readRateLimits,
   );
   registerMarketEconomyRoutes(api, options.marketEconomy);
+  registerMarketAdminRoutes(api, options.marketAdmin);
 
   api.get('/health/live', async (request) => ({
     correlationId: request.id,

@@ -21,6 +21,7 @@ import {
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
 import { ItemTooltip } from './ItemTooltip.js';
+import { AdminMarketPage } from './AdminMarketPage.js';
 
 const apiClient = createApiClient();
 
@@ -445,6 +446,7 @@ export function App() {
       <Route element={<AppShell />}>
         <Route index element={<CatalogRoute />} />
         <Route path="recipes/:recipeId" element={<RecipePage />} />
+        <Route path="admin/market" element={<AdminMarketPage />} />
       </Route>
     </Routes>
   );

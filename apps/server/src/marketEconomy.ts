@@ -40,6 +40,10 @@ export type MarketEconomyOptions = {
   repository?: MarketEconomyRepository | undefined;
   rawRetentionDays?: number;
   summaryRetentionDays?: number;
+  readRetention?: () => Promise<{
+    rawRetentionHours: number;
+    historyRetentionDays: number;
+  }>;
 };
 export function newStoredEconomySnapshot(
   snapshot: NinjaEconomySnapshot,
@@ -95,13 +99,25 @@ export async function collectRecipeMaterialPrices(
   league: string,
   client: NinjaEconomyClient,
   repository: MarketEconomyRepository,
+  signal?: AbortSignal,
+  onProgress?: (report: Record<string, unknown>) => Promise<void>,
 ) {
+  const report = {
+    total: 4,
+    succeeded: 0,
+    failed: 0,
+    sourceFreshness: null as string | null,
+    cooldownUntil: null as string | null,
+    errorCode: null as string | null,
+  };
+  await onProgress?.(report);
   for (const category of [
     'Currency',
     'Essence',
     'Fossil',
     'Resonator',
   ] as const) {
+    signal?.throwIfAborted();
     const attempt = newEconomyAttempt({ league, category });
     await repository.saveAttempt(attempt);
     try {
@@ -117,6 +133,8 @@ export async function collectRecipeMaterialPrices(
         cacheStatus: result.cacheStatus,
         snapshotId: snapshot.id,
       });
+      report.succeeded++;
+      report.sourceFreshness = result.checkedAt;
     } catch (error) {
       await repository.saveAttempt({
         ...attempt,
@@ -127,6 +145,19 @@ export async function collectRecipeMaterialPrices(
             ? String(error.code)
             : 'ECONOMY_UNAVAILABLE',
       });
+      report.failed++;
+      report.errorCode =
+        error instanceof Error && 'code' in error
+          ? String(error.code)
+          : 'ECONOMY_UNAVAILABLE';
+      if (
+        error instanceof Error &&
+        'retryAt' in error &&
+        typeof error.retryAt === 'string'
+      )
+        report.cooldownUntil = error.retryAt;
     }
+    await onProgress?.(report);
   }
+  return report;
 }

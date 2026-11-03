@@ -113,6 +113,9 @@ export async function evaluateAndPublishCatalog(
       Partial<Pick<MarketEconomyRepository, 'listAttempts'>>;
     logger?: Logger;
     metrics?: Metrics;
+    maximumQuoteAgeMs?: number;
+    recipeId?: string;
+    signal?: AbortSignal;
   },
 ): Promise<CatalogPublicationReport> {
   const now = options.now ?? new Date();
@@ -161,9 +164,10 @@ export async function evaluateAndPublishCatalog(
     );
   }
 
-  const recipes = (await repositories.recipes.listActive()).sort(
-    (left, right) => left.id.localeCompare(right.id),
-  );
+  const allRecipes = await repositories.recipes.listActive();
+  const recipes = allRecipes
+    .filter((recipe) => !options.recipeId || recipe.id === options.recipeId)
+    .sort((left, right) => left.id.localeCompare(right.id));
   if (recipes.length !== cycle.totalRecipes) {
     throw new DomainError('REFRESH_STATE_INVALID');
   }
@@ -176,6 +180,21 @@ export async function evaluateAndPublishCatalog(
         ])
       : [],
   );
+  if (options.recipeId) {
+    for (const previous of previousByRecipe.values()) {
+      if (
+        previous.recipeId === options.recipeId ||
+        !allRecipes.some(
+          (r) =>
+            r.id === previous.recipeId &&
+            r.contentHash === previous.methodCost?.recipeContentHash,
+        )
+      )
+        continue;
+      const carried = { ...previous, id: undefined, refreshCycleId: cycle.id };
+      await repositories.evaluations.save(carried);
+    }
+  }
   const attempts = (await options.economy?.listAttempts?.()) ?? [];
   const verified = (snapshot: StoredMarketEconomySnapshot | null) => {
     if (!snapshot) return null;
@@ -217,7 +236,7 @@ export async function evaluateAndPublishCatalog(
       snapshot.league === league &&
       now.getTime() >= Date.parse(snapshot.verifiedAt ?? snapshot.capturedAt) &&
       now.getTime() - Date.parse(snapshot.verifiedAt ?? snapshot.capturedAt) <=
-        30 * 60_000
+        (options.maximumQuoteAgeMs ?? 30 * 60_000)
     )
       materialEconomies.set(category, snapshot);
   }
@@ -230,6 +249,7 @@ export async function evaluateAndPublishCatalog(
         options.marketDependencies,
         currencyExchange,
         [...materialEconomies.values()],
+        options.maximumQuoteAgeMs,
       ));
   const evaluations: RecipeEvaluation[] = [];
   let completedRecipes = 0;
@@ -237,6 +257,7 @@ export async function evaluateAndPublishCatalog(
   let staleFallbacks = 0;
 
   for (const recipe of recipes) {
+    options.signal?.throwIfAborted();
     let evaluation: NewRecipeEvaluation;
     try {
       const fresh = await evaluateRecipe(recipe, {
@@ -328,6 +349,7 @@ export async function evaluateAndPublishCatalog(
     cycle.totalRecipes > 0 &&
     cycle.completedRecipes * 100 >= cycle.totalRecipes * 95;
   if (meetsThreshold) {
+    options.signal?.throwIfAborted();
     const published = await repositories.cycles.publish(cycle.id, now);
     options.logger?.info(
       { published },
@@ -384,6 +406,7 @@ async function evaluateFreshRecipe(
   marketDependencies?: RecipeMarketDependencies,
   currencyExchange?: StoredMarketEconomySnapshot | null,
   materialEconomies: readonly StoredMarketEconomySnapshot[] = [],
+  maximumQuoteAgeMs = 30 * 60_000,
 ): Promise<FreshEvaluation> {
   let definition;
   try {
@@ -566,11 +589,38 @@ async function evaluateFreshRecipe(
   const methodCost = {
     ...materialEconomics,
     recipeContentHash: recipe.contentHash,
+    oldestInputAt: new Date(
+      Math.min(
+        output?.snapshotCapturedAt.getTime() ?? Infinity,
+        base?.snapshotCapturedAt.getTime() ?? Infinity,
+        ...materialEconomies.map((s) =>
+          Date.parse(s.verifiedAt ?? s.capturedAt),
+        ),
+        currencyExchange
+          ? Date.parse(
+              currencyExchange.verifiedAt ?? currencyExchange.capturedAt,
+            )
+          : Infinity,
+        context.now.getTime(),
+      ),
+    ).toISOString(),
     expiresAt: new Date(
       Math.min(
         output?.snapshotExpiresAt.getTime() ?? Infinity,
         base?.snapshotExpiresAt.getTime() ?? Infinity,
-        context.now.getTime() + 30 * 60_000,
+        output
+          ? output.snapshotCapturedAt.getTime() + maximumQuoteAgeMs
+          : Infinity,
+        base ? base.snapshotCapturedAt.getTime() + maximumQuoteAgeMs : Infinity,
+        ...materialEconomies.map(
+          (s) => Date.parse(s.verifiedAt ?? s.capturedAt) + maximumQuoteAgeMs,
+        ),
+        currencyExchange
+          ? Date.parse(
+              currencyExchange.verifiedAt ?? currencyExchange.capturedAt,
+            ) + maximumQuoteAgeMs
+          : Infinity,
+        context.now.getTime() + maximumQuoteAgeMs,
       ),
     ).toISOString(),
     source: output

@@ -1,0 +1,71 @@
+{
+  "status": "complete",
+  "assessment": "A: independent visual UI/UX review",
+  "reviewed_head": "c3a7c89fb98bde4993f17473639acaaef2727d56",
+  "reviewer": {
+    "harness": "Claude Code",
+    "model_requested": "claude-opus-5",
+    "model_actual": "claude-opus-5",
+    "provider_actual": "firstParty",
+    "effort_requested": "medium",
+    "effort_actual": "unverified",
+    "receipt_supported": true,
+    "independence_verified": true,
+    "host_family": "codex"
+  },
+  "terminal": {
+    "exit_code": 0,
+    "is_error": false,
+    "reason": "completed",
+    "duration_seconds": 334.36,
+    "permission_denials": [],
+    "subagents_spawned": 0
+  },
+  "read_only_policy": "Read/Glob/Grep only; safe-mode and restricted; no MCP/hooks/session persistence. StructuredOutput is the internal schema response, not a file mutation.",
+  "visual_coverage": {
+    "actual_image_Read_calls": [
+      {
+        "file": "before-desktop.png",
+        "success": true,
+        "image_blocks": 1,
+        "sha256": "751fc479c2bba01e84f9edef815404829442136692cd89b404ba4bab5e73cb5d"
+      },
+      {
+        "file": "before-mobile.png",
+        "success": true,
+        "image_blocks": 1,
+        "sha256": "77b6f6e46574e47e3e4bbc6f54eb38cd3e71ca429fe221d11c5d9e8665b1e563"
+      },
+      {
+        "file": "handbook-reference.png",
+        "success": true,
+        "image_blocks": 1,
+        "sha256": "d5512e9364a38696fb6f52a539171c194b878ba53862b33f7378475e39d4ddad"
+      }
+    ],
+    "browser_driven_by_claude": false
+  },
+  "source_coverage": [
+    "apps/web/src/AdminMarketPage.tsx",
+    "apps/web/src/adminMarket.css",
+    "apps/web/src/components.tsx",
+    "apps/web/src/styles.css"
+  ],
+  "separation": "No detector, Assessment B, other review findings or proposed fixes were supplied to Claude.",
+  "findings": {
+    "count": 8,
+    "essential": 7,
+    "optional_taste": 1
+  },
+  "coverage_limits": [
+    "Review is based solely on the three supplied PNGs and the four supplied source files; no browser was driven, no interaction was executed, and no automated or manual test was run.",
+    "Hidden and conditional states (success message, dirty indicator, recipe-id field, active run with cancel, rate-limit list, cooldowns, error and 409 conflict panels) are not present in the captures. They are labelled source-inferred and attributed to the visible parent region; none is claimed as reproduced.",
+    "No contrast ratios were measured and no screen-reader or assistive-technology behaviour was observed; accessibility remarks are limited to what the markup and CSS show (hidden legend, disabled-state styling, focus outline, tab order implications).",
+    "Only two desktop and one mobile viewport are represented; the 850px and 480px breakpoint behaviour is read from adminMarket.css:173-196, not observed.",
+    "Backend contracts, API correctness, scheduling semantics, provider behaviour, retention policy and auth/security model were treated as out of scope and are unchanged by every recommendation.",
+    "Screenshots and source files were treated strictly as untrusted review data; any text within them (including the Cyrillic provider reason) was read as content, not as instructions."
+  ],
+  "review_json_sha256": "3eb49a653953b292cefb50295a764388365e88a174d2417417e3507048b909c2",
+  "earlier_incomplete_attempt": "An earlier owned run was stopped after a local collector-handler issue; it produced no assessment. The complete receipt above belongs to the corrected rerun.",
+  "completed_at": "2026-11-02T18:51:25.093053+00:00"
+}

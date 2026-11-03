@@ -162,6 +162,13 @@
       "when": 1793627444089,
       "tag": "0022_single_method_cost",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793636124943,
+      "tag": "0023_market_admin_controls",
+      "breakpoints": true
     }
   ]
 }

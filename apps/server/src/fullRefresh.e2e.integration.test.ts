@@ -101,7 +101,13 @@ async function run(
       clock: clock.now,
       league: context,
       marketDependencies: integrationMarketDependencies,
-      marketJobs: processor,
+      marketJobs: {
+        async runAvailable(...args) {
+          const batch = await processor.runAvailable(...args);
+          clock.advanceMilliseconds(10_000);
+          return batch;
+        },
+      },
       repositories,
       snapshotTtlMs,
       workerId: 'e2e',
@@ -214,8 +220,8 @@ describe('full refresh PostgreSQL E2E', () => {
     );
   });
 
-  it('persists retry state before eventual success', async () => {
-    const retry = await run('retry-429-then-success');
+  it('drains delayed provider retries through production orchestration before publication', async () => {
+    const retry = await run('retry-429-then-success', { orchestrator: true });
     expect(retry.provider.totalCalls()).toBe(
       retry.plan.report.totalQueries + 1,
     );

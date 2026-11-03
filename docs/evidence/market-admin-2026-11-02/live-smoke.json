@@ -1,0 +1,146 @@
+{
+  "settings": {
+    "version": 3,
+    "configured": {
+      "automaticRefreshEnabled": false,
+      "scheduledCollectionEnabled": false,
+      "collectionsPaused": true,
+      "manualRefreshEnabled": true,
+      "refreshCron": "0 */4 * * *",
+      "requestTimeoutMs": 12000,
+      "collectionConcurrency": 4,
+      "snapshotReuseTtlMs": 1800000,
+      "freshnessWarningMs": 900000,
+      "maximumQuoteAgeMs": 1800000,
+      "rawRetentionHours": 96,
+      "historyRetentionDays": 14
+    },
+    "effective": {
+      "automaticRefreshEnabled": false,
+      "scheduledCollectionEnabled": false,
+      "collectionsPaused": true,
+      "manualRefreshEnabled": true,
+      "refreshCron": "0 */4 * * *",
+      "requestTimeoutMs": 12000,
+      "collectionConcurrency": 4,
+      "snapshotReuseTtlMs": 1800000,
+      "freshnessWarningMs": 900000,
+      "maximumQuoteAgeMs": 1800000,
+      "rawRetentionHours": 96,
+      "historyRetentionDays": 14
+    },
+    "restartRequired": false,
+    "applies": "New requests and runs use current settings; active requests finish with their starting settings. Scheduler reconciles within 5 seconds.",
+    "timezone": "UTC",
+    "warnings": [
+      "Collection interval exceeds snapshot reuse TTL. Quotes can expire before the next refresh; expired prices are hidden."
+    ]
+  },
+  "status": {
+    "serverTime": "2026-11-02T16:37:40.120Z",
+    "access": "local-only",
+    "league": {
+      "name": "Allflame",
+      "confirmed": true
+    },
+    "trade": {
+      "configured": false,
+      "status": "blocked",
+      "reason": "\u0410\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438\u0439 Trade endpoint \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044f \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430\u0446\u0438\u0435\u0439 GGG. \u0418\u043c\u043f\u043e\u0440\u0442\u0438\u0440\u0443\u0439\u0442\u0435 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0435 \u043e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u044f \u0438\u0437 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c\u0441\u043a\u043e\u0439 \u0441\u0435\u0441\u0441\u0438\u0438."
+    },
+    "ninja": {
+      "configured": true,
+      "status": "succeeded",
+      "cooldownUntil": null
+    },
+    "worker": {
+      "healthy": true,
+      "heartbeatAt": "2026-11-02T16:37:38.940Z",
+      "settingsVersion": 2
+    },
+    "scheduler": {
+      "healthy": false,
+      "enabled": false,
+      "cron": "0 */4 * * *",
+      "nextRefreshAt": null
+    },
+    "activeRun": null,
+    "lastSuccessful": {
+      "id": "97d1b57b-1ac6-48da-a206-390189ea5d3b",
+      "scope": "economy",
+      "recipeId": null,
+      "source": "manual",
+      "status": "succeeded",
+      "requestedAt": "2026-11-02T16:36:18.960Z",
+      "startedAt": "2026-11-02T16:36:20.934Z",
+      "finishedAt": "2026-11-02T16:36:21.390Z",
+      "cancelRequested": false,
+      "errorCode": null,
+      "durationMs": 455.423,
+      "completedQueries": 4,
+      "failedQueries": 0,
+      "totalQueries": 4,
+      "sourceFreshness": "2026-11-02T16:36:21.386Z",
+      "cooldownUntil": null
+    },
+    "lastFailed": null,
+    "collection": {
+      "paused": true,
+      "scheduled": false,
+      "manualAvailable": false
+    },
+    "coverage": {
+      "activeRecipes": 2,
+      "pricedRecipes": 0,
+      "freshRecipes": 0,
+      "warningRecipes": 0,
+      "latestSnapshotAt": null
+    },
+    "rateLimits": [],
+    "warnings": [
+      "Collection interval exceeds snapshot reuse TTL. Quotes can expire before the next refresh; expired prices are hidden."
+    ]
+  },
+  "runs": [
+    {
+      "id": "faa49a3c-b1c7-4249-825c-56851cb62937",
+      "scope": "all",
+      "recipeId": null,
+      "source": "scheduler",
+      "status": "skipped",
+      "requestedAt": "2026-11-02T16:37:18.968Z",
+      "startedAt": null,
+      "finishedAt": "2026-11-02T16:37:18.968Z",
+      "cancelRequested": false,
+      "errorCode": "MARKET_COLLECTION_PAUSED",
+      "durationMs": null,
+      "completedQueries": 0,
+      "failedQueries": 0,
+      "totalQueries": 0,
+      "sourceFreshness": null,
+      "cooldownUntil": null
+    },
+    {
+      "id": "97d1b57b-1ac6-48da-a206-390189ea5d3b",
+      "scope": "economy",
+      "recipeId": null,
+      "source": "manual",
+      "status": "succeeded",
+      "requestedAt": "2026-11-02T16:36:18.960Z",
+      "startedAt": "2026-11-02T16:36:20.934Z",
+      "finishedAt": "2026-11-02T16:36:21.390Z",
+      "cancelRequested": false,
+      "errorCode": null,
+      "durationMs": 455.423,
+      "completedQueries": 4,
+      "failedQueries": 0,
+      "totalQueries": 4,
+      "sourceFreshness": "2026-11-02T16:36:21.386Z",
+      "cooldownUntil": null
+    }
+  ],
+  "notes": [
+    "Real permitted public poe.ninja economy refresh; no Trade collection configured.",
+    "Scheduled job was injected into the existing queue after both automatic toggles were disabled; it was skipped without source queries."
+  ]
+}

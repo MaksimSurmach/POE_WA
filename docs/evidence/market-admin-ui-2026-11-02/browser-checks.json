@@ -1,0 +1,92 @@
+{
+  "syntheticMutationsOnly": true,
+  "viewports": [
+    {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "height": 1578,
+      "pauseTop": 151,
+      "runTop": 839.203125,
+      "smallTargets": [],
+      "panelHeights": [375.1875, 421.9375]
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 2395,
+      "pauseTop": 242.90625,
+      "runTop": 1025.796875,
+      "smallTargets": [],
+      "panelHeights": [387.1875, 467.5]
+    },
+    {
+      "width": 320,
+      "scrollWidth": 320,
+      "height": 2608,
+      "pauseTop": 291.90625,
+      "runTop": 1169.96875,
+      "smallTargets": [],
+      "panelHeights": [411.1875, 517.6875]
+    }
+  ],
+  "states": {
+    "dirtyPauseAndCompare": "passed",
+    "inlineValidation": "passed",
+    "serverCronValidation": "passed",
+    "conflict": "passed",
+    "statusRecovery": "passed",
+    "settingsRecovery": "passed",
+    "independentSettings": "passed",
+    "boundedStatusRequest": "passed",
+    "rejectedRefreshTruthful": "passed"
+  },
+  "syntheticWrites": [
+    {
+      "method": "POST",
+      "path": "pause",
+      "body": {
+        "version": 4
+      },
+      "synthetic": true
+    },
+    {
+      "method": "PATCH",
+      "path": "settings",
+      "body": {
+        "version": 5,
+        "settings": {
+          "refreshCron": "* * * * *"
+        }
+      },
+      "synthetic": true
+    },
+    {
+      "method": "PATCH",
+      "path": "settings",
+      "body": {
+        "version": 5,
+        "settings": {
+          "requestTimeoutMs": 13000
+        }
+      },
+      "synthetic": true
+    },
+    {
+      "method": "POST",
+      "path": "refresh",
+      "body": {
+        "scope": "all"
+      },
+      "synthetic": true
+    }
+  ],
+  "limits": [
+    "Chromium only; no physical device, Safari or screen-reader speech validation.",
+    "All mutating calls were intercepted in this follow-up; real backend lifecycle evidence remains in ../market-admin-2026-11-02/.",
+    "Initial console favicon.ico 404 is unrelated to the admin flow. Synthetic HTTP400/409/503 and aborted timeout requests intentionally emit network errors."
+  ],
+  "test_harness_corrections": [
+    "First timeout probe exposed that a generation-changed rejected read was hidden; polling now reports the failure while still ignoring stale successful data.",
+    "Next probe checked focus before requestAnimationFrame; corrected to wait for the focus state. Final full probe passed."
+  ]
+}

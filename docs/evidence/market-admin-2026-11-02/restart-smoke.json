@@ -1,0 +1,33 @@
+{
+  "settingsPersisted": true,
+  "dataUnchanged": true,
+  "settingsVersion": 4,
+  "effectiveTimeoutMs": 12000,
+  "data": {
+    "recipes": 2,
+    "economy": [
+      {
+        "id": "36f5ce75-b87d-4b1b-a739-fef8cab7ff1a",
+        "hash": "fc21f198531973d83125e96c25673b95733b930fab17a32fa9b6cb387f29e711",
+        "capturedAt": "2026-11-02T17:36:21.386+01:00"
+      },
+      {
+        "id": "4ed60e46-ca8a-46a9-8aee-29436f13e99b",
+        "hash": "532b66b119a211af96d56b5e3a944e4b833f35982c1194f0cf5b5514a8849493",
+        "capturedAt": "2026-11-02T17:36:21.239+01:00"
+      },
+      {
+        "id": "576f19b8-8a24-4fc5-b470-066d730da2d8",
+        "hash": "e432521d7abe097d27a8074400e0742e933fa0e6ea68c76e90e3a8dc1ee0eb71",
+        "capturedAt": "2026-11-02T17:36:21.294+01:00"
+      },
+      {
+        "id": "eddd1dd6-c213-41c9-806f-26250c182c37",
+        "hash": "da0e187d28ef5f48fe9cf66b229e6d6f7a7751d4c89122dcfa106147797df5e5",
+        "capturedAt": "2026-11-02T17:36:21.13+01:00"
+      }
+    ],
+    "rawSnapshots": 0,
+    "history": 0
+  }
+}
