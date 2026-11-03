@@ -1,0 +1,79 @@
+{
+  "sourceURL": "https://docs.google.com/spreadsheets/d/1w4IrNdvXMkJD4EB5o-qsOVpbTR69cnQ5-2lh-DwVbKM/edit?gid=264173426#gid=264173426",
+  "capturedAt": "2026-11-03",
+  "access": "Read-only Google Drive connector, FORMULA; leading =+ entries are invalid formulas, recovered source text remains unverified",
+  "data": {
+    "range": "'Крафты'!A10:O13",
+    "majorDimension": "ROWS",
+    "values": [
+      [
+        "C006",
+        "=+1 Minion Convoking Wand",
+        "Оружие",
+        "День 1–7",
+        "Проверить после старта",
+        "P0",
+        0.5,
+        3,
+        "Convoking Wand",
+        "84+ желательно",
+        "Не переплачивать за perfect base на первой партии",
+        "Bound Fossil или minion-oriented reforges; поймать +1 minion gems, minion damage и/или speed; bench trigger/speed",
+        "=+1 minion gems + minion damage или полезная скорость",
+        "=+1 minion + высокий minion damage + open suffix/trigger",
+        "=+1 minion с одним сильным дополнительным minion-модом"
+      ],
+      [
+        "C007",
+        "=+2 Minion Convoking Wand",
+        "Оружие",
+        "День 3–14",
+        "Проверить после старта",
+        "P1",
+        3,
+        12,
+        "Convoking Wand",
+        "84+",
+        "Хорошая база; заранее проверить актуальные weights в Craft of Exile 3.29",
+        "Corroded + Jagged + Metallic + Shuddering в 4-socket resonator; повторять до +1 all spells и +1 minion; затем finish",
+        "=+1 all Spell Skill Gems + +1 all Minion Skill Gems",
+        "=+2 gems + minion damage + полезный suffix/open suffix",
+        "=+2 без minion damage; +1 minion + высокий minion damage"
+      ],
+      [
+        "C008",
+        "Caster Wand/Sceptre — +1 + cast speed",
+        "Оружие",
+        "День 2–10",
+        "Эксперимент",
+        "P1",
+        1,
+        6,
+        "Opal/Tornado Wand, Demon’s Horn или подходящий sceptre",
+        "82+; уточнить tier",
+        "Fractured cast speed, spell damage или build-specific мод",
+        "Essence of Woe либо Aetheric + тематический fossil; ловить +1 relevant gems, damage и cast speed; bench finish",
+        "=+1 relevant spell gems + cast speed + spell/element damage",
+        "Высокий damage; crit/multi; open affix; сильная комбинация под один популярный spell",
+        "=+1 + один сильный damage-мод + cast speed"
+      ],
+      [
+        "C009",
+        "Caster Staff 3.29 — gem levels + damage",
+        "Оружие",
+        "День 3–14",
+        "Эксперимент",
+        "P1",
+        2,
+        10,
+        "Caster Staff",
+        "Высокий ilvl под новые tiers",
+        "Проверить новые mod tiers/weights после обновления RePoE/Craft of Exile",
+        "Essence of Woe или Aetheric + Frigid/Metallic/Scorched/Aberrant; ловить +2–4 relevant gems, damage, cast speed/block",
+        "=+2/+3 relevant gems + высокий spell/element damage",
+        "=+3/+4 gems + 150%+ damage + cast speed или block",
+        "=+2 gems + хороший damage; высокий damage + cast speed без top gem tier"
+      ]
+    ]
+  }
+}

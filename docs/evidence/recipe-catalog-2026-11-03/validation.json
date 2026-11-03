@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-11-03",
+  "node": "22.23.4",
+  "catalog": {
+    "recipes": 15,
+    "existingVerified": 2,
+    "newUnverified": 13,
+    "sourceSheetCandidatesPreserved": 16
+  },
+  "checks": {
+    "recipesValidate": "PASS: canonical CLI loaded 15 recipes",
+    "currentPublicTradeMetadata": "PASS: loadAndValidateTradeMappingManifest validated 52 entries against current official items/stats endpoints",
+    "serverBuild": "PASS",
+    "serverUnit": { "files": 47, "passed": 296 },
+    "domainUnit": { "files": 10, "passed": 64 },
+    "focusedRegression": { "files": 4, "passed": 22 },
+    "postgresSamePatchReplacement": "Regression included; execution delegated to parent release test database",
+    "staging": "Owned by parent release pass, not claimed by this artifact",
+    "gameCraftOrSale": "NOT_RUN"
+  },
+  "limits": [
+    "New recipe mapping identities and selected output contracts are checked; full crafting expectations remain unverified and unavailable.",
+    "All source-sheet prices/liquidity labels are assumptions, not fresh observations.",
+    "No source Sheet edits or shared application database writes were performed by the recipe subtask."
+  ]
+}

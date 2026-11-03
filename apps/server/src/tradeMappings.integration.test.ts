@@ -70,7 +70,7 @@ beforeEach(async () => {
 });
 
 describe('production catalog initialization', () => {
-  it('imports the physical large cluster mappings before syncing recipes', async () => {
+  it('imports mappings before syncing recipes and ignores archived same-patch mappings after replacement', async () => {
     const manifest = await loadAndValidateTradeMappingManifest(
       manifestPath,
       async (input) =>
@@ -160,5 +160,42 @@ describe('production catalog initialization', () => {
       { exchange: { have: ['chaos'], want: ['alt'] } },
       { exchange: { have: ['chaos'], want: ['transmute'] } },
     ]);
+
+    await pool.query(
+      "update game_data_versions set status = 'archived' where status = 'active'",
+    );
+    await pool.query(
+      `insert into game_data_versions (game, patch_version, source, source_revision, manifest_hash, status)
+       values ('poe1', '3.29.3.3', 'fixture', 'replacement', 'replacement', 'active')`,
+    );
+    await importTradeMappings(pool, manifest);
+    const replaced = createPostgresTradeMappingCatalog(pool);
+    expect(
+      await replaced.resolveBase({
+        baseId: recipe.definition.base.baseId,
+        gameDataVersion: '3.29.3.3',
+        variant: recipe.definition.base.variant,
+      }),
+    ).toMatchObject({ ok: true, value: { id: 'Large Cluster Jewel' } });
+    expect(
+      await replaced.resolveTarget({
+        gameDataVersion: '3.29.3.3',
+        target: {
+          kind: 'explicit',
+          modId: 'mod:battle-hardened',
+          excluded: false,
+        },
+      }),
+    ).toMatchObject({ ok: true, value: { id: 'explicit.stat_4188581520' } });
+    expect(
+      await createPostgresResourceResolver(pool)('jagged-fossil', '3.29.3.3'),
+    ).toBe('jagged-fossil');
+    expect(
+      (
+        await pool.query(
+          "select count(*)::int as count from provider_mappings pm join game_data_versions gdv on gdv.id=pm.game_data_version_id where gdv.status='archived'",
+        )
+      ).rows[0].count,
+    ).toBe(manifest.mappings.length);
   });
 });

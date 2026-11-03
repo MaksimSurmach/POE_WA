@@ -256,3 +256,52 @@ Object.assign(tradeStatMappings, {
     text: '# Added Passive Skills are Jewel Sockets',
   },
 });
+
+// Current public Trade metadata checked 2026-11-03; exact origins remain separate.
+// Identity receipts: docs/evidence/recipe-catalog-2026-11-03/trade-identities.json.
+Object.assign(tradeStatMappings, {
+  'explicit.stat_3680664274': {
+    key: 'mod:suppression',
+    text: '+#% chance to Suppress Spell Damage',
+  },
+  'fractured.stat_3680664274': {
+    key: 'mod:fractured-suppression',
+    text: '+#% chance to Suppress Spell Damage',
+  },
+  'explicit.stat_681332047': {
+    key: 'mod:attack-speed',
+    text: '#% increased Attack Speed',
+  },
+  'explicit.stat_3005472710': {
+    key: 'mod:ailment-avoidance',
+    text: '#% chance to Avoid Elemental Ailments',
+  },
+  'explicit.stat_2250533757': {
+    key: 'mod:movement-speed',
+    text: '#% increased Movement Speed',
+  },
+  'explicit.stat_124131830': {
+    key: 'mod:spell-gems',
+    text: '+# to Level of all Spell Skill Gems',
+  },
+  'implicit.stat_4101445926': {
+    key: 'mod:mana-efficiency',
+    text: '#% increased Mana Cost Efficiency',
+  },
+  'implicit.stat_425242359': {
+    key: 'mod:physical-as-lightning',
+    text: '#% of Physical Damage from Hits taken as Lightning Damage',
+  },
+  'explicit.stat_2843100721': {
+    key: 'mod:socketed-gems',
+    text: '+# to Level of Socketed Gems',
+  },
+  'crafted.stat_4154259475': {
+    key: 'mod:support-gems',
+    text: '+# to Level of Socketed Support Gems',
+  },
+  'crafted.stat_4055307827': {
+    key: 'mod:chaos-dot-multiplier',
+    text: '+#% to Chaos Damage over Time Multiplier',
+  },
+});

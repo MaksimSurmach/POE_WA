@@ -62,10 +62,13 @@ export function createRecipeMarketDependencies(options: {
       },
       ...(await Promise.all(
         [...resourceIds].sort().map(async (materialId) => {
-          const exchangeId = await options.resolveResource(
-            materialId,
-            recipe.gameDataVersion,
-          );
+          const exchangeId =
+            materialId === 'chaos-orb'
+              ? null
+              : await options.resolveResource(
+                  materialId,
+                  recipe.gameDataVersion,
+                );
           return {
             kind: 'material' as const,
             materialId,
@@ -130,12 +133,16 @@ export async function generateRecipeMarketQuery(
           ...setup,
           base: recipe.startingBase,
           target: {
-            allOf: recipe.craft.startingMods.map(({ modId, tier }) => ({
-              kind: 'explicit' as const,
-              modId,
-              excluded: false,
-              ...(tier ? { exactTier: tier } : {}),
-            })),
+            allOf: recipe.craft.startingMods.map(
+              ({ modId, tier, kind, minimumValue, maximumValue }) => ({
+                kind: kind ?? 'explicit',
+                modId,
+                excluded: false,
+                ...(tier ? { exactTier: tier } : {}),
+                ...(minimumValue === undefined ? {} : { minimumValue }),
+                ...(maximumValue === undefined ? {} : { maximumValue }),
+              }),
+            ),
             anyOf: [],
             minimumMatched: null,
           },

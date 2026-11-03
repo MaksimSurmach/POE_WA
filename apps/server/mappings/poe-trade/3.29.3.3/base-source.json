@@ -1,7 +1,7 @@
 {
   "patchVersion": "3.29.3.3",
   "source": "https://www.pathofexile.com/api/trade/data/items",
-  "sourceRevision": "mapping-identities-checked-2026-11-02",
+  "sourceRevision": "mapping-identities-checked-2026-11-03",
   "records": [
     {
       "kind": "base",
@@ -14,6 +14,146 @@
         "metadata": {
           "coverage": "Base identity for Trade mappings only. No affix pool, tags or probability weights asserted.",
           "checkedAt": "2026-11-02"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "Metadata/Items/Armours/Helmets/HelmetStrIntRitual3",
+        "name": "Archdemon Crown",
+        "itemClass": "Helmet",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
+          "checkedAt": "2026-11-03"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "Metadata/Items/Armours/Shields/ShieldStr17",
+        "name": "Pinnacle Tower Shield",
+        "itemClass": "Shield",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
+          "checkedAt": "2026-11-03"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:bone-helmet",
+        "name": "Bone Helmet",
+        "itemClass": "Helmet",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
+          "checkedAt": "2026-11-03"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "Metadata/Items/Armours/Shields/ShieldInt13",
+        "name": "Fossilised Spirit Shield",
+        "itemClass": "Shield",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
+          "checkedAt": "2026-11-03"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "Metadata/Items/Armours/Helmets/HelmetDex12",
+        "name": "Grizzly Pelt",
+        "itemClass": "Helmet",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
+          "checkedAt": "2026-11-03"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "Metadata/Items/Armours/Gloves/GlovesStr11",
+        "name": "Leviathan Gauntlets",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
+          "checkedAt": "2026-11-03"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "Metadata/Items/Belts/BeltAbyss",
+        "name": "Stygian Vise",
+        "itemClass": "Belt",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
+          "checkedAt": "2026-11-03"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:dragonscale-gauntlets",
+        "name": "Dragonscale Gauntlets",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
+          "checkedAt": "2026-11-03"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:slink-boots",
+        "name": "Slink Boots",
+        "itemClass": "Boots",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
+          "checkedAt": "2026-11-03"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:convoking-wand",
+        "name": "Convoking Wand",
+        "itemClass": "Wand",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Base identity for Trade mappings only; no affix pool or weights asserted. Custom base: IDs are local identity keys, not claimed game metadata paths.",
+          "checkedAt": "2026-11-03"
         }
       }
     }

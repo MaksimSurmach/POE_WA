@@ -27,10 +27,21 @@ export const canonicalCraftMethodSchema = z.discriminatedUnion('kind', [
   }),
 ]);
 
-export const canonicalStartingModSchema = z.strictObject({
-  modId: entityIdSchema,
-  tier: z.number().int().min(1).max(20).optional(),
-});
+export const canonicalStartingModSchema = z
+  .strictObject({
+    modId: entityIdSchema,
+    tier: z.number().int().min(1).max(20).optional(),
+    kind: z.enum(['explicit', 'fractured']).optional(),
+    minimumValue: z.number().finite().optional(),
+    maximumValue: z.number().finite().optional(),
+  })
+  .refine(
+    (mod) =>
+      mod.minimumValue === undefined ||
+      mod.maximumValue === undefined ||
+      mod.minimumValue <= mod.maximumValue,
+    'minimumValue cannot exceed maximumValue',
+  );
 
 export type CanonicalCraftMethod = z.output<typeof canonicalCraftMethodSchema>;
 export type CanonicalStartingMod = z.output<typeof canonicalStartingModSchema>;

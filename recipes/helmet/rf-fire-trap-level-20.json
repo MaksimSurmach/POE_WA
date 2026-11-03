@@ -1,0 +1,122 @@
+{
+  "base": {
+    "baseId": "Metadata/Items/Armours/Helmets/HelmetStrIntRitual3",
+    "influences": ["elder"],
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "category": "helmet",
+  "notes": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation. No life/resistance floor, sockets/links/quality minimum, sale or optimality included. Sheet C011 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices.",
+  "craft": {
+    "id": "rf-fire-trap-level-20",
+    "name": "Elder Fire Trap Helmet · Level 20 Supports",
+    "method": {
+      "kind": "harvest-reforge",
+      "tag": "fire"
+    },
+    "startingMods": [],
+    "uncertainties": [
+      "Expected executions per completed item and full expected material/base consumption have not been independently reproduced for this exact recipe. Expected total and ROI must stay unavailable.",
+      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established."
+    ],
+    "steps": [
+      {
+        "id": "reforge-fire",
+        "title": "Roll both supports",
+        "action": "Use Harvest Reforge Fire on the acquired rare Elder Archdemon Crown. Each attempt costs 50 Wild Crystallised Lifeforce.",
+        "continueWhen": "Burning Damage and Concentrated Effect both level 20 or higher, and at least one open prefix.",
+        "failureAction": "Repeat on the same base; reject a desired pair with no open prefix. The reforge replaces all explicit modifiers and previous bench craft; it preserves influence and native implicits.",
+        "materials": [
+          {
+            "itemId": "wild-crystallised-lifeforce",
+            "quantity": 50
+          }
+        ]
+      },
+      {
+        "id": "craft-aoe",
+        "title": "Craft socketed AoE level",
+        "action": "Bench craft +1 to Level of Socketed AoE Gems / 8–10% increased Area of Effect.",
+        "continueWhen": "Both supports and +1 socketed AoE gems with at least 8% increased AoE.",
+        "failureAction": "Stop on incompatible or full prefixes; return to the paid reforge only if the required finish cannot be crafted.",
+        "materials": [
+          {
+            "itemId": "chaos-orb",
+            "quantity": 4
+          }
+        ]
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "Metadata/Items/Armours/Helmets/HelmetStrIntRitual3",
+    "influences": ["elder"],
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "unverified",
+    "leagues": [],
+    "checkedAt": "2026-11-03",
+    "sources": [
+      "https://docs.google.com/spreadsheets/d/1w4IrNdvXMkJD4EB5o-qsOVpbTR69cnQ5-2lh-DwVbKM/edit?gid=264173426#gid=264173426"
+    ],
+    "notes": "Source mechanics were reviewed on 2026-10-30 at the scope recorded in docs/evidence/research-acceptance-2026-11-03/final-recipes.json#rf-fire-trap-helmet. Current public Trade items/stats/static metadata checked on 2026-11-03. This checks mapping identities, not recipe success probability, live acquisition or profitability."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "rf-fire-trap-level-20",
+  "schemaVersion": 3,
+  "summary": "Elder Fire Trap Helmet · Level 20 Supports. Scoped MAX-1288 procedure.",
+  "tags": ["research-2026-11-03", "sheet-c011"],
+  "targetSignature": "3.29.3.3:2c9846ea304eefce88248dd462841d73",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:concentrated-support",
+        "minimumValue": 20
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:crafted-aoe-gems",
+        "minimumValue": 1
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:crafted-aoe",
+        "minimumValue": 8
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:burning-support",
+        "minimumValue": 20
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Elder Fire Trap Helmet · Level 20 Supports"
+}

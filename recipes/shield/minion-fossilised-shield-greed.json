@@ -1,0 +1,121 @@
+{
+  "base": {
+    "baseId": "Metadata/Items/Armours/Shields/ShieldInt13",
+    "influences": [],
+    "itemLevel": 60,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "category": "shield",
+  "notes": "Life-based Spectre low-budget +1 minion/life rare shield; ordinary minion implicit preserved. No Shaper recovery, suppression, Bitterbind equivalence or resistance-cap claim. Natural summoner shield family selected; generic INT shield pool not substituted.",
+  "craft": {
+    "id": "minion-fossilised-shield-greed",
+    "name": "Fossilised Shield · +1 Minion Gems",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-greed"
+    },
+    "startingMods": [],
+    "uncertainties": [
+      "Expected executions per completed item and full expected material/base consumption have not been independently reproduced for this exact recipe. Expected total and ROI must stay unavailable.",
+      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established."
+    ],
+    "steps": [
+      {
+        "id": "essence-greed",
+        "title": "Roll minion levels and life",
+        "action": "Use Deafening Essence of Greed on the acquired rare base.",
+        "continueWhen": "+1 to Level of all Minion Skill Gems and one open suffix.",
+        "failureAction": "Repeat the essence on the same base; it removes the previous explicit core and bench craft while preserving the native implicit.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-greed",
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "id": "craft-fire-resistance",
+        "title": "Craft resistance",
+        "action": "Bench craft 29–35% Fire Resistance in the open suffix.",
+        "continueWhen": "Required minion level, essence life and crafted Fire Resistance.",
+        "failureAction": "If fire resistance is incompatible with an existing modifier, reject and return to paid Greed rerolls.",
+        "materials": [
+          {
+            "itemId": "chaos-orb",
+            "quantity": 3
+          }
+        ]
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "Metadata/Items/Armours/Shields/ShieldInt13",
+    "influences": [],
+    "itemLevel": 60,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "unverified",
+    "leagues": [],
+    "checkedAt": "2026-11-03",
+    "sources": ["https://beta.craftofexile.com/"],
+    "notes": "Source mechanics were reviewed on 2026-10-30 at the scope recorded in docs/evidence/research-acceptance-2026-11-03/final-recipes.json#spectre-minion-shield. Current public Trade items/stats/static metadata checked on 2026-11-03. This checks mapping identities, not recipe success probability, live acquisition or profitability."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "minion-fossilised-shield-greed",
+  "schemaVersion": 3,
+  "summary": "Fossilised Shield · +1 Minion Gems. Scoped MAX-1288 procedure.",
+  "tags": ["research-2026-11-03", "max-1288"],
+  "targetSignature": "3.29.3.3:4f16b4c09bc3ef4ed19cbc0f7d02f16b",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:life",
+        "minimumValue": 130
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:minion-gems",
+        "minimumValue": 1
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:crafted-fire-resistance",
+        "minimumValue": 29
+      }
+    ],
+    "implicits": [
+      {
+        "excluded": false,
+        "kind": "implicit",
+        "modId": "mod:implicit-minion-damage",
+        "minimumValue": 5
+      }
+    ],
+    "other": []
+  },
+  "title": "Fossilised Shield · +1 Minion Gems"
+}

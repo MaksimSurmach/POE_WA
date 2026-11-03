@@ -40,16 +40,16 @@ describe('repository-backed resource views', () => {
     );
 
     expect(report).toMatchObject({
-      created: [
+      created: expect.arrayContaining([
         'physical-large-cluster-alteration',
         'physical-large-cluster-jagged',
-      ],
+      ]),
     });
     const catalog = catalogResponseSchema.parse(
       await readers.readCatalog(correlationId),
     );
     expect(catalog.state).toBe('loading');
-    expect(catalog.data?.entries).toHaveLength(2);
+    expect(catalog.data?.entries).toHaveLength(15);
     expect(
       catalog.data?.entries.find(
         ({ recipe }) => recipe.id === 'physical-large-cluster-jagged',

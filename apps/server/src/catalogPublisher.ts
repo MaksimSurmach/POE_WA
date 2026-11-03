@@ -529,6 +529,25 @@ async function evaluateFreshRecipe(
     };
   for (const dependency of dependencies.filter((d) => d.kind === 'material')) {
     const id = dependency.materialId!;
+    if (id === 'chaos-orb') {
+      const unitPrice = await convertPrice(
+        { amount: '1', currency: 'chaos' },
+        context.now,
+      );
+      if (unitPrice) {
+        materialPriceMap[id] = unitPrice;
+        bulkSupported.add(id);
+        materialEvidence[id] = {
+          itemId: id,
+          league: context.league,
+          source: 'currency-unit',
+          bulkSupported: true,
+          currency: unitPrice.currency,
+          capturedAt: context.now.toISOString(),
+        };
+      }
+      continue;
+    }
     // Ninja is the bulk estimate; a single exchange offer must cover expected consumption.
 
     for (const snapshot of materialEconomies) {

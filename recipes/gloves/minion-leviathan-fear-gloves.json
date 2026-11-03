@@ -1,0 +1,148 @@
+{
+  "base": {
+    "baseId": "Metadata/Items/Armours/Gloves/GlovesStr11",
+    "influences": [],
+    "itemLevel": 85,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": true,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "category": "gloves",
+  "notes": "Guide-family life/chaos/minion glove upgrade, author-compatible armour option and cheaper ES-base variant kept separate. Plain listing paste lost all modifiers in beta importer and is explicitly rejected; only advanced re-import is accepted. 34 and35 fractures are distinct valued inputs. No promise of planned20-22implicit, full armour/ES, character attribute/resistance caps, purchase completion or profit. Current official patch offers changed Fractured Fossils and new bench rerolls. Those are not needed by this ordinary-currency purchase route and are not silently claimed optimal.",
+  "craft": {
+    "id": "minion-leviathan-fear-gloves",
+    "name": "Minion Gloves · Fractured 34% Chaos Resistance",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-fear"
+    },
+    "startingMods": [
+      {
+        "modId": "mod:fractured-chaos-resistance",
+        "kind": "fractured",
+        "minimumValue": 34,
+        "maximumValue": 34
+      }
+    ],
+    "uncertainties": [
+      "Expected executions per completed item and full expected material/base consumption have not been independently reproduced for this exact recipe. Expected total and ROI must stay unavailable.",
+      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established."
+    ],
+    "steps": [
+      {
+        "id": "essence-fear",
+        "title": "Roll minion damage and life",
+        "action": "Buy the rare Leviathan Gauntlets with exactly 34% fractured Chaos Resistance; no free self-fracture is assumed. Repeat Deafening Essence of Fear.",
+        "continueWhen": "100+ life, essence minion damage and an open suffix compatible with crafted Strength.",
+        "failureAction": "Pay another Fear; fracture remains, other explicit modifiers and previous bench craft are lost. Do not Scour between direct essence rerolls.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-fear",
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "id": "craft-strength",
+        "title": "Craft Strength",
+        "action": "Bench craft 26–30 Strength for 2 Chaos.",
+        "continueWhen": "Crafted Strength at least 26.",
+        "failureAction": "If native Strength blocks the craft, reject/reroll the core; do not silently change the selected target.",
+        "materials": [
+          {
+            "itemId": "chaos-orb",
+            "quantity": 2
+          }
+        ]
+      },
+      {
+        "id": "eldritch-ember",
+        "title": "Roll minion implicit",
+        "action": "Use Lesser Eldritch Embers until unconditional Minions deal 14–16% increased Damage.",
+        "continueWhen": "Unconditional minion damage implicit at least 14%.",
+        "failureAction": "Repeat Embers. This is a Lesser implicit target, not the unverified 20–22% upgrade.",
+        "materials": [
+          {
+            "itemId": "lesser-eldritch-ember",
+            "quantity": 1
+          }
+        ]
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "Metadata/Items/Armours/Gloves/GlovesStr11",
+    "influences": [],
+    "itemLevel": 85,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": true,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "unverified",
+    "leagues": [],
+    "checkedAt": "2026-11-03",
+    "sources": ["https://beta.craftofexile.com/"],
+    "notes": "Source mechanics were reviewed on 2026-10-30 at the scope recorded in docs/evidence/research-acceptance-2026-11-03/final-recipes.json#spectre-fear-gloves. Current public Trade items/stats/static metadata checked on 2026-11-03. This checks mapping identities, not recipe success probability, live acquisition or profitability."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "minion-leviathan-fear-gloves",
+  "schemaVersion": 3,
+  "summary": "Minion Gloves · Fractured 34% Chaos Resistance. Scoped MAX-1288 procedure.",
+  "tags": ["research-2026-11-03", "max-1288"],
+  "targetSignature": "3.29.3.3:b1f8c70684c206114755b716e476a22c",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:life",
+        "minimumValue": 100
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "fractured",
+        "modId": "mod:fractured-chaos-resistance",
+        "minimumValue": 34,
+        "maximumValue": 34
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:minion-damage",
+        "minimumValue": 26
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:crafted-strength",
+        "minimumValue": 26
+      }
+    ],
+    "implicits": [
+      {
+        "excluded": false,
+        "kind": "implicit",
+        "modId": "mod:implicit-minion-damage",
+        "minimumValue": 14
+      }
+    ],
+    "other": []
+  },
+  "title": "Minion Gloves · Fractured 34% Chaos Resistance"
+}

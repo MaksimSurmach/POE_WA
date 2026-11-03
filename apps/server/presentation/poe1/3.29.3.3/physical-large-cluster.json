@@ -23,8 +23,8 @@
       "name": "Master the Fundamentals"
     },
     "jagged-fossil": {
-      "itemClass": "Fossil",
       "name": "Jagged Fossil",
+      "itemClass": "Currency",
       "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvSmFnZ2VkRm9zc2lsIiwic2NhbGUiOjF9XQ/ca9c17d7d9/JaggedFossil.png"
     },
     "primitive-chaotic-resonator": {
@@ -46,6 +46,227 @@
       "itemClass": "Currency",
       "name": "Orb of Transmutation",
       "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lVcGdyYWRlVG9NYWdpYyIsInNjYWxlIjoxfV0/ded9e8ee63/CurrencyUpgradeToMagic.png"
+    },
+    "Metadata/Items/Armours/Helmets/HelmetStrIntRitual3": {
+      "name": "Archdemon Crown",
+      "itemClass": "Helmet"
+    },
+    "Metadata/Items/Armours/Shields/ShieldStr17": {
+      "name": "Pinnacle Tower Shield",
+      "itemClass": "Shield"
+    },
+    "base:bone-helmet": {
+      "name": "Bone Helmet",
+      "itemClass": "Helmet"
+    },
+    "Metadata/Items/Armours/Shields/ShieldInt13": {
+      "name": "Fossilised Spirit Shield",
+      "itemClass": "Shield"
+    },
+    "Metadata/Items/Armours/Helmets/HelmetDex12": {
+      "name": "Grizzly Pelt",
+      "itemClass": "Helmet"
+    },
+    "Metadata/Items/Armours/Gloves/GlovesStr11": {
+      "name": "Leviathan Gauntlets",
+      "itemClass": "Gloves"
+    },
+    "Metadata/Items/Belts/BeltAbyss": {
+      "name": "Stygian Vise",
+      "itemClass": "Belt"
+    },
+    "base:dragonscale-gauntlets": {
+      "name": "Dragonscale Gauntlets",
+      "itemClass": "Gloves"
+    },
+    "base:slink-boots": {
+      "name": "Slink Boots",
+      "itemClass": "Boots"
+    },
+    "mod:life": {
+      "name": "Maximum Life",
+      "generationType": "prefix"
+    },
+    "mod:fire-resistance": {
+      "name": "Fire Resistance",
+      "generationType": "suffix"
+    },
+    "mod:cold-resistance": {
+      "name": "Cold Resistance",
+      "generationType": "suffix"
+    },
+    "mod:chaos-resistance": {
+      "name": "Chaos Resistance",
+      "generationType": "suffix"
+    },
+    "mod:fractured-chaos-resistance": {
+      "name": "Fractured Chaos Resistance",
+      "generationType": "suffix"
+    },
+    "mod:suppression": {
+      "name": "Chance to Suppress Spell Damage",
+      "generationType": "suffix"
+    },
+    "mod:fractured-suppression": {
+      "name": "Fractured Chance to Suppress Spell Damage",
+      "generationType": "suffix"
+    },
+    "mod:attack-speed": {
+      "name": "Increased Attack Speed",
+      "generationType": "suffix"
+    },
+    "mod:minion-damage": {
+      "name": "Increased Minion Damage",
+      "generationType": "suffix"
+    },
+    "mod:ailment-avoidance": {
+      "name": "Chance to Avoid Elemental Ailments",
+      "generationType": "suffix"
+    },
+    "mod:movement-speed": {
+      "name": "Increased Movement Speed",
+      "generationType": "prefix"
+    },
+    "mod:minion-gems": {
+      "name": "Level of all Minion Skill Gems",
+      "generationType": "prefix"
+    },
+    "mod:spell-gems": {
+      "name": "Level of all Spell Skill Gems",
+      "generationType": "prefix"
+    },
+    "mod:burning-support": {
+      "name": "Socketed Burning Damage Support Level",
+      "generationType": "suffix"
+    },
+    "mod:concentrated-support": {
+      "name": "Socketed Concentrated Effect Support Level",
+      "generationType": "prefix"
+    },
+    "mod:crafted-aoe-gems": {
+      "name": "Crafted Level of Socketed AoE Gems",
+      "generationType": "prefix"
+    },
+    "mod:crafted-aoe": {
+      "name": "Crafted Increased Area of Effect",
+      "generationType": "prefix"
+    },
+    "mod:crafted-fire-resistance": {
+      "name": "Crafted Fire Resistance",
+      "generationType": "suffix"
+    },
+    "mod:life-on-block": {
+      "name": "Life Recovered when you Block",
+      "generationType": "suffix"
+    },
+    "mod:implicit-minion-damage": {
+      "name": "Implicit Increased Minion Damage",
+      "generationType": "implicit"
+    },
+    "mod:implicit-life": {
+      "name": "Implicit Maximum Life",
+      "generationType": "implicit"
+    },
+    "mod:mana-efficiency": {
+      "name": "Implicit Increased Mana Cost Efficiency",
+      "generationType": "implicit"
+    },
+    "mod:physical-as-lightning": {
+      "name": "Implicit Physical Hit Damage taken as Lightning",
+      "generationType": "implicit"
+    },
+    "mod:crafted-strength": {
+      "name": "Crafted Strength",
+      "generationType": "suffix"
+    },
+    "deafening-essence-of-envy": {
+      "name": "Deafening Essence of Envy",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRXNzZW5jZS9FbnZ5NyIsInNjYWxlIjoxfV0/83c7610bca/Envy7.png"
+    },
+    "deafening-essence-of-fear": {
+      "name": "Deafening Essence of Fear",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRXNzZW5jZS9GZWFyNyIsInNjYWxlIjoxfV0/0b0dcd4320/Fear7.png"
+    },
+    "deafening-essence-of-greed": {
+      "name": "Deafening Essence of Greed",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRXNzZW5jZS9HcmVlZDciLCJzY2FsZSI6MX1d/9d7e9a3b11/Greed7.png"
+    },
+    "deafening-essence-of-loathing": {
+      "name": "Deafening Essence of Loathing",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRXNzZW5jZS9Mb2F0aGluZzciLCJzY2FsZSI6MX1d/67a47325e8/Loathing7.png"
+    },
+    "deafening-essence-of-zeal": {
+      "name": "Deafening Essence of Zeal",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRXNzZW5jZS9aZWFsNyIsInNjYWxlIjoxfV0/27ff3b63ea/Zeal7.png"
+    },
+    "lesser-eldritch-ember": {
+      "name": "Lesser Eldritch Ember",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ2xlYW5zaW5nRmlyZU9yYlJhbmsxIiwic2NhbGUiOjF9XQ/c7df0e0316/CleansingFireOrbRank1.png"
+    },
+    "lesser-eldritch-ichor": {
+      "name": "Lesser Eldritch Ichor",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvVGFuZ2xlT3JiUmFuazEiLCJzY2FsZSI6MX1d/70e5e53590/TangleOrbRank1.png"
+    },
+    "potent-chaotic-resonator": {
+      "name": "Potent Chaotic Resonator",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvUmVyb2xsMngxQSIsInNjYWxlIjoxfV0/bee1bcfe36/Reroll2x1A.png"
+    },
+    "prismatic-fossil": {
+      "name": "Prismatic Fossil",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvUHJpc21hdGljRm9zc2lsIiwic2NhbGUiOjF9XQ/af5347946f/PrismaticFossil.png"
+    },
+    "pristine-fossil": {
+      "name": "Pristine Fossil",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvUHJpc3RpbmVGb3NzaWwiLCJzY2FsZSI6MX1d/bc91a1b44b/PristineFossil.png"
+    },
+    "wild-crystallised-lifeforce": {
+      "name": "Wild Crystallised Lifeforce",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvSGFydmVzdC9XaWxkTGlmZWZvcmNlIiwic2NhbGUiOjF9XQ/e3d0b372b0/WildLifeforce.png"
+    },
+    "base:convoking-wand": {
+      "name": "Convoking Wand",
+      "itemClass": "Wand"
+    },
+    "corroded-fossil": {
+      "name": "Corroded Fossil",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvQ29ycm9kZWRGb3NzaWwiLCJzY2FsZSI6MX1d/7578bf6bab/CorrodedFossil.png"
+    },
+    "metallic-fossil": {
+      "name": "Metallic Fossil",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvTWV0YWxsaWNGb3NzaWwiLCJzY2FsZSI6MX1d/5a8a5bd1b1/MetallicFossil.png"
+    },
+    "prime-chaotic-resonator": {
+      "name": "Prime Chaotic Resonator",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvUmVyb2xsMngyQyIsInNjYWxlIjoxfV0/c624d45072/Reroll2x2C.png"
+    },
+    "shuddering-fossil": {
+      "name": "Shuddering Fossil",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvU2h1ZGRlcmluZ0Zvc3NpbCIsInNjYWxlIjoxfV0/ecd4122277/ShudderingFossil.png"
+    },
+    "chaos-orb": {
+      "name": "Chaos Orb",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lSZXJvbGxSYXJlIiwic2NhbGUiOjF9XQ/46a2347805/CurrencyRerollRare.png"
+    },
+    "orb-of-scouring": {
+      "name": "Orb of Scouring",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lDb252ZXJ0VG9Ob3JtYWwiLCJzY2FsZSI6MX1d/a0981d67fe/CurrencyConvertToNormal.png"
     }
   }
 }

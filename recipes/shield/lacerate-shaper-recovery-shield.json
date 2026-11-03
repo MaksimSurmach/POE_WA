@@ -1,0 +1,121 @@
+{
+  "base": {
+    "baseId": "Metadata/Items/Armours/Shields/ShieldStr17",
+    "influences": ["shaper"],
+    "itemLevel": 70,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "category": "shield",
+  "notes": "Guide-compatible early/intermediate Shaper life-on-block shield. Not the planned Synthesised endgame shield. No armour, suppression, resistance-cap or endgame Synthesised replacement claim. Shaper acquired-input market price not measured here.",
+  "craft": {
+    "id": "lacerate-shaper-recovery-shield",
+    "name": "Shaper Life-on-Block Shield · Greed",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-greed"
+    },
+    "startingMods": [],
+    "uncertainties": [
+      "Expected executions per completed item and full expected material/base consumption have not been independently reproduced for this exact recipe. Expected total and ROI must stay unavailable.",
+      "Comparable listings are asking prices, not completed sales. Whole-build fit and in-game execution are not established."
+    ],
+    "steps": [
+      {
+        "id": "essence-greed",
+        "title": "Roll life and recovery",
+        "action": "Use Deafening Essence of Greed on the acquired rare Shaper Pinnacle Tower Shield.",
+        "continueWhen": "130+ explicit life, 4–5% life recovered on block and one open suffix.",
+        "failureAction": "Reject 3% recovery or full suffixes; pay another essence and reroll on the same base. No Scouring is needed for direct essence rerolls.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-greed",
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "id": "craft-fire-resistance",
+        "title": "Craft resistance",
+        "action": "Bench craft 29–35% Fire Resistance into the open suffix.",
+        "continueWhen": "130+ explicit life, recovery at least 4%, crafted Fire Resistance at least 29%.",
+        "failureAction": "Reject a core with an incompatible existing fire-resistance modifier; return to paid Greed rerolls.",
+        "materials": [
+          {
+            "itemId": "chaos-orb",
+            "quantity": 3
+          }
+        ]
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "Metadata/Items/Armours/Shields/ShieldStr17",
+    "influences": ["shaper"],
+    "itemLevel": 70,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "unverified",
+    "leagues": [],
+    "checkedAt": "2026-11-03",
+    "sources": ["https://beta.craftofexile.com/"],
+    "notes": "Source mechanics were reviewed on 2026-10-30 at the scope recorded in docs/evidence/research-acceptance-2026-11-03/final-recipes.json#lacerate-block-shield. Current public Trade items/stats/static metadata checked on 2026-11-03. This checks mapping identities, not recipe success probability, live acquisition or profitability."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "lacerate-shaper-recovery-shield",
+  "schemaVersion": 3,
+  "summary": "Shaper Life-on-Block Shield · Greed. Scoped MAX-1288 procedure.",
+  "tags": ["research-2026-11-03", "max-1288"],
+  "targetSignature": "3.29.3.3:6041b26de80ff0293263a998195386e8",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:life",
+        "minimumValue": 130
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:life-on-block",
+        "minimumValue": 4
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:crafted-fire-resistance",
+        "minimumValue": 29
+      }
+    ],
+    "implicits": [
+      {
+        "excluded": false,
+        "kind": "implicit",
+        "modId": "mod:implicit-life",
+        "minimumValue": 20
+      }
+    ],
+    "other": []
+  },
+  "title": "Shaper Life-on-Block Shield · Greed"
+}

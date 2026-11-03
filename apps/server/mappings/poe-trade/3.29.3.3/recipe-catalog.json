@@ -1,0 +1,320 @@
+{
+  "gameDataVersion": "3.29.3.3",
+  "mappingVersion": "poe-trade-2026-11-03.recipe-catalog.1",
+  "mappings": [
+    {
+      "entityKind": "base",
+      "canonicalId": "Metadata/Items/Armours/Helmets/HelmetStrIntRitual3",
+      "externalId": "Archdemon Crown"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "Metadata/Items/Armours/Shields/ShieldStr17",
+      "externalId": "Pinnacle Tower Shield"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:bone-helmet",
+      "externalId": "Bone Helmet"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "Metadata/Items/Armours/Shields/ShieldInt13",
+      "externalId": "Fossilised Spirit Shield"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "Metadata/Items/Armours/Helmets/HelmetDex12",
+      "externalId": "Grizzly Pelt"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "Metadata/Items/Armours/Gloves/GlovesStr11",
+      "externalId": "Leviathan Gauntlets"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:convoking-wand",
+      "externalId": "Convoking Wand"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "Metadata/Items/Belts/BeltAbyss",
+      "externalId": "Stygian Vise"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:dragonscale-gauntlets",
+      "externalId": "Dragonscale Gauntlets"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:slink-boots",
+      "externalId": "Slink Boots"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:life",
+      "externalId": "explicit.stat_3299347043"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:fire-resistance",
+      "externalId": "explicit.stat_3372524247"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:cold-resistance",
+      "externalId": "explicit.stat_4220027924"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:chaos-resistance",
+      "externalId": "explicit.stat_2923486259"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:fractured-chaos-resistance",
+      "externalId": "fractured.stat_2923486259"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:suppression",
+      "externalId": "explicit.stat_3680664274"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:fractured-suppression",
+      "externalId": "fractured.stat_3680664274"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:attack-speed",
+      "externalId": "explicit.stat_681332047"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:minion-damage",
+      "externalId": "explicit.stat_1589917703"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:ailment-avoidance",
+      "externalId": "explicit.stat_3005472710"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:movement-speed",
+      "externalId": "explicit.stat_2250533757"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:minion-gems",
+      "externalId": "explicit.stat_2162097452"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:spell-gems",
+      "externalId": "explicit.stat_124131830"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:burning-support",
+      "externalId": "explicit.stat_2680613507"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:concentrated-support",
+      "externalId": "explicit.stat_2388360415"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:crafted-aoe-gems",
+      "externalId": "crafted.stat_2551600084"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:crafted-aoe",
+      "externalId": "crafted.stat_280731498"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:crafted-fire-resistance",
+      "externalId": "crafted.stat_3372524247"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:life-on-block",
+      "externalId": "explicit.stat_2442647190"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:implicit-minion-damage",
+      "externalId": "implicit.stat_1589917703"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:implicit-life",
+      "externalId": "implicit.stat_3299347043"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:mana-efficiency",
+      "externalId": "implicit.stat_4101445926"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:physical-as-lightning",
+      "externalId": "implicit.stat_425242359"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:crafted-strength",
+      "externalId": "crafted.stat_4080418644"
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "chaos-orb",
+      "externalId": "Chaos Orb",
+      "payload": {
+        "exchangeId": "chaos"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "corroded-fossil",
+      "externalId": "Corroded Fossil",
+      "payload": {
+        "exchangeId": "corroded-fossil"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "deafening-essence-of-envy",
+      "externalId": "Deafening Essence of Envy",
+      "payload": {
+        "exchangeId": "deafening-essence-of-envy"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "deafening-essence-of-fear",
+      "externalId": "Deafening Essence of Fear",
+      "payload": {
+        "exchangeId": "deafening-essence-of-fear"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "deafening-essence-of-greed",
+      "externalId": "Deafening Essence of Greed",
+      "payload": {
+        "exchangeId": "deafening-essence-of-greed"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "deafening-essence-of-loathing",
+      "externalId": "Deafening Essence of Loathing",
+      "payload": {
+        "exchangeId": "deafening-essence-of-loathing"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "deafening-essence-of-zeal",
+      "externalId": "Deafening Essence of Zeal",
+      "payload": {
+        "exchangeId": "deafening-essence-of-zeal"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "jagged-fossil",
+      "externalId": "Jagged Fossil",
+      "payload": {
+        "exchangeId": "jagged-fossil"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "lesser-eldritch-ember",
+      "externalId": "Lesser Eldritch Ember",
+      "payload": {
+        "exchangeId": "lesser-eldritch-ember"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "lesser-eldritch-ichor",
+      "externalId": "Lesser Eldritch Ichor",
+      "payload": {
+        "exchangeId": "lesser-eldritch-ichor"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "metallic-fossil",
+      "externalId": "Metallic Fossil",
+      "payload": {
+        "exchangeId": "metallic-fossil"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "orb-of-scouring",
+      "externalId": "Orb of Scouring",
+      "payload": {
+        "exchangeId": "scour"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "potent-chaotic-resonator",
+      "externalId": "Potent Chaotic Resonator",
+      "payload": {
+        "exchangeId": "potent-chaotic-resonator"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "prime-chaotic-resonator",
+      "externalId": "Prime Chaotic Resonator",
+      "payload": {
+        "exchangeId": "prime-chaotic-resonator"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "prismatic-fossil",
+      "externalId": "Prismatic Fossil",
+      "payload": {
+        "exchangeId": "prismatic-fossil"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "pristine-fossil",
+      "externalId": "Pristine Fossil",
+      "payload": {
+        "exchangeId": "pristine-fossil"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "shuddering-fossil",
+      "externalId": "Shuddering Fossil",
+      "payload": {
+        "exchangeId": "shuddering-fossil"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "wild-crystallised-lifeforce",
+      "externalId": "Wild Crystallised Lifeforce",
+      "payload": {
+        "exchangeId": "wild-lifeforce"
+      }
+    }
+  ]
+}
