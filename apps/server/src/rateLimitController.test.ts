@@ -9,6 +9,74 @@ import {
 const start = new Date('2026-07-20T00:00:00.000Z');
 
 describe('GGG rate-limit controller', () => {
+  it('does not import ordinary generic pacing or a named search cooldown into exchange', async () => {
+    const repository = createInMemoryRepositories().rateLimits;
+    const old = new GggRateLimitController({ repository, clock: () => start });
+    await old.observeResponse('trade-search', {
+      status: 200,
+      headers: new Headers(),
+    });
+    expect(
+      (await repository.list())
+        .find((s) => s.policy === 'poe-trade')
+        ?.nextRequestAt.getTime(),
+    ).toBeGreaterThan(start.getTime());
+    await old.observeResponse('trade-search', {
+      status: 429,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'trade-search-request-limit',
+        'Retry-After': '120',
+      }),
+    });
+    let now = start;
+    const gate = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      sleep: async (ms) => {
+        now = new Date(now.getTime() + ms);
+      },
+    });
+    await gate.waitForPermit('trade-exchange');
+    expect(now).toEqual(start);
+  });
+
+  it.each([
+    [429, false],
+    [429, true],
+    [503, false],
+    [503, true],
+  ] as const)(
+    'preserves generic Retry-After before first exchange permit: status=%s orphan=%s',
+    async (status, orphaned) => {
+      const repository = createInMemoryRepositories().rateLimits;
+      let now = start;
+      const old = new GggRateLimitController({ repository, clock: () => now });
+      await old.observeResponse('trade-search', {
+        status,
+        headers: new Headers({ 'Retry-After': '120' }),
+      });
+      if (orphaned)
+        await old.observeResponse('trade-search', {
+          status: 200,
+          headers: new Headers({
+            'X-Rate-Limit-Policy': 'trade-search-request-limit',
+            'X-Rate-Limit-Rules': 'client',
+            'X-Rate-Limit-Client': '10:1:1',
+            'X-Rate-Limit-Client-State': '0:1:0',
+          }),
+        });
+      const gate = new GggRateLimitController({
+        repository,
+        clock: () => now,
+        sleep: async (ms) => {
+          now = new Date(now.getTime() + ms);
+        },
+      });
+      await gate.waitForPermit('trade-exchange');
+      expect(now.getTime() - start.getTime()).toBe(120_000);
+    },
+  );
+
   it.each([
     ['trade-search', 'trade-exchange'],
     ['trade-exchange', 'trade-search'],
