@@ -146,3 +146,4 @@ vite.config.ts.timestamp-*
 # Browser test artifacts
 playwright-report/
 output/playwright/test-results/
+output/master-e2e/

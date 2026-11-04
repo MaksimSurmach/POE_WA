@@ -60,7 +60,46 @@ async function capture(command, commandArgs, options = {}) {
   });
 }
 
+function assertWorkerHeartbeat(result) {
+  assert(result === 't', 'catalog worker heartbeat is missing or stale');
+}
+
+async function waitForWorkerHeartbeat(compose, env) {
+  const deadline = Date.now() + 60_000;
+  while (Date.now() < deadline) {
+    const heartbeat = await capture(
+      'docker',
+      [
+        ...compose,
+        'exec',
+        '-T',
+        'postgres',
+        'psql',
+        '-At',
+        '-U',
+        'e2e',
+        '-d',
+        'poe_worksmith_e2e',
+        '-c',
+        "select exists(select 1 from market_worker_health where id='catalog' and heartbeat_at > now() - interval '20 seconds')",
+      ],
+      { env },
+    ).catch(() => '');
+    if (heartbeat === 't') return;
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  assertWorkerHeartbeat('f');
+}
+
 async function selfCheck() {
+  assertWorkerHeartbeat('t');
+  try {
+    assertWorkerHeartbeat('f');
+    throw new Error('heartbeat check accepted a stale worker');
+  } catch (error) {
+    if (error.message === 'heartbeat check accepted a stale worker')
+      throw error;
+  }
   validateOwnership(
     {
       'com.poe-worksmith.e2e.owner': 'master-e2e',
@@ -114,6 +153,13 @@ async function selfCheck() {
 
 if (args.includes('--self-check')) await selfCheck();
 else {
+  const output = path.resolve('output/master-e2e');
+  const verdictPath = path.join(output, 'verdict.txt');
+  const composeLogPath = path.join(output, 'compose.log');
+  await mkdir(output, { recursive: true });
+  await rm(verdictPath, { force: true });
+  await rm(composeLogPath, { force: true });
+  await writeFile(verdictPath, 'FAIL: run did not complete successfully\n');
   const manifestPath = arg('--manifest');
   assert(manifestPath, 'usage: pnpm test:e2e:master -- --manifest <path>');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
@@ -144,13 +190,13 @@ else {
     checkoutSha === manifest.sha,
     'harness checkout does not match built image SHA',
   );
-  if (process.env.GITHUB_RUN_ID) {
+  if (process.env.MASTER_BUILD_RUN_ID) {
     assert(
-      manifest.buildRunId === process.env.GITHUB_RUN_ID,
+      manifest.buildRunId === process.env.MASTER_BUILD_RUN_ID,
       'build run ID mismatch',
     );
     assert(
-      manifest.buildAttempt === process.env.GITHUB_RUN_ATTEMPT,
+      manifest.buildAttempt === process.env.MASTER_BUILD_ATTEMPT,
       'build attempt mismatch',
     );
   }
@@ -188,8 +234,9 @@ else {
     assert(imageId === image.imageId, `${kind} image ID mismatch`);
   }
 
-  const runId = process.env.GITHUB_RUN_ID ?? `local-${process.pid}`;
-  const attempt = process.env.GITHUB_RUN_ATTEMPT ?? '1';
+  const runId = process.env.MASTER_BUILD_RUN_ID ?? `local-${process.pid}`;
+  const attempt = process.env.MASTER_BUILD_ATTEMPT ?? '1';
+  const e2ePort = process.env.E2E_PORT || '18080';
   const project = `mi2e0-${runId}-${attempt}`
     .toLowerCase()
     .replace(/[^a-z0-9_-]/g, '-');
@@ -198,12 +245,11 @@ else {
     E2E_PROJECT: project,
     E2E_RUN: runId,
     E2E_ATTEMPT: attempt,
+    E2E_PORT: e2ePort,
     SERVER_IMAGE: manifest.images.server.tag,
     WEB_IMAGE: manifest.images.web.tag,
   };
   const compose = ['compose', '-f', 'compose.e2e.yaml', '-p', project];
-  const output = path.resolve('output/master-e2e');
-  await mkdir(output, { recursive: true });
   const expectedOwner = { run: runId, attempt };
   const existing = async (commandArgs) => {
     const names = (
@@ -267,6 +313,7 @@ else {
       );
     }
   }
+  let passVerdict;
   try {
     await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
     await run(
@@ -312,23 +359,7 @@ else {
       ],
       { env },
     );
-    await run(
-      'docker',
-      [
-        ...compose,
-        'exec',
-        '-T',
-        'postgres',
-        'psql',
-        '-U',
-        'e2e',
-        '-d',
-        'poe_worksmith_e2e',
-        '-c',
-        "select 1 from market_worker_health where id='catalog' and heartbeat_at > now() - interval '30 seconds'",
-      ],
-      { env },
-    );
+    await waitForWorkerHeartbeat(compose, env);
     const sideEffects =
       "select (select count(*) from market_admin_runs)::text || ':' || (select count(*) from market_admin_audit)::text || ':' || (select count(*) from jobs)::text";
     const beforeDeniedMutation = await capture(
@@ -358,7 +389,7 @@ else {
         'migrate',
         'node',
         '-e',
-        "fetch('http://app:3000/api/admin/market/pause',{method:'POST',headers:{host:'app:3000',origin:'http://app:3000','content-type':'application/json'},body:'{}'}).then(async r=>{const body=await r.json();if(r.status!==401||body.error?.code!=='OPERATOR_AUTH_REQUIRED'){console.error(JSON.stringify({status:r.status,body}));process.exit(1)}})",
+        "fetch('http://web:8080/api/admin/market/pause',{method:'POST',headers:{host:'web:8080',origin:'http://web:8080','content-type':'application/json'},body:'{}'}).then(async r=>{const body=await r.json();if(r.status!==401||body.error?.code!=='OPERATOR_AUTH_REQUIRED'){console.error(JSON.stringify({status:r.status,body}));process.exit(1)}})",
       ],
       { env },
     );
@@ -387,29 +418,51 @@ else {
     await run(
       'pnpm',
       ['exec', 'playwright', 'test', '-c', 'playwright.master.config.ts'],
-      { env: { ...env, MASTER_E2E_BASE_URL: 'http://127.0.0.1:18080' } },
+      {
+        env: {
+          ...env,
+          MASTER_E2E_BASE_URL: `http://127.0.0.1:${e2ePort}`,
+        },
+      },
     );
-    await writeFile(
-      path.join(output, 'verdict.txt'),
-      `PASS candidate=${manifest.sha} server=${manifest.images.server.imageId} web=${manifest.images.web.imageId}\n`,
-    );
-  } catch (error) {
-    const logs = await capture('docker', [...compose, 'logs', '--no-color'], {
+    const recipeCountArgs = [
+      ...compose,
+      'exec',
+      '-T',
+      'postgres',
+      'psql',
+      '-At',
+      '-U',
+      'e2e',
+      '-d',
+      'poe_worksmith_e2e',
+      '-c',
+      'select count(*) from recipes',
+    ];
+    const recipeCount = await capture('docker', recipeCountArgs, { env });
+    assert(Number(recipeCount) > 0, 'recipe catalog is empty before restart');
+    await run('docker', [...compose, 'restart', 'app'], { env });
+    await run('docker', [...compose, 'up', '-d', '--wait', 'app'], { env });
+    await waitForWorkerHeartbeat(compose, env);
+    const restartedRecipeCount = await capture('docker', recipeCountArgs, {
       env,
-    }).catch(() => 'Unable to retrieve compose logs.');
-    await writeFile(path.join(output, 'compose.log'), logs);
+    });
+    assert(
+      restartedRecipeCount === recipeCount,
+      'recipe catalog changed after app restart',
+    );
+    passVerdict = `PASS candidate=${manifest.sha} server=${manifest.images.server.imageId} web=${manifest.images.web.imageId}\n`;
+  } catch (error) {
     await writeFile(
       path.join(output, 'verdict.txt'),
       `FAIL candidate=${manifest.sha}\n${error.stack ?? error}\n`,
     );
     throw error;
   } finally {
-    if (!(await readFile(path.join(output, 'compose.log')).catch(() => null))) {
-      const logs = await capture('docker', [...compose, 'logs', '--no-color'], {
-        env,
-      }).catch(() => 'Unable to retrieve compose logs.');
-      await writeFile(path.join(output, 'compose.log'), logs);
-    }
+    const logs = await capture('docker', [...compose, 'logs', '--no-color'], {
+      env,
+    }).catch(() => 'Unable to retrieve compose logs.');
+    await writeFile(composeLogPath, logs);
     const ids = (
       await capture('docker', [...compose, 'ps', '-aq'], { env }).catch(
         () => '',
@@ -477,11 +530,12 @@ else {
       );
       validateOwnership(JSON.parse(raw), expectedOwner);
     }
-    if (ids.length || volumes.length)
+    if (ids.length || volumes.length || networks.length)
       await run(
         'docker',
         [...compose, 'down', '--volumes', '--remove-orphans'],
         { env },
       );
   }
+  await writeFile(verdictPath, passVerdict);
 }

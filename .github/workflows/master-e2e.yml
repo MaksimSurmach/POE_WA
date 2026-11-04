@@ -42,7 +42,8 @@ jobs:
               throw new Error('Upstream run is not a successful Master Build on master in this repository');
             }
             const expectedAttempt = context.eventName === 'workflow_run'
-              ? run.run_attempt : Number(context.payload.inputs.build_attempt || run.run_attempt);
+              ? context.payload.workflow_run.run_attempt
+              : Number(context.payload.inputs.build_attempt || run.run_attempt);
             if (expectedAttempt !== run.run_attempt) throw new Error('Build attempt mismatch');
             core.setOutput('run_id', String(run.id));
             core.setOutput('attempt', String(run.run_attempt));
@@ -67,8 +68,8 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Run exact artifact smoke
         env:
-          GITHUB_RUN_ID: ${{ steps.build.outputs.run_id }}
-          GITHUB_RUN_ATTEMPT: ${{ steps.build.outputs.attempt }}
+          MASTER_BUILD_RUN_ID: ${{ steps.build.outputs.run_id }}
+          MASTER_BUILD_ATTEMPT: ${{ steps.build.outputs.attempt }}
         run: pnpm test:e2e:master -- --manifest artifacts/manifest.json
       - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
