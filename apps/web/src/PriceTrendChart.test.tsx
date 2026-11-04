@@ -87,6 +87,21 @@ const count = (html: string, pattern: RegExp) =>
   html.match(new RegExp(pattern, 'g'))?.length ?? 0;
 
 describe('price trend chart', () => {
+  it('labels a historical craft estimate with its own observation time', () => {
+    const summary = trend([bucket(10, 100)]).summary!;
+    const html = renderToStaticMarkup(
+      <TrendFacts
+        summary={{
+          ...summary,
+          latestCraftCost: 42,
+          latestCraftCostObservedAt: iso(2),
+        }}
+      />,
+    );
+    expect(html).toContain('Recorded craft cost');
+    expect(html).toContain(iso(2));
+  });
+
   it('splits runs at missing buckets', () => {
     const runs = contiguousRuns(
       [bucket(1, 1), bucket(2, 2), bucket(5, 3), bucket(6, 4), bucket(9, 5)],
@@ -161,7 +176,7 @@ describe('price trend chart', () => {
     );
     expect(count(html, /trend-chart__point--thin/)).toBe(1);
     expect(count(html, /class="trend-chart__cost"/)).toBe(1);
-    expect(html).toContain('Expected craft cost');
+    expect(html).toContain('Recorded craft cost');
   });
 
   it('explains empty and old history without drawing a chart', () => {

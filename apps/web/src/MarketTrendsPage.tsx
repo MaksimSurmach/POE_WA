@@ -4,6 +4,7 @@ import type {
   TrendOverviewResponse,
   TrendRange,
 } from '@poe-worksmith/contracts';
+import { trendRangeSchema } from '@poe-worksmith/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
@@ -20,7 +21,7 @@ import './marketTrends.css';
 
 const apiClient = createApiClient();
 
-export const trendRanges: readonly TrendRange[] = ['24h', '7d', '30d', '1y'];
+export const trendRanges = trendRangeSchema.options;
 const rangeLabels: Record<TrendRange, string> = {
   '24h': '24 hours',
   '7d': '7 days',
@@ -142,7 +143,10 @@ export function RecipeTrendPanel({
       active = false;
     };
   }, [recipeId, range]);
-  const trend = response?.data;
+  const trend =
+    response?.data.recipeId === recipeId && response.data.range === range
+      ? response.data
+      : undefined;
   return (
     <div className="trend-panel" aria-busy={!trend && !failed}>
       {onRangeChange ? (
@@ -154,12 +158,15 @@ export function RecipeTrendPanel({
         <StatusPanel tone="info" title="Loading price history" />
       ) : (
         <>
-          <TrendFacts summary={trend.summary} />
           <PriceTrendChart trend={trend} />
-          <p className="trend-panel__summary">{describeTrend(trend)}</p>
+          <TrendFacts summary={trend.summary} />
+          {trend.summary && trend.buckets.length > 0 ? (
+            <p className="trend-panel__summary">{describeTrend(trend)}</p>
+          ) : null}
           <p className="trend-panel__note">
             Cheapest comparable asking prices from saved observations, not
-            confirmed sales. Traded volume is unknown.
+            confirmed sales. Converted prices also move with exchange rates.
+            Traded volume is unknown.
           </p>
         </>
       )}
@@ -239,7 +246,7 @@ export function MarketTrendsPage() {
     };
   }, [range]);
 
-  const overview = response?.data;
+  const overview = response?.data.range === range ? response.data : undefined;
   const rows = useMemo(
     () =>
       sortTrendEntries(
@@ -283,6 +290,66 @@ export function MarketTrendsPage() {
         </div>
       </header>
 
+      <section
+        aria-label="Market trend controls"
+        className="handbook-controls trend-controls"
+      >
+        <label className="catalog-search">
+          <span className="visually-hidden">Search recipes</span>
+          <input
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search recipes…"
+            type="search"
+            value={search}
+          />
+        </label>
+        <label>
+          Sort{' '}
+          <select
+            onChange={(event) => setSort(event.target.value as TrendSort)}
+            value={sort}
+          >
+            <option value="change">Price change</option>
+            <option value="ask">Latest ask (per currency)</option>
+            <option value="recent">Last observed</option>
+            <option value="title">Recipe</option>
+          </select>
+        </label>
+        <RangeControls
+          range={range}
+          onChange={(value) => update({ range: value })}
+        />
+        <label className="market-trends__picker">
+          <span>Recipe</span>
+          <select
+            aria-label="Choose recipe"
+            disabled={!rows.length}
+            value={selectedId ?? ''}
+            onChange={(event) => update({ recipe: event.target.value })}
+          >
+            <option disabled value="">
+              Select a recipe
+            </option>
+            {selectedId &&
+            !rows.some((entry) => entry.recipeId === selectedId) ? (
+              <option value={selectedId}>
+                {overview?.entries.find(
+                  (entry) => entry.recipeId === selectedId,
+                )?.title ?? selectedId}
+              </option>
+            ) : null}
+            {rows.map((entry) => (
+              <option key={entry.recipeId} value={entry.recipeId}>
+                {entry.title}
+              </option>
+            ))}
+          </select>
+          {search && !rows.length ? (
+            <small role="status">No recipes match this search.</small>
+          ) : null}
+        </label>
+      </section>
+
       {failed ? (
         <StatusPanel tone="danger" title="Market trends unavailable">
           Price history could not be loaded. Try again when the service is
@@ -296,36 +363,6 @@ export function MarketTrendsPage() {
         </StatusPanel>
       ) : (
         <>
-          <section
-            aria-label="Market trend controls"
-            className="handbook-controls trend-controls"
-          >
-            <label className="catalog-search">
-              <span className="visually-hidden">Search recipes</span>
-              <input
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search recipes…"
-                type="search"
-                value={search}
-              />
-            </label>
-            <label>
-              Sort{' '}
-              <select
-                onChange={(event) => setSort(event.target.value as TrendSort)}
-                value={sort}
-              >
-                <option value="change">Price change</option>
-                <option value="ask">Latest ask (per currency)</option>
-                <option value="recent">Last observed</option>
-                <option value="title">Recipe</option>
-              </select>
-            </label>
-            <RangeControls
-              range={range}
-              onChange={(value) => update({ range: value })}
-            />
-          </section>
           {overview.state === 'empty' ? (
             <p className="handbook-empty">
               No price history yet. Observations are saved when prices refresh.

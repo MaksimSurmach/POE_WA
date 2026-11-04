@@ -8,7 +8,7 @@
 .market-trends__layout {
   display: grid;
   grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.6fr);
-  gap: 14px;
+  gap: 16px;
   align-items: start;
 }
 
@@ -25,19 +25,17 @@
   margin: 4px 0 6px;
   color: var(--muted);
   font-size: 0.76rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .trend-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 2px 12px;
+  gap: 4px 12px;
   width: 100%;
-  padding: 8px 10px;
+  padding: 8px 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
@@ -51,7 +49,7 @@
 
 .trend-row__title {
   overflow: hidden;
-  font-weight: 650;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -72,17 +70,37 @@
 }
 
 .market-trends__detail {
+  position: sticky;
+  top: 16px;
   min-width: 0;
+  padding: 16px;
 }
 
-.market-trends__detail > h2 {
-  margin-bottom: 2px;
+.market-trends .market-trends__detail > h2 {
+  margin: 0 0 12px;
+  padding: 0 0 12px;
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.market-trends__picker {
+  display: none;
+  min-width: 0;
+  gap: 4px;
+}
+
+.market-trends__picker select {
+  width: 100%;
+  min-width: 0;
 }
 
 .trend-panel {
   display: grid;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .trend-panel__summary,
@@ -97,7 +115,7 @@
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 8px 16px;
   margin: 0;
-  padding: 9px 12px;
+  padding: 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface);
@@ -111,7 +129,15 @@
 .trend-facts dd {
   margin: 2px 0 0;
   font-size: 0.86rem;
-  font-weight: 650;
+  font-weight: 600;
+}
+
+.trend-facts__time {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 400;
 }
 
 .trend-chart {
@@ -256,11 +282,32 @@
   .trend-controls {
     grid-template-columns: 1fr;
   }
+
+  .market-trends__picker {
+    display: grid;
+  }
+
+  .market-trends__list {
+    display: none;
+  }
+
+  .market-trends__detail {
+    position: static;
+  }
+
+  .trend-chart__axis text {
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 420px) {
-  .app-header__inner {
+  .app-header .app-header__inner {
     flex-wrap: wrap;
+    gap: 0 12px;
+  }
+
+  .app-header .brand {
+    font-size: 1rem;
   }
 
   .app-header nav.app-nav .nav-link {

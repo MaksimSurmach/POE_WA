@@ -486,8 +486,8 @@ async function evaluateFreshRecipe(
     undefined,
     maximumQuoteAgeMs,
   );
-  const currency = output?.aggregation.sampleSize
-    ? output?.aggregation.currency
+  const currency = output.aggregation.sampleSize
+    ? output.aggregation.currency
     : (base?.aggregation.currency ?? 'chaos');
   const conversionEvidence = new Map<
     string,
@@ -506,7 +506,7 @@ async function evaluateFreshRecipe(
       return price;
     }
     if (!currencyExchange || !['chaos', 'divine'].includes(currency))
-      return price.currency === currency ? price : null;
+      return null;
     const converted = await convertMarketQuote({
       money: price,
       currency: currency as 'chaos' | 'divine',
@@ -637,7 +637,7 @@ async function evaluateFreshRecipe(
     ) &&
     definition.craft.baseConsumption?.evidence.patch === definition.patch;
   const salePrice = outputEstimate?.amount ?? null;
-  const comparableSellers = output?.aggregation.sampleSize ?? 0;
+  const comparableSellers = output.aggregation.sampleSize;
   // A lone seller's ask is not a competitive price; show it, but derive no profit from it.
   const saleEvidence = {
     comparableSellers,
@@ -687,30 +687,27 @@ async function evaluateFreshRecipe(
     oldestInputAt: new Date(Math.min(...inputTimes)).toISOString(),
     expiresAt: new Date(
       Math.min(
-        output?.snapshotExpiresAt.getTime() ?? Infinity,
+        output.snapshotExpiresAt.getTime(),
         base?.snapshotExpiresAt.getTime() ?? Infinity,
         ...usedTradeMaterials.map((m) => m.expiresAt?.getTime() ?? Infinity),
         ...inputTimes.map((at) => at + maximumQuoteAgeMs),
       ),
     ).toISOString(),
-    source: output
-      ? {
-          capturedAt: output.snapshotCapturedAt.toISOString(),
-          sampleSize: output.aggregation.sampleSize,
-          priceBasis: 'asking',
-          coverage: output.coverage,
-          sortedPageComplete: output.sortedPageComplete,
-          sortedSampleComplete: output.sortedSampleComplete,
-          currencyAvailable: output.currencyAvailable,
-        }
-      : null,
-    marketStatus: output
-      ? output.coverage !== 'complete'
+    source: {
+      capturedAt: output.snapshotCapturedAt.toISOString(),
+      sampleSize: output.aggregation.sampleSize,
+      priceBasis: 'asking',
+      coverage: output.coverage,
+      sortedPageComplete: output.sortedPageComplete,
+      sortedSampleComplete: output.sortedSampleComplete,
+      currencyAvailable: output.currencyAvailable,
+    },
+    marketStatus:
+      output.coverage !== 'complete'
         ? 'partial'
         : output.aggregation.sampleSize
           ? 'priced'
-          : 'empty'
-      : 'unavailable',
+          : 'empty',
     ...(salePrice === null ? {} : { saleEvidence }),
     materialEvidence,
     baseCost: basePrice,
@@ -723,20 +720,18 @@ async function evaluateFreshRecipe(
         ? null
         : { amount: expectedCraftCost, currency },
   };
-  const observations = output
-    ? await context.repositories.observations.listRecent(
-        output.marketQueryId,
-        context.leagueId,
-        new Date(0),
-      )
-    : [];
+  const observations = await context.repositories.observations.listRecent(
+    output.marketQueryId,
+    context.leagueId,
+    new Date(0),
+  );
   const observation = observations.find(
     ({ observedAt }) =>
-      observedAt.getTime() === output?.snapshotCapturedAt.getTime(),
+      observedAt.getTime() === output.snapshotCapturedAt.getTime(),
   );
   return {
     confidence:
-      output?.coverage === 'complete' && !base?.sortedSampleComplete
+      output.coverage === 'complete' && !base?.sortedSampleComplete
         ? confidence(output.aggregation.sampleSize)
         : 'low',
     currency,
@@ -745,7 +740,7 @@ async function evaluateFreshRecipe(
     marginPercent: comparison.marginPercent,
     observationId: observation?.id ?? null,
     profit: comparison.profit,
-    sourceSnapshotDedupeKey: output?.snapshotDedupeKey ?? null,
+    sourceSnapshotDedupeKey: output.snapshotDedupeKey,
     status:
       salePrice === null ||
       expectedCraftCost === null ||

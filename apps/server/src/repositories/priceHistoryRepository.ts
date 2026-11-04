@@ -1,4 +1,5 @@
 import type { Pool, PoolClient } from 'pg';
+import type { TrendRange } from '@poe-worksmith/contracts';
 
 /**
  * Compact recipe price history.
@@ -20,7 +21,7 @@ export const priceHistoryRetention = {
   futureSkewMinutes: 5,
 } as const;
 
-export type PriceHistoryRange = '24h' | '7d' | '30d' | '1y';
+export type PriceHistoryRange = TrendRange;
 
 const hourMs = 3_600_000;
 const dayMs = 24 * hourMs;
@@ -357,14 +358,19 @@ export function createPriceHistoryRepository(
           [...params, window.start, window.end, includeDaily],
         ),
       ]);
+      const costsBySeries = new Map(
+        costs.rows.map((row) => [`${row.recipe_id}\0${row.currency}`, row]),
+      );
+      const statsByRecipe = new Map<string, typeof stats.rows>();
+      for (const row of stats.rows) {
+        const group = statsByRecipe.get(row.recipe_id);
+        if (group) group.push(row);
+        else statsByRecipe.set(row.recipe_id, [row]);
+      }
       const summaries = new Map<string, PriceHistorySummary>();
       for (const row of latest.rows) {
-        const cost = costs.rows.find(
-          (c) => c.recipe_id === row.recipe_id && c.currency === row.currency,
-        );
-        const windowRows = stats.rows.filter(
-          (s) => s.recipe_id === row.recipe_id,
-        );
+        const cost = costsBySeries.get(`${row.recipe_id}\0${row.currency}`);
+        const windowRows = statsByRecipe.get(row.recipe_id) ?? [];
         const current = windowRows.find((s) => s.currency === row.currency);
         summaries.set(row.recipe_id, {
           latest: {

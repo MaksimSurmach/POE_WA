@@ -4,14 +4,12 @@ import type {
   TrendBucket,
   TrendSummary,
 } from '@poe-worksmith/contracts';
-import { useId } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 import { Money, economicClass } from './components.js';
 
-const width = 640;
 const height = 220;
 const pad = { top: 14, right: 14, bottom: 26, left: 64 };
-const plotWidth = width - pad.left - pad.right;
 const plotHeight = height - pad.top - pad.bottom;
 
 const amountFormat = new Intl.NumberFormat('en-US', {
@@ -83,7 +81,8 @@ export function describeTrend(trend: RecipeTrend) {
   return `${observed} Ask moved from ${formatAmount(change.from, summary.currency)} to ${formatAmount(change.to, summary.currency)}${change.percent === null ? '' : ` (${formatPercent(change.percent)})`} between ${formatUtc(change.fromObservedAt)} and ${formatUtc(change.toObservedAt)}. ${latest}`;
 }
 
-function scale(trend: RecipeTrend) {
+function scale(trend: RecipeTrend, width: number) {
+  const plotWidth = width - pad.left - pad.right;
   const start = Date.parse(trend.windowStart);
   const end = Math.max(Date.parse(trend.windowEnd), start + 1);
   const values = trend.buckets.flatMap((bucket) => [
@@ -122,6 +121,19 @@ function path(points: { x: number; y: number }[]) {
 }
 
 export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
+  const [compact, setCompact] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(max-width: 820px)').matches,
+  );
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 820px)');
+    const update = () => setCompact(media.matches);
+    media.addEventListener('change', update);
+    update();
+    return () => media.removeEventListener('change', update);
+  }, []);
+  const width = compact ? 320 : 640;
   const id = useId();
   const titleId = `${id}-title`;
   const descId = `${id}-desc`;
@@ -134,7 +146,7 @@ export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
       </div>
     );
   const currency = summary.currency;
-  const s = scale(trend);
+  const s = scale(trend, width);
   const runs = contiguousRuns(trend.buckets, trend.bucketSeconds);
   const costRuns = runs.flatMap((run) =>
     contiguousRuns(
@@ -245,10 +257,10 @@ export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
           Cheapest ask (close)
         </span>
         <span className="trend-chart__key trend-chart__key--cost">
-          Expected craft cost
+          Recorded craft cost
         </span>
         <span className="trend-chart__key trend-chart__key--thin">
-          Fewer than 2 sellers
+          Thin / unknown seller depth
         </span>
         <span>Gaps mean no observation · asks, not sales</span>
       </figcaption>
@@ -319,7 +331,7 @@ export function TrendFacts({
   return (
     <dl className="trend-facts">
       <div>
-        <dt>Latest ask</dt>
+        <dt>Last recorded ask</dt>
         <dd>
           <Money
             price={{ amount: summary.latestAsk, currency: summary.currency }}
@@ -327,7 +339,7 @@ export function TrendFacts({
         </dd>
       </div>
       <div>
-        <dt>Expected craft cost</dt>
+        <dt>Recorded craft cost</dt>
         <dd>
           {summary.latestCraftCost === null ? (
             'Not recorded'
@@ -339,6 +351,13 @@ export function TrendFacts({
               }}
             />
           )}
+          {summary.latestCraftCostObservedAt ? (
+            <small className="trend-facts__time">
+              <time dateTime={summary.latestCraftCostObservedAt}>
+                {formatUtc(summary.latestCraftCostObservedAt)}
+              </time>
+            </small>
+          ) : null}
         </dd>
       </div>
       <div>
