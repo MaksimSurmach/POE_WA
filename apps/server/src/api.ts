@@ -1,4 +1,6 @@
 import { randomUUID, timingSafeEqual } from 'node:crypto';
+import { registerCraftAnalysisRoutes } from './craftAnalysisApi.js';
+import type { CraftAnalysisService } from './craftAnalysis.js';
 import { isLocalAdmin, needsAdminAccess } from './adminAccess.js';
 import {
   registerMarketAdminRoutes,
@@ -78,6 +80,7 @@ export function buildApi(
   readCurrentLeague?: CurrentLeagueReader,
   options: {
     marketAdmin?: MarketAdminApiOptions | undefined;
+    craftAnalysis?: CraftAnalysisService | undefined;
     diagnosticsToken?: string | undefined;
     readCircuits?: (() => Promise<ProviderCircuitState[]>) | undefined;
     readOperationalDiagnostics?: OperationalDiagnosticsReader | undefined;
@@ -108,7 +111,7 @@ export function buildApi(
     const path = request.routeOptions.url ?? request.url.split('?')[0] ?? '';
     if (needsAdminAccess(request.method, path) && !isLocalAdmin(request))
       throw new DomainError('OPERATOR_AUTH_REQUIRED');
-    if (path.startsWith('/api/admin/market'))
+    if (path.startsWith('/api/admin/'))
       reply.header('cache-control', 'no-store');
     if (
       options.marketAdmin &&
@@ -151,7 +154,7 @@ export function buildApi(
   api.setErrorHandler((error, request, reply) => {
     if (
       (request.url.startsWith('/api/market') ||
-        request.url.startsWith('/api/admin/market')) &&
+        request.url.startsWith('/api/admin/')) &&
       error &&
       typeof error === 'object' &&
       'code' in error &&
@@ -223,6 +226,7 @@ export function buildApi(
     });
   });
   registerMarketAdminRoutes(api, options.marketAdmin);
+  registerCraftAnalysisRoutes(api, options.craftAnalysis);
   registerMarketTrendsRoutes(api, options.marketTrends);
 
   api.get('/health/live', async (request) => ({

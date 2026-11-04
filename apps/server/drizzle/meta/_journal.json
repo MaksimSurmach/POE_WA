@@ -176,6 +176,13 @@
       "when": 1793725853825,
       "tag": "0024_market_price_history",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793812450061,
+      "tag": "0025_craft_outcome_analysis",
+      "breakpoints": true
     }
   ]
 }
