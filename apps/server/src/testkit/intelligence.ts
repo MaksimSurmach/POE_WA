@@ -23,6 +23,7 @@ import {
   craftRequestHash,
 } from '../repositories/craftAnalysisRepository.js';
 import { createFactoryRepository } from '../repositories/factoryRepository.js';
+import { createMarketEconomyRepository } from '../repositories/marketEconomyRepository.js';
 import { createIntelligenceRepository } from '../repositories/intelligenceRepository.js';
 import { createCraftAnalysisService } from '../craftAnalysis.js';
 import { createIntelligenceService } from '../intelligence.js';
@@ -450,6 +451,7 @@ export async function seedIntelligenceScenario(
   }
   const service = createIntelligenceService({
     repository: intelligence,
+    economy: createMarketEconomyRepository(pool),
     factory,
     analysis,
     recipes: repositories.recipes,

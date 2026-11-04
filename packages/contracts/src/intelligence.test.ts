@@ -39,6 +39,32 @@ describe('intelligence planning contracts', () => {
         .success,
     ).toBe(false);
   });
+  it('rejects an unfunded reserve using exact original-currency totals', () => {
+    const input = {
+      league: 'Synthetic League',
+      capital: tx('divine', '150', '1'),
+      reserve: tx('divine', '150', '1.0000000000000001'),
+      maxRiskProbability: 0.1,
+      maxExposurePercent: 25,
+      horizonDays: 14,
+      idempotencyKey: '00000000-0000-4000-8000-000000000001',
+    };
+    const result = capitalPlanCreateInputSchema.safeParse(input);
+    expect(result.success).toBe(false);
+    if (!result.success)
+      expect(
+        result.error.issues.some(
+          (issue) =>
+            issue.message === 'Reserve cannot exceed available capital',
+        ),
+      ).toBe(true);
+    expect(
+      capitalPlanCreateInputSchema.safeParse({
+        ...input,
+        reserve: tx('divine', '150', '1'),
+      }).success,
+    ).toBe(true);
+  });
   it('enforces independent evidence, ordered hysteresis and conservative scenario ceilings', () => {
     expect(intelligenceSettingsSchema.parse({})).toMatchObject({
       minIndependentSellers: 2,

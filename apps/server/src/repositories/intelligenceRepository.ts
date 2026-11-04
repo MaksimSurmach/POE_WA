@@ -2,7 +2,10 @@ import { randomUUID } from 'node:crypto';
 import type { Pool, PoolClient } from 'pg';
 import { DomainError } from '@poe-worksmith/domain';
 import { craftRiskRunSchema } from '@poe-worksmith/contracts';
-import { createCraftAnalysisRepository } from './craftAnalysisRepository.js';
+import {
+  craftRequestHash,
+  createCraftAnalysisRepository,
+} from './craftAnalysisRepository.js';
 
 export function createIntelligenceRepository(pool: Pool) {
   async function transaction<T>(work: (client: PoolClient) => Promise<T>) {
@@ -66,6 +69,8 @@ export function createIntelligenceRepository(pool: Pool) {
         recipeHash: string;
         leagueId: string;
         targetSignature: string;
+        evaluatedAt: string;
+        observedAt: string | null;
       },
       decide: (previous: unknown) => {
         document: T;
@@ -78,11 +83,41 @@ export function createIntelligenceRepository(pool: Pool) {
           'select pg_advisory_xact_lock(hashtextextended($1,0))',
           [`intelligence:${context.key}`],
         );
-        const previous = await client.query<{ document: unknown }>(
-          'select document from craft_signal_states where context_key=$1',
+        const previous = await client.query<{
+          document: unknown;
+          evaluated_at: string | null;
+          observed_at: string | null;
+          last_decision_hash: string | null;
+          last_history_id: string | null;
+        }>(
+          `select document,document->'signal'->>'evaluatedAt' as evaluated_at,document->'evidence'->>'observedAt' as observed_at,
+           document->'audit'->>'decisionHash' as last_decision_hash,document->'audit'->>'historyId' as last_history_id
+           from craft_signal_states where context_key=$1`,
           [context.key],
         );
-        const next = decide(previous.rows[0]?.document ?? null);
+        const prior = previous.rows[0];
+        if (
+          prior &&
+          ((prior.evaluated_at &&
+            Date.parse(prior.evaluated_at) > Date.parse(context.evaluatedAt)) ||
+            (prior.observed_at &&
+              context.observedAt &&
+              Date.parse(prior.observed_at) > Date.parse(context.observedAt)))
+        )
+          throw new DomainError('PERSISTENCE_CONFLICT');
+        const next = decide(prior?.document ?? null);
+        const changed = prior?.last_decision_hash !== next.evidenceHash;
+        const historyId = changed
+          ? randomUUID()
+          : (prior?.last_history_id ?? randomUUID());
+        const document = {
+          ...next.document,
+          audit: { decisionHash: next.evidenceHash, historyId },
+        };
+        const transitionHash = craftRequestHash({
+          decision: next.evidenceHash,
+          previous: prior?.last_history_id ?? null,
+        });
         await client.query(
           `insert into craft_signal_states(context_key,recipe_id,recipe_content_hash,league_id,target_signature,document) values($1,$2,$3,$4,$5,$6) on conflict(context_key) do update set document=excluded.document,updated_at=now()`,
           [
@@ -91,13 +126,14 @@ export function createIntelligenceRepository(pool: Pool) {
             context.recipeHash,
             context.leagueId,
             context.targetSignature,
-            next.document,
+            document,
           ],
         );
-        await client.query(
-          'insert into craft_signal_history(id,context_key,evidence_hash,document) values($1,$2,$3,$4) on conflict(context_key,evidence_hash) do nothing',
-          [randomUUID(), context.key, next.evidenceHash, next.document],
-        );
+        if (changed)
+          await client.query(
+            'insert into craft_signal_history(id,context_key,evidence_hash,document) values($1,$2,$3,$4)',
+            [historyId, context.key, transitionHash, document],
+          );
         return next.document;
       });
     },

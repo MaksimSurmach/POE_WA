@@ -106,7 +106,7 @@ export function CapitalPlanView({
           <dd>{intelligenceMoney(scenario.expectedProfit)}</dd>
         </div>
         <div>
-          <dt>Any-loss or budget-overrun upper bound</dt>
+          <dt>Modelled loss or bankroll-overrun bound</dt>
           <dd>{intelligencePercent(scenario.unionRiskUpperBound)}</dd>
         </div>
         <div>
@@ -117,19 +117,22 @@ export function CapitalPlanView({
         </div>
       </dl>
       <p className="intelligence-note">
-        Risk bounds include a cash loss or exceeding an individual objective's
-        P95 budget. The combined bound is not a portfolio P95 estimate.
-        Unallocated cash includes your requested reserve.
+        These modelled bounds assume all outputs sell at their stored
+        valuations. They cover a modelled cash loss or exceeding an objective's
+        P95 bankroll; no sale within the horizon, selling-price changes,
+        liquidation and holding risk are outside these probabilities. The
+        combined bound is not a portfolio P95 estimate. Unallocated cash
+        includes your requested reserve.
       </p>
       {scenario.lines.length ? (
         <div className="intelligence-table-scroll">
-          <table className="intelligence-table">
+          <table className="intelligence-table intelligence-plan-table">
             <thead>
               <tr>
                 <th>Recipe / whole objective</th>
                 <th>Planned capital / P90 / P95</th>
                 <th>Expected cash result</th>
-                <th>Risk bounds</th>
+                <th>Modelled risk bounds</th>
                 <th>Liquidity / allocation reason</th>
                 <th>Stop condition</th>
               </tr>
@@ -155,14 +158,14 @@ export function CapitalPlanView({
                   </td>
                   <td>{intelligenceMoney(line.expectedProfit)}</td>
                   <td>
-                    Cash loss ≤
+                    Modelled cash-loss bound ≤
                     {intelligencePercent(line.lossProbabilityUpperBound)}
                     <small>
-                      Budget overrun ≤
+                      Modelled bankroll-overrun bound ≤
                       {intelligencePercent(line.budgetExceedanceUpperBound)}
                     </small>
                     <small>
-                      Combined ≤
+                      Modelled combined bound ≤
                       {intelligencePercent(line.combinedRiskUpperBound)}
                     </small>
                   </td>

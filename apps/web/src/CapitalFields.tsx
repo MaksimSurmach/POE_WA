@@ -79,11 +79,13 @@ export function CapitalFields() {
         />
       </fieldset>
       <p className="intelligence-note">
-        Combined risk means a cash loss or exceeding the planned P95 bankroll.
-        The plan records your conversion source; it does not treat an entered
-        rate as a live quote. Production options are complete saved simulation
-        objectives. Their tail budgets cannot be multiplied to invent a larger
-        batch.
+        Combined risk means a modelled cash loss or exceeding the planned P95
+        bankroll, assuming all outputs sell at stored valuations. It excludes
+        no-sale-within-horizon, selling-price changes, liquidation and holding
+        risk. The plan records your conversion source; it does not treat an
+        entered rate as a live quote. Production options are complete saved
+        simulation objectives. Their tail budgets cannot be multiplied to invent
+        a larger batch.
       </p>
     </>
   );

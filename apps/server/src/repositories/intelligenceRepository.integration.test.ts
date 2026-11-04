@@ -6,6 +6,8 @@ import {
   RegisteredTradeQueryGenerator,
   noVariantFilter,
   mappedTargetFilter,
+  factoryBatchSchema,
+  factoryEventSchema,
 } from '@poe-worksmith/domain';
 import {
   canonicalRecipeFixture,
@@ -14,6 +16,9 @@ import {
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
 import { createPostgresRepositories } from './postgresRepositories.js';
+import { createFactoryRepository } from './factoryRepository.js';
+import { craftRequestHash } from './craftAnalysisRepository.js';
+import { createMarketEconomyRepository } from './marketEconomyRepository.js';
 import { createIntelligenceRepository } from './intelligenceRepository.js';
 import { createRecipeMarketDependencies } from '../recipeMarket.js';
 import { seedIntelligenceScenario } from '../testkit/intelligence.js';
@@ -92,6 +97,195 @@ async function scenario() {
   });
 }
 describe('persisted intelligence with real repositories and labelled synthetic evidence', () => {
+  it('replays exact cohorts beyond 100 batches and retains old unsold inventory without unrelated coverage poisoning', async () => {
+    const seeded = await scenario(),
+      factory = createFactoryRepository(pool);
+    const original = await factory.get(
+      seeded.batchId,
+      seeded.confirmed.signal.evaluatedAt,
+    );
+    async function add(produce: boolean, index: number) {
+      const batch = factoryBatchSchema.parse({
+        ...original.batch,
+        id: randomUUID(),
+        notes: `synthetic coverage ${index}`,
+      });
+      await factory.create(
+        batch,
+        randomUUID(),
+        craftRequestHash(batch),
+        seeded.confirmed.signal.evaluatedAt,
+      );
+      if (produce)
+        await factory.append(
+          batch.id,
+          0,
+          factoryEventSchema.parse({
+            id: randomUUID(),
+            occurredAt: batch.startedAt,
+            source: 'synthetic:old-unsold',
+            notes: '',
+            payload: {
+              type: 'produce',
+              itemId: randomUUID(),
+              description: 'Old unsold exact output',
+              modifiers: [],
+              outcome: 'target',
+              classification: 'target',
+              targetSignature: batch.targetSignature,
+              allocations: [],
+            },
+          }),
+          randomUUID(),
+          seeded.confirmed.signal.evaluatedAt,
+        );
+    }
+    for (let offset = 0; offset < 101; offset += 10)
+      await Promise.all(
+        Array.from({ length: Math.min(10, 101 - offset) }, (_, i) =>
+          add(false, offset + i),
+        ),
+      );
+    const unrelated = await seeded.service.opportunity(
+      seeded.recipeId,
+      seeded.league,
+    );
+    expect(unrelated.liquidity.own.coverageComplete).toBe(true);
+    expect(unrelated.signal.state).toBe('CRAFT');
+    expect(unrelated.liquidity.own.sampleSize).toBe(3);
+    for (let offset = 0; offset < 101; offset += 10)
+      await Promise.all(
+        Array.from({ length: Math.min(10, 101 - offset) }, (_, i) =>
+          add(true, offset + i),
+        ),
+      );
+    const cohort = await seeded.service.opportunity(
+      seeded.recipeId,
+      seeded.league,
+    );
+    expect(cohort.liquidity.own.coverageComplete).toBe(true);
+    expect(cohort.liquidity.own.unsoldCount).toBe(101);
+    expect(cohort.liquidity.own.oldestUnsoldSeconds).toBeGreaterThanOrEqual(
+      7 * 86400,
+    );
+  }, 20000);
+
+  it('rejects late older evaluations and preserves A to B to A history while deduplicating consecutive decisions', async () => {
+    const seeded = await scenario(),
+      repository = createIntelligenceRepository(pool);
+    const recipe = (await repositories.recipes.findById(seeded.recipeId))!;
+    const league = (await repositories.leagues.list()).find(
+      (l) => l.gggId === seeded.league,
+    )!;
+    const key = `synthetic-order-${randomUUID()}`;
+    const base = {
+      key,
+      recipeId: recipe.id,
+      recipeHash: recipe.contentHash,
+      leagueId: league.id,
+      targetSignature: seeded.confirmed.targetSignature,
+    };
+    const t = Date.parse(seeded.confirmed.signal.evaluatedAt);
+    const update = (state: string, offset: number) =>
+      repository.updateSignal(
+        {
+          ...base,
+          evaluatedAt: new Date(t + offset).toISOString(),
+          observedAt: null,
+        },
+        () => ({
+          document: {
+            signal: { evaluatedAt: new Date(t + offset).toISOString(), state },
+            evidence: { observedAt: null },
+          },
+          emit: false,
+          evidenceHash: state,
+        }),
+      );
+    await update('A', 0);
+    await update('B', 2);
+    await expect(update('OLDER', 1)).rejects.toMatchObject({
+      code: 'PERSISTENCE_CONFLICT',
+    });
+    expect(await repository.state(key)).toMatchObject({
+      signal: { state: 'B' },
+    });
+    await update('A', 3);
+    await Promise.all([update('A', 4), update('A', 4)]);
+    const history = await repository.history(key);
+    expect(history).toHaveLength(3);
+    expect(
+      history.map(
+        (row) => (row.document as { signal: { state: string } }).signal.state,
+      ),
+    ).toEqual(['A', 'B', 'A']);
+  });
+
+  it('uses saved same-league exchange evidence for divine listings and fails closed on stale or foreign FX', async () => {
+    const seeded = await scenario();
+    const at = seeded.confirmed.signal.evaluatedAt;
+    const exchange = {
+      id: randomUUID(),
+      schemaVersion: 1 as const,
+      kind: 'economy-overview' as const,
+      source: 'poe.ninja' as const,
+      game: 'poe1' as const,
+      league: seeded.league,
+      category: 'Currency' as const,
+      endpoint: 'https://poe.ninja/synthetic-exchange',
+      payloadHash: randomUUID().replaceAll('-', '').repeat(2),
+      capturedAt: new Date(Date.parse(at) - 120000).toISOString(),
+      sourceUpdatedAt: null,
+      priceBasis: 'currency-exchange' as const,
+      raw: { synthetic: true },
+      lines: [
+        {
+          id: 'divine',
+          name: 'Divine Orb',
+          detailsId: 'divine-orb',
+          baseType: null,
+          price: { amount: 200, currency: 'chaos' as const },
+          listingCount: null,
+          observationCount: 10,
+          tradedVolume: null,
+        },
+      ],
+    };
+    await createMarketEconomyRepository(pool).save(exchange);
+    await pool.query(
+      `update raw_snapshots set payload=jsonb_set(payload,'{listings}',(select jsonb_agg(jsonb_set(jsonb_set(entry,'{price}', '{"amount":"1","currency":"divine"}'::jsonb),'{item,currency}','"divine"'::jsonb)) from jsonb_array_elements(payload->'listings') entry)) where dedupe_key=any($1::text[])`,
+      [seeded.snapshotIds],
+    );
+    const converted = await seeded.service.opportunity(
+      seeded.recipeId,
+      seeded.league,
+    );
+    expect(converted.liquidity.status, JSON.stringify(converted.reasons)).toBe(
+      'supported',
+    );
+    expect(converted.liquidity.asking?.median).toBe('200');
+    await pool.query(
+      "update market_economy_snapshots set payload=jsonb_set(payload,'{league}','\"Other league\"'::jsonb) where id=$1",
+      [exchange.id],
+    );
+    expect(
+      (await seeded.service.opportunity(seeded.recipeId, seeded.league))
+        .liquidity.status,
+    ).not.toBe('supported');
+    await pool.query(
+      "update market_economy_snapshots set payload=jsonb_set(jsonb_set(payload,'{league}',to_jsonb($2::text)),'{capturedAt}',to_jsonb($3::text)) where id=$1",
+      [
+        exchange.id,
+        seeded.league,
+        new Date(Date.parse(at) - 7200000).toISOString(),
+      ],
+    );
+    expect(
+      (await seeded.service.opportunity(seeded.recipeId, seeded.league))
+        .liquidity.status,
+    ).not.toBe('supported');
+  });
+
   it('seeds the real PostgreSQL trade mapper for the current recipe version', async () => {
     const source = JSON.parse(
       await readFile(

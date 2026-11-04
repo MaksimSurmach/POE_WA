@@ -102,6 +102,9 @@
   font-size: 0.8rem;
   text-align: left;
 }
+.intelligence-plan-table {
+  min-width: 1000px;
+}
 .intelligence-table th,
 .intelligence-table td {
   padding: 10px;

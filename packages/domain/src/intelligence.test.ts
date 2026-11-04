@@ -460,6 +460,27 @@ describe('persisted opportunity decisions', () => {
       hysteresisArmed: true,
       metrics: { profit: '5' },
     });
+    const current = candidate(lower);
+    current.signal = reconfirmed;
+    expect(
+      allocateCapital({
+        request: request(),
+        candidates: [current],
+        settings,
+        now,
+      }).scenarios[2]!.lines[0]?.riskRunId,
+    ).toBe('risk-lower-margin');
+    current.options = [
+      { ...current.options[0]!, id: 'different-unconfirmed-option' },
+    ];
+    expect(
+      allocateCapital({
+        request: request(),
+        candidates: [current],
+        settings,
+        now,
+      }).scenarios[2]!.status,
+    ).toBe('hold');
     expect(
       stepOpportunitySignal({
         previous: reconfirmed,
@@ -468,6 +489,66 @@ describe('persisted opportunity decisions', () => {
         now,
       }),
     ).toMatchObject({ state: 'WATCH', hysteresisArmed: false });
+  });
+  it('tightening owner policy clears the old exit-band authorization', async () => {
+    const e = await evidence(),
+      prior = confirm(e),
+      tightened = { ...settings, enterProfitChaos: '100' };
+    e.observationId = 'policy-1';
+    e.observedAt = '2026-11-04T01:24:00Z';
+    e.liquidity.snapshotId = e.observationId;
+    e.liquidity.observedAt = e.observedAt;
+    const first = stepOpportunitySignal({
+      previous: prior,
+      evidence: e,
+      settings: tightened,
+      now,
+    });
+    expect(first).toMatchObject({
+      state: 'WATCH',
+      candidate: 'WATCH',
+      hysteresisArmed: false,
+      confirmations: 0,
+    });
+    e.observationId = 'policy-2';
+    e.observedAt = '2026-11-04T01:26:00Z';
+    e.liquidity.snapshotId = e.observationId;
+    e.liquidity.observedAt = e.observedAt;
+    expect(
+      stepOpportunitySignal({
+        previous: first,
+        evidence: e,
+        settings: tightened,
+        now,
+      }),
+    ).toMatchObject({ state: 'WATCH', hysteresisArmed: false });
+  });
+  it('does not re-emit unchanged negative EV when its cooldown expires', async () => {
+    const e = await evidence();
+    e.analysisInput!.prices.orb!.amount = '200';
+    e.risk!.request.analysis = e.analysisInput!;
+    e.risk!.result = await simulateCraftingRisk(e.risk!.request);
+    e.analysis = analyzeOutcomeModel(e.analysisInput!);
+    const policy = { ...settings, cooldownSeconds: 60 };
+    const stopped = stepOpportunitySignal({
+      previous: null,
+      evidence: e,
+      settings: policy,
+      now,
+    });
+    expect(stopped).toMatchObject({ state: 'STOP', emit: true });
+    const repeated = stepOpportunitySignal({
+      previous: stopped,
+      evidence: e,
+      settings: policy,
+      now: '2026-11-04T01:32:00Z',
+    });
+    expect(repeated).toMatchObject({
+      state: 'STOP',
+      emit: false,
+      lastEmittedAt: now,
+    });
+    expect(repeated.triggers).not.toContain('NEGATIVE_EV');
   });
   it('never promotes assumed resale or an unrelated high quote into a market-supported craft', async () => {
     const e = await evidence();
@@ -519,6 +600,32 @@ describe('whole-objective capital allocation', () => {
       ).toBe(true);
       expect(scenario.unionRiskUpperBound).toBe(0);
     }
+  });
+  it('preserves the full exact converted capital for a bounded extreme hold plan', () => {
+    const bound = '999999999999.9999999999999999';
+    const req = request();
+    req.capital = {
+      quantity: bound,
+      unitPrice: bound,
+      currency: 'divine',
+      chaosPerUnit: bound,
+      rateSource: 'Synthetic bounded arithmetic scenario',
+    };
+    req.reserve = { ...req.capital, quantity: '1', unitPrice: '0' };
+    const digits = ((10n ** 28n - 1n) ** 3n).toString(),
+      expected = digits.slice(0, -48) + '.' + digits.slice(-48);
+    const plan = allocateCapital({
+      request: req,
+      candidates: [],
+      settings,
+      now,
+    });
+    for (const scenario of plan.scenarios)
+      expect(scenario).toMatchObject({
+        status: 'hold',
+        allocatedCapital: '0',
+        reservedCapital: expected,
+      });
   });
   it('holds rather than inventing holding-time evidence or forcing negative EV/oversized batches', async () => {
     const c = candidate(await evidence());
@@ -600,6 +707,144 @@ describe('whole-objective capital allocation', () => {
       }).scenarios[2]!.watchlist[0]!.reasons.join(' '),
     ).toContain('output-quantity risk model');
   });
+  it('does not let a large profitable objective authorize an older marginal and riskier option', async () => {
+    const e = await evidence(),
+      input = e.analysisInput!;
+    input.model.initialCosts = [
+      {
+        ...input.model.initialCosts[0]!,
+        kind: 'material',
+        resourceId: 'setup',
+      },
+    ];
+    input.prices.setup = { ...input.prices.base!, amount: '40' };
+    input.prices.orb!.amount = '6';
+    input.model.stages[0]!.outcomes[0]!.probability.value = '0.6';
+    input.model.stages[0]!.outcomes[1]!.probability.value = '0.4';
+    input.valuations.target!.min = '50.5';
+    input.valuations.target!.max = '50.5';
+    const one = riskSimulationRequestSchema.parse({
+      ...e.risk!.request,
+      analysis: input,
+      objective: { kind: 'single-target', count: 1 },
+    });
+    const ten = riskSimulationRequestSchema.parse({
+      ...one,
+      objective: { kind: 'successes', count: 10 },
+    });
+    const older = {
+      ...e.risk!,
+      id: 'older-one',
+      request: one,
+      result: await simulateCraftingRisk(one),
+    };
+    e.risk = {
+      ...e.risk!,
+      id: 'latest-ten',
+      request: ten,
+      result: await simulateCraftingRisk(ten),
+    };
+    e.analysis = analyzeOutcomeModel(input);
+    expect(older.result).toMatchObject({
+      meanProfit: '0.5',
+      probabilityOfLoss: 0.4,
+    });
+    const c = candidate(e);
+    expect(c.signal.state).toBe('CRAFT');
+    c.options = [e.risk, older];
+    const req = request();
+    req.maxRiskProbability = 1;
+    req.reserve = tx('0');
+    const plan = allocateCapital({
+      request: req,
+      candidates: [c],
+      settings,
+      now,
+    });
+    expect(plan.scenarios.every((s) => s.status === 'hold')).toBe(true);
+    const reasons = plan.scenarios[2]!.watchlist[0]!.reasons.join(' ');
+    expect(reasons).toContain('configured profit threshold');
+    expect(reasons).toContain('risk-adjusted ROI threshold');
+    expect(reasons).toContain('cash-loss probability limit');
+  });
+  it.each(['initial', 'stage', 'outcome'] as const)(
+    'protects rounded P95 budgets when a %s cost exceeds eight-decimal precision',
+    async (position) => {
+      const e = await evidence(),
+        input = e.analysisInput!;
+      const source = input.model.stages[0]!.costs[0]!.provenance;
+      input.model.initialCosts = [];
+      input.model.stages[0]!.costs = [
+        {
+          kind: 'material',
+          resourceId: 'orb',
+          quantity: '1',
+          provenance: source,
+        },
+      ];
+      input.prices.orb!.amount = '10';
+      if (position === 'stage') input.prices.orb!.amount = '10.0000000049';
+      else {
+        input.prices.fraction = {
+          ...input.prices.orb!,
+          amount: '0.0000000049',
+        };
+        const term = {
+          kind: 'finishing' as const,
+          resourceId: 'fraction',
+          quantity: '1',
+          provenance: source,
+        };
+        if (position === 'initial') input.model.initialCosts = [term];
+        else input.model.stages[0]!.outcomes[0]!.costs = [term];
+      }
+      e.risk!.request.analysis = input;
+      e.risk!.result = await simulateCraftingRisk(e.risk!.request);
+      e.analysis = analyzeOutcomeModel(input);
+      expect(e.risk!.result.costQuantiles!.p95).toBe('10');
+      const c = candidate(e),
+        req = request();
+      req.reserve = tx('0');
+      req.capital = tx('10');
+      expect(
+        allocateCapital({ request: req, candidates: [c], settings, now })
+          .scenarios[2]!.status,
+      ).toBe('hold');
+      req.capital = tx('10.0000000049');
+      expect(
+        allocateCapital({ request: req, candidates: [c], settings, now })
+          .scenarios[2]!.status,
+      ).toBe('hold');
+      req.capital = tx('10.000000005');
+      const plan = allocateCapital({
+        request: req,
+        candidates: [c],
+        settings,
+        now,
+      }).scenarios[2]!;
+      expect(plan.lines[0]).toMatchObject({
+        plannedCapital: '10.000000005',
+        p95Budget: '10',
+      });
+      expect(plan.lines[0]!.reason).toContain('eight-decimal cost quantile');
+      expect(plan.allocatedCapital).toBe('10.000000005');
+      expect(plan.reservedCapital).toBe('0');
+      input.model.initialCosts = [];
+      input.model.stages[0]!.outcomes[0]!.costs = [];
+      input.prices.orb!.amount = '10';
+      e.risk!.result = await simulateCraftingRisk(e.risk!.request);
+      e.analysis = analyzeOutcomeModel(input);
+      req.capital = tx('10');
+      expect(
+        allocateCapital({
+          request: req,
+          candidates: [candidate(e)],
+          settings,
+          now,
+        }).scenarios[2]!.lines[0]?.plannedCapital,
+      ).toBe('10');
+    },
+  );
   it('uses simultaneous sampling uncertainty and never lets aggressive exceed the user risk cap', async () => {
     const e = await evidence(),
       c = candidate(e);

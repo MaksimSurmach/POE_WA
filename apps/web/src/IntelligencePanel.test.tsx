@@ -11,6 +11,7 @@ import {
   opportunitySignalSchema,
 } from '@poe-worksmith/domain';
 import { CapitalFields } from './CapitalFields.js';
+import { consumeSignalEmissions } from './IntelligencePanel.js';
 import { buildCapitalPlanInput, CapitalPlanView } from './CapitalAllocator.js';
 import {
   LiquidityEvidence,
@@ -212,6 +213,7 @@ describe('production intelligence UI', () => {
     );
     expect(html).toContain('0 own confirmed-sale observations');
     expect(html).toContain('Median: Unavailable');
+    expect(html).toContain('listing-to-sale timing sample: 0');
     expect(html).toContain('missing listings are not inferred sales');
     expect(html).toContain('200 c');
     expect(html).toContain('210 c');
@@ -249,6 +251,9 @@ describe('production intelligence UI', () => {
     expect(html).toContain('750 c');
     expect(html).toContain('3 own sale observations');
     expect(html).toContain('not a portfolio P95 estimate');
+    expect(html).toContain('Modelled cash-loss bound');
+    expect(html).toContain('all outputs sell at their stored valuations');
+    expect(html).toContain('outside these probabilities');
     expect(html).toContain('Stop if evidence expires');
     expect(html).toContain('Explicit synthetic planning assumption');
     expect(html).toContain('Start this batch');
@@ -269,6 +274,47 @@ describe('production intelligence UI', () => {
     const html = renderToStaticMarkup(<CapitalFields />);
     expect(html).toContain('Maximum combined risk (%)');
     expect(html).toContain('cash loss or exceeding the planned P95 bankroll');
+  });
+  it('announces emitted decisions once per recipe and timestamp without hiding cooldown-suppressed state', () => {
+    const values = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        values.set(key, value);
+      },
+    };
+    const value = opportunity();
+    value.recipeId = 'synthetic-notification';
+    value.signal.emit = true;
+    value.signal.lastEmittedAt = now;
+    expect(consumeSignalEmissions([value], storage)).toEqual([
+      'Synthetic crafting recipe: INSUFFICIENT DATA',
+    ]);
+    expect(consumeSignalEmissions([value], storage)).toEqual([]);
+    value.signal.state = 'WATCH';
+    value.signal.emit = false;
+    value.signal.lastEmittedAt = '2026-11-04T12:01:00Z';
+    expect(consumeSignalEmissions([value], storage)).toEqual([]);
+    expect(
+      renderToStaticMarkup(
+        <MemoryRouter>
+          <OpportunityEvidence opportunity={value} />
+        </MemoryRouter>,
+      ),
+    ).toContain('WATCH');
+    value.signal.emit = true;
+    expect(consumeSignalEmissions([value], storage)).toEqual([
+      'Synthetic crafting recipe: WATCH',
+    ]);
+    const restored = opportunity();
+    restored.recipeId = 'synthetic-restored-notification';
+    restored.signal.emit = true;
+    restored.signal.lastEmittedAt = now;
+    values.set(
+      `worksmith:intelligence:emission:${cohort.league}:${restored.recipeId}`,
+      now,
+    );
+    expect(consumeSignalEmissions([restored], storage)).toEqual([]);
   });
   it('keeps intelligence API requests owner-only, encoded, and idempotent', async () => {
     const denied = {

@@ -8,6 +8,7 @@ import {
 } from './craftingRisk.js';
 import {
   factoryInventorySchema,
+  factoryAmountSchema,
   factorySaleSchema,
   factoryTransactionSchema,
 } from './factoryLedger.js';
@@ -18,14 +19,14 @@ const amount = z
   .string()
   .refine(
     (v) =>
-      v.length <= 80 && /^\d+(?:\.\d{1,48})?$/.test(v) && new D(v).lte('1e40'),
+      v.length <= 96 && /^\d+(?:\.\d{1,48})?$/.test(v) && new D(v).lte('1e40'),
     'Invalid amount',
   );
 const signed = z
   .string()
   .refine(
     (v) =>
-      v.length <= 81 &&
+      v.length <= 97 &&
       /^-?\d+(?:\.\d{1,48})?$/.test(v) &&
       new D(v).abs().lte('1e40'),
     'Invalid signed amount',
@@ -243,6 +244,19 @@ export const capitalAllocationRequestSchema = z
       v.capital.currency === v.reserve.currency &&
       v.capital.chaosPerUnit === v.reserve.chaosPerUnit,
     'Capital and reserve must use the same denomination and locked planning conversion',
+  )
+  .refine(
+    (v) =>
+      [
+        v.capital.quantity,
+        v.capital.unitPrice,
+        v.reserve.quantity,
+        v.reserve.unitPrice,
+      ].every((value) => factoryAmountSchema.safeParse(value).success) &&
+      new D(v.reserve.quantity)
+        .mul(v.reserve.unitPrice)
+        .lte(new D(v.capital.quantity).mul(v.capital.unitPrice)),
+    'Reserve cannot exceed available capital',
   );
 export const capitalCandidateSchema = z.strictObject({
   recipeId: key,

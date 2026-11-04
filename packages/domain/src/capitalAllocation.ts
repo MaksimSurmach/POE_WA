@@ -16,9 +16,32 @@ import { factoryTransactionChaos } from './factoryLedger.js';
 import {
   intelligenceRiskIssues,
   saleableCohortIssues,
+  signalPolicyMatches,
+  signalConfirmsRiskOption,
 } from './opportunitySignals.js';
 const D = Decimal.clone({ precision: 120 }),
   money = (v: Decimal) => v.toFixed();
+/** Saved risk costs use HALF_UP to eight decimals. A half-unit buffer bounds
+ * the original quantile whenever a charged term can exceed that precision. */
+function quantileRoundingGuard(option: IntelligenceRiskOption): Decimal {
+  const input = option.request.analysis;
+  const costs = [
+    ...input.model.initialCosts,
+    ...input.model.stages.flatMap((stage) => [
+      ...stage.costs,
+      ...stage.outcomes.flatMap((outcome) => outcome.costs),
+    ]),
+  ];
+  const needsGuard = costs.some(
+    (cost) =>
+      cost.quantity !== null &&
+      input.prices[cost.resourceId] !== undefined &&
+      new D(cost.quantity)
+        .mul(input.prices[cost.resourceId]!.amount)
+        .decimalPlaces() > 8,
+  );
+  return new D(needsGuard ? '0.000000005' : '0');
+}
 /** Simultaneous 95% DKW coverage across both cost and profit CDFs of every examined option (Bonferroni). */
 export const allocationSamplingConfidence = 0.95;
 export function allocationSamplingAllowance(
@@ -108,6 +131,7 @@ export function allocateCapital(raw: {
     candidate: CapitalCandidate;
     option: IntelligenceRiskOption;
     bankroll: Decimal;
+    roundingGuard: Decimal;
     profit: Decimal;
     loss: number;
     overrun: number;
@@ -127,6 +151,8 @@ export function allocateCapital(raw: {
       reasons.push('Recipe is outside selected restrictions');
     if (request.categories && !request.categories.includes(candidate.category))
       reasons.push('Category is outside selected restrictions');
+    if (!signalPolicyMatches(candidate.signal, settings))
+      reasons.push('Signal confirmations belong to different policy settings');
     if (candidate.signal.state !== 'CRAFT')
       reasons.push(`Current opportunity state is ${candidate.signal.state}`);
     if (!candidate.analysisInput)
@@ -202,11 +228,35 @@ export function allocateCapital(raw: {
         capacity = Math.min(capacity, holding.capacity);
         holdingDays = Math.max(holdingDays, holding.holdingDays);
       }
-      const bankroll = new D(result.costQuantiles!.p95),
+      const roundingGuard = quantileRoundingGuard(option);
+      const bankroll = new D(result.costQuantiles!.p95).add(roundingGuard),
         profit = new D(result.meanProfit!);
       if (!bankroll.gt(0))
         issues.push('A positive supported bankroll is required');
       if (!profit.gt(0)) issues.push('Expected profit is not positive');
+      const confirmedExitBand = signalConfirmsRiskOption(
+        candidate.signal,
+        settings,
+        option.id,
+      );
+      const requiredProfit = confirmedExitBand
+        ? settings.exitProfitChaos
+        : settings.enterProfitChaos;
+      const requiredRoi = confirmedExitBand
+        ? settings.exitRiskAdjustedRoiPercent
+        : settings.enterRiskAdjustedRoiPercent;
+      if (profit.lt(requiredProfit))
+        issues.push(
+          'This risk option is below the configured profit threshold',
+        );
+      if (bankroll.gt(0) && profit.div(bankroll).mul(100).lt(requiredRoi))
+        issues.push(
+          'This risk option is below the configured risk-adjusted ROI threshold',
+        );
+      if (result.probabilityOfLoss! > settings.maxLossProbability)
+        issues.push(
+          'This risk option exceeds the configured cash-loss probability limit',
+        );
       if (bankroll.gt(spendable))
         issues.push('Whole batch exceeds available capital after reserve');
       if (bankroll.gt(exposure))
@@ -237,6 +287,7 @@ export function allocateCapital(raw: {
         candidate,
         option,
         bankroll,
+        roundingGuard,
         profit,
         loss,
         overrun,
@@ -343,6 +394,9 @@ export function allocateCapital(raw: {
         liquidityCapacity: o.capacity,
         reason:
           'Whole simulated objective fits capital, concentration, observed holding capacity and the combined risk budget.' +
+          (o.roundingGuard.gt(0)
+            ? ' Planned bankroll includes a 0.000000005 chaos guard for the saved eight-decimal cost quantile.'
+            : '') +
           (o.candidate.analysis?.basis !== 'observations'
             ? ' Probabilities or input costs include explicitly declared model assumptions; inspect the linked saved risk evidence.'
             : ''),

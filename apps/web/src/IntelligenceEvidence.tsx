@@ -51,6 +51,10 @@ export function OwnSaleEvidence({
     <>
       <span>{own.sampleSize} own confirmed-sale observations</span>
       <small>
+        Holding P75: {intelligenceTime(own.p75HoldingSeconds)} · listing-to-sale
+        timing sample: {own.saleTimeSampleSize}
+      </small>
+      <small>
         Median: {intelligenceTime(own.medianSellSeconds)} · P75:{' '}
         {intelligenceTime(own.p75SellSeconds)}
       </small>

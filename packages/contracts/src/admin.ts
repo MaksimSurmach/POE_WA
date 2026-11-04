@@ -23,6 +23,8 @@ export const marketAdminPatchSchema = z.strictObject({
   version: z.number().int().nonnegative(),
   settings: marketAdminSettingsSchema
     .partial()
+    // Read defaults must not become writes when an unrelated setting is patched.
+    .extend({ intelligence: intelligenceSettingsSchema.optional() })
     .refine((v) => Object.keys(v).length > 0),
 });
 export const marketAdminRefreshSchema = z.discriminatedUnion('scope', [

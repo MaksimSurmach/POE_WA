@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
   DomainError,
+  intelligenceMonetaryFingerprint,
   analyzeLiquidity,
   stepOpportunitySignal,
   allocateCapital,
@@ -34,26 +35,25 @@ import {
   type RecipeMarketDependencies,
 } from './recipeMarket.js';
 import { snapshotPayloadSchema } from './catalogPublisher.js';
+import { convertMarketQuote } from './marketCurrency.js';
+import {
+  verifyEconomySnapshot,
+  type MarketEconomyRepository,
+  type StoredMarketEconomySnapshot,
+} from './marketEconomy.js';
 
-export function intelligenceMonetaryFingerprint(input: OutcomeAnalysisInput) {
-  return craftRequestHash({
-    model: input.model,
-    league: input.league,
-    currency: input.currency,
-    prices: Object.fromEntries(
-      Object.entries(input.prices).map(([id, q]) => [
-        id,
-        { amount: q.amount, currency: q.currency },
-      ]),
-    ),
-    valuations: Object.fromEntries(
-      Object.entries(input.valuations).map(([id, q]) => [
-        id,
-        { min: q.min, max: q.max, currency: q.currency, matching: q.matching },
-      ]),
-    ),
-  });
+export function assertProductionLeagueWindow(
+  league: { startAt: Date | null; endAt: Date | null },
+  at: Date,
+) {
+  if (
+    (league.startAt && league.startAt.getTime() > at.getTime()) ||
+    (league.endAt && league.endAt.getTime() <= at.getTime())
+  )
+    throw new DomainError('INTELLIGENCE_LEAGUE_INACTIVE');
 }
+
+export { intelligenceMonetaryFingerprint } from '@poe-worksmith/domain';
 export function matchingCurrentRisk(
   option: IntelligenceRiskOption,
   input: OutcomeAnalysisInput,
@@ -74,6 +74,7 @@ const storedStateSchema = z.object({
 export function createIntelligenceService(options: {
   repository: IntelligenceRepository;
   factory: FactoryRepository;
+  economy?: MarketEconomyRepository;
   analysis: CraftAnalysisService;
   recipes: Repositories['recipes'];
   leagues: Repositories['leagues'];
@@ -89,24 +90,32 @@ export function createIntelligenceService(options: {
     active: Promise<void> | null = null,
     closing = false,
     cursor = 0;
-  async function context(leagueName: string) {
+  async function context(leagueName: string, allowHistorical = false) {
     const league = (await options.leagues.list()).find(
       (l) => l.gggId === leagueName && l.game === 'poe1' && l.realm === 'pc',
     );
     if (!league) throw new DomainError('MARKET_QUERY_INVALID');
-    const at = now(),
-      settings = await options.settings(),
+    const at = now();
+    if (!allowHistorical) assertProductionLeagueWindow(league, at);
+    const settings = await options.settings(),
       recipes = await options.recipes.listActive();
-    const own = await options.factory.list(league.id, at.toISOString(), 100, 0);
     return {
       league,
       at,
       settings,
       recipes,
-      ownSales: own.batches.flatMap((b) => b.projection.sales),
-      ownInventory: own.batches.flatMap((b) => b.projection.inventory),
-      ownComplete: own.total <= 100,
+      ownCohorts: new Map<
+        string,
+        Awaited<ReturnType<FactoryRepository['cohortEvidence']>>
+      >(),
       maximumQuoteAgeMs: await options.maximumQuoteAgeMs(),
+      exchangeCache: new Map<string, StoredMarketEconomySnapshot | null>(),
+      latestExchangeId: options.economy
+        ? ((await options.economy.latest(league.gggId, 'Currency'))?.id ?? null)
+        : null,
+      exchangeAttempts: options.economy
+        ? await options.economy.listAttempts()
+        : [],
     };
   }
   type Context = Awaited<ReturnType<typeof context>>;
@@ -117,16 +126,20 @@ export function createIntelligenceService(options: {
       targetSignature: definition.targetSignature,
       currency: 'chaos' as const,
     };
-    const sales = ctx.ownSales.filter(
-      (s) =>
-        s.league === cohort.league &&
-        s.targetSignature === cohort.targetSignature,
-    );
-    const inventory = ctx.ownInventory.filter(
-      (s) =>
-        s.league === cohort.league &&
-        s.targetSignature === cohort.targetSignature,
-    );
+    let own = ctx.ownCohorts.get(cohort.targetSignature);
+    if (!own) {
+      own = await options.factory.cohortEvidence(
+        ctx.league.id,
+        cohort.targetSignature,
+        ctx.at.toISOString(),
+        new Date(
+          ctx.at.getTime() - ctx.settings.ownSalesWindowDays * 86400000,
+        ).toISOString(),
+      );
+      ctx.ownCohorts.set(cohort.targetSignature, own);
+    }
+    const sales = own.sales,
+      inventory = own.inventory;
     const snapshots = [];
     try {
       const query = (
@@ -168,12 +181,114 @@ export function createIntelligenceService(options: {
               row.expires_at.getTime(),
               row.captured_at.getTime() + ctx.maximumQuoteAgeMs,
             ),
-            validFx = foreign.length === 0;
+            validFx = !raw.some(
+              (listing) =>
+                !['chaos', 'divine'].includes(listing.price.currency),
+            );
+          for (const listing of foreign) {
+            const originalFx = z
+              .record(z.string(), z.unknown())
+              .safeParse(listing.item.exchange).data;
+            const fxId =
+              typeof originalFx?.snapshotId === 'string'
+                ? originalFx.snapshotId
+                : ctx.latestExchangeId;
+            if (!fxId || !options.economy) {
+              validFx = false;
+              continue;
+            }
+            if (!ctx.exchangeCache.has(fxId))
+              ctx.exchangeCache.set(
+                fxId,
+                verifyEconomySnapshot(
+                  await options.economy.find(fxId),
+                  ctx.exchangeAttempts,
+                  ctx.at,
+                ),
+              );
+            const source = ctx.exchangeCache.get(fxId) ?? null;
+            const verified = source
+              ? Date.parse(source.verifiedAt ?? source.capturedAt)
+              : NaN;
+            if (
+              !source ||
+              !Number.isFinite(verified) ||
+              verified + ctx.maximumQuoteAgeMs <= ctx.at.getTime() ||
+              Math.abs(verified - row.captured_at.getTime()) >
+                ctx.maximumQuoteAgeMs
+            ) {
+              validFx = false;
+              continue;
+            }
+            const converted = await convertMarketQuote({
+              money: listing.price,
+              currency: 'chaos',
+              target: { league: ctx.league.gggId },
+              capturedAt: row.captured_at.toISOString(),
+              exchangeSnapshotId: fxId,
+              economy: {
+                find: async (id) => (id === source.id ? source : null),
+              },
+              now: ctx.at.getTime(),
+              dataKind: 'observed',
+            });
+            if (!converted?.exchange) {
+              validFx = false;
+              continue;
+            }
+            matched.push({
+              ...listing,
+              price: converted.money,
+              item: {
+                ...listing.item,
+                currency: 'chaos',
+                exchange: converted.exchange,
+                originalPrice: listing.price,
+              },
+            });
+            expiry = Math.min(expiry, verified + ctx.maximumQuoteAgeMs);
+          }
           for (const listing of matched) {
             const fx = z
               .record(z.string(), z.unknown())
               .safeParse(listing.item.exchange).data;
             if (fx && typeof fx === 'object' && !Array.isArray(fx)) {
+              const fxId =
+                typeof fx.snapshotId === 'string' ? fx.snapshotId : null;
+              if (!fxId || !options.economy) {
+                validFx = false;
+                continue;
+              }
+              if (!ctx.exchangeCache.has(fxId))
+                ctx.exchangeCache.set(
+                  fxId,
+                  verifyEconomySnapshot(
+                    await options.economy.find(fxId),
+                    ctx.exchangeAttempts,
+                    ctx.at,
+                  ),
+                );
+              const source = ctx.exchangeCache.get(fxId);
+              if (
+                !source ||
+                source.league !== cohort.league ||
+                source.category !== 'Currency' ||
+                source.priceBasis !== 'currency-exchange'
+              ) {
+                validFx = false;
+                continue;
+              }
+              const sourceVerified = Date.parse(
+                source.verifiedAt ?? source.capturedAt,
+              );
+              if (
+                !Number.isFinite(sourceVerified) ||
+                sourceVerified > ctx.at.getTime() ||
+                sourceVerified + ctx.maximumQuoteAgeMs <= ctx.at.getTime()
+              ) {
+                validFx = false;
+                continue;
+              }
               const verified =
                 typeof fx.verifiedAt === 'string'
                   ? fx.verifiedAt
@@ -186,7 +301,11 @@ export function createIntelligenceService(options: {
                 captured > ctx.at.getTime()
               )
                 validFx = false;
-              else expiry = Math.min(expiry, captured + ctx.maximumQuoteAgeMs);
+              else
+                expiry = Math.min(
+                  expiry,
+                  Math.max(captured, sourceVerified) + ctx.maximumQuoteAgeMs,
+                );
             }
           }
           const value = liquiditySnapshotSchema.safeParse({
@@ -223,11 +342,27 @@ export function createIntelligenceService(options: {
       snapshots,
       ownSales: sales.slice(0, 10000),
       ownInventory: inventory.slice(0, 10000),
-      ownCoverageComplete:
-        ctx.ownComplete && sales.length <= 10000 && inventory.length <= 10000,
+      ownCoverageComplete: own.complete,
       settings: ctx.settings,
     };
-    return { assessment: analyzeLiquidity(input), input };
+    const assessment = analyzeLiquidity(input);
+    if (!own.complete)
+      assessment.reasons.push(
+        `Own cohort replay reached a limit: ${own.replayedBatches}/${own.maximumBatches} batches; at most ${own.maximumRows} sales/inventory rows. Older unsold items were included until this explicit limit.`,
+      );
+    return {
+      assessment,
+      input,
+      exchangeEvidence: [...ctx.exchangeCache.values()].filter(
+        (value) => value !== null,
+      ),
+      ownCoverage: {
+        complete: own.complete,
+        replayedBatches: own.replayedBatches,
+        maximumBatches: own.maximumBatches,
+        maximumRows: own.maximumRows,
+      },
+    };
   }
   async function evaluate(recipe: Recipe, ctx: Context) {
     const current = await options.analysis.readAnalysis(
@@ -312,6 +447,8 @@ export function createIntelligenceService(options: {
         recipeHash: recipe.contentHash,
         leagueId: ctx.league.id,
         targetSignature: current.targetSignature,
+        evaluatedAt: ctx.at.toISOString(),
+        observedAt: evidence.observedAt,
       },
       (previous) => {
         const parsed = storedStateSchema.safeParse(previous);
@@ -344,6 +481,8 @@ export function createIntelligenceService(options: {
           evidence,
           sourceInputs: {
             liquidity: primary.input,
+            ownCoverage: primary.ownCoverage,
+            exchangeEvidence: primary.exchangeEvidence,
             additional: additional.map((v) => v.input),
             riskOptions,
             settings: ctx.settings,
@@ -451,7 +590,7 @@ export function createIntelligenceService(options: {
       return result.entries[0].view;
     },
     async history(recipeId: string, league: string) {
-      const ctx = await context(league),
+      const ctx = await context(league, true),
         recipe = ctx.recipes.find((r) => r.id === recipeId);
       if (!recipe) throw new DomainError('PERSISTENCE_NOT_FOUND');
       const key = craftRequestHash({

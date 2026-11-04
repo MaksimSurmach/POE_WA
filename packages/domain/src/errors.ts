@@ -26,6 +26,12 @@ type ErrorDefinition = {
 };
 
 export const domainErrorDefinitions = {
+  INTELLIGENCE_LEAGUE_INACTIVE: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage:
+      'Production recommendations are unavailable before a league starts or after it ends.',
+  },
   FACTORY_LEDGER_INVALID: {
     category: 'calculation',
     disposition: 'permanent',

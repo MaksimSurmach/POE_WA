@@ -173,6 +173,43 @@ export function saleableCohortIssues(
   }
   return [...new Set(issues)];
 }
+/** Historical confirmations cannot authorize a different owner policy. Malformed old state fails closed. */
+export function signalPolicyMatches(
+  signal: OpportunitySignal,
+  settings: IntelligenceSettings,
+): boolean {
+  try {
+    const basis = JSON.parse(signal.confirmationBasis) as {
+      settings?: unknown;
+    };
+    return (
+      JSON.stringify(canonical(basis.settings)) ===
+      JSON.stringify(canonical(settings))
+    );
+  } catch {
+    return false;
+  }
+}
+export function signalConfirmsRiskOption(
+  signal: OpportunitySignal,
+  settings: IntelligenceSettings,
+  riskId: string,
+): boolean {
+  if (
+    signal.state !== 'CRAFT' ||
+    !signal.hysteresisArmed ||
+    !signalPolicyMatches(signal, settings)
+  )
+    return false;
+  try {
+    return (
+      (JSON.parse(signal.confirmationBasis) as { riskId?: unknown }).riskId ===
+      riskId
+    );
+  } catch {
+    return false;
+  }
+}
 export function stepOpportunitySignal(raw: {
   previous: OpportunitySignal | null;
   evidence: OpportunityEvidence;
@@ -195,6 +232,8 @@ export function stepOpportunitySignal(raw: {
     previous.cohort.targetSignature === e.cohort.targetSignature
       ? previous
       : null;
+  const hysteresisArmed =
+    prior?.hysteresisArmed === true && signalPolicyMatches(prior, settings);
   const confirmationPrior =
     prior?.confirmationBasis === confirmationBasis ? prior : null;
   const reasons: string[] = [],
@@ -260,12 +299,17 @@ export function stepOpportunitySignal(raw: {
   if (!reasons.length && profit !== null) {
     if (new D(profit).lt(0)) {
       candidate = 'STOP';
-      triggers.push('NEGATIVE_EV');
+      if (
+        prior?.state !== 'STOP' ||
+        prior.metrics.profit === null ||
+        !new D(prior.metrics.profit).eq(profit)
+      )
+        triggers.push('NEGATIVE_EV');
     } else {
-      const threshold = prior?.hysteresisArmed
+      const threshold = hysteresisArmed
         ? settings.exitProfitChaos
         : settings.enterProfitChaos;
-      const roiThreshold = prior?.hysteresisArmed
+      const roiThreshold = hysteresisArmed
         ? settings.exitRiskAdjustedRoiPercent
         : settings.enterRiskAdjustedRoiPercent;
       candidate =
@@ -401,8 +445,7 @@ export function stepOpportunitySignal(raw: {
     candidate,
     confirmations,
     hysteresisArmed:
-      state === 'CRAFT' ||
-      (prior?.hysteresisArmed === true && candidate === 'CRAFT'),
+      state === 'CRAFT' || (hysteresisArmed && candidate === 'CRAFT'),
     confirmationBasis,
     lastObservationId: independent
       ? e.observationId

@@ -17,6 +17,35 @@ import {
 import './intelligence.css';
 
 const api = createApiClient();
+const announcedSignals = new Map<string, string>();
+/** Consume server emission decisions locally; current signal state is rendered independently. */
+export function consumeSignalEmissions(
+  opportunities: OpportunityView[],
+  storage?: Pick<Storage, 'getItem' | 'setItem'>,
+): string[] {
+  const notices: string[] = [];
+  for (const opportunity of opportunities) {
+    const { signal } = opportunity;
+    if (!signal.emit || !signal.lastEmittedAt) continue;
+    const storageKey = `worksmith:intelligence:emission:${signal.cohort.league}:${opportunity.recipeId}`;
+    const inMemory = announcedSignals.get(storageKey);
+    if (inMemory && Date.parse(inMemory) >= Date.parse(signal.lastEmittedAt))
+      continue;
+    announcedSignals.set(storageKey, signal.lastEmittedAt);
+    try {
+      const session = storage ?? globalThis.sessionStorage;
+      const previous = session?.getItem(storageKey);
+      if (previous && Date.parse(previous) >= Date.parse(signal.lastEmittedAt))
+        continue;
+      session?.setItem(storageKey, signal.lastEmittedAt);
+    } catch {
+      /* In-memory timestamps still prevent duplicate announcements. */
+    }
+    notices.push(`${opportunity.title}: ${signal.state.replaceAll('_', ' ')}`);
+  }
+  return notices;
+}
+
 function intelligenceError(error: unknown) {
   return error instanceof ApiClientError &&
     error.envelope.error.code === 'OPERATOR_AUTH_REQUIRED'
@@ -31,6 +60,7 @@ export function OpportunitiesIntelligence({
 }) {
   const [data, setData] = useState<OpportunitiesResponse['data'] | null>(null);
   const [error, setError] = useState('');
+  const [signalNotice, setSignalNotice] = useState('');
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [filter, setFilter] = useState('actionable');
@@ -44,12 +74,19 @@ export function OpportunitiesIntelligence({
     async function load() {
       if (inFlight) return;
       inFlight = true;
+      setSignalNotice('');
       setLoading(true);
       try {
         const response = await api.getOpportunities(league!);
         if (active) {
           setData(response.data);
           setError('');
+          const notices = consumeSignalEmissions(response.data.opportunities);
+          setSignalNotice(
+            notices.length
+              ? `New signal updates: ${notices.slice(0, 3).join('; ')}${notices.length > 3 ? `; and ${notices.length - 3} more` : ''}.`
+              : '',
+          );
         }
       } catch (failure) {
         if (active) {
@@ -99,6 +136,13 @@ export function OpportunitiesIntelligence({
             {loading ? 'Checking intelligence…' : 'Update intelligence'}
           </button>
         </div>
+        <p
+          role="status"
+          aria-live="polite"
+          className={signalNotice ? 'intelligence-note' : 'visually-hidden'}
+        >
+          {signalNotice}
+        </p>
         <p className="intelligence-note">
           Private owner analysis uses saved market evidence and confirmed
           factory sales. Listing supply is a proxy, not observed market demand.
@@ -241,6 +285,7 @@ export function OpportunitiesIntelligence({
 export function RecipeIntelligencePanel({ recipeId }: { recipeId: string }) {
   const [data, setData] = useState<OpportunityView | null>(null);
   const [error, setError] = useState('');
+  const [signalNotice, setSignalNotice] = useState('');
   const [refresh, setRefresh] = useState(0);
   useEffect(() => {
     let active = true;
@@ -248,12 +293,17 @@ export function RecipeIntelligencePanel({ recipeId }: { recipeId: string }) {
     async function load() {
       if (inFlight) return;
       inFlight = true;
+      setSignalNotice('');
       try {
         const league = await api.getCurrentLeague();
         const response = await api.getOpportunity(recipeId, league.data.name);
         if (active) {
           setData(response.data);
           setError('');
+          const notices = consumeSignalEmissions([response.data]);
+          setSignalNotice(
+            notices.length ? `New signal update: ${notices.join('; ')}.` : '',
+          );
         }
       } catch (failure) {
         if (active) {
@@ -285,6 +335,13 @@ export function RecipeIntelligencePanel({ recipeId }: { recipeId: string }) {
           Update decision evidence
         </button>
       </div>
+      <p
+        role="status"
+        aria-live="polite"
+        className={signalNotice ? 'intelligence-note' : 'visually-hidden'}
+      >
+        {signalNotice}
+      </p>
       {error ? (
         <p role="status" className="recipe-warning">
           {error}

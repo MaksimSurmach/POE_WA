@@ -215,6 +215,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           craftAnalysis,
           intelligence: createIntelligenceService({
             repository: createIntelligenceRepository(pool),
+            economy,
             factory: createFactoryRepository(pool),
             analysis: craftAnalysis,
             recipes: repositories.recipes,
