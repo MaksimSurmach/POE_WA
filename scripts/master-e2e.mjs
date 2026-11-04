@@ -244,6 +244,7 @@ else {
   for (const [kind, name] of [
     ['volume', `${project}_pgdata`],
     ['network', `${project}_app`],
+    ['network', `${project}_browser`],
   ]) {
     const matches = (
       await capture(
