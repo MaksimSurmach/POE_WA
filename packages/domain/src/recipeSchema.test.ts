@@ -166,4 +166,15 @@ describe('single-method recipes', () => {
       }).profit,
     ).toBeNull();
   });
+  it('returns 20 percent ROI for a 10 divine craft compared with a 12 divine ask', () => {
+    expect(
+      compareCraftWithAsk({
+        basePrice: { amount: '1', currency: 'divine' },
+        materialCost: { amount: '9', currency: 'divine' },
+        expectedBases: 1,
+        ask: { amount: '12', currency: 'divine' },
+        currency: 'divine',
+      }),
+    ).toEqual({ expectedCraftCost: '10', profit: '2', marginPercent: '20' });
+  });
 });

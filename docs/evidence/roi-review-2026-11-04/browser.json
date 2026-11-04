@@ -1,0 +1,77 @@
+{
+  "results": [
+    {
+      "width": 320,
+      "route": "/",
+      "icons": 26,
+      "tracks": null
+    },
+    {
+      "width": 320,
+      "route": "/recipes",
+      "icons": 26,
+      "tracks": "162.664px 81.3359px"
+    },
+    {
+      "width": 320,
+      "route": "/recipes/minion-convoking-wand-four-fossil",
+      "icons": 12,
+      "tracks": null
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "icons": 26,
+      "tracks": null
+    },
+    {
+      "width": 390,
+      "route": "/recipes",
+      "icons": 26,
+      "tracks": "209.328px 104.664px"
+    },
+    {
+      "width": 390,
+      "route": "/recipes/minion-convoking-wand-four-fossil",
+      "icons": 12,
+      "tracks": null
+    },
+    {
+      "width": 768,
+      "route": "/",
+      "icons": 26,
+      "tracks": null
+    },
+    {
+      "width": 768,
+      "route": "/recipes",
+      "icons": 26,
+      "tracks": "461.328px 230.672px"
+    },
+    {
+      "width": 768,
+      "route": "/recipes/minion-convoking-wand-four-fossil",
+      "icons": 12,
+      "tracks": null
+    },
+    {
+      "width": 1440,
+      "route": "/",
+      "icons": 26,
+      "tracks": null
+    },
+    {
+      "width": 1440,
+      "route": "/recipes",
+      "icons": 26,
+      "tracks": "776px 388px"
+    },
+    {
+      "width": 1440,
+      "route": "/recipes/minion-convoking-wand-four-fossil",
+      "icons": 12,
+      "tracks": null
+    }
+  ],
+  "filteredNavigation": "passed"
+}

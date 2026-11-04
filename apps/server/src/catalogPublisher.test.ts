@@ -550,9 +550,14 @@ describe('catalog evaluation and publication', () => {
 });
 
 describe('sale evidence acceptance', () => {
-  async function evaluateWithTargetSellers(sellers: readonly string[]) {
+  async function evaluateWithTargetSellers(
+    sellers: readonly string[],
+    profitBlockedReason?: string,
+  ) {
     const repositories = createInMemoryRepositories();
     const definition = fixtureRecipe(canonicalRecipeFixture);
+    if (profitBlockedReason)
+      definition.verification.profitBlockedReason = profitBlockedReason;
     await repositories.recipes.save(
       storedRecipe(definition.id, { ...definition } as JsonRecord),
     );
@@ -638,6 +643,22 @@ describe('sale evidence acceptance', () => {
     expect(report).toMatchObject({ completedRecipes: 1, published: true });
     return report.evaluations[0]!;
   }
+
+  it('retains cost and asks but withholds ROI when the priced output is not the modelled craft', async () => {
+    const reason = 'Observed items include an unmodelled finishing stage.';
+    const evaluation = await evaluateWithTargetSellers(['one', 'two'], reason);
+    expect(evaluation.expectedCraftCost).not.toBeNull();
+    expect(evaluation.estimatedSalePrice).toBe('1000');
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      profit: null,
+      marginPercent: null,
+      lastSuccessfulAt: null,
+      methodCost: {
+        saleEvidence: { status: 'unverified_output_value', reason },
+      },
+    });
+  });
 
   it.each([
     ['one listing', ['lone-seller']],

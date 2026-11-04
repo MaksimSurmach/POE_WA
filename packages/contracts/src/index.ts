@@ -78,6 +78,7 @@ export const recipeEvaluationSchema = z
     recipeId: z.string().min(1),
     confidence: z.enum(['low', 'medium', 'high']).nullable().optional(),
     source: recipePriceSourceSchema.optional(),
+    profitBlockedReason: z.string().min(1).optional(),
     status: z.enum(['success', 'stale', 'loading', 'partial', 'error']),
     evaluatedAt: z.iso.datetime().nullable(),
     expectedCraftCost: priceSchema.nullable(),

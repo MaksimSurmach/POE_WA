@@ -1,0 +1,184 @@
+[
+  {
+    "recipe": "minion-convoking-wand-four-fossil",
+    "capturedAt": "2026-11-04T12:49:08.516+01:00",
+    "totalResults": 85,
+    "sampledResults": 20,
+    "lowestAsks": [
+      {
+        "id": "7ce20a90d9427e05146d9aa3d3de1d9fb864affc030e88f737c8196ddfa41c82",
+        "price": {
+          "amount": "8252",
+          "currency": "chaos"
+        },
+        "itemLevel": 84,
+        "modifiers": [
+          "19% increased Spell Damage",
+          "+1 to Level of all Spell Skill Gems",
+          "+1 to Level of all Minion Skill Gems",
+          "42% increased Projectile Speed",
+          "Minions have 22% increased Attack and Cast Speed",
+          "Trigger a Socketed Spell when you Use a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost"
+        ]
+      },
+      {
+        "id": "92c21222fd01c853a2bcbabf1312a3ca22b667a2d79574456efaaaf26fcb9380",
+        "price": {
+          "amount": "8252",
+          "currency": "chaos"
+        },
+        "itemLevel": 86,
+        "modifiers": [
+          "35% increased Spell Damage",
+          "18% increased Cast Speed",
+          "+37 to maximum Mana",
+          "+1 to Level of all Spell Skill Gems",
+          "+1 to Level of all Minion Skill Gems",
+          "Minions have 9% increased Attack and Cast Speed",
+          "Trigger a Socketed Spell when you Use a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost"
+        ]
+      },
+      {
+        "id": "1d1abce3475b5da7d48a21a8bda294023752ac77c6eb106518b6726303c76922",
+        "price": {
+          "amount": "9077.2",
+          "currency": "chaos"
+        },
+        "itemLevel": 86,
+        "modifiers": [
+          "89% increased Spell Damage",
+          "5% increased Attack Speed",
+          "5% increased Cast Speed",
+          "+1 to Level of all Spell Skill Gems",
+          "+1 to Level of all Minion Skill Gems",
+          "Minions have 12% increased Attack and Cast Speed"
+        ]
+      }
+    ]
+  },
+  {
+    "recipe": "rf-fire-trap-level-20",
+    "capturedAt": "2026-11-04T12:46:28.53+01:00",
+    "totalResults": 35,
+    "sampledResults": 20,
+    "lowestAsks": [
+      {
+        "id": "e2f10912f94008133eefacf75ecc3b0d4a240f8734a5474c3439df790dadda86",
+        "price": {
+          "amount": "2888.2",
+          "currency": "chaos"
+        },
+        "itemLevel": 83,
+        "modifiers": [
+          "Socketed Gems are Supported by Level 20 Burning Damage",
+          "Socketed Gems are Supported by Level 20 Concentrated Effect",
+          "+30 to Intelligence",
+          "9% increased Global Accuracy Rating",
+          "80% increased Armour and Energy Shield",
+          "34% increased Burning Damage",
+          "25% increased Area Damage",
+          "5% increased Light Radius",
+          "+1 to Level of Socketed AoE Gems",
+          "10% increased Area of Effect"
+        ]
+      },
+      {
+        "id": "59ab502851a99da6c2c00a4c37f8ad25b023f649e04e3f2f83731cb4c24a5776",
+        "price": {
+          "amount": "3300.8",
+          "currency": "chaos"
+        },
+        "itemLevel": 83,
+        "modifiers": [
+          "Socketed Gems are Supported by Level 20 Burning Damage",
+          "Socketed Gems are Supported by Level 20 Concentrated Effect",
+          "+55 to Intelligence",
+          "30% increased Armour and Energy Shield",
+          "Regenerate 14.2 Life per second",
+          "33% increased Burning Damage",
+          "12% increased Stun and Block Recovery",
+          "24% increased Area Damage",
+          "+1 to Level of Socketed AoE Gems",
+          "9% increased Area of Effect"
+        ]
+      },
+      {
+        "id": "faa5b4ff9ca971bf64859edfc6c80030ca877788a2692464fc391994c1f84451",
+        "price": {
+          "amount": "3300.8",
+          "currency": "chaos"
+        },
+        "itemLevel": 83,
+        "modifiers": [
+          "Socketed Gems are Supported by Level 20 Burning Damage",
+          "Socketed Gems are Supported by Level 20 Concentrated Effect",
+          "+25 to Intelligence",
+          "28% increased Armour and Energy Shield",
+          "35% increased Burning Damage",
+          "31% increased Stun and Block Recovery",
+          "25% increased Area Damage",
+          "+1 to Level of Socketed AoE Gems",
+          "10% increased Area of Effect"
+        ]
+      }
+    ]
+  },
+  {
+    "recipe": "minion-convoking-wand-fear-trigger",
+    "capturedAt": "2026-11-04T12:08:09.37+01:00",
+    "totalResults": 5,
+    "sampledResults": 5,
+    "lowestAsks": [
+      {
+        "id": "b7e0b2f4ede1dc6d09fe287d09358c7de2e0d96cd92f1d49c0c9ee45b2fbfa7c",
+        "price": {
+          "amount": "3273.6",
+          "currency": "chaos"
+        },
+        "itemLevel": 86,
+        "modifiers": [
+          "25% increased Spell Damage",
+          "+32 to maximum Mana",
+          "+1 to Level of all Minion Skill Gems",
+          "Minions deal 85% increased Damage",
+          "Minions have 62% increased Critical Strike Chance",
+          "Trigger a Socketed Spell when you Use a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost",
+          "Minions have 20% increased Attack and Cast Speed"
+        ]
+      },
+      {
+        "id": "07f79c133d41ae9404a90c607a2daabbcd27d924cba22d52776be0a1033bc535",
+        "price": {
+          "amount": "6138",
+          "currency": "chaos"
+        },
+        "itemLevel": 85,
+        "modifiers": [
+          "Adds 97 to 160 Fire Damage",
+          "12% increased Cast Speed",
+          "+1 to Level of all Minion Skill Gems",
+          "Minions deal 93% increased Damage",
+          "Trigger a Socketed Spell when you Use a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost",
+          "Minions have 20% increased Attack and Cast Speed"
+        ]
+      },
+      {
+        "id": "20ee749cd1d476fabbf22918ab16603abf07819d126613c5b4ec63397fd91175",
+        "price": {
+          "amount": "10230",
+          "currency": "chaos"
+        },
+        "itemLevel": 85,
+        "modifiers": [
+          "20% increased Spell Damage",
+          "17% increased Cast Speed",
+          "+28 to maximum Mana",
+          "+1 to Level of all Minion Skill Gems",
+          "Minions deal 88% increased Damage",
+          "Trigger a Socketed Spell when you Use a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost",
+          "Minions have 20% increased Attack and Cast Speed"
+        ]
+      }
+    ]
+  }
+]

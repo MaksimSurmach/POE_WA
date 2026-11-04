@@ -1,0 +1,210 @@
+{
+  "checkedAt": "2026-11-04T13:08:19.982978+00:00",
+  "reviewer": "independent read-only ROI reviewer",
+  "revision": "f353dfd",
+  "patch": "3.29.3.3",
+  "method": "Reopened recipe source URLs in live public Craft of Exile UI via browser; read selected requirements and newly computed Calculations panel. No production data, game transactions, purchases or sales changed.",
+  "primaryPatchSource": "https://beta.craftofexile.com/changelog",
+  "recipes": [
+    {
+      "recipeId": "minion-convoking-wand-fear-trigger",
+      "recipePath": "recipes/wand/minion-convoking-wand-fear-trigger.json",
+      "sourceURL": "https://beta.craftofexile.com/?group=17&class=123&item=411&game=poe1&method=3%2C7%2C51&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W3siayI6Ik1pbmlvbkF0dGFja0FuZENhc3RTcGVlZDZfXyIsInYiOlsyMF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjpudWxsLCJzIjpbXSwicSI6MCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbIjMwIl1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tc3VmZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "scope": "Rare uninfluenced Convoking Wand exactly ilvl83; pre-acquired fractured minion Attack and Cast Speed exactly20%; Deafening Essence of Fear guarantees83\u201394% increased minion damage; AND +1 all Minion Skill Gems and at least1 open suffix. Bench Trigger8s after success. No Annul, Vesper, self-fracture or premium hybrid damage assumed.",
+      "liveCalculator": {
+        "displayedSuccessPercent": 0.516,
+        "displayedExpectedAttempts": 194,
+        "displayedConfidenceAtMeanBudgetPercent": 63.307
+      },
+      "authoredExpectedResources": {
+        "deafening-essence-of-fear": 194,
+        "chaos-orb": 3,
+        "orb-of-scouring": 1
+      },
+      "expectedBases": 1,
+      "riskDerivedFromRoundedProbability": {
+        "assumption": "independent identical rerolls; budget is attempts, not realized sale proceeds",
+        "p90Attempts": 446,
+        "p95Attempts": 580
+      },
+      "verdict": "Existing rounded coefficient reproduced in current public calculator; no coefficient change supported."
+    },
+    {
+      "recipeId": "minion-convoking-wand-four-fossil",
+      "recipePath": "recipes/wand/minion-convoking-wand-four-fossil.json",
+      "sourceURL": "https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&flags=&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "scope": "Rare uninfluenced Convoking Wand ilvl84, no corruption/fracture/synthesis. One Corroded + Jagged + Metallic + Shuddering Fossil in one Prime Chaotic Resonator per attempt. AND +1allMinionSkillGems and +1allSpellSkillGems. Stop at functional+2; no open suffix, trigger or bench finish required. Native implicit minion damage is preserved; no numerical implicit floor is required.",
+      "liveCalculator": {
+        "displayedSuccessPercent": 8.34,
+        "displayedExpectedAttempts": 12,
+        "displayedConfidenceAtMeanBudgetPercent": 64.8
+      },
+      "authoredExpectedResources": {
+        "corroded-fossil": 12,
+        "jagged-fossil": 12,
+        "metallic-fossil": 12,
+        "shuddering-fossil": 12,
+        "prime-chaotic-resonator": 12
+      },
+      "expectedBases": 1,
+      "riskDerivedFromRoundedProbability": {
+        "assumption": "independent identical rerolls; budget is attempts, not realized sale proceeds",
+        "p90Attempts": 27,
+        "p95Attempts": 35
+      },
+      "verdict": "Existing rounded coefficient reproduced in current public calculator; no coefficient change supported."
+    },
+    {
+      "recipeId": "rf-fire-trap-level-20",
+      "recipePath": "recipes/helmet/rf-fire-trap-level-20.json",
+      "sourceURL": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyODQ1IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tcHJlZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+      "scope": "Acquired rare Elder-only Archdemon Crown ilvl83, unfractured/uncorrupted/unsynthesised, native+2socketedSkillGems/-2socketedSupportGems. Harvest ReforgeFire50Wild perattempt. AND ConcentratedEffect supporttier1(level20) + BurningDamage supporttier1(level20) + at least1OpenPrefix. Then once bench8\u201310%AoE/+1socketedAoEGems for4Chaos; all8\u201310values satisfy the target, no exact10retry.",
+      "liveCalculator": {
+        "displayedSuccessPercent": 0.11,
+        "displayedExpectedAttempts": 910,
+        "displayedConfidenceAtMeanBudgetPercent": 63.232
+      },
+      "authoredExpectedResources": {
+        "wild-crystallised-lifeforce": 45500,
+        "chaos-orb": 4
+      },
+      "expectedBases": 1,
+      "riskDerivedFromRoundedProbability": {
+        "assumption": "independent identical rerolls; budget is attempts, not realized sale proceeds",
+        "p90Attempts": 2093,
+        "p95Attempts": 2722
+      },
+      "verdict": "Existing rounded coefficient reproduced in current public calculator; no coefficient change supported."
+    }
+  ],
+  "fourFossilVariantControls": [
+    {
+      "scope": "Same ilvl84 nonfractured uninfluenced four-fossil wand; AND +1 all minion gems, +1 all spell gems, minion attack/cast speed tier2 or better (20-22% T2;23-25% T1); no suffix-vacancy condition",
+      "sourceURL": "https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiI3NjgiLCJ0IjoiMiIsImIiOnRydWUsInMiOm51bGx9XX1d",
+      "requirements": [
+        {
+          "t": "and",
+          "m": null,
+          "e": [
+            {
+              "i": "769",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "262",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "768",
+              "t": "2",
+              "b": true,
+              "s": null
+            }
+          ]
+        }
+      ],
+      "liveDisplayedSuccessPercent": 0.893,
+      "liveDisplayedExpectedSets": 112,
+      "resourcesPerSet": [
+        "corroded-fossil",
+        "jagged-fossil",
+        "metallic-fossil",
+        "shuddering-fossil",
+        "prime-chaotic-resonator"
+      ],
+      "adoption": "Counterfactual only; not a replacement for the current bare+2 recipe coefficient."
+    },
+    {
+      "scope": "Same ilvl84 nonfractured uninfluenced four-fossil wand; AND +1 all minion gems, +1 all spell gems, minion attack/cast speed tier2 or better (20-22% T2;23-25% T1); AND at least1 open suffix",
+      "sourceURL": "https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiI3NjgiLCJ0IjoiMiIsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1zdWZmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d",
+      "requirements": [
+        {
+          "t": "and",
+          "m": null,
+          "e": [
+            {
+              "i": "769",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "262",
+              "t": null,
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "768",
+              "t": "2",
+              "b": true,
+              "s": null
+            },
+            {
+              "i": "special:open-suffix",
+              "t": "1",
+              "b": true,
+              "s": null
+            }
+          ]
+        }
+      ],
+      "liveDisplayedSuccessPercent": 1.8e-5,
+      "liveDisplayedExpectedSets": 5564331,
+      "resourcesPerSet": [
+        "corroded-fossil",
+        "jagged-fossil",
+        "metallic-fossil",
+        "shuddering-fossil",
+        "prime-chaotic-resonator"
+      ],
+      "adoption": "Counterfactual only; not a replacement for the current bare+2 recipe coefficient."
+    }
+  ],
+  "conditionalSimulation": {
+    "scope": "Speed tier2-or-better without vacancy (112 expected sets)",
+    "action": "Simulate this outcome in public CoE UI, stops after first qualifying result",
+    "observedPrefixes": [
+      "14% explicit minion damage",
+      "+1 all spell gems",
+      "+1 all minion gems"
+    ],
+    "observedSuffixes": [
+      "23% minion attack/cast speed",
+      "38% projectile speed",
+      "32 intelligence"
+    ],
+    "openSuffixes": 0,
+    "triggerFinished": false,
+    "interpretation": "A qualifying premium core can have all suffixes full. Trigger is not automatically attainable for a 3chaos finishing charge. No empirical frequency inferred from this one conditional outcome."
+  },
+  "comparisonFindings": [
+    {
+      "recipeId": "minion-convoking-wand-four-fossil",
+      "finding": "Current12-set model stops at bare+2 and requires no speed or trigger; premium listing prices cannot establish expected realization of this output distribution.",
+      "recommendation": "Retain correctly scoped cost and comparator asks; withhold derived profit/ROI until output valuation is verified. Do not substitute counterfactual attempts without defining a new explicit craft route."
+    },
+    {
+      "recipeId": "minion-convoking-wand-fear-trigger",
+      "finding": "Required fracture20 speed,83+ essence damage,+1minion,open suffix and paidTrigger are modeled. Observed62% minion crit and spell/mana on cheapest listing are optional random extras absent from the target/probability predicate.",
+      "limitation": "This reviewer did not independently reprice the optional extras; no evidence supports changing194 to represent them."
+    },
+    {
+      "recipeId": "rf-fire-trap-level-20",
+      "finding": "T1support pair and open prefix are jointly modeled; 45500Wild plus one4chaos bench is consistent. All8-10AoE finishes are accepted; no exact10 retry is costed.",
+      "limitation": "Only~63.2% success by mean910-reforge budget; neither guaranteed expense nor sale price."
+    }
+  ],
+  "limits": [
+    "CoE is the calculator primary source, not independent game-frequency evidence.",
+    "Displayed probabilities and attempts are rounded; this review does not certify underlying CoE algorithm.",
+    "Counterfactual5,564,331-result is an observed calculator value, not an empirical simulation estimate; no long simulation of that route was performed.",
+    "No practical Annul/recovery route or restart expectation was modeled.",
+    "No proof of completed sales, bulk purchase execution, gold cost, player time or profit.",
+    "No source checkout files or live runtime/data were changed."
+  ]
+}

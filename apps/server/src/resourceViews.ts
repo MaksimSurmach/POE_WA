@@ -353,6 +353,7 @@ function toEvaluation(
     };
   }
   const source = record(evaluation.methodCost?.source);
+  const saleEvidence = record(evaluation.methodCost?.saleEvidence);
   const priceSource = recipePriceSourceSchema.safeParse({
     capturedAt: source?.capturedAt,
     comparableSellers: source?.sampleSize,
@@ -360,6 +361,9 @@ function toEvaluation(
   });
   return {
     ...(priceSource.success ? { source: priceSource.data } : {}),
+    ...(typeof saleEvidence?.reason === 'string'
+      ? { profitBlockedReason: saleEvidence.reason }
+      : {}),
     confidence: evaluation.confidence,
     errorCode: errorCode(evaluation.errorCode),
     estimatedSalePrice: price(
@@ -626,9 +630,15 @@ function withoutUnsupportedProfit(evaluation: RecipeEvaluation) {
     methodCost: {
       ...methodCost,
       saleEvidence: {
+        ...saleEvidence,
         comparableSellers: sellers,
         minimumComparableSellers,
-        status: sellers === null ? 'unavailable' : 'insufficient_sellers',
+        status:
+          saleEvidence?.status && saleEvidence.status !== 'accepted'
+            ? saleEvidence.status
+            : sellers === null
+              ? 'unavailable'
+              : 'insufficient_sellers',
       },
     },
   };

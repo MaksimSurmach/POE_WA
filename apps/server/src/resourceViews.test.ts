@@ -750,6 +750,28 @@ describe('legacy single-seller profit on the read boundary', () => {
     expect(invalid.catalog?.source).toBeUndefined();
   });
 
+  it('explains an unverified output comparison in catalog and detail', async () => {
+    const reason = 'Additional paid finish is outside the cost model.';
+    const { catalog, detail } = await publishLegacy({
+      status: 'success',
+      methodCost: {
+        source: { sampleSize: 3 },
+        saleEvidence: {
+          comparableSellers: 3,
+          status: 'unverified_output_value',
+          reason,
+        },
+      },
+    });
+    for (const evaluation of [catalog, detail])
+      expect(evaluation).toMatchObject({
+        ...askAndCost,
+        profit: null,
+        marginPercent: null,
+        profitBlockedReason: reason,
+      });
+  });
+
   it.each([
     ['unknown seller evidence', {}],
     ['fractional seller count', { source: { sampleSize: 2.5 } }],

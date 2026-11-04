@@ -642,11 +642,16 @@ async function evaluateFreshRecipe(
   const saleEvidence = {
     comparableSellers,
     minimumComparableSellers,
-    status: !output.currencyAvailable
-      ? ('unavailable_currency' as const)
-      : comparableSellers >= minimumComparableSellers
-        ? ('accepted' as const)
-        : ('insufficient_sellers' as const),
+    ...(definition.verification.profitBlockedReason
+      ? { reason: definition.verification.profitBlockedReason }
+      : {}),
+    status: definition.verification.profitBlockedReason
+      ? ('unverified_output_value' as const)
+      : !output.currencyAvailable
+        ? ('unavailable_currency' as const)
+        : comparableSellers >= minimumComparableSellers
+          ? ('accepted' as const)
+          : ('insufficient_sellers' as const),
   };
   const comparison = compareCraftWithAsk({
     basePrice,

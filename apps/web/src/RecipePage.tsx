@@ -74,7 +74,7 @@ export function RecipePage() {
 
   return (
     <article className="recipe-detail recipe-detail--compact">
-      <Link className="back-link" to="/">
+      <Link className="back-link" to="/recipes">
         ‹ Recipes
       </Link>
       <header className="recipe-detail__header">
@@ -135,9 +135,30 @@ export function RecipePage() {
           </strong>
         </span>
       </div>
+      {evaluation.profitBlockedReason ? (
+        <p className="recipe-warning">
+          Profit and ROI withheld: {evaluation.profitBlockedReason}
+        </p>
+      ) : null}
+      <p className="catalog-price-note">
+        ROI = (asking price − expected cost) ÷ expected cost × 100%. A cost of
+        10 div and an ask of 12 div means 2 div profit and 20% ROI. Expected
+        cost is a mean across repeated crafts, not a guaranteed budget.
+      </p>
 
       {method ? (
         <DetailSection title={method.name}>
+          {evaluation.status === 'stale' ? (
+            <p className="recipe-warning">
+              Material prices below are past observations. Refresh prices before
+              using them as a current crafting budget.
+            </p>
+          ) : null}
+          <p>
+            Starting base: <Money price={method.baseCost} /> ×{' '}
+            {method.expectedBases ?? '?'} expected bases. Add every material
+            cost below.
+          </p>
           <ol className="craft-steps">
             {method.steps.map((step) => {
               const execution = method.expectedExecutions.find(
@@ -184,6 +205,22 @@ export function RecipePage() {
                             <Money price={material.unitPrice} /> each ·{' '}
                             <Money price={material.costPerAttempt} /> per
                             execution
+                            {execution && material.costPerAttempt ? (
+                              <>
+                                {' '}
+                                · {execution.count.toLocaleString()} executions
+                                ={' '}
+                                <Money
+                                  price={{
+                                    currency: material.costPerAttempt.currency,
+                                    amount:
+                                      material.costPerAttempt.amount *
+                                      execution.count,
+                                  }}
+                                />{' '}
+                                expected total
+                              </>
+                            ) : null}
                           </span>
                         </span>
                       );
@@ -314,7 +351,7 @@ export function RecipePage() {
 function RecipeMessage({ title }: { title: string }) {
   return (
     <>
-      <Link className="back-link" to="/">
+      <Link className="back-link" to="/recipes">
         ‹ Recipes
       </Link>
       <StatusPanel

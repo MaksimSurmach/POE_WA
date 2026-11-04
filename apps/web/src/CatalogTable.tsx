@@ -151,6 +151,11 @@ export function CatalogTable({
                       Single ask · ROI withheld
                     </small>
                   ) : null}
+                  {evaluation.profitBlockedReason ? (
+                    <small className="recipe-warning">
+                      ROI withheld: {evaluation.profitBlockedReason}
+                    </small>
+                  ) : null}
                   {source ? (
                     <>
                       <small>
