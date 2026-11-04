@@ -197,3 +197,112 @@ describe('typed API client', () => {
     ]);
   });
 });
+
+describe('factory financial API boundaries', () => {
+  const denied = {
+    correlationId,
+    error: {
+      category: 'internal',
+      code: 'OPERATOR_AUTH_REQUIRED',
+      disposition: 'permanent',
+      message: 'Operator authentication is required.',
+      retryable: false,
+    },
+  };
+  it('preserves append idempotency, version and transaction-time FX through owner errors', async () => {
+    const input = {
+      expectedVersion: 7,
+      idempotencyKey: '00000000-0000-4000-8000-000000000030',
+      event: {
+        id: '00000000-0000-4000-8000-000000000031',
+        occurredAt: timestamp,
+        source: 'Synthetic confirmed purchase',
+        notes: '',
+        payload: {
+          type: 'purchase' as const,
+          resourceId: 'Base',
+          transaction: {
+            quantity: '2',
+            unitPrice: '1.25',
+            currency: 'divine' as const,
+            chaosPerUnit: '123.45',
+            rateSource: 'Synthetic historical rate',
+          },
+        },
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue(response(denied));
+    const client = createApiClient('', fetchMock);
+    await expect(
+      client.appendFactoryEvent('batch/id', input),
+    ).rejects.toBeInstanceOf(ApiClientError);
+    await expect(
+      client.appendFactoryEvent('batch/id', input),
+    ).rejects.toBeInstanceOf(ApiClientError);
+    expect(fetchMock.mock.calls[0]![0]).toBe(
+      '/api/admin/factory/batches/batch%2Fid/events',
+    );
+    expect(JSON.parse(fetchMock.mock.calls[0]![1].body)).toEqual(input);
+    expect(fetchMock.mock.calls[1]![1].body).toBe(
+      fetchMock.mock.calls[0]![1].body,
+    );
+    expect(() =>
+      client.appendFactoryEvent('batch/id', { ...input, expectedVersion: -1 }),
+    ).toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+  it('downloads export contents only on success and surfaces owner-access errors', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response('event_id,type\n1,purchase', {
+          status: 200,
+          headers: { 'content-type': 'text/csv' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(denied), {
+          status: 403,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+    const client = createApiClient('', fetchMock);
+    const file = await client.exportFactoryBatch('batch-id', 'csv');
+    expect(await file.blob.text()).toBe('event_id,type\n1,purchase');
+    expect(file.filename).toBe('factory-batch-id.csv');
+    expect(fetchMock.mock.calls[0]![0]).toBe(
+      '/api/admin/factory/batches/batch-id/export?format=csv',
+    );
+    await expect(
+      client.exportFactoryBatch('batch-id', 'json'),
+    ).rejects.toBeInstanceOf(ApiClientError);
+  });
+});
+
+it('preserves a definitive factory rejection status for safe pending-request cleanup', async () => {
+  const payload = {
+    correlationId,
+    error: {
+      category: 'calculation',
+      code: 'FACTORY_LEDGER_INVALID',
+      disposition: 'permanent',
+      message: 'The ledger event violates inventory or accounting constraints.',
+      retryable: false,
+    },
+  };
+  const client = createApiClient(
+    '',
+    vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify(payload), {
+          status: 400,
+          headers: { 'content-type': 'application/json' },
+        }),
+      ),
+  );
+  await expect(client.getFactoryBatch('synthetic')).rejects.toMatchObject({
+    status: 400,
+    envelope: payload,
+  });
+});

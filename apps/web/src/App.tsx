@@ -26,6 +26,7 @@ import { AdminMarketPage } from './AdminMarketPage.js';
 import { MarketTrendsPage } from './MarketTrendsPage.js';
 import { RecipeLibraryPage } from './RecipeLibraryPage.js';
 import { PohxRecipePage } from './PohxRecipePage.js';
+import { FactoryPage } from './FactoryPage.js';
 
 const apiClient = createApiClient();
 
@@ -62,6 +63,14 @@ function AppShell() {
               to="/market"
             >
               Market trends
+            </NavLink>
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? 'nav-link is-active' : 'nav-link'
+              }
+              to="/factory"
+            >
+              My Factory
             </NavLink>
           </nav>
         </div>
@@ -448,6 +457,7 @@ export function App() {
         <Route path="recipes" element={<RecipeLibraryPage />} />
         <Route path="recipes/pohx/:guideId" element={<PohxRecipePage />} />
         <Route path="recipes/:recipeId" element={<RecipePage />} />
+        <Route path="factory" element={<FactoryPage />} />
         <Route path="market" element={<MarketTrendsPage />} />
         <Route path="admin/market" element={<AdminMarketPage />} />
       </Route>

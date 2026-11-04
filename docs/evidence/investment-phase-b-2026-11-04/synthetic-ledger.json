@@ -1,0 +1,1364 @@
+{
+  "dataKind": "synthetic browser accounting acceptance; not real game transactions",
+  "expectedScenarios": {
+    "Synthetic acceptance": {
+      "realizedProfit": "33",
+      "cashFlow": "7",
+      "inventoryCost": "14",
+      "unusedMaterialCost": "12",
+      "productionCost": "30",
+      "grossSpending": "43"
+    },
+    "Synthetic lost-response reconciliation": {
+      "cashFlow": "-2",
+      "eventCount": 2
+    }
+  },
+  "batches": [
+    {
+      "batch": {
+        "id": "49d190fe-480a-4d90-afc6-0f16ac35a97d",
+        "notes": "Synthetic acceptance 1440; not real purchases or sales",
+        "league": "Fixture League",
+        "forecast": {
+          "analysis": {
+            "basis": "assumptions",
+            "status": "complete",
+            "horizon": "one-method-run-with-setup",
+            "reasons": [],
+            "currency": "chaos",
+            "valueBasis": "cash-proceeds-minus-gross-outlay",
+            "sensitivity": [
+              {
+                "label": "Materials +10%",
+                "netProfit": {
+                  "max": "-10900",
+                  "min": "-10900"
+                },
+                "sellingPriceMultiplier": "1",
+                "materialPriceMultiplier": "1.1"
+              },
+              {
+                "label": "Materials -10%",
+                "netProfit": {
+                  "max": "-8900",
+                  "min": "-8900"
+                },
+                "sellingPriceMultiplier": "1",
+                "materialPriceMultiplier": "0.9"
+              },
+              {
+                "label": "Selling prices -10%",
+                "netProfit": {
+                  "max": "-9910",
+                  "min": "-9910"
+                },
+                "sellingPriceMultiplier": "0.9",
+                "materialPriceMultiplier": "1"
+              },
+              {
+                "label": "Selling prices +10%",
+                "netProfit": {
+                  "max": "-9890",
+                  "min": "-9890"
+                },
+                "sellingPriceMultiplier": "1.1",
+                "materialPriceMultiplier": "1"
+              }
+            ],
+            "stageValues": [
+              {
+                "cost": "10000",
+                "stageId": "roll",
+                "netProfit": {
+                  "max": "-9900",
+                  "min": "-9900"
+                }
+              },
+              {
+                "cost": "0",
+                "stageId": "finish",
+                "netProfit": {
+                  "max": "100",
+                  "min": "100"
+                }
+              }
+            ],
+            "expectedCosts": {
+              "base": "0",
+              "material": "10000",
+              "recovery": "0",
+              "finishing": "0"
+            },
+            "expectedNetProfit": {
+              "max": "-9900",
+              "min": "-9900"
+            },
+            "expectedTotalCost": "10000",
+            "targetProbability": "1",
+            "calculationVersion": "outcomes-1",
+            "expectedRoiPercent": {
+              "max": "-99",
+              "min": "-99"
+            },
+            "expectedGrossResale": {
+              "max": "100",
+              "min": "100"
+            },
+            "breakEvenOutputPrice": {
+              "max": "10000",
+              "min": "10000"
+            },
+            "breakEvenMaterialCost": {
+              "max": "100",
+              "min": "100"
+            },
+            "expectedSaleableItems": "1",
+            "expectedRecoveryCredit": "0",
+            "expectedBaseAcquisition": "0",
+            "expectedSalvageRecovery": {
+              "max": "0",
+              "min": "0"
+            },
+            "unvaluedRetainedBaseProbability": "0"
+          },
+          "sourceId": "6d5c24b4-9e49-4a15-a8a5-21a625cc29ce",
+          "riskResult": null,
+          "riskRequest": null,
+          "analysisInput": {
+            "now": "2026-11-04T18:40:08.582Z",
+            "model": {
+              "id": "synthetic-cancel",
+              "stages": [
+                {
+                  "id": "roll",
+                  "name": "Synthetic rare roll",
+                  "costs": [
+                    {
+                      "kind": "material",
+                      "quantity": "1",
+                      "provenance": {
+                        "kind": "assumption",
+                        "notes": "Deliberately rare synthetic transition; not game data.",
+                        "reference": "Synthetic cancellation fixture",
+                        "recordedAt": "2026-11-04T18:40:06.161Z"
+                      },
+                      "resourceId": "synthetic-currency"
+                    }
+                  ],
+                  "outcomes": [
+                    {
+                      "id": "advance",
+                      "name": "Synthetic transition",
+                      "costs": [],
+                      "credits": [],
+                      "matching": {
+                        "kind": "manual",
+                        "description": "Synthetic completed result"
+                      },
+                      "sellable": false,
+                      "unknowns": [],
+                      "nextStageId": "finish",
+                      "probability": {
+                        "value": "0.0001",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Deliberately rare synthetic transition; not game data.",
+                          "reference": "Synthetic cancellation fixture",
+                          "recordedAt": "2026-11-04T18:40:06.161Z"
+                        }
+                      },
+                      "targetSuccess": false,
+                      "classification": "imperfect",
+                      "baseDisposition": "consumed"
+                    },
+                    {
+                      "id": "retry",
+                      "name": "Synthetic transition",
+                      "costs": [],
+                      "credits": [],
+                      "matching": {
+                        "kind": "manual",
+                        "description": "Synthetic completed result"
+                      },
+                      "sellable": false,
+                      "unknowns": [],
+                      "nextStageId": "roll",
+                      "probability": {
+                        "value": "0.9999",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Deliberately rare synthetic transition; not game data.",
+                          "reference": "Synthetic cancellation fixture",
+                          "recordedAt": "2026-11-04T18:40:06.161Z"
+                        }
+                      },
+                      "targetSuccess": false,
+                      "classification": "recovery",
+                      "baseDisposition": "consumed"
+                    }
+                  ],
+                  "exclusivity": {
+                    "mode": "disjoint",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Deliberately rare synthetic transition; not game data.",
+                      "reference": "Synthetic cancellation fixture",
+                      "recordedAt": "2026-11-04T18:40:06.161Z"
+                    }
+                  }
+                },
+                {
+                  "id": "finish",
+                  "name": "Synthetic finish",
+                  "costs": [],
+                  "outcomes": [
+                    {
+                      "id": "target",
+                      "name": "Synthetic transition",
+                      "costs": [],
+                      "credits": [],
+                      "matching": {
+                        "kind": "manual",
+                        "description": "Synthetic completed result"
+                      },
+                      "sellable": true,
+                      "unknowns": [],
+                      "nextStageId": null,
+                      "probability": {
+                        "value": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Deliberately rare synthetic transition; not game data.",
+                          "reference": "Synthetic cancellation fixture",
+                          "recordedAt": "2026-11-04T18:40:06.161Z"
+                        }
+                      },
+                      "targetSuccess": true,
+                      "classification": "target",
+                      "baseDisposition": "consumed"
+                    }
+                  ],
+                  "exclusivity": {
+                    "mode": "disjoint",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Deliberately rare synthetic transition; not game data.",
+                      "reference": "Synthetic cancellation fixture",
+                      "recordedAt": "2026-11-04T18:40:06.161Z"
+                    }
+                  }
+                }
+              ],
+              "version": 1,
+              "unknowns": [],
+              "initialCosts": [],
+              "startStageId": "roll"
+            },
+            "league": "Fixture League",
+            "prices": {
+              "synthetic-currency": {
+                "amount": "1",
+                "currency": "chaos",
+                "provenance": {
+                  "kind": "assumption",
+                  "notes": "Deliberately rare synthetic transition; not game data.",
+                  "reference": "Synthetic cancellation fixture",
+                  "recordedAt": "2026-11-04T18:40:06.161Z"
+                }
+              }
+            },
+            "currency": "chaos",
+            "valuations": {
+              "target": {
+                "max": "100",
+                "min": "100",
+                "currency": "chaos",
+                "matching": {
+                  "kind": "manual",
+                  "description": "Synthetic completed result"
+                },
+                "provenance": {
+                  "kind": "assumption",
+                  "notes": "Deliberately rare synthetic transition; not game data.",
+                  "reference": "Synthetic cancellation fixture",
+                  "recordedAt": "2026-11-04T18:40:06.161Z"
+                }
+              }
+            }
+          }
+        },
+        "leagueId": "0dbaa169-86f7-4f0a-a149-1b4d16a4657d",
+        "recipeId": "quicksilver-mageblood-cheetah",
+        "startedAt": "2026-11-04T18:40:08.576Z",
+        "recipeHash": "858f6a37769aaa74a2b972e15d6c7d41dae9cefdf665ece04d2ed7b38029db65",
+        "plannedBudget": {
+          "currency": "chaos",
+          "quantity": "1",
+          "unitPrice": "100",
+          "rateSource": "Chaos transaction; no conversion",
+          "chaosPerUnit": "1"
+        },
+        "targetSignature": "3.29.3.3:6a3f7bf6cfa703db7771c63a3330728e",
+        "accountingCurrency": "chaos",
+        "forecastUnavailableReasons": []
+      },
+      "events": [
+        {
+          "id": "22816a80-49a5-4b59-8738-ca457d429782",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "purchase",
+            "resourceId": "Synthetic essence",
+            "transaction": {
+              "currency": "chaos",
+              "quantity": "10",
+              "unitPrice": "2",
+              "rateSource": "Chaos transaction; no conversion",
+              "chaosPerUnit": "1"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:08.755Z"
+        },
+        {
+          "id": "52e67501-fcb0-4482-bb10-d4a8b2ea3641",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "purchase",
+            "resourceId": "Synthetic base",
+            "transaction": {
+              "currency": "chaos",
+              "quantity": "2",
+              "unitPrice": "10",
+              "rateSource": "Chaos transaction; no conversion",
+              "chaosPerUnit": "1"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:09.004Z"
+        },
+        {
+          "id": "ec7cfcc8-c70c-494d-813f-45af5b1b280b",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "consume",
+            "quantity": "4",
+            "purchaseEventId": "22816a80-49a5-4b59-8738-ca457d429782"
+          },
+          "occurredAt": "2026-11-04T18:40:09.138Z"
+        },
+        {
+          "id": "c0235664-72a7-447a-bb3d-115b964f39d9",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "consume",
+            "quantity": "2",
+            "purchaseEventId": "52e67501-fcb0-4482-bb10-d4a8b2ea3641"
+          },
+          "occurredAt": "2026-11-04T18:40:09.288Z"
+        },
+        {
+          "id": "76a90a2a-ab40-4100-a187-e6e584fadd0a",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "produce",
+            "itemId": "76a90a2a-ab40-4100-a187-e6e584fadd0a",
+            "outcome": "production-target",
+            "modifiers": [],
+            "allocations": [
+              {
+                "amount": "4",
+                "costEventId": "ec7cfcc8-c70c-494d-813f-45af5b1b280b"
+              },
+              {
+                "amount": "10",
+                "costEventId": "c0235664-72a7-447a-bb3d-115b964f39d9"
+              }
+            ],
+            "description": "Synthetic target item",
+            "classification": "target",
+            "targetSignature": "3.29.3.3:6a3f7bf6cfa703db7771c63a3330728e"
+          },
+          "occurredAt": "2026-11-04T18:40:09.572Z"
+        },
+        {
+          "id": "417a947d-ab28-4ace-ac5b-84e47afa1f08",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "produce",
+            "itemId": "417a947d-ab28-4ace-ac5b-84e47afa1f08",
+            "outcome": "production-salvage",
+            "modifiers": [],
+            "allocations": [
+              {
+                "amount": "4",
+                "costEventId": "ec7cfcc8-c70c-494d-813f-45af5b1b280b"
+              },
+              {
+                "amount": "10",
+                "costEventId": "c0235664-72a7-447a-bb3d-115b964f39d9"
+              }
+            ],
+            "description": "Synthetic salvage item",
+            "classification": "salvage",
+            "targetSignature": null
+          },
+          "occurredAt": "2026-11-04T18:40:09.755Z"
+        },
+        {
+          "id": "9c38b963-2c7a-4b64-ba6d-eff6b1cf171e",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "expense",
+            "category": "finishing",
+            "transaction": {
+              "currency": "chaos",
+              "quantity": "1",
+              "unitPrice": "2",
+              "rateSource": "Chaos transaction; no conversion",
+              "chaosPerUnit": "1"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:09.888Z"
+        },
+        {
+          "id": "ffd06fa0-d0a1-4a35-a33c-fe8c4e6c5a0c",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "allocate",
+            "itemId": "76a90a2a-ab40-4100-a187-e6e584fadd0a",
+            "allocations": [
+              {
+                "amount": "2",
+                "costEventId": "9c38b963-2c7a-4b64-ba6d-eff6b1cf171e"
+              }
+            ]
+          },
+          "occurredAt": "2026-11-04T18:40:10.022Z"
+        },
+        {
+          "id": "6828ad58-ce02-42b4-b7e2-d14c49b40def",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "list",
+            "price": {
+              "currency": "chaos",
+              "quantity": "1",
+              "unitPrice": "50",
+              "rateSource": "Chaos transaction; no conversion",
+              "chaosPerUnit": "1"
+            },
+            "itemId": "76a90a2a-ab40-4100-a187-e6e584fadd0a"
+          },
+          "occurredAt": "2026-11-04T18:40:10.139Z"
+        },
+        {
+          "id": "e5737975-e6ad-4dd1-8551-e6a44ee79b13",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "sale",
+            "itemId": "76a90a2a-ab40-4100-a187-e6e584fadd0a",
+            "expenses": [
+              {
+                "currency": "chaos",
+                "quantity": "1",
+                "unitPrice": "1",
+                "rateSource": "Chaos transaction; no conversion",
+                "chaosPerUnit": "1"
+              }
+            ],
+            "transaction": {
+              "currency": "divine",
+              "quantity": "1",
+              "unitPrice": "0.5",
+              "rateSource": "Synthetic locked rate 100; not a live quote",
+              "chaosPerUnit": "100"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:10.355Z"
+        },
+        {
+          "id": "16a9b876-c38e-4ac7-b11c-2db607242440",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "void",
+            "reason": "Synthetic correction acceptance; preserve original audit entry",
+            "eventId": "e5737975-e6ad-4dd1-8551-e6a44ee79b13"
+          },
+          "occurredAt": "2026-11-04T18:40:10.538Z"
+        },
+        {
+          "id": "f578a590-fac3-4e55-a914-ab9ef0070321",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "sale",
+            "itemId": "76a90a2a-ab40-4100-a187-e6e584fadd0a",
+            "expenses": [
+              {
+                "currency": "chaos",
+                "quantity": "1",
+                "unitPrice": "1",
+                "rateSource": "Chaos transaction; no conversion",
+                "chaosPerUnit": "1"
+              }
+            ],
+            "transaction": {
+              "currency": "divine",
+              "quantity": "1",
+              "unitPrice": "0.5",
+              "rateSource": "Synthetic locked rate 100; not a live quote",
+              "chaosPerUnit": "100"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:10.739Z"
+        }
+      ]
+    },
+    {
+      "batch": {
+        "id": "01ba2358-2e09-41ae-ab1c-af3f49503455",
+        "notes": "Synthetic acceptance 390; not real purchases or sales",
+        "league": "Fixture League",
+        "forecast": {
+          "analysis": {
+            "basis": "assumptions",
+            "status": "complete",
+            "horizon": "one-method-run-with-setup",
+            "reasons": [],
+            "currency": "chaos",
+            "valueBasis": "cash-proceeds-minus-gross-outlay",
+            "sensitivity": [
+              {
+                "label": "Materials +10%",
+                "netProfit": {
+                  "max": "-10900",
+                  "min": "-10900"
+                },
+                "sellingPriceMultiplier": "1",
+                "materialPriceMultiplier": "1.1"
+              },
+              {
+                "label": "Materials -10%",
+                "netProfit": {
+                  "max": "-8900",
+                  "min": "-8900"
+                },
+                "sellingPriceMultiplier": "1",
+                "materialPriceMultiplier": "0.9"
+              },
+              {
+                "label": "Selling prices -10%",
+                "netProfit": {
+                  "max": "-9910",
+                  "min": "-9910"
+                },
+                "sellingPriceMultiplier": "0.9",
+                "materialPriceMultiplier": "1"
+              },
+              {
+                "label": "Selling prices +10%",
+                "netProfit": {
+                  "max": "-9890",
+                  "min": "-9890"
+                },
+                "sellingPriceMultiplier": "1.1",
+                "materialPriceMultiplier": "1"
+              }
+            ],
+            "stageValues": [
+              {
+                "cost": "10000",
+                "stageId": "roll",
+                "netProfit": {
+                  "max": "-9900",
+                  "min": "-9900"
+                }
+              },
+              {
+                "cost": "0",
+                "stageId": "finish",
+                "netProfit": {
+                  "max": "100",
+                  "min": "100"
+                }
+              }
+            ],
+            "expectedCosts": {
+              "base": "0",
+              "material": "10000",
+              "recovery": "0",
+              "finishing": "0"
+            },
+            "expectedNetProfit": {
+              "max": "-9900",
+              "min": "-9900"
+            },
+            "expectedTotalCost": "10000",
+            "targetProbability": "1",
+            "calculationVersion": "outcomes-1",
+            "expectedRoiPercent": {
+              "max": "-99",
+              "min": "-99"
+            },
+            "expectedGrossResale": {
+              "max": "100",
+              "min": "100"
+            },
+            "breakEvenOutputPrice": {
+              "max": "10000",
+              "min": "10000"
+            },
+            "breakEvenMaterialCost": {
+              "max": "100",
+              "min": "100"
+            },
+            "expectedSaleableItems": "1",
+            "expectedRecoveryCredit": "0",
+            "expectedBaseAcquisition": "0",
+            "expectedSalvageRecovery": {
+              "max": "0",
+              "min": "0"
+            },
+            "unvaluedRetainedBaseProbability": "0"
+          },
+          "sourceId": "6d5c24b4-9e49-4a15-a8a5-21a625cc29ce",
+          "riskResult": null,
+          "riskRequest": null,
+          "analysisInput": {
+            "now": "2026-11-04T18:40:11.789Z",
+            "model": {
+              "id": "synthetic-cancel",
+              "stages": [
+                {
+                  "id": "roll",
+                  "name": "Synthetic rare roll",
+                  "costs": [
+                    {
+                      "kind": "material",
+                      "quantity": "1",
+                      "provenance": {
+                        "kind": "assumption",
+                        "notes": "Deliberately rare synthetic transition; not game data.",
+                        "reference": "Synthetic cancellation fixture",
+                        "recordedAt": "2026-11-04T18:40:06.161Z"
+                      },
+                      "resourceId": "synthetic-currency"
+                    }
+                  ],
+                  "outcomes": [
+                    {
+                      "id": "advance",
+                      "name": "Synthetic transition",
+                      "costs": [],
+                      "credits": [],
+                      "matching": {
+                        "kind": "manual",
+                        "description": "Synthetic completed result"
+                      },
+                      "sellable": false,
+                      "unknowns": [],
+                      "nextStageId": "finish",
+                      "probability": {
+                        "value": "0.0001",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Deliberately rare synthetic transition; not game data.",
+                          "reference": "Synthetic cancellation fixture",
+                          "recordedAt": "2026-11-04T18:40:06.161Z"
+                        }
+                      },
+                      "targetSuccess": false,
+                      "classification": "imperfect",
+                      "baseDisposition": "consumed"
+                    },
+                    {
+                      "id": "retry",
+                      "name": "Synthetic transition",
+                      "costs": [],
+                      "credits": [],
+                      "matching": {
+                        "kind": "manual",
+                        "description": "Synthetic completed result"
+                      },
+                      "sellable": false,
+                      "unknowns": [],
+                      "nextStageId": "roll",
+                      "probability": {
+                        "value": "0.9999",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Deliberately rare synthetic transition; not game data.",
+                          "reference": "Synthetic cancellation fixture",
+                          "recordedAt": "2026-11-04T18:40:06.161Z"
+                        }
+                      },
+                      "targetSuccess": false,
+                      "classification": "recovery",
+                      "baseDisposition": "consumed"
+                    }
+                  ],
+                  "exclusivity": {
+                    "mode": "disjoint",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Deliberately rare synthetic transition; not game data.",
+                      "reference": "Synthetic cancellation fixture",
+                      "recordedAt": "2026-11-04T18:40:06.161Z"
+                    }
+                  }
+                },
+                {
+                  "id": "finish",
+                  "name": "Synthetic finish",
+                  "costs": [],
+                  "outcomes": [
+                    {
+                      "id": "target",
+                      "name": "Synthetic transition",
+                      "costs": [],
+                      "credits": [],
+                      "matching": {
+                        "kind": "manual",
+                        "description": "Synthetic completed result"
+                      },
+                      "sellable": true,
+                      "unknowns": [],
+                      "nextStageId": null,
+                      "probability": {
+                        "value": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Deliberately rare synthetic transition; not game data.",
+                          "reference": "Synthetic cancellation fixture",
+                          "recordedAt": "2026-11-04T18:40:06.161Z"
+                        }
+                      },
+                      "targetSuccess": true,
+                      "classification": "target",
+                      "baseDisposition": "consumed"
+                    }
+                  ],
+                  "exclusivity": {
+                    "mode": "disjoint",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Deliberately rare synthetic transition; not game data.",
+                      "reference": "Synthetic cancellation fixture",
+                      "recordedAt": "2026-11-04T18:40:06.161Z"
+                    }
+                  }
+                }
+              ],
+              "version": 1,
+              "unknowns": [],
+              "initialCosts": [],
+              "startStageId": "roll"
+            },
+            "league": "Fixture League",
+            "prices": {
+              "synthetic-currency": {
+                "amount": "1",
+                "currency": "chaos",
+                "provenance": {
+                  "kind": "assumption",
+                  "notes": "Deliberately rare synthetic transition; not game data.",
+                  "reference": "Synthetic cancellation fixture",
+                  "recordedAt": "2026-11-04T18:40:06.161Z"
+                }
+              }
+            },
+            "currency": "chaos",
+            "valuations": {
+              "target": {
+                "max": "100",
+                "min": "100",
+                "currency": "chaos",
+                "matching": {
+                  "kind": "manual",
+                  "description": "Synthetic completed result"
+                },
+                "provenance": {
+                  "kind": "assumption",
+                  "notes": "Deliberately rare synthetic transition; not game data.",
+                  "reference": "Synthetic cancellation fixture",
+                  "recordedAt": "2026-11-04T18:40:06.161Z"
+                }
+              }
+            }
+          }
+        },
+        "leagueId": "0dbaa169-86f7-4f0a-a149-1b4d16a4657d",
+        "recipeId": "quicksilver-mageblood-cheetah",
+        "startedAt": "2026-11-04T18:40:11.785Z",
+        "recipeHash": "858f6a37769aaa74a2b972e15d6c7d41dae9cefdf665ece04d2ed7b38029db65",
+        "plannedBudget": {
+          "currency": "chaos",
+          "quantity": "1",
+          "unitPrice": "100",
+          "rateSource": "Chaos transaction; no conversion",
+          "chaosPerUnit": "1"
+        },
+        "targetSignature": "3.29.3.3:6a3f7bf6cfa703db7771c63a3330728e",
+        "accountingCurrency": "chaos",
+        "forecastUnavailableReasons": []
+      },
+      "events": [
+        {
+          "id": "b572bed7-c662-4bea-a1cd-d5104cba59bc",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "purchase",
+            "resourceId": "Synthetic essence",
+            "transaction": {
+              "currency": "chaos",
+              "quantity": "10",
+              "unitPrice": "2",
+              "rateSource": "Chaos transaction; no conversion",
+              "chaosPerUnit": "1"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:11.949Z"
+        },
+        {
+          "id": "afb26ac6-3714-4e73-a6f2-0400d45f5548",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "purchase",
+            "resourceId": "Synthetic base",
+            "transaction": {
+              "currency": "chaos",
+              "quantity": "2",
+              "unitPrice": "10",
+              "rateSource": "Chaos transaction; no conversion",
+              "chaosPerUnit": "1"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:12.216Z"
+        },
+        {
+          "id": "7ca8f267-add4-4728-ae97-d8d3d34075f5",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "consume",
+            "quantity": "4",
+            "purchaseEventId": "b572bed7-c662-4bea-a1cd-d5104cba59bc"
+          },
+          "occurredAt": "2026-11-04T18:40:12.332Z"
+        },
+        {
+          "id": "6949adb3-b08d-4b2c-a239-668fba23b6f5",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "consume",
+            "quantity": "2",
+            "purchaseEventId": "afb26ac6-3714-4e73-a6f2-0400d45f5548"
+          },
+          "occurredAt": "2026-11-04T18:40:12.466Z"
+        },
+        {
+          "id": "f0670428-26d8-4db5-89c2-47cea4c0582c",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "produce",
+            "itemId": "f0670428-26d8-4db5-89c2-47cea4c0582c",
+            "outcome": "production-target",
+            "modifiers": [],
+            "allocations": [
+              {
+                "amount": "4",
+                "costEventId": "7ca8f267-add4-4728-ae97-d8d3d34075f5"
+              },
+              {
+                "amount": "10",
+                "costEventId": "6949adb3-b08d-4b2c-a239-668fba23b6f5"
+              }
+            ],
+            "description": "Synthetic target item",
+            "classification": "target",
+            "targetSignature": "3.29.3.3:6a3f7bf6cfa703db7771c63a3330728e"
+          },
+          "occurredAt": "2026-11-04T18:40:12.716Z"
+        },
+        {
+          "id": "79e3f898-000a-4d3d-84b5-9ff2c7967b2e",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "produce",
+            "itemId": "79e3f898-000a-4d3d-84b5-9ff2c7967b2e",
+            "outcome": "production-salvage",
+            "modifiers": [],
+            "allocations": [
+              {
+                "amount": "4",
+                "costEventId": "7ca8f267-add4-4728-ae97-d8d3d34075f5"
+              },
+              {
+                "amount": "10",
+                "costEventId": "6949adb3-b08d-4b2c-a239-668fba23b6f5"
+              }
+            ],
+            "description": "Synthetic salvage item",
+            "classification": "salvage",
+            "targetSignature": null
+          },
+          "occurredAt": "2026-11-04T18:40:12.916Z"
+        },
+        {
+          "id": "700816e1-bd95-4dc5-ba52-14a0282e9f93",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "expense",
+            "category": "finishing",
+            "transaction": {
+              "currency": "chaos",
+              "quantity": "1",
+              "unitPrice": "2",
+              "rateSource": "Chaos transaction; no conversion",
+              "chaosPerUnit": "1"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:13.049Z"
+        },
+        {
+          "id": "c88f717f-24da-4c00-bf4f-dba8fe63b0e9",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "allocate",
+            "itemId": "f0670428-26d8-4db5-89c2-47cea4c0582c",
+            "allocations": [
+              {
+                "amount": "2",
+                "costEventId": "700816e1-bd95-4dc5-ba52-14a0282e9f93"
+              }
+            ]
+          },
+          "occurredAt": "2026-11-04T18:40:13.182Z"
+        },
+        {
+          "id": "19ad126a-1588-4b4f-8fe7-95ba2c152143",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "list",
+            "price": {
+              "currency": "chaos",
+              "quantity": "1",
+              "unitPrice": "50",
+              "rateSource": "Chaos transaction; no conversion",
+              "chaosPerUnit": "1"
+            },
+            "itemId": "f0670428-26d8-4db5-89c2-47cea4c0582c"
+          },
+          "occurredAt": "2026-11-04T18:40:13.316Z"
+        },
+        {
+          "id": "665dfdf6-e6d4-4919-b184-70eee86fc472",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "sale",
+            "itemId": "f0670428-26d8-4db5-89c2-47cea4c0582c",
+            "expenses": [
+              {
+                "currency": "chaos",
+                "quantity": "1",
+                "unitPrice": "1",
+                "rateSource": "Chaos transaction; no conversion",
+                "chaosPerUnit": "1"
+              }
+            ],
+            "transaction": {
+              "currency": "divine",
+              "quantity": "1",
+              "unitPrice": "0.5",
+              "rateSource": "Synthetic locked rate 100; not a live quote",
+              "chaosPerUnit": "100"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:13.516Z"
+        },
+        {
+          "id": "c84566d5-cf23-42a3-8ae6-4551475c7313",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "void",
+            "reason": "Synthetic correction acceptance; preserve original audit entry",
+            "eventId": "665dfdf6-e6d4-4919-b184-70eee86fc472"
+          },
+          "occurredAt": "2026-11-04T18:40:13.699Z"
+        },
+        {
+          "id": "f0d1e53d-add2-4984-9888-f139014e655d",
+          "notes": "",
+          "source": "Synthetic browser acceptance; no real game transaction",
+          "payload": {
+            "type": "sale",
+            "itemId": "f0670428-26d8-4db5-89c2-47cea4c0582c",
+            "expenses": [
+              {
+                "currency": "chaos",
+                "quantity": "1",
+                "unitPrice": "1",
+                "rateSource": "Chaos transaction; no conversion",
+                "chaosPerUnit": "1"
+              }
+            ],
+            "transaction": {
+              "currency": "divine",
+              "quantity": "1",
+              "unitPrice": "0.5",
+              "rateSource": "Synthetic locked rate 100; not a live quote",
+              "chaosPerUnit": "100"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:13.916Z"
+        }
+      ]
+    },
+    {
+      "batch": {
+        "id": "faa4d031-24bb-4738-a962-702fabd72515",
+        "notes": "Synthetic lost-response reconciliation",
+        "league": "Fixture League",
+        "forecast": {
+          "analysis": {
+            "basis": "assumptions",
+            "status": "complete",
+            "horizon": "one-method-run-with-setup",
+            "reasons": [],
+            "currency": "chaos",
+            "valueBasis": "cash-proceeds-minus-gross-outlay",
+            "sensitivity": [
+              {
+                "label": "Materials +10%",
+                "netProfit": {
+                  "max": "-10900",
+                  "min": "-10900"
+                },
+                "sellingPriceMultiplier": "1",
+                "materialPriceMultiplier": "1.1"
+              },
+              {
+                "label": "Materials -10%",
+                "netProfit": {
+                  "max": "-8900",
+                  "min": "-8900"
+                },
+                "sellingPriceMultiplier": "1",
+                "materialPriceMultiplier": "0.9"
+              },
+              {
+                "label": "Selling prices -10%",
+                "netProfit": {
+                  "max": "-9910",
+                  "min": "-9910"
+                },
+                "sellingPriceMultiplier": "0.9",
+                "materialPriceMultiplier": "1"
+              },
+              {
+                "label": "Selling prices +10%",
+                "netProfit": {
+                  "max": "-9890",
+                  "min": "-9890"
+                },
+                "sellingPriceMultiplier": "1.1",
+                "materialPriceMultiplier": "1"
+              }
+            ],
+            "stageValues": [
+              {
+                "cost": "10000",
+                "stageId": "roll",
+                "netProfit": {
+                  "max": "-9900",
+                  "min": "-9900"
+                }
+              },
+              {
+                "cost": "0",
+                "stageId": "finish",
+                "netProfit": {
+                  "max": "100",
+                  "min": "100"
+                }
+              }
+            ],
+            "expectedCosts": {
+              "base": "0",
+              "material": "10000",
+              "recovery": "0",
+              "finishing": "0"
+            },
+            "expectedNetProfit": {
+              "max": "-9900",
+              "min": "-9900"
+            },
+            "expectedTotalCost": "10000",
+            "targetProbability": "1",
+            "calculationVersion": "outcomes-1",
+            "expectedRoiPercent": {
+              "max": "-99",
+              "min": "-99"
+            },
+            "expectedGrossResale": {
+              "max": "100",
+              "min": "100"
+            },
+            "breakEvenOutputPrice": {
+              "max": "10000",
+              "min": "10000"
+            },
+            "breakEvenMaterialCost": {
+              "max": "100",
+              "min": "100"
+            },
+            "expectedSaleableItems": "1",
+            "expectedRecoveryCredit": "0",
+            "expectedBaseAcquisition": "0",
+            "expectedSalvageRecovery": {
+              "max": "0",
+              "min": "0"
+            },
+            "unvaluedRetainedBaseProbability": "0"
+          },
+          "sourceId": "6d5c24b4-9e49-4a15-a8a5-21a625cc29ce",
+          "riskResult": null,
+          "riskRequest": null,
+          "analysisInput": {
+            "now": "2026-11-04T18:40:14.982Z",
+            "model": {
+              "id": "synthetic-cancel",
+              "stages": [
+                {
+                  "id": "roll",
+                  "name": "Synthetic rare roll",
+                  "costs": [
+                    {
+                      "kind": "material",
+                      "quantity": "1",
+                      "provenance": {
+                        "kind": "assumption",
+                        "notes": "Deliberately rare synthetic transition; not game data.",
+                        "reference": "Synthetic cancellation fixture",
+                        "recordedAt": "2026-11-04T18:40:06.161Z"
+                      },
+                      "resourceId": "synthetic-currency"
+                    }
+                  ],
+                  "outcomes": [
+                    {
+                      "id": "advance",
+                      "name": "Synthetic transition",
+                      "costs": [],
+                      "credits": [],
+                      "matching": {
+                        "kind": "manual",
+                        "description": "Synthetic completed result"
+                      },
+                      "sellable": false,
+                      "unknowns": [],
+                      "nextStageId": "finish",
+                      "probability": {
+                        "value": "0.0001",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Deliberately rare synthetic transition; not game data.",
+                          "reference": "Synthetic cancellation fixture",
+                          "recordedAt": "2026-11-04T18:40:06.161Z"
+                        }
+                      },
+                      "targetSuccess": false,
+                      "classification": "imperfect",
+                      "baseDisposition": "consumed"
+                    },
+                    {
+                      "id": "retry",
+                      "name": "Synthetic transition",
+                      "costs": [],
+                      "credits": [],
+                      "matching": {
+                        "kind": "manual",
+                        "description": "Synthetic completed result"
+                      },
+                      "sellable": false,
+                      "unknowns": [],
+                      "nextStageId": "roll",
+                      "probability": {
+                        "value": "0.9999",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Deliberately rare synthetic transition; not game data.",
+                          "reference": "Synthetic cancellation fixture",
+                          "recordedAt": "2026-11-04T18:40:06.161Z"
+                        }
+                      },
+                      "targetSuccess": false,
+                      "classification": "recovery",
+                      "baseDisposition": "consumed"
+                    }
+                  ],
+                  "exclusivity": {
+                    "mode": "disjoint",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Deliberately rare synthetic transition; not game data.",
+                      "reference": "Synthetic cancellation fixture",
+                      "recordedAt": "2026-11-04T18:40:06.161Z"
+                    }
+                  }
+                },
+                {
+                  "id": "finish",
+                  "name": "Synthetic finish",
+                  "costs": [],
+                  "outcomes": [
+                    {
+                      "id": "target",
+                      "name": "Synthetic transition",
+                      "costs": [],
+                      "credits": [],
+                      "matching": {
+                        "kind": "manual",
+                        "description": "Synthetic completed result"
+                      },
+                      "sellable": true,
+                      "unknowns": [],
+                      "nextStageId": null,
+                      "probability": {
+                        "value": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Deliberately rare synthetic transition; not game data.",
+                          "reference": "Synthetic cancellation fixture",
+                          "recordedAt": "2026-11-04T18:40:06.161Z"
+                        }
+                      },
+                      "targetSuccess": true,
+                      "classification": "target",
+                      "baseDisposition": "consumed"
+                    }
+                  ],
+                  "exclusivity": {
+                    "mode": "disjoint",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Deliberately rare synthetic transition; not game data.",
+                      "reference": "Synthetic cancellation fixture",
+                      "recordedAt": "2026-11-04T18:40:06.161Z"
+                    }
+                  }
+                }
+              ],
+              "version": 1,
+              "unknowns": [],
+              "initialCosts": [],
+              "startStageId": "roll"
+            },
+            "league": "Fixture League",
+            "prices": {
+              "synthetic-currency": {
+                "amount": "1",
+                "currency": "chaos",
+                "provenance": {
+                  "kind": "assumption",
+                  "notes": "Deliberately rare synthetic transition; not game data.",
+                  "reference": "Synthetic cancellation fixture",
+                  "recordedAt": "2026-11-04T18:40:06.161Z"
+                }
+              }
+            },
+            "currency": "chaos",
+            "valuations": {
+              "target": {
+                "max": "100",
+                "min": "100",
+                "currency": "chaos",
+                "matching": {
+                  "kind": "manual",
+                  "description": "Synthetic completed result"
+                },
+                "provenance": {
+                  "kind": "assumption",
+                  "notes": "Deliberately rare synthetic transition; not game data.",
+                  "reference": "Synthetic cancellation fixture",
+                  "recordedAt": "2026-11-04T18:40:06.161Z"
+                }
+              }
+            }
+          }
+        },
+        "leagueId": "0dbaa169-86f7-4f0a-a149-1b4d16a4657d",
+        "recipeId": "quicksilver-mageblood-cheetah",
+        "startedAt": "2026-11-04T18:40:14.977Z",
+        "recipeHash": "858f6a37769aaa74a2b972e15d6c7d41dae9cefdf665ece04d2ed7b38029db65",
+        "plannedBudget": {
+          "currency": "chaos",
+          "quantity": "1",
+          "unitPrice": "10",
+          "rateSource": "Chaos transaction; no conversion",
+          "chaosPerUnit": "1"
+        },
+        "targetSignature": "3.29.3.3:6a3f7bf6cfa703db7771c63a3330728e",
+        "accountingCurrency": "chaos",
+        "forecastUnavailableReasons": []
+      },
+      "events": [
+        {
+          "id": "094bb3e9-6729-43aa-bb5b-7f405bd48017",
+          "notes": "",
+          "source": "Synthetic acceptance only",
+          "payload": {
+            "type": "purchase",
+            "resourceId": "Synthetic identical purchase",
+            "transaction": {
+              "currency": "chaos",
+              "quantity": "1",
+              "unitPrice": "1",
+              "rateSource": "Chaos transaction; no conversion",
+              "chaosPerUnit": "1"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:15.140Z"
+        },
+        {
+          "id": "a4aa3b68-3b56-4dc9-ac0d-14ac3c97531b",
+          "notes": "",
+          "source": "Synthetic acceptance only",
+          "payload": {
+            "type": "purchase",
+            "resourceId": "Synthetic identical purchase",
+            "transaction": {
+              "currency": "chaos",
+              "quantity": "1",
+              "unitPrice": "1",
+              "rateSource": "Chaos transaction; no conversion",
+              "chaosPerUnit": "1"
+            }
+          },
+          "occurredAt": "2026-11-04T18:40:15.620Z"
+        }
+      ]
+    }
+  ]
+}

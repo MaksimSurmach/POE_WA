@@ -598,3 +598,5 @@ export * from './admin.js';
 export * from './trends.js';
 export * from './craftingPrices.js';
 export * from './craftAnalysis.js';
+
+export * from './factory.js';

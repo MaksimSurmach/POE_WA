@@ -1,0 +1,134 @@
+{
+  "database": "isolated PostgreSQL17 atlocalhost54328; synthetic fixtures only",
+  "unchangedTables": {
+    "aggregated_observations": {
+      "rows": 21,
+      "digest": "0898dcf860e1845696d57211fffe1f2e"
+    },
+    "belt_price_updates": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "canonical_entities": {
+      "rows": 4,
+      "digest": "7d912c54c7a516a813ac508d21beb45a"
+    },
+    "catalog_state": {
+      "rows": 1,
+      "digest": "a0cfd72183c06c6580d00d44b103879a"
+    },
+    "craft_outcome_models": {
+      "rows": 1,
+      "digest": "12547b9fdfd37573729c24466c395662"
+    },
+    "craft_probability_results": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "craft_risk_runs": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "game_data_versions": {
+      "rows": 1,
+      "digest": "5c78384591748dbbed110884da2a51d6"
+    },
+    "jobs": {
+      "rows": 21,
+      "digest": "e6f83107034dd5228963c6640757d872"
+    },
+    "market_admin_audit": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_admin_runs": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_admin_settings": {
+      "rows": 1,
+      "digest": "b8a1d40432117ffb8c32931df30fd6d9"
+    },
+    "market_collection_runs": {
+      "rows": 4,
+      "digest": "69b2454806f61e6ee36200537c061f71"
+    },
+    "market_collection_settings": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_economy_attempts": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_economy_snapshots": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "market_queries": {
+      "rows": 21,
+      "digest": "27ebc7e1b61f83900d652f431f9b3bc3"
+    },
+    "market_research_snapshots": {
+      "rows": 4,
+      "digest": "c40c84014b14703cfad83f063c27e60b"
+    },
+    "market_targets": {
+      "rows": 1,
+      "digest": "c622dc29ea5f699b8a6d380ed14144f8"
+    },
+    "market_worker_health": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "poe_leagues": {
+      "rows": 2,
+      "digest": "4b09d901799c08b49f4805f6a8e6ceb6"
+    },
+    "provider_circuits": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "provider_mappings": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "rate_limit_endpoint_policies": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "rate_limit_states": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "raw_snapshots": {
+      "rows": 21,
+      "digest": "ae860f2ebb9223e2eaa552b7b39c44fa"
+    },
+    "recipe_evaluations": {
+      "rows": 21,
+      "digest": "0a867201091123c660c32ca35a2de7aa"
+    },
+    "recipe_price_daily": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "recipe_price_observations": {
+      "rows": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "recipes": {
+      "rows": 48,
+      "digest": "fb7b87a6cc9ac5066f5ae51a365dee5e"
+    },
+    "refresh_cycles": {
+      "rows": 1,
+      "digest": "6ad4078c843b94fce803ddca2aa3bc9a"
+    }
+  },
+  "addedTables": [
+    "factory_batches",
+    "factory_events",
+    "factory_mutations"
+  ]
+}

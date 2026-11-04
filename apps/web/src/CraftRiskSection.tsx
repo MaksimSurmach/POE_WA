@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import type {
   CraftAnalysis,
   CraftRiskRun,
@@ -577,6 +578,13 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                   Results are fixed to this saved input, not live prices.
                 </p>
                 <CraftRiskResult result={job.result} />
+                {job.result.status === 'complete' && data.league ? (
+                  <Link
+                    to={`/factory?recipe=${encodeURIComponent(recipeId)}&league=${encodeURIComponent(data.league)}&forecast=${encodeURIComponent(job.id)}`}
+                  >
+                    Start a batch with this frozen forecast →
+                  </Link>
+                ) : null}
               </>
             ) : null}
             <details>
