@@ -117,10 +117,6 @@ else {
   const manifestPath = arg('--manifest');
   assert(manifestPath, 'usage: pnpm test:e2e:master -- --manifest <path>');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-  const repo = await run('git', ['remote', 'get-url', 'origin'], {
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  void repo;
   assert(manifest.schemaVersion === 1, 'unsupported manifest schema');
   assert(
     manifest.repository === 'MaksimSurmach/POE_WA',
