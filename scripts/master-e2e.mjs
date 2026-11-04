@@ -357,7 +357,7 @@ else {
         'migrate',
         'node',
         '-e',
-        "fetch('http://app:3000/api/admin/market/pause',{method:'POST',headers:{host:'app:3000',origin:'http://app:3000','content-type':'application/json'},body:'{}'}).then(async r=>{if(r.status!==403){console.error(await r.text());process.exit(1)}})",
+        "fetch('http://app:3000/api/admin/market/pause',{method:'POST',headers:{host:'app:3000',origin:'http://app:3000','content-type':'application/json'},body:'{}'}).then(async r=>{const body=await r.json();if(r.status!==401||body.error?.code!=='OPERATOR_AUTH_REQUIRED'){console.error(JSON.stringify({status:r.status,body}));process.exit(1)}})",
       ],
       { env },
     );
