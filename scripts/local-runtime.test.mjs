@@ -17,6 +17,12 @@ test('native service control is ordered, idempotent, and reports launch failures
   const bin = join(dir, 'bin');
   mkdirSync(bin);
   writeFileSync(
+    join(bin, 'curl'),
+    '#!/bin/sh\n[ "${TEST_HTTP_FAIL:-}" != "yes" ]\n',
+    { mode: 0o755 },
+  );
+  writeFileSync(join(bin, 'sleep'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+  writeFileSync(
     join(bin, 'launchctl'),
     `#!/bin/sh
 set -eu
@@ -48,6 +54,10 @@ esac
   try {
     assert.equal(run('invalid').status, 2);
     assert.match(run('status').stdout, /app: stopped/);
+    const unavailable = run('start', { TEST_HTTP_FAIL: 'yes' });
+    assert.equal(unavailable.status, 1);
+    assert.match(unavailable.stderr, /is not ready/);
+    assert.doesNotMatch(unavailable.stdout, /Started POE Worksmith/);
     assert.equal(run('start').status, 0);
     assert.equal(run('start').status, 0);
     assert.match(run('status').stdout, /app: running/);

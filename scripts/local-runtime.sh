@@ -31,6 +31,18 @@ stop_service() {
   fi
 }
 
+wait_http() {
+  attempts=0
+  until curl --silent --fail --max-time 2 "$1" >/dev/null; do
+    attempts=$((attempts + 1))
+    if [ "$attempts" -ge 30 ]; then
+      echo "$1 is not ready. Inspect $runtime/logs; services were left available for diagnosis." >&2
+      exit 1
+    fi
+    sleep 1
+  done
+}
+
 case "${1:-status}" in
   start)
     start_service postgres
@@ -45,6 +57,8 @@ case "${1:-status}" in
     done
     start_service app
     start_service web
+    wait_http http://127.0.0.1:3000/health/ready
+    wait_http http://127.0.0.1:4173/
     echo "Started POE Worksmith: http://127.0.0.1:4173/"
     ;;
   stop)
