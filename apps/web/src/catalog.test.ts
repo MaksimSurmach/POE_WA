@@ -40,7 +40,9 @@ describe('catalog table ordering and numeric filters', () => {
       sort: 'title',
       profitCurrency: 'chaos',
     });
-    expect(readCatalogFilters(new URLSearchParams('direction=up')).direction).toBeUndefined();
+    expect(
+      readCatalogFilters(new URLSearchParams('direction=up')).direction,
+    ).toBeUndefined();
   });
   const entries = [20, -5, null, 0].map((profit, index) => ({
     ...catalogFixtures[0]!,
