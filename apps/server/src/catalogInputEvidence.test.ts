@@ -44,6 +44,8 @@ const dependencies = createRecipeMarketDependencies({
 
 async function evaluate(
   options: {
+    recipe?: ReturnType<typeof fixtureRecipe>;
+    materialStock?: number;
     foreign?: 'matching' | 'rejected';
     materialAgeMinutes?: number;
     materialExpiryMinutes?: number;
@@ -56,7 +58,7 @@ async function evaluate(
   } = {},
 ) {
   const repositories = createInMemoryRepositories();
-  const recipe = fixtureRecipe();
+  const recipe = options.recipe ?? fixtureRecipe();
   await synchronizeRecipes(
     repositories.recipes,
     [
@@ -126,7 +128,7 @@ async function evaluate(
             mods: [],
             modsComplete: true,
           }
-        : { stock: 100000 };
+        : { stock: options.materialStock ?? 100000 };
     const listings = Array.from(
       { length: dependency.kind === 'target' ? (options.sellers ?? 2) : 2 },
       (_, i) => ({
@@ -241,6 +243,50 @@ async function evaluate(
 }
 
 describe('catalog input evidence', () => {
+  it.each([9, 10])(
+    'requires total stock across steps before pricing the craft (stock %i)',
+    async (stock) => {
+      const source = fixtureRecipe();
+      const step = source.craft.steps[0]!;
+      const material = step.materials[0]!;
+      const evidence = source.craft.expectedExecutions![0]!.evidence;
+      const recipe = fixtureRecipe({
+        ...source,
+        craft: {
+          ...source.craft,
+          steps: [
+            { ...step, id: 'roll', materials: [{ ...material, quantity: 2 }] },
+            {
+              ...step,
+              id: 'finish',
+              materials: [{ ...material, quantity: 1 }],
+            },
+          ],
+          expectedExecutions: [
+            { stepId: 'roll', count: 3, evidence },
+            { stepId: 'finish', count: 4, evidence },
+          ],
+        },
+      });
+      const { evaluation } = await evaluate({ recipe, materialStock: stock });
+      expect(evaluation).toMatchObject(
+        stock === 10
+          ? {
+              status: 'success',
+              expectedCraftCost: '30',
+              profit: '270',
+              marginPercent: '900',
+            }
+          : {
+              status: 'partial',
+              expectedCraftCost: null,
+              profit: null,
+              marginPercent: null,
+            },
+      );
+    },
+  );
+
   it('withholds a price floor when a matching divine ask cannot be converted', async () => {
     const { evaluation } = await evaluate({ foreign: 'matching' });
     expect(evaluation).toMatchObject({

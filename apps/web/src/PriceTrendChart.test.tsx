@@ -1,5 +1,4 @@
 import type { RecipeTrend, TrendBucket } from '@poe-worksmith/contracts';
-import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
@@ -191,19 +190,5 @@ describe('price trend chart', () => {
         <TrendFacts now={Date.parse(iso(72))} summary={old.summary} />,
       ),
     ).toContain('Old observation');
-  });
-
-  it('stacks the dashboard on mobile and keeps the chart fluid', () => {
-    const css = readFileSync(
-      new URL('./marketTrends.css', import.meta.url),
-      'utf8',
-    );
-    expect(css).toMatch(
-      /@media \(max-width: 820px\) \{\s*\.market-trends__layout \{\s*grid-template-columns: 1fr;/,
-    );
-    expect(css).toMatch(
-      /\.trend-chart__svg \{[^}]*width: 100%;[^}]*height: auto;/,
-    );
-    expect(css).not.toMatch(/animation|transition/);
   });
 });

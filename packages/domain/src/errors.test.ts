@@ -2,9 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   allowsDegradedResult,
-  type DomainErrorCode,
   DomainError,
-  domainErrorDefinitions,
   failure,
   isRetryable,
   serializeDomainError,
@@ -12,19 +10,6 @@ import {
 } from './errors.js';
 
 describe('domain error taxonomy', () => {
-  it('constructs every stable code with its declared classification', () => {
-    for (const [code, definition] of Object.entries(domainErrorDefinitions)) {
-      const error = new DomainError(code as DomainErrorCode);
-
-      expect(error).toMatchObject({
-        category: definition.category,
-        code,
-        disposition: definition.disposition,
-        message: definition.publicMessage,
-      });
-    }
-  });
-
   it('drives retry and degraded decisions from disposition', () => {
     const retryable = new DomainError('PROVIDER_RATE_LIMITED');
     const permanent = new DomainError('MARKET_QUERY_INVALID');

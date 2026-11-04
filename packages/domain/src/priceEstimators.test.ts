@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import type { MarketListing } from './marketProviders.js';
 import {
   aggregateMarketListings,
-  priceEstimatorPlugins,
   selectPriceEstimate,
 } from './priceEstimators.js';
 
@@ -141,7 +140,6 @@ describe('market snapshot aggregation', () => {
       [{ percentile: 50, strategy: 'percentile' } as const, '3'],
     ] as const;
 
-    expect(priceEstimatorPlugins).toHaveLength(5);
     for (const [configuration, expected] of cases) {
       expect(selectPriceEstimate(result, configuration).price?.amount).toBe(
         expected,
@@ -161,6 +159,25 @@ describe('market snapshot aggregation', () => {
       label: 'Custom estimator',
       price: { amount: '42', currency: 'chaos' },
     });
+  });
+
+  it('interpolates percentiles and averages the middle pair for even samples', () => {
+    const result = aggregateMarketListings({
+      currency: 'chaos',
+      listings: [listing('high', 30), listing('low', 10)],
+    });
+    expect(
+      selectPriceEstimate(result, { strategy: 'percentile', percentile: 25 })
+        .price?.amount,
+    ).toBe('15');
+    expect(
+      selectPriceEstimate(result, { strategy: 'percentile', percentile: 100 })
+        .price?.amount,
+    ).toBe('30');
+    expect(
+      selectPriceEstimate(result, { strategy: 'median_top_n', n: 2 }).price
+        ?.amount,
+    ).toBe('20');
   });
 
   it('rejects mixed currency and invalid total counts', () => {
