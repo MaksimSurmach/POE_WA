@@ -45,6 +45,8 @@ jobs:
       - run: pnpm test:integration
       - run: pnpm test:e2e:backend
       - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e:browser
       - name: Validate and preview recipe catalog
         run: |
           echo '## Recipe catalog' >> "$GITHUB_STEP_SUMMARY"

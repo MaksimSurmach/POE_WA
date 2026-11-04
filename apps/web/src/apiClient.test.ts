@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ApiClientError, createApiClient } from './apiClient.js';
+import { syntheticOutcomeInput } from '@poe-worksmith/domain/fixtures';
 
 const correlationId = '33333333-3333-4333-8333-333333333333';
 const timestamp = '2026-07-20T00:00:00.000Z';
@@ -107,6 +108,92 @@ describe('typed API client', () => {
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
       '/api/trends?range=30d',
       '/api/trends/a%2Fb?range=30d',
+    ]);
+  });
+  it('keeps a missing outcome model explicit and isolates analysis by recipe and league', async () => {
+    const payload = {
+      correlationId,
+      data: {
+        recipeId: 'a/b',
+        recipeHash: 'revision',
+        targetSignature: 'target',
+        league: 'Fixture / League',
+        leagueId: '11111111-1111-4111-8111-111111111111',
+        evaluatedAt: timestamp,
+        modelRecord: null,
+        embeddedModel: null,
+        analysis: null,
+        prices: {},
+        valuations: {},
+        unavailableReasons: ['Missing outcome probabilities'],
+        canEdit: false,
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue(response(payload));
+    await expect(
+      createApiClient('', fetchMock).getCraftAnalysis(
+        'a/b',
+        'Fixture / League',
+      ),
+    ).resolves.toEqual(payload);
+    expect(fetchMock.mock.calls[0]![0]).toBe(
+      '/api/recipes/a%2Fb/analysis?league=Fixture%20%2F%20League',
+    );
+  });
+
+  it('preserves mutation idempotency, original values and provenance and surfaces owner-access rejection', async () => {
+    const fixture = syntheticOutcomeInput();
+    const payload = {
+      recipeId: 'fixture',
+      recipeHash: 'recipe-revision',
+      league: fixture.league,
+      currency: 'chaos' as const,
+      expectedRevision: null,
+      idempotencyKey: '11111111-1111-4111-8111-111111111111',
+      model: fixture.model,
+      prices: fixture.prices,
+      valuations: fixture.valuations,
+    };
+    const fetchMock = vi.fn().mockResolvedValue(
+      response({
+        correlationId,
+        error: {
+          category: 'internal',
+          code: 'OPERATOR_AUTH_REQUIRED',
+          disposition: 'permanent',
+          message: 'Operator authentication is required.',
+          retryable: false,
+        },
+      }),
+    );
+    const client = createApiClient('', fetchMock);
+    await expect(client.saveCraftModel(payload)).rejects.toBeInstanceOf(
+      ApiClientError,
+    );
+    expect(fetchMock.mock.calls[0]![0]).toBe(
+      '/api/admin/craft-analysis/models',
+    );
+    expect(fetchMock.mock.calls[0]![1]).toMatchObject({
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+      },
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0]![1].body)).toEqual(payload);
+    await expect(
+      client.cancelCraftRisk('a/b', payload.idempotencyKey),
+    ).rejects.toBeInstanceOf(ApiClientError);
+    expect(fetchMock.mock.calls[1]).toEqual([
+      '/api/admin/craft-analysis/simulations/a%2Fb/cancel',
+      {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ idempotencyKey: payload.idempotencyKey }),
+      },
     ]);
   });
 });

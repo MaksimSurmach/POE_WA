@@ -1068,3 +1068,81 @@ where e.status in ('success', 'partial')
   and jsonb_typeof(e.method_cost) = 'object'
   and jsonb_typeof(e.method_cost->'recipeContentHash') = 'string'`,
 );
+
+export const craftOutcomeModels = pgTable(
+  'craft_outcome_models',
+  {
+    id: uuid('id').primaryKey(),
+    recipeId: text('recipe_id')
+      .notNull()
+      .references(() => recipes.id),
+    recipeContentHash: text('recipe_content_hash').notNull(),
+    targetSignature: text('target_signature').notNull(),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id),
+    revision: integer('revision').notNull(),
+    idempotencyKey: uuid('idempotency_key').notNull(),
+    requestHash: text('request_hash').notNull(),
+    document: jsonb('document').$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('craft_outcome_models_revision_uq').on(
+      t.recipeId,
+      t.recipeContentHash,
+      t.leagueId,
+      t.revision,
+    ),
+    uniqueIndex('craft_outcome_models_idempotency_uq').on(t.idempotencyKey),
+    check('craft_outcome_models_revision_check', sql`${t.revision} > 0`),
+  ],
+);
+
+export const craftRiskRuns = pgTable(
+  'craft_risk_runs',
+  {
+    id: uuid('id').primaryKey(),
+    modelId: uuid('model_id')
+      .notNull()
+      .references(() => craftOutcomeModels.id),
+    recipeId: text('recipe_id')
+      .notNull()
+      .references(() => recipes.id),
+    recipeContentHash: text('recipe_content_hash').notNull(),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id),
+    calculationVersion: text('calculation_version').notNull(),
+    idempotencyKey: uuid('idempotency_key').notNull(),
+    requestHash: text('request_hash').notNull(),
+    request: jsonb('request').$type<Record<string, unknown>>().notNull(),
+    status: text('status').notNull(),
+    progress: integer('progress').notNull().default(0),
+    result: jsonb('result').$type<Record<string, unknown>>(),
+    error: text('error'),
+    cancelRequested: boolean('cancel_requested').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex('craft_risk_runs_idempotency_uq').on(t.idempotencyKey),
+    index('craft_risk_runs_queue_idx')
+      .on(t.createdAt)
+      .where(sql`${t.status} = 'queued'`),
+    index('craft_risk_runs_model_idx').on(t.modelId, t.createdAt),
+    check(
+      'craft_risk_runs_status_check',
+      sql`${t.status} in ('queued', 'running', 'completed', 'failed', 'cancelled', 'interrupted')`,
+    ),
+    check(
+      'craft_risk_runs_progress_check',
+      sql`${t.progress} between 0 and 100`,
+    ),
+  ],
+);

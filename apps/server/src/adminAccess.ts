@@ -29,7 +29,7 @@ export function isLocalAdmin(request: Pick<FastifyRequest, 'headers' | 'ip'>) {
 
 export function needsAdminAccess(method: string, path: string) {
   return (
-    path.startsWith('/api/admin/market') ||
+    path.startsWith('/api/admin/') ||
     (!['GET', 'HEAD', 'OPTIONS'].includes(method) &&
       (path === '/api/refresh' || path.startsWith('/api/market/')))
   );
