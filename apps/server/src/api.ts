@@ -1,3 +1,5 @@
+import { registerIntelligenceRoutes } from './intelligenceApi.js';
+import type { IntelligenceService } from './intelligence.js';
 import { registerFactoryRoutes } from './factoryApi.js';
 import type { FactoryService } from './factory.js';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
@@ -84,6 +86,7 @@ export function buildApi(
     marketAdmin?: MarketAdminApiOptions | undefined;
     craftAnalysis?: CraftAnalysisService | undefined;
     factory?: FactoryService | undefined;
+    intelligence?: IntelligenceService | undefined;
     diagnosticsToken?: string | undefined;
     readCircuits?: (() => Promise<ProviderCircuitState[]>) | undefined;
     readOperationalDiagnostics?: OperationalDiagnosticsReader | undefined;
@@ -231,6 +234,7 @@ export function buildApi(
   registerMarketAdminRoutes(api, options.marketAdmin);
   registerCraftAnalysisRoutes(api, options.craftAnalysis);
   registerFactoryRoutes(api, options.factory);
+  registerIntelligenceRoutes(api, options.intelligence);
   registerMarketTrendsRoutes(api, options.marketTrends);
 
   api.get('/health/live', async (request) => ({

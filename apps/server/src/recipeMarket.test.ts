@@ -10,6 +10,8 @@ import {
 } from '@poe-worksmith/domain';
 import {
   createRecipeMarketDependencies,
+  matchingRecipeListings,
+  comparableRecipeListings,
   recipeQueryTarget,
 } from './recipeMarket.js';
 
@@ -49,6 +51,51 @@ const query = async (
   (await dependencies({ recipe, league })).find((d) => d.kind === 'target')
     ?.query;
 describe('recipe market dependencies', () => {
+  it('preserves comparable listing depth before seller deduplication without changing catalog pricing', async () => {
+    const targetQuery = (await query(canonicalRecipeFixture))!;
+    const capturedAt = new Date('2026-11-04T12:00:00.000Z');
+    const listings = ['same', 'same', 'independent'].map((account, index) => ({
+      id: `listing-${index}`,
+      account,
+      ageSeconds: 0,
+      fee: null,
+      indexedAt: capturedAt,
+      price: { amount: String(200 + index), currency: 'chaos' },
+      item: {
+        baseType: 'Large Cluster Jewel',
+        rarity: 'rare',
+        league: 'Fixture League',
+        patch: canonicalRecipeFixture.patch,
+        itemLevel: 84,
+        corrupted: false,
+        synthesised: false,
+        fractured: false,
+        influences: [],
+        seller: account,
+        status: 'listed',
+        currency: 'chaos',
+        modsComplete: true,
+        mods: [],
+      },
+    }));
+    expect(
+      matchingRecipeListings(
+        targetQuery.query,
+        listings,
+        capturedAt,
+        capturedAt,
+      ),
+    ).toHaveLength(3);
+    expect(
+      comparableRecipeListings(
+        targetQuery.query,
+        listings,
+        capturedAt,
+        capturedAt,
+      ),
+    ).toHaveLength(2);
+  });
+
   it('shares exact finished searches across methods and isolates different output modifiers', async () => {
     const first = canonicalRecipeFixture;
     const second = fixtureRecipe({

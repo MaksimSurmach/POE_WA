@@ -1,3 +1,5 @@
+import { createIntelligenceService } from './intelligence.js';
+import { createIntelligenceRepository } from './repositories/intelligenceRepository.js';
 import { createFactoryService } from './factory.js';
 import { createFactoryRepository } from './repositories/factoryRepository.js';
 import { createCraftAnalysisService } from './craftAnalysis.js';
@@ -211,6 +213,22 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         repositories.leagues.findCurrent,
         {
           craftAnalysis,
+          intelligence: createIntelligenceService({
+            repository: createIntelligenceRepository(pool),
+            factory: createFactoryRepository(pool),
+            analysis: craftAnalysis,
+            recipes: repositories.recipes,
+            leagues: repositories.leagues,
+            marketDependencies,
+            settings: async () => (await admin.read()).effective.intelligence,
+            maximumQuoteAgeMs: async () =>
+              (await admin.read()).effective.maximumQuoteAgeMs,
+            onError: (error) =>
+              logger.warn(
+                { err: error },
+                'Intelligence refresh unavailable; existing evidence preserved',
+              ),
+          }),
           factory: createFactoryService({
             repository: createFactoryRepository(pool),
             analysis: craftAnalysis,
