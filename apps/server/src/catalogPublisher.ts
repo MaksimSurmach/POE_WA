@@ -25,9 +25,10 @@ import {
 import type { Logger } from 'pino';
 import type { Metrics } from './observability/metrics.js';
 import { convertMarketQuote } from './marketCurrency.js';
-import type {
-  MarketEconomyRepository,
-  StoredMarketEconomySnapshot,
+import {
+  verifyEconomySnapshot,
+  type MarketEconomyRepository,
+  type StoredMarketEconomySnapshot,
 } from './marketEconomy.js';
 
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
@@ -197,26 +198,8 @@ export async function evaluateAndPublishCatalog(
     }
   }
   const attempts = (await options.economy?.listAttempts?.()) ?? [];
-  const verified = (snapshot: StoredMarketEconomySnapshot | null) => {
-    if (!snapshot) return null;
-    // A completed HTTP attempt verifies the old payload; cache reads never advance freshness.
-    const checks = attempts.filter(
-      (a) =>
-        a.snapshotId === snapshot.id &&
-        a.league === snapshot.league &&
-        a.category === snapshot.category &&
-        a.status === 'succeeded' &&
-        (a.cacheStatus === 'fetched' || a.cacheStatus === 'revalidated') &&
-        a.completedAt &&
-        Date.parse(a.completedAt) <= now.getTime() &&
-        Date.parse(a.startedAt) <= Date.parse(a.completedAt),
-    );
-    const time = Math.max(
-      Date.parse(snapshot.capturedAt),
-      ...checks.map((a) => Date.parse(a.startedAt)),
-    );
-    return { ...snapshot, verifiedAt: new Date(time).toISOString() };
-  };
+  const verified = (snapshot: StoredMarketEconomySnapshot | null) =>
+    verifyEconomySnapshot(snapshot, attempts, now);
   const economySummary = await options.economy?.latest(league, 'Currency');
   const currencyExchange = verified(
     economySummary ? await options.economy!.find(economySummary.id) : null,

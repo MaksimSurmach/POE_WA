@@ -1,4 +1,7 @@
-import { apiErrorEnvelopeSchema } from '@poe-worksmith/contracts';
+import {
+  apiErrorEnvelopeSchema,
+  craftingPricesResponseSchema,
+} from '@poe-worksmith/contracts';
 import { DomainError, type PoeLeague } from '@poe-worksmith/domain';
 import pino from 'pino';
 import { describe, expect, it, vi } from 'vitest';
@@ -6,6 +9,22 @@ import { describe, expect, it, vi } from 'vitest';
 import { buildApi } from './api.js';
 
 describe('health API', () => {
+  it('keeps the manual crafting calculator available without market data', async () => {
+    const api = buildApi(pino({ level: 'silent' }), vi.fn(), async () => ({
+      active: null,
+      published: null,
+    }));
+    const response = await api.inject({
+      method: 'GET',
+      url: '/api/crafting-prices',
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(
+      craftingPricesResponseSchema.parse(response.json()).data,
+    ).toMatchObject({ league: null, quotes: [] });
+    await api.close();
+  });
   it('reports liveness without external dependencies', async () => {
     const api = buildApi(pino({ level: 'silent' }), vi.fn(), async () => ({
       active: null,

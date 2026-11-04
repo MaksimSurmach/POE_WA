@@ -18,6 +18,7 @@ import {
   type TrendOverviewResponse,
   trendOverviewResponseSchema,
   type TrendRange,
+  craftingPricesResponseSchema,
 } from '@poe-worksmith/contracts';
 
 type Contract<T> = {
@@ -59,6 +60,9 @@ export function createApiClient(
   }
 
   return {
+    getCraftingPrices() {
+      return request('/api/crafting-prices', craftingPricesResponseSchema);
+    },
     getCatalog(): Promise<CatalogResponse> {
       return request('/api/catalog', catalogResponseSchema);
     },

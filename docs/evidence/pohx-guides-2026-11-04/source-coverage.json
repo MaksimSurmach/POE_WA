@@ -1,0 +1,198 @@
+{
+  "reviewedAt": "2026-11-04",
+  "index": "https://pohx.net/crafts/",
+  "entries": [
+    {
+      "id": "recomb-sceptre",
+      "url": "https://pohx.net/crafts/recomb-sceptre/",
+      "sourceTextSha256": "4d727401c3f1596a5130bf128fc2ed9eff71035cc603abd30b7973aefc8f02e5",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "starter-body-armor",
+      "url": "https://pohx.net/crafts/starter-body-armor/",
+      "sourceTextSha256": "8516b9126028c5aa4c4f37e7504d68a3f91181f916eb9ce760381245b1b3038a",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "elder-ft-helmet",
+      "url": "https://pohx.net/crafts/elder-ft-helmet/",
+      "sourceTextSha256": "5a00e1bc9983121caabc4674bb001b7015287bc72ef6785d04ddb0051fa9a953",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": [
+        "rf-fire-trap-any-support",
+        "rf-fire-trap-level-20"
+      ]
+    },
+    {
+      "id": "elder-rf-helmet",
+      "url": "https://pohx.net/crafts/elder-rf-helmet/",
+      "sourceTextSha256": "065cbfa49bfb01bf822820ee928c146b6fc7342681da316cf449c753ef1cf28f",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "gloves",
+      "url": "https://pohx.net/crafts/gloves/",
+      "sourceTextSha256": "8a5a8b5b4177dd05796fd71d958a2cb813e5c70cfa1515026ffb287f67956f2f",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "boots",
+      "url": "https://pohx.net/crafts/boots/",
+      "sourceTextSha256": "5b560d4c7ea27d7f6e8f2f0769045660f6971b7792862b9835735abb6d0a8eb8",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "shield",
+      "url": "https://pohx.net/crafts/shield/",
+      "sourceTextSha256": "23459f382aa9d8caa911b82de644f510e8e0754ce6b2b2f3b4de6f3115c19c70",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "totem-shield",
+      "url": "https://pohx.net/crafts/totem-shield/",
+      "sourceTextSha256": "ee6d05ca8f5bc79058fb639f3d10a39f5520d5944128b159850156abfb849214",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "rings",
+      "url": "https://pohx.net/crafts/rings/",
+      "sourceTextSha256": "fdc7505f9d4b7e7008702c408128f0eb679dbbcf17831d78cbd4fe72a8a6a79e",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "amulet",
+      "url": "https://pohx.net/crafts/amulet/",
+      "sourceTextSha256": "3c85f9d3777d0c2ed6f8aee17545a227b0f27f2d61f0a5ced8d080cad6451add",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "belt",
+      "url": "https://pohx.net/crafts/belt/",
+      "sourceTextSha256": "5f77c7c00a7b441eb5285f794e6f8aa8ee0496068e0ee7c1ec659f79c30e1db0",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "jewels",
+      "url": "https://pohx.net/crafts/jewels/",
+      "sourceTextSha256": "8acf31dabf2afc714ba26b92b4b95c00812a86929ce78e39dbe88edc0677b42f",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "endgame-recomb-amulet",
+      "url": "https://pohx.net/crafts/endgame-recomb-amulet/",
+      "sourceTextSha256": "034df096df801821008f42a32c7100f707015dcf6ccda69cf369cc84ce7039ee",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "rf-cogwork-ring",
+      "url": "https://pohx.net/crafts/rf-cogwork-ring/",
+      "sourceTextSha256": "fb4cf7cf441faef4bfd7f847848a81d9e6d01c0b245f267a715393c740b35822",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "30-reservation-shield",
+      "url": "https://pohx.net/crafts/30-reservation-shield/",
+      "sourceTextSha256": "085328127e27fa22d656733e0b71e897c5cf8cb8ed2bc23f00f0e132fb7204e3",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-endgame-recomb-sceptre",
+      "url": "https://pohx.net/crafts/advanced-endgame-recomb-sceptre/",
+      "sourceTextSha256": "fb81086d135ec3ae8b56939bb57985e587e44c19d8cc6092ff4d2ccba03d77f2",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-minmax-recomb-sceptre",
+      "url": "https://pohx.net/crafts/advanced-minmax-recomb-sceptre/",
+      "sourceTextSha256": "c8a1bef8890021e8d27ad63b0a13ffd4cd5151974f06671369d05984e1da72ca",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-endgame-shield",
+      "url": "https://pohx.net/crafts/advanced-endgame-shield/",
+      "sourceTextSha256": "5cd73a5a453853567f710fc4cfec7f1359241a1b0359e5e6499f5aafa38a71a5",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-elevated-ft-helmet",
+      "url": "https://pohx.net/crafts/advanced-elevated-ft-helmet/",
+      "sourceTextSha256": "a6c46ab44b89b199dad863daad1d7f9f2ebd3b4ceaf3a9104c3c2521aa8e0e74",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-minmax-recomb-ft-helmet",
+      "url": "https://pohx.net/crafts/advanced-minmax-recomb-ft-helmet/",
+      "sourceTextSha256": "dee70a4584f0e888346831ed06b1a91cfa94073c9328d11e1aa88a8a8aefc5ef",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-endgame-rf-helmet",
+      "url": "https://pohx.net/crafts/advanced-endgame-rf-helmet/",
+      "sourceTextSha256": "ed7d0f283119e797bb90e0ca1b9259bcf407dcdb28ff3214ced27aa7ddaec340",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-minmax-recomb-rf-helmet",
+      "url": "https://pohx.net/crafts/advanced-minmax-recomb-rf-helmet/",
+      "sourceTextSha256": "15d1f3638e89bae8fba1db03af8aed74e19f1f74e7d035ef6f1bf6dc1f3ef343",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-double-veiled-mittens",
+      "url": "https://pohx.net/crafts/advanced-double-veiled-mittens/",
+      "sourceTextSha256": "a85ff1a597efce4423b1e4c26cf901e188caaf5b21e09041ca40051355dfe59c",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-endgame-boots",
+      "url": "https://pohx.net/crafts/advanced-endgame-boots/",
+      "sourceTextSha256": "f71e045b317ae7f56f2dba509420b8dc33bf83b32bfe321b6986ceb8334ed6e5",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-abyss-socket-mittens",
+      "url": "https://pohx.net/crafts/advanced-abyss-socket-mittens/",
+      "sourceTextSha256": "cb4a12b3fe6484367527dbc6a9e6c37c2e25c46d0bf016fe7a10cd30aadfcfc7",
+      "status": "source-unfinished",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-fractured-2-amulet",
+      "url": "https://pohx.net/crafts/advanced-fractured-2-amulet/",
+      "sourceTextSha256": "c58113c2715fc3e7f4d7f5089629958caf72e266535e416d1119cb3cf0a69a58",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    },
+    {
+      "id": "advanced-recomb-2-amulet",
+      "url": "https://pohx.net/crafts/advanced-recomb-2-amulet/",
+      "sourceTextSha256": "83ce7e94a47260f746635273f2cb2d416d451677fb86b88ec2cd6bbd1b8cb46c",
+      "status": "manual-spending-scenario",
+      "checkedMarketVariants": []
+    }
+  ]
+}

@@ -25,6 +25,7 @@ import { RecipePage } from './RecipePage.js';
 import { AdminMarketPage } from './AdminMarketPage.js';
 import { MarketTrendsPage } from './MarketTrendsPage.js';
 import { RecipeLibraryPage } from './RecipeLibraryPage.js';
+import { PohxRecipePage } from './PohxRecipePage.js';
 
 const apiClient = createApiClient();
 
@@ -445,6 +446,7 @@ export function App() {
       <Route element={<AppShell />}>
         <Route index element={<CatalogRoute />} />
         <Route path="recipes" element={<RecipeLibraryPage />} />
+        <Route path="recipes/pohx/:guideId" element={<PohxRecipePage />} />
         <Route path="recipes/:recipeId" element={<RecipePage />} />
         <Route path="market" element={<MarketTrendsPage />} />
         <Route path="admin/market" element={<AdminMarketPage />} />

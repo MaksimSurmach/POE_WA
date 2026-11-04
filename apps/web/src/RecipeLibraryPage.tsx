@@ -6,6 +6,7 @@ import { createApiClient } from './apiClient.js';
 import { filterCatalog } from './catalog.js';
 import { StatusPanel } from './components.js';
 import { ItemTooltip } from './ItemTooltip.js';
+import { filterPohxGuides, pohxGuides } from './pohxGuides.js';
 
 const apiClient = createApiClient();
 
@@ -39,13 +40,13 @@ export function RecipeLibraryPage() {
       </section>
       {failed ? (
         <StatusPanel tone="danger" title="Recipes unavailable">
-          Reload to try again.
+          Market targets could not be loaded. Pohx guides remain available
+          below.
         </StatusPanel>
       ) : entries === null ? (
         <StatusPanel tone="info" title="Loading recipes" />
-      ) : (
-        <RecipeLibrary entries={entries} />
-      )}
+      ) : null}
+      <RecipeLibrary entries={entries ?? []} />
     </>
   );
 }
@@ -54,9 +55,17 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
   const [params, setParams] = useSearchParams();
   const search = params.get('search') ?? '';
   const category = params.get('category') ?? 'all';
-  const filtered = filterCatalog(entries, { search, category, sort: 'title' });
+  const source = params.get('source') ?? 'all';
+  const filtered =
+    source === 'pohx'
+      ? []
+      : filterCatalog(entries, { search, category, sort: 'title' });
+  const guides = source === 'market' ? [] : filterPohxGuides(search, category);
   const categories = [
-    ...new Set(entries.map(({ recipe }) => recipe.category)),
+    ...new Set([
+      ...entries.map(({ recipe }) => recipe.category),
+      ...pohxGuides.map((g) => g.category),
+    ]),
   ].sort();
   function update(key: string, value: string) {
     const next = new URLSearchParams(params);
@@ -93,16 +102,53 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
             ))}
           </select>
         </label>
+        <label className="catalog-filter">
+          <span>Source</span>
+          <select
+            value={source}
+            onChange={(e) => update('source', e.target.value)}
+          >
+            <option value="all">All recipes</option>
+            <option value="market">Market targets</option>
+            <option value="pohx">Pohx / Convay</option>
+          </select>
+        </label>
       </section>
       <div className="catalog-results">
         <span role="status">
-          {filtered.length} of {entries.length} recipes
+          {filtered.length + guides.length} of{' '}
+          {entries.length + pohxGuides.length} recipes and guides
         </span>
         <button type="button" onClick={() => setParams({}, { replace: true })}>
           Reset filters
         </button>
       </div>
       <ul className="recipe-library">
+        {guides.map((guide) => (
+          <li key={`pohx-${guide.id}`}>
+            <span className="recipe-library__guide-mark" aria-hidden="true">
+              POHX
+            </span>
+            <div>
+              <h2>
+                <Link to={`/recipes/pohx/${guide.id}`}>{guide.title}</Link>
+              </h2>
+              <p className="recipe-library__method">
+                {guide.category.replaceAll('-', ' ')} · Pohx / Convay ·{' '}
+                {guide.workInProgress
+                  ? 'Source work in progress'
+                  : 'Spending scenario'}
+              </p>
+              <p>{guide.summary}</p>
+              <Link to={`/recipes/pohx/${guide.id}`}>
+                {guide.workInProgress
+                  ? 'View source status'
+                  : 'Steps and cost calculator'}{' '}
+                ›
+              </Link>
+            </div>
+          </li>
+        ))}
         {filtered.map(({ recipe, itemPreview }) => (
           <li key={recipe.id}>
             {itemPreview ? <ItemTooltip item={itemPreview} /> : null}
@@ -123,7 +169,7 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
           </li>
         ))}
       </ul>
-      {!filtered.length ? (
+      {!filtered.length && !guides.length ? (
         <StatusPanel tone="info" title="No matching recipes">
           Try another name or item class.
         </StatusPanel>

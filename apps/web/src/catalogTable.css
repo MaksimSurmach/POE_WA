@@ -12,7 +12,8 @@
   font-size: 0.75rem;
 }
 .catalog-filter input,
-.catalog-filter select {
+.catalog-filter select,
+.craft-scenario input {
   width: 100%;
   min-height: 40px;
   border: 1px solid var(--border);
@@ -21,7 +22,8 @@
   color: var(--text);
   caret-color: var(--accent);
 }
-.catalog-filter input::placeholder {
+.catalog-filter input::placeholder,
+.craft-scenario input::placeholder {
   color: var(--muted);
 }
 .catalog-results {
@@ -32,7 +34,8 @@
   color: var(--muted);
   font-size: 0.8rem;
 }
-.catalog-results button {
+.catalog-results button,
+.craft-scenario button {
   min-height: 40px;
   padding: 6px 10px;
   border: 0;
@@ -40,7 +43,8 @@
   color: var(--accent);
   cursor: pointer;
 }
-.catalog-results button:hover {
+.catalog-results button:hover,
+.craft-scenario button:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
