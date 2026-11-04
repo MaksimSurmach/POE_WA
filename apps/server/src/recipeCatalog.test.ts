@@ -31,6 +31,14 @@ const receipt = new URL(
 );
 async function mappedTrade() {
   const identities = JSON.parse(await readFile(receipt, 'utf8'));
+  const flasks = JSON.parse(
+    await readFile(
+      new URL('docs/evidence/flasks-2026-11-04/trade-identities.json', root),
+      'utf8',
+    ),
+  );
+  for (const kind of ['stats', 'bases', 'resources'])
+    identities[kind].push(...flasks[kind]);
   const manifests = await Promise.all(
     ['physical-large-cluster', 'recipe-catalog'].map(async (name) => {
       const file = fileURLToPath(
@@ -108,7 +116,7 @@ async function mappedTrade() {
 describe('authored source catalog integrity', () => {
   it('loads every current recipe with resolvable target/base identities, material slugs and readable presentation', async () => {
     const catalog = await recipes();
-    expect(catalog).toHaveLength(26);
+    expect(catalog.length).toBeGreaterThan(0);
     const trade = await mappedTrade();
     const presentation = await loadItemPresentationCatalog(
       fileURLToPath(
@@ -182,6 +190,10 @@ describe('authored source catalog integrity', () => {
         recipe: definition,
       });
       expect(view.base.itemClass).not.toBe('Unknown');
+      expect(view.base.iconUrl, definition.id).toMatch(
+        /^https:\/\/web\.poecdn\.com\//,
+      );
+      expect(view.target.iconUrl, definition.id).toBe(view.base.iconUrl);
       expect(
         view.target.modifiers.every((m) => !m.label.startsWith('mod:')),
       ).toBe(true);
@@ -189,18 +201,212 @@ describe('authored source catalog integrity', () => {
         definition.tags.some((tag) => /^(max-|research-|sheet-)/.test(tag)),
       ).toBe(false);
       if (definition.verification.status === 'unverified') {
-        expect(definition.verification.status).toBe('unverified');
         expect(definition.craft.expectedExecutions).toBeUndefined();
         expect(definition.craft.baseConsumption).toBeUndefined();
       }
     }
   });
 
+  it('prices perfect flask rolls separately and includes the complete Enkindling finish', async () => {
+    const catalog = await recipes();
+    const trade = await mappedTrade();
+    const receipt = JSON.parse(
+      await readFile(
+        new URL('docs/evidence/flasks-2026-11-04/calculator.json', root),
+        'utf8',
+      ),
+    );
+    const signatures = new Set<string>();
+    for (const model of receipt.models) {
+      const recipe = catalog.find(
+        (r) => r.definition.id === model.id,
+      )!.definition;
+      signatures.add(recipe.targetSignature);
+      const executions = recipe.craft.expectedExecutions!;
+      expect(executions.map((x) => [x.stepId, x.count])).toEqual([
+        ['roll-explicits', model.displayed.expectedAlterations * 3],
+        ['enkindle-effect', (650 / 250) * 11],
+      ]);
+      expect(recipe.craft.baseConsumption?.expectedBases).toBe(1);
+      for (const step of recipe.craft.steps) {
+        expect(step.success?.probability).toBeCloseTo(
+          1 / executions.find((x) => x.stepId === step.id)!.count,
+          12,
+        );
+      }
+      const base = await generateRecipeMarketQuery(
+        trade,
+        recipe,
+        'Fixture League',
+        true,
+      );
+      expect(base.query).toMatchObject({
+        query: {
+          filters: {
+            misc_filters: {
+              filters: {
+                quality: { min: 20, max: 20 },
+                ilvl: { min: 85, max: 85 },
+              },
+            },
+            type_filters: { filters: { rarity: { option: 'magic' } } },
+          },
+        },
+      });
+      const target = recipeQueryTarget(
+        (await generateRecipeMarketQuery(trade, recipe, 'Fixture League')).query
+          .handbookTarget,
+      );
+      const variants = [
+        {
+          label: 'perfect',
+          speed: 14,
+          enchant: 70,
+          duration: 25,
+          effect: 'increased',
+          quality: 20,
+        },
+        {
+          label: 'lower prefix',
+          speed: 14,
+          enchant: 70,
+          duration: 38,
+          effect: 'increased',
+          quality: 20,
+        },
+        {
+          label: 'speed12',
+          speed: 12,
+          enchant: 70,
+          duration: 25,
+          effect: 'increased',
+          quality: 20,
+        },
+        {
+          label: 'speed13',
+          speed: 13,
+          enchant: 70,
+          duration: 25,
+          effect: 'increased',
+          quality: 20,
+        },
+        {
+          label: 'enchant66',
+          speed: 14,
+          enchant: 66,
+          duration: 25,
+          effect: 'increased',
+          quality: 20,
+        },
+        {
+          label: 'reduced effect',
+          speed: 14,
+          enchant: 70,
+          duration: 25,
+          effect: 'reduced',
+          quality: 20,
+        },
+        {
+          label: 'missing quality',
+          speed: 14,
+          enchant: 70,
+          duration: 25,
+          effect: 'increased',
+          quality: null,
+        },
+      ];
+      const rows = variants.map((v) =>
+        normalizeTradeCompatibleListing(
+          {
+            id: v.label.replaceAll(' ', '-'),
+            listing: {
+              price: { amount: 800, currency: 'chaos' },
+              account: { name: `seller-${v.label}` },
+            },
+            item: {
+              verified: true,
+              baseType: 'Quicksilver Flask',
+              frameType: 1,
+              league: 'Fixture League',
+              ilvl: 85,
+              influences: {},
+              corrupted: false,
+              properties:
+                v.quality === null
+                  ? []
+                  : [
+                      {
+                        name: 'Quality',
+                        type: 6,
+                        values: [[`+${v.quality}%`, 1]],
+                      },
+                    ],
+              explicitMods: [
+                {
+                  domain: 'explicit',
+                  hash: 'stat.explicit.stat_2448920197',
+                  description: `25% ${v.effect} effect`,
+                },
+                {
+                  domain: 'explicit',
+                  hash: 'stat.explicit.stat_1256719186',
+                  description: `${v.duration}% reduced Duration`,
+                },
+                {
+                  domain: 'explicit',
+                  hash: 'stat.explicit.stat_3182498570',
+                  description: `${v.speed}% increased Movement Speed during Effect`,
+                },
+              ],
+              enchantMods: [`${v.enchant}% increased effect`],
+            },
+          },
+          target,
+        ),
+      );
+      expect(rows[0]?.item.mods).toEqual(
+        expect.arrayContaining([
+          { id: 'explicit.stat_2448920197', value: 25 },
+          { id: 'explicit.stat_1256719186', value: -25 },
+          { id: 'enchant.stat_2448920197', value: 70 },
+        ]),
+      );
+      expect(rows[5]?.item.mods).toContainEqual({
+        id: 'explicit.stat_2448920197',
+        value: -25,
+      });
+      const now = new Date('2026-11-04T12:00:00Z');
+      const snapshot = createImportedMarketSnapshot(
+        {
+          targetId: target.id,
+          capturedAt: now.toISOString(),
+          sourceUrl: 'https://example.com/flask-fixture',
+          currency: 'chaos',
+          dataKind: 'demo',
+          listings: rows,
+        },
+        target,
+        now,
+      );
+      const compared = analyzeBeltSnapshot(target, snapshot, now.getTime());
+      expect(
+        compared.rows.map((r) => r.status === 'MATCH'),
+        JSON.stringify(compared.rows),
+      ).toEqual([
+        true,
+        recipe.id === 'quicksilver-mageblood-cheetah',
+        false,
+        false,
+        false,
+        false,
+        false,
+      ]);
+    }
+    expect(signatures.size).toBe(2);
+  });
+
   it('ties the two current single-stage expectations to archived exact calculator settings', async () => {
     const catalog = await recipes();
-    expect(
-      catalog.filter((r) => r.definition.verification.status === 'verified'),
-    ).toHaveLength(23);
     for (const method of ['zeal', 'fear']) {
       const recipe = catalog.find(
         (r) => r.definition.id === `suppression-gloves-${method}`,

@@ -548,3 +548,185 @@ describe('catalog evaluation and publication', () => {
     });
   });
 });
+
+describe('sale evidence acceptance', () => {
+  async function evaluateWithTargetSellers(
+    sellers: readonly string[],
+    profitBlockedReason?: string,
+    coverage: 'complete' | 'partial' = 'complete',
+  ) {
+    const repositories = createInMemoryRepositories();
+    const definition = fixtureRecipe(canonicalRecipeFixture);
+    if (profitBlockedReason)
+      definition.verification.profitBlockedReason = profitBlockedReason;
+    await repositories.recipes.save(
+      storedRecipe(definition.id, { ...definition } as JsonRecord),
+    );
+    const tradeQueries = (
+      await fixtureMarketDependencies({
+        recipe: definition,
+        league: 'Mercenaries',
+      })
+    ).map(({ query }) => query!);
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Mercenaries',
+      isCurrent: true,
+      metadata: {},
+      name: 'Mercenaries',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
+    const refreshCycle = {
+      ...cycle('cycle-sale-evidence', 1, tradeQueries.length),
+      leagueId: league.id,
+    };
+    await repositories.cycles.save(refreshCycle);
+    const targetIndex = tradeQueries.length - 1;
+    for (const [queryIndex, tradeQuery] of tradeQueries.entries()) {
+      const marketQueryId = `query-${queryIndex}`;
+      await repositories.marketQueries.save({
+        active: true,
+        canonicalHash: await hashMarketQuery({
+          league: 'Mercenaries',
+          provider: tradeQuery.provider,
+          query: tradeQuery.query,
+          schemaVersion: tradeQuery.schemaVersion,
+        }),
+        id: marketQueryId,
+        provider: tradeQuery.provider,
+        query: tradeQuery.query,
+        recipeId: definition.id,
+      });
+      const accounts =
+        queryIndex === targetIndex
+          ? sellers
+          : Array.from({ length: 10 }, (_, index) => `seller-${index}`);
+      const listings = accounts.map((account, listingIndex) => ({
+        account,
+        ageSeconds: 60,
+        fee: null,
+        id: `${marketQueryId}-listing-${listingIndex}`,
+        indexedAt: new Date(now.getTime() - 60_000).toISOString(),
+        item: { stock: 10000 },
+        price: {
+          amount: String(
+            (queryIndex === 0 ? 10 : queryIndex === targetIndex ? 1000 : 0.01) +
+              listingIndex,
+          ),
+          currency: 'chaos',
+        },
+      }));
+      await repositories.snapshots.save({
+        capturedAt: now,
+        dedupeKey: `snapshot-${queryIndex}`,
+        expiresAt: new Date(now.getTime() + 300_000),
+        leagueId: league.id,
+        marketQueryId,
+        payload: {
+          coverage: queryIndex === targetIndex ? coverage : 'complete',
+          sortedSampleComplete: true,
+          listings,
+          provider: 'poe-trade',
+          totalResults: listings.length,
+        },
+        providerStatus: 200,
+        refreshCycleId: refreshCycle.id,
+      });
+    }
+    const report = await evaluateAndPublishCatalog(repositories, {
+      cycleId: refreshCycle.id,
+      marketDependencies: fixtureMarketDependencies,
+      league: 'Mercenaries',
+      now,
+    });
+    expect(report).toMatchObject({ completedRecipes: 1, published: true });
+    return report.evaluations[0]!;
+  }
+
+  it('withholds ROI from a partial output even with two sellers and legacy sorted proof', async () => {
+    const evaluation = await evaluateWithTargetSellers(
+      ['one', 'two'],
+      undefined,
+      'partial',
+    );
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      profit: null,
+      marginPercent: null,
+      methodCost: {
+        saleEvidence: {
+          status: 'insufficient_coverage',
+          reason: expect.stringContaining('Incomplete output coverage'),
+        },
+      },
+    });
+    expect(evaluation.expectedCraftCost).not.toBeNull();
+  });
+
+  it('retains cost and asks but withholds ROI when the priced output is not the modelled craft', async () => {
+    const reason = 'Observed items include an unmodelled finishing stage.';
+    const evaluation = await evaluateWithTargetSellers(['one', 'two'], reason);
+    expect(evaluation.expectedCraftCost).not.toBeNull();
+    expect(evaluation.estimatedSalePrice).toBe('1000');
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      profit: null,
+      marginPercent: null,
+      lastSuccessfulAt: null,
+      methodCost: {
+        saleEvidence: { status: 'unverified_output_value', reason },
+      },
+    });
+  });
+
+  it.each([
+    ['one listing', ['lone-seller']],
+    ['one seller repeating the ask', ['lone-seller', 'lone-seller']],
+  ])(
+    'withholds profit and ROI when the sale ask rests on %s',
+    async (_, sellers) => {
+      const evaluation = await evaluateWithTargetSellers(sellers);
+
+      expect(evaluation).toMatchObject({
+        confidence: 'low',
+        estimatedSalePrice: '1000',
+        marginPercent: null,
+        profit: null,
+        status: 'partial',
+        methodCost: {
+          saleEvidence: {
+            comparableSellers: 1,
+            minimumComparableSellers: 2,
+            status: 'insufficient_sellers',
+          },
+        },
+      });
+      expect(evaluation.expectedCraftCost).not.toBeNull();
+      expect(evaluation.lastSuccessfulAt).toBeNull();
+    },
+  );
+
+  it('publishes profit and ROI once independent sellers corroborate the ask', async () => {
+    const evaluation = await evaluateWithTargetSellers([
+      'first-seller',
+      'second-seller',
+    ]);
+
+    expect(evaluation).toMatchObject({
+      estimatedSalePrice: '1000',
+      status: 'success',
+      methodCost: {
+        saleEvidence: {
+          comparableSellers: 2,
+          minimumComparableSellers: 2,
+          status: 'accepted',
+        },
+      },
+    });
+    expect(Number(evaluation.marginPercent)).toBeGreaterThan(0);
+    expect(Number(evaluation.profit)).toBeGreaterThan(0);
+  });
+});

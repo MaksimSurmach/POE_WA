@@ -1,27 +1,31 @@
 import type {
-  CatalogEntry,
   CatalogResponse,
   CurrentLeagueResponse,
 } from '@poe-worksmith/contracts';
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { Link, Outlet, Route, Routes } from 'react-router-dom';
+import {
+  Link,
+  NavLink,
+  Outlet,
+  Route,
+  Routes,
+  useSearchParams,
+} from 'react-router-dom';
 
 import {
   defaultCatalogFilters,
-  formatMarginPercent,
   filterCatalog,
+  readCatalogFilters,
   type CatalogFilters,
 } from './catalog.js';
-import {
-  Money,
-  ProfitBadge,
-  StatusPanel,
-  economicClass,
-} from './components.js';
+import { StatusPanel } from './components.js';
+import { CatalogTable } from './CatalogTable.js';
 import { createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
-import { ItemTooltip } from './ItemTooltip.js';
 import { AdminMarketPage } from './AdminMarketPage.js';
+import { MarketTrendsPage } from './MarketTrendsPage.js';
+import { RecipeLibraryPage } from './RecipeLibraryPage.js';
+import { PohxRecipePage } from './PohxRecipePage.js';
 
 const apiClient = createApiClient();
 
@@ -33,6 +37,33 @@ function AppShell() {
           <Link className="brand" to="/" aria-label="Worksmith Handbook home">
             <span>Worksmith</span> Handbook
           </Link>
+          <nav aria-label="Primary" className="app-nav">
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? 'nav-link is-active' : 'nav-link'
+              }
+              end
+              to="/"
+            >
+              Profitability
+            </NavLink>
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? 'nav-link is-active' : 'nav-link'
+              }
+              to="/recipes"
+            >
+              Recipes
+            </NavLink>
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? 'nav-link is-active' : 'nav-link'
+              }
+              to="/market"
+            >
+              Market trends
+            </NavLink>
+          </nav>
         </div>
       </header>
       <main className="app-main">
@@ -43,7 +74,28 @@ function AppShell() {
 }
 
 function CatalogRoute() {
-  const [filters, setFilters] = useState<CatalogFilters>(defaultCatalogFilters);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filters = useMemo(
+    () => readCatalogFilters(searchParams),
+    [searchParams],
+  );
+  function setFilters(
+    next: CatalogFilters | ((current: CatalogFilters) => CatalogFilters),
+  ) {
+    const value = typeof next === 'function' ? next(filters) : next;
+    setSearchParams(
+      Object.fromEntries(
+        Object.entries(value).filter(
+          ([key, item]) =>
+            item !== undefined &&
+            item !== '' &&
+            item !== 'all' &&
+            item !== defaultCatalogFilters[key as keyof CatalogFilters],
+        ),
+      ),
+      { replace: true },
+    );
+  }
   const [response, setResponse] = useState<CatalogResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [league, setLeague] = useState<CurrentLeagueResponse['data'] | null>(
@@ -168,16 +220,33 @@ function CatalogRoute() {
   );
   useEffect(() => {
     let active = true;
-    apiClient
-      .getCatalog()
-      .then((catalog) => {
-        if (active) setResponse(catalog);
-      })
-      .catch(() => {
+    let inFlight = false;
+    async function load() {
+      if (inFlight) return;
+      inFlight = true;
+      try {
+        const catalog = await apiClient.getCatalog();
+        if (active) {
+          setResponse(catalog);
+          setLoadError(false);
+        }
+      } catch {
         if (active) setLoadError(true);
-      });
+      } finally {
+        inFlight = false;
+      }
+    }
+    void load();
+    // Re-read server freshness even when nobody requests a manual refresh.
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') void load();
+    }, 30_000);
+    const onFocus = () => void load();
+    window.addEventListener('focus', onFocus);
     return () => {
       active = false;
+      clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
     };
   }, []);
 
@@ -229,7 +298,7 @@ function CatalogRoute() {
         </StatusPanel>
       ) : null}
 
-      {!response && !loadError ? (
+      {loadError ? null : !response ? (
         <StatusPanel tone="info" title="Loading recipes" />
       ) : entries.length === 0 &&
         !filters.search.trim() &&
@@ -244,8 +313,8 @@ function CatalogRoute() {
             className="handbook-controls"
             aria-label="Crafting target search and item types"
           >
-            <label className="catalog-search">
-              <span className="visually-hidden">Search items</span>
+            <label className="catalog-search catalog-filter">
+              <span>Item name</span>
               <input
                 type="search"
                 placeholder="Search items or targets…"
@@ -253,8 +322,8 @@ function CatalogRoute() {
                 onChange={(event) => updateFilter('search', event.target.value)}
               />
             </label>
-            <label>
-              Tag{' '}
+            <label className="catalog-filter">
+              <span>Tag</span>
               <select
                 value={filters.tag ?? 'all'}
                 onChange={(e) => updateFilter('tag', e.target.value)}
@@ -267,181 +336,107 @@ function CatalogRoute() {
                   ))}
               </select>
             </label>
-            <label>
-              Sort{' '}
+            <label className="catalog-filter">
+              <span>Item class</span>
               <select
-                value={filters.sort ?? 'title'}
-                onChange={(e) =>
-                  updateFilter('sort', e.target.value as CatalogFilters['sort'])
+                value={filters.category}
+                onChange={(event) =>
+                  updateFilter('category', event.target.value)
                 }
               >
-                <option value="title">Target</option>
-                <option value="cost">Expected cost</option>
-                <option value="profit">Profit</option>
-                <option value="roi">ROI</option>
-                <option value="freshness">Freshness</option>
+                <option value="all">All classes</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category.replaceAll('-', ' ')}
+                  </option>
+                ))}
               </select>
             </label>
-            <div
-              className="category-filters"
-              role="group"
-              aria-label="Filter by item type"
-            >
-              <button
-                aria-pressed={filters.category === 'all'}
-                onClick={() => updateFilter('category', 'all')}
-                type="button"
-              >
-                All
-              </button>
-              {categories.map((category) => (
-                <button
-                  aria-pressed={filters.category === category}
-                  key={category}
-                  onClick={() => updateFilter('category', category)}
-                  type="button"
+            <div className="catalog-filter">
+              <label htmlFor="minimum-profit">
+                Min profit ({filters.profitCurrency === 'divine' ? 'div' : 'c'})
+              </label>
+              <div className="catalog-profit-filter">
+                <input
+                  id="minimum-profit"
+                  type="number"
+                  step="any"
+                  placeholder="Any"
+                  value={filters.minProfit ?? ''}
+                  onChange={(event) =>
+                    updateFilter('minProfit', event.target.value)
+                  }
+                />
+                <select
+                  aria-label="Profit currency"
+                  value={filters.profitCurrency ?? 'chaos'}
+                  onChange={(event) =>
+                    updateFilter(
+                      'profitCurrency',
+                      event.target.value as 'chaos' | 'divine',
+                    )
+                  }
                 >
-                  {category.replaceAll('-', ' ')}
-                </button>
-              ))}
+                  <option value="chaos">c</option>
+                  <option value="divine">div</option>
+                </select>
+              </div>
             </div>
+            <label className="catalog-filter">
+              <span>Min ROI (%)</span>
+              <input
+                type="number"
+                step="any"
+                placeholder="Any"
+                value={filters.minRoi ?? ''}
+                onChange={(event) => updateFilter('minRoi', event.target.value)}
+              />
+            </label>
           </section>
 
-          {filteredEntries.length === 0 ? (
-            <p className="handbook-empty">No items match these filters.</p>
-          ) : (
-            <section
-              className="craft-target-list"
-              aria-label="Crafting targets"
+          <div className="catalog-results">
+            <span role="status">
+              {filteredEntries.length} of {entries.length} recipes
+            </span>
+            <button
+              type="button"
+              onClick={() => setFilters(defaultCatalogFilters)}
             >
-              {filteredEntries.map((entry) => (
-                <RecipeTargetRow entry={entry} key={entry.recipe.id} />
-              ))}
-            </section>
-          )}
+              Reset filters
+            </button>
+          </div>
+          <p className="catalog-price-note" id="catalog-price-note">
+            Asking-price estimates, not completed sales. ROI = profit ÷ expected
+            cost. Requires two independent sellers. Currencies sorted
+            separately.
+          </p>
+          <p className="catalog-scroll-hint">
+            Swipe the table to compare prices. Item names stay visible.
+          </p>
+          <CatalogTable
+            entries={filteredEntries}
+            filters={filters}
+            onSort={(sort) =>
+              setFilters((current) => ({
+                ...current,
+                sort,
+                direction:
+                  (current.sort ?? 'title') === sort
+                    ? (current.direction ??
+                        (['title', 'category', 'cost'].includes(sort)
+                          ? 'asc'
+                          : 'desc')) === 'asc'
+                      ? 'desc'
+                      : 'asc'
+                    : ['title', 'category', 'cost'].includes(sort)
+                      ? 'asc'
+                      : 'desc',
+              }))
+            }
+          />
         </>
       )}
     </>
-  );
-}
-
-function RecipeTargetRow({ entry }: { entry: CatalogEntry }) {
-  const snapshot = entry.snapshot;
-  const ask = entry.evaluation.estimatedSalePrice;
-  const itemType = entry.recipe.category.replaceAll('-', ' ');
-  const method = entry.recipe.craftMethod.replaceAll('-', ' ');
-  return (
-    <article className="craft-target-card">
-      <div className="craft-target-card__identity">
-        {entry.itemPreview ? (
-          <ItemTooltip item={entry.itemPreview} />
-        ) : (
-          <ItemArtwork iconUrl={null} itemType={itemType} />
-        )}
-        <div className="craft-target-card__copy">
-          <Link to={`/recipes/${entry.recipe.id}`} title={entry.recipe.title}>
-            <strong>{entry.recipe.title}</strong>
-          </Link>
-          <div className="craft-target-card__details">
-            <span>{itemType}</span>
-            <span>{method}</span>
-            <span>Patch {entry.recipe.patch ?? 'unverified'}</span>
-          </div>
-          {entry.evaluation.status === 'stale' &&
-          entry.evaluation.lastSuccessfulAt ? (
-            <small className="craft-target-card__freshness">
-              Older prices ·{' '}
-              <time dateTime={entry.evaluation.lastSuccessfulAt}>
-                {new Intl.DateTimeFormat('en-US', {
-                  dateStyle: 'medium',
-                  timeStyle: 'short',
-                }).format(new Date(entry.evaluation.lastSuccessfulAt))}
-              </time>
-            </small>
-          ) : null}
-        </div>
-      </div>
-      <div className="craft-target-card__market">
-        <div className="craft-target-card__metrics">
-          <div>
-            <small>Expected cost</small>
-            <Money price={entry.evaluation.expectedCraftCost} />
-          </div>
-          <div>
-            <small>Cheapest confirmed ask</small>
-            {ask ? <Money price={ask} /> : <strong>—</strong>}
-          </div>
-          <div>
-            <small>Indicative profit</small>
-            {entry.evaluation.profit ? (
-              <ProfitBadge {...entry.evaluation.profit} />
-            ) : (
-              <strong>—</strong>
-            )}
-          </div>
-          <div>
-            <small>ROI</small>
-            <strong className={economicClass(entry.evaluation.marginPercent)}>
-              {entry.evaluation.marginPercent === null
-                ? '—'
-                : formatMarginPercent(entry.evaluation.marginPercent)}
-            </strong>
-          </div>
-          <div>
-            <small>Verified sellers</small>
-            <strong>{snapshot ? snapshot.listings.length : '—'}</strong>
-          </div>
-          <div>
-            <small>Market confidence</small>
-            <strong>{entry.evaluation.confidence ?? 'Unknown'}</strong>
-          </div>
-        </div>
-        {snapshot ? (
-          <small>
-            {snapshot.coverage ?? 'Unknown'} coverage
-            {snapshot.sortedPageComplete
-              ? ' (complete lowest-price page)'
-              : snapshot.sortedSampleComplete
-                ? ` (sorted price sample: 20/${snapshot.totalResults} offers)`
-                : ''}{' '}
-            {snapshot.listings.length > 0 && snapshot.listings.length <= 2
-              ? ' · Thin market'
-              : ''}
-            · {new Date(snapshot.capturedAt).toLocaleString('en-US')}
-            {snapshot.expiresAt && Date.parse(snapshot.expiresAt) < Date.now()
-              ? ' · Stale'
-              : ''}
-          </small>
-        ) : null}
-      </div>
-    </article>
-  );
-}
-
-function ItemArtwork({
-  iconUrl,
-  itemType,
-}: {
-  iconUrl: string | null;
-  itemType: string;
-}) {
-  const [failed, setFailed] = useState(false);
-  return iconUrl && !failed ? (
-    <img
-      alt=""
-      className="craft-target-card__art"
-      loading="lazy"
-      onError={() => setFailed(true)}
-      referrerPolicy="no-referrer"
-      src={iconUrl}
-    />
-  ) : (
-    <span
-      aria-hidden="true"
-      className="craft-target-card__art craft-target-card__art--fallback"
-    >
-      {itemType.slice(0, 1).toLocaleUpperCase()}
-    </span>
   );
 }
 
@@ -450,7 +445,10 @@ export function App() {
     <Routes>
       <Route element={<AppShell />}>
         <Route index element={<CatalogRoute />} />
+        <Route path="recipes" element={<RecipeLibraryPage />} />
+        <Route path="recipes/pohx/:guideId" element={<PohxRecipePage />} />
         <Route path="recipes/:recipeId" element={<RecipePage />} />
+        <Route path="market" element={<MarketTrendsPage />} />
         <Route path="admin/market" element={<AdminMarketPage />} />
       </Route>
     </Routes>

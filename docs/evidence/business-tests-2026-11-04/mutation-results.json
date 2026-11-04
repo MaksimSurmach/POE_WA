@@ -1,0 +1,166 @@
+{
+  "baselineCommit": "e16857e5ea0838d30b4f4a7099c5dd1bceef0bf0",
+  "scope": "Entire packages/domain/src Vitest suite, isolated source copy; no server/web mutation testing",
+  "command": "node node_modules/vitest/vitest.mjs run src --reporter=json",
+  "method": "For each suite, copy unmodified sources, replace exactly one source occurrence, run tests, restore before next mutation. Nonzero exits without failed assertions are infrastructure failures, not detections. Both unmodified controls passed.",
+  "mutations": [
+    {
+      "id": "shared-material-overwrite",
+      "file": "packages/domain/src/recipeEconomics.ts",
+      "original": "(quantities.get(material.itemId) ?? 0) + material.quantity * count",
+      "replacement": "material.quantity * count"
+    },
+    {
+      "id": "percentile-no-interpolation",
+      "file": "packages/domain/src/priceEstimators.ts",
+      "original": "return values[lower]! + (values[upper]! - values[lower]!) * weight;",
+      "replacement": "return values[lower]!;"
+    },
+    {
+      "id": "median-no-average",
+      "file": "packages/domain/src/priceEstimators.ts",
+      "original": "(values[middle - 1]! + values[middle]!) / 2",
+      "replacement": "values[middle]!"
+    },
+    {
+      "id": "missing-paid-step-free",
+      "file": "packages/domain/src/recipeEconomics.ts",
+      "original": "if (step.materials.length > 0 && executions === undefined) {\n      expectedCostAvailable = false;",
+      "replacement": "if (step.materials.length > 0 && executions === undefined) {\n      expectedCostAvailable = true;"
+    },
+    {
+      "id": "unknown-quantity-free",
+      "file": "packages/domain/src/recipeEconomics.ts",
+      "original": "if (material.quantity === null) {\n        expectedCostAvailable = false;",
+      "replacement": "if (material.quantity === null) {\n        expectedCostAvailable = true;"
+    },
+    {
+      "id": "free-instruction-needs-count",
+      "file": "packages/domain/src/recipeEconomics.ts",
+      "original": "if (step.materials.length > 0 && executions === undefined) {",
+      "replacement": "if (executions === undefined) {"
+    },
+    {
+      "id": "roi-denominator-is-sale",
+      "file": "packages/domain/src/recipeEconomics.ts",
+      "original": "spread.div(cost).mul(100)",
+      "replacement": "spread.div(input.ask!.amount).mul(100)"
+    }
+  ],
+  "runs": [
+    {
+      "suite": "baseline",
+      "mutation": "control",
+      "result": "pass",
+      "failedAssertions": []
+    },
+    {
+      "suite": "baseline",
+      "mutation": "shared-material-overwrite",
+      "result": "survived",
+      "failedAssertions": []
+    },
+    {
+      "suite": "baseline",
+      "mutation": "percentile-no-interpolation",
+      "result": "survived",
+      "failedAssertions": []
+    },
+    {
+      "suite": "baseline",
+      "mutation": "median-no-average",
+      "result": "survived",
+      "failedAssertions": []
+    },
+    {
+      "suite": "baseline",
+      "mutation": "missing-paid-step-free",
+      "result": "survived",
+      "failedAssertions": []
+    },
+    {
+      "suite": "baseline",
+      "mutation": "unknown-quantity-free",
+      "result": "survived",
+      "failedAssertions": []
+    },
+    {
+      "suite": "baseline",
+      "mutation": "free-instruction-needs-count",
+      "result": "survived",
+      "failedAssertions": []
+    },
+    {
+      "suite": "baseline",
+      "mutation": "roi-denominator-is-sale",
+      "result": "detected",
+      "failedAssertions": [
+        "single-method recipes includes replacement bases, preserves losses and rejects cross-currency ROI",
+        "single-method recipes returns 20 percent ROI for a 10 divine craft compared with a 12 divine ask"
+      ]
+    },
+    {
+      "suite": "revised",
+      "mutation": "control",
+      "result": "pass",
+      "failedAssertions": []
+    },
+    {
+      "suite": "revised",
+      "mutation": "shared-material-overwrite",
+      "result": "detected",
+      "failedAssertions": [
+        "single-method recipes accumulates the same material across rerolls and finishing for price and stock"
+      ]
+    },
+    {
+      "suite": "revised",
+      "mutation": "percentile-no-interpolation",
+      "result": "detected",
+      "failedAssertions": [
+        "market snapshot aggregation interpolates percentiles and averages the middle pair for even samples"
+      ]
+    },
+    {
+      "suite": "revised",
+      "mutation": "median-no-average",
+      "result": "detected",
+      "failedAssertions": [
+        "market snapshot aggregation interpolates percentiles and averages the middle pair for even samples"
+      ]
+    },
+    {
+      "suite": "revised",
+      "mutation": "missing-paid-step-free",
+      "result": "detected",
+      "failedAssertions": [
+        "single-method recipes handles 'missing paid finish count' without silently underpricing the craft"
+      ]
+    },
+    {
+      "suite": "revised",
+      "mutation": "unknown-quantity-free",
+      "result": "detected",
+      "failedAssertions": [
+        "single-method recipes handles 'unknown finish quantity' without silently underpricing the craft"
+      ]
+    },
+    {
+      "suite": "revised",
+      "mutation": "free-instruction-needs-count",
+      "result": "detected",
+      "failedAssertions": [
+        "single-method recipes handles 'free instruction without a count' without silently underpricing the craft"
+      ]
+    },
+    {
+      "suite": "revised",
+      "mutation": "roi-denominator-is-sale",
+      "result": "detected",
+      "failedAssertions": [
+        "single-method recipes includes replacement bases, preserves losses and rejects cross-currency ROI",
+        "single-method recipes returns 20 percent ROI for a 10 divine craft compared with a 12 divine ask"
+      ]
+    }
+  ]
+}

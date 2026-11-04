@@ -1,0 +1,49 @@
+{
+  "checkedAt": "2026-11-04",
+  "patch": "3.29.3.3",
+  "base": "Quicksilver Flask exactly ilvl85",
+  "models": [
+    {
+      "id": "quicksilver-mageblood-cheetah",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=5&class=25&item=1429&method=0%2C1&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvRmxhc2tzL0ZsYXNrVXRpbGl0eTYiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjowLCJxdCI6bnVsbCwibCI6ODUsInIiOiJtYWdpYyIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzOTAwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIzOTAzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D",
+      "displayed": {
+        "expectedAlterations": 1005,
+        "successPercent": 0.0995
+      },
+      "exact14ExpectedAlterations": 3015
+    },
+    {
+      "id": "quicksilver-alchemist-cheetah",
+      "calculatorURL": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=5&class=25&item=1429&method=0%2C1&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvRmxhc2tzL0ZsYXNrVXRpbGl0eTYiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjowLCJxdCI6bnVsbCwibCI6ODUsInIiOiJtYWdpYyIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzOTAwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIzOTAzIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+      "displayed": {
+        "expectedAlterations": 3035,
+        "successPercent": 0.033
+      },
+      "exact14ExpectedAlterations": 9105
+    }
+  ],
+  "rollModel": {
+    "source": "https://beta.craftofexile.com/packages/files/package_poe1.js?v=1793642792",
+    "symbols": ["Item.rollModifierValues", "EmulatorManager.randomNumber"],
+    "scope": "Public CoE model draws integer modifier values uniformly, using randomNumber(min,max+1,true). Exact14 of12\u201314 has probability1/3. This is calculator-model evidence, not observed in-game frequencies.",
+    "multiplier": 3,
+    "artifact": "docs/evidence/flasks-2026-11-04/integer-roll-implementation.json"
+  },
+  "enkindling": {
+    "source": "https://poedb.tw/us/Enkindling_Orb",
+    "effectWeight": 250,
+    "totalWeight": 650,
+    "values": [60, 70],
+    "exact70Chance": 0.03496503496503497,
+    "expectedExecutions": 28.6,
+    "assumptions": "All11 integer rolls equally likely under the inspected CoE model; rerolls replace the existing enchant. Stop at70. No Instilling finish."
+  },
+  "assumptions": [
+    "Reroll the same base; no base loss or fracture/imprint route.",
+    "Tier-only beta displayed means are rounded; multiplying by3 remains an indicative estimate.",
+    "This deliberately models Alterations only. Legacy Alt+Aug counts disagree with beta and are not substituted.",
+    "Buy the20%-quality base, so no historical Bauble-quality coefficient is assumed.",
+    "Listings are asking prices, not executed sales. Sell the newly crafted flask unused; verify enchant value before listing."
+  ],
+  "acquisition": "One magic, uncorrupted Quicksilver Flask of exactly item level85 and exactly20%quality; reuse this base. No Transmutation required. Its market price includes quality preparation."
+}

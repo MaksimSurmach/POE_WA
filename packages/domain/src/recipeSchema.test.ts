@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalRecipeFixture, fixtureRecipe } from './fixtures/recipes.js';
-import {
-  recipeTargetSignature,
-  validateRecipeDocument,
-} from './recipeSchema.js';
+import { validateRecipeDocument } from './recipeSchema.js';
 import {
   calculateMethodMaterialEconomics,
   compareCraftWithAsk,
+  expectedMethodMaterialUsage,
 } from './recipeEconomics.js';
 
 const price = { amount: '2', currency: 'chaos' };
@@ -72,9 +70,6 @@ describe('single-method recipes', () => {
         },
       }),
     ).toThrow(/Unknown step/);
-    expect(recipeTargetSignature(canonicalRecipeFixture)).toBe(
-      canonicalRecipeFixture.targetSignature,
-    );
   });
   it('rejects duplicate modifiers across affix groups and evidence from another patch', () => {
     expect(() =>
@@ -146,6 +141,94 @@ describe('single-method recipes', () => {
     });
     expect(result.expectedCost).toEqual({ amount: '50', currency: 'chaos' });
   });
+  it('accumulates the same material across rerolls and finishing for price and stock', () => {
+    const source = canonicalRecipeFixture.craft;
+    const step = source.steps[0]!;
+    const evidence = source.expectedExecutions![0]!.evidence;
+    const method = {
+      ...source,
+      steps: [
+        { ...step, id: 'roll', materials: [{ itemId: 'shared', quantity: 2 }] },
+        {
+          ...step,
+          id: 'finish',
+          materials: [{ itemId: 'shared', quantity: 1 }],
+        },
+      ],
+      expectedExecutions: [
+        { stepId: 'roll', count: 3, evidence },
+        { stepId: 'finish', count: 4, evidence },
+      ],
+    };
+    expect(expectedMethodMaterialUsage(method)).toEqual({ shared: 10 });
+    expect(
+      calculateMethodMaterialEconomics({
+        currency: 'chaos',
+        materialPrices: { shared: price },
+        method,
+      }).expectedCost,
+    ).toEqual({ amount: '20', currency: 'chaos' });
+  });
+
+  it.each([
+    {
+      name: 'missing paid finish count',
+      materials: [{ itemId: 'finish', quantity: 1 }],
+      count: undefined,
+      expected: null,
+    },
+    {
+      name: 'unknown finish quantity',
+      materials: [{ itemId: 'finish', quantity: null }],
+      count: 1,
+      expected: null,
+    },
+    {
+      name: 'free instruction without a count',
+      materials: [],
+      count: undefined,
+      expected: '1800',
+    },
+  ])(
+    'handles $name without silently underpricing the craft',
+    ({ materials, count, expected }) => {
+      const source = canonicalRecipeFixture.craft;
+      const method = {
+        ...source,
+        steps: [
+          ...source.steps,
+          { ...source.steps[0]!, id: 'finish', materials },
+        ],
+        expectedExecutions: [
+          ...source.expectedExecutions!,
+          ...(count === undefined
+            ? []
+            : [
+                {
+                  stepId: 'finish',
+                  count,
+                  evidence: source.expectedExecutions![0]!.evidence,
+                },
+              ]),
+        ],
+      };
+      const result = calculateMethodMaterialEconomics({
+        currency: 'chaos',
+        materialPrices: {
+          'primal-crystallised-lifeforce': price,
+          finish: price,
+        },
+        method,
+      });
+      expect(result.expectedCost).toEqual(
+        expected === null ? null : { amount: expected, currency: 'chaos' },
+      );
+      expect(expectedMethodMaterialUsage(method)).toEqual(
+        expected === null ? null : { 'primal-crystallised-lifeforce': 900 },
+      );
+    },
+  );
+
   it('includes replacement bases, preserves losses and rejects cross-currency ROI', () => {
     const input = {
       basePrice: price,
@@ -165,5 +248,16 @@ describe('single-method recipes', () => {
         ask: { amount: '8', currency: 'divine' },
       }).profit,
     ).toBeNull();
+  });
+  it('returns 20 percent ROI for a 10 divine craft compared with a 12 divine ask', () => {
+    expect(
+      compareCraftWithAsk({
+        basePrice: { amount: '1', currency: 'divine' },
+        materialCost: { amount: '9', currency: 'divine' },
+        expectedBases: 1,
+        ask: { amount: '12', currency: 'divine' },
+        currency: 'divine',
+      }),
+    ).toEqual({ expectedCraftCost: '10', profit: '2', marginPercent: '20' });
   });
 });

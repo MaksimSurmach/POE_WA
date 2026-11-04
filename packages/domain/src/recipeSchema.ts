@@ -135,6 +135,7 @@ export const recipeSchema = z.strictObject({
     checkedAt: z.iso.date(),
     sources: z.array(z.url()).min(1),
     notes: textSchema,
+    profitBlockedReason: textSchema.optional(),
   }),
   gameDataVersion: textSchema,
   imageUrl: z.string().url().optional(),

@@ -272,7 +272,27 @@ it('refreshes old partial handbook observations without deleting original eviden
                 ...d.query,
                 query: {
                   ...d.query.query,
-                  handbookTarget: 'cache-policy-fixture',
+                  handbookTarget: JSON.stringify({
+                    name: 'Mixed output',
+                    game: 'poe1',
+                    realm: 'pc',
+                    league: 'Mercenaries',
+                    patch: '3.29',
+                    slot: 'crafted-item',
+                    baseTypes: ['Quicksilver Flask'],
+                    builds: [],
+                    requiredMods: [],
+                    sources: [],
+                    tradeSearch: {
+                      version: 1,
+                      scope: 'strict',
+                      status: 'securable',
+                      currency: 'chaos',
+                      includeOtherCurrencies: true,
+                      rarity: 'magic',
+                      groups: [],
+                    },
+                  }),
                 },
               },
             }
@@ -287,7 +307,13 @@ it('refreshes old partial handbook observations without deleting original eviden
       expiresAt: new Date(now.getTime() + snapshotTtlMs),
       leagueId: initial.cycle.leagueId,
       marketQueryId: q.marketQuery.id,
-      payload: { coverage: 'partial', listings: [], totalResults: 340 },
+      payload: {
+        coverage: 'partial',
+        sortedSampleComplete: true,
+        sortedPageComplete: true,
+        listings: [],
+        totalResults: 340,
+      },
       providerStatus: 200,
       refreshCycleId: initial.cycle.id,
     });

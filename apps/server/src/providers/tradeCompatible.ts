@@ -223,13 +223,19 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
     const lines = modifierLines(item).filter((line) => line.origin === origin);
     for (const [id, mapping] of Object.entries(tradeStatMappings)) {
       if (!id.startsWith(`${origin}.`)) continue;
-      const pattern =
-        '^' +
-        mapping.text
-          .split('#')
-          .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-          .join('(-?\\d+(?:\\.\\d+)?)') +
-        '$';
+      const pattern = (text: string) =>
+        new RegExp(
+          '^' +
+            text
+              .split('#')
+              .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+              .join('(-?\\d+(?:\\.\\d+)?)') +
+            '$',
+        );
+      const positivePattern = pattern(mapping.text);
+      const negativePattern = mapping.negativeText
+        ? pattern(mapping.negativeText)
+        : null;
       for (const line of lines) {
         if (
           line.hash !== undefined &&
@@ -241,7 +247,8 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
           ].includes(line.hash)
         )
           continue;
-        const match = new RegExp(pattern).exec(line.description);
+        const negativeMatch = negativePattern?.exec(line.description);
+        const match = positivePattern.exec(line.description) ?? negativeMatch;
         // The bench renders its guaranteed trigger without the Trade filter's chance placeholder.
         const guaranteedTrigger =
           id === 'crafted.stat_3079007202' &&
@@ -265,7 +272,7 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
             ? 100
             : match?.[1] === undefined
               ? 1
-              : Number(match[1]),
+              : Number(match[1]) * (negativeMatch ? -1 : 1),
           ...(tier !== undefined ? { tier } : {}),
         });
       }

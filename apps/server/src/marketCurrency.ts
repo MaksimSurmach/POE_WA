@@ -58,6 +58,7 @@ export async function convertMarketQuote(input: {
     exchange: {
       snapshotId: exchange.id,
       capturedAt: exchange.capturedAt,
+      verifiedAt,
       league: exchange.league,
       chaosPerDivine: rate,
       url: exchange.endpoint,

@@ -1,0 +1,13 @@
+{
+  "sourceCommit": "9523f9d0ec062a9fcafa396afafb045529db473c",
+  "restoredSettingsVersion": 14,
+  "restoredCollectionSettings": true,
+  "workerHealthy": true,
+  "recipeCount": 26,
+  "autostartFiles": 0,
+  "keepAlive": false,
+  "manualStartStopVerified": true,
+  "nativePorts": [3000, 4173, 54326],
+  "finalState": "stopped",
+  "finalNativePortsClosed": true
+}

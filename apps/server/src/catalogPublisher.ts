@@ -21,13 +21,15 @@ import { z } from 'zod';
 import {
   type RecipeMarketDependencies,
   comparableRecipeListings,
+  requiresCompleteOutputCoverage,
 } from './recipeMarket.js';
 import type { Logger } from 'pino';
 import type { Metrics } from './observability/metrics.js';
 import { convertMarketQuote } from './marketCurrency.js';
-import type {
-  MarketEconomyRepository,
-  StoredMarketEconomySnapshot,
+import {
+  verifyEconomySnapshot,
+  type MarketEconomyRepository,
+  type StoredMarketEconomySnapshot,
 } from './marketEconomy.js';
 
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
@@ -197,26 +199,8 @@ export async function evaluateAndPublishCatalog(
     }
   }
   const attempts = (await options.economy?.listAttempts?.()) ?? [];
-  const verified = (snapshot: StoredMarketEconomySnapshot | null) => {
-    if (!snapshot) return null;
-    // A completed HTTP attempt verifies the old payload; cache reads never advance freshness.
-    const checks = attempts.filter(
-      (a) =>
-        a.snapshotId === snapshot.id &&
-        a.league === snapshot.league &&
-        a.category === snapshot.category &&
-        a.status === 'succeeded' &&
-        (a.cacheStatus === 'fetched' || a.cacheStatus === 'revalidated') &&
-        a.completedAt &&
-        Date.parse(a.completedAt) <= now.getTime() &&
-        Date.parse(a.startedAt) <= Date.parse(a.completedAt),
-    );
-    const time = Math.max(
-      Date.parse(snapshot.capturedAt),
-      ...checks.map((a) => Date.parse(a.startedAt)),
-    );
-    return { ...snapshot, verifiedAt: new Date(time).toISOString() };
-  };
+  const verified = (snapshot: StoredMarketEconomySnapshot | null) =>
+    verifyEconomySnapshot(snapshot, attempts, now);
   const economySummary = await options.economy?.latest(league, 'Currency');
   const currencyExchange = verified(
     economySummary ? await options.economy!.find(economySummary.id) : null,
@@ -297,7 +281,8 @@ export async function evaluateAndPublishCatalog(
               evaluatedAt: now,
               expectedCraftCost: fallback.expectedCraftCost,
               lastSuccessfulAt:
-                fallback.lastSuccessfulAt ?? fallback.evaluatedAt,
+                fallback.lastSuccessfulAt ??
+                (fallback.status === 'success' ? fallback.evaluatedAt : null),
               leagueId: cycle.leagueId,
               marginPercent: fallback.marginPercent,
               observationId: fallback.observationId,
@@ -305,7 +290,15 @@ export async function evaluateAndPublishCatalog(
               recipeId: recipe.id,
               refreshCycleId: cycle.id,
               sourceSnapshotDedupeKey: fallback.sourceSnapshotDedupeKey,
-              methodCost: fallback.methodCost ?? null,
+              methodCost: {
+                ...fallback.methodCost,
+                oldestInputAt:
+                  typeof fallback.methodCost?.oldestInputAt === 'string'
+                    ? fallback.methodCost.oldestInputAt
+                    : (
+                        fallback.lastSuccessfulAt ?? fallback.evaluatedAt
+                      ).toISOString(),
+              },
               status: 'stale',
             }
           : {
@@ -424,12 +417,22 @@ async function evaluateFreshRecipe(
   const targetDependency = dependencies.find(({ kind }) => kind === 'target');
   if (!baseDependency?.query || !targetDependency?.query)
     throw new DomainError('RECIPE_INVALID');
+  const marketContext = {
+    ...context,
+    currencyExchange: currencyExchange ?? null,
+  };
   const optionalMarket = async (
     query: import('./recipeMarket.js').RecipeMarketQuery,
     requiredStock?: number,
   ) => {
     try {
-      return await resolveMarket(query, context, requiredStock);
+      const market = await resolveMarket(
+        query,
+        marketContext,
+        requiredStock,
+        maximumQuoteAgeMs,
+      );
+      return market.currencyAvailable ? market : null;
     } catch (error) {
       if (
         error instanceof DomainError &&
@@ -453,26 +456,41 @@ async function evaluateFreshRecipe(
           : null;
         return {
           capturedAt: result?.snapshotCapturedAt ?? context.now,
+          expiresAt: result?.snapshotExpiresAt ?? null,
+          conversionAt: result?.conversionAt ?? null,
           id: material.materialId!,
           price: result?.aggregation.cheapest ?? null,
           topOfBook: result?.topOfBook ?? null,
         };
       }),
   );
-  const output = await resolveMarket(targetDependency.query, context);
-  const currency = output?.aggregation.sampleSize
-    ? output?.aggregation.currency
+  const output = await resolveMarket(
+    targetDependency.query,
+    marketContext,
+    undefined,
+    maximumQuoteAgeMs,
+  );
+  const currency = output.aggregation.sampleSize
+    ? output.aggregation.currency
     : (base?.aggregation.currency ?? 'chaos');
-  const conversionEvidence: NonNullable<
-    Awaited<ReturnType<typeof convertMarketQuote>>
-  >['exchange'][] = [];
+  const conversionEvidence = new Map<
+    string,
+    NonNullable<
+      NonNullable<Awaited<ReturnType<typeof convertMarketQuote>>>['exchange']
+    >
+  >();
   const convertPrice = async (
     price: { amount: string; currency: string } | null,
     capturedAt: Date,
+    itemId: string,
   ) => {
     if (!price) return null;
+    if (price.currency === currency) {
+      conversionEvidence.delete(itemId);
+      return price;
+    }
     if (!currencyExchange || !['chaos', 'divine'].includes(currency))
-      return price.currency === currency ? price : null;
+      return null;
     const converted = await convertMarketQuote({
       money: price,
       currency: currency as 'chaos' | 'divine',
@@ -486,20 +504,25 @@ async function evaluateFreshRecipe(
       now: context.now.getTime(),
       dataKind: 'observed',
     });
-    if (converted?.exchange) conversionEvidence.push(converted.exchange);
+    if (converted?.exchange) conversionEvidence.set(itemId, converted.exchange);
     return converted?.money ?? null;
   };
   const basePrice = await convertPrice(
     base?.aggregation.cheapest ?? null,
     base?.snapshotCapturedAt ?? context.now,
+    'base',
   );
   const materialEntries = await Promise.all(
     materialMarkets.map(
       async ({ capturedAt, id, price, topOfBook }) =>
-        [id, await convertPrice(price ?? topOfBook, capturedAt)] as const,
+        [id, await convertPrice(price ?? topOfBook, capturedAt, id)] as const,
     ),
   );
   const materialPriceMap = Object.fromEntries(materialEntries);
+  const tradeMaterialIds = new Set(
+    materialMarkets.filter((m) => materialPriceMap[m.id]).map((m) => m.id),
+  );
+  const usedMaterialEconomies = new Set<StoredMarketEconomySnapshot>();
   const bulkSupported = new Set(
     materialMarkets.filter((m) => m.price).map((m) => m.id),
   );
@@ -536,9 +559,11 @@ async function evaluateFreshRecipe(
       const unitPrice = await convertPrice(
         { amount: '1', currency: 'chaos' },
         context.now,
+        id,
       );
       if (unitPrice) {
         materialPriceMap[id] = unitPrice;
+        tradeMaterialIds.delete(id);
         bulkSupported.add(id);
         materialEvidence[id] = {
           itemId: id,
@@ -559,9 +584,12 @@ async function evaluateFreshRecipe(
       const converted = await convertPrice(
         { amount: String(line.price.amount), currency: line.price.currency },
         new Date(snapshot.verifiedAt ?? snapshot.capturedAt),
+        id,
       );
       if (!converted) continue;
       materialPriceMap[id] = converted;
+      tradeMaterialIds.delete(id);
+      usedMaterialEconomies.add(snapshot);
       bulkSupported.add(id);
       materialEvidence[id] = {
         itemId: id,
@@ -577,9 +605,9 @@ async function evaluateFreshRecipe(
       break;
     }
   }
-  const outputEstimate = output?.aggregation.estimators.find(
-    ({ id }) => id === 'cheapest',
-  )?.price;
+  const outputEstimate = output.currencyAvailable
+    ? output.aggregation.estimators.find(({ id }) => id === 'cheapest')?.price
+    : undefined;
   const materialEconomics = calculateMethodMaterialEconomics({
     currency,
     materialPrices: materialPriceMap,
@@ -593,6 +621,29 @@ async function evaluateFreshRecipe(
     ) &&
     definition.craft.baseConsumption?.evidence.patch === definition.patch;
   const salePrice = outputEstimate?.amount ?? null;
+  const comparableSellers = output.aggregation.sampleSize;
+  // A lone seller's ask is not a competitive price; show it, but derive no profit from it.
+  const saleEvidence = {
+    comparableSellers,
+    minimumComparableSellers,
+    ...(definition.verification.profitBlockedReason
+      ? { reason: definition.verification.profitBlockedReason }
+      : output.coverage !== 'complete'
+        ? {
+            reason:
+              'Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.',
+          }
+        : {}),
+    status: definition.verification.profitBlockedReason
+      ? ('unverified_output_value' as const)
+      : !output.currencyAvailable
+        ? ('unavailable_currency' as const)
+        : output.coverage !== 'complete'
+          ? ('insufficient_coverage' as const)
+          : comparableSellers >= minimumComparableSellers
+            ? ('accepted' as const)
+            : ('insufficient_sellers' as const),
+  };
   const comparison = compareCraftWithAsk({
     basePrice,
     currency,
@@ -605,88 +656,78 @@ async function evaluateFreshRecipe(
     expectedBases: evidenceValid
       ? (definition.craft.baseConsumption?.expectedBases ?? null)
       : null,
-    ask: outputEstimate ?? null,
+    ask: saleEvidence.status === 'accepted' ? (outputEstimate ?? null) : null,
   });
   const { expectedCraftCost } = comparison;
+  const usedTradeMaterials = materialMarkets.filter((m) =>
+    tradeMaterialIds.has(m.id),
+  );
+  const inputTimes = [
+    context.now.getTime(),
+    output.snapshotCapturedAt.getTime(),
+    ...(base ? [base.snapshotCapturedAt.getTime()] : []),
+    ...usedTradeMaterials.map((m) => m.capturedAt.getTime()),
+    ...[...usedMaterialEconomies].map((s) =>
+      Date.parse(s.verifiedAt ?? s.capturedAt),
+    ),
+    ...[...conversionEvidence.values()].map((e) => Date.parse(e.verifiedAt)),
+    ...[
+      output.currencyAvailable ? output.conversionAt : null,
+      base?.conversionAt,
+      ...usedTradeMaterials.map((m) => m.conversionAt),
+    ].flatMap((at) => (at ? [at.getTime()] : [])),
+  ];
   const methodCost = {
     ...materialEconomics,
     recipeContentHash: recipe.contentHash,
-    oldestInputAt: new Date(
-      Math.min(
-        output?.snapshotCapturedAt.getTime() ?? Infinity,
-        base?.snapshotCapturedAt.getTime() ?? Infinity,
-        ...materialEconomies.map((s) =>
-          Date.parse(s.verifiedAt ?? s.capturedAt),
-        ),
-        currencyExchange
-          ? Date.parse(
-              currencyExchange.verifiedAt ?? currencyExchange.capturedAt,
-            )
-          : Infinity,
-        context.now.getTime(),
-      ),
-    ).toISOString(),
+    oldestInputAt: new Date(Math.min(...inputTimes)).toISOString(),
     expiresAt: new Date(
       Math.min(
-        output?.snapshotExpiresAt.getTime() ?? Infinity,
+        output.snapshotExpiresAt.getTime(),
         base?.snapshotExpiresAt.getTime() ?? Infinity,
-        output
-          ? output.snapshotCapturedAt.getTime() + maximumQuoteAgeMs
-          : Infinity,
-        base ? base.snapshotCapturedAt.getTime() + maximumQuoteAgeMs : Infinity,
-        ...materialEconomies.map(
-          (s) => Date.parse(s.verifiedAt ?? s.capturedAt) + maximumQuoteAgeMs,
-        ),
-        currencyExchange
-          ? Date.parse(
-              currencyExchange.verifiedAt ?? currencyExchange.capturedAt,
-            ) + maximumQuoteAgeMs
-          : Infinity,
-        context.now.getTime() + maximumQuoteAgeMs,
+        ...usedTradeMaterials.map((m) => m.expiresAt?.getTime() ?? Infinity),
+        ...inputTimes.map((at) => at + maximumQuoteAgeMs),
       ),
     ).toISOString(),
-    source: output
-      ? {
-          capturedAt: output.snapshotCapturedAt.toISOString(),
-          sampleSize: output.aggregation.sampleSize,
-          priceBasis: 'asking',
-          coverage: output.coverage,
-          sortedPageComplete: output.sortedPageComplete,
-          sortedSampleComplete: output.sortedSampleComplete,
-        }
-      : null,
-    marketStatus: output
-      ? output.coverage !== 'complete'
+    source: {
+      capturedAt: output.snapshotCapturedAt.toISOString(),
+      sampleSize: output.aggregation.sampleSize,
+      priceBasis: 'asking',
+      coverage: output.coverage,
+      sortedPageComplete: output.sortedPageComplete,
+      sortedSampleComplete: output.sortedSampleComplete,
+      currencyAvailable: output.currencyAvailable,
+    },
+    marketStatus:
+      output.coverage !== 'complete'
         ? 'partial'
         : output.aggregation.sampleSize
           ? 'priced'
-          : 'empty'
-      : 'unavailable',
+          : 'empty',
+    saleEvidence,
     materialEvidence,
     baseCost: basePrice,
     expectedBases: evidenceValid
       ? (definition.craft.baseConsumption?.expectedBases ?? null)
       : null,
-    currencyExchange: conversionEvidence[0] ?? null,
+    currencyExchange: conversionEvidence.values().next().value ?? null,
     expectedCost:
       expectedCraftCost === null
         ? null
         : { amount: expectedCraftCost, currency },
   };
-  const observations = output
-    ? await context.repositories.observations.listRecent(
-        output.marketQueryId,
-        context.leagueId,
-        new Date(0),
-      )
-    : [];
+  const observations = await context.repositories.observations.listRecent(
+    output.marketQueryId,
+    context.leagueId,
+    new Date(0),
+  );
   const observation = observations.find(
     ({ observedAt }) =>
-      observedAt.getTime() === output?.snapshotCapturedAt.getTime(),
+      observedAt.getTime() === output.snapshotCapturedAt.getTime(),
   );
   return {
     confidence:
-      output?.coverage === 'complete' && !base?.sortedSampleComplete
+      output.coverage === 'complete' && !base?.sortedSampleComplete
         ? confidence(output.aggregation.sampleSize)
         : 'low',
     currency,
@@ -695,9 +736,13 @@ async function evaluateFreshRecipe(
     marginPercent: comparison.marginPercent,
     observationId: observation?.id ?? null,
     profit: comparison.profit,
-    sourceSnapshotDedupeKey: output?.snapshotDedupeKey ?? null,
+    sourceSnapshotDedupeKey: output.snapshotDedupeKey,
     status:
-      salePrice === null || expectedCraftCost === null ? 'partial' : 'success',
+      salePrice === null ||
+      expectedCraftCost === null ||
+      saleEvidence.status !== 'accepted'
+        ? 'partial'
+        : 'success',
     methodCost,
   };
 }
@@ -709,8 +754,10 @@ async function resolveMarket(
     league: string;
     now: Date;
     repositories: Repositories;
+    currencyExchange?: StoredMarketEconomySnapshot | null;
   },
   requiredStock?: number,
+  maximumQuoteAgeMs = 30 * 60_000,
 ) {
   const canonicalHash = await hashMarketQuery({
     league: context.league,
@@ -726,7 +773,10 @@ async function resolveMarket(
     context.leagueId,
   );
   if (!snapshot) throw new DomainError('SNAPSHOT_MISSING');
-  if (snapshot.expiresAt <= context.now) {
+  if (
+    snapshot.expiresAt <= context.now ||
+    snapshot.capturedAt.getTime() + maximumQuoteAgeMs <= context.now.getTime()
+  ) {
     throw new DomainError('SNAPSHOT_EXPIRED');
   }
   const payload = snapshotPayloadSchema.safeParse(snapshot.payload);
@@ -737,12 +787,51 @@ async function resolveMarket(
     ...listing,
     indexedAt: new Date(listing.indexedAt),
   }));
+  // An unconverted matching ask could be the true floor of this sorted sample.
+  const unconverted = Boolean(
+    tradeQuery.query.handbookTarget &&
+    (listings.some(
+      (row) => !['chaos', 'divine'].includes(row.price.currency),
+    ) ||
+      comparableRecipeListings(
+        tradeQuery.query,
+        listings.filter((row) => row.price.currency === 'divine'),
+        snapshot.capturedAt,
+        context.now,
+        'divine',
+      ).length > 0),
+  );
   listings = comparableRecipeListings(
     tradeQuery.query,
     listings,
     snapshot.capturedAt,
     context.now,
   );
+  const conversionTimes = listings.flatMap(({ item }) => {
+    if (!item.exchange) return [];
+    const exchange = jsonObjectSchema.safeParse(item.exchange);
+    if (!exchange.success || exchange.data.league !== context.league)
+      return [0];
+    const value = exchange.data.verifiedAt ?? exchange.data.capturedAt;
+    let at = typeof value === 'string' ? Date.parse(value) : NaN;
+    // Revalidation proves the same immutable rate; it does not reprice the listing.
+    const current = context.currencyExchange;
+    if (
+      current &&
+      current.id === exchange.data.snapshotId &&
+      current.league === context.league
+    ) {
+      at = Math.max(at, Date.parse(current.verifiedAt ?? current.capturedAt));
+    }
+    return [Number.isFinite(at) && at <= context.now.getTime() ? at : 0];
+  });
+  const conversionAt = conversionTimes.length
+    ? new Date(Math.min(...conversionTimes))
+    : null;
+  const currencyAvailable =
+    !unconverted &&
+    (!conversionAt ||
+      conversionAt.getTime() + maximumQuoteAgeMs > context.now.getTime());
   const topOfBook = aggregateMarketListings({
     currency: listings[0]?.price.currency ?? 'unknown',
     listings,
@@ -761,8 +850,9 @@ async function resolveMarket(
     listings:
       tradeQuery.query.handbookTarget &&
       payload.data.coverage !== 'complete' &&
-      !payload.data.sortedPageComplete &&
-      !payload.data.sortedSampleComplete
+      (requiresCompleteOutputCoverage(tradeQuery.query) ||
+        (!payload.data.sortedPageComplete &&
+          !payload.data.sortedSampleComplete))
         ? []
         : listings,
     totalListings: payload.data.totalResults,
@@ -770,9 +860,19 @@ async function resolveMarket(
   return {
     aggregation,
     topOfBook,
-    coverage: payload.data.coverage ?? 'unknown',
-    sortedPageComplete: payload.data.sortedPageComplete ?? false,
-    sortedSampleComplete: payload.data.sortedSampleComplete ?? false,
+    coverage: currencyAvailable
+      ? (payload.data.coverage ?? 'unknown')
+      : 'partial',
+    sortedPageComplete:
+      currencyAvailable &&
+      !requiresCompleteOutputCoverage(tradeQuery.query) &&
+      (payload.data.sortedPageComplete ?? false),
+    sortedSampleComplete:
+      currencyAvailable &&
+      !requiresCompleteOutputCoverage(tradeQuery.query) &&
+      (payload.data.sortedSampleComplete ?? false),
+    currencyAvailable,
+    conversionAt,
     snapshotExpiresAt: snapshot.expiresAt,
     marketQueryId: marketQuery.id,
     snapshotCapturedAt: snapshot.capturedAt,
@@ -792,6 +892,9 @@ function reusableEvaluation(
     ['success', 'stale', 'partial'].includes(evaluation.status),
   );
 }
+
+/** Distinct sellers needed before the cheapest comparable ask may yield profit or ROI. */
+const minimumComparableSellers = 2;
 
 function confidence(sampleSize: number) {
   return sampleSize >= 10 ? 'high' : sampleSize >= 3 ? 'medium' : 'low';

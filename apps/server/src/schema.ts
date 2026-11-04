@@ -20,6 +20,7 @@ import {
   jsonb,
   numeric,
   pgTable,
+  pgView,
   primaryKey,
   text,
   timestamp,
@@ -859,4 +860,211 @@ export const marketEconomyAttempts = pgTable(
       sql`${table.cacheStatus} is null or ${table.cacheStatus} in ('fetched', 'hit', 'revalidated')`,
     ),
   ],
+);
+
+/**
+ * Independent cheapest-ask observations, one per recipe revision, league,
+ * currency and output source snapshot. Rows are compacted into
+ * `recipe_price_daily` after 30 days; see docs/database.md.
+ */
+export const recipePriceObservations = pgTable(
+  'recipe_price_observations',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    recipeId: text('recipe_id')
+      .notNull()
+      .references(() => recipes.id, { onDelete: 'restrict' }),
+    recipeContentHash: text('recipe_content_hash').notNull(),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id, { onDelete: 'restrict' }),
+    currency: text('currency').notNull(),
+    sourceSnapshotDedupeKey: text('source_snapshot_dedupe_key').notNull(),
+    observedAt: timestamp('observed_at', { withTimezone: true }).notNull(),
+    ask: numeric('ask', { precision: 20, scale: 8 }).notNull(),
+    craftCost: numeric('craft_cost', { precision: 20, scale: 8 }),
+    comparableSellers: integer('comparable_sellers'),
+    coverage: text('coverage'),
+    sortedSampleComplete: boolean('sorted_sample_complete'),
+    evaluationId: bigint('evaluation_id', { mode: 'number' }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('recipe_price_observations_source_uq').on(
+      table.recipeId,
+      table.recipeContentHash,
+      table.leagueId,
+      table.currency,
+      table.sourceSnapshotDedupeKey,
+    ),
+    index('recipe_price_observations_series_idx').on(
+      table.recipeId,
+      table.recipeContentHash,
+      table.leagueId,
+      table.currency,
+      table.observedAt,
+    ),
+    index('recipe_price_observations_league_observed_idx').on(
+      table.leagueId,
+      table.observedAt,
+    ),
+    index('recipe_price_observations_observed_at_idx').on(table.observedAt),
+    check(
+      'recipe_price_observations_currency_check',
+      sql`${table.currency} in ('chaos', 'divine')`,
+    ),
+    check(
+      'recipe_price_observations_values_check',
+      sql`${table.ask} >= 0 and (${table.craftCost} is null or ${table.craftCost} >= 0) and (${table.comparableSellers} is null or ${table.comparableSellers} >= 0)`,
+    ),
+    check(
+      'recipe_price_observations_coverage_check',
+      sql`${table.coverage} is null or ${table.coverage} in ('complete', 'partial', 'unknown')`,
+    ),
+  ],
+);
+
+/** Daily UTC OHLC ask and last contemporaneous craft cost per series. */
+export const recipePriceDaily = pgTable(
+  'recipe_price_daily',
+  {
+    recipeId: text('recipe_id')
+      .notNull()
+      .references(() => recipes.id, { onDelete: 'restrict' }),
+    recipeContentHash: text('recipe_content_hash').notNull(),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id, { onDelete: 'restrict' }),
+    currency: text('currency').notNull(),
+    bucketStart: timestamp('bucket_start', { withTimezone: true }).notNull(),
+    firstObservedAt: timestamp('first_observed_at', {
+      withTimezone: true,
+    }).notNull(),
+    lastObservedAt: timestamp('last_observed_at', {
+      withTimezone: true,
+    }).notNull(),
+    openAsk: numeric('open_ask', { precision: 20, scale: 8 }).notNull(),
+    highAsk: numeric('high_ask', { precision: 20, scale: 8 }).notNull(),
+    lowAsk: numeric('low_ask', { precision: 20, scale: 8 }).notNull(),
+    closeAsk: numeric('close_ask', { precision: 20, scale: 8 }).notNull(),
+    observationCount: integer('observation_count').notNull(),
+    craftCost: numeric('craft_cost', { precision: 20, scale: 8 }),
+    craftCostObservedAt: timestamp('craft_cost_observed_at', {
+      withTimezone: true,
+    }),
+    minComparableSellers: integer('min_comparable_sellers'),
+    lastComparableSellers: integer('last_comparable_sellers'),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      name: 'recipe_price_daily_pk',
+      columns: [
+        table.recipeId,
+        table.recipeContentHash,
+        table.leagueId,
+        table.currency,
+        table.bucketStart,
+      ],
+    }),
+    index('recipe_price_daily_league_bucket_idx').on(
+      table.leagueId,
+      table.bucketStart,
+    ),
+    index('recipe_price_daily_bucket_idx').on(table.bucketStart),
+    check(
+      'recipe_price_daily_currency_check',
+      sql`${table.currency} in ('chaos', 'divine')`,
+    ),
+    check(
+      'recipe_price_daily_ohlc_check',
+      sql`${table.lowAsk} >= 0 and ${table.lowAsk} <= ${table.openAsk} and ${table.lowAsk} <= ${table.closeAsk} and ${table.highAsk} >= ${table.openAsk} and ${table.highAsk} >= ${table.closeAsk}`,
+    ),
+    check(
+      'recipe_price_daily_times_check',
+      sql`${table.firstObservedAt} <= ${table.lastObservedAt} and ${table.observationCount} > 0`,
+    ),
+    check(
+      'recipe_price_daily_cost_check',
+      sql`(${table.craftCost} is null) = (${table.craftCostObservedAt} is null) and (${table.craftCost} is null or ${table.craftCost} >= 0)`,
+    ),
+  ],
+);
+
+/**
+ * Read-only projection of saved evaluations into price-history candidates.
+ * Both the save path and migration 0024's one-time backfill insert from this
+ * view, so they share one definition of "usable". JSON fields are validated
+ * before any cast; nested CASE keeps the cast behind its guard.
+ */
+export const recipePriceObservationCandidates = pgView(
+  'recipe_price_observation_candidates',
+  {
+    evaluationId: bigint('evaluation_id', { mode: 'number' }).notNull(),
+    recipeId: text('recipe_id').notNull(),
+    recipeContentHash: text('recipe_content_hash').notNull(),
+    leagueId: uuid('league_id').notNull(),
+    currency: text('currency').notNull(),
+    sourceSnapshotDedupeKey: text('source_snapshot_dedupe_key').notNull(),
+    observedAt: timestamp('observed_at', { withTimezone: true }),
+    ask: numeric('ask', { precision: 20, scale: 8 }).notNull(),
+    craftCost: numeric('craft_cost', { precision: 20, scale: 8 }),
+    comparableSellers: integer('comparable_sellers'),
+    coverage: text('coverage'),
+    sortedSampleComplete: boolean('sorted_sample_complete'),
+    evaluatedAt: timestamp('evaluated_at', { withTimezone: true }).notNull(),
+  },
+).as(
+  sql`select
+  e.id as evaluation_id,
+  e.recipe_id,
+  e.method_cost->>'recipeContentHash' as recipe_content_hash,
+  e.league_id,
+  e.currency,
+  e.source_snapshot_dedupe_key,
+  case
+    when e.method_cost->'source'->>'capturedAt' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T'
+      and pg_input_is_valid(e.method_cost->'source'->>'capturedAt', 'timestamptz')
+    then (e.method_cost->'source'->>'capturedAt')::timestamptz
+  end as observed_at,
+  e.estimated_sale_price as ask,
+  case
+    when e.expected_craft_cost is not null
+      and coalesce(e.method_cost->'expectedCost'->>'currency', e.currency) = e.currency
+      and e.method_cost->>'expiresAt' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T'
+      and pg_input_is_valid(e.method_cost->>'expiresAt', 'timestamptz')
+    then case
+      when (e.method_cost->>'expiresAt')::timestamptz > e.evaluated_at
+      then e.expected_craft_cost
+    end
+  end as craft_cost,
+  case
+    when jsonb_typeof(e.method_cost->'source'->'sampleSize') = 'number'
+      and pg_input_is_valid(e.method_cost->'source'->>'sampleSize', 'integer')
+    then case
+      when (e.method_cost->'source'->>'sampleSize')::integer >= 0
+      then (e.method_cost->'source'->>'sampleSize')::integer
+    end
+  end as comparable_sellers,
+  case
+    when e.method_cost->'source'->>'coverage' in ('complete', 'partial', 'unknown')
+    then e.method_cost->'source'->>'coverage'
+  end as coverage,
+  case
+    when jsonb_typeof(e.method_cost->'source'->'sortedSampleComplete') = 'boolean'
+    then (e.method_cost->'source'->>'sortedSampleComplete')::boolean
+  end as sorted_sample_complete,
+  e.evaluated_at
+from recipe_evaluations e
+where e.status in ('success', 'partial')
+  and e.estimated_sale_price is not null
+  and e.estimated_sale_price >= 0
+  and e.currency in ('chaos', 'divine')
+  and e.source_snapshot_dedupe_key is not null
+  and jsonb_typeof(e.method_cost) = 'object'
+  and jsonb_typeof(e.method_cost->'recipeContentHash') = 'string'`,
 );

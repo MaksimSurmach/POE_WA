@@ -169,6 +169,13 @@
       "when": 1793636124943,
       "tag": "0023_market_admin_controls",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793725853825,
+      "tag": "0024_market_price_history",
+      "breakpoints": true
     }
   ]
 }

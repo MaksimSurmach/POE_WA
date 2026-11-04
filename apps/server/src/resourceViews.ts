@@ -1,6 +1,7 @@
 import {
   generateRecipeMarketQuery,
   comparableRecipeListings,
+  requiresCompleteOutputCoverage,
 } from './recipeMarket.js';
 import {
   type CatalogEntry,
@@ -14,6 +15,7 @@ import {
   type RecipeResponse,
   type RefreshStatus,
   recipeMethodViewSchema,
+  recipePriceSourceSchema,
   marketSnapshotSchema,
 } from '@poe-worksmith/contracts';
 import {
@@ -268,8 +270,12 @@ async function latestOutputSnapshot(input: {
     capturedAt: snapshot.capturedAt.toISOString(),
     expiresAt: snapshot.expiresAt.toISOString(),
     coverage: snapshot.payload.coverage ?? 'unknown',
-    sortedPageComplete: snapshot.payload.sortedPageComplete === true,
-    sortedSampleComplete: snapshot.payload.sortedSampleComplete === true,
+    sortedPageComplete:
+      !requiresCompleteOutputCoverage(result.query) &&
+      snapshot.payload.sortedPageComplete === true,
+    sortedSampleComplete:
+      !requiresCompleteOutputCoverage(result.query) &&
+      snapshot.payload.sortedSampleComplete === true,
     totalResults: snapshot.payload.totalResults,
     listings: comparableRecipeListings(
       result.query,
@@ -351,7 +357,18 @@ function toEvaluation(
       status: 'loading',
     };
   }
+  const source = record(evaluation.methodCost?.source);
+  const saleEvidence = record(evaluation.methodCost?.saleEvidence);
+  const priceSource = recipePriceSourceSchema.safeParse({
+    capturedAt: source?.capturedAt,
+    comparableSellers: source?.sampleSize,
+    coverage: source?.coverage ?? 'unknown',
+  });
   return {
+    ...(priceSource.success ? { source: priceSource.data } : {}),
+    ...(typeof saleEvidence?.reason === 'string'
+      ? { profitBlockedReason: saleEvidence.reason }
+      : {}),
     confidence: evaluation.confidence,
     errorCode: errorCode(evaluation.errorCode),
     estimatedSalePrice: price(
@@ -573,5 +590,81 @@ function currentEvaluation(
       },
     };
   }
-  return evaluation;
+  return withoutUnsupportedProfit(evaluation);
+}
+
+/** Matches the publisher's minimum before a cheapest ask may yield profit or ROI. */
+const minimumComparableSellers = 2;
+
+/**
+ * Old evaluations may rely on one seller or a mixed-currency result prefix.
+ * All generated output queries include mixed currencies: only complete coverage
+ * supports the cheapest ask. Keep costs, but withhold unsupported resale/ROI.
+ */
+function withoutUnsupportedProfit(evaluation: RecipeEvaluation) {
+  const methodCost = evaluation.methodCost ?? {};
+  const saleEvidence = record(methodCost.saleEvidence);
+  const source = record(methodCost.source);
+  const sellers =
+    typeof saleEvidence?.comparableSellers === 'number'
+      ? saleEvidence.comparableSellers
+      : typeof source?.sampleSize === 'number'
+        ? source.sampleSize
+        : null;
+  const incompleteCoverage = source?.coverage !== 'complete';
+  const insufficient =
+    incompleteCoverage ||
+    (saleEvidence !== null && saleEvidence.status !== 'accepted') ||
+    sellers === null ||
+    !Number.isSafeInteger(sellers) ||
+    sellers < minimumComparableSellers ||
+    source?.currencyAvailable === false;
+  if (
+    !insufficient ||
+    (evaluation.profit === null &&
+      evaluation.marginPercent === null &&
+      (!incompleteCoverage || evaluation.estimatedSalePrice === null))
+  )
+    return evaluation;
+  return {
+    ...evaluation,
+    status:
+      evaluation.status === 'success'
+        ? ('partial' as const)
+        : evaluation.status,
+    lastSuccessfulAt: null,
+    estimatedSalePrice: incompleteCoverage
+      ? null
+      : evaluation.estimatedSalePrice,
+    profit: null,
+    marginPercent: null,
+    methodCost: {
+      ...methodCost,
+      saleEvidence: {
+        ...saleEvidence,
+        comparableSellers: sellers,
+        minimumComparableSellers,
+        ...(incompleteCoverage && typeof saleEvidence?.reason !== 'string'
+          ? {
+              reason:
+                'Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.',
+            }
+          : {}),
+        status:
+          saleEvidence?.status && saleEvidence.status !== 'accepted'
+            ? saleEvidence.status
+            : incompleteCoverage
+              ? 'insufficient_coverage'
+              : sellers === null
+                ? 'unavailable'
+                : 'insufficient_sellers',
+      },
+    },
+  };
+}
+
+function record(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 }

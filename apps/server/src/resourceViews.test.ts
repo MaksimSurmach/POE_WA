@@ -53,7 +53,7 @@ describe('repository-backed resource views', () => {
       await readers.readCatalog(correlationId),
     );
     expect(catalog.state).toBe('loading');
-    expect(catalog.data?.entries).toHaveLength(26);
+    expect(catalog.data?.entries).toHaveLength(28);
     expect(
       catalog.data?.entries.find(
         ({ recipe }) => recipe.id === 'physical-large-cluster-jagged',
@@ -285,6 +285,7 @@ describe('repository-backed resource views', () => {
           recipeContentHash: (
             await repositories.recipes.findById('physical-large-cluster-jagged')
           )?.contentHash,
+          source: { sampleSize: 2, coverage: 'complete' },
           expectedCost: { amount: '3.75', currency: 'chaos' },
           materialsPerAttempt: { amount: '1.5', currency: 'chaos' },
           steps: [
@@ -343,7 +344,7 @@ describe('repository-backed resource views', () => {
         recipesPath,
         repositories.recipes,
       );
-      expect(upgraded.updated).toHaveLength(26);
+      expect(upgraded.updated).toHaveLength(28);
       for (const previous of oldRecipes) {
         expect(
           (await repositories.recipes.findById(previous.id))?.contentHash,
@@ -436,6 +437,7 @@ describe('repository-backed resource views', () => {
                 ).toISOString(),
               }
             : {}),
+          source: { sampleSize: 2, coverage: 'complete' },
           expectedCost: { amount: '3.75', currency: 'chaos' },
         },
       });
@@ -634,3 +636,237 @@ it.each([false, true])(
       });
   },
 );
+
+describe('legacy single-seller profit on the read boundary', () => {
+  async function publishLegacy(input: {
+    status: 'success' | 'stale';
+    methodCost: Record<string, unknown>;
+  }) {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    const recipeId = 'physical-large-cluster-jagged';
+    const recipe = (await repositories.recipes.findById(recipeId))!;
+    const now = new Date();
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Synthetic Seller League',
+      isCurrent: true,
+      metadata: {},
+      name: 'Synthetic Seller League',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
+    const queued = await repositories.cycles.save({
+      completedQueries: 0,
+      completedRecipes: 0,
+      errorMessage: null,
+      failedQueries: 0,
+      failedRecipes: 0,
+      finishedAt: null,
+      id: '66666666-6666-4666-8666-666666666666',
+      leagueId: league.id,
+      publishedAt: null,
+      requestedAt: now,
+      startedAt: null,
+      status: 'queued',
+      totalQueries: 0,
+      totalRecipes: 1,
+    });
+    const running = await repositories.cycles.save(
+      transitionRefreshCycle(queued, 'running', now),
+    );
+    const saved = await repositories.evaluations.save({
+      confidence: 'low',
+      currency: 'chaos',
+      errorCode: input.status === 'stale' ? 'SNAPSHOT_MISSING' : null,
+      estimatedSalePrice: '19795',
+      evaluatedAt: now,
+      expectedCraftCost: '869.28',
+      lastSuccessfulAt: now,
+      leagueId: league.id,
+      marginPercent: '2177.17',
+      observationId: null,
+      profit: '18925.72',
+      recipeId,
+      refreshCycleId: running.id,
+      sourceSnapshotDedupeKey: 'legacy-single-seller',
+      status: input.status,
+      methodCost: {
+        recipeContentHash: recipe.contentHash,
+        expiresAt: new Date(now.getTime() + 20 * 60_000).toISOString(),
+        oldestInputAt: new Date(now.getTime() - 60_000).toISOString(),
+        expectedCost: { amount: '869.28', currency: 'chaos' },
+        source: {
+          coverage: 'complete',
+          ...((input.methodCost.source as Record<string, unknown>) ?? {}),
+        },
+        ...Object.fromEntries(
+          Object.entries(input.methodCost).filter(([key]) => key !== 'source'),
+        ),
+      },
+    });
+    await repositories.cycles.save({ ...running, completedRecipes: 1 });
+    await repositories.cycles.publish(running.id, now);
+    const readers = createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+      undefined,
+      async () => 30 * 60_000,
+    );
+    const catalog = catalogResponseSchema.parse(
+      await readers.readCatalog(correlationId),
+    );
+    const detail = recipeResponseSchema.parse(
+      await readers.readRecipe(correlationId, recipeId),
+    );
+    return {
+      catalog: catalog.data?.entries.find((e) => e.recipe.id === recipeId)
+        ?.evaluation,
+      detail: detail.data?.evaluation,
+      stored: await repositories.evaluations.listByCycle(running.id),
+      saved,
+    };
+  }
+
+  const askAndCost = {
+    estimatedSalePrice: { amount: 19795, currency: 'chaos' },
+    expectedCraftCost: { amount: 869.28, currency: 'chaos' },
+  };
+
+  it('keeps the valuation source visible without a raw snapshot and validates stored evidence', async () => {
+    const capturedAt = '2026-11-04T10:00:00.000Z';
+    const { catalog, detail } = await publishLegacy({
+      status: 'success',
+      methodCost: {
+        source: { capturedAt, sampleSize: 3, coverage: 'partial' },
+      },
+    });
+    expect(catalog?.source).toEqual({
+      capturedAt,
+      comparableSellers: 3,
+      coverage: 'partial',
+    });
+    expect(detail?.source).toEqual(catalog?.source);
+    const invalid = await publishLegacy({
+      status: 'success',
+      methodCost: { source: { capturedAt: 'invalid', sampleSize: 3 } },
+    });
+    expect(invalid.catalog?.source).toBeUndefined();
+  });
+
+  it('explains an unverified output comparison in catalog and detail', async () => {
+    const reason = 'Additional paid finish is outside the cost model.';
+    const { catalog, detail } = await publishLegacy({
+      status: 'success',
+      methodCost: {
+        source: { sampleSize: 3 },
+        saleEvidence: {
+          comparableSellers: 3,
+          status: 'unverified_output_value',
+          reason,
+        },
+      },
+    });
+    for (const evaluation of [catalog, detail])
+      expect(evaluation).toMatchObject({
+        ...askAndCost,
+        profit: null,
+        marginPercent: null,
+        profitBlockedReason: reason,
+      });
+  });
+
+  it.each([
+    ['unknown seller evidence', {}],
+    [
+      'partial sorted mixed-currency sample',
+      {
+        source: {
+          sampleSize: 20,
+          coverage: 'partial',
+          sortedSampleComplete: true,
+        },
+        saleEvidence: { comparableSellers: 20, status: 'accepted' },
+      },
+    ],
+    ['fractional seller count', { source: { sampleSize: 2.5 } }],
+    [
+      'unavailable currency',
+      { source: { sampleSize: 3, currencyAvailable: false } },
+    ],
+    [
+      'unaccepted evidence',
+      {
+        saleEvidence: { comparableSellers: 3, status: 'unavailable_currency' },
+      },
+    ],
+    ['source sample of one (pre-saleEvidence)', { source: { sampleSize: 1 } }],
+    [
+      'saleEvidence insufficient',
+      {
+        source: { sampleSize: 1 },
+        saleEvidence: {
+          comparableSellers: 1,
+          minimumComparableSellers: 2,
+          status: 'insufficient_sellers',
+        },
+      },
+    ],
+  ])(
+    'withholds stored profit and ROI from a %s and marks it partial in catalog and detail',
+    async (_label, methodCost) => {
+      const { catalog, detail, stored, saved } = await publishLegacy({
+        status: 'success',
+        methodCost,
+      });
+      for (const evaluation of [catalog, detail])
+        expect(evaluation).toMatchObject({
+          ...askAndCost,
+          ...(_label === 'partial sorted mixed-currency sample'
+            ? { estimatedSalePrice: null }
+            : {}),
+          status: 'partial',
+          profit: null,
+          marginPercent: null,
+          lastSuccessfulAt: null,
+        });
+      expect(detail).toEqual(catalog);
+      // Stored history is not rewritten; only the read view is qualified.
+      expect(stored).toEqual([saved]);
+      expect(saved.profit).toBe('18925.72');
+    },
+  );
+
+  it('keeps a legacy single-seller stale fallback stale while withholding its profit', async () => {
+    const { catalog, detail } = await publishLegacy({
+      status: 'stale',
+      methodCost: { source: { sampleSize: 1 } },
+    });
+    for (const evaluation of [catalog, detail])
+      expect(evaluation).toMatchObject({
+        ...askAndCost,
+        status: 'stale',
+        profit: null,
+        marginPercent: null,
+      });
+  });
+
+  it.each([
+    ['two sellers', { source: { sampleSize: 2, coverage: 'complete' } }],
+    ['twenty sellers', { source: { sampleSize: 20, coverage: 'complete' } }],
+  ])('keeps supported profit for %s', async (_label, methodCost) => {
+    const { catalog, detail } = await publishLegacy({
+      status: 'success',
+      methodCost,
+    });
+    for (const evaluation of [catalog, detail])
+      expect(evaluation).toMatchObject({
+        ...askAndCost,
+        status: 'success',
+        profit: { amount: 18925.72, currency: 'chaos' },
+        marginPercent: 2177.17,
+      });
+  });
+});

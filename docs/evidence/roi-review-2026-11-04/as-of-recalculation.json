@@ -1,0 +1,306 @@
+{
+  "cycleId": "69ddfa35-1db9-4eb3-84c0-69f5a00411b8",
+  "networkCollection": false,
+  "reevaluatedAt": "2026-11-04T11:59:21.601Z",
+  "preserved": {
+    "snapshots": 1178,
+    "recipes": 26
+  },
+  "completed": 26,
+  "failed": 0,
+  "rows": [
+    {
+      "recipe": "minion-convoking-wand-fear-trigger",
+      "status": "success",
+      "cost": "1425.63070000",
+      "ask": "3273.60000000",
+      "roi": "129.624685",
+      "sellers": 5,
+      "sourceAt": "2026-11-04T11:08:09.370Z",
+      "error": null,
+      "profit": "1847.96930000",
+      "baseCost": {
+        "amount": "35",
+        "currency": "chaos"
+      },
+      "steps": [
+        {
+          "id": "fear-roll",
+          "title": "Roll +1 minion and an open suffix",
+          "action": "Use Deafening Essence of Fear on the acquired ilvl83 rare Convoking Wand with exactly20% fractured minion Attack/Cast Speed.",
+          "success": {
+            "evidence": {
+              "url": "https://beta.craftofexile.com/?group=17&class=123&item=411&game=poe1&method=3%2C7%2C51&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W3siayI6Ik1pbmlvbkF0dGFja0FuZENhc3RTcGVlZDZfXyIsInYiOlsyMF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjpudWxsLCJzIjpbXSwicSI6MCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbIjMwIl1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tc3VmZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+              "patch": "3.29.3.3",
+              "method": "Current Craft of Exile calculator UI and successful outcome plus ordinary paid failure reroll",
+              "artifact": "docs/evidence/craft-profit-2026-11-03/convoking-fear.json",
+              "settings": "Rare uninfluenced Convoking Wand exactly ilvl83; pre-acquired fractured minion Attack and Cast Speed exactly20%; Deafening Essence of Fear guarantees83\u201394% increased minion damage; AND +1 all Minion Skill Gems and at least1 open suffix. Bench Trigger8s after success. No Annul, Vesper, self-fracture or premium hybrid damage assumed.",
+              "verifiedAt": "2026-11-03",
+              "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger bench3Chaos once; one Scouring reserved conservatively for Remove Crafted Modifiers only, never scour the whole item. Listing asks do not prove sales/profit; gold/time excluded."
+            },
+            "probability": 0.00516
+          },
+          "materials": [
+            {
+              "itemId": "deafening-essence-of-fear",
+              "unitPrice": {
+                "amount": "7.15",
+                "currency": "chaos"
+              },
+              "costPerAttempt": {
+                "amount": "7.15",
+                "currency": "chaos"
+              },
+              "quantityPerAttempt": 1
+            }
+          ],
+          "continueWhen": "+1 all Minion Skill Gems AND at least1 open suffix; essence minion damage83\u201394 and the fracture remain.",
+          "failureAction": "Repeat one paid Fear on the same base, including +1 results with full suffixes. Do not Annul or Scour."
+        },
+        {
+          "id": "bench-trigger",
+          "title": "Bench Trigger8s",
+          "action": "Bench Trigger a Socketed Spell when you Use a Skill, with8secondCooldown for3Chaos. Keep1Scouring as a conservative reserve for bench Remove Crafted Modifiers if needed; never apply it to the item.",
+          "success": {
+            "evidence": {
+              "url": "https://beta.craftofexile.com/?group=17&class=123&item=411&game=poe1&method=3%2C7%2C51&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W3siayI6Ik1pbmlvbkF0dGFja0FuZENhc3RTcGVlZDZfXyIsInYiOlsyMF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjpudWxsLCJzIjpbXSwicSI6MCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbIjMwIl1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tc3VmZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+              "patch": "3.29.3.3",
+              "method": "Current Craft of Exile calculator UI and successful outcome plus ordinary paid failure reroll",
+              "artifact": "docs/evidence/craft-profit-2026-11-03/convoking-fear.json",
+              "settings": "Rare uninfluenced Convoking Wand exactly ilvl83; pre-acquired fractured minion Attack and Cast Speed exactly20%; Deafening Essence of Fear guarantees83\u201394% increased minion damage; AND +1 all Minion Skill Gems and at least1 open suffix. Bench Trigger8s after success. No Annul, Vesper, self-fracture or premium hybrid damage assumed.",
+              "verifiedAt": "2026-11-03",
+              "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger bench3Chaos once; one Scouring reserved conservatively for Remove Crafted Modifiers only, never scour the whole item. Listing asks do not prove sales/profit; gold/time excluded."
+            },
+            "probability": 1
+          },
+          "materials": [
+            {
+              "itemId": "chaos-orb",
+              "unitPrice": {
+                "amount": "1",
+                "currency": "chaos"
+              },
+              "costPerAttempt": {
+                "amount": "3",
+                "currency": "chaos"
+              },
+              "quantityPerAttempt": 3
+            },
+            {
+              "itemId": "orb-of-scouring",
+              "unitPrice": {
+                "amount": "0.5307",
+                "currency": "chaos"
+              },
+              "costPerAttempt": {
+                "amount": "0.5307",
+                "currency": "chaos"
+              },
+              "quantityPerAttempt": 1
+            }
+          ],
+          "continueWhen": "Trigger8s present together with the +1minion/damage/fractured-speed core.",
+          "failureAction": "Stop if the suffix is unavailable; that outcome belongs to the paid Fear reroll stage."
+        }
+      ],
+      "saleEvidence": {
+        "status": "accepted",
+        "comparableSellers": 5,
+        "minimumComparableSellers": 2
+      }
+    },
+    {
+      "recipe": "minion-convoking-wand-four-fossil",
+      "status": "partial",
+      "cost": "1898.32000000",
+      "ask": "8252.00000000",
+      "roi": null,
+      "sellers": 19,
+      "sourceAt": "2026-11-04T11:49:08.516Z",
+      "error": null,
+      "profit": null,
+      "baseCost": {
+        "amount": "1",
+        "currency": "chaos"
+      },
+      "steps": [
+        {
+          "id": "four-fossil-roll",
+          "title": "Roll both gem prefixes",
+          "action": "Use Corroded, Jagged, Metallic and Shuddering Fossils in one four-socket chaotic resonator on the acquired uninfluenced rare Convoking Wand.",
+          "success": {
+            "evidence": {
+              "url": "https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&flags=&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
+              "patch": "3.29.3.3",
+              "method": "Manually checked current Craft of Exile calculator; rounded displayed probability/mean consumption and complete outcome plus ordinary paid failure reroll",
+              "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-convoking-wand.json",
+              "settings": "Rare uninfluenced Convoking Wand ilvl84, no corruption/fracture/synthesis. One Corroded + Jagged + Metallic + Shuddering Fossil in one Prime Chaotic Resonator per attempt. AND +1allMinionSkillGems and +1allSpellSkillGems. Stop at functional+2; no open suffix, trigger or bench finish required. Native implicit minion damage is preserved; no numerical implicit floor is required.",
+              "verifiedAt": "2026-11-03",
+              "assumptions": "Independent rerolls on the same reusable acquired rare base, one material set per attempt. Current CoE displayed mean 12 sets is rounded; cost/ROI remain indicative. No replacement or finishing stage, in-game spending, executed purchase, sale or whole-build validation."
+            },
+            "probability": 0.0834
+          },
+          "materials": [
+            {
+              "itemId": "corroded-fossil",
+              "unitPrice": {
+                "amount": "41.26",
+                "currency": "chaos"
+              },
+              "costPerAttempt": {
+                "amount": "41.26",
+                "currency": "chaos"
+              },
+              "quantityPerAttempt": 1
+            },
+            {
+              "itemId": "jagged-fossil",
+              "unitPrice": {
+                "amount": "20.63",
+                "currency": "chaos"
+              },
+              "costPerAttempt": {
+                "amount": "20.63",
+                "currency": "chaos"
+              },
+              "quantityPerAttempt": 1
+            },
+            {
+              "itemId": "metallic-fossil",
+              "unitPrice": {
+                "amount": "8.05",
+                "currency": "chaos"
+              },
+              "costPerAttempt": {
+                "amount": "8.05",
+                "currency": "chaos"
+              },
+              "quantityPerAttempt": 1
+            },
+            {
+              "itemId": "shuddering-fossil",
+              "unitPrice": {
+                "amount": "10.92",
+                "currency": "chaos"
+              },
+              "costPerAttempt": {
+                "amount": "10.92",
+                "currency": "chaos"
+              },
+              "quantityPerAttempt": 1
+            },
+            {
+              "itemId": "prime-chaotic-resonator",
+              "unitPrice": {
+                "amount": "77.25",
+                "currency": "chaos"
+              },
+              "costPerAttempt": {
+                "amount": "77.25",
+                "currency": "chaos"
+              },
+              "quantityPerAttempt": 1
+            }
+          ],
+          "continueWhen": "+1 to Level of all Spell Skill Gems AND +1 to Level of all Minion Skill Gems on the same wand.",
+          "failureAction": "Repeat the paid fossil combination on the same base; previous explicit modifiers are discarded. Stop at this functional +2 target. No unverified trigger, multimod or other finish is required."
+        }
+      ],
+      "saleEvidence": {
+        "reason": "The priced +2 wands have additional minion speed and/or paid finishes outside this two-prefix craft model. An equivalent core-only sale price has not been established.",
+        "status": "unverified_output_value",
+        "comparableSellers": 19,
+        "minimumComparableSellers": 2
+      }
+    },
+    {
+      "recipe": "rf-fire-trap-level-20",
+      "status": "success",
+      "cost": "1262.23000000",
+      "ask": "2888.20000000",
+      "roi": "128.817252",
+      "sellers": 20,
+      "sourceAt": "2026-11-04T11:46:28.530Z",
+      "error": null,
+      "profit": "1625.97000000",
+      "baseCost": {
+        "amount": "409.2",
+        "currency": "chaos"
+      },
+      "steps": [
+        {
+          "id": "reforge-fire",
+          "title": "Roll both supports",
+          "action": "Use Harvest Reforge Fire on the acquired rare Elder Archdemon Crown. Each attempt costs 50 Wild Crystallised Lifeforce.",
+          "success": {
+            "evidence": {
+              "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyODQ1IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tcHJlZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+              "patch": "3.29.3.3",
+              "method": "Manually checked current CoE joint support+open-prefix probability and ordinary paidreforge; both complete core+paidbench finishes executed in public UI",
+              "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-rf-level-20.json",
+              "settings": "Acquired rare Elder-only Archdemon Crown ilvl83, unfractured/uncorrupted/unsynthesised, native+2socketedSkillGems/-2socketedSupportGems. Harvest ReforgeFire50Wild perattempt. AND ConcentratedEffect supporttier1(level20) + BurningDamage supporttier1(level20) + at least1OpenPrefix. Then once bench8\u201310%AoE/+1socketedAoEGems for4Chaos; all8\u201310values satisfy the target, no exact10retry.",
+              "verifiedAt": "2026-11-03",
+              "assumptions": "Same acquired Elder rarebase reused,50Wild eachreforge; joint successincludesbothsupports andopenprefix. Expectedperfinisheditem: 910 roundedreforges plus exactlyone4Chaosbench; onebase, noScouring/replacement. All8\u201310AoErollsaccepted. No empirical game spending/sales or whole-build fit."
+            },
+            "probability": 0.0011
+          },
+          "materials": [
+            {
+              "itemId": "wild-crystallised-lifeforce",
+              "unitPrice": {
+                "amount": "0.01866",
+                "currency": "chaos"
+              },
+              "costPerAttempt": {
+                "amount": "0.933",
+                "currency": "chaos"
+              },
+              "quantityPerAttempt": 50
+            }
+          ],
+          "continueWhen": "Burning Damage and Concentrated Effect both level 20 or higher, and at least one open prefix.",
+          "failureAction": "Repeat on the same base; reject a desired pair with no open prefix. The reforge replaces all explicit modifiers and previous bench craft; it preserves influence and native implicits."
+        },
+        {
+          "id": "craft-aoe",
+          "title": "Craft socketed AoE level",
+          "action": "Bench craft +1 to Level of Socketed AoE Gems / 8\u201310% increased Area of Effect.",
+          "success": {
+            "evidence": {
+              "url": "https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyODQ1IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tcHJlZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73",
+              "patch": "3.29.3.3",
+              "method": "Manually checked current CoE joint support+open-prefix probability and ordinary paidreforge; both complete core+paidbench finishes executed in public UI",
+              "artifact": "docs/evidence/recipe-catalog-2026-11-03/coe-rf-level-20.json",
+              "settings": "Acquired rare Elder-only Archdemon Crown ilvl83, unfractured/uncorrupted/unsynthesised, native+2socketedSkillGems/-2socketedSupportGems. Harvest ReforgeFire50Wild perattempt. AND ConcentratedEffect supporttier1(level20) + BurningDamage supporttier1(level20) + at least1OpenPrefix. Then once bench8\u201310%AoE/+1socketedAoEGems for4Chaos; all8\u201310values satisfy the target, no exact10retry.",
+              "verifiedAt": "2026-11-03",
+              "assumptions": "Same acquired Elder rarebase reused,50Wild eachreforge; joint successincludesbothsupports andopenprefix. Expectedperfinisheditem: 910 roundedreforges plus exactlyone4Chaosbench; onebase, noScouring/replacement. All8\u201310AoErollsaccepted. No empirical game spending/sales or whole-build fit."
+            },
+            "probability": 1
+          },
+          "materials": [
+            {
+              "itemId": "chaos-orb",
+              "unitPrice": {
+                "amount": "1",
+                "currency": "chaos"
+              },
+              "costPerAttempt": {
+                "amount": "4",
+                "currency": "chaos"
+              },
+              "quantityPerAttempt": 4
+            }
+          ],
+          "continueWhen": "Both supports and +1 socketed AoE gems with at least 8% increased AoE.",
+          "failureAction": "Stop on incompatible or full prefixes; return to the paid reforge only if the required finish cannot be crafted."
+        }
+      ],
+      "saleEvidence": {
+        "status": "accepted",
+        "comparableSellers": 20,
+        "minimumComparableSellers": 2
+      }
+    }
+  ],
+  "scope": "Replay of all positive ROI in the previously published 11:59:21Z evaluation, on a database copy at the original valuation time. Not fresh market data."
+}

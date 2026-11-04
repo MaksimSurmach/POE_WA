@@ -279,11 +279,22 @@ export async function generateRecipeMarketQuery(
   });
 }
 
+/** Trade's currency ordering cannot prove a converted resale floor from a prefix. */
+export function requiresCompleteOutputCoverage(query: CanonicalJsonObject) {
+  if (!query.handbookTarget) return false;
+  const target = recipeQueryTarget(query.handbookTarget);
+  return (
+    target.slot === 'crafted-item' &&
+    target.tradeSearch?.includeOtherCurrencies === true
+  );
+}
+
 export function comparableRecipeListings(
   query: CanonicalJsonObject,
   listings: readonly MarketListing[],
   capturedAt: Date,
   now: Date,
+  currency: 'chaos' | 'divine' = 'chaos',
 ) {
   if (!query.handbookTarget) return [...listings];
   const target = recipeQueryTarget(query.handbookTarget);
@@ -315,7 +326,7 @@ export function comparableRecipeListings(
       targetId: target.id,
       capturedAt: capturedAt.toISOString(),
       sourceUrl: 'https://www.pathofexile.com/trade',
-      currency: 'chaos',
+      currency,
       dataKind: 'observed',
       emptyResult: normalizedListings.length === 0,
       listings: normalizedListings
@@ -341,7 +352,7 @@ export function comparableRecipeListings(
   );
   return [
     ...aggregateMarketListings({
-      currency: 'chaos',
+      currency,
       listings: normalizedListings.filter((row) => matches.has(row.id)),
     }).listings,
   ];

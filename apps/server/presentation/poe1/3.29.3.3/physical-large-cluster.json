@@ -49,39 +49,48 @@
     },
     "Metadata/Items/Armours/Helmets/HelmetStrIntRitual3": {
       "name": "Archdemon Crown",
-      "itemClass": "Helmet"
+      "itemClass": "Helmet",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Helmets/MaskCrown.png"
     },
     "Metadata/Items/Armours/Shields/ShieldStr17": {
       "name": "Pinnacle Tower Shield",
-      "itemClass": "Shield"
+      "itemClass": "Shield",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Shields/ShieldStr7.png"
     },
     "base:bone-helmet": {
       "name": "Bone Helmet",
-      "itemClass": "Helmet"
+      "itemClass": "Helmet",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Helmets/BoneHelm.png"
     },
     "Metadata/Items/Armours/Shields/ShieldInt13": {
       "name": "Fossilised Spirit Shield",
-      "itemClass": "Shield"
+      "itemClass": "Shield",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Shields/ShieldInt3.png"
     },
     "Metadata/Items/Armours/Helmets/HelmetDex12": {
       "name": "Grizzly Pelt",
-      "itemClass": "Helmet"
+      "itemClass": "Helmet",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Helmets/HelmetDex7.png"
     },
     "Metadata/Items/Armours/Gloves/GlovesStr11": {
       "name": "Leviathan Gauntlets",
-      "itemClass": "Gloves"
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/GlovesStr4.png"
     },
     "Metadata/Items/Belts/BeltAbyss": {
       "name": "Stygian Vise",
-      "itemClass": "Belt"
+      "itemClass": "Belt",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Belts/AbyssBelt.png"
     },
     "base:dragonscale-gauntlets": {
       "name": "Dragonscale Gauntlets",
-      "itemClass": "Gloves"
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/GlovesStrDex3.png"
     },
     "base:slink-boots": {
       "name": "Slink Boots",
-      "itemClass": "Boots"
+      "itemClass": "Boots",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Boots/BootsDex4.png"
     },
     "mod:life": {
       "name": "Maximum Life",
@@ -236,7 +245,8 @@
     },
     "base:convoking-wand": {
       "name": "Convoking Wand",
-      "itemClass": "Wand"
+      "itemClass": "Wand",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Weapons/OneHandWeapons/Wands/ConvokingWand.png"
     },
     "corroded-fossil": {
       "name": "Corroded Fossil",
@@ -394,7 +404,8 @@
     },
     "base:twilight-regalia-six-link": {
       "name": "Twilight Regalia (6-link, 20% quality, 100% base defence)",
-      "itemClass": "Body Armour"
+      "itemClass": "Body Armour",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/BodyArmours/BodyStrDexInt1C.png"
     },
     "mod:item-energy-shield": {
       "name": "Item Energy Shield",
@@ -426,6 +437,32 @@
     "mod:flat-energy-shield": {
       "name": "Local Maximum Energy Shield",
       "generationType": "prefix"
+    },
+    "base:quicksilver-flask-20-quality": {
+      "name": "Quicksilver Flask (20% quality)",
+      "itemClass": "Utility Flask",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzksMTQseyJmIjoiMkRJdGVtcy9GbGFza3Mvc3ByaW50IiwidyI6MSwiaCI6Miwic2NhbGUiOjEsImxldmVsIjoxfV0/aa66be180b/sprint.png"
+    },
+    "mod:flask-effect": {
+      "name": "Increased effect",
+      "generationType": "prefix"
+    },
+    "mod:flask-duration": {
+      "name": "Duration",
+      "generationType": "prefix"
+    },
+    "mod:flask-movement-speed": {
+      "name": "Increased Movement Speed during Effect",
+      "generationType": "suffix"
+    },
+    "mod:flask-enchant-effect": {
+      "name": "Increased effect (Enkindling)",
+      "generationType": "enchant"
+    },
+    "enkindling-orb": {
+      "name": "Enkindling Orb",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRXhwZWRpdGlvbi9GbGFza1BsYXRlIiwic2NhbGUiOjF9XQ/7c1a584a8d/FlaskPlate.png"
     }
   }
 }

@@ -132,6 +132,63 @@ function processor(
 }
 
 describe('market job processor', () => {
+  it('does not aggregate a legacy partial mixed-currency output into price history', async () => {
+    const repositories = await seedJobs(1);
+    const old =
+      (await repositories.marketQueries.findByCanonicalHash('hash-0'))!;
+    await repositories.marketQueries.save({
+      ...old,
+      query: {
+        handbookTarget: JSON.stringify({
+          name: 'Mixed output',
+          game: 'poe1',
+          realm: 'pc',
+          league: 'Mercenaries',
+          patch: '3.29',
+          slot: 'crafted-item',
+          baseTypes: ['Quicksilver Flask'],
+          builds: [],
+          requiredMods: [],
+          sources: [],
+          tradeSearch: {
+            version: 1,
+            scope: 'strict',
+            status: 'securable',
+            currency: 'chaos',
+            rarity: 'magic',
+            includeOtherCurrencies: true,
+            groups: [],
+          },
+        }),
+      },
+    });
+    const provider = resultProvider(async () => ({
+      ...successfulResult(),
+      coverage: 'partial',
+      sortedPageComplete: true,
+      sortedSampleComplete: true,
+      totalResults: 78,
+    }));
+    await processor(repositories, provider, () => now).runAvailable(
+      'worker',
+      now,
+    );
+    const leagueId = (await repositories.cycles.findById('cycle-id'))!.leagueId;
+    const observations = await repositories.observations.listRecent(
+      'query-0',
+      leagueId,
+      new Date(0),
+    );
+    expect(observations[0]).toMatchObject({
+      cheapestPrice: null,
+      sampleSize: 0,
+    });
+    expect(
+      (await repositories.snapshots.findLatest('query-0', leagueId))?.payload
+        .listings,
+    ).toHaveLength(1);
+  });
+
   it('limits concurrency and atomically advances query progress', async () => {
     const repositories = await seedJobs(4);
     let active = 0;

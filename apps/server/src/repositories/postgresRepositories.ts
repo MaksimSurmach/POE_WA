@@ -42,6 +42,7 @@ import {
   refreshCycles,
 } from '../schema.js';
 import { mapRepositoryError, RepositoryNotFoundError } from './errors.js';
+import { recordPriceObservation } from './priceHistoryRepository.js';
 
 type RecipeRow = typeof recipes.$inferSelect;
 type MarketQueryRow = typeof marketQueries.$inferSelect;
@@ -1089,21 +1090,33 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
       save(evaluation) {
         return mapRepositoryError('evaluations', 'save', async () => {
-          const [row] = await database
-            .insert(recipeEvaluations)
-            .values(evaluation)
-            .onConflictDoUpdate({
-              set: { ...evaluation, updatedAt: new Date() },
-              target: [
-                recipeEvaluations.recipeId,
-                recipeEvaluations.refreshCycleId,
-              ],
-            })
-            .returning();
-          if (!row) {
-            throw new RepositoryNotFoundError('evaluations', 'save');
+          const client = await pool.connect();
+          try {
+            await client.query('begin');
+            const [row] = await drizzle({ client })
+              .insert(recipeEvaluations)
+              .values(evaluation)
+              .onConflictDoUpdate({
+                set: { ...evaluation, updatedAt: new Date() },
+                target: [
+                  recipeEvaluations.recipeId,
+                  recipeEvaluations.refreshCycleId,
+                ],
+              })
+              .returning();
+            if (!row) {
+              throw new RepositoryNotFoundError('evaluations', 'save');
+            }
+            // Price history commits with the evaluation; repeats of a snapshot are ignored.
+            await recordPriceObservation(client, row.id);
+            await client.query('commit');
+            return mapEvaluation(row);
+          } catch (error) {
+            await client.query('rollback').catch(() => undefined);
+            throw error;
+          } finally {
+            client.release();
           }
-          return mapEvaluation(row);
         });
       },
     },

@@ -13,6 +13,12 @@ import {
   leaguesResponseSchema,
   type RefreshTriggerResponse,
   refreshTriggerResponseSchema,
+  type RecipeTrendResponse,
+  recipeTrendResponseSchema,
+  type TrendOverviewResponse,
+  trendOverviewResponseSchema,
+  type TrendRange,
+  craftingPricesResponseSchema,
 } from '@poe-worksmith/contracts';
 
 type Contract<T> = {
@@ -54,6 +60,9 @@ export function createApiClient(
   }
 
   return {
+    getCraftingPrices() {
+      return request('/api/crafting-prices', craftingPricesResponseSchema);
+    },
     getCatalog(): Promise<CatalogResponse> {
       return request('/api/catalog', catalogResponseSchema);
     },
@@ -74,6 +83,21 @@ export function createApiClient(
     },
     getLeagues(): Promise<LeaguesResponse> {
       return request('/api/leagues', leaguesResponseSchema);
+    },
+    getTrendOverview(range: TrendRange): Promise<TrendOverviewResponse> {
+      return request(
+        `/api/trends?range=${encodeURIComponent(range)}`,
+        trendOverviewResponseSchema,
+      );
+    },
+    getRecipeTrend(
+      id: string,
+      range: TrendRange,
+    ): Promise<RecipeTrendResponse> {
+      return request(
+        `/api/trends/${encodeURIComponent(id)}?range=${encodeURIComponent(range)}`,
+        recipeTrendResponseSchema,
+      );
     },
   };
 }

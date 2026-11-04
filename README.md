@@ -23,6 +23,8 @@ Both frontend modes bind to loopback and proxy `/api` to the native API on port
 3000, preserving the Host header. Refresh and [market administration](docs/market-administration.md)
 use this local workflow.
 
+**Market trends** (`/market`, linked from the header) charts the saved cheapest-ask history per recipe over 24h, 7d, 30d or 1y, with the expected craft cost when it was recorded with that ask. Each refresh adds at most one point per new output snapshot; repeated or carried prices add nothing, and gaps stay visible. The dashboard sorts by percent change or by latest ask within one currency, and shows seller counts, the last source time and a data table. The recipe page embeds the same chart. History is asking prices only, with no sales or volume. Raw points are kept for 30 days, then compacted into daily OHLC rows that are kept for `historyRetentionDays` (default 730); see [price history](docs/database.md#price-history).
+
 The combined server and worker are needed for **Refresh Prices**. `start:market` is a historical research API entrypoint and does not serve the handbook. The UI uses the existing exclusive refresh queue, PostgreSQL rate limiter, Trade-compatible collection owner and economy snapshot cache. Only verified comparable asks enter valuations. The cheapest ask drives indicative profit/ROI; the median is secondary information. Listings are asking prices, not confirmed sales.
 
 For a fresh installation, initialize the current Trade identity mappings through the existing import tools before collecting prices:
@@ -54,7 +56,8 @@ to complete before its earliest inputs expire; source timestamps remain visible.
 Existing saved operator settings are preserved on upgrade. The
 cleanup runs daily and removes raw snapshots after 72 hours, observations after
 14 days, and old completed jobs in bounded batches while preserving active and
-published cycles. `SIGINT` and `SIGTERM` stop HTTP intake, wait for active jobs
+published cycles. It first compacts price-history points older than 30 days into
+daily summaries. `SIGINT` and `SIGTERM` stop HTTP intake, wait for active jobs
 up to `SHUTDOWN_TIMEOUT_MS`, then close the shared PostgreSQL pool.
 
 `GET /api/refresh` returns the current and published cycles with query/recipe

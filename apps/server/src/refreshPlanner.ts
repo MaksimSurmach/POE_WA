@@ -15,7 +15,10 @@ import {
 } from '@poe-worksmith/domain';
 
 import type { RefreshLeagueContext } from './refreshLeagueContext.js';
-import { type RecipeMarketDependencies } from './recipeMarket.js';
+import {
+  requiresCompleteOutputCoverage,
+  type RecipeMarketDependencies,
+} from './recipeMarket.js';
 import type { Logger } from 'pino';
 import type { Metrics } from './observability/metrics.js';
 
@@ -125,9 +128,12 @@ export async function planCatalogRefresh(
     );
     const incompleteHandbookSample =
       dependency.query.handbookTarget &&
-      snapshot?.payload.coverage === 'partial' &&
-      !snapshot.payload.sortedPageComplete &&
-      !snapshot.payload.sortedSampleComplete;
+      snapshot &&
+      ((requiresCompleteOutputCoverage(dependency.query) &&
+        snapshot.payload.coverage !== 'complete') ||
+        (snapshot.payload.coverage === 'partial' &&
+          !snapshot.payload.sortedPageComplete &&
+          !snapshot.payload.sortedSampleComplete));
     const cache =
       isFreshSnapshot(snapshot, now, options.snapshotTtlMs) &&
       !incompleteHandbookSample

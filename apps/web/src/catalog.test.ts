@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import type { CatalogEntry } from '@poe-worksmith/contracts';
 
 import {
   defaultCatalogFilters,
   filterMarketTargets,
   formatMarginPercent,
   filterCatalog,
+  readCatalogFilters,
   getPriceStatus,
   lowestAskInCurrency,
   marketTargetItemType,
@@ -12,6 +14,164 @@ import {
   type MarketListTarget,
 } from './catalog.js';
 import { catalogFixtures } from './mocks/catalog.js';
+
+describe('catalog table ordering and numeric filters', () => {
+  it('restores shared filters from the URL and rejects invalid sort options', () => {
+    expect(
+      readCatalogFilters(
+        new URLSearchParams(
+          'category=boots&search=slink&minProfit=0&minRoi=20&sort=roi&direction=desc&profitCurrency=divine',
+        ),
+      ),
+    ).toMatchObject({
+      category: 'boots',
+      search: 'slink',
+      minProfit: '0',
+      minRoi: '20',
+      sort: 'roi',
+      direction: 'desc',
+      profitCurrency: 'divine',
+    });
+    expect(
+      readCatalogFilters(
+        new URLSearchParams('sort=unknown&direction=up&profitCurrency=gold'),
+      ),
+    ).toMatchObject({
+      sort: 'title',
+      profitCurrency: 'chaos',
+    });
+    expect(
+      readCatalogFilters(new URLSearchParams('direction=up')).direction,
+    ).toBeUndefined();
+  });
+  const entries = [20, -5, null, 0].map((profit, index) => ({
+    ...catalogFixtures[0]!,
+    recipe: {
+      ...catalogFixtures[0]!.recipe,
+      id: `row-${index}`,
+      title: `Item ${index}`,
+      category: index % 2 ? 'boots' : 'wand',
+    },
+    evaluation: {
+      ...catalogFixtures[0]!.evaluation,
+      profit:
+        profit === null ? null : { amount: profit, currency: 'chaos' as const },
+      marginPercent: profit,
+    },
+  }));
+  const ids = (values: CatalogEntry[]) =>
+    values.map((entry) => entry.recipe.id);
+
+  it.each(['profit', 'roi'] as const)(
+    'sorts %s in both directions, with unknowns always last',
+    (sort) => {
+      expect(
+        ids(
+          filterCatalog(entries, {
+            ...defaultCatalogFilters,
+            sort,
+            direction: 'desc',
+          }),
+        ),
+      ).toEqual(['row-0', 'row-3', 'row-1', 'row-2']);
+      expect(
+        ids(
+          filterCatalog(entries, {
+            ...defaultCatalogFilters,
+            sort,
+            direction: 'asc',
+          }),
+        ),
+      ).toEqual(['row-1', 'row-3', 'row-0', 'row-2']);
+      expect(entries[0]!.recipe.id).toBe('row-0');
+    },
+  );
+
+  it('combines name, class, tag and minimums, including zero', () => {
+    expect(
+      ids(
+        filterCatalog(entries, {
+          category: 'wand',
+          search: ' ITEM ',
+          minProfit: '0',
+          minRoi: '0',
+        }),
+      ),
+    ).toEqual(['row-0']);
+    expect(
+      ids(filterCatalog(entries, { ...defaultCatalogFilters, minProfit: '0' })),
+    ).toEqual(['row-0', 'row-3']);
+    expect(
+      filterCatalog(entries, { ...defaultCatalogFilters, tag: 'missing-tag' }),
+    ).toEqual([]);
+    expect(
+      filterCatalog(entries, { ...defaultCatalogFilters, minRoi: '21' }),
+    ).toEqual([]);
+    expect(
+      filterCatalog(entries, {
+        ...defaultCatalogFilters,
+        minProfit: ' ',
+        minRoi: 'invalid',
+      }),
+    ).toHaveLength(4);
+  });
+
+  it('sorts names and classes in both directions with deterministic ties', () => {
+    expect(
+      ids(
+        filterCatalog(entries, {
+          ...defaultCatalogFilters,
+          sort: 'title',
+          direction: 'desc',
+        }),
+      ),
+    ).toEqual(['row-3', 'row-2', 'row-1', 'row-0']);
+    expect(
+      ids(
+        filterCatalog(entries, {
+          ...defaultCatalogFilters,
+          sort: 'category',
+          direction: 'asc',
+        }),
+      ),
+    ).toEqual(['row-1', 'row-3', 'row-0', 'row-2']);
+    expect(
+      ids(
+        filterCatalog(entries, {
+          ...defaultCatalogFilters,
+          sort: 'category',
+          direction: 'desc',
+        }),
+      ),
+    ).toEqual(['row-0', 'row-2', 'row-1', 'row-3']);
+  });
+
+  it('groups profit by its own currency even without cost, and filters only the chosen currency', () => {
+    const mixed = entries.slice(0, 2).map((entry, index) => ({
+      ...entry,
+      evaluation: {
+        ...entry.evaluation,
+        expectedCraftCost: null,
+        profit: {
+          amount: index ? 50 : 1,
+          currency: index ? ('chaos' as const) : ('divine' as const),
+        },
+      },
+    }));
+    expect(
+      ids(filterCatalog(mixed, { ...defaultCatalogFilters, sort: 'profit' })),
+    ).toEqual(['row-1', 'row-0']);
+    expect(
+      ids(
+        filterCatalog(mixed, {
+          ...defaultCatalogFilters,
+          minProfit: '0',
+          profitCurrency: 'divine',
+        }),
+      ),
+    ).toEqual(['row-0']);
+  });
+});
 
 describe('recipe catalog search and item type filters', () => {
   it('keeps lowest asks comparable by currency', () => {

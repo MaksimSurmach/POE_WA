@@ -1,0 +1,273 @@
+{
+  "cycleId": "c404a9cc-686b-412f-83e9-4418bb828f6f",
+  "networkCollection": false,
+  "reevaluatedAt": "2026-11-04T11:59:21.601Z",
+  "preserved": {
+    "snapshots": 1178,
+    "recipes": 26
+  },
+  "completed": 26,
+  "failed": 0,
+  "rows": [
+    {
+      "recipe": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads",
+      "status": "success",
+      "cost": "5488.00000000",
+      "ask": "2475.60000000",
+      "roi": "-54.890671",
+      "sellers": 11,
+      "sourceAt": "2026-11-04T11:30:30.677Z",
+      "error": null
+    },
+    {
+      "recipe": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering",
+      "status": "partial",
+      "cost": "15032.00000000",
+      "ask": null,
+      "roi": null,
+      "sellers": 0,
+      "sourceAt": "2026-11-04T11:33:11.158Z",
+      "error": null
+    },
+    {
+      "recipe": "chaos-large-cluster-grim-oath-touch-of-cruelty-wicked-pall",
+      "status": "success",
+      "cost": "65833.54040000",
+      "ask": "250.00000000",
+      "roi": "-99.620254",
+      "sellers": 13,
+      "sourceAt": "2026-11-04T11:35:50.893Z",
+      "error": null
+    },
+    {
+      "recipe": "chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall",
+      "status": "success",
+      "cost": "62627.02090000",
+      "ask": "180.00000000",
+      "roi": "-99.712584",
+      "sellers": 15,
+      "sourceAt": "2026-11-04T11:36:31.146Z",
+      "error": null
+    },
+    {
+      "recipe": "cold-large-cluster-sadist-snowstorm-widespread-destruction",
+      "status": "success",
+      "cost": "22079.61370000",
+      "ask": "412.60000000",
+      "roi": "-98.131308",
+      "sellers": 11,
+      "sourceAt": "2026-11-04T11:38:30.623Z",
+      "error": null
+    },
+    {
+      "recipe": "fire-large-cluster-prismatic-heart-smoking-remains-widespread-destruction",
+      "status": "success",
+      "cost": "2952.74190000",
+      "ask": "825.20000000",
+      "roi": "-72.053094",
+      "sellers": 12,
+      "sourceAt": "2026-11-04T11:41:50.028Z",
+      "error": null
+    },
+    {
+      "recipe": "lacerate-shaper-recovery-shield",
+      "status": "partial",
+      "cost": null,
+      "ask": "2455.20000000",
+      "roi": null,
+      "sellers": 3,
+      "sourceAt": "2026-11-04T11:01:29.478Z",
+      "error": null
+    },
+    {
+      "recipe": "minion-bone-helmet-greed",
+      "status": "partial",
+      "cost": "6316.17000000",
+      "ask": null,
+      "roi": null,
+      "sellers": 0,
+      "sourceAt": "2026-11-04T11:05:29.419Z",
+      "error": null
+    },
+    {
+      "recipe": "minion-convoking-wand-fear-trigger",
+      "status": "success",
+      "cost": "1425.63070000",
+      "ask": "3273.60000000",
+      "roi": "129.624685",
+      "sellers": 5,
+      "sourceAt": "2026-11-04T11:08:09.370Z",
+      "error": null
+    },
+    {
+      "recipe": "minion-convoking-wand-four-fossil",
+      "status": "success",
+      "cost": "1898.32000000",
+      "ask": "8252.00000000",
+      "roi": "334.700156",
+      "sellers": 19,
+      "sourceAt": "2026-11-04T11:49:08.516Z",
+      "error": null
+    },
+    {
+      "recipe": "minion-fossilised-shield-greed",
+      "status": "partial",
+      "cost": "563.39000000",
+      "ask": "20460.00000000",
+      "roi": null,
+      "sellers": 1,
+      "sourceAt": "2026-11-04T11:14:48.325Z",
+      "error": null
+    },
+    {
+      "recipe": "minion-leviathan-fear-gloves",
+      "status": "partial",
+      "cost": null,
+      "ask": null,
+      "roi": null,
+      "sellers": 0,
+      "sourceAt": "2026-11-04T11:18:47.205Z",
+      "error": null
+    },
+    {
+      "recipe": "physical-large-cluster-alteration",
+      "status": "partial",
+      "cost": "144.74983900",
+      "ask": null,
+      "roi": null,
+      "sellers": 0,
+      "sourceAt": "2026-11-04T11:21:26.913Z",
+      "error": null
+    },
+    {
+      "recipe": "physical-large-cluster-jagged",
+      "status": "success",
+      "cost": "2194.83510000",
+      "ask": "1636.80000000",
+      "roi": "-25.424921",
+      "sellers": 13,
+      "sourceAt": "2026-11-04T11:22:07.322Z",
+      "error": null
+    },
+    {
+      "recipe": "rf-fire-trap-any-support",
+      "status": "success",
+      "cost": "500.90200000",
+      "ask": "249.00000000",
+      "roi": "-50.289677",
+      "sellers": 19,
+      "sourceAt": "2026-11-04T11:26:06.358Z",
+      "error": null
+    },
+    {
+      "recipe": "rf-fire-trap-level-20",
+      "status": "success",
+      "cost": "1262.23000000",
+      "ask": "2888.20000000",
+      "roi": "128.817252",
+      "sellers": 20,
+      "sourceAt": "2026-11-04T11:46:28.530Z",
+      "error": null
+    },
+    {
+      "recipe": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender",
+      "status": "success",
+      "cost": "5786.00000000",
+      "ask": "150.00000000",
+      "roi": "-97.407535",
+      "sellers": 20,
+      "sourceAt": "2026-11-04T11:48:27.974Z",
+      "error": null
+    },
+    {
+      "recipe": "stygian-life-resistances-envy",
+      "status": "partial",
+      "cost": null,
+      "ask": null,
+      "roi": null,
+      "sellers": 20,
+      "sourceAt": "2026-11-04T10:21:03.181Z",
+      "error": null
+    },
+    {
+      "recipe": "stygian-life-resistances-fossils",
+      "status": "partial",
+      "cost": null,
+      "ask": null,
+      "roi": null,
+      "sellers": 20,
+      "sourceAt": "2026-11-04T10:23:02.710Z",
+      "error": null
+    },
+    {
+      "recipe": "suppression-boots-loathing",
+      "status": "partial",
+      "cost": null,
+      "ask": null,
+      "roi": null,
+      "sellers": 1,
+      "sourceAt": "2026-11-04T10:30:22.042Z",
+      "error": null
+    },
+    {
+      "recipe": "suppression-gloves-fear",
+      "status": "partial",
+      "cost": null,
+      "ask": null,
+      "roi": null,
+      "sellers": 0,
+      "sourceAt": "2026-11-04T10:29:01.517Z",
+      "error": null
+    },
+    {
+      "recipe": "suppression-gloves-zeal",
+      "status": "partial",
+      "cost": null,
+      "ask": null,
+      "roi": null,
+      "sellers": 1,
+      "sourceAt": "2026-11-04T10:29:41.771Z",
+      "error": null
+    },
+    {
+      "recipe": "tr-grizzly-aoe-helmet",
+      "status": "partial",
+      "cost": null,
+      "ask": null,
+      "roi": null,
+      "sellers": 1,
+      "sourceAt": "2026-11-04T10:33:41.464Z",
+      "error": null
+    },
+    {
+      "recipe": "twilight-regalia-six-link-woe",
+      "status": "partial",
+      "cost": null,
+      "ask": null,
+      "roi": null,
+      "sellers": 20,
+      "sourceAt": "2026-11-04T10:41:00.667Z",
+      "error": null
+    },
+    {
+      "recipe": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak",
+      "status": "partial",
+      "cost": null,
+      "ask": null,
+      "roi": null,
+      "sellers": 3,
+      "sourceAt": "2026-11-04T10:39:00.564Z",
+      "error": null
+    },
+    {
+      "recipe": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak",
+      "status": "partial",
+      "cost": null,
+      "ask": null,
+      "roi": null,
+      "sellers": 0,
+      "sourceAt": "2026-11-04T10:40:20.436Z",
+      "error": null
+    }
+  ]
+}

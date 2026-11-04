@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { App } from './App.js';
 import './styles.css';
+import './catalogTable.css';
 
 const root = document.querySelector('#root');
 

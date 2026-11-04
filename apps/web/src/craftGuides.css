@@ -1,0 +1,122 @@
+.guide-page {
+  min-width: 0;
+}
+.guide-page p {
+  max-width: 75ch;
+}
+.guide-page h2 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+}
+.guide-page h3 {
+  margin-top: 28px;
+  margin-bottom: 14px;
+}
+.guide-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 32px;
+}
+.guide-layout > section {
+  min-width: 0;
+}
+.guide-steps {
+  padding-left: 24px;
+}
+.guide-steps li {
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.guide-budget-inputs,
+.guide-sale {
+  display: grid;
+  gap: 12px;
+}
+.guide-budget-inputs label,
+.guide-sale {
+  display: grid;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+.guide-budget-inputs input,
+.guide-sale input {
+  padding: 8px 12px;
+}
+.guide-price-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.guide-material-scroll {
+  max-width: 100%;
+  overflow: auto;
+  margin-bottom: 18px;
+}
+.guide-materials {
+  width: 100%;
+  min-width: 440px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.guide-materials caption {
+  text-align: left;
+  padding-bottom: 10px;
+  color: var(--muted);
+}
+.guide-materials th,
+.guide-materials td {
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.guide-materials th {
+  font-weight: 500;
+}
+.guide-materials tbody th {
+  width: 42%;
+}
+.guide-materials small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+.guide-materials input {
+  width: 100%;
+  min-width: 70px;
+  padding: 8px;
+}
+.guide-use-quote {
+  padding: 4px;
+  font-size: 0.7rem;
+  margin-top: 4px;
+}
+.guide-sale {
+  margin: 18px 0;
+}
+.craft-scenario .recipe-economics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 14px;
+}
+.recipe-library__guide-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 58px;
+  height: 58px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+@media (max-width: 900px) {
+  .guide-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+}

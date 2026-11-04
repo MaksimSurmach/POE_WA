@@ -1,0 +1,713 @@
+[
+  {
+    "id": "recomb-sceptre",
+    "title": "Recomb Sceptre",
+    "category": "sceptre",
+    "base": "Many ilvl 84 Void Sceptres",
+    "summary": "Combine +1 fire gems with damage-over-time multiplier; finish with crafted fire damage.",
+    "steps": [
+      "Prepare isolated +1 fire and damage-over-time multiplier donors using Alterations and Augmentations. A fire-gem vendor recipe is another +1 donor route.",
+      "Combine the donors with the guide’s blocking crafts. Charge every failed recombination and replacement donor to the budget.",
+      "After the desired core survives, add multimod, crafted fire damage-over-time multiplier and fire damage. Account separately for any Harvest enchant."
+    ],
+    "materials": [
+      "orb-of-alteration",
+      "orb-of-augmentation",
+      "orb-of-annulment",
+      "craicic-croaker",
+      "divine-orb",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/recomb-sceptre/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "starter-body-armor",
+    "title": "Starter Body Armour",
+    "category": "body-armour",
+    "base": "Six-linked armour/hybrid body; e.g. Saintly Chainmail",
+    "summary": "An entry six-link aiming for at least 1,000 armour.",
+    "steps": [
+      "Acquire the six-link first; its purchase price is part of this craft.",
+      "Choose Dense Fossil plus a one-socket resonator for the defence route, or an Envy essence route. Repeat to the armour target; these are alternative routes, not simultaneous requirements.",
+      "Finish quality and an appropriate available bench craft. Dense excludes life rolls; the essence route does not provide that guarantee."
+    ],
+    "materials": [
+      "dense-fossil",
+      "primitive-chaotic-resonator",
+      "screaming-essence-of-envy",
+      "armourers-scrap",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/starter-body-armor/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "elder-ft-helmet",
+    "title": "Elder Fire Trap Helmet",
+    "category": "helmet",
+    "base": "Elder Archdemon Crown, or an Elder armour helmet, ilvl 82+",
+    "summary": "Burning Damage and Concentrated Effect supports for socketed Fire Trap.",
+    "steps": [
+      "Acquire the Elder base, or include the Elder influence application in its cost.",
+      "Harvest Reforge Fire for both supports. The calculator links below use a specific ilvl 83 Crown and require an open prefix; they reroll blocked outcomes instead of assuming free recovery.",
+      "Finish with the selected bench craft. Pohx also describes conditional Exalt, beast and Annul recovery; those branches require their own budget. This target is for Fire Trap, not socketed RF."
+    ],
+    "materials": [
+      "wild-crystallised-lifeforce",
+      "elders-exalted-orb",
+      "exalted-orb",
+      "farric-lynx-alpha",
+      "orb-of-annulment",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": ["rf-fire-trap-any-support", "rf-fire-trap-level-20"],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/elder-ft-helmet/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "elder-rf-helmet",
+    "title": "Elder Righteous Fire Helmet",
+    "category": "helmet",
+    "base": "Elder pure-armour helmet, ilvl 82+",
+    "summary": "Horror’s elemental damage modifier, Burning Damage support and life for socketed RF.",
+    "steps": [
+      "Roll Horror until Burning Damage appears; include the guide’s blocked-prefix Exalt attempts when using that branch.",
+      "With full suffixes and a free prefix, apply the suffix lock and reforge life. Repeat with a newly paid lock when necessary; a filled item can require recovery or restart.",
+      "Finish the AoE bench craft. RF and Fire Trap targets are different; concentrated effect trades away RF radius."
+    ],
+    "materials": [
+      "essence-of-horror",
+      "exalted-orb",
+      "farric-lynx-alpha",
+      "wild-bristle-matron",
+      "vivid-crystallised-lifeforce",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/elder-rf-helmet/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "gloves",
+    "title": "RF Gloves",
+    "category": "gloves",
+    "base": "Fractured armour gloves; ilvl 84 for resistance, 85 for regeneration",
+    "summary": "Life, regeneration, dexterity and chaos resistance, with selected Eldritch implicits.",
+    "steps": [
+      "Choose the fracture and desired explicit thresholds before rolling. Envy, Sorrow and Greed are alternatives for different guaranteed modifiers.",
+      "Roll the chosen essence until the remaining explicit requirements are satisfied, then fill a useful bench slot.",
+      "Roll the selected Exarch and Eater implicits independently. Ignite spread and fire multiplier are different choices; include both implicit-currency budgets, not just essences."
+    ],
+    "materials": [
+      "screaming-essence-of-envy",
+      "screaming-essence-of-sorrow",
+      "screaming-essence-of-greed",
+      "lesser-eldritch-ember",
+      "lesser-eldritch-ichor",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/gloves/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "boots",
+    "title": "RF Boots",
+    "category": "boots",
+    "base": "Fractured boots, preferably regeneration; life/resistance alternatives",
+    "summary": "Life and regeneration with movement speed and RF-oriented Eldritch implicits.",
+    "steps": [
+      "Choose a fracture and essence route; repeat until the intended explicit combination is present.",
+      "Use the available bench slot for the missing movement speed, life or resistance finish.",
+      "Roll maximum fire resistance with Embers and the selected regeneration implicit with Ichors. Explicit and implicit retries both belong in the budget."
+    ],
+    "materials": [
+      "screaming-essence-of-envy",
+      "screaming-essence-of-sorrow",
+      "screaming-essence-of-greed",
+      "lesser-eldritch-ember",
+      "lesser-eldritch-ichor",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/boots/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "shield",
+    "title": "RF Life-on-Block Shield",
+    "category": "shield",
+    "base": "Shaper armour shield",
+    "summary": "A block-based RF shield targeting at least 4% life recovered on block.",
+    "steps": [
+      "Use Pristine fossils with resonators, or Harvest Reforge Life, until the recovery modifier meets the chosen threshold.",
+      "If needed, convert an elemental resistance to fire, bench life where space permits and fill remaining affixes with Exalts. Extra reservation or maximum-resistance rolls are not guaranteed by this target."
+    ],
+    "materials": [
+      "pristine-fossil",
+      "primitive-chaotic-resonator",
+      "vivid-crystallised-lifeforce",
+      "exalted-orb",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/shield/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "totem-shield",
+    "title": "RF Totem Shield",
+    "category": "shield",
+    "base": "Shaper armour shield ilvl 84+, preferably 86+",
+    "summary": "Life on block plus an additional totem, using a protected influenced reforge.",
+    "steps": [
+      "Prepare the Shaper shield and roll life on block with the chosen life route.",
+      "Fill suffixes if needed and apply a suffix lock while a prefix is available.",
+      "The guide’s protected influence reforge consumes 5,000 Primal and one Sacred lifeforce per use. Include lock, filling and any Allflame recovery costs; finish the available bench modifier."
+    ],
+    "materials": [
+      "pristine-fossil",
+      "primitive-chaotic-resonator",
+      "vivid-crystallised-lifeforce",
+      "farric-lynx-alpha",
+      "wild-bristle-matron",
+      "primal-crystallised-lifeforce",
+      "sacred-crystallised-lifeforce",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/totem-shield/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "rings",
+    "title": "RF Rings",
+    "category": "ring",
+    "base": "Fractured Vermillion, Ruby, Two-Stone or Amethyst Ring",
+    "summary": "A flexible RF ring with life, resistance and damage or dexterity.",
+    "steps": [
+      "Select a useful life, resistance or dexterity fracture and explicit thresholds.",
+      "Choose Anger essence or Harvest chaos reforges for the desired combination. Delirium is a distinct, more expensive multiplier route.",
+      "Finish a compatible bench modifier and, if chosen, catalysts. Do not assume the optional catalyst investment is free."
+    ],
+    "materials": [
+      "screaming-essence-of-anger",
+      "vivid-crystallised-lifeforce",
+      "essence-of-delirium",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/rings/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "amulet",
+    "title": "Starter RF Amulet",
+    "category": "amulet",
+    "base": "Fractured amulet ilvl 75+, or 84 for higher resistance tiers",
+    "summary": "Fire damage and useful life/multiplier stats; compare with buying an existing amulet.",
+    "steps": [
+      "Choose a life, multiplier, damage, dexterity or resistance fracture.",
+      "Use Anger essences for the selected outcome. +1 fire is an optional Fire Trap upgrade; it does not scale RF damage.",
+      "Bench the missing modifier and add the chosen anoint. Include oils and catalysts in additional costs. Pohx notes that buying a multiplier amulet can be preferable."
+    ],
+    "materials": ["screaming-essence-of-anger", "chaos-orb"],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/amulet/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "belt",
+    "title": "Elder RF Stygian Vise",
+    "category": "belt",
+    "base": "Elder Stygian Vise, ilvl 84",
+    "summary": "Life, regeneration, recovery rate and increased maximum life on an Elder belt.",
+    "steps": [
+      "Acquire the influenced base. Choose exact target tiers before estimating rerolls.",
+      "Repeat Pristine fossils and one-socket resonators. The guide’s approximate shopping/attempt figure is not a calibrated probability for every target variant.",
+      "Finish the bench modifier and life catalysts; separately budget the abyss jewel when evaluating the whole equipped item."
+    ],
+    "materials": [
+      "pristine-fossil",
+      "primitive-chaotic-resonator",
+      "fertile-catalyst",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/belt/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "jewels",
+    "title": "RF Crimson Jewels",
+    "category": "jewel",
+    "base": "Crimson Jewel",
+    "summary": "Life and damage multipliers; the source currently recommends buying rather than crafting.",
+    "steps": [
+      "Select the precise modifier combination before evaluating a craft. Several useful two-mod outcomes are not equivalent to a premium four-mod jewel.",
+      "Harvest life, fire or chaos reforges are alternative routes. Track lifeforce actually allocated to the chosen route.",
+      "Compare the result with the same modifier combination on the market. Pohx explicitly prefers buying jewels at the time of this guide."
+    ],
+    "materials": [
+      "wild-crystallised-lifeforce",
+      "vivid-crystallised-lifeforce"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/jewels/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "endgame-recomb-amulet",
+    "title": "Endgame Recomb Amulet",
+    "category": "amulet",
+    "base": "Multiple amulets, ilvl 82+",
+    "summary": "Recombine +1 fire gems and at least 20% damage-over-time multiplier.",
+    "steps": [
+      "Roll and isolate +1 fire and a high multiplier on separate donors. Count discarded donors and Annuls.",
+      "Recombine; repeat preparation after a failed result. Regal the successful magic item.",
+      "Choose a simple bench finish or the guide’s conditional suffix-removal route before multimodding. The removal can destroy a desired suffix; it is not a guaranteed finish."
+    ],
+    "materials": [
+      "orb-of-alteration",
+      "orb-of-augmentation",
+      "orb-of-annulment",
+      "regal-orb",
+      "farric-wolf-alpha",
+      "divine-orb",
+      "chaos-orb",
+      "orb-of-scouring"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/endgame-recomb-amulet/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "rf-cogwork-ring",
+    "title": "RF Cogwork Ring",
+    "category": "ring",
+    "base": "Uninfluenced, unfractured Cogwork Ring, ilvl 84+",
+    "summary": "Fractured Delirium multiplier with fire damage, strong resistances and life.",
+    "steps": [
+      "Roll Delirium and prepare four modifiers for a fracture attempt. Include failed fractures, replacement bases and Allflame bench spending.",
+      "After the desired fracture, roll Anger for the resistance target and clear the required slots. A failed Annul returns to the essence stage.",
+      "Lock suffixes and reforge chaos; complete suffixes before relying on a Matron lock. Repeat protected life reforges, recover filled prefixes, then finish damage and catalysts."
+    ],
+    "materials": [
+      "essence-of-delirium",
+      "orb-of-annulment",
+      "fracturing-orb",
+      "deafening-essence-of-anger",
+      "divine-orb",
+      "wild-bristle-matron",
+      "vivid-crystallised-lifeforce",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/rf-cogwork-ring/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "30-reservation-shield",
+    "title": "30% Reservation Shield",
+    "category": "shield",
+    "base": "Shaper armour shield ilvl 84+ and a Hunter reservation donor",
+    "summary": "Combine life on block and 30% reservation efficiency, then finish life.",
+    "steps": [
+      "Isolate life on block on the Shaper target and reservation efficiency on the Hunter donor; neither may have another influenced modifier.",
+      "Use the Awakener’s Orb on the donor first, then on the retained shield. Include donor destruction and failed preparations.",
+      "Choose a budget life bench or a protected life-reforge finish. Matron locking needs full suffixes; budget preparation and Allflame recovery for filled prefixes."
+    ],
+    "materials": [
+      "pristine-fossil",
+      "primitive-chaotic-resonator",
+      "vivid-crystallised-lifeforce",
+      "orb-of-alteration",
+      "orb-of-augmentation",
+      "awakeners-orb",
+      "wild-bristle-matron",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/30-reservation-shield/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-endgame-recomb-sceptre",
+    "title": "Endgame Recomb Sceptre",
+    "category": "sceptre",
+    "base": "Multiple ilvl 84 Void Sceptres",
+    "summary": "A +2 gem sceptre with damage-over-time multiplier and crafted finishes.",
+    "steps": [
+      "Prepare isolated +1 fire, +1 all spells and multiplier donors. Charge imprints, Annuls and replacement bases where used.",
+      "Build separate fire/multiplier and all-spells/multiplier intermediates, then recombine the +2 core. Failed intermediate and final combinations consume separate resources.",
+      "After success, apply multimod and the two intended damage crafts. Include the selected Harvest enchant and any elemental conversion."
+    ],
+    "materials": [
+      "orb-of-alteration",
+      "orb-of-augmentation",
+      "orb-of-annulment",
+      "craicic-croaker",
+      "divine-orb",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-endgame-recomb-sceptre/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-minmax-recomb-sceptre",
+    "title": "Minmax Recomb Sceptre",
+    "category": "sceptre",
+    "base": "Multiple ilvl 84 Void Sceptres",
+    "summary": "A +2 sceptre with both damage-over-time multipliers and a Hunter finish.",
+    "steps": [
+      "Prepare donors for the two gem modifiers and both multipliers, then assemble the two intermediates.",
+      "Recombine the four-mod core. The guide’s final-step success estimate is not the probability or cost of the complete multi-stage craft; include recoveries and donor preparation.",
+      "Bench fire damage, perform the chosen Allflame-assisted Hunter slam and add a Harvest enchant. A specific premium Hunter outcome needs its own model."
+    ],
+    "materials": [
+      "orb-of-alteration",
+      "orb-of-augmentation",
+      "orb-of-annulment",
+      "craicic-croaker",
+      "hunters-exalted-orb",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-minmax-recomb-sceptre/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-endgame-shield",
+    "title": "Endgame RF Shield",
+    "category": "shield",
+    "base": "Multiple ilvl 86 Shaper Ezomyte Tower Shields",
+    "summary": "Recombined recovery/reservation suffixes followed by protected life rolling.",
+    "steps": [
+      "Prepare the desired recovery, reservation and third suffix on donors; build two-suffix intermediates and combine them.",
+      "Reuse failed outputs only when their surviving modifiers support the next combination. Count every donor, preparation and recombination charge.",
+      "With complete suffixes, apply Matron locks and reforge life repeatedly. Budget filled-prefix recovery, optional Divines for recovery value, and the final bench/Exalt finish."
+    ],
+    "materials": [
+      "orb-of-alteration",
+      "orb-of-augmentation",
+      "wild-bristle-matron",
+      "vivid-crystallised-lifeforce",
+      "divine-orb",
+      "exalted-orb",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-endgame-shield/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-elevated-ft-helmet",
+    "title": "Elevated Fire Trap Helmet",
+    "category": "helmet",
+    "base": "Elder Archdemon Crown plus a Shaper helmet donor, ilvl 82+",
+    "summary": "Elevated Burning and Trap/Mine supports with a veiled AoE finish.",
+    "steps": [
+      "Prepare level-20 Burning on the Crown and level-20 Trap/Mine on the donor, each with the extra influence modifier required for elevation. Count failed Dominance attempts and replacement preparations.",
+      "Elevate both, then use Awakener on the Shaper donor before the Crown. Recover or fill slots without assuming protected modifiers survive for free.",
+      "Lock full suffixes, use Veiled Chaos, block and unveil for +2 AoE; repeat failed finishes with new locks and recovery costs. Bench life. This is a Fire Trap target."
+    ],
+    "materials": [
+      "elders-exalted-orb",
+      "wild-crystallised-lifeforce",
+      "primal-crystallised-lifeforce",
+      "orb-of-dominance",
+      "farric-lynx-alpha",
+      "wild-bristle-matron",
+      "awakeners-orb",
+      "veiled-chaos-orb",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-elevated-ft-helmet/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-minmax-recomb-ft-helmet",
+    "title": "Minmax Recomb Fire Trap Helmet",
+    "category": "helmet",
+    "base": "Evasion donors, Elder Archdemon Crown and Shaper support donor, ilvl 82+",
+    "summary": "A multi-donor Horror/support helmet with a recovered Concentrated Effect and veiled AoE finish.",
+    "steps": [
+      "Prepare the Horror evasion donor with non-fractured T9 dexterity and the specified blocking. Apply the cheapest non-Shaper/non-Elder influence orb; the four listed alternatives are not cumulative.",
+      "Prepare Burning on the Crown and a sole Trap/Mine influence on the Shaper donor. Use paid Lock previews to accept an Awakener result with at most two prefixes and two suffixes.",
+      "Recombine with the Horror donor; account for failures and reusable outcomes. Lock suffixes, clear prefixes, block and Exalt for Concentrated Effect.",
+      "Protect and recover the prefix, then use the guide’s Allflame/Veiled Exalt and unveil loop for +2 AoE. Finish life. Follow the linked slot-specific recovery branches before spending."
+    ],
+    "materials": [
+      "essence-of-horror",
+      "exalted-orb",
+      "crusaders-exalted-orb",
+      "redeemers-exalted-orb",
+      "hunters-exalted-orb",
+      "warlords-exalted-orb",
+      "elders-exalted-orb",
+      "orb-of-scouring",
+      "orb-of-alteration",
+      "orb-of-augmentation",
+      "craicic-croaker",
+      "black-morrigan",
+      "armourers-scrap",
+      "awakeners-orb",
+      "wild-bristle-matron",
+      "orb-of-annulment",
+      "veiled-exalted-orb",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-minmax-recomb-ft-helmet/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-endgame-rf-helmet",
+    "title": "Endgame Righteous Fire Helmet",
+    "category": "helmet",
+    "base": "Elder/Shaper armour helmet, ilvl 85+; Giantslayer preferred",
+    "summary": "Horror and Burning suffixes with an increased-area support prefix for socketed RF.",
+    "steps": [
+      "Combine influences while preserving the selected armour base, then roll Horror for Burning.",
+      "Fill the remaining suffix through a chosen branch. With full suffixes, lock, scour prefixes, block armour and Exalt for increased-area support; repeat paid cycles after failure.",
+      "Pursue the selected life or Concentrated Effect finish only with its extra costs included. Bench the remaining modifier. This is a socketed-RF target, not the Fire Trap helmet."
+    ],
+    "materials": [
+      "awakeners-orb",
+      "essence-of-horror",
+      "exalted-orb",
+      "farric-lynx-alpha",
+      "wild-bristle-matron",
+      "primal-crystallised-lifeforce",
+      "orb-of-scouring",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-endgame-rf-helmet/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-minmax-recomb-rf-helmet",
+    "title": "Minmax Recomb Righteous Fire Helmet",
+    "category": "helmet",
+    "base": "Evasion donors, Elder Giantslayer Helmet and Shaper donor, ilvl 82+",
+    "summary": "Horror/Burning and nearby-enemy elemental damage with a specialised RF prefix finish.",
+    "steps": [
+      "Prepare the Horror evasion donor with non-fractured T9 dexterity and the specified blocking. Apply the cheapest non-Shaper/non-Elder influence orb; the four listed alternatives are not cumulative.",
+      "Roll Burning on the Elder target. Use paid Lock previews with the sole-influence Shaper nearby-enemy-damage donor, accepting at most two prefixes and two suffixes.",
+      "Recombine with the Horror donor; budget lost or reusable outputs. Lock suffixes, clear prefixes, block and Exalt for an area support.",
+      "Use the source’s protected Annul or Dominance recovery before pursuing the second desired prefix. Failures can restart the prefix loop. Finish the compatible bench modifier; charge every repeated lock and recovery."
+    ],
+    "materials": [
+      "essence-of-horror",
+      "exalted-orb",
+      "crusaders-exalted-orb",
+      "redeemers-exalted-orb",
+      "hunters-exalted-orb",
+      "warlords-exalted-orb",
+      "elders-exalted-orb",
+      "orb-of-scouring",
+      "orb-of-alteration",
+      "orb-of-augmentation",
+      "craicic-croaker",
+      "black-morrigan",
+      "armourers-scrap",
+      "awakeners-orb",
+      "wild-bristle-matron",
+      "orb-of-annulment",
+      "orb-of-dominance",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-minmax-recomb-rf-helmet/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-double-veiled-mittens",
+    "title": "Double-Veiled Mittens",
+    "category": "gloves",
+    "base": "Life-fractured armour gloves, ilvl 85+",
+    "summary": "Chaos resistance and regeneration, with a veiled AoE prefix and crafted damage.",
+    "steps": [
+      "Use Envy and the selected Exalt/Annul recovery route for chaos resistance, regeneration and the third desired suffix.",
+      "With full suffixes, apply a Matron lock and Veiled Chaos. Recover filled prefixes with the correct Eldritch dominance; losing the veil requires another paid cycle.",
+      "Block and unveil AoE/area damage, craft flask-effect damage and roll the chosen Eldritch implicits. Count implicit and unveil retries separately."
+    ],
+    "materials": [
+      "deafening-essence-of-envy",
+      "exalted-orb",
+      "orb-of-annulment",
+      "wild-bristle-matron",
+      "veiled-chaos-orb",
+      "eldritch-orb-of-annulment",
+      "lesser-eldritch-ember",
+      "lesser-eldritch-ichor",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-double-veiled-mittens/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-endgame-boots",
+    "title": "Endgame RF Boots",
+    "category": "boots",
+    "base": "Life-fractured armour boots, ilvl 85+",
+    "summary": "Regeneration/resistance suffixes, veiled movement speed and upgraded maximum-fire-resistance implicit.",
+    "steps": [
+      "Build chaos resistance, regeneration and an elemental resistance with Envy and the chosen recovery steps.",
+      "Lock full suffixes and use Veiled Chaos. Recover filled prefixes under the correct Eldritch dominance; block before unveiling the chosen movement-speed mod.",
+      "Finish the avoidance/bench setup, then roll and upgrade the selected implicits with higher-tier Eldritch currency and Conflict. Charge failed upgrades and required re-rolls."
+    ],
+    "materials": [
+      "deafening-essence-of-envy",
+      "exalted-orb",
+      "orb-of-annulment",
+      "wild-bristle-matron",
+      "veiled-chaos-orb",
+      "eldritch-orb-of-annulment",
+      "grand-eldritch-ember",
+      "exceptional-eldritch-ember",
+      "grand-eldritch-ichor",
+      "exceptional-eldritch-ichor",
+      "orb-of-conflict",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-endgame-boots/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-abyss-socket-mittens",
+    "title": "Abyss Socket Mittens",
+    "category": "gloves",
+    "base": "Not specified by the source",
+    "summary": "Pohx marks this guide Work in Progress; no procedure or cost model is published.",
+    "steps": [],
+    "materials": [],
+    "relatedRecipeIds": [],
+    "workInProgress": true,
+    "sourceUrl": "https://pohx.net/crafts/advanced-abyss-socket-mittens/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-fractured-2-amulet",
+    "title": "Fractured +2 Amulet",
+    "category": "amulet",
+    "base": "T1 damage-over-time-multiplier fractured amulet, ilvl 82+",
+    "summary": "A +2 amulet with a chosen veiled finish; preparation and recovery are conditional.",
+    "steps": [
+      "Buy the fracture or include every self-fracture attempt. Roll +1 all gems, then use paid Lock previews to accept a Regal suffix; reset unsuccessful previews at a cost.",
+      "Protect prefixes and remove that suffix. Apply the specified multimod/prefix-lock/fire-attack blocks before Harvest fire add/remove; account for all repeated preparation.",
+      "Rebuild protection for the veiled finish. Unwanted unveils can require a lock/scour restart; follow the source’s prefix-versus-suffix branches.",
+      "Budget optional level-30 Spider, anoint, catalysts and the final bench craft separately. No success rate for the complete procedure is established here."
+    ],
+    "materials": [
+      "orb-of-alteration",
+      "orb-of-augmentation",
+      "craicic-croaker",
+      "black-morrigan",
+      "regal-orb",
+      "foulborn-regal-orb",
+      "blessed-orb",
+      "divine-orb",
+      "orb-of-scouring",
+      "wild-crystallised-lifeforce",
+      "sacred-crystallised-lifeforce",
+      "veiled-exalted-orb",
+      "fenumus-first-of-the-night",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-fractured-2-amulet/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  },
+  {
+    "id": "advanced-recomb-2-amulet",
+    "title": "Recomb +2 Amulet",
+    "category": "amulet",
+    "base": "Multiple amulets, ilvl 82+",
+    "summary": "Recombine all-gem level and multiplier, then add fire-gem level with a protected Harvest setup.",
+    "steps": [
+      "Prepare and isolate all-gem and multiplier donors; combine them using the specified blocking crafts.",
+      "Apply multimod, prefix protection and the fire-attack block before Harvest fire add/remove. Losing multiplier requires a separately budgeted recombination recovery.",
+      "Remove crafts, finish life and choose the Allflame-assisted Hunter slam. A desired Hunter result is not guaranteed.",
+      "Include optional Spider, oils and catalysts. Track replacement donors, locks and recovery attempts rather than pricing only the final surviving item."
+    ],
+    "materials": [
+      "orb-of-alteration",
+      "orb-of-augmentation",
+      "orb-of-annulment",
+      "craicic-croaker",
+      "divine-orb",
+      "wild-crystallised-lifeforce",
+      "sacred-crystallised-lifeforce",
+      "orb-of-scouring",
+      "hunters-exalted-orb",
+      "fenumus-first-of-the-night",
+      "black-morrigan",
+      "chaos-orb"
+    ],
+    "relatedRecipeIds": [],
+    "workInProgress": false,
+    "sourceUrl": "https://pohx.net/crafts/advanced-recomb-2-amulet/",
+    "reviewedAt": "2026-11-04",
+    "sourceLeague": "Allflame"
+  }
+]

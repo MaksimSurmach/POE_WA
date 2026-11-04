@@ -1,0 +1,1430 @@
+{
+  "league": "Allflame",
+  "checkedAt": "2026-11-04T13:50:30.075Z",
+  "quotes": [
+    {
+      "itemId": "accelerating-catalyst",
+      "name": "Accelerating Catalyst",
+      "chaos": 3.26,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "chaos-orb",
+      "name": "Chaos Orb",
+      "chaos": 1,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "blessed-orb",
+      "name": "Blessed Orb",
+      "chaos": 0.2405,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "abrasive-catalyst",
+      "name": "Abrasive Catalyst",
+      "chaos": 2.06,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-alchemy",
+      "name": "Orb of Alchemy",
+      "chaos": 0.01135,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-alteration",
+      "name": "Orb of Alteration",
+      "chaos": 0.09637,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "ancient-orb",
+      "name": "Ancient Orb",
+      "chaos": 8.04,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-annulment",
+      "name": "Orb of Annulment",
+      "chaos": 11.24,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-augmentation",
+      "name": "Orb of Augmentation",
+      "chaos": 0.02035,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "awakeners-orb",
+      "name": "Awakener's Orb",
+      "chaos": 913.9,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "glassblowers-bauble",
+      "name": "Glassblower's Bauble",
+      "chaos": 0.3177,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-chance",
+      "name": "Orb of Chance",
+      "chaos": 0.07587,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "dead-mans-sulphur",
+      "name": "Dead Man's Sulphur",
+      "chaos": 0.01009,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "divine-orb",
+      "name": "Divine Orb",
+      "chaos": 410.6,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "elders-exalted-orb",
+      "name": "Elder's Exalted Orb",
+      "chaos": 163.4,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "eldritch-chaos-orb",
+      "name": "Eldritch Chaos Orb",
+      "chaos": 47.4,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "eldritch-exalted-orb",
+      "name": "Eldritch Exalted Orb",
+      "chaos": 2.97,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "eldritch-orb-of-annulment",
+      "name": "Eldritch Orb of Annulment",
+      "chaos": 37.15,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "enkindling-orb",
+      "name": "Enkindling Orb",
+      "chaos": 0.8063,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "exalted-orb",
+      "name": "Exalted Orb",
+      "chaos": 2.71,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "exceptional-eldritch-ichor",
+      "name": "Exceptional Eldritch Ichor",
+      "chaos": 279,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "fertile-catalyst",
+      "name": "Fertile Catalyst",
+      "chaos": 27.08,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "fracturing-orb",
+      "name": "Fracturing Orb",
+      "chaos": 288.4,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "fracturing-shard",
+      "name": "Fracturing Shard",
+      "chaos": 11.31,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-fusing",
+      "name": "Orb of Fusing",
+      "chaos": 0.1651,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "grand-eldritch-ember",
+      "name": "Grand Eldritch Ember",
+      "chaos": 17.88,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "grand-eldritch-ichor",
+      "name": "Grand Eldritch Ichor",
+      "chaos": 9.5,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "greater-eldritch-ember",
+      "name": "Greater Eldritch Ember",
+      "chaos": 0.8845,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "greater-eldritch-ichor",
+      "name": "Greater Eldritch Ichor",
+      "chaos": 0.4249,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "imbued-catalyst",
+      "name": "Imbued Catalyst",
+      "chaos": 1.82,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "instilling-orb",
+      "name": "Instilling Orb",
+      "chaos": 0.3156,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "intrinsic-catalyst",
+      "name": "Intrinsic Catalyst",
+      "chaos": 2.2,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "jewellers-orb",
+      "name": "Jeweller's Orb",
+      "chaos": 0.01492,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "lesser-eldritch-ember",
+      "name": "Lesser Eldritch Ember",
+      "chaos": 0.07293,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "lesser-eldritch-ichor",
+      "name": "Lesser Eldritch Ichor",
+      "chaos": 0.0938,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "mavens-chisel-of-avarice",
+      "name": "Maven's Chisel of Avarice",
+      "chaos": 371.8,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "mavens-chisel-of-scarabs",
+      "name": "Maven's Chisel of Scarabs",
+      "chaos": 27.68,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-binding",
+      "name": "Orb of Binding",
+      "chaos": 0.4098,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-conflict",
+      "name": "Orb of Conflict",
+      "chaos": 661.8,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-intention",
+      "name": "Orb of Intention",
+      "chaos": 4.5,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-remembrance",
+      "name": "Orb of Remembrance",
+      "chaos": 162.7,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-unmaking",
+      "name": "Orb of Unmaking",
+      "chaos": 0.3977,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-unravelling",
+      "name": "Orb of Unravelling",
+      "chaos": 15.82,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "primal-crystallised-lifeforce",
+      "name": "Primal Crystallised Lifeforce",
+      "chaos": 0.03486,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "regal-orb",
+      "name": "Regal Orb",
+      "chaos": 0.115,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-regret",
+      "name": "Orb of Regret",
+      "chaos": 2.14,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "sacred-crystallised-lifeforce",
+      "name": "Sacred Crystallised Lifeforce",
+      "chaos": 82.73,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "crystallised-rancour",
+      "name": "Crystallised Rancour",
+      "chaos": 621.5,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-scouring",
+      "name": "Orb of Scouring",
+      "chaos": 0.5317,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "armourers-scrap",
+      "name": "Armourer's Scrap",
+      "chaos": 0.1013,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "shapers-exalted-orb",
+      "name": "Shaper's Exalted Orb",
+      "chaos": 216.1,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tainted-blacksmiths-whetstone",
+      "name": "Tainted Blacksmith's Whetstone",
+      "chaos": 3.28,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tainted-orb-of-fusing",
+      "name": "Tainted Orb of Fusing",
+      "chaos": 28.08,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tempering-catalyst",
+      "name": "Tempering Catalyst",
+      "chaos": 8.09,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "turbulent-catalyst",
+      "name": "Turbulent Catalyst",
+      "chaos": 2.67,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "vivid-crystallised-lifeforce",
+      "name": "Vivid Crystallised Lifeforce",
+      "chaos": 0.1868,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "wild-crystallised-lifeforce",
+      "name": "Wild Crystallised Lifeforce",
+      "chaos": 0.01906,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "chromatic-orb",
+      "name": "Chromatic Orb",
+      "chaos": 4.42,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "crusaders-exalted-orb",
+      "name": "Crusader's Exalted Orb",
+      "chaos": 258.2,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "hinekoras-lock",
+      "name": "Hinekora's Lock",
+      "chaos": 145200,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "reflecting-mist",
+      "name": "Reflecting Mist",
+      "chaos": 3910,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tainted-exalted-orb",
+      "name": "Tainted Exalted Orb",
+      "chaos": 568.5,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "veiled-exalted-orb",
+      "name": "Veiled Exalted Orb",
+      "chaos": 4274,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "exceptional-eldritch-ember",
+      "name": "Exceptional Eldritch Ember",
+      "chaos": 252.3,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "flesh-of-xesht",
+      "name": "Flesh of Xesht",
+      "chaos": 67.94,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "foulborn-exalted-orb",
+      "name": "Foulborn Exalted Orb",
+      "chaos": 2350,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "foulborn-orb-of-augmentation",
+      "name": "Foulborn Orb of Augmentation",
+      "chaos": 1.98,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "foulborn-regal-orb",
+      "name": "Foulborn Regal Orb",
+      "chaos": 20.21,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "gemcutters-prism",
+      "name": "Gemcutter's Prism",
+      "chaos": 3.48,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "hunters-exalted-orb",
+      "name": "Hunter's Exalted Orb",
+      "chaos": 872.5,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "mavens-chisel-of-divination",
+      "name": "Maven's Chisel of Divination",
+      "chaos": 28.33,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "mavens-chisel-of-procurement",
+      "name": "Maven's Chisel of Procurement",
+      "chaos": 18.59,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "mavens-chisel-of-proliferation",
+      "name": "Maven's Chisel of Proliferation",
+      "chaos": 39.31,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-dominance",
+      "name": "Orb of Dominance",
+      "chaos": 1437,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "mirror-of-kalandra",
+      "name": "Mirror of Kalandra",
+      "chaos": 525136,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "mirror-shard",
+      "name": "Mirror Shard",
+      "chaos": 26876,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "noxious-catalyst",
+      "name": "Noxious Catalyst",
+      "chaos": 2.18,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "portal-scroll",
+      "name": "Portal Scroll",
+      "chaos": 0.01627,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "prismatic-catalyst",
+      "name": "Prismatic Catalyst",
+      "chaos": 96.47,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "rogues-marker",
+      "name": "Rogue's Marker",
+      "chaos": 0.0001994,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "sacred-orb",
+      "name": "Sacred Orb",
+      "chaos": 44.41,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "stacked-deck",
+      "name": "Stacked Deck",
+      "chaos": 7.8,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tailoring-orb",
+      "name": "Tailoring Orb",
+      "chaos": 1291,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tainted-armourers-scrap",
+      "name": "Tainted Armourer's Scrap",
+      "chaos": 6.3,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tainted-catalyst",
+      "name": "Tainted Catalyst",
+      "chaos": 15.53,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tainted-chaos-orb",
+      "name": "Tainted Chaos Orb",
+      "chaos": 55,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tainted-chromatic-orb",
+      "name": "Tainted Chromatic Orb",
+      "chaos": 11.07,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "volatile-vaal-orb",
+      "name": "Volatile Vaal Orb",
+      "chaos": 1785,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tainted-divine-teardrop",
+      "name": "Tainted Divine Teardrop",
+      "chaos": 2464,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tainted-jewellers-orb",
+      "name": "Tainted Jeweller's Orb",
+      "chaos": 0.9407,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tainted-mythic-orb",
+      "name": "Tainted Mythic Orb",
+      "chaos": 33.8,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "tempering-orb",
+      "name": "Tempering Orb",
+      "chaos": 662.1,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "orb-of-transmutation",
+      "name": "Orb of Transmutation",
+      "chaos": 0.002983,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "unstable-catalyst",
+      "name": "Unstable Catalyst",
+      "chaos": 6.01,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "vaal-orb",
+      "name": "Vaal Orb",
+      "chaos": 0.3433,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "veiled-chaos-orb",
+      "name": "Veiled Chaos Orb",
+      "chaos": 58.41,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "warlords-exalted-orb",
+      "name": "Warlord's Exalted Orb",
+      "chaos": 490.2,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "blacksmiths-whetstone",
+      "name": "Blacksmith's Whetstone",
+      "chaos": 0.07983,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "scroll-of-wisdom",
+      "name": "Scroll of Wisdom",
+      "chaos": 0.01157,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "redeemers-exalted-orb",
+      "name": "Redeemer's Exalted Orb",
+      "chaos": 200,
+      "capturedAt": "2026-11-04T13:09:41.552Z",
+      "verifiedAt": "2026-11-04T13:16:23.281Z",
+      "expiresAt": "2026-11-04T15:16:23.281Z"
+    },
+    {
+      "itemId": "deafening-essence-of-doubt",
+      "name": "Deafening Essence of Doubt",
+      "chaos": 2.12,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-fear",
+      "name": "Deafening Essence of Fear",
+      "chaos": 7.63,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-greed",
+      "name": "Deafening Essence of Greed",
+      "chaos": 3.7,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-loathing",
+      "name": "Deafening Essence of Loathing",
+      "chaos": 9.49,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-misery",
+      "name": "Deafening Essence of Misery",
+      "chaos": 4.11,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-rage",
+      "name": "Deafening Essence of Rage",
+      "chaos": 12.13,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-sorrow",
+      "name": "Deafening Essence of Sorrow",
+      "chaos": 9.87,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-torment",
+      "name": "Deafening Essence of Torment",
+      "chaos": 4.31,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "essence-of-delirium",
+      "name": "Essence of Delirium",
+      "chaos": 43.27,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "essence-of-horror",
+      "name": "Essence of Horror",
+      "chaos": 49.02,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "essence-of-hysteria",
+      "name": "Essence of Hysteria",
+      "chaos": 31.85,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "essence-of-insanity",
+      "name": "Essence of Insanity",
+      "chaos": 52.29,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "screaming-essence-of-dread",
+      "name": "Screaming Essence of Dread",
+      "chaos": 4.64,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "screaming-essence-of-misery",
+      "name": "Screaming Essence of Misery",
+      "chaos": 1,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "screaming-essence-of-woe",
+      "name": "Screaming Essence of Woe",
+      "chaos": 2.21,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-anger",
+      "name": "Shrieking Essence of Anger",
+      "chaos": 1,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-anguish",
+      "name": "Shrieking Essence of Anguish",
+      "chaos": 0.4167,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-doubt",
+      "name": "Shrieking Essence of Doubt",
+      "chaos": 0.2857,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-rage",
+      "name": "Shrieking Essence of Rage",
+      "chaos": 4.69,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-scorn",
+      "name": "Shrieking Essence of Scorn",
+      "chaos": 20.53,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-spite",
+      "name": "Shrieking Essence of Spite",
+      "chaos": 0.5,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-wrath",
+      "name": "Shrieking Essence of Wrath",
+      "chaos": 0.125,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-zeal",
+      "name": "Shrieking Essence of Zeal",
+      "chaos": 1.5,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "wailing-essence-of-fear",
+      "name": "Wailing Essence of Fear",
+      "chaos": 1,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "wailing-essence-of-greed",
+      "name": "Wailing Essence of Greed",
+      "chaos": 1,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "weeping-essence-of-doubt",
+      "name": "Weeping Essence of Doubt",
+      "chaos": 5,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-anger",
+      "name": "Deafening Essence of Anger",
+      "chaos": 8.11,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-anguish",
+      "name": "Deafening Essence of Anguish",
+      "chaos": 8.05,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-contempt",
+      "name": "Deafening Essence of Contempt",
+      "chaos": 26.53,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-dread",
+      "name": "Deafening Essence of Dread",
+      "chaos": 5.88,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-envy",
+      "name": "Deafening Essence of Envy",
+      "chaos": 9.55,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-hatred",
+      "name": "Deafening Essence of Hatred",
+      "chaos": 4.21,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-scorn",
+      "name": "Deafening Essence of Scorn",
+      "chaos": 31.2,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-spite",
+      "name": "Deafening Essence of Spite",
+      "chaos": 10.41,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-suffering",
+      "name": "Deafening Essence of Suffering",
+      "chaos": 7.93,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-woe",
+      "name": "Deafening Essence of Woe",
+      "chaos": 10.72,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-wrath",
+      "name": "Deafening Essence of Wrath",
+      "chaos": 6.67,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "deafening-essence-of-zeal",
+      "name": "Deafening Essence of Zeal",
+      "chaos": 15.16,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "screaming-essence-of-sorrow",
+      "name": "Screaming Essence of Sorrow",
+      "chaos": 0.3333,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "screaming-essence-of-torment",
+      "name": "Screaming Essence of Torment",
+      "chaos": 2,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "screaming-essence-of-zeal",
+      "name": "Screaming Essence of Zeal",
+      "chaos": 13.62,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-dread",
+      "name": "Shrieking Essence of Dread",
+      "chaos": 8.98,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-fear",
+      "name": "Shrieking Essence of Fear",
+      "chaos": 10,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-sorrow",
+      "name": "Shrieking Essence of Sorrow",
+      "chaos": 1,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-suffering",
+      "name": "Shrieking Essence of Suffering",
+      "chaos": 0.3636,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-woe",
+      "name": "Shrieking Essence of Woe",
+      "chaos": 2.27,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "weeping-essence-of-woe",
+      "name": "Weeping Essence of Woe",
+      "chaos": 1,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "weeping-essence-of-wrath",
+      "name": "Weeping Essence of Wrath",
+      "chaos": 0.5,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "screaming-essence-of-doubt",
+      "name": "Screaming Essence of Doubt",
+      "chaos": 1,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "shrieking-essence-of-misery",
+      "name": "Shrieking Essence of Misery",
+      "chaos": 0.5,
+      "capturedAt": "2026-11-04T13:09:41.654Z",
+      "verifiedAt": "2026-11-04T13:16:23.427Z",
+      "expiresAt": "2026-11-04T15:16:23.427Z"
+    },
+    {
+      "itemId": "bound-fossil",
+      "name": "Bound Fossil",
+      "chaos": 11.37,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "aberrant-fossil",
+      "name": "Aberrant Fossil",
+      "chaos": 8.31,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "aetheric-fossil",
+      "name": "Aetheric Fossil",
+      "chaos": 5.66,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "bloodstained-fossil",
+      "name": "Bloodstained Fossil",
+      "chaos": 5,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "dense-fossil",
+      "name": "Dense Fossil",
+      "chaos": 26.95,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "fractured-fossil",
+      "name": "Fractured Fossil",
+      "chaos": 56.32,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "fundamental-fossil",
+      "name": "Fundamental Fossil",
+      "chaos": 17.47,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "gilded-fossil",
+      "name": "Gilded Fossil",
+      "chaos": 102.7,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "glyphic-fossil",
+      "name": "Glyphic Fossil",
+      "chaos": 19.5,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "jagged-fossil",
+      "name": "Jagged Fossil",
+      "chaos": 6.86,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "lucent-fossil",
+      "name": "Lucent Fossil",
+      "chaos": 6,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "opulent-fossil",
+      "name": "Opulent Fossil",
+      "chaos": 5,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "prismatic-fossil",
+      "name": "Prismatic Fossil",
+      "chaos": 8.91,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "pristine-fossil",
+      "name": "Pristine Fossil",
+      "chaos": 11.37,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "corroded-fossil",
+      "name": "Corroded Fossil",
+      "chaos": 3,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "deft-fossil",
+      "name": "Deft Fossil",
+      "chaos": 7.74,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "faceted-fossil",
+      "name": "Faceted Fossil",
+      "chaos": 120.2,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "frigid-fossil",
+      "name": "Frigid Fossil",
+      "chaos": 7.33,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "hollow-fossil",
+      "name": "Hollow Fossil",
+      "chaos": 225.8,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "metallic-fossil",
+      "name": "Metallic Fossil",
+      "chaos": 7.98,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "sanctified-fossil",
+      "name": "Sanctified Fossil",
+      "chaos": 58.42,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "scorched-fossil",
+      "name": "Scorched Fossil",
+      "chaos": 7.2,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "serrated-fossil",
+      "name": "Serrated Fossil",
+      "chaos": 6.78,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "shuddering-fossil",
+      "name": "Shuddering Fossil",
+      "chaos": 20.39,
+      "capturedAt": "2026-11-04T13:09:41.703Z",
+      "verifiedAt": "2026-11-04T13:16:23.521Z",
+      "expiresAt": "2026-11-04T15:16:23.521Z"
+    },
+    {
+      "itemId": "potent-chaotic-resonator",
+      "name": "Potent Chaotic Resonator",
+      "chaos": 0.5251,
+      "capturedAt": "2026-11-04T13:09:41.791Z",
+      "verifiedAt": "2026-11-04T13:16:23.625Z",
+      "expiresAt": "2026-11-04T15:16:23.625Z"
+    },
+    {
+      "itemId": "powerful-chaotic-resonator",
+      "name": "Powerful Chaotic Resonator",
+      "chaos": 1.25,
+      "capturedAt": "2026-11-04T13:09:41.791Z",
+      "verifiedAt": "2026-11-04T13:16:23.625Z",
+      "expiresAt": "2026-11-04T15:16:23.625Z"
+    },
+    {
+      "itemId": "prime-chaotic-resonator",
+      "name": "Prime Chaotic Resonator",
+      "chaos": 81.13,
+      "capturedAt": "2026-11-04T13:09:41.791Z",
+      "verifiedAt": "2026-11-04T13:16:23.625Z",
+      "expiresAt": "2026-11-04T15:16:23.625Z"
+    },
+    {
+      "itemId": "primitive-chaotic-resonator",
+      "name": "Primitive Chaotic Resonator",
+      "chaos": 0.5874,
+      "capturedAt": "2026-11-04T13:09:41.791Z",
+      "verifiedAt": "2026-11-04T13:16:23.625Z",
+      "expiresAt": "2026-11-04T15:16:23.625Z"
+    }
+  ]
+}

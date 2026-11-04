@@ -12,7 +12,7 @@ const groups = [
 export function ItemTooltip({ item }: { item: PresentedItem }) {
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const [iconFailed, setIconFailed] = useState(false);
+  const [failedIcon, setFailedIcon] = useState<string | null>(null);
   const id = useId();
   const tooltip = useRef<HTMLSpanElement>(null);
   const [position, setPosition] = useState({ left: 8, top: 8 });
@@ -111,10 +111,18 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
           setOpen(true);
         }}
       >
-        {item.iconUrl && !iconFailed ? (
-          <img src={item.iconUrl} alt="" onError={() => setIconFailed(true)} />
+        {item.iconUrl && item.iconUrl !== failedIcon ? (
+          <img
+            src={item.iconUrl}
+            alt=""
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={() => setFailedIcon(item.iconUrl)}
+          />
         ) : (
-          <span aria-hidden="true">◇</span>
+          <span className="item-preview__fallback" aria-hidden="true">
+            {item.itemClass.slice(0, 2).toUpperCase()}
+          </span>
         )}
       </button>
       <span

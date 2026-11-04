@@ -1,4 +1,4 @@
-import type { RecipeResponse } from '@poe-worksmith/contracts';
+import type { RecipeResponse, TrendRange } from '@poe-worksmith/contracts';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -11,6 +11,7 @@ import {
 import { formatMarginPercent } from './catalog.js';
 import { createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
+import { RecipeTrendPanel } from './MarketTrendsPage.js';
 
 const apiClient = createApiClient();
 
@@ -18,6 +19,7 @@ export function RecipePage() {
   const { recipeId } = useParams();
   const [response, setResponse] = useState<RecipeResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const [trendRange, setTrendRange] = useState<TrendRange>('30d');
 
   useEffect(() => {
     let active = true;
@@ -72,7 +74,7 @@ export function RecipePage() {
 
   return (
     <article className="recipe-detail recipe-detail--compact">
-      <Link className="back-link" to="/">
+      <Link className="back-link" to="/recipes">
         ‹ Recipes
       </Link>
       <header className="recipe-detail__header">
@@ -133,9 +135,30 @@ export function RecipePage() {
           </strong>
         </span>
       </div>
+      {evaluation.profitBlockedReason ? (
+        <p className="recipe-warning">
+          Profit and ROI withheld: {evaluation.profitBlockedReason}
+        </p>
+      ) : null}
+      <p className="catalog-price-note">
+        ROI = (asking price − expected cost) ÷ expected cost × 100%. A cost of
+        10 div and an ask of 12 div means 2 div profit and 20% ROI. Expected
+        cost is a mean across repeated crafts, not a guaranteed budget.
+      </p>
 
       {method ? (
         <DetailSection title={method.name}>
+          {evaluation.status === 'stale' ? (
+            <p className="recipe-warning">
+              Material prices below are past observations. Refresh prices before
+              using them as a current crafting budget.
+            </p>
+          ) : null}
+          <p>
+            Starting base: <Money price={method.baseCost} /> ×{' '}
+            {method.expectedBases ?? '?'} expected bases. Add every material
+            cost below.
+          </p>
           <ol className="craft-steps">
             {method.steps.map((step) => {
               const execution = method.expectedExecutions.find(
@@ -182,6 +205,22 @@ export function RecipePage() {
                             <Money price={material.unitPrice} /> each ·{' '}
                             <Money price={material.costPerAttempt} /> per
                             execution
+                            {execution && material.costPerAttempt ? (
+                              <>
+                                {' '}
+                                · {execution.count.toLocaleString()} executions
+                                ={' '}
+                                <Money
+                                  price={{
+                                    currency: material.costPerAttempt.currency,
+                                    amount:
+                                      material.costPerAttempt.amount *
+                                      execution.count,
+                                  }}
+                                />{' '}
+                                expected total
+                              </>
+                            ) : null}
                           </span>
                         </span>
                       );
@@ -232,7 +271,7 @@ export function RecipePage() {
                 : 'Asking price'}{' '}
             ·{' '}
             {source.sortedSampleComplete
-              ? `Sorted price sample: 20/${source.totalResults ?? 'unknown'} offers · `
+              ? `Available ask sample: 20/${source.totalResults ?? 'unknown'} offers · `
               : ''}
             <time dateTime={source.capturedAt}>
               {new Date(source.capturedAt).toLocaleString('en-US')}
@@ -269,6 +308,19 @@ export function RecipePage() {
           ))}
         </div>
       </DetailSection>
+      <DetailSection title="Price history">
+        <RecipeTrendPanel
+          onRangeChange={setTrendRange}
+          range={trendRange}
+          recipeId={recipe.id}
+        />
+        <Link
+          className="recipe-link"
+          to={`/market?recipe=${encodeURIComponent(recipe.id)}&range=${trendRange}`}
+        >
+          Compare in market trends ›
+        </Link>
+      </DetailSection>
       <DetailSection title="Base and target">
         <ItemTooltip item={detail.presentation.base} />
         <p className="base-requirements">
@@ -286,8 +338,10 @@ export function RecipePage() {
           ),
         )}
         <p>
-          Prices are asking prices, not confirmed sales. ROI uses the cheapest
-          verified comparable ask.
+          Prices are asking prices, not confirmed sales. ROI requires a complete
+          output search and asks from at least two independent sellers.
+          Incomplete output coverage or a single seller cannot establish profit
+          or ROI.
         </p>
       </DetailSection>
     </article>
@@ -297,7 +351,7 @@ export function RecipePage() {
 function RecipeMessage({ title }: { title: string }) {
   return (
     <>
-      <Link className="back-link" to="/">
+      <Link className="back-link" to="/recipes">
         ‹ Recipes
       </Link>
       <StatusPanel

@@ -1,6 +1,6 @@
 {
   "gameDataVersion": "3.29.3.3",
-  "mappingVersion": "poe-trade-2026-11-03.craft-profit.1",
+  "mappingVersion": "poe-trade-2026-11-04.flasks.1",
   "mappings": [
     {
       "entityKind": "base",
@@ -544,6 +544,44 @@
       "entityKind": "mod",
       "canonicalId": "mod:flat-energy-shield",
       "externalId": "explicit.stat_4052037485"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:quicksilver-flask-20-quality",
+      "externalId": "Quicksilver Flask",
+      "payload": {
+        "filters": {
+          "misc.quality": 20
+        }
+      }
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:flask-effect",
+      "externalId": "explicit.stat_2448920197"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:flask-duration",
+      "externalId": "explicit.stat_1256719186"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:flask-movement-speed",
+      "externalId": "explicit.stat_3182498570"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:flask-enchant-effect",
+      "externalId": "enchant.stat_2448920197"
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "enkindling-orb",
+      "externalId": "Enkindling Orb",
+      "payload": {
+        "exchangeId": "enkindling-orb"
+      }
     }
   ]
 }

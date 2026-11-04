@@ -1,0 +1,619 @@
+{
+  "scope": "Live asking prices only; no completed-sale verification. Research requests allowed quality >=20; evidence below keeps exactly20 as canonical recipes require.",
+  "cohorts": [
+    {
+      "cohort": "mageblood",
+      "capturedAt": "2026-11-04T15:10:20.701Z",
+      "status": "succeeded",
+      "coverage": "complete",
+      "reportedTotal": 80,
+      "fetchedCount": 80,
+      "sourceUrl": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAA4WQTU7DQAyFr4K8jlASEiXpAdizrqLKTFyw6ibD_FRU0dwdlwBKBRW7mef3-dmewQcM0cNmhskGnkbYgCcTHT4LQcognC2p9hTZHDzLidzdo6A_QPaJKrmdv004DirvWQK5pcCDyvRuhQ2H-wuweyjasurausnVe0KJdAk_siYXVUrZn1BZVW1X5kXX_ILKegWN5hXH_5kmT6lP_WrWZYfd6r96OnQczlc3OuILG0garR29uQHqveQntK3V_BZRvnot0-cqmsm5aAMNVxF7FE9LRHA43BrOOja62bZXZ_oA-Fa0v9ABAAA",
+      "query": {
+        "hash": "dd18066eeda53fd0ad2318d5b91a08509feffb17e6c0577d15c68b3a04426db1",
+        "sort": {
+          "price": "asc"
+        },
+        "query": {
+          "type": "Quicksilver Flask",
+          "stats": [
+            {
+              "type": "and",
+              "filters": [
+                {
+                  "id": "explicit.stat_3182498570",
+                  "value": {
+                    "min": 14
+                  }
+                },
+                {
+                  "id": "explicit.stat_2448920197",
+                  "value": {
+                    "min": 25
+                  }
+                },
+                {
+                  "id": "enchant.stat_2448920197",
+                  "value": {
+                    "min": 70
+                  }
+                }
+              ]
+            }
+          ],
+          "status": {
+            "option": "securable"
+          },
+          "filters": {
+            "misc_filters": {
+              "filters": {
+                "ilvl": {
+                  "min": 85
+                },
+                "quality": {
+                  "min": 20
+                },
+                "corrupted": {
+                  "option": "false"
+                }
+              }
+            },
+            "type_filters": {
+              "filters": {
+                "rarity": {
+                  "option": "magic"
+                }
+              }
+            },
+            "trade_filters": {
+              "filters": {
+                "price": {}
+              }
+            }
+          }
+        },
+        "scope": "strict",
+        "version": "market-trade-v1:awakened-318820895742"
+      },
+      "exactQuality20Count": 79,
+      "independentSellers": 50,
+      "listings": [
+        {
+          "listingId": "7f24a06443136266e0ab72beefb30bf970d5dd14d06f8d6ccac73362307d5ac1",
+          "sellerHash": "9ef8409875c0fffd3e04420b919cd16d6c340805f9ec394da65a7ef894c3d89f",
+          "priceChaos": 650,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 650,
+            "currency": "chaos"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_3182498570",
+              "tier": 1,
+              "value": 14
+            },
+            {
+              "id": "explicit.stat_2448920197",
+              "tier": 2,
+              "value": 25
+            },
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 2,
+              "value": -29
+            },
+            {
+              "id": "enchant.stat_2448920197",
+              "value": 70
+            }
+          ]
+        },
+        {
+          "listingId": "a5e4913b81dca0d1fb86d16d0a03e41c2ca72d2413f892cdaa30522114775e17",
+          "sellerHash": "910da68658b66803f52c962f41b67e0f72d8a693a555321e002f50a1297d7fc2",
+          "priceChaos": 800,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 800,
+            "currency": "chaos"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_3182498570",
+              "tier": 1,
+              "value": 14
+            },
+            {
+              "id": "explicit.stat_2448920197",
+              "tier": 3,
+              "value": 25
+            },
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 3,
+              "value": -35
+            },
+            {
+              "id": "enchant.stat_2448920197",
+              "value": 70
+            }
+          ]
+        },
+        {
+          "listingId": "6504fb30976c938c2ad8e71d74ff475c9715dcf461e8f5ea56f3a32716b3e2bd",
+          "sellerHash": "5828451c7b41104e5581a117a420fae46abdc403fd7d6928174d7f92e1c52d8d",
+          "priceChaos": 810.4,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 2,
+            "currency": "divine"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_3182498570",
+              "tier": 1,
+              "value": 14
+            },
+            {
+              "id": "explicit.stat_2448920197",
+              "tier": 1,
+              "value": 25
+            },
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 1,
+              "value": -27
+            },
+            {
+              "id": "enchant.stat_2448920197",
+              "value": 70
+            }
+          ]
+        },
+        {
+          "listingId": "cff3034ccd691ba0255bf56e49d73a804f49ab828a3f5477bde53996467acb13",
+          "sellerHash": "185dfc7af151b24581bb82f7c6d5b209eef5479bb94134635faffaef0f0cb9cd",
+          "priceChaos": 810.4,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 2,
+            "currency": "divine"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_3182498570",
+              "tier": 1,
+              "value": 14
+            },
+            {
+              "id": "explicit.stat_2448920197",
+              "tier": 3,
+              "value": 25
+            },
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 3,
+              "value": -33
+            },
+            {
+              "id": "enchant.stat_2448920197",
+              "value": 70
+            }
+          ]
+        },
+        {
+          "listingId": "55c98a6cc7b5fd09cda6fd6b99124f10f966eb4574004af7328796324761e030",
+          "sellerHash": "c097d86dc4089bbe7d7ad141721d7020dff60c3d768e0ef2b19b3bcd6e517b52",
+          "priceChaos": 810.4,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 2,
+            "currency": "divine"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_3182498570",
+              "tier": 1,
+              "value": 14
+            },
+            {
+              "id": "explicit.stat_2448920197",
+              "tier": 1,
+              "value": 25
+            },
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 1,
+              "value": -24
+            },
+            {
+              "id": "enchant.stat_2448920197",
+              "value": 70
+            }
+          ]
+        }
+      ],
+      "observedFloorChaos": 650,
+      "retained": "Cheapest five distinct sellers among fetched exact-quality matches; counts above refer to entire fetched sample."
+    },
+    {
+      "cohort": "final",
+      "capturedAt": "2026-11-04T15:06:51.791Z",
+      "status": "succeeded",
+      "coverage": "complete",
+      "reportedTotal": 31,
+      "fetchedCount": 31,
+      "sourceUrl": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAA4WQ3U7DMAyFXwXluqAma5d2D8A911M1mTQDa2kb8jNtqvLuuBRQp1Fx55ycz8f2yHyAED3bjWywAYee7ZjXKjp4NZqljIWr1aS9RFQnj-as3cOzAX9i2RdK5H78MUHfknxEE7SbP7AlWV-sQYXhaQIOG16Joq5KmZP3DCbqKbxDSuZFStmfkCiKqhY5r-UdJMo1iItyK3nNq-0d9Chkxjq4TNVmwffqHfr_M2WeUpOaxa7zDQ6L96J04DBcb27cwRsqliiaOnq1AtK9zW9oVZL5I4L57jVvn5OoBueiDbq9iTiC8XqOCA7ateGsQ0Wb7Rtypk_HGUQCEAIAAA",
+      "query": {
+        "hash": "c9af3692db10550e3907a23a1b2c4e3f95310f4f16c82128a273e35d47dc8239",
+        "sort": {
+          "price": "asc"
+        },
+        "query": {
+          "type": "Quicksilver Flask",
+          "stats": [
+            {
+              "type": "and",
+              "filters": [
+                {
+                  "id": "explicit.stat_3182498570",
+                  "value": {
+                    "min": 14
+                  }
+                },
+                {
+                  "id": "explicit.stat_2448920197",
+                  "value": {
+                    "min": 25
+                  }
+                },
+                {
+                  "id": "explicit.stat_1256719186",
+                  "value": {
+                    "max": -23,
+                    "min": -27
+                  }
+                },
+                {
+                  "id": "enchant.stat_2448920197",
+                  "value": {
+                    "min": 70
+                  }
+                }
+              ]
+            }
+          ],
+          "status": {
+            "option": "securable"
+          },
+          "filters": {
+            "misc_filters": {
+              "filters": {
+                "ilvl": {
+                  "min": 85
+                },
+                "quality": {
+                  "min": 20
+                },
+                "corrupted": {
+                  "option": "false"
+                }
+              }
+            },
+            "type_filters": {
+              "filters": {
+                "rarity": {
+                  "option": "magic"
+                }
+              }
+            },
+            "trade_filters": {
+              "filters": {
+                "price": {}
+              }
+            }
+          }
+        },
+        "scope": "strict",
+        "version": "market-trade-v1:awakened-318820895742"
+      },
+      "exactQuality20Count": 30,
+      "independentSellers": 24,
+      "listings": [
+        {
+          "listingId": "aa3c0955b13d464a2ad4c622393d09cd2353ceeb195efc7a0cc74b1455604034",
+          "sellerHash": "185dfc7af151b24581bb82f7c6d5b209eef5479bb94134635faffaef0f0cb9cd",
+          "priceChaos": 821.2,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 2,
+            "currency": "divine"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_3182498570",
+              "tier": 1,
+              "value": 14
+            },
+            {
+              "id": "explicit.stat_2448920197",
+              "tier": 1,
+              "value": 25
+            },
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 1,
+              "value": -25
+            },
+            {
+              "id": "enchant.stat_2448920197",
+              "value": 70
+            }
+          ]
+        },
+        {
+          "listingId": "55c98a6cc7b5fd09cda6fd6b99124f10f966eb4574004af7328796324761e030",
+          "sellerHash": "c097d86dc4089bbe7d7ad141721d7020dff60c3d768e0ef2b19b3bcd6e517b52",
+          "priceChaos": 821.2,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 2,
+            "currency": "divine"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_3182498570",
+              "tier": 1,
+              "value": 14
+            },
+            {
+              "id": "explicit.stat_2448920197",
+              "tier": 1,
+              "value": 25
+            },
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 1,
+              "value": -24
+            },
+            {
+              "id": "enchant.stat_2448920197",
+              "value": 70
+            }
+          ]
+        },
+        {
+          "listingId": "6504fb30976c938c2ad8e71d74ff475c9715dcf461e8f5ea56f3a32716b3e2bd",
+          "sellerHash": "5828451c7b41104e5581a117a420fae46abdc403fd7d6928174d7f92e1c52d8d",
+          "priceChaos": 821.2,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 2,
+            "currency": "divine"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_3182498570",
+              "tier": 1,
+              "value": 14
+            },
+            {
+              "id": "explicit.stat_2448920197",
+              "tier": 1,
+              "value": 25
+            },
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 1,
+              "value": -27
+            },
+            {
+              "id": "enchant.stat_2448920197",
+              "value": 70
+            }
+          ]
+        },
+        {
+          "listingId": "02437775aa6f7d33abb3fb7b92734405f2b8a28d64ca075d3f1a20200ceb293a",
+          "sellerHash": "61a6e14bf88a8c483d6334f864a45d5a6ca5100f54b24d87c1afb2bcc9759b00",
+          "priceChaos": 821.2,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 2,
+            "currency": "divine"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_3182498570",
+              "tier": 1,
+              "value": 14
+            },
+            {
+              "id": "explicit.stat_2448920197",
+              "tier": 1,
+              "value": 25
+            },
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 1,
+              "value": -27
+            },
+            {
+              "id": "enchant.stat_2448920197",
+              "value": 70
+            }
+          ]
+        },
+        {
+          "listingId": "1603c8c3f82df84547ca5adb1023e9011db4670098b6450cc60af4b95908d27e",
+          "sellerHash": "47c5ab4d3480292f87b54fc35ebeb72b2d2db3c24f709b8790823fd3a1f4b3ff",
+          "priceChaos": 821.2,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 2,
+            "currency": "divine"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_3182498570",
+              "tier": 1,
+              "value": 14
+            },
+            {
+              "id": "explicit.stat_2448920197",
+              "tier": 1,
+              "value": 25
+            },
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 1,
+              "value": -26
+            },
+            {
+              "id": "enchant.stat_2448920197",
+              "value": 70
+            }
+          ]
+        }
+      ],
+      "observedFloorChaos": 821.2,
+      "retained": "Cheapest five distinct sellers among fetched exact-quality matches; counts above refer to entire fetched sample."
+    },
+    {
+      "cohort": "magicbase",
+      "capturedAt": "2026-11-04T15:18:05.075Z",
+      "status": "running",
+      "coverage": "partial",
+      "reportedTotal": 545,
+      "fetchedCount": 40,
+      "sourceUrl": "https://www.pathofexile.com/trade/search/Allflame/H4sIAAAAAAAAA3WPwQrCMAxAf0Vy3kEEQfYB3j2LSOwyCetcTVNxjP676fQwDzs1TfLykgmioqYI9QRDUB4eUEMklwRvniBXoGMgy50Suy6yf5Fsjh5jB9WMGnm-VNCyV5J5TAGui_8iFBTW8c_V450d5GymnqNbAc3ry9uzMYe99eK7BEY9E_rf0Lm621rSDSIpKDV_rhZ9pK9LBZu1LYOwo3KWdeYPwQy7lSEBAAA",
+      "query": {
+        "hash": "d6c60cd5f864dccccd52d499b943c0bf9cb7f8cc7d2749a2a2a379775b31fc75",
+        "sort": {
+          "price": "asc"
+        },
+        "query": {
+          "type": "Quicksilver Flask",
+          "stats": [],
+          "status": {
+            "option": "securable"
+          },
+          "filters": {
+            "misc_filters": {
+              "filters": {
+                "ilvl": {
+                  "max": 85,
+                  "min": 85
+                },
+                "quality": {
+                  "min": 20
+                },
+                "corrupted": {
+                  "option": "false"
+                }
+              }
+            },
+            "type_filters": {
+              "filters": {
+                "rarity": {
+                  "option": "magic"
+                }
+              }
+            },
+            "trade_filters": {
+              "filters": {
+                "price": {}
+              }
+            }
+          }
+        },
+        "scope": "strict",
+        "version": "market-trade-v1:awakened-318820895742"
+      },
+      "exactQuality20Count": 34,
+      "independentSellers": 34,
+      "listings": [
+        {
+          "listingId": "7c12524b869ce0a05132e9bf36bf965ad16f97f5ee22de8b94d22174eee5706b",
+          "sellerHash": "ff0ddf202e4529f73c028e1fc2b920eb428d149fd7573062cc26a801a43ee64c",
+          "priceChaos": 20,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 20,
+            "currency": "chaos"
+          },
+          "quality": 20,
+          "mods": []
+        },
+        {
+          "listingId": "04f692e098b8be9b3d54156dfba3281825f31e55069d5133613fc4cb23a70227",
+          "sellerHash": "20bdcfd810b3841eeba957c594721e6b269bddf498d2a910469a114798f0f8d0",
+          "priceChaos": 25,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 25,
+            "currency": "chaos"
+          },
+          "quality": 20,
+          "mods": []
+        },
+        {
+          "listingId": "757e314b7e4f0059c808cbe13e2f15a2f32a4bb08c4cc1ef94b349ee7d8b7df8",
+          "sellerHash": "eb584696887b121945d6a10f1c7d96ec64f06d2f842bce0dfda59062c298eb6f",
+          "priceChaos": 25,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 25,
+            "currency": "chaos"
+          },
+          "quality": 20,
+          "mods": []
+        },
+        {
+          "listingId": "05190aeccdabadc1ceff382434e13a21d4d75c73d99ee27f410b2fe64c09b410",
+          "sellerHash": "86b7a47747cd02a0894d0e4393c87c6218330255ae725db37d9a7d52519bf0fe",
+          "priceChaos": 26,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 26,
+            "currency": "chaos"
+          },
+          "quality": 20,
+          "mods": []
+        },
+        {
+          "listingId": "07f13a268f9f4a7a8d71d43f23a899a634004f94ea2372bd1eba960a1b993c5c",
+          "sellerHash": "7912cc836d6c8b9e72132fc8d758c6dd49ef2aea9ca4a511915c607dd2668431",
+          "priceChaos": 28,
+          "originalPrice": {
+            "type": "~b/o",
+            "amount": 28,
+            "currency": "chaos"
+          },
+          "quality": 20,
+          "mods": [
+            {
+              "id": "explicit.stat_1256719186",
+              "tier": 2,
+              "value": 31
+            }
+          ]
+        }
+      ],
+      "observedFloorChaos": 20,
+      "retained": "Cheapest five distinct sellers among fetched exact-quality matches; counts above refer to entire fetched sample."
+    }
+  ],
+  "fullResearchEvidenceSha256": "cfac670d65907ab02edc83fd52a23646c0ba6edbae0f6d5f0fafdc967e73267d"
+}

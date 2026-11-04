@@ -1,4 +1,7 @@
-import { comparableRecipeListings } from './recipeMarket.js';
+import {
+  comparableRecipeListings,
+  requiresCompleteOutputCoverage,
+} from './recipeMarket.js';
 import {
   aggregateMarketListings,
   canonicalizeMarketQuery,
@@ -302,8 +305,8 @@ function prepareResult(
     listings:
       query.handbookTarget &&
       result.coverage !== 'complete' &&
-      !result.sortedPageComplete &&
-      !result.sortedSampleComplete
+      (requiresCompleteOutputCoverage(query) ||
+        (!result.sortedPageComplete && !result.sortedSampleComplete))
         ? []
         : comparableRecipeListings(
             query,

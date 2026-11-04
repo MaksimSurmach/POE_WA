@@ -43,6 +43,15 @@ const identities = z
       ),
     ),
   );
+const flaskIdentities = JSON.parse(
+  await readFile(
+    new URL('docs/evidence/flasks-2026-11-04/trade-identities.json', root),
+    'utf8',
+  ),
+);
+identities.stats.push(...flaskIdentities.stats);
+identities.bases.push(...flaskIdentities.bases);
+identities.resources.push(...flaskIdentities.resources);
 const manifest = await loadAndValidateTradeMappingManifest(
   fileURLToPath(
     new URL(

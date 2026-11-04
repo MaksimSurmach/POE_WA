@@ -18,6 +18,7 @@ import {
   type RecipeResponse,
   recipeResponseSchema,
   refreshProgressResponseSchema,
+  craftingPricesResponseSchema,
 } from '@poe-worksmith/contracts';
 import {
   type CatalogProgress,
@@ -39,7 +40,12 @@ import {
 import { registerMarketResearchRoutes } from './marketResearchApi.js';
 import type { MarketResearchRepository } from './marketResearch.js';
 import { registerMarketEconomyRoutes } from './marketEconomyApi.js';
+import {
+  registerMarketTrendsRoutes,
+  type MarketTrendsReader,
+} from './marketTrendsApi.js';
 import type { MarketEconomyOptions } from './marketEconomy.js';
+import { readCraftingPrices } from './craftingPrices.js';
 import type {
   MarketCollectionManager,
   MarketCollectionStore,
@@ -82,6 +88,7 @@ export function buildApi(
       | { manager: MarketCollectionManager; store: MarketCollectionStore }
       | undefined;
     marketEconomy?: MarketEconomyOptions | undefined;
+    marketTrends?: MarketTrendsReader | undefined;
     triggerRefresh?: (() => Promise<string | null>) | undefined;
   } = {},
 ) {
@@ -200,7 +207,23 @@ export function buildApi(
     readRateLimits,
   );
   registerMarketEconomyRoutes(api, options.marketEconomy);
+  api.get('/api/crafting-prices', async (request, reply) => {
+    reply.header('cache-control', 'no-store');
+    const league = await readCurrentLeague?.();
+    return craftingPricesResponseSchema.parse({
+      correlationId: request.id,
+      data: await readCraftingPrices({
+        league: league?.gggId ?? null,
+        repository: options.marketEconomy?.repository,
+        now: new Date(),
+        maximumAgeMs: options.marketAdmin
+          ? (await options.marketAdmin.store.read()).effective.maximumQuoteAgeMs
+          : 30 * 60_000,
+      }),
+    });
+  });
   registerMarketAdminRoutes(api, options.marketAdmin);
+  registerMarketTrendsRoutes(api, options.marketTrends);
 
   api.get('/health/live', async (request) => ({
     correlationId: request.id,

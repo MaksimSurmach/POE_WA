@@ -138,7 +138,8 @@
       "https://beta.craftofexile.com/changelog",
       "https://www.pathofexile.com/api/trade/data/stats"
     ],
-    "notes": "Exact current CoE3.29.3.3 selected base/method/target checked; ordinary paid failure retained the base and the complete successful output was generated. Rounded expected 12 sets; scoped indicative model only, not verified game spending, sales or build demand."
+    "notes": "Exact current CoE3.29.3.3 selected base/method/target checked; ordinary paid failure retained the base and the complete successful output was generated. Rounded expected 12 sets; scoped indicative model only, not verified game spending, sales or build demand.",
+    "profitBlockedReason": "The priced +2 wands have additional minion speed and/or paid finishes outside this two-prefix craft model. An equivalent core-only sale price has not been established."
   },
   "gameDataVersion": "3.29.3.3",
   "id": "minion-convoking-wand-four-fossil",
