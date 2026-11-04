@@ -754,6 +754,7 @@ export function projectFactoryBatch(
     completedTargetAssetBasis;
   const retrospectiveForecast =
     forecast !== null &&
+    Boolean(risk) &&
     Date.parse(forecast.analysisInput.now) > Date.parse(batch.startedAt);
   const comparable = Boolean(
     !retrospectiveForecast &&

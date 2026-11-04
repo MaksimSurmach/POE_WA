@@ -74,12 +74,12 @@ Files: apps/web/src/CraftRiskSection.tsx, styles/tests, RecipePage.tsx, apiClien
 
 Files: domain factoryLedger.ts + tests; contracts factory.ts; server factoryApi/service and repositories/factoryRepository.ts; migration0026/schema; web FactoryPage and recipe start-batch links.
 
-- [ ] Snapshot recipe/model revision, league, original forecast/evidence at batch creation; explicit status, attempts, timestamps, actual crafting time and notes.
-- [ ] Append-only idempotent events for purchases, consumption, expenses, recovery/refund, outputs, allocation, listing, sale and corrections. Transactions serialize each batch; conflicts rejected.
-- [ ] Preserve original quantity/currency/unit price/source and transaction-time conversion. Track unused stock/returns and cost allocations separately from cash flow. No duplicate sale, overselling, negative stock or over-allocation under concurrency.
-- [ ] Deterministic realized profit of sold items, unsold allocated inventory, cash flow, production spending and salvage separately; confirmed-only sale-time/turnover and forecast comparison.
-- [ ] My Factory create/spend/consume/attempt/output/list/sell/correct flow, CSV/JSON export (spreadsheet import optional and not necessary to core scope).
-- [ ] Numerical/transaction/restart/multi-currency/partial-sale/correction/migration tests and browser real workflow/screenshots; Claude review/fixes; PR B depends explicitly on PR A.
+- [x] Snapshot recipe/model revision, league, original forecast/evidence at batch creation; explicit status, attempts, timestamps, actual crafting time and notes.
+- [x] Append-only idempotent events for purchases, consumption, expenses, recovery/refund, outputs, allocation, listing, sale and corrections. Transactions serialize each batch; conflicts rejected.
+- [x] Preserve original quantity/currency/unit price/source and transaction-time conversion. Track unused stock/returns and cost allocations separately from cash flow. No duplicate sale, overselling, negative stock or over-allocation under concurrency.
+- [x] Deterministic realized profit of sold items, unsold allocated inventory, cash flow, production spending and salvage separately; confirmed-only sale-time/turnover and forecast comparison.
+- [x] My Factory create/spend/consume/attempt/output/list/sell/correct flow, CSV/JSON export (spreadsheet import optional and not necessary to core scope).
+- [x] Numerical/transaction/restart/multi-currency/partial-sale/correction/migration tests and browser real workflow/screenshots; Claude review/fixes; PR B depends explicitly on PR A.
 
 ## Phase C — PR C / codex/production-intelligence (base PR B)
 
@@ -102,3 +102,5 @@ Files: domain opportunitySignals.ts/liquidity.ts/capitalAllocation.ts + tests; c
 - Phase A integrated code committed as e7e63a6, with numerical/contracts/PG/backend/browser acceptance, migration preservation, typecheck/lint/build passed. Independent Claude Code review running against that exact head.
 
 - Phase A independent Claude review PASS at99f51b5 after fixes. Full unit/contracts, targeted PostgreSQL, browser, build/typecheck/lint passed after integration; migration unchanged and preservation receipt retained. Proceeding to dependent PRB with immutable ledger and explicit cash/inventory separation.
+
+- Phase B Claude PASS ataddbab0 after financial/data-integrity corrections; final nonblocking explanation guard and focused regression passed. Full152 PostgreSQL,8 backendE2E,6 browser scenarios passed; isolated migration0026 preserved31 tables. Proceeding to Phase C without merge/deploy.

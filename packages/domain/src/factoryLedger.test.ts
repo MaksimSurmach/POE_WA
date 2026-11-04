@@ -1198,5 +1198,9 @@ describe('factory ledger — labelled synthetic accounting scenarios', () => {
       reason:
         'Forecast was created after the batch started; retrospective estimates cannot measure forecast accuracy.',
     });
+    b.forecast.riskResult = null;
+    expect(
+      projectFactoryBatch(b, events, at(8)).forecastComparison.reason,
+    ).toContain('First-run cash EV is not a batch forecast');
   });
 });
