@@ -68,7 +68,7 @@ Files: apps/web/src/CraftRiskSection.tsx, styles/tests, RecipePage.tsx, apiClien
 - [x] Compact EV/risk metrics, source and missing-data explanations, budget/objective/size/seed, progress/cancel and meaningful quantile chart.
 - [x] Usable explicit owner model/valuation entry; no fabricated live probabilities or auto-labelled fixture observations. Advanced graph JSON optional.
 - [x] Baseline/full numerical/contracts/PG/backend E2E, typecheck/lint/build; browser empty/model-save/simulate/cancel, desktop/mobile screenshots.
-- [ ] Claude review financial mathematics/data-integrity/architecture; fix material findings, create PR A against master. No merge/deploy.
+- [x] Claude review financial mathematics/data-integrity/architecture; fix material findings, create PR A against master. No merge/deploy.
 
 ## Phase B — PR B / codex/factory-ledger (base PR A)
 
@@ -100,3 +100,5 @@ Files: domain opportunitySignals.ts/liquidity.ts/capitalAllocation.ts + tests; c
 - Baseline tests passed; build verification collided with in-progress new exports, so it is not recorded as a clean new-worktree build. The reviewed master CI is the immutable baseline; full build will run after integration.
 
 - Phase A integrated code committed as e7e63a6, with numerical/contracts/PG/backend/browser acceptance, migration preservation, typecheck/lint/build passed. Independent Claude Code review running against that exact head.
+
+- Phase A independent Claude review PASS at99f51b5 after fixes. Full unit/contracts, targeted PostgreSQL, browser, build/typecheck/lint passed after integration; migration unchanged and preservation receipt retained. Proceeding to dependent PRB with immutable ledger and explicit cash/inventory separation.
