@@ -26,6 +26,12 @@ type ErrorDefinition = {
 };
 
 export const domainErrorDefinitions = {
+  FACTORY_LEDGER_INVALID: {
+    category: 'calculation',
+    disposition: 'permanent',
+    publicMessage:
+      'The ledger event violates inventory or accounting constraints.',
+  },
   CALCULATION_FAILED: {
     category: 'calculation',
     disposition: 'permanent',
