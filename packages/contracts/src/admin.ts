@@ -1,6 +1,10 @@
 import { z } from 'zod';
+import { intelligenceSettingsSchema } from '@poe-worksmith/domain';
 
 export const marketAdminSettingsSchema = z.strictObject({
+  intelligence: intelligenceSettingsSchema.default(() =>
+    intelligenceSettingsSchema.parse({}),
+  ),
   automaticRefreshEnabled: z.boolean(),
   scheduledCollectionEnabled: z.boolean(),
   collectionsPaused: z.boolean(),
