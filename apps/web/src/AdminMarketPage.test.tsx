@@ -4,6 +4,7 @@ import type {
   MarketAdminStatus,
 } from '@poe-worksmith/contracts';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { intelligenceSettingsSchema } from '@poe-worksmith/domain';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -67,6 +68,7 @@ const status: MarketAdminStatus = {
 };
 
 const settings: MarketAdminSettings = {
+  intelligence: intelligenceSettingsSchema.parse({}),
   automaticRefreshEnabled: true,
   scheduledCollectionEnabled: true,
   collectionsPaused: false,
@@ -374,4 +376,29 @@ describe('market settings edits', () => {
       ).toEqual(expect.any(String));
     },
   );
+});
+
+it('preserves unchanged nested intelligence settings and validates evidence gates before saving', () => {
+  expect(
+    settingsChanges(settings, {
+      ...settings,
+      intelligence: { ...settings.intelligence },
+    }),
+  ).toEqual({});
+  const changed = { ...settings.intelligence, minOwnSaleSamples: 4 };
+  expect(
+    settingsChanges(settings, { ...settings, intelligence: changed }),
+  ).toEqual({ intelligence: changed });
+  expect(
+    validateSettings({
+      ...settings,
+      intelligence: { ...changed, minOwnSaleSamples: 0 },
+    }),
+  ).toHaveProperty('intelligence.minOwnSaleSamples');
+  expect(
+    validateSettings({
+      ...settings,
+      intelligence: { ...changed, enterProfitChaos: '1', exitProfitChaos: '2' },
+    }),
+  ).toHaveProperty('intelligence');
 });

@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom';
 
 import { createApiClient } from './apiClient.js';
 import './adminMarket.css';
+import { IntelligenceSettingsFields } from './IntelligenceSettingsFields.js';
 
 type Contract<T> = {
   safeParse(value: unknown): { success: true; data: T } | { success: false };
@@ -159,7 +160,12 @@ export function settingsChanges(
 ) {
   const changes: Partial<MarketAdminSettings> = {};
   function copy<Key extends keyof MarketAdminSettings>(key: Key) {
-    if (base[key] !== draft[key]) changes[key] = draft[key];
+    if (
+      key === 'intelligence'
+        ? JSON.stringify(base[key]) !== JSON.stringify(draft[key])
+        : base[key] !== draft[key]
+    )
+      changes[key] = draft[key];
   }
   for (const key of marketAdminSettingsSchema.keyof().options) copy(key);
   return changes;
@@ -170,7 +176,7 @@ export function validateSettings(draft: MarketAdminSettings) {
   const parsed = marketAdminSettingsSchema.safeParse(draft);
   if (!parsed.success) {
     for (const issue of parsed.error.issues)
-      errors[String(issue.path[0])] = issue.message;
+      errors[issue.path.join('.')] = issue.message;
   }
   if (draft.refreshCron.trim().split(/\s+/).length !== 5)
     errors.refreshCron =
@@ -803,6 +809,13 @@ export function AdminMarketPage() {
                         </div>
                       </div>
                     ))}
+                    <IntelligenceSettingsFields
+                      value={draft.intelligence}
+                      errors={fieldErrors}
+                      onChange={(intelligence) =>
+                        setDraft({ ...draft, intelligence })
+                      }
+                    />
                   </div>
                   {dirty ? (
                     <div className="market-admin__save">

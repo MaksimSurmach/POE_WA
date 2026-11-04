@@ -1,0 +1,201 @@
+.intelligence {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.intelligence-panel {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  background: var(--surface);
+}
+.intelligence h2,
+.intelligence h3,
+.intelligence p {
+  margin: 0;
+}
+.intelligence h2 {
+  font-size: 1.1rem;
+}
+.intelligence h3 {
+  font-size: 0.95rem;
+}
+.intelligence-note {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.intelligence-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.intelligence button {
+  justify-self: start;
+  padding: 8px 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+}
+.intelligence button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.intelligence button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.intelligence label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.intelligence input,
+.intelligence select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  color: var(--text);
+  background: var(--background, var(--surface));
+}
+.intelligence-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 12px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.intelligence form {
+  display: grid;
+  gap: 14px;
+}
+.intelligence summary {
+  color: var(--accent);
+  cursor: pointer;
+  padding: 6px 0;
+}
+.intelligence details[open] > summary {
+  margin-bottom: 10px;
+}
+.intelligence-table-scroll {
+  overflow-x: auto;
+  min-width: 0;
+}
+.intelligence-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 650px;
+  font-size: 0.8rem;
+  text-align: left;
+}
+.intelligence-table th,
+.intelligence-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.intelligence-table th {
+  color: var(--muted);
+  font-weight: 500;
+}
+.intelligence-table th:first-child,
+.intelligence-table td:first-child {
+  min-width: 200px;
+}
+.intelligence-table small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+.intelligence-table ul {
+  padding-left: 16px;
+  margin: 6px 0;
+}
+.intelligence-state {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 3px 6px;
+}
+.intelligence-state--CRAFT {
+  color: var(--positive, #9ac7ab);
+}
+.intelligence-state--STOP {
+  color: var(--negative, #e8a5a5);
+}
+.intelligence-state--WATCH {
+  color: var(--accent);
+}
+.intelligence-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px 20px;
+  margin: 0;
+}
+.intelligence-metrics dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.intelligence-metrics dd {
+  margin: 4px 0 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+}
+.intelligence-restrictions {
+  display: flex;
+  gap: 10px 18px;
+  flex-wrap: wrap;
+}
+.intelligence-restrictions label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.intelligence-restrictions input {
+  width: auto;
+}
+.intelligence-evidence-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.intelligence-signature {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .intelligence-panel {
+    padding: 12px;
+  }
+  .intelligence-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.intelligence-form-fields {
+  display: grid;
+  gap: 12px;
+  border: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
