@@ -231,8 +231,17 @@ export function createBatchedMarketCollectionSource(options: {
       const handbookSample = ['starting-base', 'crafted-item'].includes(
         target.slot,
       );
-      // shortcut: sample 20 sorted asks; use research collection when deeper coverage is needed.
-      const selectedIds = ids.slice(0, handbookSample ? 20 : 1000);
+      // Trade's mixed-currency order need not match our FX; collect small output cohorts fully.
+      // shortcut: cap outputs at 100 listings; larger cohorts remain unpriced until deeper collection exists.
+      const selectedIds = ids.slice(
+        0,
+        target.slot === 'crafted-item' &&
+          target.tradeSearch?.includeOtherCurrencies
+          ? 100
+          : handbookSample
+            ? 20
+            : 1000,
+      );
       const listings: MarketImportListing[] = [];
       let cached = search.cached;
       let batchCount = 0;
@@ -353,6 +362,10 @@ export function isCompleteSortedPriceSample(
   const sort = evidence?.request?.sort;
   return (
     ['starting-base', 'crafted-item'].includes(target.slot) &&
+    !(
+      target.slot === 'crafted-item' &&
+      target.tradeSearch?.includeOtherCurrencies
+    ) &&
     target.tradeSearch?.scope === 'strict' &&
     evidence?.request?.scope === 'strict' &&
     batch.coverage === 'partial' &&

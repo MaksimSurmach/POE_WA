@@ -285,7 +285,7 @@ describe('repository-backed resource views', () => {
           recipeContentHash: (
             await repositories.recipes.findById('physical-large-cluster-jagged')
           )?.contentHash,
-          source: { sampleSize: 2 },
+          source: { sampleSize: 2, coverage: 'complete' },
           expectedCost: { amount: '3.75', currency: 'chaos' },
           materialsPerAttempt: { amount: '1.5', currency: 'chaos' },
           steps: [
@@ -437,7 +437,7 @@ describe('repository-backed resource views', () => {
                 ).toISOString(),
               }
             : {}),
-          source: { sampleSize: 2 },
+          source: { sampleSize: 2, coverage: 'complete' },
           expectedCost: { amount: '3.75', currency: 'chaos' },
         },
       });
@@ -698,7 +698,13 @@ describe('legacy single-seller profit on the read boundary', () => {
         expiresAt: new Date(now.getTime() + 20 * 60_000).toISOString(),
         oldestInputAt: new Date(now.getTime() - 60_000).toISOString(),
         expectedCost: { amount: '869.28', currency: 'chaos' },
-        ...input.methodCost,
+        source: {
+          coverage: 'complete',
+          ...((input.methodCost.source as Record<string, unknown>) ?? {}),
+        },
+        ...Object.fromEntries(
+          Object.entries(input.methodCost).filter(([key]) => key !== 'source'),
+        ),
       },
     });
     await repositories.cycles.save({ ...running, completedRecipes: 1 });
@@ -774,6 +780,17 @@ describe('legacy single-seller profit on the read boundary', () => {
 
   it.each([
     ['unknown seller evidence', {}],
+    [
+      'partial sorted mixed-currency sample',
+      {
+        source: {
+          sampleSize: 20,
+          coverage: 'partial',
+          sortedSampleComplete: true,
+        },
+        saleEvidence: { comparableSellers: 20, status: 'accepted' },
+      },
+    ],
     ['fractional seller count', { source: { sampleSize: 2.5 } }],
     [
       'unavailable currency',
@@ -807,6 +824,9 @@ describe('legacy single-seller profit on the read boundary', () => {
       for (const evaluation of [catalog, detail])
         expect(evaluation).toMatchObject({
           ...askAndCost,
+          ...(_label === 'partial sorted mixed-currency sample'
+            ? { estimatedSalePrice: null }
+            : {}),
           status: 'partial',
           profit: null,
           marginPercent: null,
@@ -834,8 +854,8 @@ describe('legacy single-seller profit on the read boundary', () => {
   });
 
   it.each([
-    ['two sellers', { source: { sampleSize: 2 } }],
-    ['twenty sellers', { source: { sampleSize: 20 } }],
+    ['two sellers', { source: { sampleSize: 2, coverage: 'complete' } }],
+    ['twenty sellers', { source: { sampleSize: 20, coverage: 'complete' } }],
   ])('keeps supported profit for %s', async (_label, methodCost) => {
     const { catalog, detail } = await publishLegacy({
       status: 'success',

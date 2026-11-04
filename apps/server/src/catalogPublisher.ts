@@ -21,6 +21,7 @@ import { z } from 'zod';
 import {
   type RecipeMarketDependencies,
   comparableRecipeListings,
+  requiresCompleteOutputCoverage,
 } from './recipeMarket.js';
 import type { Logger } from 'pino';
 import type { Metrics } from './observability/metrics.js';
@@ -627,14 +628,21 @@ async function evaluateFreshRecipe(
     minimumComparableSellers,
     ...(definition.verification.profitBlockedReason
       ? { reason: definition.verification.profitBlockedReason }
-      : {}),
+      : output.coverage !== 'complete'
+        ? {
+            reason:
+              'Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.',
+          }
+        : {}),
     status: definition.verification.profitBlockedReason
       ? ('unverified_output_value' as const)
       : !output.currencyAvailable
         ? ('unavailable_currency' as const)
-        : comparableSellers >= minimumComparableSellers
-          ? ('accepted' as const)
-          : ('insufficient_sellers' as const),
+        : output.coverage !== 'complete'
+          ? ('insufficient_coverage' as const)
+          : comparableSellers >= minimumComparableSellers
+            ? ('accepted' as const)
+            : ('insufficient_sellers' as const),
   };
   const comparison = compareCraftWithAsk({
     basePrice,
@@ -696,7 +704,7 @@ async function evaluateFreshRecipe(
         : output.aggregation.sampleSize
           ? 'priced'
           : 'empty',
-    ...(salePrice === null ? {} : { saleEvidence }),
+    saleEvidence,
     materialEvidence,
     baseCost: basePrice,
     expectedBases: evidenceValid
@@ -842,8 +850,9 @@ async function resolveMarket(
     listings:
       tradeQuery.query.handbookTarget &&
       payload.data.coverage !== 'complete' &&
-      !payload.data.sortedPageComplete &&
-      !payload.data.sortedSampleComplete
+      (requiresCompleteOutputCoverage(tradeQuery.query) ||
+        (!payload.data.sortedPageComplete &&
+          !payload.data.sortedSampleComplete))
         ? []
         : listings,
     totalListings: payload.data.totalResults,
@@ -855,9 +864,13 @@ async function resolveMarket(
       ? (payload.data.coverage ?? 'unknown')
       : 'partial',
     sortedPageComplete:
-      currencyAvailable && (payload.data.sortedPageComplete ?? false),
+      currencyAvailable &&
+      !requiresCompleteOutputCoverage(tradeQuery.query) &&
+      (payload.data.sortedPageComplete ?? false),
     sortedSampleComplete:
-      currencyAvailable && (payload.data.sortedSampleComplete ?? false),
+      currencyAvailable &&
+      !requiresCompleteOutputCoverage(tradeQuery.query) &&
+      (payload.data.sortedSampleComplete ?? false),
     currencyAvailable,
     conversionAt,
     snapshotExpiresAt: snapshot.expiresAt,

@@ -14,7 +14,10 @@ import {
   isCompleteSortedPriceSample,
   type MarketCollectionAdapter,
 } from '../marketCollection.js';
-import { recipeQueryTarget } from '../recipeMarket.js';
+import {
+  recipeQueryTarget,
+  requiresCompleteOutputCoverage,
+} from '../recipeMarket.js';
 
 import type { ProviderCircuitGate } from '../circuitBreaker.js';
 import type { RateLimitGate } from '../rateLimitController.js';
@@ -218,6 +221,7 @@ export class PoeTradeClient implements MarketSearchProvider {
         fetchedAt,
         coverage: batch.coverage,
         sortedPageComplete:
+          !requiresCompleteOutputCoverage(request.query) &&
           batch.sortedSampleComplete === undefined &&
           batch.coverage === 'partial' &&
           batch.inexact === false &&
@@ -228,6 +232,7 @@ export class PoeTradeClient implements MarketSearchProvider {
             .object({ sort: z.object({ price: z.literal('asc') }) })
             .safeParse(batch.searchEvidence?.request).success,
         sortedSampleComplete:
+          !requiresCompleteOutputCoverage(request.query) &&
           batch.sortedSampleComplete === true &&
           isCompleteSortedPriceSample(batch, target),
         totalResults: batch.reportedTotal ?? batch.listings.length,

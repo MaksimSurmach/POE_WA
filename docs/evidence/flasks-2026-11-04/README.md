@@ -21,9 +21,17 @@ All prices are asks. No completed in-game sales, sell-through rate or in-game cr
 
 ## Checks and review
 
-- 596 automated tests plus the native runtime control test passed.
+- 606 automated tests plus the native runtime control test passed.
 - 140 PostgreSQL integration tests passed against the isolated local `poe_worksmith_test` database.
 - Build, lint and 28-recipe schema validation passed.
 - Independent math review and independent implementation review found no consequential mismatch. The first math review used a normal base plus Transmutation; the final implementation review checked the available magic-base route with no Transmutation.
+
+## Mixed-currency coverage correction
+
+The first canonical Mageblood refresh fetched only the first 20 Trade IDs. Its comparable sample started at 2 divine (810.4c at its captured FX), while full research found an exact target at 650c later in the result list. Trade sorting therefore did not establish a floor under Worksmith’s currency conversion.
+
+Mixed-currency crafted-output queries now fetch up to 100 listings. A capped, inexact or interrupted output cannot certify a sorted floor, reuse a legacy sorted-prefix cache, contribute a price observation, or publish resale/ROI. Read-time checks also remove previously stored unsupported resale/profit while retaining independently supported costs and an explicit reason. Starting-base acquisition keeps the 20-offer sample: an available purchase price is conservative for cost, even if a cheaper base exists later.
+
+Regression checks cover the cheaper chaos offer after twenty divine asks; cap/inexact/interruption; legacy adapter proof flags; refresh-cache invalidation; observation aggregation; publication; and persisted positive evaluations. Raw snapshots remain intact. Queries above the output cap require a narrower target or future deeper collection; they now show incomplete data instead of a green ROI.
 
 Installed refresh and browser acceptance are recorded separately after completion.

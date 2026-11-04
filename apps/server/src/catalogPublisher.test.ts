@@ -553,6 +553,7 @@ describe('sale evidence acceptance', () => {
   async function evaluateWithTargetSellers(
     sellers: readonly string[],
     profitBlockedReason?: string,
+    coverage: 'complete' | 'partial' = 'complete',
   ) {
     const repositories = createInMemoryRepositories();
     const definition = fixtureRecipe(canonicalRecipeFixture);
@@ -625,7 +626,8 @@ describe('sale evidence acceptance', () => {
         leagueId: league.id,
         marketQueryId,
         payload: {
-          coverage: 'complete',
+          coverage: queryIndex === targetIndex ? coverage : 'complete',
+          sortedSampleComplete: true,
           listings,
           provider: 'poe-trade',
           totalResults: listings.length,
@@ -643,6 +645,26 @@ describe('sale evidence acceptance', () => {
     expect(report).toMatchObject({ completedRecipes: 1, published: true });
     return report.evaluations[0]!;
   }
+
+  it('withholds ROI from a partial output even with two sellers and legacy sorted proof', async () => {
+    const evaluation = await evaluateWithTargetSellers(
+      ['one', 'two'],
+      undefined,
+      'partial',
+    );
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      profit: null,
+      marginPercent: null,
+      methodCost: {
+        saleEvidence: {
+          status: 'insufficient_coverage',
+          reason: expect.stringContaining('Incomplete output coverage'),
+        },
+      },
+    });
+    expect(evaluation.expectedCraftCost).not.toBeNull();
+  });
 
   it('retains cost and asks but withholds ROI when the priced output is not the modelled craft', async () => {
     const reason = 'Observed items include an unmodelled finishing stage.';

@@ -354,7 +354,12 @@ describe('authored recipe to provider to published economics', () => {
         report.publication.evaluations.map((e) => [e.recipeId, e]),
       );
       expect(byId.get(first.id)).toMatchObject({
-        estimatedSalePrice: !['partial', 'sample-incomplete'].includes(coverage)
+        estimatedSalePrice: ![
+          'partial',
+          'sample-incomplete',
+          'sample',
+          'capped',
+        ].includes(coverage)
           ? '80'
           : null,
         expectedCraftCost: ['ninja-bulk', 'ninja-revalidated'].includes(
@@ -372,18 +377,19 @@ describe('authored recipe to provider to published economics', () => {
             : null,
         profit: ['ninja-bulk', 'ninja-revalidated'].includes(coverage)
           ? '40'
-          : [
-                'complete',
-                'capped',
-                'sample',
-                'base-sample',
-                'ninja-unconvertible',
-              ].includes(coverage)
+          : ['complete', 'base-sample', 'ninja-unconvertible'].includes(
+                coverage,
+              )
             ? '58'
             : null,
       });
       expect(byId.get(second.id)).toMatchObject({
-        estimatedSalePrice: !['partial', 'sample-incomplete'].includes(coverage)
+        estimatedSalePrice: ![
+          'partial',
+          'sample-incomplete',
+          'sample',
+          'capped',
+        ].includes(coverage)
           ? '80'
           : null,
         expectedCraftCost: ['ninja-bulk', 'ninja-revalidated'].includes(
@@ -401,13 +407,9 @@ describe('authored recipe to provider to published economics', () => {
             : null,
         profit: ['ninja-bulk', 'ninja-revalidated'].includes(coverage)
           ? '10'
-          : [
-                'complete',
-                'capped',
-                'sample',
-                'base-sample',
-                'ninja-unconvertible',
-              ].includes(coverage)
+          : ['complete', 'base-sample', 'ninja-unconvertible'].includes(
+                coverage,
+              )
             ? '46'
             : null,
       });
@@ -433,17 +435,15 @@ describe('authored recipe to provider to published economics', () => {
       expect(snapshot?.payload.listings).toHaveLength(
         coverage === 'sample' ? 20 : coverage === 'sample-incomplete' ? 19 : 4,
       );
-      expect(snapshot?.payload.sortedSampleComplete).toBe(
-        coverage === 'sample',
-      );
+      expect(snapshot?.payload.sortedSampleComplete).toBe(false);
       if (coverage === 'sample')
         expect(byId.get(first.id)).toMatchObject({
           confidence: 'low',
           methodCost: {
-            source: { sortedSampleComplete: true, coverage: 'partial' },
+            source: { sortedSampleComplete: false, coverage: 'partial' },
           },
         });
-      expect(snapshot?.payload.sortedPageComplete).toBe(coverage === 'capped');
+      expect(snapshot?.payload.sortedPageComplete).toBe(false);
       if (coverage === 'base-sample')
         expect(byId.get(first.id)).toMatchObject({
           confidence: 'low',
@@ -459,10 +459,22 @@ describe('authored recipe to provider to published economics', () => {
         new Date(0),
       );
       expect(observations[0]).toMatchObject({
-        cheapestPrice: ['partial', 'sample-incomplete'].includes(coverage)
+        cheapestPrice: [
+          'partial',
+          'sample-incomplete',
+          'sample',
+          'capped',
+        ].includes(coverage)
           ? null
           : '80',
-        sampleSize: ['partial', 'sample-incomplete'].includes(coverage) ? 0 : 2,
+        sampleSize: [
+          'partial',
+          'sample-incomplete',
+          'sample',
+          'capped',
+        ].includes(coverage)
+          ? 0
+          : 2,
       });
     },
   );
