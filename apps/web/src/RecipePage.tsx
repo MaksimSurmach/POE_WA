@@ -78,6 +78,12 @@ export function RecipePage() {
       <Link className="back-link" to="/recipes">
         ‹ Recipes
       </Link>
+      <Link
+        className="back-link"
+        to={`/factory?recipe=${encodeURIComponent(recipe.id)}`}
+      >
+        Start a production batch →
+      </Link>
       <header className="recipe-detail__header">
         <div className="recipe-detail__identity">
           <ItemTooltip item={detail.presentation.target} />

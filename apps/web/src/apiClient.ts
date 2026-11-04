@@ -26,6 +26,15 @@ import {
   craftRiskCreateInputSchema,
   type CraftModelSaveInput,
   type CraftRiskCreateInput,
+  factoryCreateBatchInputSchema,
+  factoryAppendEventInputSchema,
+  factoryBatchResponseSchema,
+  factoryBatchListResponseSchema,
+  factoryInventoryResponseSchema,
+  factorySalesResponseSchema,
+  factorySummaryResponseSchema,
+  type FactoryCreateBatchInput,
+  type FactoryAppendEventInput,
 } from '@poe-worksmith/contracts';
 
 type Contract<T> = {
@@ -72,6 +81,71 @@ export function createApiClient(
   }
 
   return {
+    getFactoryBatches(league: string, offset = 0) {
+      return request(
+        `/api/admin/factory/batches?league=${encodeURIComponent(league)}&offset=${offset}&limit=20`,
+        factoryBatchListResponseSchema,
+      );
+    },
+    getFactoryBatch(id: string) {
+      return request(
+        `/api/admin/factory/batches/${encodeURIComponent(id)}`,
+        factoryBatchResponseSchema,
+      );
+    },
+    createFactoryBatch(input: FactoryCreateBatchInput) {
+      return request(
+        '/api/admin/factory/batches',
+        factoryBatchResponseSchema,
+        'POST',
+        factoryCreateBatchInputSchema.parse(input),
+      );
+    },
+    appendFactoryEvent(id: string, input: FactoryAppendEventInput) {
+      return request(
+        `/api/admin/factory/batches/${encodeURIComponent(id)}/events`,
+        factoryBatchResponseSchema,
+        'POST',
+        factoryAppendEventInputSchema.parse(input),
+      );
+    },
+    getFactoryInventory(league: string) {
+      return request(
+        `/api/admin/factory/inventory?league=${encodeURIComponent(league)}`,
+        factoryInventoryResponseSchema,
+      );
+    },
+    getFactorySales(league: string) {
+      return request(
+        `/api/admin/factory/sales?league=${encodeURIComponent(league)}`,
+        factorySalesResponseSchema,
+      );
+    },
+    getFactorySummary(league: string) {
+      return request(
+        `/api/admin/factory/summary?league=${encodeURIComponent(league)}`,
+        factorySummaryResponseSchema,
+      );
+    },
+    async exportFactoryBatch(id: string, format: 'csv' | 'json') {
+      const response = await fetchImplementation(
+        `${root}/api/admin/factory/batches/${encodeURIComponent(id)}/export?format=${format}`,
+        {
+          headers: {
+            accept: format === 'csv' ? 'text/csv' : 'application/json',
+          },
+        },
+      );
+      if (!response.ok) {
+        const parsed = apiErrorEnvelopeSchema.safeParse(await response.json());
+        if (parsed.success) throw new ApiClientError(parsed.data);
+        throw new Error(`Factory export failed (${response.status}).`);
+      }
+      return {
+        blob: await response.blob(),
+        filename: `factory-${id}.${format}`,
+      };
+    },
     getCraftAnalysis(id: string, league?: string) {
       return request(
         `/api/recipes/${encodeURIComponent(id)}/analysis${league ? `?league=${encodeURIComponent(league)}` : ''}`,
