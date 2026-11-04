@@ -239,6 +239,33 @@ describe('factory financial entry', () => {
       'rejected-conflict',
     );
   });
+  it('accepts exact tiny allocation residue without an artificial browser minimum', () => {
+    const value = '0.00000000000000005';
+    const allocation = event(25, {
+      type: 'allocate',
+      itemId: id(12),
+      allocationCost: id(11),
+      allocationAmount: value,
+    });
+    expect(allocation.payload).toMatchObject({
+      allocations: [{ costEventId: id(11), amount: value }],
+    });
+    const events = flow().slice(0, 2);
+    const projection = projectFactoryBatch(batch, events, now);
+    const html = renderToStaticMarkup(
+      <AllocationFields projection={projection} events={events} />,
+    );
+    expect(html).toContain('min="0"');
+    expect(html).not.toContain('min="0.000001"');
+    expect(() =>
+      event(26, {
+        type: 'allocate',
+        itemId: id(12),
+        allocationCost: id(11),
+        allocationAmount: '0',
+      }),
+    ).toThrow();
+  });
   it('allows exact-target confirmation only for compatible known outcomes', () => {
     const signature = batch.targetSignature;
     expect(factoryExactTargetAllowed(null, 'target', 'target', signature)).toBe(

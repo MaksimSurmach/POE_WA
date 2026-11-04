@@ -575,6 +575,7 @@ describe('factory ledger — labelled synthetic accounting scenarios', () => {
   it('compares only a closed batch matching its original simulation objective and asset basis', async () => {
     const b = batch();
     const input = syntheticOutcomeInput();
+    input.now = at(4);
     input.model.stages[0]!.outcomes.forEach((o, i) => {
       o.probability.value = i === 0 ? '1' : '0';
     });
@@ -724,6 +725,7 @@ describe('factory ledger — labelled synthetic accounting scenarios', () => {
     async (kind) => {
       const b = batch();
       const input = syntheticGeometricInput();
+      input.now = at(4);
       const analysis = analyzeOutcomeModel(input);
       expect(analysis).toMatchObject({
         expectedTotalCost: '12',
@@ -1147,6 +1149,54 @@ describe('factory ledger — labelled synthetic accounting scenarios', () => {
       refundedMaterialCost: '20',
       refundReceipts: '16',
       otherCredits: '6',
+    });
+  });
+  it('marks a forecast generated after historical batch start as retrospective', async () => {
+    const b = batch();
+    const input = syntheticGeometricInput();
+    input.now = at(4);
+    const request = riskSimulationRequestSchema.parse({
+      analysis: input,
+      objective: { kind: 'single-target', count: 1 },
+      seed: 'historical-forecast',
+      trials: 100,
+      budget: '100',
+    });
+    b.forecast = {
+      sourceId: 'synthetic-risk',
+      analysisInput: input,
+      analysis: analyzeOutcomeModel(input),
+      riskRequest: request,
+      riskResult: await simulateCraftingRisk(request),
+    };
+    const events = [
+      event(10, {
+        type: 'expense',
+        category: 'crafting',
+        transaction: tx('1', '12'),
+      }),
+      event(11, produce(100, [{ costEventId: id(10), amount: '12' }])),
+      event(12, {
+        type: 'sale',
+        itemId: id(100),
+        transaction: tx('1', '100'),
+        expenses: [],
+      }),
+      event(13, { type: 'activity', attempts: 1, craftingSeconds: 60 }),
+      event(14, { type: 'batch-status', status: 'completed' }),
+    ];
+    expect(
+      projectFactoryBatch(b, events, at(8)).forecastComparison.status,
+    ).toBe('comparable');
+    b.forecast.analysisInput.now = at(5);
+    expect(
+      projectFactoryBatch(b, events, at(8)).forecastComparison,
+    ).toMatchObject({
+      status: 'unavailable',
+      expectedCost: null,
+      expectedProfit: null,
+      reason:
+        'Forecast was created after the batch started; retrospective estimates cannot measure forecast accuracy.',
     });
   });
 });

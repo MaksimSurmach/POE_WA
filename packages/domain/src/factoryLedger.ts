@@ -752,7 +752,11 @@ export function projectFactoryBatch(
   const assetBasisComplete =
     forecast?.analysis.unvaluedRetainedBaseProbability === '0' ||
     completedTargetAssetBasis;
+  const retrospectiveForecast =
+    forecast !== null &&
+    Date.parse(forecast.analysisInput.now) > Date.parse(batch.startedAt);
   const comparable = Boolean(
+    !retrospectiveForecast &&
     closed &&
     risk?.status === 'complete' &&
     risk.currency === 'chaos' &&
@@ -870,7 +874,9 @@ export function projectFactoryBatch(
       status: comparable ? 'comparable' : 'unavailable',
       reason: comparable
         ? 'Completed batch matches the frozen simulation objective; cash comparison excludes unvalued assets.'
-        : 'Requires a completed, fully allocated batch with no remaining stock/inventory and a matching frozen chaos simulation objective. First-run cash EV is not a batch forecast.',
+        : retrospectiveForecast
+          ? 'Forecast was created after the batch started; retrospective estimates cannot measure forecast accuracy.'
+          : 'Requires a completed, fully allocated batch with no remaining stock/inventory and a matching frozen chaos simulation objective. First-run cash EV is not a batch forecast.',
       expectedCost,
       expectedProfit,
       actualCashOutlay: money(spending),

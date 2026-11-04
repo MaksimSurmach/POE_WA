@@ -36,8 +36,6 @@ export function AllocationFields({
 }: {
   projection: FactoryProjection;
   events: FactoryEvent[];
-  targetSignature?: string;
-  outcomeModel?: OutcomeModel | null;
 }) {
   const [rows, setRows] = useState([0]);
   const costs = projection.costs.filter((cost) => Number(cost.remaining) > 0);
@@ -68,7 +66,7 @@ export function AllocationFields({
             label="Allocated cost (chaos)"
             type="number"
             step="any"
-            min="0.000001"
+            min="0"
             required={false}
           />
           <button

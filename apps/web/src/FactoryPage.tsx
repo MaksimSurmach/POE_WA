@@ -289,6 +289,8 @@ export function FactoryPage() {
   }
   async function appendEvent(form?: FormData): Promise<boolean> {
     if (mutationLock.current || !selectedId) return false;
+    let attemptedRequest: PendingFactoryRequest<FactoryAppendEventInput> | null =
+      null;
     setMutationError('');
     setNotice('');
     try {
@@ -309,6 +311,7 @@ export function FactoryPage() {
           )
         : pendingEvent;
       if (!pending) throw new Error('No pending event request.');
+      attemptedRequest = pending;
       setPendingEvent(pending);
       cachePending(eventKey, pending);
       mutationLock.current = true;
@@ -334,9 +337,11 @@ export function FactoryPage() {
         setPendingEvent(null);
         cachePending(eventKey, null);
       } else if (failure instanceof ApiClientError && failure.status === 409) {
-        const pending = readPending(eventKey, (value) =>
-          factoryAppendEventInputSchema.parse(value),
-        );
+        const pending =
+          attemptedRequest ??
+          readPending(eventKey, (value) =>
+            factoryAppendEventInputSchema.parse(value),
+          );
         if (pending) {
           const rejected = { ...pending, rejectedConflict: true as const };
           setPendingEvent(rejected);
