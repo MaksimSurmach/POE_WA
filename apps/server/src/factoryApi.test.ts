@@ -110,6 +110,47 @@ async function setup() {
   return { api, service, repository, analysis, record };
 }
 describe('private factory API and immutable forecast context', () => {
+  it('accepts historical starts, rejects future starts and hashes the original historical metadata', async () => {
+    const { api, service, repository, record } = await setup();
+    try {
+      const input = {
+        recipeId: 'test',
+        recipeHash: 'revision',
+        league: 'Fixture',
+        plannedBudget: transaction,
+        idempotencyKey: randomUUID(),
+        startedAt: '2026-11-03T12:00:00.000Z',
+      };
+      await service.create(input);
+      const firstCall = vi.mocked(repository.create).mock.calls[0]!;
+      expect(firstCall[0].startedAt).toBe(input.startedAt);
+      expect(firstCall[3]).toBe(at);
+      await service.create(input);
+      expect(vi.mocked(repository.create).mock.calls[1]![2]).toBe(firstCall[2]);
+      await service.create({ ...input, startedAt: '2026-11-02T12:00:00.000Z' });
+      expect(vi.mocked(repository.create).mock.calls[2]![2]).not.toBe(
+        firstCall[2],
+      );
+      vi.mocked(repository.findMutation).mockResolvedValue({
+        ...record,
+        batch: { ...record.batch, startedAt: input.startedAt },
+      });
+      expect((await service.create(input)).batch.startedAt).toBe(
+        input.startedAt,
+      );
+      const response = await api.inject({
+        method: 'POST',
+        url: '/api/admin/factory/batches',
+        headers: { host: 'localhost' },
+        payload: { ...input, startedAt: '2026-11-05T12:00:00.000Z' },
+      });
+      expect(response.statusCode).toBe(400);
+      expect(repository.create).toHaveBeenCalledTimes(3);
+    } finally {
+      await api.close();
+    }
+  });
+
   it('serves typed league-scoped summaries and discloses incomplete coverage', async () => {
     const { api, repository, record } = await setup();
     try {

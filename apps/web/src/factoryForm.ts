@@ -3,6 +3,7 @@ import {
   factoryTransactionSchema,
   type FactoryEvent,
   type FactoryProjection,
+  type OutcomeModel,
 } from '@poe-worksmith/domain';
 
 export function factoryText(form: FormData, key: string) {
@@ -152,7 +153,11 @@ export function factoryFormFingerprint(form: FormData) {
     [...form.entries()].map(([key, value]) => [key, String(value)]),
   );
 }
-export type PendingFactoryRequest<T> = { fingerprint: string; request: T };
+export type PendingFactoryRequest<T> = {
+  fingerprint: string;
+  request: T;
+  rejectedConflict?: true;
+};
 /** Cache exact mutations, including server version and transaction time, until confirmation. */
 export function prepareFactoryRequest<T>(
   previous: PendingFactoryRequest<T> | null,
@@ -196,4 +201,41 @@ export function factoryCostLabel(
   if (event?.payload.type === 'expense')
     return `${event.payload.category}: ${event.notes || event.source}`;
   return 'Production cost';
+}
+
+/** A read can prove a lost response committed; only an explicit refresh resolves a rejected conflict. */
+export function reconcileFactoryPending<T extends { event: { id: string } }>(
+  pending: PendingFactoryRequest<T> | null,
+  events: Pick<FactoryEvent, 'id'>[],
+  explicitRefresh = false,
+): 'recorded' | 'rejected-conflict' | null {
+  if (!pending) return null;
+  if (events.some((event) => event.id === pending.request.event.id))
+    return 'recorded';
+  return explicitRefresh && pending.rejectedConflict
+    ? 'rejected-conflict'
+    : null;
+}
+
+export function factoryExactTargetAllowed(
+  model: OutcomeModel | null | undefined,
+  outcomeId: string,
+  classification: string,
+  targetSignature: string | undefined,
+): boolean {
+  if (!targetSignature) return false;
+  const declared = model?.stages
+    .flatMap((stage) => stage.outcomes)
+    .find((outcome) => outcome.id === outcomeId);
+  if (
+    declared &&
+    (declared.matching.kind !== 'exact-target' ||
+      declared.matching.targetSignature !== targetSignature ||
+      (classification !== 'unknown' &&
+        classification !== declared.classification))
+  )
+    return false;
+  return ['premium', 'target'].includes(
+    declared?.classification ?? classification,
+  );
 }

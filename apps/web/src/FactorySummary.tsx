@@ -49,6 +49,10 @@ export function FactoryMetrics({
           <dd>{factoryMoney(metrics.realizedProfit)}</dd>
         </div>
         <div>
+          <dt>Recognized item result (sold + disposed)</dt>
+          <dd>{factoryMoney(metrics.recognizedItemResult)}</dd>
+        </div>
+        <div>
           <dt>Cash flow</dt>
           <dd>{factoryMoney(metrics.cashFlow)}</dd>
         </div>
@@ -73,7 +77,7 @@ export function FactoryMetrics({
           <dd>{factoryMoney(metrics.grossSpending)}</dd>
         </div>
         <div>
-          <dt>Realized ROI</dt>
+          <dt>Realized ROI (sold + disposed items)</dt>
           <dd>
             {metrics.actualRoiPercent === null
               ? 'Unavailable'
@@ -109,7 +113,7 @@ export function FactoryMetrics({
           </dd>
         </div>
         <div>
-          <dt>Realized profit / crafting hour</dt>
+          <dt>Recognized item result / crafting hour</dt>
           <dd>{factoryMoney(metrics.profitPerCraftingHour)}</dd>
         </div>
         <div>
@@ -149,6 +153,48 @@ export function FactoryMetrics({
         Inventory and unused stock remain separate; no indicative resale value
         is assumed.
       </p>
+      <p className="factory-note">
+        Recognized item result subtracts disposed-item costs from sold-item
+        profit. ROI uses sold-item production costs, sale expenses and disposed
+        costs; recovery and other credits remain cash receipts.
+      </p>
+      <details>
+        <summary>Cash reconciliation</summary>
+        <dl className="factory-metrics">
+          <div>
+            <dt>Confirmed sale receipts</dt>
+            <dd>{factoryMoney(metrics.saleRevenue)}</dd>
+          </div>
+          <div>
+            <dt>Refund receipts</dt>
+            <dd>{factoryMoney(metrics.refundReceipts)}</dd>
+          </div>
+          <div>
+            <dt>Refunded material cost basis</dt>
+            <dd>{factoryMoney(metrics.refundedMaterialCost)}</dd>
+          </div>
+          <div>
+            <dt>Recovery receipts</dt>
+            <dd>{factoryMoney(metrics.recoveryCredits)}</dd>
+          </div>
+          <div>
+            <dt>Other receipts</dt>
+            <dd>{factoryMoney(metrics.otherCredits)}</dd>
+          </div>
+          <div>
+            <dt>All cash received</dt>
+            <dd>{factoryMoney(metrics.cashReceived)}</dd>
+          </div>
+          <div>
+            <dt>All cash spent</dt>
+            <dd>{factoryMoney(metrics.grossSpending)}</dd>
+          </div>
+        </dl>
+        <p className="factory-note">
+          Cash flow = all receipts − all spending. Refunded material cost is
+          removed from stock, not counted as another cash payment.
+        </p>
+      </details>
       {!metrics.allocationComplete ? (
         <p className="recipe-warning">
           Unallocated costs remain. Sold-item profit is provisional; finish

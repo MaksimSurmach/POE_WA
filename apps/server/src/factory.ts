@@ -46,6 +46,10 @@ export function createFactoryService(options: {
       const parsed = factoryCreateBatchInputSchema.safeParse(raw);
       if (!parsed.success) throw new DomainError('CALCULATION_INPUT_INVALID');
       const input = parsed.data;
+      const recordedAt = now();
+      const startedAt = input.startedAt ?? recordedAt;
+      if (Date.parse(startedAt) > Date.parse(recordedAt))
+        throw new DomainError('CALCULATION_INPUT_INVALID');
       const hash = craftRequestHash({ operation: 'create', input });
       const previous = await options.repository.findMutation(
         input.idempotencyKey,
@@ -105,7 +109,7 @@ export function createFactoryService(options: {
         leagueId: analysis.leagueId,
         league: input.league,
         accountingCurrency: 'chaos',
-        startedAt: now(),
+        startedAt,
         plannedBudget: input.plannedBudget,
         notes: input.notes,
         forecast,
@@ -150,7 +154,14 @@ export function createFactoryService(options: {
       );
       return {
         accountingCurrency: 'chaos' as const,
-        asOf: now(),
+        asOf: new Date(
+          Math.max(
+            Date.parse(now()),
+            ...listing.batches.map((batch) =>
+              Date.parse(batch.projection.asOf),
+            ),
+          ),
+        ).toISOString(),
         metrics: summarizeFactoryBatches(
           listing.batches.map((b) => b.projection),
         ),

@@ -18,6 +18,7 @@ export const factoryCreateBatchInputSchema = z.strictObject({
   plannedBudget: factoryTransactionSchema,
   notes: z.string().max(2000).default(''),
   forecastRunId: z.uuid().optional(),
+  startedAt: z.iso.datetime({ offset: true }).optional(),
   idempotencyKey: z.uuid(),
 });
 export const factoryAppendEventInputSchema = z.strictObject({

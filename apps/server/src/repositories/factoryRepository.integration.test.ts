@@ -11,6 +11,8 @@ import { createDatabasePool } from '../database.js';
 import { createPostgresRepositories } from './postgresRepositories.js';
 import { createFactoryRepository } from './factoryRepository.js';
 import { craftRequestHash } from './craftAnalysisRepository.js';
+import { createFactoryService } from '../factory.js';
+import type { CraftAnalysisService } from '../craftAnalysis.js';
 const config = loadDatabaseConfig();
 const address = new URL(config.connectionString);
 if (
@@ -99,6 +101,72 @@ beforeEach(async () => {
 });
 afterAll(async () => pool.end());
 describe('PostgreSQL factory transaction integrity', () => {
+  it('backfills historical production while preserving actual insertion audit time', async () => {
+    const original = await batch();
+    const startedAt = '2026-10-01T12:00:00.000Z';
+    const document = { ...original.batch, id: randomUUID(), startedAt };
+    const key = randomUUID(),
+      hash = craftRequestHash(document);
+    const created = await repository.create(document, key, hash, at);
+    const purchase = {
+      ...event({
+        type: 'purchase',
+        resourceId: 'historical-base',
+        transaction: tx('1', '1', 'divine', '80'),
+      }),
+      occurredAt: '2026-10-02T12:00:00.000Z',
+    };
+    const updated = await repository.append(
+      created.batch.id,
+      0,
+      purchase,
+      randomUUID(),
+      at,
+    );
+    expect(updated.projection.metrics.cashFlow).toBe('-80');
+    expect(updated.events[0]?.occurredAt).toBe(purchase.occurredAt);
+    const audit = await pool.query<{ created_at: Date }>(
+      'select created_at from factory_batches where id=$1',
+      [document.id],
+    );
+    expect(audit.rows[0]!.created_at.getTime()).toBeGreaterThan(
+      Date.parse(startedAt),
+    );
+    expect(
+      (await repository.create(document, key, hash, at)).batch.startedAt,
+    ).toBe(startedAt);
+  });
+
+  it('reads newly committed empty batches with an older captured clock', async () => {
+    const original = await batch();
+    const later = '2026-11-04T12:01:00.000Z';
+    const document = { ...original.batch, id: randomUUID(), startedAt: later };
+    const created = await repository.create(
+      document,
+      randomUUID(),
+      craftRequestHash(document),
+      later,
+    );
+    const detail = await repository.get(created.batch.id, at);
+    expect(detail.projection.asOf).toBe(later);
+    expect(detail.events).toHaveLength(0);
+    const listing = await repository.list(leagueId, at, 50, 0);
+    expect(
+      listing.batches.find((row) => row.batch.id === created.batch.id)
+        ?.projection.asOf,
+    ).toBe(later);
+    const service = createFactoryService({
+      repository,
+      analysis: {} as CraftAnalysisService,
+      leagues: repositories.leagues,
+      clock: () => new Date(at),
+    });
+    const summary = await service.summary(document.league);
+    expect(summary.asOf).toBe(later);
+    expect(summary.coverage.complete).toBe(true);
+    expect(summary.metrics.cashFlow).toBe('0');
+  });
+
   it('creates one immutable batch for concurrent retries and preserves timestamps on an older read clock', async () => {
     const original = await batch();
     const document = { ...original.batch, id: randomUUID() };

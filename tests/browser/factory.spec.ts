@@ -303,3 +303,73 @@ for (const width of [1440, 390]) {
     await page.screenshot({ path: info.outputPath(`factory-${width}.png`) });
   });
 }
+
+test('refresh reconciles a committed pending purchase before an intentional identical purchase', async ({
+  page,
+}) => {
+  await page.goto(
+    '/factory?recipe=quicksilver-mageblood-cheetah&league=Fixture%20League',
+  );
+  const create = page.getByRole('form', { name: 'Start production batch' });
+  await create
+    .getByLabel('Batch notes', { exact: true })
+    .fill('Synthetic lost-response reconciliation');
+  await create
+    .getByLabel('Amount in transaction currency', { exact: true })
+    .fill('10');
+  await create
+    .getByRole('button', { name: 'Start batch', exact: true })
+    .click();
+  await expect(page).toHaveURL(/batch=/);
+  const id = new URL(page.url()).searchParams.get('batch')!;
+  let drop = true;
+  await page.route('**/api/admin/factory/batches/*/events', async (route) => {
+    if (drop) {
+      drop = false;
+      expect((await route.fetch()).ok()).toBe(true);
+      await route.abort('failed');
+    } else await route.continue();
+  });
+  async function enterPurchase() {
+    const form = page.getByRole('form', { name: 'Record factory event' });
+    await form
+      .getByLabel('Material or base name', { exact: true })
+      .fill('Synthetic identical purchase');
+    await form.getByLabel('Transaction quantity', { exact: true }).fill('1');
+    await form
+      .getByLabel('Unit price in transaction currency', { exact: true })
+      .fill('1');
+    await form
+      .getByLabel('Transaction or event source', { exact: true })
+      .fill('Synthetic acceptance only');
+    await form
+      .getByRole('button', { name: 'Record event', exact: true })
+      .click();
+  }
+  await enterPurchase();
+  await expect(page.getByRole('alert')).toContainText(
+    'Your inputs are preserved',
+  );
+  await page.reload();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'already recorded' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', {
+      name: 'Retry exact pending event',
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  expect((await currentBatch(page, id)).events).toHaveLength(1);
+  const response = page.waitForResponse(
+    (r) =>
+      r.url().endsWith(`/batches/${id}/events`) &&
+      r.request().method() === 'POST',
+  );
+  await enterPurchase();
+  expect((await response).ok()).toBe(true);
+  const record = await currentBatch(page, id);
+  expect(record.events).toHaveLength(2);
+  expect(record.events[0]!.id).not.toBe(record.events[1]!.id);
+  expect(record.projection.metrics.cashFlow).toBe('-2');
+});

@@ -8,6 +8,7 @@ import {
   type FactoryEvent,
 } from '@poe-worksmith/domain';
 import { factoryAppendEventInputSchema } from '@poe-worksmith/contracts';
+import { syntheticOutcomeInput } from '@poe-worksmith/domain/fixtures';
 import { AllocationFields, FactoryEventForm } from './FactoryEventForm.js';
 import { FactoryBatchSummary, FactoryMetrics } from './FactorySummary.js';
 import { TransactionFields } from './FactoryFields.js';
@@ -16,6 +17,8 @@ import {
   factoryCostLabel,
   factoryFormFingerprint,
   prepareFactoryRequest,
+  reconcileFactoryPending,
+  factoryExactTargetAllowed,
 } from './factoryForm.js';
 import { App } from './App.js';
 
@@ -208,6 +211,115 @@ describe('factory financial entry', () => {
     raw.set('unitPrice', '2');
     prepareFactoryRequest(restored, factoryFormFingerprint(raw), create);
     expect(create).toHaveBeenCalledTimes(2);
+  });
+  it('reconciles a committed lost-response event before allowing a second identical intentional event', () => {
+    const raw = form({ type: 'purchase', resourceId: 'Base', ...transaction });
+    const fingerprint = factoryFormFingerprint(raw);
+    const pending = prepareFactoryRequest(null, fingerprint, () => ({
+      expectedVersion: 0,
+      idempotencyKey: id(30),
+      event: buildFactoryEvent(raw, id(31), now),
+    }));
+    expect(reconcileFactoryPending(pending, [], true)).toBeNull();
+    expect(reconcileFactoryPending(pending, [pending.request.event])).toBe(
+      'recorded',
+    );
+    const next = prepareFactoryRequest(null, fingerprint, () => ({
+      expectedVersion: 1,
+      idempotencyKey: id(32),
+      event: buildFactoryEvent(raw, id(33), now),
+    }));
+    expect(next.request.idempotencyKey).not.toBe(
+      pending.request.idempotencyKey,
+    );
+    expect(next.request.event.id).not.toBe(pending.request.event.id);
+    const rejected = { ...pending, rejectedConflict: true as const };
+    expect(reconcileFactoryPending(rejected, [])).toBeNull();
+    expect(reconcileFactoryPending(rejected, [], true)).toBe(
+      'rejected-conflict',
+    );
+  });
+  it('allows exact-target confirmation only for compatible known outcomes', () => {
+    const signature = batch.targetSignature;
+    expect(factoryExactTargetAllowed(null, 'target', 'target', signature)).toBe(
+      true,
+    );
+    for (const category of [
+      'unknown',
+      'salvage',
+      'unusable',
+      'recovery',
+      'imperfect',
+    ])
+      expect(
+        factoryExactTargetAllowed(null, category, category, signature),
+      ).toBe(false);
+    const model = syntheticOutcomeInput().model;
+    expect(
+      factoryExactTargetAllowed(model, 'target', 'target', signature),
+    ).toBe(false);
+    model.stages[0]!.outcomes[0]!.matching = {
+      kind: 'exact-target',
+      targetSignature: signature,
+    };
+    expect(
+      factoryExactTargetAllowed(model, 'target', 'unknown', signature),
+    ).toBe(true);
+    expect(
+      factoryExactTargetAllowed(model, 'target', 'salvage', signature),
+    ).toBe(false);
+    expect(
+      factoryExactTargetAllowed(model, 'salvage', 'target', signature),
+    ).toBe(false);
+    expect(
+      factoryExactTargetAllowed(model, 'target', 'target', 'other-signature'),
+    ).toBe(false);
+  });
+  it('shows write-offs separately from sold-item profit and exposes refund reconciliation', () => {
+    const events = flow();
+    events.push(
+      event(13, { type: 'item-status', itemId: id(12), status: 'discarded' }),
+    );
+    events.push(
+      event(14, {
+        type: 'refund',
+        purchaseEventId: id(10),
+        stockQuantity: '1',
+        quantity: '1',
+        unitPrice: '90',
+        currency: 'chaos',
+        chaosPerUnit: '1',
+        rateSource: 'Synthetic refund',
+      }),
+    );
+    events.push(
+      event(15, {
+        type: 'credit',
+        category: 'other',
+        quantity: '1',
+        unitPrice: '5',
+        currency: 'chaos',
+        chaosPerUnit: '1',
+        rateSource: 'Synthetic credit',
+      }),
+    );
+    const projection = projectFactoryBatch(batch, events, now);
+    expect(projection.metrics).toMatchObject({
+      realizedProfit: '0',
+      recognizedItemResult: '-100',
+      refundReceipts: '90',
+      refundedMaterialCost: '100',
+      otherCredits: '5',
+    });
+    const html = renderToStaticMarkup(
+      <FactoryMetrics metrics={projection.metrics} />,
+    );
+    expect(html).toContain('Recognized item result (sold + disposed)');
+    expect(html).toContain('-100 c');
+    expect(html).toContain('Realized ROI (sold + disposed items)');
+    expect(html).toContain('Cash reconciliation');
+    expect(html).toContain('Refunded material cost basis');
+    expect(html).toContain('90 c');
   });
   it('rejects missing FX, blank activity counters and invalid allocations rather than silently making zero costs', () => {
     expect(() =>

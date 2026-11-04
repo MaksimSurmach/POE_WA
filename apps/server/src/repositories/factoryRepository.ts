@@ -31,14 +31,15 @@ export function createFactoryRepository(pool: Pool) {
     return {
       batch: document,
       events,
-      // Events were checked against the server clock on insertion. A concurrent
-      // append can commit after this read request captured its clock.
+      // Batches and events were checked against the clock on insertion. A
+      // concurrent create or append can commit after the read captured its clock.
       projection: projectFactoryBatch(
         document,
         events,
         new Date(
           Math.max(
             Date.parse(asOf),
+            Date.parse(document.startedAt),
             ...events.map((e) => Date.parse(e.occurredAt)),
           ),
         ).toISOString(),

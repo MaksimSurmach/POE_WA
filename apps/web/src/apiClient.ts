@@ -43,11 +43,13 @@ type Contract<T> = {
 
 export class ApiClientError extends Error {
   readonly envelope: ApiErrorEnvelope;
+  readonly status: number | undefined;
 
-  constructor(envelope: ApiErrorEnvelope) {
+  constructor(envelope: ApiErrorEnvelope, status?: number) {
     super(envelope.error.message);
     this.name = 'ApiClientError';
     this.envelope = envelope;
+    this.status = status;
   }
 }
 
@@ -76,7 +78,7 @@ export function createApiClient(
     if (result.success) return result.data;
 
     const error = apiErrorEnvelopeSchema.safeParse(payload);
-    if (error.success) throw new ApiClientError(error.data);
+    if (error.success) throw new ApiClientError(error.data, response.status);
     throw new Error('API response violated the shared contract');
   }
 
@@ -138,7 +140,8 @@ export function createApiClient(
       );
       if (!response.ok) {
         const parsed = apiErrorEnvelopeSchema.safeParse(await response.json());
-        if (parsed.success) throw new ApiClientError(parsed.data);
+        if (parsed.success)
+          throw new ApiClientError(parsed.data, response.status);
         throw new Error(`Factory export failed (${response.status}).`);
       }
       return {

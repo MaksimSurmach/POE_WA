@@ -12,7 +12,7 @@ import {
   type FactorySummaryResponse,
   type LeaguesResponse,
 } from '@poe-worksmith/contracts';
-import { createApiClient } from './apiClient.js';
+import { ApiClientError, createApiClient } from './apiClient.js';
 import { FactoryField, TransactionFields } from './FactoryFields.js';
 import { FactoryEventForm } from './FactoryEventForm.js';
 import {
@@ -27,6 +27,7 @@ import {
   factoryText,
   factoryTransaction,
   prepareFactoryRequest,
+  reconcileFactoryPending,
   type PendingFactoryRequest,
 } from './factoryForm.js';
 import './factory.css';
@@ -56,7 +57,13 @@ function readPending<T>(
       typeof raw.fingerprint === 'string' &&
       'request' in raw
     )
-      return { fingerprint: raw.fingerprint, request: parse(raw.request) };
+      return {
+        fingerprint: raw.fingerprint,
+        request: parse(raw.request),
+        ...('rejectedConflict' in raw && raw.rejectedConflict === true
+          ? { rejectedConflict: true as const }
+          : {}),
+      };
   } catch {
     /* Invalid or unavailable browser storage is not authoritative. */
   }
@@ -87,6 +94,7 @@ export function FactoryPage() {
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const mutationLock = useRef(false);
+  const explicitRefresh = useRef(false);
   const [pendingEvent, setPendingEvent] =
     useState<PendingFactoryRequest<FactoryAppendEventInput> | null>(null);
   const [pendingCreate, setPendingCreate] =
@@ -169,11 +177,13 @@ export function FactoryPage() {
     setRecord((current) => (current?.batch.id === selectedId ? current : null));
     setRecordReady(false);
     setMutationError('');
-    setPendingEvent(
+    const pending =
       readPending(eventKey, (value) =>
         factoryAppendEventInputSchema.parse(value),
-      ),
-    );
+      ) ?? (record?.batch.id === selectedId ? pendingEvent : null);
+    setPendingEvent(pending);
+    const wasExplicitRefresh = explicitRefresh.current;
+    explicitRefresh.current = false;
     if (!selectedId) return;
     let active = true;
     void api
@@ -182,6 +192,20 @@ export function FactoryPage() {
         if (active) {
           setRecord(response.data);
           setRecordReady(true);
+          const resolved = reconcileFactoryPending(
+            pending,
+            response.data.events,
+            wasExplicitRefresh,
+          );
+          if (resolved) {
+            setPendingEvent(null);
+            cachePending(eventKey, null);
+            setNotice(
+              resolved === 'recorded'
+                ? 'The pending event was already recorded. A new submission will create a new event.'
+                : 'The conflicting event was not recorded. Current batch loaded; you may submit your preserved inputs again.',
+            );
+          }
         }
       })
       .catch((failure) => {
@@ -229,6 +253,13 @@ export function FactoryPage() {
                 league,
                 plannedBudget: factoryTransaction(form),
                 notes: factoryText(form, 'batchNotes'),
+                ...(factoryText(form, 'startedAt')
+                  ? {
+                      startedAt: new Date(
+                        factoryText(form, 'startedAt'),
+                      ).toISOString(),
+                    }
+                  : {}),
                 ...(factoryText(form, 'forecastRunId')
                   ? { forecastRunId: factoryText(form, 'forecastRunId') }
                   : {}),
@@ -295,6 +326,23 @@ export function FactoryPage() {
       setRefresh((value) => value + 1);
       return true;
     } catch (failure) {
+      if (
+        failure instanceof ApiClientError &&
+        failure.status === 400 &&
+        failure.envelope.error.code === 'FACTORY_LEDGER_INVALID'
+      ) {
+        setPendingEvent(null);
+        cachePending(eventKey, null);
+      } else if (failure instanceof ApiClientError && failure.status === 409) {
+        const pending = readPending(eventKey, (value) =>
+          factoryAppendEventInputSchema.parse(value),
+        );
+        if (pending) {
+          const rejected = { ...pending, rejectedConflict: true as const };
+          setPendingEvent(rejected);
+          cachePending(eventKey, rejected);
+        }
+      }
       setMutationError(factoryErrorMessage(failure));
       return false;
     } finally {
@@ -346,7 +394,10 @@ export function FactoryPage() {
           <button
             type="button"
             disabled={busy}
-            onClick={() => setRefresh((value) => value + 1)}
+            onClick={() => {
+              explicitRefresh.current = true;
+              setRefresh((value) => value + 1);
+            }}
           >
             Refresh factory
           </button>
@@ -361,8 +412,8 @@ export function FactoryPage() {
         <p role="alert" className="recipe-warning">
           {mutationError} Your inputs are preserved. If a request outcome is
           unknown, retry the exact pending request before creating another
-          transaction. A version conflict requires refreshing and deliberately
-          updating the form before resubmitting.
+          transaction. After a version conflict, refresh to verify the event was
+          not recorded before resubmitting.
         </p>
       ) : null}
       {notice ? <p role="status">{notice}</p> : null}
@@ -415,6 +466,18 @@ export function FactoryPage() {
                   maxLength={2000}
                 />
               </fieldset>
+              <FactoryField
+                name="startedAt"
+                label="Production started at (local; blank means now)"
+                type="datetime-local"
+                step="0.001"
+                required={false}
+              />
+              <p className="factory-note">
+                For historical transactions, set production start no later than
+                the first recorded purchase. Future start times are not
+                accepted.
+              </p>
               <TransactionFields
                 quantity={false}
                 label="Planned budget (not actual spending)"
@@ -565,6 +628,7 @@ export function FactoryPage() {
             projection={record.projection}
             events={record.events}
             targetSignature={record.batch.targetSignature}
+            outcomeModel={record.batch.forecast?.analysisInput.model ?? null}
             busy={busy || !recordReady}
             onSubmit={appendEvent}
           />

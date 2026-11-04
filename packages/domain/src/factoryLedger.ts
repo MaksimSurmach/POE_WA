@@ -56,9 +56,21 @@ export const factoryBatchSchema = z.strictObject({
   forecast: factoryForecastSchema.nullable(),
   forecastUnavailableReasons: z.array(note).max(100).default([]),
 });
+/** Three 16-decimal inputs multiply to at most 48 fractional digits.
+ * Preserve that exact cost basis instead of rounding away an unallocatable residue. */
+export const factoryAllocationAmountSchema = z
+  .string()
+  .refine(
+    (value) =>
+      value.length <= 90 &&
+      /^(?:0|[1-9]\d*)(?:\.\d{1,48})?$/.test(value) &&
+      new D(value).gt(0) &&
+      new D(value).lte('1e36'),
+    'Invalid exact allocation amount',
+  );
 export const factoryAllocationSchema = z.strictObject({
   costEventId: z.uuid(),
-  amount: positive,
+  amount: factoryAllocationAmountSchema,
 });
 const allocations = z.array(factoryAllocationSchema).max(200);
 const classification = z.enum([
@@ -205,6 +217,10 @@ export const factorySaleSchema = z.strictObject({
 });
 export const factoryMetricsSchema = z.strictObject({
   realizedProfit: resultAmount,
+  recognizedItemResult: resultAmount,
+  refundReceipts: resultAmount,
+  refundedMaterialCost: resultAmount,
+  otherCredits: resultAmount,
   saleRevenue: resultAmount,
   soldProductionCost: resultAmount,
   transactionExpenses: resultAmount,
@@ -336,11 +352,17 @@ export function projectFactoryBatch(
       purchased: Decimal;
       available: Decimal;
       unit: Decimal;
+      occurredAt: string;
     }
   >();
   const costs = new Map<
     string,
-    { category: string; amount: Decimal; allocated: Decimal }
+    {
+      category: string;
+      amount: Decimal;
+      allocated: Decimal;
+      occurredAt: string;
+    }
   >();
   const consumptions = new Map<
     string,
@@ -351,11 +373,15 @@ export function projectFactoryBatch(
   let spending = new D(0),
     received = new D(0),
     recovery = new D(0),
+    refunds = new D(0),
+    refundedCost = new D(0),
+    otherCredits = new D(0),
     attempts = 0,
     seconds = 0;
   let status: FactoryProjection['status'] = 'active',
     completedAt: string | null = null,
     notes = batch.notes;
+  let statusChangedAt = batch.startedAt;
   const getItem = (id: string) =>
     items.get(id) ?? fail('Unknown inventory item');
   const mutableItem = (id: string) => {
@@ -367,13 +393,18 @@ export function projectFactoryBatch(
   const allocate = (
     item: FactoryInventory,
     rows: z.infer<typeof allocations>,
+    occurredAt: string,
   ) => {
+    if (Date.parse(occurredAt) < Date.parse(item.producedAt))
+      fail('Allocation predates item production');
     if (item.allocations.length + rows.length > 200)
       fail('Item allocation limit reached');
     for (const row of rows) {
       const cost =
         costs.get(row.costEventId) ??
         fail('Allocation references unknown cost');
+      if (Date.parse(occurredAt) < Date.parse(cost.occurredAt))
+        fail('Allocation predates its source cost');
       if (cost.allocated.add(row.amount).gt(cost.amount))
         fail('Cost allocation exceeds available production cost');
       cost.allocated = cost.allocated.add(row.amount);
@@ -384,6 +415,11 @@ export function projectFactoryBatch(
   for (const event of events) {
     if (voided.has(event.id) || event.payload.type === 'void') continue;
     const p = event.payload;
+    if (
+      status !== 'active' &&
+      ['purchase', 'consume', 'produce', 'activity'].includes(p.type)
+    )
+      fail('Reopen the batch before recording new production');
     if (
       (p.type === 'list' && !new D(p.price.quantity).eq(1)) ||
       (p.type === 'sale' && !new D(p.transaction.quantity).eq(1))
@@ -397,13 +433,16 @@ export function projectFactoryBatch(
           resourceId: p.resourceId,
           purchased: new D(p.transaction.quantity),
           available: new D(p.transaction.quantity),
-          unit: total.div(p.transaction.quantity),
+          unit: new D(p.transaction.unitPrice).mul(p.transaction.chaosPerUnit),
+          occurredAt: event.occurredAt,
         });
         break;
       }
       case 'consume': {
         const lot =
           stock.get(p.purchaseEventId) ?? fail('Unknown purchase lot');
+        if (Date.parse(event.occurredAt) < Date.parse(lot.occurredAt))
+          fail('Material event predates its purchase');
         if (lot.available.lt(p.quantity))
           fail('Insufficient material inventory');
         lot.available = lot.available.sub(p.quantity);
@@ -411,6 +450,7 @@ export function projectFactoryBatch(
           category: 'material',
           amount: lot.unit.mul(p.quantity),
           allocated: new D(0),
+          occurredAt: event.occurredAt,
         });
         consumptions.set(event.id, {
           purchaseId: p.purchaseEventId,
@@ -424,6 +464,8 @@ export function projectFactoryBatch(
           fail('Unknown material consumption');
         const lot = stock.get(used.purchaseId)!;
         const cost = costs.get(p.consumeEventId)!;
+        if (Date.parse(event.occurredAt) < Date.parse(cost.occurredAt))
+          fail('Return predates material consumption');
         if (used.remaining.lt(p.quantity))
           fail('Return exceeds consumed quantity');
         const remainingCost = cost.amount.sub(lot.unit.mul(p.quantity));
@@ -437,10 +479,15 @@ export function projectFactoryBatch(
       case 'refund': {
         const lot =
           stock.get(p.purchaseEventId) ?? fail('Unknown purchase lot');
+        if (Date.parse(event.occurredAt) < Date.parse(lot.occurredAt))
+          fail('Material event predates its purchase');
         if (lot.available.lt(p.quantity))
           fail('Refund exceeds unused material inventory');
         lot.available = lot.available.sub(p.quantity);
-        received = received.add(factoryTransactionChaos(p.transaction));
+        const receipt = new D(factoryTransactionChaos(p.transaction));
+        received = received.add(receipt);
+        refunds = refunds.add(receipt);
+        refundedCost = refundedCost.add(lot.unit.mul(p.quantity));
         break;
       }
       case 'expense': {
@@ -450,6 +497,7 @@ export function projectFactoryBatch(
           category: p.category,
           amount,
           allocated: new D(0),
+          occurredAt: event.occurredAt,
         });
         break;
       }
@@ -457,6 +505,7 @@ export function projectFactoryBatch(
         const amount = new D(factoryTransactionChaos(p.transaction));
         received = received.add(amount);
         if (p.category === 'recovery') recovery = recovery.add(amount);
+        else otherCredits = otherCredits.add(amount);
         break;
       }
       case 'produce': {
@@ -465,6 +514,18 @@ export function projectFactoryBatch(
         const declared = batch.forecast?.analysisInput.model.stages
           .flatMap((stage) => stage.outcomes)
           .find((outcome) => outcome.id === p.outcome);
+        if (declared?.matching.kind === 'manual' && p.targetSignature !== null)
+          fail(
+            'Manual outcome matching cannot establish an exact output signature',
+          );
+        if (
+          !declared &&
+          p.targetSignature === batch.targetSignature &&
+          !['target', 'premium'].includes(p.classification)
+        )
+          fail(
+            'Only a confirmed target or premium output can use the recipe target signature',
+          );
         const signature =
           declared?.matching.kind === 'exact-target'
             ? declared.matching.targetSignature
@@ -500,12 +561,12 @@ export function projectFactoryBatch(
           saleRevenue: null,
           transactionExpenses: null,
         };
-        allocate(item, p.allocations);
+        allocate(item, p.allocations, event.occurredAt);
         items.set(item.id, item);
         break;
       }
       case 'allocate':
-        allocate(mutableItem(p.itemId), p.allocations);
+        allocate(mutableItem(p.itemId), p.allocations, event.occurredAt);
         break;
       case 'list': {
         const item = mutableItem(p.itemId);
@@ -574,6 +635,9 @@ export function projectFactoryBatch(
         seconds += p.craftingSeconds;
         break;
       case 'batch-status':
+        if (Date.parse(event.occurredAt) < Date.parse(statusChangedAt))
+          fail('Batch status predates the previous status');
+        statusChangedAt = event.occurredAt;
         status = p.status;
         completedAt = p.status === 'active' ? null : event.occurredAt;
         break;
@@ -604,8 +668,29 @@ export function projectFactoryBatch(
     warnings.push(
       'Recovery credits are cash receipts, separate from item-sale profit and gross production cost.',
     );
+  const allDisposed = inventory.every(
+    (item) => !['held', 'listed'].includes(item.status),
+  );
+  const turnoverEnd =
+    status !== 'active' && allDisposed && completedAt !== null
+      ? new Date(
+          Math.max(
+            Date.parse(completedAt),
+            ...inventory.map((item) => Date.parse(item.statusChangedAt)),
+          ),
+        ).toISOString()
+      : asOf;
+  const disposedCost = sum(
+    inventory
+      .filter((item) =>
+        ['consumed', 'recycled', 'discarded'].includes(item.status),
+      )
+      .map((item) => item.allocatedCost),
+  );
+  const recognized = realized.sub(disposedCost);
+  const recognizedCost = soldCost.add(fees).add(disposedCost);
   const windowSeconds = new D(
-    Date.parse(asOf) - Date.parse(batch.startedAt),
+    Date.parse(turnoverEnd) - Date.parse(batch.startedAt),
   ).div(1000);
   const unitSeconds = sum(
     inventory.map((item) =>
@@ -648,6 +733,25 @@ export function projectFactoryBatch(
         ? inventory.filter((i) => targetIds.has(i.outcome)).length ===
           (objective.kind === 'single-target' ? 1 : objective.count)
         : false;
+  // A completed target objective consumes its final base. First-run retained
+  // probability therefore describes intermediate retries, not a leftover asset.
+  const targetOutcomes =
+    forecast?.analysisInput.model.stages.flatMap((stage) =>
+      stage.outcomes.filter((outcome) => outcome.targetSuccess),
+    ) ?? [];
+  const completedTargetAssetBasis =
+    objective !== undefined &&
+    objective.kind !== 'attempts' &&
+    targetOutcomes.length > 0 &&
+    targetOutcomes.every(
+      (outcome) =>
+        outcome.nextStageId === null &&
+        outcome.sellable &&
+        outcome.baseDisposition === 'consumed',
+    );
+  const assetBasisComplete =
+    forecast?.analysis.unvaluedRetainedBaseProbability === '0' ||
+    completedTargetAssetBasis;
   const comparable = Boolean(
     closed &&
     risk?.status === 'complete' &&
@@ -655,7 +759,7 @@ export function projectFactoryBatch(
     objectiveMatches &&
     inventory.length <= attempts &&
     forecast?.analysisInput.league === batch.league &&
-    forecast.analysis.unvaluedRetainedBaseProbability === '0',
+    assetBasisComplete,
   );
   const expectedCost = comparable ? (risk?.meanCost ?? null) : null,
     expectedProfit = comparable ? (risk?.meanProfit ?? null) : null;
@@ -687,6 +791,10 @@ export function projectFactoryBatch(
     warnings,
     metrics: {
       realizedProfit: money(realized),
+      recognizedItemResult: money(recognized),
+      refundReceipts: money(refunds),
+      refundedMaterialCost: money(refundedCost),
+      otherCredits: money(otherCredits),
       saleRevenue: money(sum(sales.map((s) => s.revenue))),
       soldProductionCost: money(soldCost),
       transactionExpenses: money(fees),
@@ -723,8 +831,8 @@ export function projectFactoryBatch(
         ),
       ),
       actualRoiPercent:
-        soldCost.add(fees).gt(0) && unallocated.eq(0)
-          ? money(realized.div(soldCost.add(fees)).mul(100))
+        recognizedCost.gt(0) && unallocated.eq(0)
+          ? money(recognized.div(recognizedCost).mul(100))
           : null,
       attempts,
       craftingSeconds: seconds,
@@ -739,12 +847,14 @@ export function projectFactoryBatch(
           ? money(new D(sales.length).div(inventory.length).mul(100))
           : null,
       profitPerCraftingHour:
-        seconds && sales.length && unallocated.eq(0)
-          ? money(realized.mul(3600).div(seconds))
+        seconds &&
+        inventory.some((item) => !['held', 'listed'].includes(item.status)) &&
+        unallocated.eq(0)
+          ? money(recognized.mul(3600).div(seconds))
           : null,
       allocationComplete: unallocated.eq(0),
       turnoverWindowStart: batch.startedAt,
-      turnoverWindowEnd: asOf,
+      turnoverWindowEnd: turnoverEnd,
       inventoryUnitSeconds: exact(unitSeconds),
       averageHeldUnits: averageUnits === null ? null : money(averageUnits),
       observedUnitTurnover:
@@ -785,6 +895,10 @@ export function summarizeFactoryBatches(
     );
   const amounts = [
     'realizedProfit',
+    'recognizedItemResult',
+    'refundReceipts',
+    'refundedMaterialCost',
+    'otherCredits',
     'saleRevenue',
     'soldProductionCost',
     'transactionExpenses',
@@ -815,8 +929,10 @@ export function summarizeFactoryBatches(
   const count = Object.fromEntries(
     counts.map((field) => [field, total(field).toNumber()]),
   );
-  const realized = total('realizedProfit'),
-    denominator = total('soldProductionCost').add(total('transactionExpenses'));
+  const recognized = total('recognizedItemResult'),
+    denominator = total('soldProductionCost')
+      .add(total('transactionExpenses'))
+      .add(total('disposedCost'));
   const complete = projections.every((p) => p.metrics.allocationComplete);
   const durationTotal = projections.reduce(
     (sum, p) =>
@@ -852,7 +968,7 @@ export function summarizeFactoryBatches(
     allocationComplete: complete,
     actualRoiPercent:
       complete && denominator.gt(0)
-        ? money(realized.div(denominator).mul(100))
+        ? money(recognized.div(denominator).mul(100))
         : null,
     meanTimeToSellSeconds: count.timeToSellSampleSize
       ? durationTotal / count.timeToSellSampleSize
@@ -862,8 +978,10 @@ export function summarizeFactoryBatches(
         ? money(new D(count.soldCount).div(count.producedCount).mul(100))
         : null,
     profitPerCraftingHour:
-      complete && count.soldCount && count.craftingSeconds
-        ? money(realized.mul(3600).div(count.craftingSeconds))
+      complete &&
+      (count.soldCount || total('disposedCost').gt(0)) &&
+      count.craftingSeconds
+        ? money(recognized.mul(3600).div(count.craftingSeconds))
         : null,
   });
 }

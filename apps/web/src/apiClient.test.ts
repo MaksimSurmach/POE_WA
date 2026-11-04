@@ -278,3 +278,31 @@ describe('factory financial API boundaries', () => {
     ).rejects.toBeInstanceOf(ApiClientError);
   });
 });
+
+it('preserves a definitive factory rejection status for safe pending-request cleanup', async () => {
+  const payload = {
+    correlationId,
+    error: {
+      category: 'calculation',
+      code: 'FACTORY_LEDGER_INVALID',
+      disposition: 'permanent',
+      message: 'The ledger event violates inventory or accounting constraints.',
+      retryable: false,
+    },
+  };
+  const client = createApiClient(
+    '',
+    vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify(payload), {
+          status: 400,
+          headers: { 'content-type': 'application/json' },
+        }),
+      ),
+  );
+  await expect(client.getFactoryBatch('synthetic')).rejects.toMatchObject({
+    status: 400,
+    envelope: payload,
+  });
+});

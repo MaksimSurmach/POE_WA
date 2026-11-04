@@ -1,11 +1,16 @@
 import { useState, type FormEvent } from 'react';
-import type { FactoryEvent, FactoryProjection } from '@poe-worksmith/domain';
+import {
+  methodRunDefinition,
+  type FactoryEvent,
+  type FactoryProjection,
+  type OutcomeModel,
+} from '@poe-worksmith/domain';
 import {
   FactoryField,
   FactorySelect,
   TransactionFields,
 } from './FactoryFields.js';
-import { factoryCostLabel } from './factoryForm.js';
+import { factoryCostLabel, factoryExactTargetAllowed } from './factoryForm.js';
 
 const eventTypes = [
   ['purchase', 'Buy materials or bases'],
@@ -32,6 +37,7 @@ export function AllocationFields({
   projection: FactoryProjection;
   events: FactoryEvent[];
   targetSignature?: string;
+  outcomeModel?: OutcomeModel | null;
 }) {
   const [rows, setRows] = useState([0]);
   const costs = projection.costs.filter((cost) => Number(cost.remaining) > 0);
@@ -90,16 +96,29 @@ export function FactoryEventForm({
   busy,
   onSubmit,
   targetSignature,
+  outcomeModel,
 }: {
   projection: FactoryProjection;
   events: FactoryEvent[];
   targetSignature?: string;
+  outcomeModel?: OutcomeModel | null;
   busy: boolean;
   onSubmit: (form: FormData) => Promise<boolean>;
 }) {
   const [type, setType] = useState('purchase');
   const [hasSaleExpense, setHasSaleExpense] = useState(false);
   const [matchesTarget, setMatchesTarget] = useState(false);
+  const [outcomeId, setOutcomeId] = useState('');
+  const [classification, setClassification] = useState('unknown');
+  const declaredOutcome = outcomeModel?.stages
+    .flatMap((stage) => stage.outcomes)
+    .find((outcome) => outcome.id === outcomeId);
+  const canConfirmTarget = factoryExactTargetAllowed(
+    outcomeModel,
+    outcomeId,
+    classification,
+    targetSignature,
+  );
   const availableItems = projection.inventory.filter((item) =>
     ['held', 'listed'].includes(item.status),
   );
@@ -123,6 +142,8 @@ export function FactoryEventForm({
             setType(event.target.value);
             setHasSaleExpense(false);
             setMatchesTarget(false);
+            setOutcomeId('');
+            setClassification('unknown');
           }}
         >
           {eventTypes.map(([id, label]) => (
@@ -192,44 +213,83 @@ export function FactoryEventForm({
               label="Crafted item description"
               maxLength={200}
             />
-            <FactoryField
-              name="outcome"
-              label="Outcome ID or classification label"
-              maxLength={200}
-            />
-            <FactorySelect
-              name="classification"
-              label="Outcome category"
-              value="unknown"
-            >
-              {[
-                'unknown',
-                'premium',
-                'target',
-                'imperfect',
-                'salvage',
-                'unusable',
-                'recovery',
-              ].map((value) => (
-                <option key={value}>{value}</option>
-              ))}
-            </FactorySelect>
+            <label>
+              Outcome ID or classification label
+              <input
+                name="outcome"
+                value={outcomeId}
+                onChange={(event) => {
+                  setOutcomeId(event.target.value);
+                  setMatchesTarget(false);
+                }}
+                list="factory-model-outcomes"
+                maxLength={200}
+                required
+              />
+            </label>
+            <datalist id="factory-model-outcomes">
+              {outcomeModel?.stages
+                .flatMap((stage) => stage.outcomes)
+                .map((outcome) => (
+                  <option key={outcome.id} value={outcome.id}>
+                    {outcome.name}
+                  </option>
+                ))}
+            </datalist>
+            <label>
+              Outcome category
+              <select
+                name="classification"
+                value={classification}
+                onChange={(event) => {
+                  setClassification(event.target.value);
+                  setMatchesTarget(false);
+                }}
+              >
+                {[
+                  'unknown',
+                  'premium',
+                  'target',
+                  'imperfect',
+                  'salvage',
+                  'unusable',
+                  'recovery',
+                ].map((value) => (
+                  <option key={value}>{value}</option>
+                ))}
+              </select>
+            </label>
             {targetSignature ? (
               <label className="factory-check">
                 <input
                   type="checkbox"
-                  checked={matchesTarget}
+                  checked={matchesTarget && canConfirmTarget}
+                  disabled={!canConfirmTarget}
                   onChange={(event) => setMatchesTarget(event.target.checked)}
                 />
                 Matches this recipe’s exact target
               </label>
             ) : null}
-            {matchesTarget ? (
+            {!canConfirmTarget ? (
+              <p className="factory-note">
+                Exact-target confirmation requires a compatible target or
+                premium classification. Manual outcome rules and salvage,
+                unusable, recovery or unknown results cannot be confirmed as
+                this recipe's target.
+              </p>
+            ) : null}
+            {matchesTarget && canConfirmTarget ? (
               <input
                 name="targetSignature"
                 type="hidden"
                 value={targetSignature}
               />
+            ) : declaredOutcome ? (
+              <p className="factory-note">
+                {declaredOutcome.matching.kind === 'manual'
+                  ? 'This outcome uses manual matching; its actual signature remains unknown.'
+                  : 'The exact output signature comes from the frozen outcome model.'}
+              </p>
             ) : (
               <details>
                 <summary>Advanced output matching</summary>
@@ -325,9 +385,8 @@ export function FactoryEventForm({
               step="1"
             />
             <p className="factory-note">
-              For comparison with a saved simulation, count terminal method
-              runs, including internal retries. Enter 0 if time or attempts were
-              not recorded.
+              {methodRunDefinition} Enter 0 if time or completed method runs
+              were not recorded.
             </p>
           </div>
         ) : null}
