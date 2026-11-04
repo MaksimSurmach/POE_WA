@@ -34,4 +34,19 @@ Mixed-currency crafted-output queries now fetch up to 100 listings. A capped, in
 
 Regression checks cover the cheaper chaos offer after twenty divine asks; cap/inexact/interruption; legacy adapter proof flags; refresh-cache invalidation; observation aggregation; publication; and persisted positive evaluations. Raw snapshots remain intact. Queries above the output cap require a narrower target or future deeper collection; they now show incomplete data instead of a green ROI.
 
-Installed refresh and browser acceptance are recorded separately after completion.
+## Installed acceptance
+
+Installed release `flasks-20261104`, code `e4b5355439ecff8a6cf8d6922905bb59354ba0c2`. Native startup/readiness passed. Both exact output searches completed:
+
+| Route                            | Fetched offers | Comparable sellers | Expected cost | Lowest comparable ask | Indicative ROI |
+| -------------------------------- | -------------: | -----------------: | ------------: | --------------------: | -------------: |
+| Mageblood, any 25% effect prefix |          78/78 |                 49 |    311.65714c |                  650c |   +108.562525% |
+| Alchemist T1                     |          30/30 |                 24 |    855.98134c |     808.6c (2 divine) |     −5.535324% |
+
+See `installed-valuations.json` for capture/expiry times, cost multiplication and saved publication evidence. Source quality remains low because starting-base acquisition is a bounded sample. These are current Allflame asks, not executed sales or next-league price forecasts.
+
+Browser acceptance: `/recipes` has 55 entries (28 market recipes plus 27 source guides); the flask filter returns two. Both recipe detail routes display their different costs and ROI signs. At desktop 1440px and mobile 390px, Quicksilver, Alteration and Enkindling images loaded and stayed within their frames; no horizontal overflow. The installed app displayed the −5.5% Alchemist result. The old partial Mageblood evaluation was also checked: its cost stayed visible while ask/profit/ROI were withheld with the coverage reason.
+
+Original collection settings were restored exactly at version 20. Native app/web/PostgreSQL and temporary API/preview/test PostgreSQL processes are stopped. The isolated research database was removed after retaining scoped evidence; application data, backups and rollback releases remain. Login autostart and KeepAlive remain disabled. Physical devices, screen-reader speech, logout/reboot, in-game rolls and completed sales were not tested.
+
+CI passed for installed code: https://github.com/MaksimSurmach/POE_WA/actions/runs/41861193391.
