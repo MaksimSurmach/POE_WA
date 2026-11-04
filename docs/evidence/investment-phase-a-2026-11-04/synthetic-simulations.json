@@ -1,0 +1,854 @@
+{
+  "dataKind": "synthetic acceptance fixtures; not live prices or observed crafts",
+  "runs": [
+    {
+      "result": {
+        "seed": "synthetic-acceptance-v1",
+        "method": "seeded-monte-carlo",
+        "status": "complete",
+        "reasons": [],
+        "currency": "chaos",
+        "dataKind": "modelled",
+        "meanCost": "12",
+        "histogram": [
+          {
+            "count": 1000,
+            "lower": "12",
+            "upper": "12"
+          }
+        ],
+        "objective": {
+          "kind": "attempts",
+          "count": 1
+        },
+        "meanProfit": "42.19",
+        "medianCost": "12",
+        "costQuantiles": {
+          "p50": "12",
+          "p75": "12",
+          "p90": "12",
+          "p95": "12",
+          "p99": "12"
+        },
+        "censoredTrials": 0,
+        "meanMethodRuns": 1,
+        "profitQuantiles": {
+          "p50": "-2",
+          "p75": "88",
+          "p90": "88",
+          "p95": "88",
+          "p99": "88"
+        },
+        "trialsCompleted": 1000,
+        "trialsRequested": 1000,
+        "attemptDefinition": "A method run executes the declared graph until a terminal outcome; internal stage retries are not separate runs. Setup costs are paid once; initial base inputs are reacquired before another run after a terminal outcome consumes them.",
+        "probabilityOfLoss": 0.509,
+        "calculationVersion": "outcomes-1",
+        "capitalRequirements": [
+          {
+            "budget": "12",
+            "confidence": 0.5
+          },
+          {
+            "budget": "12",
+            "confidence": 0.75
+          },
+          {
+            "budget": "12",
+            "confidence": 0.9
+          },
+          {
+            "budget": "12",
+            "confidence": 0.95
+          },
+          {
+            "budget": "12",
+            "confidence": 0.99
+          }
+        ],
+        "meanStageExecutions": 1,
+        "reachWithinAttempts": 100,
+        "percentileRankError95": 0.04294694083467376,
+        "probabilityOverBudget": 0,
+        "riskAdjustedRoiPercent": "351.58333333",
+        "expectedShortfall95Cost": "12",
+        "expectedShortfall95Loss": "2",
+        "targetWithinRunsProbability": 1
+      },
+      "status": "completed",
+      "request": {
+        "seed": "synthetic-acceptance-v1",
+        "budget": "20",
+        "trials": 1000,
+        "analysis": {
+          "now": "2026-11-04T17:39:34.221Z",
+          "model": {
+            "id": "owner-attempt-model",
+            "stages": [
+              {
+                "id": "attempt",
+                "name": "One completed crafting attempt",
+                "costs": [
+                  {
+                    "kind": "base",
+                    "quantity": "1",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                      "reference": "Synthetic acceptance fixture; not actual purchases",
+                      "recordedAt": "2026-11-04T17:39:34.033Z"
+                    },
+                    "resourceId": "manual-base"
+                  },
+                  {
+                    "kind": "material",
+                    "quantity": "1",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                      "reference": "Synthetic acceptance fixture; not actual purchases",
+                      "recordedAt": "2026-11-04T17:39:34.033Z"
+                    },
+                    "resourceId": "manual-materials"
+                  }
+                ],
+                "outcomes": [
+                  {
+                    "id": "outcome-1",
+                    "name": "Synthetic target",
+                    "costs": [
+                      {
+                        "kind": "finishing",
+                        "quantity": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                          "reference": "Synthetic acceptance fixture; not actual purchases",
+                          "recordedAt": "2026-11-04T17:39:34.033Z"
+                        },
+                        "resourceId": "outcome-1-finishing"
+                      },
+                      {
+                        "kind": "recovery",
+                        "quantity": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                          "reference": "Synthetic acceptance fixture; not actual purchases",
+                          "recordedAt": "2026-11-04T17:39:34.033Z"
+                        },
+                        "resourceId": "outcome-1-recovery"
+                      }
+                    ],
+                    "credits": [],
+                    "matching": {
+                      "kind": "manual",
+                      "description": "Synthetic target"
+                    },
+                    "sellable": true,
+                    "unknowns": [],
+                    "nextStageId": null,
+                    "probability": {
+                      "value": "0.5",
+                      "provenance": {
+                        "kind": "assumption",
+                        "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                        "reference": "Synthetic fair coin; explicitly assumed for acceptance only",
+                        "recordedAt": "2026-11-04T17:39:34.033Z"
+                      }
+                    },
+                    "targetSuccess": true,
+                    "classification": "target",
+                    "baseDisposition": "consumed"
+                  },
+                  {
+                    "id": "outcome-2",
+                    "name": "Synthetic salvage",
+                    "costs": [
+                      {
+                        "kind": "finishing",
+                        "quantity": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                          "reference": "Synthetic acceptance fixture; not actual purchases",
+                          "recordedAt": "2026-11-04T17:39:34.033Z"
+                        },
+                        "resourceId": "outcome-2-finishing"
+                      },
+                      {
+                        "kind": "recovery",
+                        "quantity": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                          "reference": "Synthetic acceptance fixture; not actual purchases",
+                          "recordedAt": "2026-11-04T17:39:34.033Z"
+                        },
+                        "resourceId": "outcome-2-recovery"
+                      }
+                    ],
+                    "credits": [],
+                    "matching": {
+                      "kind": "manual",
+                      "description": "Synthetic salvage"
+                    },
+                    "sellable": true,
+                    "unknowns": [],
+                    "nextStageId": null,
+                    "probability": {
+                      "value": "0.5",
+                      "provenance": {
+                        "kind": "assumption",
+                        "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                        "reference": "Synthetic fair coin; explicitly assumed for acceptance only",
+                        "recordedAt": "2026-11-04T17:39:34.033Z"
+                      }
+                    },
+                    "targetSuccess": false,
+                    "classification": "salvage",
+                    "baseDisposition": "consumed"
+                  }
+                ],
+                "exclusivity": {
+                  "mode": "disjoint",
+                  "provenance": {
+                    "kind": "assumption",
+                    "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                    "reference": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                    "recordedAt": "2026-11-04T17:39:34.033Z"
+                  }
+                }
+              }
+            ],
+            "version": 1,
+            "unknowns": [],
+            "initialCosts": [],
+            "startStageId": "attempt"
+          },
+          "league": "Fixture League",
+          "prices": {
+            "manual-base": {
+              "amount": "10",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:34.033Z"
+              }
+            },
+            "manual-materials": {
+              "amount": "2",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:34.033Z"
+              }
+            },
+            "outcome-1-recovery": {
+              "amount": "0",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:34.033Z"
+              }
+            },
+            "outcome-2-recovery": {
+              "amount": "0",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:34.033Z"
+              }
+            },
+            "outcome-1-finishing": {
+              "amount": "0",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:34.033Z"
+              }
+            },
+            "outcome-2-finishing": {
+              "amount": "0",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:34.033Z"
+              }
+            }
+          },
+          "currency": "chaos",
+          "valuations": {
+            "outcome-1": {
+              "max": "100",
+              "min": "100",
+              "currency": "chaos",
+              "matching": {
+                "kind": "manual",
+                "description": "Synthetic target"
+              },
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic valuation assumption; no completed sale",
+                "recordedAt": "2026-11-04T17:39:34.033Z"
+              }
+            },
+            "outcome-2": {
+              "max": "10",
+              "min": "10",
+              "currency": "chaos",
+              "matching": {
+                "kind": "manual",
+                "description": "Synthetic salvage"
+              },
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic valuation assumption; no completed sale",
+                "recordedAt": "2026-11-04T17:39:34.033Z"
+              }
+            }
+          }
+        },
+        "objective": {
+          "kind": "attempts",
+          "count": 1
+        },
+        "maxTransitions": 10000,
+        "reachWithinAttempts": 100
+      },
+      "recipeId": "quicksilver-mageblood-cheetah",
+      "recipeHash": "858f6a37769aaa74a2b972e15d6c7d41dae9cefdf665ece04d2ed7b38029db65",
+      "cancelRequested": false,
+      "calculationVersion": "outcomes-1"
+    },
+    {
+      "result": {
+        "seed": "synthetic-acceptance-v1",
+        "method": "seeded-monte-carlo",
+        "status": "complete",
+        "reasons": [],
+        "currency": "chaos",
+        "dataKind": "modelled",
+        "meanCost": "12",
+        "histogram": [
+          {
+            "count": 1000,
+            "lower": "12",
+            "upper": "12"
+          }
+        ],
+        "objective": {
+          "kind": "attempts",
+          "count": 1
+        },
+        "meanProfit": "42.19",
+        "medianCost": "12",
+        "costQuantiles": {
+          "p50": "12",
+          "p75": "12",
+          "p90": "12",
+          "p95": "12",
+          "p99": "12"
+        },
+        "censoredTrials": 0,
+        "meanMethodRuns": 1,
+        "profitQuantiles": {
+          "p50": "-2",
+          "p75": "88",
+          "p90": "88",
+          "p95": "88",
+          "p99": "88"
+        },
+        "trialsCompleted": 1000,
+        "trialsRequested": 1000,
+        "attemptDefinition": "A method run executes the declared graph until a terminal outcome; internal stage retries are not separate runs. Setup costs are paid once; initial base inputs are reacquired before another run after a terminal outcome consumes them.",
+        "probabilityOfLoss": 0.509,
+        "calculationVersion": "outcomes-1",
+        "capitalRequirements": [
+          {
+            "budget": "12",
+            "confidence": 0.5
+          },
+          {
+            "budget": "12",
+            "confidence": 0.75
+          },
+          {
+            "budget": "12",
+            "confidence": 0.9
+          },
+          {
+            "budget": "12",
+            "confidence": 0.95
+          },
+          {
+            "budget": "12",
+            "confidence": 0.99
+          }
+        ],
+        "meanStageExecutions": 1,
+        "reachWithinAttempts": 100,
+        "percentileRankError95": 0.04294694083467376,
+        "probabilityOverBudget": 0,
+        "riskAdjustedRoiPercent": "351.58333333",
+        "expectedShortfall95Cost": "12",
+        "expectedShortfall95Loss": "2",
+        "targetWithinRunsProbability": 1
+      },
+      "status": "completed",
+      "request": {
+        "seed": "synthetic-acceptance-v1",
+        "budget": "20",
+        "trials": 1000,
+        "analysis": {
+          "now": "2026-11-04T17:39:37.218Z",
+          "model": {
+            "id": "owner-attempt-model",
+            "stages": [
+              {
+                "id": "attempt",
+                "name": "One completed crafting attempt",
+                "costs": [
+                  {
+                    "kind": "base",
+                    "quantity": "1",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                      "reference": "Synthetic acceptance fixture; not actual purchases",
+                      "recordedAt": "2026-11-04T17:39:37.030Z"
+                    },
+                    "resourceId": "manual-base"
+                  },
+                  {
+                    "kind": "material",
+                    "quantity": "1",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                      "reference": "Synthetic acceptance fixture; not actual purchases",
+                      "recordedAt": "2026-11-04T17:39:37.030Z"
+                    },
+                    "resourceId": "manual-materials"
+                  }
+                ],
+                "outcomes": [
+                  {
+                    "id": "outcome-1",
+                    "name": "Synthetic target",
+                    "costs": [
+                      {
+                        "kind": "finishing",
+                        "quantity": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                          "reference": "Synthetic acceptance fixture; not actual purchases",
+                          "recordedAt": "2026-11-04T17:39:37.030Z"
+                        },
+                        "resourceId": "outcome-1-finishing"
+                      },
+                      {
+                        "kind": "recovery",
+                        "quantity": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                          "reference": "Synthetic acceptance fixture; not actual purchases",
+                          "recordedAt": "2026-11-04T17:39:37.030Z"
+                        },
+                        "resourceId": "outcome-1-recovery"
+                      }
+                    ],
+                    "credits": [],
+                    "matching": {
+                      "kind": "manual",
+                      "description": "Synthetic target"
+                    },
+                    "sellable": true,
+                    "unknowns": [],
+                    "nextStageId": null,
+                    "probability": {
+                      "value": "0.5",
+                      "provenance": {
+                        "kind": "assumption",
+                        "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                        "reference": "Synthetic fair coin; explicitly assumed for acceptance only",
+                        "recordedAt": "2026-11-04T17:39:37.030Z"
+                      }
+                    },
+                    "targetSuccess": true,
+                    "classification": "target",
+                    "baseDisposition": "consumed"
+                  },
+                  {
+                    "id": "outcome-2",
+                    "name": "Synthetic salvage",
+                    "costs": [
+                      {
+                        "kind": "finishing",
+                        "quantity": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                          "reference": "Synthetic acceptance fixture; not actual purchases",
+                          "recordedAt": "2026-11-04T17:39:37.030Z"
+                        },
+                        "resourceId": "outcome-2-finishing"
+                      },
+                      {
+                        "kind": "recovery",
+                        "quantity": "1",
+                        "provenance": {
+                          "kind": "assumption",
+                          "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                          "reference": "Synthetic acceptance fixture; not actual purchases",
+                          "recordedAt": "2026-11-04T17:39:37.030Z"
+                        },
+                        "resourceId": "outcome-2-recovery"
+                      }
+                    ],
+                    "credits": [],
+                    "matching": {
+                      "kind": "manual",
+                      "description": "Synthetic salvage"
+                    },
+                    "sellable": true,
+                    "unknowns": [],
+                    "nextStageId": null,
+                    "probability": {
+                      "value": "0.5",
+                      "provenance": {
+                        "kind": "assumption",
+                        "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                        "reference": "Synthetic fair coin; explicitly assumed for acceptance only",
+                        "recordedAt": "2026-11-04T17:39:37.030Z"
+                      }
+                    },
+                    "targetSuccess": false,
+                    "classification": "salvage",
+                    "baseDisposition": "consumed"
+                  }
+                ],
+                "exclusivity": {
+                  "mode": "disjoint",
+                  "provenance": {
+                    "kind": "assumption",
+                    "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                    "reference": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                    "recordedAt": "2026-11-04T17:39:37.030Z"
+                  }
+                }
+              }
+            ],
+            "version": 1,
+            "unknowns": [],
+            "initialCosts": [],
+            "startStageId": "attempt"
+          },
+          "league": "Fixture League",
+          "prices": {
+            "manual-base": {
+              "amount": "10",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:37.030Z"
+              }
+            },
+            "manual-materials": {
+              "amount": "2",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:37.030Z"
+              }
+            },
+            "outcome-1-recovery": {
+              "amount": "0",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:37.030Z"
+              }
+            },
+            "outcome-2-recovery": {
+              "amount": "0",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:37.030Z"
+              }
+            },
+            "outcome-1-finishing": {
+              "amount": "0",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:37.030Z"
+              }
+            },
+            "outcome-2-finishing": {
+              "amount": "0",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic acceptance fixture; not actual purchases",
+                "recordedAt": "2026-11-04T17:39:37.030Z"
+              }
+            }
+          },
+          "currency": "chaos",
+          "valuations": {
+            "outcome-1": {
+              "max": "100",
+              "min": "100",
+              "currency": "chaos",
+              "matching": {
+                "kind": "manual",
+                "description": "Synthetic target"
+              },
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic valuation assumption; no completed sale",
+                "recordedAt": "2026-11-04T17:39:37.030Z"
+              }
+            },
+            "outcome-2": {
+              "max": "10",
+              "min": "10",
+              "currency": "chaos",
+              "matching": {
+                "kind": "manual",
+                "description": "Synthetic salvage"
+              },
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Synthetic disjoint coin flip: target or salvage. No observed game probabilities or transactions.",
+                "reference": "Synthetic valuation assumption; no completed sale",
+                "recordedAt": "2026-11-04T17:39:37.030Z"
+              }
+            }
+          }
+        },
+        "objective": {
+          "kind": "attempts",
+          "count": 1
+        },
+        "maxTransitions": 10000,
+        "reachWithinAttempts": 100
+      },
+      "recipeId": "quicksilver-alchemist-cheetah",
+      "recipeHash": "db97fb2a47fb0dbeb1aef37e80e00830d009a9c974032f1bd6d144005f392476",
+      "cancelRequested": false,
+      "calculationVersion": "outcomes-1"
+    },
+    {
+      "result": null,
+      "status": "cancelled",
+      "request": {
+        "seed": "worksmith-1",
+        "budget": "100",
+        "trials": 10000,
+        "analysis": {
+          "now": "2026-11-04T17:39:39.701Z",
+          "model": {
+            "id": "synthetic-cancel",
+            "stages": [
+              {
+                "id": "roll",
+                "name": "Synthetic rare roll",
+                "costs": [
+                  {
+                    "kind": "material",
+                    "quantity": "1",
+                    "provenance": {
+                      "kind": "assumption",
+                      "notes": "Deliberately rare synthetic transition; not game data.",
+                      "reference": "Synthetic cancellation fixture",
+                      "recordedAt": "2026-11-04T17:39:39.160Z"
+                    },
+                    "resourceId": "synthetic-currency"
+                  }
+                ],
+                "outcomes": [
+                  {
+                    "id": "advance",
+                    "name": "Synthetic transition",
+                    "costs": [],
+                    "credits": [],
+                    "matching": {
+                      "kind": "manual",
+                      "description": "Synthetic completed result"
+                    },
+                    "sellable": false,
+                    "unknowns": [],
+                    "nextStageId": "finish",
+                    "probability": {
+                      "value": "0.0001",
+                      "provenance": {
+                        "kind": "assumption",
+                        "notes": "Deliberately rare synthetic transition; not game data.",
+                        "reference": "Synthetic cancellation fixture",
+                        "recordedAt": "2026-11-04T17:39:39.160Z"
+                      }
+                    },
+                    "targetSuccess": false,
+                    "classification": "imperfect",
+                    "baseDisposition": "consumed"
+                  },
+                  {
+                    "id": "retry",
+                    "name": "Synthetic transition",
+                    "costs": [],
+                    "credits": [],
+                    "matching": {
+                      "kind": "manual",
+                      "description": "Synthetic completed result"
+                    },
+                    "sellable": false,
+                    "unknowns": [],
+                    "nextStageId": "roll",
+                    "probability": {
+                      "value": "0.9999",
+                      "provenance": {
+                        "kind": "assumption",
+                        "notes": "Deliberately rare synthetic transition; not game data.",
+                        "reference": "Synthetic cancellation fixture",
+                        "recordedAt": "2026-11-04T17:39:39.160Z"
+                      }
+                    },
+                    "targetSuccess": false,
+                    "classification": "recovery",
+                    "baseDisposition": "consumed"
+                  }
+                ],
+                "exclusivity": {
+                  "mode": "disjoint",
+                  "provenance": {
+                    "kind": "assumption",
+                    "notes": "Deliberately rare synthetic transition; not game data.",
+                    "reference": "Synthetic cancellation fixture",
+                    "recordedAt": "2026-11-04T17:39:39.160Z"
+                  }
+                }
+              },
+              {
+                "id": "finish",
+                "name": "Synthetic finish",
+                "costs": [],
+                "outcomes": [
+                  {
+                    "id": "target",
+                    "name": "Synthetic transition",
+                    "costs": [],
+                    "credits": [],
+                    "matching": {
+                      "kind": "manual",
+                      "description": "Synthetic completed result"
+                    },
+                    "sellable": true,
+                    "unknowns": [],
+                    "nextStageId": null,
+                    "probability": {
+                      "value": "1",
+                      "provenance": {
+                        "kind": "assumption",
+                        "notes": "Deliberately rare synthetic transition; not game data.",
+                        "reference": "Synthetic cancellation fixture",
+                        "recordedAt": "2026-11-04T17:39:39.160Z"
+                      }
+                    },
+                    "targetSuccess": true,
+                    "classification": "target",
+                    "baseDisposition": "consumed"
+                  }
+                ],
+                "exclusivity": {
+                  "mode": "disjoint",
+                  "provenance": {
+                    "kind": "assumption",
+                    "notes": "Deliberately rare synthetic transition; not game data.",
+                    "reference": "Synthetic cancellation fixture",
+                    "recordedAt": "2026-11-04T17:39:39.160Z"
+                  }
+                }
+              }
+            ],
+            "version": 1,
+            "unknowns": [],
+            "initialCosts": [],
+            "startStageId": "roll"
+          },
+          "league": "Fixture League",
+          "prices": {
+            "synthetic-currency": {
+              "amount": "1",
+              "currency": "chaos",
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Deliberately rare synthetic transition; not game data.",
+                "reference": "Synthetic cancellation fixture",
+                "recordedAt": "2026-11-04T17:39:39.160Z"
+              }
+            }
+          },
+          "currency": "chaos",
+          "valuations": {
+            "target": {
+              "max": "100",
+              "min": "100",
+              "currency": "chaos",
+              "matching": {
+                "kind": "manual",
+                "description": "Synthetic completed result"
+              },
+              "provenance": {
+                "kind": "assumption",
+                "notes": "Deliberately rare synthetic transition; not game data.",
+                "reference": "Synthetic cancellation fixture",
+                "recordedAt": "2026-11-04T17:39:39.160Z"
+              }
+            }
+          }
+        },
+        "objective": {
+          "kind": "single-target",
+          "count": 1
+        },
+        "maxTransitions": 100000,
+        "reachWithinAttempts": 100
+      },
+      "recipeId": "quicksilver-mageblood-cheetah",
+      "recipeHash": "858f6a37769aaa74a2b972e15d6c7d41dae9cefdf665ece04d2ed7b38029db65",
+      "cancelRequested": true,
+      "calculationVersion": "outcomes-1"
+    }
+  ]
+}
