@@ -11,6 +11,7 @@ import {
 import { z } from 'zod';
 import { domainErrorCodeSchema } from '@poe-worksmith/contracts';
 import {
+  completeOutputLimit,
   isCompleteSortedPriceSample,
   type MarketCollectionAdapter,
 } from '../marketCollection.js';
@@ -213,7 +214,17 @@ export class PoeTradeClient implements MarketSearchProvider {
         );
       }
       if (!batch.capturedAt) throw new DomainError('PROVIDER_RESPONSE_INVALID');
-      if ((batch.reportedTotal ?? 0) > 0 && batch.fetchedCount === 0)
+      const skippedOversizedOutput =
+        requiresCompleteOutputCoverage(request.query) &&
+        batch.coverage === 'partial' &&
+        batch.batchCount === 0 &&
+        Math.max(batch.returnedCount, batch.reportedTotal ?? 0) >
+          completeOutputLimit;
+      if (
+        (batch.reportedTotal ?? 0) > 0 &&
+        batch.fetchedCount === 0 &&
+        !skippedOversizedOutput
+      )
         throw new DomainError('MARKET_COLLECTION_FAILED');
       const fetchedAt = new Date(batch.capturedAt);
       return {
@@ -235,7 +246,7 @@ export class PoeTradeClient implements MarketSearchProvider {
           !requiresCompleteOutputCoverage(request.query) &&
           batch.sortedSampleComplete === true &&
           isCompleteSortedPriceSample(batch, target),
-        totalResults: batch.reportedTotal ?? batch.listings.length,
+        totalResults: batch.reportedTotal ?? batch.returnedCount,
         listings: batch.listings.flatMap((row) =>
           row.price === null ||
           !row.currency ||

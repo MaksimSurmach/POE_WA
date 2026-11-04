@@ -126,19 +126,22 @@ describe('authored recipe to provider to published economics', () => {
             coverage === 'sample' ||
             coverage === 'sample-incomplete' ||
             (coverage === 'base-sample' && base);
-          const offers = sampled
-            ? [
-                ...initialOffers,
-                ...Array.from(
-                  {
-                    length:
-                      (coverage === 'sample-incomplete' ? 19 : 20) -
-                      initialOffers.length,
-                  },
-                  (_, index) => [1000 + index, 'unknown-seller'] as const,
-                ),
-              ]
-            : initialOffers;
+          const offers =
+            coverage === 'capped' && !base
+              ? []
+              : sampled
+                ? [
+                    ...initialOffers,
+                    ...Array.from(
+                      {
+                        length:
+                          (coverage === 'sample-incomplete' ? 19 : 20) -
+                          initialOffers.length,
+                      },
+                      (_, index) => [1000 + index, 'unknown-seller'] as const,
+                    ),
+                  ]
+                : initialOffers;
           return {
             ...(sampled
               ? {
@@ -154,7 +157,7 @@ describe('authored recipe to provider to published economics', () => {
                   },
                 }
               : {}),
-            batchCount: 1,
+            batchCount: coverage === 'capped' && !base ? 0 : 1,
             cached: false,
             capturedAt: now.toISOString(),
             coverage:
@@ -433,7 +436,13 @@ describe('authored recipe to provider to published economics', () => {
         league.id,
       );
       expect(snapshot?.payload.listings).toHaveLength(
-        coverage === 'sample' ? 20 : coverage === 'sample-incomplete' ? 19 : 4,
+        coverage === 'sample'
+          ? 20
+          : coverage === 'sample-incomplete'
+            ? 19
+            : coverage === 'capped'
+              ? 0
+              : 4,
       );
       expect(snapshot?.payload.sortedSampleComplete).toBe(false);
       if (coverage === 'sample')

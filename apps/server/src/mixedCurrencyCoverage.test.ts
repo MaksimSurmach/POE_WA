@@ -44,6 +44,7 @@ async function collect(
   slot = 'crafted-item',
   inexact = false,
   interrupt = false,
+  reportedTotal: number | null = count,
 ) {
   const ids = Array.from({ length: count }, (_, i) => `item-${i}`);
   const controller = new AbortController();
@@ -69,7 +70,7 @@ async function collect(
             currency: 'chaos',
             ids,
             queryId: 'q',
-            reportedTotal: count,
+            reportedTotal,
             inexact,
             request: { scope: 'strict', sort: { price: 'asc' } },
           },
@@ -112,7 +113,7 @@ describe('mixed currency output coverage', () => {
     expect(Math.min(...batch.listings.map((x) => x.price!))).toBe(650);
   });
   it.each([
-    [101, false, false, 100],
+    [101, false, false, 0],
     [31, true, false, 31],
     [31, false, true, 30],
   ] as const)(
@@ -124,6 +125,65 @@ describe('mixed currency output coverage', () => {
         fetchedCount: fetched,
         sortedSampleComplete: false,
       });
+    },
+  );
+  it.each([
+    [100, 100, 100, 'complete'],
+    [100, 101, 0, 'partial'],
+    [101, null, 0, 'partial'],
+    [0, 101, 0, 'partial'],
+  ] as const)(
+    'avoids detail requests for oversized outputs while retaining search evidence: %s IDs / %s total',
+    async (count, total, fetched, coverage) => {
+      const batch = await collect(count, 'crafted-item', false, false, total);
+      expect(batch).toMatchObject({
+        batchCount: fetched / 10,
+        coverage,
+        fetchedCount: fetched,
+        returnedCount: count,
+        reportedTotal: total,
+        sortedSampleComplete: false,
+        searchEvidence: { queryId: 'q', reportedTotal: total },
+      });
+      expect(batch.searchEvidence?.ids).toHaveLength(count);
+      expect(batch.errorCode).toBeUndefined();
+      const provider = new PoeTradeClient({
+        userAgent: 'fixture coverage',
+        collectionSource: { descriptor, collect: async () => batch },
+      });
+      const result = await provider.search({
+        league: target.league,
+        query,
+        schemaVersion: 1,
+      });
+      expect(result).toMatchObject({
+        coverage,
+        totalResults: total ?? count,
+      });
+      expect(result.listings).toHaveLength(fetched);
+    },
+  );
+  it.each([
+    ['crafted-item', 100],
+    ['starting-base', 101],
+  ] as const)(
+    'still rejects an unexpectedly empty %s collection',
+    async (slot, reportedTotal) => {
+      const batch = { ...(await collect(101)), reportedTotal };
+      const provider = new PoeTradeClient({
+        userAgent: 'fixture coverage',
+        collectionSource: {
+          descriptor,
+          collect: async () => ({ ...batch, returnedCount: reportedTotal }),
+        },
+      });
+      await expect(
+        provider.search({
+          league: target.league,
+          query: { handbookTarget: JSON.stringify({ ...targetInput, slot }) },
+          schemaVersion: 1,
+        }),
+      ).rejects.toMatchObject({ code: 'MARKET_COLLECTION_FAILED' });
     },
   );
   it('retains the bounded available-purchase sample for starting bases', async () => {

@@ -1,0 +1,12 @@
+{
+  "reviewer": "Claude Code",
+  "model": "claude-opus-5-5",
+  "sessionId": "ef614e64-3f36-47ab-b77b-da137a28e38a",
+  "reviewedHead": "29568e194b607ce18336a57e266852dd3a29fc7e",
+  "base": "03f9713428b79f585f1940cd3f126a5e4b4cae84",
+  "isError": false,
+  "findingDisposition": {
+    "oversized-output-detail-fetches": "Fixed in this follow-up: preserve partial search evidence, skip details above the cohort limit, accept the intentional empty partial result in the provider, retain unknown-total returned counts, and keep expected craft cost without publishing ROI."
+  },
+  "validation": "Full workspace tests and native-control self-check passed; limit and provider guard regressions cover 100/101, unknown total, no returned IDs, and unexpected empty batches. The pipeline regression covers partial output with zero details and known input cost."
+}

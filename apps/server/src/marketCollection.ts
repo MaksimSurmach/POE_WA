@@ -25,6 +25,7 @@ import {
 } from './rateLimitController.js';
 
 const detailBatchSize = 10;
+export const completeOutputLimit = 100;
 
 export type MarketCollectionBatch = {
   batchCount: number;
@@ -183,7 +184,7 @@ export function configuredMarketCollectionSource(value?: string) {
   }
 }
 
-/** Handbook prices sample 20 sorted IDs; research retains the 1,000-detail cap. */
+/** Mixed outputs require a complete cohort; other handbook prices sample 20 IDs. */
 export function createBatchedMarketCollectionSource(options: {
   descriptor: MarketCollectionSource;
   rateLimits: RateLimitGate;
@@ -233,15 +234,19 @@ export function createBatchedMarketCollectionSource(options: {
       );
       // Trade's mixed-currency order need not match our FX; collect small output cohorts fully.
       // shortcut: cap outputs at 100 listings; larger cohorts remain unpriced until deeper collection exists.
-      const selectedIds = ids.slice(
-        0,
+      const mixedOutput =
         target.slot === 'crafted-item' &&
-          target.tradeSearch?.includeOtherCurrencies
-          ? 100
-          : handbookSample
-            ? 20
-            : 1000,
-      );
+        target.tradeSearch?.includeOtherCurrencies;
+      const oversizedOutput =
+        mixedOutput &&
+        Math.max(ids.length, search.data.reportedTotal ?? 0) >
+          completeOutputLimit;
+      const selectedIds = oversizedOutput
+        ? []
+        : ids.slice(
+            0,
+            mixedOutput ? completeOutputLimit : handbookSample ? 20 : 1000,
+          );
       const listings: MarketImportListing[] = [];
       let cached = search.cached;
       let batchCount = 0;
