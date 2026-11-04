@@ -6,6 +6,11 @@ export default defineConfig({
   preview: { host: '127.0.0.1' },
   server: {
     host: '127.0.0.1',
-    proxy: { '/api': { target: 'http://127.0.0.1:3000', changeOrigin: false } },
+    proxy: {
+      '/api': {
+        target: process.env.WORKSMITH_API_URL ?? 'http://127.0.0.1:3000',
+        changeOrigin: false,
+      },
+    },
   },
 });

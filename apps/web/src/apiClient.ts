@@ -19,6 +19,13 @@ import {
   trendOverviewResponseSchema,
   type TrendRange,
   craftingPricesResponseSchema,
+  craftAnalysisResponseSchema,
+  craftModelResponseSchema,
+  craftModelSaveInputSchema,
+  craftRiskResponseSchema,
+  craftRiskCreateInputSchema,
+  type CraftModelSaveInput,
+  type CraftRiskCreateInput,
 } from '@poe-worksmith/contracts';
 
 type Contract<T> = {
@@ -45,9 +52,14 @@ export function createApiClient(
     path: string,
     contract: Contract<T>,
     method: 'GET' | 'POST' = 'GET',
+    body?: unknown,
   ): Promise<T> {
     const response = await fetchImplementation(`${root}${path}`, {
-      headers: { accept: 'application/json' },
+      headers: {
+        accept: 'application/json',
+        ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       ...(method === 'POST' ? { method } : {}),
     });
     const payload: unknown = await response.json();
@@ -60,6 +72,42 @@ export function createApiClient(
   }
 
   return {
+    getCraftAnalysis(id: string, league?: string) {
+      return request(
+        `/api/recipes/${encodeURIComponent(id)}/analysis${league ? `?league=${encodeURIComponent(league)}` : ''}`,
+        craftAnalysisResponseSchema,
+      );
+    },
+    saveCraftModel(input: CraftModelSaveInput) {
+      return request(
+        '/api/admin/craft-analysis/models',
+        craftModelResponseSchema,
+        'POST',
+        craftModelSaveInputSchema.parse(input),
+      );
+    },
+    createCraftRisk(input: CraftRiskCreateInput) {
+      return request(
+        '/api/admin/craft-analysis/simulations',
+        craftRiskResponseSchema,
+        'POST',
+        craftRiskCreateInputSchema.parse(input),
+      );
+    },
+    getCraftRisk(id: string) {
+      return request(
+        `/api/admin/craft-analysis/simulations/${encodeURIComponent(id)}`,
+        craftRiskResponseSchema,
+      );
+    },
+    cancelCraftRisk(id: string, idempotencyKey: string) {
+      return request(
+        `/api/admin/craft-analysis/simulations/${encodeURIComponent(id)}/cancel`,
+        craftRiskResponseSchema,
+        'POST',
+        { idempotencyKey },
+      );
+    },
     getCraftingPrices() {
       return request('/api/crafting-prices', craftingPricesResponseSchema);
     },

@@ -12,6 +12,7 @@ import { formatMarginPercent } from './catalog.js';
 import { createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
 import { RecipeTrendPanel } from './MarketTrendsPage.js';
+import { CraftRiskSection } from './CraftRiskSection.js';
 
 const apiClient = createApiClient();
 
@@ -145,6 +146,8 @@ export function RecipePage() {
         10 div and an ask of 12 div means 2 div profit and 20% ROI. Expected
         cost is a mean across repeated crafts, not a guaranteed budget.
       </p>
+
+      <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
 
       {method ? (
         <DetailSection title={method.name}>

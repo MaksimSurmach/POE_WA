@@ -1,0 +1,216 @@
+.craft-risk__body {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  min-width: 0;
+}
+.craft-risk__body p {
+  margin: 0;
+}
+.craft-risk__body details {
+  min-width: 0;
+}
+.craft-risk__body summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+  padding: 8px 0;
+}
+.craft-risk__body details[open] > summary {
+  margin-bottom: 10px;
+}
+.craft-risk__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px 20px;
+  margin: 0;
+}
+.craft-risk__metrics dt {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.craft-risk__metrics dd {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.craft-risk__notice {
+  padding: 12px;
+  border-left: 2px solid var(--accent);
+  background: var(--surface-raised, var(--surface));
+}
+.craft-risk__notice ul {
+  padding-left: 20px;
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+.craft-risk__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+.craft-risk__body label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  min-width: 0;
+}
+.craft-risk__body input:not([type='checkbox']),
+.craft-risk__body select,
+.craft-risk__body textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--background, var(--surface));
+  color: var(--text);
+  font: inherit;
+}
+.craft-risk__body textarea {
+  resize: vertical;
+}
+.craft-risk__json {
+  font-family: ui-monospace, monospace !important;
+  font-size: 0.75rem !important;
+}
+.craft-risk__body button {
+  justify-self: start;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.craft-risk__body button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.craft-risk__body button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.craft-risk__editor,
+.craft-risk__simulation {
+  display: grid;
+  gap: 14px;
+}
+.craft-risk__editor fieldset {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  min-width: 0;
+}
+.craft-risk__editor legend {
+  padding: 0 6px;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+.craft-risk__checks,
+.craft-risk__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.craft-risk__body .craft-risk__checks label,
+.craft-risk__body .craft-risk__checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+.craft-risk__checkbox input,
+.craft-risk__checks input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+.craft-risk__table-wrap {
+  overflow-x: auto;
+  min-width: 0;
+}
+.craft-risk__table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.craft-risk__table-wrap caption {
+  text-align: left;
+  color: var(--muted);
+  padding: 0 0 8px;
+}
+.craft-risk__table-wrap th,
+.craft-risk__table-wrap td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.craft-risk__table-wrap th {
+  font-weight: 600;
+  color: var(--muted);
+}
+.craft-risk__table-wrap small {
+  display: block;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.craft-risk__distribution {
+  margin: 0;
+  min-width: 0;
+}
+.craft-risk__distribution svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--muted);
+}
+.craft-risk__distribution figcaption {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.craft-risk__distribution rect {
+  fill: var(--accent);
+  opacity: 0.7;
+}
+.craft-risk__distribution text {
+  fill: currentColor;
+  font-family: inherit;
+  font-size: 11px;
+}
+.craft-risk__body progress {
+  width: 100%;
+  accent-color: var(--accent);
+}
+@media (max-width: 480px) {
+  .craft-risk__body {
+    padding: 12px;
+  }
+  .craft-risk__fields {
+    grid-template-columns: 1fr;
+  }
+  .craft-risk__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.craft-risk__body h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.craft-risk__simulation > fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.craft-risk__signature {
+  overflow-wrap: anywhere;
+}
