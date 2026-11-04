@@ -1,3 +1,5 @@
+import { registerFactoryRoutes } from './factoryApi.js';
+import type { FactoryService } from './factory.js';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { registerCraftAnalysisRoutes } from './craftAnalysisApi.js';
 import type { CraftAnalysisService } from './craftAnalysis.js';
@@ -81,6 +83,7 @@ export function buildApi(
   options: {
     marketAdmin?: MarketAdminApiOptions | undefined;
     craftAnalysis?: CraftAnalysisService | undefined;
+    factory?: FactoryService | undefined;
     diagnosticsToken?: string | undefined;
     readCircuits?: (() => Promise<ProviderCircuitState[]>) | undefined;
     readOperationalDiagnostics?: OperationalDiagnosticsReader | undefined;
@@ -227,6 +230,7 @@ export function buildApi(
   });
   registerMarketAdminRoutes(api, options.marketAdmin);
   registerCraftAnalysisRoutes(api, options.craftAnalysis);
+  registerFactoryRoutes(api, options.factory);
   registerMarketTrendsRoutes(api, options.marketTrends);
 
   api.get('/health/live', async (request) => ({

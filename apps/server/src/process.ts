@@ -1,3 +1,5 @@
+import { createFactoryService } from './factory.js';
+import { createFactoryRepository } from './repositories/factoryRepository.js';
 import { createCraftAnalysisService } from './craftAnalysis.js';
 import { createCraftAnalysisRepository } from './repositories/craftAnalysisRepository.js';
 import { collectRecipeMaterialPrices } from './marketEconomy.js';
@@ -178,6 +180,18 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     enqueue: (data, id, db) => producer().enqueue(data, id, db),
     cancel: (id) => producer().cancel(id),
   };
+  const craftAnalysis = createCraftAnalysisService({
+    repository: createCraftAnalysisRepository(pool),
+    onWorkerError: (error) =>
+      logger.warn(
+        { err: error },
+        'Craft risk worker failed; queued work remains recoverable',
+      ),
+    recipes: repositories.recipes,
+    leagues: repositories.leagues,
+    maximumQuoteAgeMs: async () =>
+      (await admin.read()).effective.maximumQuoteAgeMs,
+  });
   const api = modeIncludesApi(config.mode)
     ? buildApi(
         logger,
@@ -196,17 +210,11 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         repositories.leagues.list,
         repositories.leagues.findCurrent,
         {
-          craftAnalysis: createCraftAnalysisService({
-            repository: createCraftAnalysisRepository(pool),
-            onWorkerError: (error) =>
-              logger.warn(
-                { err: error },
-                'Craft risk worker failed; queued work remains recoverable',
-              ),
-            recipes: repositories.recipes,
+          craftAnalysis,
+          factory: createFactoryService({
+            repository: createFactoryRepository(pool),
+            analysis: craftAnalysis,
             leagues: repositories.leagues,
-            maximumQuoteAgeMs: async () =>
-              (await admin.read()).effective.maximumQuoteAgeMs,
           }),
           marketAdmin: {
             store: admin,

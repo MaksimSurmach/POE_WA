@@ -1146,3 +1146,64 @@ export const craftRiskRuns = pgTable(
     ),
   ],
 );
+
+export const factoryBatches = pgTable(
+  'factory_batches',
+  {
+    id: uuid('id').primaryKey(),
+    recipeId: text('recipe_id')
+      .notNull()
+      .references(() => recipes.id),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id),
+    document: jsonb('document').$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index('factory_batches_league_idx').on(t.leagueId, t.createdAt)],
+);
+
+export const factoryEvents = pgTable(
+  'factory_events',
+  {
+    id: uuid('id').primaryKey(),
+    batchId: uuid('batch_id')
+      .notNull()
+      .references(() => factoryBatches.id),
+    sequence: integer('sequence').notNull(),
+    document: jsonb('document').$type<Record<string, unknown>>().notNull(),
+    recordedAt: timestamp('recorded_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('factory_events_sequence_uq').on(t.batchId, t.sequence),
+    uniqueIndex('factory_inventory_identity_uq')
+      .on(sql`(${t.document}->'payload'->>'itemId')`)
+      .where(sql`${t.document}->'payload'->>'type' = 'produce'`),
+    check(
+      'factory_events_sequence_check',
+      sql`${t.sequence} > 0 and ${t.sequence} <= 2000`,
+    ),
+  ],
+);
+
+export const factoryMutations = pgTable(
+  'factory_mutations',
+  {
+    idempotencyKey: uuid('idempotency_key').primaryKey(),
+    requestHash: text('request_hash').notNull(),
+    batchId: uuid('batch_id')
+      .notNull()
+      .references(() => factoryBatches.id),
+    resultVersion: integer('result_version').notNull(),
+    recordedAt: timestamp('recorded_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check('factory_mutations_version_check', sql`${t.resultVersion} >= 0`),
+  ],
+);
