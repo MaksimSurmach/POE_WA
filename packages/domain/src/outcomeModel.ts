@@ -41,7 +41,7 @@ const marketEvidenceSchema = z.strictObject({
   observedAt: z.iso.datetime({ offset: true }),
   expiresAt: z.iso.datetime({ offset: true }),
   coverage: z.enum(['complete', 'partial', 'unknown']),
-  independentSellers: z.number().int().min(0).max(1000000),
+  independentSellers: z.number().int().min(0).max(1000000).nullable(),
 });
 export const outcomePriceQuoteSchema = z.strictObject({
   amount: decimal,

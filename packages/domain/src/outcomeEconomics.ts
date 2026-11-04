@@ -23,6 +23,8 @@ const costBreakdownSchema = z.strictObject({
 });
 export const outcomeAnalysisSchema = z.strictObject({
   calculationVersion: z.literal(outcomeCalculationVersion),
+  valueBasis: z.literal('cash-proceeds-minus-gross-outlay'),
+  unvaluedRetainedBaseProbability: z.string().nullable(),
   horizon: z.literal('one-method-run-with-setup'),
   status: z.enum(['complete', 'unavailable']),
   reasons: z.array(z.string()),
@@ -97,7 +99,7 @@ function quoteIssues(
         Date.parse(m.expiresAt) <= Date.parse(m.observedAt)
       )
         issues.push(`${label}: market observation is stale or invalid`);
-      if (resale && m.independentSellers < 2)
+      if (resale && (m.independentSellers === null || m.independentSellers < 2))
         issues.push(`${label}: insufficient independent sellers`);
       if (resale && m.coverage !== 'complete')
         issues.push(`${label}: incomplete resale market coverage`);
@@ -225,6 +227,7 @@ const rewardNames = [
   'credits',
   'target',
   'saleable',
+  'retainedBase',
   'absorption',
   'targetRevenueMin',
   'targetRevenueMax',
@@ -274,6 +277,7 @@ function expectedStageRewards(input: OutcomeAnalysisInput) {
         coefficients[column] = coefficients[column]!.sub(p);
       } else {
         add('absorption', p);
+        if (outcome.baseDisposition === 'retained') add('retainedBase', p);
         if (outcome.targetSuccess) add('target', p);
         if (outcome.sellable) {
           const value = input.valuations[outcome.id]!;
@@ -343,6 +347,8 @@ export function analyzeOutcomeModel(
   );
   const result: OutcomeAnalysis = {
     calculationVersion: outcomeCalculationVersion,
+    valueBasis: 'cash-proceeds-minus-gross-outlay',
+    unvaluedRetainedBaseProbability: null,
     horizon: 'one-method-run-with-setup',
     status: 'unavailable',
     reasons: outcomeInputIssues(input),
@@ -399,6 +405,9 @@ export function analyzeOutcomeModel(
   return {
     ...result,
     status: 'complete',
+    unvaluedRetainedBaseProbability: r.retainedBase
+      .toSignificantDigits(30)
+      .toFixed(),
     expectedCosts: {
       base: outcomeMoney(r.base),
       material: outcomeMoney(r.material),

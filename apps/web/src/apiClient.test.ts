@@ -121,6 +121,7 @@ describe('typed API client', () => {
         leagueId: '11111111-1111-4111-8111-111111111111',
         evaluatedAt: timestamp,
         modelRecord: null,
+        embeddedModel: null,
         analysis: null,
         prices: {},
         valuations: {},

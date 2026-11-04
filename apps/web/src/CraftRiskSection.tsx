@@ -3,12 +3,14 @@ import type {
   CraftAnalysis,
   CraftRiskRun,
   CraftModelSaveInput,
+  CraftModelRecord,
 } from '@poe-worksmith/contracts';
 import {
   outcomeAnalysisInputSchema,
   outcomeActionValuesSchema,
   recommendOutcomeAction,
   type OutcomeAnalysisInput,
+  type OutcomeModel,
 } from '@poe-worksmith/domain';
 import { createApiClient } from './apiClient.js';
 import { GuidedOutcomeEditor, modelInputError } from './GuidedOutcomeEditor.js';
@@ -36,6 +38,33 @@ export function parseAdvancedOutcomeInput(
       'Enter an object containing model, currency, prices and valuations.',
     );
   return outcomeAnalysisInputSchema.parse({ ...value, league, now });
+}
+
+export function outcomeEditorDocument(
+  record: Pick<
+    CraftModelRecord,
+    'model' | 'currency' | 'prices' | 'valuations'
+  > | null,
+  embeddedModel: OutcomeModel | null,
+) {
+  if (record)
+    return JSON.stringify(
+      {
+        model: record.model,
+        currency: record.currency,
+        prices: record.prices,
+        valuations: record.valuations,
+      },
+      null,
+      2,
+    );
+  return embeddedModel
+    ? JSON.stringify(
+        { model: embeddedModel, currency: 'chaos', prices: {}, valuations: {} },
+        null,
+        2,
+      )
+    : '';
 }
 
 function riskStorageKey(recipeId: string, leagueId: string) {
@@ -88,20 +117,10 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
   }, [recipeId, revision]);
 
   const model = data?.modelRecord;
+  const visibleModel = model?.model ?? data?.embeddedModel;
   useEffect(() => {
     setAdvanced(
-      model
-        ? JSON.stringify(
-            {
-              model: model.model,
-              currency: model.currency,
-              prices: model.prices,
-              valuations: model.valuations,
-            },
-            null,
-            2,
-          )
-        : '',
+      outcomeEditorDocument(model ?? null, data?.embeddedModel ?? null),
     );
     setJob(null);
     setRiskError('');
@@ -315,10 +334,10 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                 </ul>
               </div>
             )}
-            {model ? (
+            {visibleModel ? (
               <details>
                 <summary>Method outcomes and probability evidence</summary>
-                <OutcomeModelSummary model={model.model} />
+                <OutcomeModelSummary model={visibleModel} />
                 <OutcomePriceEvidence
                   prices={data.prices}
                   valuations={data.valuations}

@@ -238,6 +238,48 @@ describe('outcome economics', () => {
     model.stages[0]!.outcomes[0]!.baseDisposition = 'retained';
     expect(() => outcomeModelSchema.parse(model)).toThrow(/consumes its base/);
   });
+  it('accepts unknown seller counts for cost estimates but never for resale evidence', () => {
+    const input = syntheticOutcomeInput();
+    const market = {
+      league: input.league,
+      observedAt: source.recordedAt,
+      expiresAt: '2026-11-04T02:00:00Z',
+      coverage: 'complete' as const,
+      independentSellers: null,
+    };
+    input.prices.base = {
+      ...input.prices.base!,
+      provenance: { ...source, kind: 'market-observation' },
+      market,
+    };
+    expect(analyzeOutcomeModel(input).status).toBe('complete');
+    input.model.stages[0]!.outcomes[0]!.matching = {
+      kind: 'exact-target',
+      targetSignature: 'target-a',
+    };
+    input.valuations.target = {
+      ...input.valuations.target!,
+      matching: { kind: 'exact-target', targetSignature: 'target-a' },
+      provenance: { ...source, kind: 'market-observation' },
+      market,
+    };
+    expect(analyzeOutcomeModel(input)).toMatchObject({
+      status: 'unavailable',
+      reasons: expect.arrayContaining([
+        'target: insufficient independent sellers',
+      ]),
+    });
+  });
+  it('reports an unvalued retained base acquired inside a stage as well as in setup', () => {
+    const input = syntheticOutcomeInput();
+    input.model.stages[0]!.outcomes = [
+      { ...syntheticOutcome('retained', '1'), baseDisposition: 'retained' },
+    ];
+    expect(analyzeOutcomeModel(input)).toMatchObject({
+      valueBasis: 'cash-proceeds-minus-gross-outlay',
+      unvaluedRetainedBaseProbability: '1',
+    });
+  });
   it('keeps tiny known probabilities instead of rounding them to zero', () => {
     const input = syntheticOutcomeInput();
     input.model.stages[0]!.outcomes = [

@@ -63,7 +63,7 @@ describe('analysis evidence from existing market pipeline', () => {
     const result = resolveCraftAnalysisEvidence(model, [row()], now, 120_000);
     expect(result.prices.base?.amount).toBe('3');
     expect(result.prices.material?.amount).toBe('2');
-    expect(result.prices.material?.market?.independentSellers).toBe(0);
+    expect(result.prices.material?.market?.independentSellers).toBeNull();
     expect(result.valuations.target?.min).toBe('20');
     expect(result.valuations.salvage).toBeUndefined();
   });

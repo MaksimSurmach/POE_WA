@@ -87,6 +87,7 @@ export const craftAnalysisSchema = z.strictObject({
   leagueId: z.uuid().nullable(),
   evaluatedAt: instant,
   modelRecord: craftModelRecordSchema.nullable(),
+  embeddedModel: outcomeModelSchema.nullable().default(null),
   analysis: outcomeAnalysisSchema.nullable(),
   prices: z.record(key, outcomePriceQuoteSchema),
   valuations: z.record(key, outcomeValueQuoteSchema),

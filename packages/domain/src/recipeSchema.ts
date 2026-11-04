@@ -234,6 +234,25 @@ export function validateRecipeDocument(input: unknown): CanonicalRecipe {
         },
       ]),
     );
+  if (
+    recipe.craft.outcomeModel?.stages.some((stage) =>
+      stage.outcomes.some(
+        (outcome) =>
+          outcome.targetSuccess &&
+          outcome.matching.kind === 'exact-target' &&
+          outcome.matching.targetSignature !== recipe.targetSignature,
+      ),
+    )
+  )
+    throw new RecipeValidationError(
+      new z.ZodError([
+        {
+          code: 'custom',
+          path: ['craft', 'outcomeModel'],
+          message: 'Outcome target does not match the recipe output signature',
+        },
+      ]),
+    );
   return result.data;
 }
 

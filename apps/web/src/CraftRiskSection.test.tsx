@@ -13,9 +13,11 @@ import {
   CraftEconomicsSummary,
   CraftRiskResult,
   OutcomeModelSummary,
+  OutcomePriceEvidence,
 } from './CraftRiskSummary.js';
 import {
   parseAdvancedOutcomeInput,
+  outcomeEditorDocument,
   OutcomeActionComparison,
 } from './CraftRiskSection.js';
 
@@ -149,6 +151,30 @@ describe('outcome model entry', () => {
       ),
     ).toThrow();
   });
+  it('prefills embedded models without invented evidence and keeps saved revisions authoritative', () => {
+    const source = input();
+    expect(JSON.parse(outcomeEditorDocument(null, source.model))).toEqual({
+      model: source.model,
+      currency: 'chaos',
+      prices: {},
+      valuations: {},
+    });
+    const record = {
+      model: source.model,
+      currency: 'divine' as const,
+      prices: source.prices,
+      valuations: source.valuations,
+    };
+    expect(
+      JSON.parse(
+        outcomeEditorDocument(record, {
+          ...source.model,
+          id: 'embedded-alternative',
+        }),
+      ),
+    ).toEqual(record);
+    expect(outcomeEditorDocument(null, null)).toBe('');
+  });
   it('validates advanced imports and binds them to the selected league and evaluation time', () => {
     const imported = parseAdvancedOutcomeInput(
       JSON.stringify({
@@ -175,6 +201,81 @@ describe('outcome model entry', () => {
 });
 
 describe('risk presentation', () => {
+  it('does not present an unknown purchase seller count as zero competing sellers', () => {
+    const model = input();
+    const market = {
+      league: model.league,
+      observedAt: now,
+      expiresAt: '2026-11-04T13:00:00Z',
+      coverage: 'complete' as const,
+      independentSellers: 0,
+    };
+    model.prices['manual-base']!.market = market;
+    model.valuations.target!.market = { ...market, independentSellers: 2 };
+    const html = renderToStaticMarkup(
+      <OutcomePriceEvidence
+        prices={model.prices}
+        valuations={model.valuations}
+      />,
+    );
+    expect(html).not.toContain('0 sellers');
+    expect(html).toContain('2 sellers');
+    expect(html).toContain('complete coverage');
+    model.valuations.target!.market.independentSellers = null;
+    const unknown = renderToStaticMarkup(
+      <OutcomePriceEvidence
+        prices={model.prices}
+        valuations={model.valuations}
+      />,
+    );
+    expect(unknown).toContain('Seller count unknown');
+    expect(unknown).not.toContain('null sellers');
+  });
+
+  it('distinguishes initial-run cash EV from a target objective and identifies retained assets', async () => {
+    const model = input();
+    const stage = model.model.stages[0]!;
+    model.model.initialCosts = stage.costs.filter(
+      (cost) => cost.kind === 'base',
+    );
+    stage.costs = stage.costs.filter((cost) => cost.kind !== 'base');
+    stage.outcomes = [
+      { ...stage.outcomes[0]!, costs: [] },
+      {
+        ...stage.outcomes[2]!,
+        costs: [],
+        baseDisposition: 'retained',
+        probability: { ...stage.outcomes[2]!.probability, value: '0.75' },
+      },
+    ];
+    const analysis = analyzeOutcomeModel(model);
+    expect(analysis).toMatchObject({
+      expectedTotalCost: '12',
+      expectedNetProfit: { min: '13', max: '13' },
+      unvaluedRetainedBaseProbability: '0.75',
+    });
+    const html = renderToStaticMarkup(
+      <CraftEconomicsSummary analysis={analysis} />,
+    );
+    expect(html).toContain('Initial run outlay');
+    expect(html).toContain('Net cash EV');
+    expect(html).toContain('75% of outcomes');
+    expect(html).toContain('Full asset-inclusive return is unavailable');
+    const risk = await simulateCraftingRisk({
+      analysis: model,
+      objective: { kind: 'single-target', count: 1 },
+      seed: 'cash-horizon-ui',
+      trials: 100,
+      budget: '100',
+      maxTransitions: 100,
+      reachWithinAttempts: 10,
+    });
+    expect(risk.meanCost).toBe('18');
+    const riskHtml = renderToStaticMarkup(<CraftRiskResult result={risk} />);
+    expect(riskHtml).toContain('not the initial-run EV above');
+    expect(riskHtml).toContain('Chance of cash loss');
+  });
+
   it('preserves uncertain salvage ranges instead of showing a fabricated midpoint', () => {
     const model = input();
     model.valuations.salvage!.max = '40';

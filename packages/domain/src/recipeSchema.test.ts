@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalRecipeFixture, fixtureRecipe } from './fixtures/recipes.js';
 import { validateRecipeDocument } from './recipeSchema.js';
+import { syntheticOutcomeInput } from './fixtures/outcomes.js';
 import {
   calculateMethodMaterialEconomics,
   compareCraftWithAsk,
@@ -9,6 +10,21 @@ import {
 
 const price = { amount: '2', currency: 'chaos' };
 describe('single-method recipes', () => {
+  it('binds an embedded exact-target success to the recipe output', () => {
+    const model = syntheticOutcomeInput().model;
+    model.stages[0]!.outcomes[0]!.matching = {
+      kind: 'exact-target',
+      targetSignature: 'another-output',
+    };
+    const input = {
+      ...canonicalRecipeFixture,
+      craft: { ...canonicalRecipeFixture.craft, outcomeModel: model },
+    };
+    expect(() => validateRecipeDocument(input)).toThrow(/outcome target/i);
+    model.stages[0]!.outcomes[0]!.matching.targetSignature =
+      canonicalRecipeFixture.targetSignature;
+    expect(validateRecipeDocument(input).craft.outcomeModel).toBeDefined();
+  });
   it('shares the output signature across methods while keeping independent costs', () => {
     const first = canonicalRecipeFixture;
     const second = fixtureRecipe({

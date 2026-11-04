@@ -1,4 +1,5 @@
 import { Decimal } from 'decimal.js';
+import { analyzeOutcomeModel } from './outcomeEconomics.js';
 import { describe, expect, it } from 'vitest';
 import {
   analyzeIndependentGeometric,
@@ -45,6 +46,47 @@ describe('crafting risk', () => {
       7,
     );
     expect(result.histogram).toEqual([]);
+  });
+  it('does not ignore a second successful target that is not sold', async () => {
+    const input = syntheticGeometricInput();
+    input.model.stages[0]!.outcomes = [
+      syntheticOutcome('target', '0.25', true, true),
+      syntheticOutcome('held-target', '0.75', true, false),
+    ];
+    expect(await simulateCraftingRisk(request(input))).toMatchObject({
+      status: 'complete',
+      method: 'seeded-monte-carlo',
+      meanCost: '12',
+      meanMethodRuns: 1,
+    });
+  });
+  it('falls back to simulation when valid quantities and prices multiply beyond input precision', async () => {
+    const input = syntheticGeometricInput();
+    input.model.stages[0]!.outcomes = [
+      syntheticOutcome('target', '1', true, true),
+    ];
+    input.model.stages[0]!.costs[0]!.quantity = '0.1234567890123456';
+    input.prices.orb!.amount = '0.1234567890123456';
+    await expect(simulateCraftingRisk(request(input))).resolves.toMatchObject({
+      status: 'complete',
+      method: 'seeded-monte-carlo',
+      meanCost: '10.01524158',
+      meanProfit: '89.98475842',
+    });
+  });
+  it('distinguishes first-run cash EV with an unvalued retained base from target-production cash result', async () => {
+    const input = syntheticGeometricInput();
+    expect(analyzeOutcomeModel(input)).toMatchObject({
+      valueBasis: 'cash-proceeds-minus-gross-outlay',
+      expectedTotalCost: '12',
+      expectedNetProfit: { min: '13', max: '13' },
+      unvaluedRetainedBaseProbability: '0.75',
+    });
+    expect(await simulateCraftingRisk(request(input))).toMatchObject({
+      valueBasis: 'cash-proceeds-minus-gross-outlay',
+      meanCost: '18',
+      meanProfit: '82',
+    });
   });
   it('charges a replacement base on each declared new attempt, not once per target', async () => {
     const result = await simulateCraftingRisk(
@@ -196,6 +238,38 @@ describe('crafting risk', () => {
     expect(Number(result.meanProfit)).toBeCloseTo(-5.5, 0);
     expect(result.probabilityOfLoss).toBeCloseTo(0.8, 1);
     expect(Number(result.expectedShortfall95Loss)).toBe(14);
+  });
+  it('weights the boundary sample when the worst five percent is fractional', async () => {
+    const input = syntheticOutcomeInput();
+    input.model.initialCosts = [];
+    input.model.stages[0]!.costs = [];
+    input.model.stages[0]!.outcomes = [
+      {
+        ...syntheticOutcome('costly', '0.03'),
+        costs: [
+          {
+            kind: 'material',
+            resourceId: 'orb',
+            quantity: '50',
+            provenance: source,
+          },
+        ],
+      },
+      syntheticOutcome('no-cost', '0.97'),
+    ];
+    const result = await simulateCraftingRisk({
+      ...request(input),
+      objective: { kind: 'attempts', count: 1 },
+      seed: 'tail-101',
+      trials: 101,
+    });
+    expect(result.histogram[0]!.count).toBe(100);
+    expect(result.histogram.at(-1)!.count).toBe(1);
+    // One 100c loss among 101 trials: the worst 5% has mass 5.05, not six full trials.
+    expect(result).toMatchObject({
+      expectedShortfall95Cost: '19.8019802',
+      expectedShortfall95Loss: '19.8019802',
+    });
   });
   it('never samples an invented distribution for resale ranges or missing probabilities', async () => {
     const input = syntheticOutcomeInput();

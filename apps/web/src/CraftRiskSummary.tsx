@@ -46,14 +46,24 @@ export function CraftEconomicsSummary({
   return (
     <>
       <p className="catalog-price-note">
-        Per completed method run, including its declared setup and internal
-        retries.{' '}
+        Initial method run: resale and recovery proceeds minus gross outlay,
+        including upfront setup. Retained bases and unsold items have no
+        assigned value.{' '}
         {analysis.basis === 'assumptions'
           ? 'Modelled assumptions; not observed sales.'
           : analysis.basis === 'mixed'
             ? 'Combines observations with labelled assumptions.'
             : 'Based on recorded evidence; resale asks are not completed sales.'}
       </p>
+      {analysis.unvaluedRetainedBaseProbability !== null &&
+      Number(analysis.unvaluedRetainedBaseProbability) > 0 ? (
+        <p className="recipe-warning">
+          The initial run retains an unvalued base in{' '}
+          {formatRiskPercent(analysis.unvaluedRetainedBaseProbability)} of
+          outcomes. Full asset-inclusive return is unavailable; the figures
+          below describe cash only.
+        </p>
+      ) : null}
       {analysis.status !== 'complete' ? (
         <div className="craft-risk__notice" role="status">
           <strong>EV unavailable</strong>
@@ -66,15 +76,15 @@ export function CraftEconomicsSummary({
       ) : null}
       <dl className="craft-risk__metrics">
         <div>
-          <dt>Expected cost</dt>
+          <dt>Initial run outlay</dt>
           <dd>{formatRiskMoney(analysis.expectedTotalCost, currency)}</dd>
         </div>
         <div>
-          <dt>Net EV per run</dt>
+          <dt>Net cash EV</dt>
           <dd>{formatRiskRange(analysis.expectedNetProfit, currency)}</dd>
         </div>
         <div>
-          <dt>Expected ROI</dt>
+          <dt>Expected cash ROI</dt>
           <dd>
             {analysis.expectedRoiPercent
               ? analysis.expectedRoiPercent.min ===
@@ -137,7 +147,7 @@ export function CraftEconomicsSummary({
             <dd>{formatRiskPercent(analysis.targetProbability)}</dd>
           </div>
           <div>
-            <dt>Break-even target resale</dt>
+            <dt>Break-even target resale (initial run)</dt>
             <dd>{formatRiskRange(analysis.breakEvenOutputPrice, currency)}</dd>
           </div>
           <div>
@@ -154,7 +164,7 @@ export function CraftEconomicsSummary({
                   <th>Scenario</th>
                   <th>Material multiplier</th>
                   <th>Resale multiplier</th>
-                  <th>Net EV</th>
+                  <th>Net cash EV</th>
                 </tr>
               </thead>
               <tbody>
@@ -269,7 +279,7 @@ export function CraftRiskResult({
           <dd>{formatRiskMoney(result.costQuantiles?.p90, currency)}</dd>
         </div>
         <div>
-          <dt>Chance of loss</dt>
+          <dt>Chance of cash loss</dt>
           <dd>{formatRiskPercent(result.probabilityOfLoss)}</dd>
         </div>
         <div>
@@ -277,18 +287,20 @@ export function CraftRiskResult({
           <dd>{formatRiskPercent(result.probabilityOverBudget)}</dd>
         </div>
         <div>
-          <dt>Mean profit</dt>
+          <dt>Mean cash result</dt>
           <dd>{formatRiskMoney(result.meanProfit, currency)}</dd>
         </div>
         <div>
-          <dt>Risk-adjusted return</dt>
+          <dt>Risk-adjusted cash return</dt>
           <dd>{formatRiskPercent(result.riskAdjustedRoiPercent, false)}</dd>
         </div>
       </dl>
       <p className="catalog-price-note">
-        Risk-adjusted return = mean profit ÷ P95 cost. The mean is not a safe
-        bankroll: the P90 budget covers 90% of modelled outcomes for your
-        selected objective.
+        These results cover the selected objective, which may require several
+        method runs; they are not the initial-run EV above. Retained assets have
+        no assigned value. Risk-adjusted cash return = mean cash result ÷ P95
+        cost. A P90 budget covers 90% of modelled outcomes, not a guaranteed
+        profitable sale.
       </p>
       {result.status === 'complete' &&
       (result.histogram.length || result.costQuantiles) ? (
@@ -303,7 +315,7 @@ export function CraftRiskResult({
               <tr>
                 <th>Percentile</th>
                 <th>Cost</th>
-                <th>Profit</th>
+                <th>Cash result</th>
               </tr>
             </thead>
             <tbody>
@@ -327,7 +339,7 @@ export function CraftRiskResult({
             <dd>{formatRiskMoney(result.expectedShortfall95Cost, currency)}</dd>
           </div>
           <div>
-            <dt>Mean loss in worst 5%</dt>
+            <dt>Mean cash loss in worst 5%</dt>
             <dd>{formatRiskMoney(result.expectedShortfall95Loss, currency)}</dd>
           </div>
           <div>
@@ -499,11 +511,13 @@ export function OutcomePriceEvidence({
   const rows = [
     ...Object.entries(prices).map(([id, quote]) => ({
       id: `Input: ${id}`,
+      resale: false,
       value: formatRiskMoney(quote.amount, quote.currency),
       quote,
     })),
     ...Object.entries(valuations).map(([id, quote]) => ({
       id: `Outcome: ${id}`,
+      resale: true,
       value: formatRiskRange(quote, quote.currency),
       quote,
     })),
@@ -521,7 +535,7 @@ export function OutcomePriceEvidence({
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ id, value, quote }) => (
+          {rows.map(({ id, value, quote, resale }) => (
             <tr key={id}>
               <th>{id}</th>
               <td>{value}</td>
@@ -540,7 +554,12 @@ export function OutcomePriceEvidence({
                 {quote.market ? (
                   <small>
                     {quote.market.league} · {quote.market.coverage} coverage ·{' '}
-                    {quote.market.independentSellers} sellers · expires{' '}
+                    {resale
+                      ? quote.market.independentSellers === null
+                        ? 'Seller count unknown · '
+                        : `${quote.market.independentSellers} sellers · `
+                      : ''}
+                    expires{' '}
                     {new Date(quote.market.expiresAt).toLocaleString('en-US')}
                   </small>
                 ) : null}

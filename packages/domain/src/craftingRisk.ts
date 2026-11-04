@@ -51,6 +51,7 @@ export const methodRunDefinition =
   'A method run executes the declared graph until a terminal outcome; internal stage retries are not separate runs. Setup costs are paid once; initial base inputs are reacquired before another run after a terminal outcome consumes them.';
 export const riskSimulationResultSchema = z.strictObject({
   calculationVersion: z.literal(outcomeCalculationVersion),
+  valueBasis: z.literal('cash-proceeds-minus-gross-outlay'),
   status: z.enum(['complete', 'unavailable', 'cancelled']),
   reasons: z.array(z.string()),
   method: z.enum(['seeded-monte-carlo', 'analytical-geometric']),
@@ -122,6 +123,15 @@ function mean(values: Decimal[]) {
   return values
     .reduce((total, value) => total.add(value), new D(0))
     .div(values.length);
+}
+function meanWorstFivePercent(sorted: Decimal[]) {
+  const mass = new D(sorted.length).mul('.05');
+  const whole = mass.floor().toNumber();
+  const sum = sorted
+    .slice(sorted.length - whole)
+    .reduce((total, value) => total.add(value), new D(0));
+  const boundary = sorted[sorted.length - whole - 1] ?? new D(0);
+  return sum.add(boundary.mul(mass.sub(whole))).div(mass);
 }
 function costOf(
   costs: (OutcomeCost | OutcomeCredit)[],
@@ -204,6 +214,7 @@ export async function simulateCraftingRisk(
   const analysis = analyzeOutcomeModel(input);
   const result: RiskSimulationResult = {
     calculationVersion: outcomeCalculationVersion,
+    valueBasis: 'cash-proceeds-minus-gross-outlay',
     status: 'unavailable',
     reasons: [...analysis.reasons],
     method: 'seeded-monte-carlo',
@@ -392,7 +403,6 @@ export async function simulateCraftingRisk(
   const costMean = mean(costs);
   const profitMean = mean(profits);
   const cq = quantiles(costs);
-  const tailCount = Math.max(1, Math.ceil(request.trials * 0.05));
   const minimum = costs[0]!;
   const maximum = costs[costs.length - 1]!;
   const width = maximum.sub(minimum).div(12);
@@ -424,8 +434,8 @@ export async function simulateCraftingRisk(
     atLeastOneTargetWithinRunsProbability: new D(1)
       .sub(new D(1).sub(targetP).pow(request.reachWithinAttempts))
       .toNumber(),
-    expectedShortfall95Cost: outcomeMoney(mean(costs.slice(-tailCount))),
-    expectedShortfall95Loss: outcomeMoney(mean(loss.slice(-tailCount))),
+    expectedShortfall95Cost: outcomeMoney(meanWorstFivePercent(costs)),
+    expectedShortfall95Loss: outcomeMoney(meanWorstFivePercent(loss)),
     riskAdjustedRoiPercent: new D(cq.p95).gt(0)
       ? outcomeMoney(profitMean.div(cq.p95).mul(100))
       : null,
@@ -456,9 +466,10 @@ function independentGeometricResult(
   const outcomes = stage.outcomes.filter((o) =>
     new D(o.probability.value!).gt(0),
   );
-  const successes = outcomes.filter((o) => o.targetSuccess && o.sellable);
+  const successes = outcomes.filter((o) => o.targetSuccess);
   if (
     successes.length !== 1 ||
+    !successes[0]!.sellable ||
     outcomes.some(
       (o) =>
         o.nextStageId !== null ||
@@ -487,14 +498,16 @@ function independentGeometricResult(
   if (setup.gt('1e12') || unit.gt('1e12')) return null;
   const sale = new D(input.valuations[success.id]!.min);
   const p = Number(success.probability.value);
-  const exact = analyzeIndependentGeometric({
+  const analyticalInput = geometricInputSchema.safeParse({
     successProbability: success.probability.value!,
-    perAttemptCost: setup.eq(0) && unit.eq(0) ? '0' : unit.toFixed(),
+    perAttemptCost: unit.toFixed(),
     setupCost: setup.toFixed(),
     saleValue: sale.toFixed(),
     budget: request.budget,
     withinAttempts: request.reachWithinAttempts,
   });
+  if (!analyticalInput.success) return null;
+  const exact = analyzeIndependentGeometric(analyticalInput.data);
   const profitAt = (q: number) => {
     const k =
       p === 1

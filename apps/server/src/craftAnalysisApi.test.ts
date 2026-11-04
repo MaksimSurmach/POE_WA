@@ -7,6 +7,7 @@ import { createInMemoryRepositories } from '@poe-worksmith/domain';
 import { canonicalRecipeFixture } from '@poe-worksmith/domain/fixtures';
 import {
   craftAnalysisFixture,
+  craftModelFixture,
   craftFixtureAt,
 } from './testkit/craftAnalysis.js';
 
@@ -59,7 +60,7 @@ async function apiFixture() {
     undefined,
     { craftAnalysis: service },
   );
-  return { api, input, repository };
+  return { api, input, repository, repositories };
 }
 
 describe('craft analysis access and missing-evidence contracts', () => {
@@ -89,6 +90,36 @@ describe('craft analysis access and missing-evidence contracts', () => {
           })
         ).statusCode,
       ).toBe(400);
+    } finally {
+      await api.close();
+    }
+  });
+  it('exposes an embedded recipe model for explicit owner save without inventing a persisted revision', async () => {
+    const { api, input, repositories } = await apiFixture();
+    const recipe = (await repositories.recipes.findById(input.recipeId))!;
+    await repositories.recipes.save({
+      ...recipe,
+      definition: {
+        ...canonicalRecipeFixture,
+        craft: { ...canonicalRecipeFixture.craft, outcomeModel: input.model },
+      },
+    });
+    try {
+      const response = await api.inject({
+        url: `/api/recipes/${input.recipeId}/analysis`,
+        headers: { host: 'localhost' },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().data).toMatchObject({
+        embeddedModel: input.model,
+        modelRecord: null,
+        analysis: null,
+        prices: {},
+        valuations: {},
+      });
+      expect(response.json().data.unavailableReasons[0]).toContain(
+        'save a revision',
+      );
     } finally {
       await api.close();
     }
@@ -128,6 +159,59 @@ describe('craft analysis access and missing-evidence contracts', () => {
       }
     },
   );
+  it('rejects a target-success outcome for a different exact recipe target', async () => {
+    const { api, input, repository } = await apiFixture();
+    vi.mocked(repository.saveModel).mockResolvedValue(craftModelFixture());
+    input.model.stages[0]!.outcomes[0]!.matching = {
+      kind: 'exact-target',
+      targetSignature: 'different-target',
+    };
+    input.valuations.target!.matching = {
+      kind: 'exact-target',
+      targetSignature: 'different-target',
+    };
+    try {
+      const response = await api.inject({
+        method: 'POST',
+        url: '/api/admin/craft-analysis/models',
+        headers: { host: 'localhost' },
+        payload: input,
+      });
+      expect(response.statusCode).toBe(400);
+      expect(repository.saveModel).not.toHaveBeenCalled();
+    } finally {
+      await api.close();
+    }
+  });
+  it('allows a non-target salvage outcome to match a different exact target', async () => {
+    const { api, input, repository } = await apiFixture();
+    vi.mocked(repository.saveModel).mockResolvedValue(craftModelFixture());
+    input.model.stages[0]!.outcomes[1]!.matching = {
+      kind: 'exact-target',
+      targetSignature: 'salvage-target',
+    };
+    input.valuations.salvage!.matching = {
+      kind: 'exact-target',
+      targetSignature: 'salvage-target',
+    };
+    try {
+      const response = await api.inject({
+        method: 'POST',
+        url: '/api/admin/craft-analysis/models',
+        headers: { host: 'localhost' },
+        payload: input,
+      });
+      expect(response.statusCode).toBe(200);
+      expect(repository.saveModel).toHaveBeenCalledWith(
+        input,
+        expect.objectContaining({
+          targetSignature: canonicalRecipeFixture.targetSignature,
+        }),
+      );
+    } finally {
+      await api.close();
+    }
+  });
   it('rejects malformed JSON and operator-fabricated live quote metadata', async () => {
     const { api, input, repository } = await apiFixture();
     try {

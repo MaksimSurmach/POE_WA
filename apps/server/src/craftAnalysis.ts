@@ -130,7 +130,7 @@ export function resolveCraftAnalysisEvidence(
               Math.min(expires, observed + maximumAgeMs),
             ).toISOString(),
             coverage: material.itemId === 'base' ? 'partial' : 'complete',
-            independentSellers: 0,
+            independentSellers: null,
           },
         });
         if (quote.success) prices[material.itemId] = quote.data;
@@ -338,6 +338,7 @@ export function createCraftAnalysisService(options: CraftAnalysisOptions) {
         leagueId: league?.id ?? null,
         evaluatedAt: now().toISOString(),
         modelRecord: model,
+        embeddedModel: model ? null : (definition.craft.outcomeModel ?? null),
         analysis,
         prices: input?.prices ?? {},
         valuations: input?.valuations ?? {},
@@ -345,7 +346,9 @@ export function createCraftAnalysisService(options: CraftAnalysisOptions) {
           ? ['No current league is selected']
           : !model
             ? [
-                'EV unavailable — missing outcome probabilities and valuations for this recipe revision',
+                definition.craft.outcomeModel
+                  ? 'Embedded outcome model available — save a revision to resolve prices and run analysis'
+                  : 'EV unavailable — missing outcome probabilities and valuations for this recipe revision',
               ]
             : (analysis?.reasons ?? []),
         canEdit,
@@ -371,6 +374,17 @@ export function createCraftAnalysisService(options: CraftAnalysisOptions) {
       );
       if (recipe.contentHash !== input.recipeHash)
         throw new DomainError('PERSISTENCE_CONFLICT');
+      if (
+        input.model.stages.some((stage) =>
+          stage.outcomes.some(
+            (outcome) =>
+              outcome.targetSuccess &&
+              outcome.matching.kind === 'exact-target' &&
+              outcome.matching.targetSignature !== definition.targetSignature,
+          ),
+        )
+      )
+        throw new DomainError('CALCULATION_INPUT_INVALID');
       return options.repository.saveModel(input, {
         leagueId: league!.id,
         targetSignature: definition.targetSignature,
