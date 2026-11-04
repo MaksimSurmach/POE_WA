@@ -271,7 +271,7 @@ export function RecipePage() {
                 : 'Asking price'}{' '}
             ·{' '}
             {source.sortedSampleComplete
-              ? `Sorted price sample: 20/${source.totalResults ?? 'unknown'} offers · `
+              ? `Available ask sample: 20/${source.totalResults ?? 'unknown'} offers · `
               : ''}
             <time dateTime={source.capturedAt}>
               {new Date(source.capturedAt).toLocaleString('en-US')}
@@ -338,9 +338,9 @@ export function RecipePage() {
           ),
         )}
         <p>
-          Prices are asking prices, not confirmed sales. ROI uses the cheapest
-          verified comparable ask and needs asks from at least two independent
-          sellers; a single seller&apos;s ask is shown but not used for profit
+          Prices are asking prices, not confirmed sales. ROI requires a complete
+          output search and asks from at least two independent sellers.
+          Incomplete output coverage or a single seller cannot establish profit
           or ROI.
         </p>
       </DetailSection>

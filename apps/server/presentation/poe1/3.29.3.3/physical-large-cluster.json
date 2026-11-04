@@ -456,7 +456,7 @@
       "generationType": "suffix"
     },
     "mod:flask-enchant-effect": {
-      "name": "Increased effect(Enkindling)",
+      "name": "Increased effect (Enkindling)",
       "generationType": "enchant"
     },
     "enkindling-orb": {

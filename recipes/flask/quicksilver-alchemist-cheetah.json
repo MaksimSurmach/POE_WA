@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "id": "quicksilver-alchemist-cheetah",
-  "title": "Quicksilver \u00b7 Alchemist T1 \u00b7 14% speed / 70% effect",
+  "title": "Quicksilver · Alchemist T1 · 14% speed / 70% effect",
   "category": "flask",
   "patch": "3.29.3.3",
   "gameDataVersion": "3.29.3.3",
@@ -34,7 +34,7 @@
       "kind": "none"
     }
   },
-  "summary": "Premium 20% quality Quicksilver: AlchemistT1, perfect 14% movement suffix and 70% Enkindling effect. Higher crafting cost is modeled separately.",
+  "summary": "Premium 20% quality Quicksilver: Alchemist T1, perfect 14% movement suffix and 70% Enkindling effect. Higher crafting cost is modeled separately.",
   "tags": ["flask", "mageblood", "movement-speed", "alteration", "enkindling"],
   "notes": "Quality is included in the purchased base. The 70% enchant is distinct from the 25% explicit effect; totals must not be substituted across modifier origins. Asking prices do not prove demand or completed sales.",
   "verification": {
@@ -87,7 +87,7 @@
   },
   "craft": {
     "id": "alteration-enkindling",
-    "name": "Alterations \u00b7 exact 14 /70 finish",
+    "name": "Alterations · exact 14 / 70 finish",
     "method": {
       "kind": "currency",
       "currency": "orb-of-alteration"
@@ -98,7 +98,7 @@
       "patch": "3.29.3.3",
       "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=5&class=25&item=1429&method=0%2C1&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvRmxhc2tzL0ZsYXNrVXRpbGl0eTYiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjowLCJxdCI6bnVsbCwibCI6ODUsInIiOiJtYWdpYyIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzOTAwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIzOTAzIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
       "verifiedAt": "2026-11-04",
-      "settings": "PoE 1 Quicksilver Flask exactly ilvl 85, magic, no influence/fracture/corruption/synthesis; Alterations only. AND CheetahT1(12\u201314% movement) and AlchemistT1(23\u201327% reducedDuration, 25%effect). Require exactly 14% movement; multiply the rounded tier-only mean by 3.",
+      "settings": "PoE 1 Quicksilver Flask exactly ilvl 85, magic, no influence/fracture/corruption/synthesis; Alterations only. AND Cheetah T1 (12–14% movement) and Alchemist T1 (23–27% reduced Duration, 25% effect). Require exactly 14% movement; multiply the rounded tier-only mean by 3.",
       "artifact": "docs/evidence/flasks-2026-11-04/calculator.json",
       "assumptions": "CoE uniformly draws integer modifier values; exact 14 is 1/3 of Cheetah rolls. Expected means are not guaranteed budgets. No Alt+Aug, Divine reroll, sold by-products or time/gold credit."
     },
@@ -109,7 +109,7 @@
         "patch": "3.29.3.3",
         "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=5&class=25&item=1429&method=0%2C1&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvRmxhc2tzL0ZsYXNrVXRpbGl0eTYiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjowLCJxdCI6bnVsbCwibCI6ODUsInIiOiJtYWdpYyIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzOTAwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIzOTAzIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
         "verifiedAt": "2026-11-04",
-        "settings": "PoE 1 Quicksilver Flask exactly ilvl 85, magic, no influence/fracture/corruption/synthesis; Alterations only. AND CheetahT1(12\u201314% movement) and AlchemistT1(23\u201327% reducedDuration, 25%effect). Require exactly 14% movement; multiply the rounded tier-only mean by 3.",
+        "settings": "PoE 1 Quicksilver Flask exactly ilvl 85, magic, no influence/fracture/corruption/synthesis; Alterations only. AND Cheetah T1 (12–14% movement) and Alchemist T1 (23–27% reduced Duration, 25% effect). Require exactly 14% movement; multiply the rounded tier-only mean by 3.",
         "artifact": "docs/evidence/flasks-2026-11-04/calculator.json",
         "assumptions": "CoE uniformly draws integer modifier values; exact 14 is 1/3 of Cheetah rolls. Expected means are not guaranteed budgets. No Alt+Aug, Divine reroll, sold by-products or time/gold credit."
       }
@@ -117,16 +117,16 @@
     "uncertainties": [
       "Starting-base acquisition must use exactly item level 85. Higher item levels can change the affix pool and require a separate cost model.",
       "Indicative model: rounded CoE mean and uniformly distributed integer rolls; actual spending varies. No empirical game-frequency or executed-sale verification.",
-      "Do not compare a 12\u201313% speed suffix or a 60\u201369% enchant with this perfect-roll target.",
+      "Do not compare a 12–13% speed suffix or a 60–69% enchant with this perfect-roll target.",
       "The item is sold unused. Confirm the current enchant value and league mechanics before listing."
     ],
     "steps": [
       {
         "id": "roll-explicits",
         "title": "Roll 25% effect and perfect 14% movement",
-        "action": "Buy an uncorrupted magic Quicksilver Flask of exactly item level 85 with 20% quality; the full acquisition price is included in base cost. Use Orbs of Alteration until the flask has 25% increased effect with 23\u201327% reduced Duration(AlchemistT1) and exactly 14% increased Movement Speed during Effect (of the Cheetah).",
+        "action": "Buy an uncorrupted magic Quicksilver Flask of exactly item level 85 with 20% quality; the full acquisition price is included in base cost. Use Orbs of Alteration until the flask has 25% increased effect with 23–27% reduced Duration (Alchemist T1) and exactly 14% increased Movement Speed during Effect (of the Cheetah).",
         "continueWhen": "Both exact explicit requirements are present together.",
-        "failureAction": "Reroll on the same base, including 12\u201313% Cheetah outcomes. Do not credit rejected outcomes as sales.",
+        "failureAction": "Reroll on the same base, including 12–13% Cheetah outcomes. Do not credit rejected outcomes as sales.",
         "materials": [
           {
             "itemId": "orb-of-alteration",
@@ -140,7 +140,7 @@
             "patch": "3.29.3.3",
             "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=5&class=25&item=1429&method=0%2C1&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvRmxhc2tzL0ZsYXNrVXRpbGl0eTYiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjowLCJxdCI6bnVsbCwibCI6ODUsInIiOiJtYWdpYyIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzOTAwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIzOTAzIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
             "verifiedAt": "2026-11-04",
-            "settings": "PoE 1 Quicksilver Flask exactly ilvl 85, magic, no influence/fracture/corruption/synthesis; Alterations only. AND CheetahT1(12\u201314% movement) and AlchemistT1(23\u201327% reducedDuration, 25%effect). Require exactly 14% movement; multiply the rounded tier-only mean by 3.",
+            "settings": "PoE 1 Quicksilver Flask exactly ilvl 85, magic, no influence/fracture/corruption/synthesis; Alterations only. AND Cheetah T1 (12–14% movement) and Alchemist T1 (23–27% reduced Duration, 25% effect). Require exactly 14% movement; multiply the rounded tier-only mean by 3.",
             "artifact": "docs/evidence/flasks-2026-11-04/calculator.json",
             "assumptions": "CoE uniformly draws integer modifier values; exact 14 is 1/3 of Cheetah rolls. Expected means are not guaranteed budgets. No Alt+Aug, Divine reroll, sold by-products or time/gold credit."
           }
@@ -165,7 +165,7 @@
             "patch": "3.29.3.3",
             "url": "https://poedb.tw/us/Enkindling_Orb",
             "verifiedAt": "2026-11-04",
-            "settings": "Effect family weight 250 of 650; 60\u201370 inclusive, 11 equiprobable integer values in CoE; exact 70 probability 250/650/11. Independent Enkindling rerolls preserve explicit modifiers and replace previous enchantments.",
+            "settings": "Effect family weight 250 of 650; 60–70 inclusive, 11 equiprobable integer values in CoE; exact 70 probability 250/650/11. Independent Enkindling rerolls preserve explicit modifiers and replace previous enchantments.",
             "artifact": "docs/evidence/flasks-2026-11-04/calculator.json",
             "assumptions": "28.6 Enkindling Orbs expected per finished 70% effect enchant. No Instilling enchant is applied afterwards. Item is not used between finishing and listing."
           }
@@ -181,7 +181,7 @@
           "patch": "3.29.3.3",
           "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=5&class=25&item=1429&method=0%2C1&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvRmxhc2tzL0ZsYXNrVXRpbGl0eTYiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjowLCJxdCI6bnVsbCwibCI6ODUsInIiOiJtYWdpYyIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIzOTAwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIzOTAzIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
           "verifiedAt": "2026-11-04",
-          "settings": "PoE 1 Quicksilver Flask exactly ilvl 85, magic, no influence/fracture/corruption/synthesis; Alterations only. AND CheetahT1(12\u201314% movement) and AlchemistT1(23\u201327% reducedDuration, 25%effect). Require exactly 14% movement; multiply the rounded tier-only mean by 3.",
+          "settings": "PoE 1 Quicksilver Flask exactly ilvl 85, magic, no influence/fracture/corruption/synthesis; Alterations only. AND Cheetah T1 (12–14% movement) and Alchemist T1 (23–27% reduced Duration, 25% effect). Require exactly 14% movement; multiply the rounded tier-only mean by 3.",
           "artifact": "docs/evidence/flasks-2026-11-04/calculator.json",
           "assumptions": "CoE uniformly draws integer modifier values; exact 14 is 1/3 of Cheetah rolls. Expected means are not guaranteed budgets. No Alt+Aug, Divine reroll, sold by-products or time/gold credit."
         }
@@ -194,7 +194,7 @@
           "patch": "3.29.3.3",
           "url": "https://poedb.tw/us/Enkindling_Orb",
           "verifiedAt": "2026-11-04",
-          "settings": "Effect family weight 250 of 650; 60\u201370 inclusive, 11 equiprobable integer values in CoE; exact 70 probability 250/650/11. Independent Enkindling rerolls preserve explicit modifiers and replace previous enchantments.",
+          "settings": "Effect family weight 250 of 650; 60–70 inclusive, 11 equiprobable integer values in CoE; exact 70 probability 250/650/11. Independent Enkindling rerolls preserve explicit modifiers and replace previous enchantments.",
           "artifact": "docs/evidence/flasks-2026-11-04/calculator.json",
           "assumptions": "28.6 Enkindling Orbs expected per finished 70% effect enchant. No Instilling enchant is applied afterwards. Item is not used between finishing and listing."
         }
