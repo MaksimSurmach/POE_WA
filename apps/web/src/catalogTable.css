@@ -1,0 +1,244 @@
+.handbook-controls {
+  grid-template-columns:
+    minmax(180px, 2fr) repeat(2, minmax(130px, 1fr))
+    minmax(150px, 1fr) minmax(100px, 0.8fr);
+  align-items: end;
+}
+.catalog-filter {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.catalog-filter input,
+.catalog-filter select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--background);
+  color: var(--text);
+  caret-color: var(--accent);
+}
+.catalog-filter input::placeholder {
+  color: var(--muted);
+}
+.catalog-results {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.catalog-results button {
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.catalog-results button:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.catalog-price-note {
+  max-width: 90ch;
+  margin: 4px 0 16px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.catalog-table-scroll {
+  overflow: auto;
+  max-height: 75vh;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  scrollbar-color: var(--border) var(--surface);
+}
+.craft-table {
+  width: 100%;
+  min-width: 1000px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  background: var(--surface);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.craft-table th,
+.craft-table td {
+  padding: 14px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  text-align: right;
+}
+.craft-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0 10px;
+  background: var(--surface-raised);
+  color: var(--muted);
+  font-weight: 550;
+}
+.craft-table thead button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.craft-table thead button:hover,
+.craft-table th[aria-sort='ascending'],
+.craft-table th[aria-sort='descending'] {
+  color: var(--accent);
+}
+.craft-table .sort-icon {
+  flex: 0 0 12px;
+  width: 12px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+.craft-table th:first-child {
+  width: 32%;
+  text-align: left;
+}
+.craft-table th:nth-child(2) {
+  width: 10%;
+}
+.craft-table th:last-child {
+  width: 20%;
+}
+.craft-table th:first-child button,
+.craft-table th:nth-child(2) button,
+.craft-table th:last-child button {
+  justify-content: flex-start;
+}
+.craft-table td:nth-child(2),
+.craft-table td:last-child {
+  text-align: left;
+}
+.craft-table tbody tr:hover {
+  background: var(--surface-raised);
+}
+.craft-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.craft-table__identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.craft-table__identity a {
+  display: block;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.45;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.craft-table__identity a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.craft-table small,
+.craft-table time {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+.craft-table .recipe-warning {
+  color: var(--warning);
+}
+.craft-table__class {
+  text-transform: capitalize;
+  color: var(--muted);
+}
+.craft-table__missing-art {
+  display: grid;
+  flex: 0 0 42px;
+  height: 42px;
+  place-items: center;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.craft-table .craft-table__empty {
+  padding: 32px;
+  text-align: left;
+  color: var(--muted);
+}
+.craft-table .profit,
+.craft-table .money {
+  white-space: nowrap;
+}
+@media (max-width: 1000px) {
+  .handbook-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 620px) {
+  .handbook-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .catalog-search {
+    grid-column: 1 / -1;
+  }
+  .catalog-table-scroll {
+    max-height: 70vh;
+  }
+  .craft-table th:first-child,
+  .craft-table tbody th {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    width: 230px;
+  }
+  .craft-table thead th:first-child {
+    z-index: 3;
+    background: var(--surface-raised);
+  }
+}
+
+.catalog-profit-filter {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+}
+.catalog-profit-filter input {
+  min-width: 0;
+}
+.catalog-profit-filter select {
+  flex: 0 0 60px;
+  padding-inline: 8px;
+}
+.catalog-scroll-hint {
+  display: none;
+}
+.item-preview__trigger > .item-preview__fallback {
+  font-size: 0.8rem;
+}
+@media (max-width: 620px) {
+  .catalog-scroll-hint {
+    display: block;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+}

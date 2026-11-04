@@ -1184,168 +1184,6 @@ progress::-webkit-progress-value {
   border-radius: var(--radius);
   background: var(--surface);
 }
-.craft-target-list {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.craft-target-card {
-  display: grid;
-  grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.75fr);
-  gap: 14px;
-  align-items: center;
-  min-height: 68px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  transition:
-    border-color 140ms ease,
-    background-color 140ms ease;
-}
-.craft-target-card:hover {
-  border-color: #48535e;
-  background: var(--surface-raised);
-}
-.craft-target-card__identity {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  min-width: 0;
-}
-.craft-target-card__art {
-  display: grid;
-  flex: 0 0 42px;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 1px solid #303943;
-  border-radius: 7px;
-  background: #0a0f14;
-  object-fit: contain;
-}
-.craft-target-card__art--fallback {
-  color: var(--accent);
-  font-size: 1.1rem;
-  font-weight: 650;
-  text-transform: uppercase;
-}
-.craft-target-card__copy {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-.craft-target-card__copy > strong,
-.craft-target-card__copy > a {
-  overflow: hidden;
-  color: var(--text);
-  font-size: 0.9rem;
-  font-weight: 650;
-  text-decoration: none;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.craft-target-card__copy > a:hover,
-.craft-target-card__copy > a:focus-visible,
-.craft-target-card__copy > a:hover strong {
-  color: var(--accent);
-}
-.craft-target-card__details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px 10px;
-  color: var(--muted);
-  font-size: 0.72rem;
-  line-height: 1.35;
-  text-transform: capitalize;
-}
-.craft-target-card__freshness {
-  color: var(--muted);
-  font-size: 0.72rem;
-}
-.craft-target-card__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px 10px;
-}
-.craft-target-card__links a {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 0.7rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.craft-target-card__links a:first-child {
-  color: var(--accent);
-}
-.craft-target-card__market {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  min-width: 0;
-}
-.craft-target-card__metrics {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-  align-items: center;
-}
-.craft-target-card__metrics > div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  align-items: flex-end;
-  min-width: 0;
-}
-.craft-target-card__metrics small,
-.craft-target-card__snapshot {
-  color: var(--muted);
-  font-size: 0.68rem;
-}
-.craft-target-card__metrics strong,
-.craft-target-card__metrics .money {
-  color: var(--text);
-  font-size: 0.82rem;
-  font-weight: 620;
-}
-.craft-target-card__metrics .profit {
-  font-size: 0.82rem;
-  font-weight: 650;
-  white-space: nowrap;
-}
-.craft-target-card--starter .craft-target-card__metrics {
-  grid-template-columns: repeat(2, minmax(0, 100px));
-  justify-content: end;
-}
-.craft-target-card__snapshot {
-  overflow: hidden;
-  max-width: 100%;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.craft-target-card__snapshot a {
-  color: var(--accent);
-}
-@media (max-width: 620px) {
-  .craft-target-card {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-    padding: 10px 12px;
-  }
-  .craft-target-card__market {
-    align-items: flex-start;
-    text-align: left;
-  }
-  .craft-target-card__metrics > div {
-    align-items: flex-start;
-  }
-  .craft-target-card__metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .craft-target-card__snapshot {
-    white-space: normal;
-  }
-}
 .handbook-controls .filter-control {
   gap: 4px;
   font-size: 0.7rem;
@@ -1578,7 +1416,7 @@ progress::-webkit-progress-value {
   height: 100%;
   object-fit: contain;
 }
-.craft-target-card .item-preview__trigger {
+.craft-table .item-preview__trigger {
   width: 42px;
   height: 42px;
   padding: 2px;
@@ -1731,14 +1569,4 @@ progress::-webkit-progress-value {
 }
 .recipe-warning {
   color: #dcc28c;
-}
-
-.craft-target-card__metrics strong.economic-positive {
-  color: var(--success);
-}
-.craft-target-card__metrics strong.economic-negative {
-  color: var(--danger);
-}
-.craft-target-card__metrics strong.economic-unknown {
-  color: var(--muted);
 }

@@ -285,6 +285,7 @@ describe('repository-backed resource views', () => {
           recipeContentHash: (
             await repositories.recipes.findById('physical-large-cluster-jagged')
           )?.contentHash,
+          source: { sampleSize: 2 },
           expectedCost: { amount: '3.75', currency: 'chaos' },
           materialsPerAttempt: { amount: '1.5', currency: 'chaos' },
           steps: [
@@ -436,6 +437,7 @@ describe('repository-backed resource views', () => {
                 ).toISOString(),
               }
             : {}),
+          source: { sampleSize: 2 },
           expectedCost: { amount: '3.75', currency: 'chaos' },
         },
       });
@@ -727,7 +729,40 @@ describe('legacy single-seller profit on the read boundary', () => {
     expectedCraftCost: { amount: 869.28, currency: 'chaos' },
   };
 
+  it('keeps the valuation source visible without a raw snapshot and validates stored evidence', async () => {
+    const capturedAt = '2026-11-04T10:00:00.000Z';
+    const { catalog, detail } = await publishLegacy({
+      status: 'success',
+      methodCost: {
+        source: { capturedAt, sampleSize: 3, coverage: 'partial' },
+      },
+    });
+    expect(catalog?.source).toEqual({
+      capturedAt,
+      comparableSellers: 3,
+      coverage: 'partial',
+    });
+    expect(detail?.source).toEqual(catalog?.source);
+    const invalid = await publishLegacy({
+      status: 'success',
+      methodCost: { source: { capturedAt: 'invalid', sampleSize: 3 } },
+    });
+    expect(invalid.catalog?.source).toBeUndefined();
+  });
+
   it.each([
+    ['unknown seller evidence', {}],
+    ['fractional seller count', { source: { sampleSize: 2.5 } }],
+    [
+      'unavailable currency',
+      { source: { sampleSize: 3, currencyAvailable: false } },
+    ],
+    [
+      'unaccepted evidence',
+      {
+        saleEvidence: { comparableSellers: 3, status: 'unavailable_currency' },
+      },
+    ],
     ['source sample of one (pre-saleEvidence)', { source: { sampleSize: 1 } }],
     [
       'saleEvidence insufficient',
@@ -779,7 +814,6 @@ describe('legacy single-seller profit on the read boundary', () => {
   it.each([
     ['two sellers', { source: { sampleSize: 2 } }],
     ['twenty sellers', { source: { sampleSize: 20 } }],
-    ['unknown seller evidence', {}],
   ])('keeps supported profit for %s', async (_label, methodCost) => {
     const { catalog, detail } = await publishLegacy({
       status: 'success',

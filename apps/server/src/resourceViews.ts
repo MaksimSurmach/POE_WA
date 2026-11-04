@@ -14,6 +14,7 @@ import {
   type RecipeResponse,
   type RefreshStatus,
   recipeMethodViewSchema,
+  recipePriceSourceSchema,
   marketSnapshotSchema,
 } from '@poe-worksmith/contracts';
 import {
@@ -351,7 +352,14 @@ function toEvaluation(
       status: 'loading',
     };
   }
+  const source = record(evaluation.methodCost?.source);
+  const priceSource = recipePriceSourceSchema.safeParse({
+    capturedAt: source?.capturedAt,
+    comparableSellers: source?.sampleSize,
+    coverage: source?.coverage ?? 'unknown',
+  });
   return {
+    ...(priceSource.success ? { source: priceSource.data } : {}),
     confidence: evaluation.confidence,
     errorCode: errorCode(evaluation.errorCode),
     estimatedSalePrice: price(
@@ -582,8 +590,8 @@ const minimumComparableSellers = 2;
 /**
  * Evaluations saved before the two-seller rule may still carry profit derived
  * from one seller's ask. Withhold that profit when the stored evidence shows
- * fewer than two comparable sellers; keep ask and cost visible. Evaluations
- * without any stored seller evidence are left unchanged.
+ * fewer than two comparable sellers, or cannot establish their count.
+ * Keep ask and cost visible without treating missing evidence as acceptance.
  */
 function withoutUnsupportedProfit(evaluation: RecipeEvaluation) {
   const methodCost = evaluation.methodCost ?? {};
@@ -596,8 +604,11 @@ function withoutUnsupportedProfit(evaluation: RecipeEvaluation) {
         ? source.sampleSize
         : null;
   const insufficient =
-    saleEvidence?.status === 'insufficient_sellers' ||
-    (sellers !== null && sellers < minimumComparableSellers);
+    (saleEvidence !== null && saleEvidence.status !== 'accepted') ||
+    sellers === null ||
+    !Number.isSafeInteger(sellers) ||
+    sellers < minimumComparableSellers ||
+    source?.currencyAvailable === false;
   if (
     !insufficient ||
     (evaluation.profit === null && evaluation.marginPercent === null)
@@ -609,8 +620,7 @@ function withoutUnsupportedProfit(evaluation: RecipeEvaluation) {
       evaluation.status === 'success'
         ? ('partial' as const)
         : evaluation.status,
-    lastSuccessfulAt:
-      evaluation.status === 'success' ? null : evaluation.lastSuccessfulAt,
+    lastSuccessfulAt: null,
     profit: null,
     marginPercent: null,
     methodCost: {
@@ -618,7 +628,7 @@ function withoutUnsupportedProfit(evaluation: RecipeEvaluation) {
       saleEvidence: {
         comparableSellers: sellers,
         minimumComparableSellers,
-        status: 'insufficient_sellers',
+        status: sellers === null ? 'unavailable' : 'insufficient_sellers',
       },
     },
   };

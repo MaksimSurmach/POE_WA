@@ -67,10 +67,17 @@ export const recipeSchema = z
   .strict();
 
 /** Calculated catalog view; nullable values make loading/failure explicit. */
+export const recipePriceSourceSchema = z.strictObject({
+  capturedAt: z.iso.datetime(),
+  comparableSellers: z.number().int().nonnegative(),
+  coverage: z.enum(['complete', 'partial', 'unknown']),
+});
+
 export const recipeEvaluationSchema = z
   .object({
     recipeId: z.string().min(1),
     confidence: z.enum(['low', 'medium', 'high']).nullable().optional(),
+    source: recipePriceSourceSchema.optional(),
     status: z.enum(['success', 'stale', 'loading', 'partial', 'error']),
     evaluatedAt: z.iso.datetime().nullable(),
     expectedCraftCost: priceSchema.nullable(),

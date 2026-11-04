@@ -32,7 +32,7 @@
     "start:api": "pnpm --filter @poe-worksmith/server start:api",
     "start:market": "pnpm --filter @poe-worksmith/server start:market",
     "start:worker": "pnpm --filter @poe-worksmith/server start:worker",
-    "test": "pnpm -r --if-present test",
+    "test": "pnpm -r --if-present test && node --test scripts/local-runtime.test.mjs",
     "test:contracts": "pnpm --filter @poe-worksmith/server test:contracts",
     "test:integration": "pnpm -r --if-present test:integration",
     "test:e2e:backend": "pnpm --filter @poe-worksmith/server test:e2e:backend",
@@ -40,7 +40,10 @@
     "market:seed-belt-demo": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:seed-belt-demo",
     "market:import-belt-evidence": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:import-belt-evidence",
     "market:import-catalog": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:import-catalog",
-    "market:test-connection": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:test-connection"
+    "market:test-connection": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:test-connection",
+    "local:start": "sh scripts/local-runtime.sh start",
+    "local:stop": "sh scripts/local-runtime.sh stop",
+    "local:status": "sh scripts/local-runtime.sh status"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

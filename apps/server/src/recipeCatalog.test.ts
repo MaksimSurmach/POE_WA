@@ -182,6 +182,10 @@ describe('authored source catalog integrity', () => {
         recipe: definition,
       });
       expect(view.base.itemClass).not.toBe('Unknown');
+      expect(view.base.iconUrl, definition.id).toMatch(
+        /^https:\/\/web\.poecdn\.com\//,
+      );
+      expect(view.target.iconUrl, definition.id).toBe(view.base.iconUrl);
       expect(
         view.target.modifiers.every((m) => !m.label.startsWith('mod:')),
       ).toBe(true);
