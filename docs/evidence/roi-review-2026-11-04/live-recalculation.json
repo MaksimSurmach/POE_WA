@@ -1,0 +1,430 @@
+{
+  "checkedAt": "2026-11-04T13:21:26.021276+00:00",
+  "collection": "Three explicit scoped refreshes; current native database, no backdating.",
+  "catalogRecipes": 26,
+  "allPublishedArithmeticChecked": true,
+  "rows": [
+    {
+      "recipeId": "minion-convoking-wand-fear-trigger",
+      "evaluation": {
+        "recipeId": "minion-convoking-wand-fear-trigger",
+        "confidence": "medium",
+        "source": {
+          "capturedAt": "2026-11-04T13:14:23.616Z",
+          "comparableSellers": 5,
+          "coverage": "complete"
+        },
+        "status": "success",
+        "evaluatedAt": "2026-11-04T13:16:23.715Z",
+        "expectedCraftCost": {
+          "amount": 1518.7517,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 3284.8,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": 1766.0483,
+          "currency": "chaos"
+        },
+        "marginPercent": 116.282885,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-04T13:16:23.715Z",
+        "errorCode": null
+      },
+      "baseCost": {
+        "amount": 35,
+        "currency": "chaos"
+      },
+      "expectedBases": 1,
+      "expectedExecutions": [
+        {
+          "stepId": "fear-roll",
+          "count": 194
+        },
+        {
+          "stepId": "bench-trigger",
+          "count": 1
+        }
+      ],
+      "materials": [
+        {
+          "stepId": "fear-roll",
+          "materials": [
+            {
+              "costPerAttempt": {
+                "amount": 7.63,
+                "currency": "chaos"
+              },
+              "itemId": "deafening-essence-of-fear",
+              "name": "Deafening Essence of Fear",
+              "quantityPerAttempt": 1,
+              "unitPrice": {
+                "amount": 7.63,
+                "currency": "chaos"
+              }
+            }
+          ]
+        },
+        {
+          "stepId": "bench-trigger",
+          "materials": [
+            {
+              "costPerAttempt": {
+                "amount": 3,
+                "currency": "chaos"
+              },
+              "itemId": "chaos-orb",
+              "name": "Chaos Orb",
+              "quantityPerAttempt": 3,
+              "unitPrice": {
+                "amount": 1,
+                "currency": "chaos"
+              }
+            },
+            {
+              "costPerAttempt": {
+                "amount": 0.5317,
+                "currency": "chaos"
+              },
+              "itemId": "orb-of-scouring",
+              "name": "Orb of Scouring",
+              "quantityPerAttempt": 1,
+              "unitPrice": {
+                "amount": 0.5317,
+                "currency": "chaos"
+              }
+            }
+          ]
+        }
+      ],
+      "priceSources": [
+        {
+          "itemId": "base",
+          "priceBasis": "asking",
+          "sortedSampleComplete": false,
+          "totalResults": 11,
+          "source": "poe-trade",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:13:43.230Z"
+        },
+        {
+          "itemId": "chaos-orb",
+          "bulkSupported": true,
+          "source": "currency-unit",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:16:23.715Z"
+        },
+        {
+          "itemId": "orb-of-scouring",
+          "priceBasis": "economy-estimate",
+          "bulkSupported": true,
+          "verifiedAt": "2026-11-04T13:16:23.281Z",
+          "source": "poe.ninja",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:09:41.552Z"
+        },
+        {
+          "itemId": "deafening-essence-of-fear",
+          "priceBasis": "economy-estimate",
+          "bulkSupported": true,
+          "verifiedAt": "2026-11-04T13:16:23.427Z",
+          "source": "poe.ninja",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:09:41.654Z"
+        }
+      ]
+    },
+    {
+      "recipeId": "minion-convoking-wand-four-fossil",
+      "evaluation": {
+        "recipeId": "minion-convoking-wand-four-fossil",
+        "confidence": "low",
+        "source": {
+          "capturedAt": "2026-11-04T13:11:02.468Z",
+          "comparableSellers": 19,
+          "coverage": "partial"
+        },
+        "profitBlockedReason": "The priced +2 wands have additional minion speed and/or paid finishes outside this two-prefix craft model. An equivalent core-only sale price has not been established.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-04T13:13:02.102Z",
+        "expectedCraftCost": {
+          "amount": 1433.32,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 8212,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "baseCost": {
+        "amount": 1,
+        "currency": "chaos"
+      },
+      "expectedBases": 1,
+      "expectedExecutions": [
+        {
+          "stepId": "four-fossil-roll",
+          "count": 12
+        }
+      ],
+      "materials": [
+        {
+          "stepId": "four-fossil-roll",
+          "materials": [
+            {
+              "costPerAttempt": {
+                "amount": 3,
+                "currency": "chaos"
+              },
+              "itemId": "corroded-fossil",
+              "name": "Corroded Fossil",
+              "quantityPerAttempt": 1,
+              "unitPrice": {
+                "amount": 3,
+                "currency": "chaos"
+              }
+            },
+            {
+              "costPerAttempt": {
+                "amount": 6.86,
+                "currency": "chaos"
+              },
+              "itemId": "jagged-fossil",
+              "name": "Jagged Fossil",
+              "quantityPerAttempt": 1,
+              "unitPrice": {
+                "amount": 6.86,
+                "currency": "chaos"
+              }
+            },
+            {
+              "costPerAttempt": {
+                "amount": 7.98,
+                "currency": "chaos"
+              },
+              "itemId": "metallic-fossil",
+              "name": "Metallic Fossil",
+              "quantityPerAttempt": 1,
+              "unitPrice": {
+                "amount": 7.98,
+                "currency": "chaos"
+              }
+            },
+            {
+              "costPerAttempt": {
+                "amount": 20.39,
+                "currency": "chaos"
+              },
+              "itemId": "shuddering-fossil",
+              "name": "Shuddering Fossil",
+              "quantityPerAttempt": 1,
+              "unitPrice": {
+                "amount": 20.39,
+                "currency": "chaos"
+              }
+            },
+            {
+              "costPerAttempt": {
+                "amount": 81.13,
+                "currency": "chaos"
+              },
+              "itemId": "prime-chaotic-resonator",
+              "name": "Prime Chaotic Resonator",
+              "quantityPerAttempt": 1,
+              "unitPrice": {
+                "amount": 81.13,
+                "currency": "chaos"
+              }
+            }
+          ]
+        }
+      ],
+      "priceSources": [
+        {
+          "itemId": "base",
+          "priceBasis": "asking",
+          "sortedSampleComplete": true,
+          "totalResults": 4292,
+          "source": "poe-trade",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:09:42.638Z"
+        },
+        {
+          "itemId": "jagged-fossil",
+          "priceBasis": "economy-estimate",
+          "bulkSupported": true,
+          "verifiedAt": "2026-11-04T13:09:41.703Z",
+          "source": "poe.ninja",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:09:41.703Z"
+        },
+        {
+          "itemId": "corroded-fossil",
+          "priceBasis": "economy-estimate",
+          "bulkSupported": true,
+          "verifiedAt": "2026-11-04T13:09:41.703Z",
+          "source": "poe.ninja",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:09:41.703Z"
+        },
+        {
+          "itemId": "metallic-fossil",
+          "priceBasis": "economy-estimate",
+          "bulkSupported": true,
+          "verifiedAt": "2026-11-04T13:09:41.703Z",
+          "source": "poe.ninja",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:09:41.703Z"
+        },
+        {
+          "itemId": "shuddering-fossil",
+          "priceBasis": "economy-estimate",
+          "bulkSupported": true,
+          "verifiedAt": "2026-11-04T13:09:41.703Z",
+          "source": "poe.ninja",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:09:41.703Z"
+        },
+        {
+          "itemId": "prime-chaotic-resonator",
+          "priceBasis": "economy-estimate",
+          "bulkSupported": true,
+          "verifiedAt": "2026-11-04T13:09:41.791Z",
+          "source": "poe.ninja",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:09:41.791Z"
+        }
+      ]
+    },
+    {
+      "recipeId": "rf-fire-trap-level-20",
+      "evaluation": {
+        "recipeId": "rf-fire-trap-level-20",
+        "confidence": "low",
+        "source": {
+          "capturedAt": "2026-11-04T13:17:02.733Z",
+          "comparableSellers": 20,
+          "coverage": "partial"
+        },
+        "status": "success",
+        "evaluatedAt": "2026-11-04T13:20:22.805Z",
+        "expectedCraftCost": {
+          "amount": 1281.83,
+          "currency": "chaos"
+        },
+        "estimatedSalePrice": {
+          "amount": 2874.2,
+          "currency": "chaos"
+        },
+        "profit": {
+          "amount": 1592.37,
+          "currency": "chaos"
+        },
+        "marginPercent": 124.226301,
+        "snapshotId": null,
+        "lastSuccessfulAt": "2026-11-04T13:20:22.805Z",
+        "errorCode": null
+      },
+      "baseCost": {
+        "amount": 410.6,
+        "currency": "chaos"
+      },
+      "expectedBases": 1,
+      "expectedExecutions": [
+        {
+          "stepId": "reforge-fire",
+          "count": 910
+        },
+        {
+          "stepId": "craft-aoe",
+          "count": 1
+        }
+      ],
+      "materials": [
+        {
+          "stepId": "reforge-fire",
+          "materials": [
+            {
+              "costPerAttempt": {
+                "amount": 0.953,
+                "currency": "chaos"
+              },
+              "itemId": "wild-crystallised-lifeforce",
+              "name": "Wild Crystallised Lifeforce",
+              "quantityPerAttempt": 50,
+              "unitPrice": {
+                "amount": 0.01906,
+                "currency": "chaos"
+              }
+            }
+          ]
+        },
+        {
+          "stepId": "craft-aoe",
+          "materials": [
+            {
+              "costPerAttempt": {
+                "amount": 4,
+                "currency": "chaos"
+              },
+              "itemId": "chaos-orb",
+              "name": "Chaos Orb",
+              "quantityPerAttempt": 4,
+              "unitPrice": {
+                "amount": 1,
+                "currency": "chaos"
+              }
+            }
+          ]
+        }
+      ],
+      "priceSources": [
+        {
+          "itemId": "base",
+          "priceBasis": "asking",
+          "sortedSampleComplete": true,
+          "totalResults": 2278,
+          "source": "poe-trade",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:17:43.409Z"
+        },
+        {
+          "itemId": "chaos-orb",
+          "bulkSupported": true,
+          "source": "currency-unit",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:20:22.805Z"
+        },
+        {
+          "itemId": "wild-crystallised-lifeforce",
+          "priceBasis": "economy-estimate",
+          "bulkSupported": true,
+          "verifiedAt": "2026-11-04T13:16:23.281Z",
+          "source": "poe.ninja",
+          "league": "Allflame",
+          "currency": "chaos",
+          "capturedAt": "2026-11-04T13:09:41.552Z"
+        }
+      ]
+    }
+  ]
+}

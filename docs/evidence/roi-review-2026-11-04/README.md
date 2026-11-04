@@ -73,3 +73,26 @@ executed sales, empirical frequencies and Annul recovery remain unverified.
   CSS cascade on the library filters); both were corrected.
 
 Physical-device rendering and screen-reader speech were not tested.
+
+## Installed refresh and lifecycle
+
+Code `47a1d2c85d2765d52c4ad170b0372d2febf46ec9` passed
+[CI](https://github.com/MaksimSurmach/POE_WA/actions/runs/41836655292), including
+both Docker builds. Installed release: `releases/roi-review-20261104`.
+
+Three scoped native refreshes completed using current Trade and economy sources,
+respecting provider cooldowns. `live-recalculation.json` records the resulting
+public calculations and cost inputs:
+
+| Recipe                             | Fresh cost (chaos) | Fresh ask (chaos) |        ROI |
+| ---------------------------------- | -----------------: | ----------------: | ---------: |
+| minion-convoking-wand-fear-trigger |          1518.7517 |            3284.8 | 116.282885 |
+| minion-convoking-wand-four-fossil  |            1433.32 |              8212 |   Withheld |
+| rf-fire-trap-level-20              |            1281.83 |            2874.2 | 124.226301 |
+
+These remain asking-price estimates. The local start/stop controls stay manual.
+
+Installed browser check passed: 26 recipes, bounded wand icon, withheld unsupported
+ROI and visible cost multiplication. Manual start verified API/web readiness;
+manual stop closed all app, preview and test ports. Collection settings were
+restored exactly (version 16). Login autostart remains disabled. See `installed.json`.

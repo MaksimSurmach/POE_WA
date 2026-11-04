@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-04T13:23:19.672570+00:00",
+  "release": {
+    "sourceCommit": "47a1d2c85d2765d52c4ad170b0372d2febf46ec9",
+    "releaseDirectory": "/Users/maksimsurmach/Library/Application Support/POE Worksmith/releases/roi-review-20261104",
+    "nodeVersion": "v22.23.4",
+    "createdAt": "2026-11-04T13:17:14.419134+00:00",
+    "entrypointSha256": "5c0747c2251f3d7f584099933690c88707f4bd9bf91a6ec28a067e9c2422340e",
+    "startupMode": "manual"
+  },
+  "browser": {
+    "installedOrigin": "http://127.0.0.1:4173",
+    "recipes": 26,
+    "iconBounded": true,
+    "withheldROI": true,
+    "visibleCostMultiplication": true
+  },
+  "startReadinessPassed": true,
+  "stopPassed": true,
+  "stoppedPorts": [3000, 3002, 4173, 4174, 54326, 54327],
+  "loginAutostart": false,
+  "collectionSettingsRestoredVersion": 16
+}
