@@ -49,6 +49,18 @@ services:
       APP_MODE: all
     depends_on:
       migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3000/health/ready').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))",
+        ]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 10s
     labels:
       com.poe-worksmith.e2e.run: ${E2E_RUN:?E2E_RUN is required}
       com.poe-worksmith.e2e.attempt: ${E2E_ATTEMPT:?E2E_ATTEMPT is required}

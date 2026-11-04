@@ -393,15 +393,22 @@ else {
       `PASS candidate=${manifest.sha} server=${manifest.images.server.imageId} web=${manifest.images.web.imageId}\n`,
     );
   } catch (error) {
-    await run('docker', [...compose, 'logs', '--no-color'], { env }).catch(
-      () => {},
-    );
+    const logs = await capture('docker', [...compose, 'logs', '--no-color'], {
+      env,
+    }).catch(() => 'Unable to retrieve compose logs.');
+    await writeFile(path.join(output, 'compose.log'), logs);
     await writeFile(
       path.join(output, 'verdict.txt'),
       `FAIL candidate=${manifest.sha}\n${error.stack ?? error}\n`,
     );
     throw error;
   } finally {
+    if (!(await readFile(path.join(output, 'compose.log')).catch(() => null))) {
+      const logs = await capture('docker', [...compose, 'logs', '--no-color'], {
+        env,
+      }).catch(() => 'Unable to retrieve compose logs.');
+      await writeFile(path.join(output, 'compose.log'), logs);
+    }
     const ids = (
       await capture('docker', [...compose, 'ps', '-aq'], { env }).catch(
         () => '',
