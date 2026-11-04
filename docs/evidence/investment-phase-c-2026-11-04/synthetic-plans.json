@@ -1,0 +1,659 @@
+{
+  "dataKind": "labelled synthetic browser acceptance; not live market quotations or real game trades",
+  "reproduction": "tests/browser/intelligence.spec.ts + apps/server/src/testkit/intelligence.ts",
+  "expectedPositive": {
+    "capitalChaos": "200",
+    "reserveRequestedChaos": "50",
+    "wholeMethodRuns": 1,
+    "allocatedCapitalChaos": "10",
+    "unallocatedCapitalChaos": "190",
+    "expectedProfitChaos": "190",
+    "independentSellers": 5,
+    "ownSaleSamplesMinimum": 3
+  },
+  "afterSnapshotExpiry": "new scenarios hold all capital; old saved plans remain unchanged",
+  "plans": [
+    {
+      "id": "0f7de257-320c-41dd-8eda-2d1ef3fa9146",
+      "plan": {
+        "request": {
+          "league": "Fixture League",
+          "capital": {
+            "currency": "divine",
+            "quantity": "1",
+            "unitPrice": "2",
+            "rateSource": "Synthetic acceptance FX assumption, not a live quotation",
+            "chaosPerUnit": "100"
+          },
+          "reserve": {
+            "currency": "divine",
+            "quantity": "1",
+            "unitPrice": "0.5",
+            "rateSource": "Synthetic acceptance FX assumption, not a live quotation",
+            "chaosPerUnit": "100"
+          },
+          "recipeIds": [
+            "quicksilver-mageblood-cheetah"
+          ],
+          "horizonDays": 7,
+          "maxExposurePercent": 10,
+          "maxRiskProbability": 0.25
+        },
+        "version": "intelligence-1",
+        "scenarios": [
+          {
+            "name": "conservative",
+            "lines": [
+              {
+                "title": "Quicksilver \u00b7 Mageblood \u00b7 14% speed / 70% effect",
+                "reason": "Whole simulated objective fits capital, concentration, observed holding capacity and the combined risk budget. Probabilities or input costs include explicitly declared model assumptions; inspect the linked saved risk evidence.",
+                "recipeId": "quicksilver-mageblood-cheetah",
+                "objective": {
+                  "kind": "attempts",
+                  "count": 1
+                },
+                "p90Budget": "10",
+                "p95Budget": "10",
+                "riskRunId": "b3f11bd6-6fc8-410d-931a-58b38f40017d",
+                "holdingDays": 2,
+                "stopCondition": "Stop if the signal leaves CRAFT, any used evidence expires, input prices change, or unsold inventory exceeds the observed capacity.",
+                "expectedProfit": "190",
+                "ownSaleSamples": 5,
+                "plannedCapital": "10",
+                "targetSignature": "3.29.3.3:6a3f7bf6cfa703db7771c63a3330728e",
+                "liquidityCapacity": 5,
+                "combinedRiskUpperBound": 0.07960414374601597,
+                "lossProbabilityUpperBound": 0.014802071873007982,
+                "budgetExceedanceUpperBound": 0.06480207187300799
+              }
+            ],
+            "status": "plan",
+            "watchlist": [],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "189",
+              "plannedCapital": "11",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "190",
+            "reservedCapital": "190",
+            "allocatedCapital": "10",
+            "unionRiskUpperBound": 0.07960414374601597,
+            "statisticalConfidenceLowerBound": 0.95
+          },
+          {
+            "name": "balanced",
+            "lines": [
+              {
+                "title": "Quicksilver \u00b7 Mageblood \u00b7 14% speed / 70% effect",
+                "reason": "Whole simulated objective fits capital, concentration, observed holding capacity and the combined risk budget. Probabilities or input costs include explicitly declared model assumptions; inspect the linked saved risk evidence.",
+                "recipeId": "quicksilver-mageblood-cheetah",
+                "objective": {
+                  "kind": "attempts",
+                  "count": 1
+                },
+                "p90Budget": "10",
+                "p95Budget": "10",
+                "riskRunId": "b3f11bd6-6fc8-410d-931a-58b38f40017d",
+                "holdingDays": 2,
+                "stopCondition": "Stop if the signal leaves CRAFT, any used evidence expires, input prices change, or unsold inventory exceeds the observed capacity.",
+                "expectedProfit": "190",
+                "ownSaleSamples": 5,
+                "plannedCapital": "10",
+                "targetSignature": "3.29.3.3:6a3f7bf6cfa703db7771c63a3330728e",
+                "liquidityCapacity": 5,
+                "combinedRiskUpperBound": 0.07960414374601597,
+                "lossProbabilityUpperBound": 0.014802071873007982,
+                "budgetExceedanceUpperBound": 0.06480207187300799
+              }
+            ],
+            "status": "plan",
+            "watchlist": [],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "189",
+              "plannedCapital": "11",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "190",
+            "reservedCapital": "190",
+            "allocatedCapital": "10",
+            "unionRiskUpperBound": 0.07960414374601597,
+            "statisticalConfidenceLowerBound": 0.95
+          },
+          {
+            "name": "aggressive",
+            "lines": [
+              {
+                "title": "Quicksilver \u00b7 Mageblood \u00b7 14% speed / 70% effect",
+                "reason": "Whole simulated objective fits capital, concentration, observed holding capacity and the combined risk budget. Probabilities or input costs include explicitly declared model assumptions; inspect the linked saved risk evidence.",
+                "recipeId": "quicksilver-mageblood-cheetah",
+                "objective": {
+                  "kind": "attempts",
+                  "count": 1
+                },
+                "p90Budget": "10",
+                "p95Budget": "10",
+                "riskRunId": "b3f11bd6-6fc8-410d-931a-58b38f40017d",
+                "holdingDays": 2,
+                "stopCondition": "Stop if the signal leaves CRAFT, any used evidence expires, input prices change, or unsold inventory exceeds the observed capacity.",
+                "expectedProfit": "190",
+                "ownSaleSamples": 5,
+                "plannedCapital": "10",
+                "targetSignature": "3.29.3.3:6a3f7bf6cfa703db7771c63a3330728e",
+                "liquidityCapacity": 5,
+                "combinedRiskUpperBound": 0.07960414374601597,
+                "lossProbabilityUpperBound": 0.014802071873007982,
+                "budgetExceedanceUpperBound": 0.06480207187300799
+              }
+            ],
+            "status": "plan",
+            "watchlist": [],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "189",
+              "plannedCapital": "11",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "190",
+            "reservedCapital": "190",
+            "allocatedCapital": "10",
+            "unionRiskUpperBound": 0.07960414374601597,
+            "statisticalConfidenceLowerBound": 0.95
+          }
+        ],
+        "evaluatedAt": "2026-11-04T19:50:04.958Z",
+        "evidenceIds": [
+          "synthetic-intelligence:1c6b22d7-41a7-4be2-8ebe-3f7a38813505",
+          "synthetic-intelligence:f53f02c6-bc18-4b64-a592-84cb9ad67dff",
+          "synthetic-intelligence:d0743ec2-5e6e-4292-8cde-de56ef029415",
+          "b3f11bd6-6fc8-410d-931a-58b38f40017d"
+        ]
+      },
+      "createdAt": "2026-11-04T19:50:04.961Z"
+    },
+    {
+      "id": "30439593-a358-4d57-8f9d-091ff150c7a6",
+      "plan": {
+        "request": {
+          "league": "Fixture League",
+          "capital": {
+            "currency": "divine",
+            "quantity": "1",
+            "unitPrice": "2",
+            "rateSource": "Synthetic acceptance FX assumption, not a live quotation",
+            "chaosPerUnit": "100"
+          },
+          "reserve": {
+            "currency": "divine",
+            "quantity": "1",
+            "unitPrice": "0.5",
+            "rateSource": "Synthetic acceptance FX assumption, not a live quotation",
+            "chaosPerUnit": "100"
+          },
+          "recipeIds": [
+            "quicksilver-mageblood-cheetah"
+          ],
+          "horizonDays": 7,
+          "maxExposurePercent": 10,
+          "maxRiskProbability": 0.25
+        },
+        "version": "intelligence-1",
+        "scenarios": [
+          {
+            "name": "conservative",
+            "lines": [],
+            "status": "hold",
+            "watchlist": [
+              {
+                "reasons": [
+                  "Current opportunity state is INSUFFICIENT_DATA",
+                  "Saleable outcome target has insufficient liquidity evidence"
+                ],
+                "recipeId": "quicksilver-mageblood-cheetah"
+              }
+            ],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "0",
+              "plannedCapital": "0",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "0",
+            "reservedCapital": "200",
+            "allocatedCapital": "0",
+            "unionRiskUpperBound": 0,
+            "statisticalConfidenceLowerBound": 1
+          },
+          {
+            "name": "balanced",
+            "lines": [],
+            "status": "hold",
+            "watchlist": [
+              {
+                "reasons": [
+                  "Current opportunity state is INSUFFICIENT_DATA",
+                  "Saleable outcome target has insufficient liquidity evidence"
+                ],
+                "recipeId": "quicksilver-mageblood-cheetah"
+              }
+            ],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "0",
+              "plannedCapital": "0",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "0",
+            "reservedCapital": "200",
+            "allocatedCapital": "0",
+            "unionRiskUpperBound": 0,
+            "statisticalConfidenceLowerBound": 1
+          },
+          {
+            "name": "aggressive",
+            "lines": [],
+            "status": "hold",
+            "watchlist": [
+              {
+                "reasons": [
+                  "Current opportunity state is INSUFFICIENT_DATA",
+                  "Saleable outcome target has insufficient liquidity evidence"
+                ],
+                "recipeId": "quicksilver-mageblood-cheetah"
+              }
+            ],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "0",
+              "plannedCapital": "0",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "0",
+            "reservedCapital": "200",
+            "allocatedCapital": "0",
+            "unionRiskUpperBound": 0,
+            "statisticalConfidenceLowerBound": 1
+          }
+        ],
+        "evaluatedAt": "2026-11-04T19:50:06.127Z",
+        "evidenceIds": [
+          "synthetic-intelligence:1c6b22d7-41a7-4be2-8ebe-3f7a38813505",
+          "synthetic-intelligence:f53f02c6-bc18-4b64-a592-84cb9ad67dff",
+          "synthetic-intelligence:d0743ec2-5e6e-4292-8cde-de56ef029415",
+          "b3f11bd6-6fc8-410d-931a-58b38f40017d"
+        ]
+      },
+      "createdAt": "2026-11-04T19:50:06.127Z"
+    },
+    {
+      "id": "0acd1833-db26-4036-9adf-df3f79c960cf",
+      "plan": {
+        "request": {
+          "league": "Fixture League",
+          "capital": {
+            "currency": "divine",
+            "quantity": "1",
+            "unitPrice": "2",
+            "rateSource": "Synthetic acceptance FX assumption, not a live quotation",
+            "chaosPerUnit": "100"
+          },
+          "reserve": {
+            "currency": "divine",
+            "quantity": "1",
+            "unitPrice": "0.5",
+            "rateSource": "Synthetic acceptance FX assumption, not a live quotation",
+            "chaosPerUnit": "100"
+          },
+          "recipeIds": [
+            "quicksilver-alchemist-cheetah"
+          ],
+          "horizonDays": 7,
+          "maxExposurePercent": 10,
+          "maxRiskProbability": 0.25
+        },
+        "version": "intelligence-1",
+        "scenarios": [
+          {
+            "name": "conservative",
+            "lines": [
+              {
+                "title": "Quicksilver \u00b7 Alchemist T1 \u00b7 14% speed / 70% effect",
+                "reason": "Whole simulated objective fits capital, concentration, observed holding capacity and the combined risk budget. Probabilities or input costs include explicitly declared model assumptions; inspect the linked saved risk evidence.",
+                "recipeId": "quicksilver-alchemist-cheetah",
+                "objective": {
+                  "kind": "attempts",
+                  "count": 1
+                },
+                "p90Budget": "10",
+                "p95Budget": "10",
+                "riskRunId": "cd8ea279-e9db-4d10-80e2-39b30cfa6395",
+                "holdingDays": 2,
+                "stopCondition": "Stop if the signal leaves CRAFT, any used evidence expires, input prices change, or unsold inventory exceeds the observed capacity.",
+                "expectedProfit": "190",
+                "ownSaleSamples": 3,
+                "plannedCapital": "10",
+                "targetSignature": "3.29.3.3:fd1345e22b502043cbc2edd33ff497de",
+                "liquidityCapacity": 3,
+                "combinedRiskUpperBound": 0.07960414374601597,
+                "lossProbabilityUpperBound": 0.014802071873007982,
+                "budgetExceedanceUpperBound": 0.06480207187300799
+              }
+            ],
+            "status": "plan",
+            "watchlist": [],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "189",
+              "plannedCapital": "11",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "190",
+            "reservedCapital": "190",
+            "allocatedCapital": "10",
+            "unionRiskUpperBound": 0.07960414374601597,
+            "statisticalConfidenceLowerBound": 0.95
+          },
+          {
+            "name": "balanced",
+            "lines": [
+              {
+                "title": "Quicksilver \u00b7 Alchemist T1 \u00b7 14% speed / 70% effect",
+                "reason": "Whole simulated objective fits capital, concentration, observed holding capacity and the combined risk budget. Probabilities or input costs include explicitly declared model assumptions; inspect the linked saved risk evidence.",
+                "recipeId": "quicksilver-alchemist-cheetah",
+                "objective": {
+                  "kind": "attempts",
+                  "count": 1
+                },
+                "p90Budget": "10",
+                "p95Budget": "10",
+                "riskRunId": "cd8ea279-e9db-4d10-80e2-39b30cfa6395",
+                "holdingDays": 2,
+                "stopCondition": "Stop if the signal leaves CRAFT, any used evidence expires, input prices change, or unsold inventory exceeds the observed capacity.",
+                "expectedProfit": "190",
+                "ownSaleSamples": 3,
+                "plannedCapital": "10",
+                "targetSignature": "3.29.3.3:fd1345e22b502043cbc2edd33ff497de",
+                "liquidityCapacity": 3,
+                "combinedRiskUpperBound": 0.07960414374601597,
+                "lossProbabilityUpperBound": 0.014802071873007982,
+                "budgetExceedanceUpperBound": 0.06480207187300799
+              }
+            ],
+            "status": "plan",
+            "watchlist": [],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "189",
+              "plannedCapital": "11",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "190",
+            "reservedCapital": "190",
+            "allocatedCapital": "10",
+            "unionRiskUpperBound": 0.07960414374601597,
+            "statisticalConfidenceLowerBound": 0.95
+          },
+          {
+            "name": "aggressive",
+            "lines": [
+              {
+                "title": "Quicksilver \u00b7 Alchemist T1 \u00b7 14% speed / 70% effect",
+                "reason": "Whole simulated objective fits capital, concentration, observed holding capacity and the combined risk budget. Probabilities or input costs include explicitly declared model assumptions; inspect the linked saved risk evidence.",
+                "recipeId": "quicksilver-alchemist-cheetah",
+                "objective": {
+                  "kind": "attempts",
+                  "count": 1
+                },
+                "p90Budget": "10",
+                "p95Budget": "10",
+                "riskRunId": "cd8ea279-e9db-4d10-80e2-39b30cfa6395",
+                "holdingDays": 2,
+                "stopCondition": "Stop if the signal leaves CRAFT, any used evidence expires, input prices change, or unsold inventory exceeds the observed capacity.",
+                "expectedProfit": "190",
+                "ownSaleSamples": 3,
+                "plannedCapital": "10",
+                "targetSignature": "3.29.3.3:fd1345e22b502043cbc2edd33ff497de",
+                "liquidityCapacity": 3,
+                "combinedRiskUpperBound": 0.07960414374601597,
+                "lossProbabilityUpperBound": 0.014802071873007982,
+                "budgetExceedanceUpperBound": 0.06480207187300799
+              }
+            ],
+            "status": "plan",
+            "watchlist": [],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "189",
+              "plannedCapital": "11",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "190",
+            "reservedCapital": "190",
+            "allocatedCapital": "10",
+            "unionRiskUpperBound": 0.07960414374601597,
+            "statisticalConfidenceLowerBound": 0.95
+          }
+        ],
+        "evaluatedAt": "2026-11-04T19:50:07.221Z",
+        "evidenceIds": [
+          "synthetic-intelligence:567662d7-cdb3-451b-8915-0a70fd883c22",
+          "synthetic-intelligence:b8948130-6107-4d5c-8d6d-2f3af38c3d7e",
+          "synthetic-intelligence:8836bfc8-196e-4cb4-bc48-52caf1407010",
+          "cd8ea279-e9db-4d10-80e2-39b30cfa6395"
+        ]
+      },
+      "createdAt": "2026-11-04T19:50:07.222Z"
+    },
+    {
+      "id": "65ade8ef-0442-4cfd-ae64-ef7ab65b716c",
+      "plan": {
+        "request": {
+          "league": "Fixture League",
+          "capital": {
+            "currency": "divine",
+            "quantity": "1",
+            "unitPrice": "2",
+            "rateSource": "Synthetic acceptance FX assumption, not a live quotation",
+            "chaosPerUnit": "100"
+          },
+          "reserve": {
+            "currency": "divine",
+            "quantity": "1",
+            "unitPrice": "0.5",
+            "rateSource": "Synthetic acceptance FX assumption, not a live quotation",
+            "chaosPerUnit": "100"
+          },
+          "recipeIds": [
+            "quicksilver-alchemist-cheetah"
+          ],
+          "horizonDays": 7,
+          "maxExposurePercent": 10,
+          "maxRiskProbability": 0.25
+        },
+        "version": "intelligence-1",
+        "scenarios": [
+          {
+            "name": "conservative",
+            "lines": [],
+            "status": "hold",
+            "watchlist": [
+              {
+                "reasons": [
+                  "Current opportunity state is INSUFFICIENT_DATA",
+                  "Saleable outcome target has insufficient liquidity evidence"
+                ],
+                "recipeId": "quicksilver-alchemist-cheetah"
+              }
+            ],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "0",
+              "plannedCapital": "0",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "0",
+            "reservedCapital": "200",
+            "allocatedCapital": "0",
+            "unionRiskUpperBound": 0,
+            "statisticalConfidenceLowerBound": 1
+          },
+          {
+            "name": "balanced",
+            "lines": [],
+            "status": "hold",
+            "watchlist": [
+              {
+                "reasons": [
+                  "Current opportunity state is INSUFFICIENT_DATA",
+                  "Saleable outcome target has insufficient liquidity evidence"
+                ],
+                "recipeId": "quicksilver-alchemist-cheetah"
+              }
+            ],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "0",
+              "plannedCapital": "0",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "0",
+            "reservedCapital": "200",
+            "allocatedCapital": "0",
+            "unionRiskUpperBound": 0,
+            "statisticalConfidenceLowerBound": 1
+          },
+          {
+            "name": "aggressive",
+            "lines": [],
+            "status": "hold",
+            "watchlist": [
+              {
+                "reasons": [
+                  "Current opportunity state is INSUFFICIENT_DATA",
+                  "Saleable outcome target has insufficient liquidity evidence"
+                ],
+                "recipeId": "quicksilver-alchemist-cheetah"
+              }
+            ],
+            "limitations": [
+              "Advisory model, not executed trades or historical investment returns.",
+              "Per-option P95 budgets are not a portfolio P95. The displayed risk is a union bound for cash loss or bankroll overrun; no independence is assumed.",
+              "Sampling bounds simultaneously cover examined Monte Carlo cost/profit distributions at the displayed confidence, conditional on the declared model.",
+              "Own completed sales bound trial production capacity; asking supply and missing listings are not sales or demand.",
+              "Greedy selection is feasible and deterministic; it does not claim a globally optimal portfolio."
+            ],
+            "sensitivity": {
+              "assumption": "All crafting input spending increases by the stated percentage; proceeds and outcome probabilities are unchanged. This is a scenario, not a new market quote.",
+              "fitsCapital": true,
+              "expectedProfit": "0",
+              "plannedCapital": "0",
+              "inputShockPercent": "10"
+            },
+            "expectedProfit": "0",
+            "reservedCapital": "200",
+            "allocatedCapital": "0",
+            "unionRiskUpperBound": 0,
+            "statisticalConfidenceLowerBound": 1
+          }
+        ],
+        "evaluatedAt": "2026-11-04T19:50:08.244Z",
+        "evidenceIds": [
+          "synthetic-intelligence:567662d7-cdb3-451b-8915-0a70fd883c22",
+          "synthetic-intelligence:b8948130-6107-4d5c-8d6d-2f3af38c3d7e",
+          "synthetic-intelligence:8836bfc8-196e-4cb4-bc48-52caf1407010",
+          "cd8ea279-e9db-4d10-80e2-39b30cfa6395"
+        ]
+      },
+      "createdAt": "2026-11-04T19:50:08.244Z"
+    }
+  ]
+}

@@ -85,13 +85,13 @@ Files: domain factoryLedger.ts + tests; contracts factory.ts; server factoryApi/
 
 Files: domain opportunitySignals.ts/liquidity.ts/capitalAllocation.ts + tests; contracts intelligence.ts; server intelligence service/API/repository; migration0027/schema/admin thresholds; integrated opportunities/production-plan UI.
 
-- [ ] Exact-target/league/revision listing summaries from existing snapshots: independent sellers, raw comparable listings, distribution/depth/concentration, added/reappeared/missing IDs and supply/price changes. Explicit proxies; no inferred sales velocity.
-- [ ] Own ledger sale-duration/turnover samples with actual sample sizes, never transferred across signatures/leagues.
-- [ ] Persist signal decisions/evidence; freshness, minimum independent observations, hysteresis, cooldown/dedup; CRAFT/WATCH/STOP/INSUFFICIENT DATA with clear triggers and configurable admin thresholds.
-- [ ] Recalculate on market/model/recipe changes without provider fetch-on-view. Cover profit/EV/material/ask/seller/supply/staleness/risk and evidence-status transitions.
-- [ ] Integer allocation respecting currency/capital/reserve/horizon/risk/P90-P95 bankroll/exposure/diversification/liquidity; unreliable candidates watchlisted and no eligible plan means hold cash.
-- [ ] Persist plans and inputs/decision versions; per-line reason/stop condition, portfolio caveats, sensitivity and conservative/aggressive scenarios. Advisory only.
-- [ ] All numerical/API/PG/browser/migration checks and Claude review/fixes; PR C depends explicitly on PR B. Final report links all PRs, evidence/screenshots and precise limitations/readiness.
+- [x] Exact-target/league/revision listing summaries from existing snapshots: independent sellers, raw comparable listings, distribution/depth/concentration, added/reappeared/missing IDs and supply/price changes. Explicit proxies; no inferred sales velocity.
+- [x] Own ledger sale-duration/turnover samples with actual sample sizes, never transferred across signatures/leagues.
+- [x] Persist signal decisions/evidence; freshness, minimum independent observations, hysteresis, cooldown/dedup; CRAFT/WATCH/STOP/INSUFFICIENT DATA with clear triggers and configurable admin thresholds.
+- [x] Recalculate on market/model/recipe changes without provider fetch-on-view. Cover profit/EV/material/ask/seller/supply/staleness/risk and evidence-status transitions.
+- [x] Integer allocation respecting currency/capital/reserve/horizon/risk/P90-P95 bankroll/exposure/diversification/liquidity; unreliable candidates watchlisted and no eligible plan means hold cash.
+- [x] Persist plans and inputs/decision versions; per-line reason/stop condition, portfolio caveats, sensitivity and conservative/aggressive scenarios. Advisory only.
+- [x] All numerical/API/PG/browser/migration checks and Claude review/fixes; PR C depends explicitly on PR B. Final report links all PRs, evidence/screenshots and precise limitations/readiness.
 
 ## Execution ledger
 
@@ -104,3 +104,5 @@ Files: domain opportunitySignals.ts/liquidity.ts/capitalAllocation.ts + tests; c
 - Phase A independent Claude review PASS at99f51b5 after fixes. Full unit/contracts, targeted PostgreSQL, browser, build/typecheck/lint passed after integration; migration unchanged and preservation receipt retained. Proceeding to dependent PRB with immutable ledger and explicit cash/inventory separation.
 
 - Phase B Claude PASS ataddbab0 after financial/data-integrity corrections; final nonblocking explanation guard and focused regression passed. Full152 PostgreSQL,8 backendE2E,6 browser scenarios passed; isolated migration0026 preserved31 tables. Proceeding to Phase C without merge/deploy.
+
+- Phase C final Claude PASS atdd1229f after policy, cohort coverage, chronology, FX and coherent concurrency fixes. Full integrated161 PostgreSQL,8 backend E2E,8 browser scenarios, numerical/contracts/unit suites and build/typecheck/lint passed. Migration0027 preserved34 prior tables. PR33 depends on PR32; no merge/deploy. Final evidence and bounded limitations are in docs/evidence/investment-release-readiness-2026-11-04.md.
