@@ -437,6 +437,32 @@
     "mod:flat-energy-shield": {
       "name": "Local Maximum Energy Shield",
       "generationType": "prefix"
+    },
+    "base:quicksilver-flask-20-quality": {
+      "name": "Quicksilver Flask (20% quality)",
+      "itemClass": "Utility Flask",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzksMTQseyJmIjoiMkRJdGVtcy9GbGFza3Mvc3ByaW50IiwidyI6MSwiaCI6Miwic2NhbGUiOjEsImxldmVsIjoxfV0/aa66be180b/sprint.png"
+    },
+    "mod:flask-effect": {
+      "name": "Increased effect",
+      "generationType": "prefix"
+    },
+    "mod:flask-duration": {
+      "name": "Duration",
+      "generationType": "prefix"
+    },
+    "mod:flask-movement-speed": {
+      "name": "Increased Movement Speed during Effect",
+      "generationType": "suffix"
+    },
+    "mod:flask-enchant-effect": {
+      "name": "Increased effect(Enkindling)",
+      "generationType": "enchant"
+    },
+    "enkindling-orb": {
+      "name": "Enkindling Orb",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRXhwZWRpdGlvbi9GbGFza1BsYXRlIiwic2NhbGUiOjF9XQ/7c1a584a8d/FlaskPlate.png"
     }
   }
 }

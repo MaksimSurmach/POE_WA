@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-11-04",
+  "scope": "Supplement to 2026-11-03 identities; stat/base identities matched from successful current Trade searches and listing hashes. Consumable observed in current Currency snapshot.",
+  "sources": [
+    "https://www.pathofexile.com/trade/search/Allflame",
+    "https://github.com/SnosMe/awakened-poe-trade/blob/3188208957422b21b69b12083a03edf3d1bac187/renderer/public/data/en/stats.ndjson"
+  ],
+  "stats": [
+    {
+      "id": "explicit.stat_2448920197",
+      "text": "#% increased effect",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1256719186",
+      "text": "#% increased Duration",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3182498570",
+      "text": "#% increased Movement Speed during Effect",
+      "type": "explicit"
+    },
+    {
+      "id": "enchant.stat_2448920197",
+      "text": "#% increased effect",
+      "type": "enchant"
+    }
+  ],
+  "bases": [
+    {
+      "type": "Quicksilver Flask"
+    }
+  ],
+  "resources": [
+    {
+      "name": "Enkindling Orb",
+      "id": "enkindling-orb"
+    }
+  ]
+}

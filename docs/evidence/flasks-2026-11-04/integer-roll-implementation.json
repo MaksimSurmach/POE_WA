@@ -1,0 +1,139 @@
+{
+  "checkedAt": "2026-11-04T15:18:25.353194+00:00",
+  "reviewer": "Independent read-only crafting-model reviewer",
+  "retrieval": "Successful earlier public-resource read, reused locally. No retry after parent reported HTTP403.",
+  "package": {
+    "sourceUrl": "https://beta.craftofexile.com/packages/files/package_poe1.js?v=1793642792",
+    "sha256": "080ea99fb3f702ba896f9302ebd2f22caad86d3cbc343ae2e9483c5ec8f900cd",
+    "sizeBytes": 548361,
+    "localRetrievedFile": "/tmp/poe-flask-coe-public.js"
+  },
+  "data": {
+    "sourceUrl": "https://beta.craftofexile.com/json/poe1/3.29.3.3/data.json?v=1793642792",
+    "sha256": "540dcca7d958edca9f1b55da66220a640e2f3449ce732e59815fd16f2d01ed75",
+    "sizeBytes": 9217432,
+    "localRetrievedFile": "/tmp/poe-flask-coe-data.json"
+  },
+  "symbols": [
+    {
+      "name": "Item.rollModifierValues",
+      "sourceLine": 1,
+      "utf8ByteOffset": 134315,
+      "integerBranchExcerpt": "Math.round(EmulatorManager.randomNumber(e.range[0],e.range[1]+1,!0)*t*s)",
+      "interpretation": "Default multiplier and scaling are one. Each integer stat uses its inclusive minimum/maximum range; lucky-roll flag defaults false."
+    },
+    {
+      "name": "EmulatorManager.randomNumber",
+      "sourceLine": 1,
+      "utf8ByteOffset": 335396,
+      "integerBranchExcerpt": "Math.floor(Math.random()*Math.floor(t-e))+e",
+      "interpretation": "With integer mode true, draws a uniform integer from lower bound inclusive to upper bound exclusive."
+    },
+    {
+      "name": "GameEmulator.flaskEnchant",
+      "sourceLine": 1,
+      "utf8ByteOffset": 508926,
+      "interpretation": "Removes existing Enkindling/Instilling enchant types, then rolls one enchant affix. Explicit modifiers are retained."
+    }
+  ],
+  "selectedData": [
+    {
+      "id": 26205,
+      "key": "FlaskEnchantmentSealIncreasedEffect_",
+      "label": null,
+      "group": 3868,
+      "minlvl": 1,
+      "maxlvl": 100,
+      "power": 66,
+      "stats": [
+        {
+          "index": 14440,
+          "label": 5384,
+          "range": [1, 1],
+          "inverted": false,
+          "values": false
+        },
+        {
+          "index": 4011,
+          "label": 5385,
+          "range": [60, 70],
+          "inverted": false,
+          "values": true
+        }
+      ],
+      "desc": null
+    },
+    {
+      "id": 4364,
+      "key": "FlaskBuffMovementSpeedWhileHealing3",
+      "label": 5441,
+      "group": 3900,
+      "minlvl": 85,
+      "maxlvl": 100,
+      "power": 13,
+      "stats": [
+        {
+          "index": 376,
+          "label": 5439,
+          "range": [12, 14],
+          "inverted": false,
+          "values": true
+        }
+      ],
+      "desc": null
+    },
+    {
+      "id": 4402,
+      "key": "FlaskEffectReducedDuration3",
+      "label": 5453,
+      "group": 3903,
+      "minlvl": 80,
+      "maxlvl": 100,
+      "power": 50,
+      "stats": [
+        {
+          "index": 4036,
+          "label": 5450,
+          "range": [23, 27],
+          "inverted": true,
+          "values": true
+        },
+        {
+          "index": 4011,
+          "label": 5451,
+          "range": [25, 25],
+          "inverted": false,
+          "values": true
+        }
+      ],
+      "desc": null
+    }
+  ],
+  "derivations": {
+    "exact14ConditionalProbability": "1/(14-12+1) = 1/3 under the inspected CoE model",
+    "exact70EnkindlingProbability": "(250/(250+100+100+100+100)) / (70-60+1) = 5/143",
+    "expectedExact70Enkindling": 28.6,
+    "anyEffectExact14Alterations": "1005 rounded displayed mean * 3 = 3015 approximate",
+    "alchemistT1Exact14Alterations": "3035 rounded displayed mean * 3 = 9105 approximate"
+  },
+  "weightSource": "https://poedb.tw/us/Enkindling_Orb",
+  "independentUiChecks": {
+    "anyEffectPlusCheetahT1": {
+      "expectedAlterations": 1005,
+      "successPercent": 0.0995,
+      "confidenceAtDisplayedMeanPercent": 63.23
+    },
+    "alchemistT1PlusCheetahT1": {
+      "expectedAlterations": 3035,
+      "successPercent": 0.033,
+      "confidenceAtDisplayedMeanPercent": 63.218
+    }
+  },
+  "limitations": [
+    "This establishes the calculator implementation, not independently measured in-game probabilities.",
+    "Exact-roll expectations derive from rounded tier-only means, not a direct combined exact-value calculator output.",
+    "Legacy CoE T1/T1 gives 2839 Alterations or 1420 Alterations + 43 Augmentations, differing from beta3035; no mixed-method coefficient is approved.",
+    "Beta enchant chooser includes degradation wording absent from PoEDB enchant table; no claim about in-game degradation is established here.",
+    "No live market listing, acquired-base availability, purchase, sale or profitability verification in this reviewer artifact."
+  ]
+}
