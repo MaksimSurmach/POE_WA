@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-11-04T13:54:37.021266+00:00",
+  "release": {
+    "sourceCommit": "f55c676ae254ad6a32bc5e23539b9544572cdbde",
+    "releaseDirectory": "/Users/maksimsurmach/Library/Application Support/POE Worksmith/releases/pohx-guides-20261104",
+    "nodeVersion": "v22.23.4",
+    "createdAt": "2026-11-04T13:52:36.616331+00:00",
+    "entrypointSha256": "5c0747c2251f3d7f584099933690c88707f4bd9bf91a6ec28a067e9c2422340e",
+    "startupMode": "manual"
+  },
+  "browser": {
+    "origin": "http://127.0.0.1:4173",
+    "pohxGuides": 27,
+    "totalEntries": 53,
+    "savedMaterialQuotes": 178,
+    "league": "Allflame",
+    "linkedCheckedFTVariantOpened": true
+  },
+  "startReadinessPassed": true,
+  "stopPassed": true,
+  "stoppedPorts": [3000, 3002, 3003, 4173, 4174, 54326, 54327],
+  "loginAutostart": false,
+  "collectionSettingsRestoredVersion": 18,
+  "rollbackRelease": "roi-review-20261104",
+  "databaseBackup": "backups/before-pohx-guides-20261104.dump",
+  "ci": {
+    "commit": "f55c676ae254ad6a32bc5e23539b9544572cdbde",
+    "run": "https://github.com/MaksimSurmach/POE_WA/actions/runs/41842035399",
+    "conclusion": "success",
+    "includesBothDockerBuilds": true
+  }
+}

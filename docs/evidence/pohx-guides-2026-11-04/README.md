@@ -33,3 +33,9 @@ Suggested next models, subject to a demand and exact-output audit:
 3. Convert the newly added fractured RF gloves and straightforward essence routes into verified automatic models before tackling multi-donor minmax recombination ([Pohx gloves](https://pohx.net/crafts/gloves/)).
 
 These are research priorities, not claims of current profit.
+
+## Installed runtime
+
+Release `pohx-guides-20261104` installs code `f55c676`. Manual start/readiness, the installed 27-of-53 library, current-league material API (178 saved quotes) and link to the checked FT variant passed. Collection settings were restored exactly at version 18. Manual shutdown passed; API, web and PostgreSQL, including temporary preview/test ports, are stopped. Login autostart remains disabled. Previous release and a pre-change database backup are retained; see `installed.json`.
+
+[CI for installed code f55c676](https://github.com/MaksimSurmach/POE_WA/actions/runs/41842035399) passed, including backend end-to-end checks and both Docker builds. The subsequent commit records installation evidence only.
