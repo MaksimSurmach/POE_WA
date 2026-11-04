@@ -289,7 +289,7 @@ export function requiresCompleteOutputCoverage(query: CanonicalJsonObject) {
   );
 }
 
-export function comparableRecipeListings(
+export function matchingRecipeListings(
   query: CanonicalJsonObject,
   listings: readonly MarketListing[],
   capturedAt: Date,
@@ -350,10 +350,27 @@ export function comparableRecipeListings(
       .rows.filter((row) => row.status === 'MATCH')
       .map((row) => row.externalId),
   );
+  return normalizedListings.filter((row) => matches.has(row.id));
+}
+
+export function comparableRecipeListings(
+  query: CanonicalJsonObject,
+  listings: readonly MarketListing[],
+  capturedAt: Date,
+  now: Date,
+  currency: 'chaos' | 'divine' = 'chaos',
+) {
+  if (!query.handbookTarget) return [...listings];
   return [
     ...aggregateMarketListings({
       currency,
-      listings: normalizedListings.filter((row) => matches.has(row.id)),
+      listings: matchingRecipeListings(
+        query,
+        listings,
+        capturedAt,
+        now,
+        currency,
+      ),
     }).listings,
   ];
 }

@@ -1207,3 +1207,63 @@ export const factoryMutations = pgTable(
     check('factory_mutations_version_check', sql`${t.resultVersion} >= 0`),
   ],
 );
+
+export const craftSignalStates = pgTable(
+  'craft_signal_states',
+  {
+    contextKey: text('context_key').primaryKey(),
+    recipeId: text('recipe_id')
+      .notNull()
+      .references(() => recipes.id),
+    recipeContentHash: text('recipe_content_hash').notNull(),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id),
+    targetSignature: text('target_signature').notNull(),
+    document: jsonb('document').$type<Record<string, unknown>>().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index('craft_signal_states_league_idx').on(t.leagueId, t.updatedAt)],
+);
+export const craftSignalHistory = pgTable(
+  'craft_signal_history',
+  {
+    id: uuid('id').primaryKey(),
+    contextKey: text('context_key')
+      .notNull()
+      .references(() => craftSignalStates.contextKey),
+    evidenceHash: text('evidence_hash').notNull(),
+    document: jsonb('document').$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('craft_signal_history_evidence_uq').on(
+      t.contextKey,
+      t.evidenceHash,
+    ),
+    index('craft_signal_history_context_idx').on(t.contextKey, t.createdAt),
+  ],
+);
+export const craftAllocationPlans = pgTable(
+  'craft_allocation_plans',
+  {
+    id: uuid('id').primaryKey(),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id),
+    idempotencyKey: uuid('idempotency_key').notNull(),
+    requestHash: text('request_hash').notNull(),
+    document: jsonb('document').$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('craft_allocation_plans_idempotency_uq').on(t.idempotencyKey),
+    index('craft_allocation_plans_league_idx').on(t.leagueId, t.createdAt),
+  ],
+);

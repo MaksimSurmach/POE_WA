@@ -59,7 +59,7 @@ const listingSchema = z.strictObject({
   item: jsonObjectSchema,
   price: moneySchema,
 });
-const snapshotPayloadSchema = z.object({
+export const snapshotPayloadSchema = z.object({
   coverage: z.enum(['complete', 'partial', 'unknown']).optional(),
   sortedPageComplete: z.boolean().optional(),
   sortedSampleComplete: z.boolean().optional(),

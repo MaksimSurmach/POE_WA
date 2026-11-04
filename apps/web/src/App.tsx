@@ -27,6 +27,7 @@ import { MarketTrendsPage } from './MarketTrendsPage.js';
 import { RecipeLibraryPage } from './RecipeLibraryPage.js';
 import { PohxRecipePage } from './PohxRecipePage.js';
 import { FactoryPage } from './FactoryPage.js';
+import { OpportunitiesIntelligence } from './IntelligencePanel.js';
 
 const apiClient = createApiClient();
 
@@ -46,7 +47,7 @@ function AppShell() {
               end
               to="/"
             >
-              Profitability
+              Craft Opportunities
             </NavLink>
             <NavLink
               className={({ isActive }) =>
@@ -299,6 +300,8 @@ function CatalogRoute() {
           <span role="status">{refreshMessage}</span>
         </div>
       </section>
+
+      <OpportunitiesIntelligence league={league?.name} />
 
       {loadError ? (
         <StatusPanel tone="danger" title="Recipes unavailable">

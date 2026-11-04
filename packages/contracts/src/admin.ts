@@ -1,6 +1,10 @@
 import { z } from 'zod';
+import { intelligenceSettingsSchema } from '@poe-worksmith/domain';
 
 export const marketAdminSettingsSchema = z.strictObject({
+  intelligence: intelligenceSettingsSchema.default(() =>
+    intelligenceSettingsSchema.parse({}),
+  ),
   automaticRefreshEnabled: z.boolean(),
   scheduledCollectionEnabled: z.boolean(),
   collectionsPaused: z.boolean(),
@@ -19,6 +23,8 @@ export const marketAdminPatchSchema = z.strictObject({
   version: z.number().int().nonnegative(),
   settings: marketAdminSettingsSchema
     .partial()
+    // Read defaults must not become writes when an unrelated setting is patched.
+    .extend({ intelligence: intelligenceSettingsSchema.optional() })
     .refine((v) => Object.keys(v).length > 0),
 });
 export const marketAdminRefreshSchema = z.discriminatedUnion('scope', [

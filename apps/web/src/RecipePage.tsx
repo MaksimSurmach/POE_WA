@@ -13,6 +13,7 @@ import { createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
 import { RecipeTrendPanel } from './MarketTrendsPage.js';
 import { CraftRiskSection } from './CraftRiskSection.js';
+import { RecipeIntelligencePanel } from './IntelligencePanel.js';
 
 const apiClient = createApiClient();
 
@@ -153,6 +154,10 @@ export function RecipePage() {
         cost is a mean across repeated crafts, not a guaranteed budget.
       </p>
 
+      <RecipeIntelligencePanel
+        key={`intelligence:${recipe.id}`}
+        recipeId={recipe.id}
+      />
       <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
 
       {method ? (

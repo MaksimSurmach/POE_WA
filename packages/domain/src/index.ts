@@ -26,3 +26,11 @@ export * from './outcomeEconomics.js';
 export * from './craftingRisk.js';
 
 export * from './factoryLedger.js';
+
+export * from './intelligence.js';
+
+export * from './liquidity.js';
+
+export * from './opportunitySignals.js';
+
+export * from './capitalAllocation.js';

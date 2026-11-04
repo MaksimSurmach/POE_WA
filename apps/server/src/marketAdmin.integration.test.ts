@@ -510,6 +510,47 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     expect(await store.runs()).toEqual([]);
   });
 
+  it('preserves configured intelligence thresholds when another setting is patched', async () => {
+    const initial = await store.read();
+    await store.patch(
+      {
+        version: initial.version,
+        settings: {
+          intelligence: {
+            ...initial.configured.intelligence,
+            minIndependentSellers: 4,
+            enterProfitChaos: '75',
+          },
+        },
+      },
+      'operator',
+    );
+    const response = await api.inject({
+      method: 'PATCH',
+      url: '/api/admin/market/settings',
+      headers: local,
+      payload: {
+        version: initial.version + 1,
+        settings: { requestTimeoutMs: 12000 },
+      },
+    });
+    expect(response.statusCode).toBe(200);
+    const saved = await store.read();
+    expect(saved.configured.intelligence).toMatchObject({
+      minIndependentSellers: 4,
+      enterProfitChaos: '75',
+    });
+    expect(saved.configured.requestTimeoutMs).toBe(12000);
+    const empty = await api.inject({
+      method: 'PATCH',
+      url: '/api/admin/market/settings',
+      headers: local,
+      payload: { version: saved.version, settings: {} },
+    });
+    expect(empty.statusCode).toBe(400);
+    expect((await store.read()).version).toBe(saved.version);
+  });
+
   it('keeps persisted settings when a new store starts with different environment defaults', async () => {
     await store.patch(
       {

@@ -5,7 +5,12 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/coverage/**'],
+    ignores: [
+      '**/dist/**',
+      '**/coverage/**',
+      'playwright-report/**',
+      'output/playwright/**',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

@@ -26,6 +26,18 @@ type ErrorDefinition = {
 };
 
 export const domainErrorDefinitions = {
+  INTELLIGENCE_RETRY_LATER: {
+    category: 'market',
+    disposition: 'retryable',
+    publicMessage:
+      'Market evidence or settings changed during evaluation. Please retry shortly.',
+  },
+  INTELLIGENCE_LEAGUE_INACTIVE: {
+    category: 'market',
+    disposition: 'permanent',
+    publicMessage:
+      'Production recommendations are unavailable before a league starts or after it ends.',
+  },
   FACTORY_LEDGER_INVALID: {
     category: 'calculation',
     disposition: 'permanent',

@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from 'pg';
+import type { Pool, PoolClient, QueryResult } from 'pg';
 import {
   DomainError,
   factoryBatchSchema,
@@ -6,6 +6,8 @@ import {
   projectFactoryBatch,
   type FactoryBatch,
   type FactoryEvent,
+  type FactorySale,
+  type FactoryInventory,
 } from '@poe-worksmith/domain';
 import { craftRequestHash } from './craftAnalysisRepository.js';
 
@@ -158,6 +160,81 @@ export function createFactoryRepository(pool: Pool) {
     },
     async get(id: string, asOf: string) {
       return read(pool, id, asOf);
+    },
+    async cohortEvidence(
+      leagueId: string,
+      targetSignature: string,
+      asOf: string,
+      since: string,
+    ) {
+      return transaction(async (client) => {
+        await client.query(
+          'set transaction isolation level repeatable read read only',
+        );
+        const sales: FactorySale[] = [],
+          inventory: FactoryInventory[] = [];
+        let cursor: string | null = null,
+          replayedBatches = 0,
+          complete = true;
+        const maximumBatches = 10000,
+          maximumRows = 10000;
+        while (true) {
+          const page: QueryResult<{ id: string }> = await client.query<{
+            id: string;
+          }>(
+            `
+            select b.id from factory_batches b
+            where b.league_id=$1 and ($3::uuid is null or b.id>$3::uuid) and exists (
+              select 1 from factory_events e where e.batch_id=b.id and e.document->'payload'->>'type'='produce'
+              and (e.document->'payload'->>'targetSignature'=$2 or exists (
+                select 1 from jsonb_array_elements(coalesce(b.document->'forecast'->'analysisInput'->'model'->'stages','[]'::jsonb)) stage,
+                jsonb_array_elements(coalesce(stage->'outcomes','[]'::jsonb)) outcome
+                where outcome->>'id'=e.document->'payload'->>'outcome'
+                  and outcome->'matching'->>'kind'='exact-target' and outcome->'matching'->>'targetSignature'=$2
+              ))) order by b.id limit 50`,
+            [leagueId, targetSignature, cursor],
+          );
+          if (!page.rows.length) break;
+          for (const row of page.rows) {
+            if (replayedBatches >= maximumBatches) {
+              complete = false;
+              break;
+            }
+            const record = await read(client, row.id, asOf);
+            replayedBatches++;
+            cursor = row.id;
+            sales.push(
+              ...record.projection.sales.filter(
+                (sale) =>
+                  sale.targetSignature === targetSignature &&
+                  Date.parse(sale.soldAt) >= Date.parse(since),
+              ),
+            );
+            inventory.push(
+              ...record.projection.inventory.filter(
+                (item) =>
+                  item.targetSignature === targetSignature &&
+                  (['held', 'listed'].includes(item.status) ||
+                    (item.soldAt !== null &&
+                      Date.parse(item.soldAt) >= Date.parse(since))),
+              ),
+            );
+            if (sales.length > maximumRows || inventory.length > maximumRows) {
+              complete = false;
+              break;
+            }
+          }
+          if (!complete || page.rows.length < 50) break;
+        }
+        return {
+          sales: sales.slice(0, maximumRows),
+          inventory: inventory.slice(0, maximumRows),
+          complete,
+          replayedBatches,
+          maximumBatches,
+          maximumRows,
+        };
+      });
     },
     async list(leagueId: string, asOf: string, limit: number, offset: number) {
       // A repeatable-read snapshot keeps total and event projections coherent during concurrent writes.
