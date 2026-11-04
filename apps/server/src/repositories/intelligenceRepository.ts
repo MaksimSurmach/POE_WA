@@ -7,6 +7,14 @@ import {
   createCraftAnalysisRepository,
 } from './craftAnalysisRepository.js';
 
+export class StaleIntelligenceEvaluation extends Error {
+  readonly code = 'STALE_INTELLIGENCE_EVALUATION';
+  constructor() {
+    super('A newer intelligence evaluation has already been stored.');
+    this.name = 'StaleIntelligenceEvaluation';
+  }
+}
+
 export function createIntelligenceRepository(pool: Pool) {
   async function transaction<T>(work: (client: PoolClient) => Promise<T>) {
     const client = await pool.connect();
@@ -104,7 +112,7 @@ export function createIntelligenceRepository(pool: Pool) {
               context.observedAt &&
               Date.parse(prior.observed_at) > Date.parse(context.observedAt)))
         )
-          throw new DomainError('PERSISTENCE_CONFLICT');
+          throw new StaleIntelligenceEvaluation();
         const next = decide(prior?.document ?? null);
         const changed = prior?.last_decision_hash !== next.evidenceHash;
         const historyId = changed

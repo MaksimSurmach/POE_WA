@@ -18,7 +18,7 @@ import './intelligence.css';
 
 const api = createApiClient();
 const announcedSignals = new Map<string, string>();
-/** Consume server emission decisions locally; current signal state is rendered independently. */
+/** Consume durable emission timestamps; current state may have changed during cooldown. */
 export function consumeSignalEmissions(
   opportunities: OpportunityView[],
   storage?: Pick<Storage, 'getItem' | 'setItem'>,
@@ -26,7 +26,7 @@ export function consumeSignalEmissions(
   const notices: string[] = [];
   for (const opportunity of opportunities) {
     const { signal } = opportunity;
-    if (!signal.emit || !signal.lastEmittedAt) continue;
+    if (!signal.lastEmittedAt) continue;
     const storageKey = `worksmith:intelligence:emission:${signal.cohort.league}:${opportunity.recipeId}`;
     const inMemory = announcedSignals.get(storageKey);
     if (inMemory && Date.parse(inMemory) >= Date.parse(signal.lastEmittedAt))
@@ -41,7 +41,9 @@ export function consumeSignalEmissions(
     } catch {
       /* In-memory timestamps still prevent duplicate announcements. */
     }
-    notices.push(`${opportunity.title}: ${signal.state.replaceAll('_', ' ')}`);
+    notices.push(
+      `${opportunity.title}: signal update available; current state ${signal.state.replaceAll('_', ' ')}`,
+    );
   }
   return notices;
 }

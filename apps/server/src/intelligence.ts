@@ -27,7 +27,10 @@ import {
   opportunityViewSchema,
 } from '@poe-worksmith/contracts';
 import type { CraftAnalysisService } from './craftAnalysis.js';
-import type { IntelligenceRepository } from './repositories/intelligenceRepository.js';
+import {
+  StaleIntelligenceEvaluation,
+  type IntelligenceRepository,
+} from './repositories/intelligenceRepository.js';
 import type { FactoryRepository } from './repositories/factoryRepository.js';
 import { craftRequestHash } from './repositories/craftAnalysisRepository.js';
 import {
@@ -527,6 +530,22 @@ export function createIntelligenceService(options: {
     return { view: stored.view, candidate, key, evidence: stored };
   }
   async function feed(league: string, ids?: string[], categories?: string[]) {
+    // Rebuild the entire feed after a race: a newer signal must never be
+    // paired with candidates or policy captured by an older evaluation.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        return await feedOnce(league, ids, categories);
+      } catch (error) {
+        if (!(error instanceof StaleIntelligenceEvaluation)) throw error;
+      }
+    }
+    throw new DomainError('INTELLIGENCE_RETRY_LATER');
+  }
+  async function feedOnce(
+    league: string,
+    ids?: string[],
+    categories?: string[],
+  ) {
     const ctx = await context(league);
     const selected = ctx.recipes.filter(
       (r) =>
@@ -538,7 +557,16 @@ export function createIntelligenceService(options: {
       if (closing) break;
       entries.push(await evaluate(recipe, ctx));
     }
-    return { ctx, entries, total: selected.length };
+    const currentSettings = await options.settings();
+    const currentQuoteAge = await options.maximumQuoteAgeMs();
+    if (
+      craftRequestHash(currentSettings) !== craftRequestHash(ctx.settings) ||
+      currentQuoteAge !== ctx.maximumQuoteAgeMs
+    )
+      throw new StaleIntelligenceEvaluation();
+    const decisionAt = now();
+    assertProductionLeagueWindow(ctx.league, decisionAt);
+    return { ctx, entries, total: selected.length, decisionAt };
   }
   function kick() {
     if (closing || active || options.runWorker === false) return;
@@ -551,7 +579,13 @@ export function createIntelligenceService(options: {
         cursor = cursor + 10 >= ctx.recipes.length ? 0 : cursor + 10;
         for (const recipe of selection) {
           if (closing) break;
-          await evaluate(recipe, ctx);
+          try {
+            await evaluate(recipe, ctx);
+          } catch (error) {
+            // Another evaluator already published fresher evidence for this
+            // recipe. Continue the bounded worker slice without overwriting it.
+            if (!(error instanceof StaleIntelligenceEvaluation)) throw error;
+          }
         }
       })
       .catch((e) => options.onError?.(e))
@@ -630,7 +664,7 @@ export function createIntelligenceService(options: {
         request,
         candidates,
         settings: result.ctx.settings,
-        now: result.ctx.at.toISOString(),
+        now: result.decisionAt.toISOString(),
       });
       const missing = (request.recipeIds ?? []).filter(
         (id) => !result.ctx.recipes.some((recipe) => recipe.id === id),

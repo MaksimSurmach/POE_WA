@@ -26,6 +26,12 @@ type ErrorDefinition = {
 };
 
 export const domainErrorDefinitions = {
+  INTELLIGENCE_RETRY_LATER: {
+    category: 'market',
+    disposition: 'retryable',
+    publicMessage:
+      'Market evidence or settings changed during evaluation. Please retry shortly.',
+  },
   INTELLIGENCE_LEAGUE_INACTIVE: {
     category: 'market',
     disposition: 'permanent',

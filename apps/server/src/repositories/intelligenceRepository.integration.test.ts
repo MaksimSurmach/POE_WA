@@ -8,6 +8,7 @@ import {
   mappedTargetFilter,
   factoryBatchSchema,
   factoryEventSchema,
+  intelligenceSettingsSchema,
 } from '@poe-worksmith/domain';
 import {
   canonicalRecipeFixture,
@@ -19,7 +20,11 @@ import { createPostgresRepositories } from './postgresRepositories.js';
 import { createFactoryRepository } from './factoryRepository.js';
 import { craftRequestHash } from './craftAnalysisRepository.js';
 import { createMarketEconomyRepository } from './marketEconomyRepository.js';
-import { createIntelligenceRepository } from './intelligenceRepository.js';
+import {
+  createIntelligenceRepository,
+  StaleIntelligenceEvaluation,
+} from './intelligenceRepository.js';
+import { createIntelligenceService } from '../intelligence.js';
 import { createRecipeMarketDependencies } from '../recipeMarket.js';
 import { seedIntelligenceScenario } from '../testkit/intelligence.js';
 import { buildApi } from '../api.js';
@@ -97,6 +102,197 @@ async function scenario() {
   });
 }
 describe('persisted intelligence with real repositories and labelled synthetic evidence', () => {
+  it('retries an entire feed and allocation after a newer writer, and checks policy and expiry at decision time', async () => {
+    const seeded = await scenario();
+    const recipe = (await repositories.recipes.findById(seeded.recipeId))!;
+    const secondId = `race-${randomUUID()}`;
+    await repositories.recipes.save({
+      ...recipe,
+      id: secondId,
+      contentHash: `revision-${secondId}`,
+      definition: { ...canonicalRecipeFixture, id: secondId },
+    });
+    const second = (await repositories.recipes.findById(secondId))!;
+    const repository = createIntelligenceRepository(pool);
+    let clock = new Date(
+      Date.parse(seeded.confirmed.signal.evaluatedAt) + 1000,
+    );
+    let armed = false;
+    let collisions = 0;
+    let reads = 0;
+    let changePolicy = false;
+    let expireAtDecision = false;
+    let policy = intelligenceSettingsSchema.parse({});
+    const options: Parameters<typeof createIntelligenceService>[0] = {
+      repository,
+      factory: createFactoryRepository(pool),
+      economy: createMarketEconomyRepository(pool),
+      analysis: seeded.analysis,
+      recipes: {
+        ...repositories.recipes,
+        listActive: async () => [recipe, second],
+      },
+      leagues: repositories.leagues,
+      marketDependencies,
+      settings: async () => {
+        reads++;
+        if (reads % 2 === 0 && changePolicy) {
+          changePolicy = false;
+          policy = { ...policy, enterProfitChaos: '9999' };
+        }
+        if (reads % 2 === 0 && expireAtDecision) {
+          expireAtDecision = false;
+          clock = new Date(clock.getTime() + 2 * 3600000);
+        }
+        return policy;
+      },
+      maximumQuoteAgeMs: async () => 3600000,
+      clock: () => clock,
+      runWorker: false,
+    };
+    const newer = createIntelligenceService(options);
+    const service = createIntelligenceService({
+      ...options,
+      repository: {
+        ...repository,
+        updateSignal: async (context, decide) => {
+          if (armed && context.recipeId === secondId) {
+            armed = false;
+            collisions++;
+            clock = new Date(clock.getTime() + 1000);
+            await newer.opportunity(secondId, seeded.league);
+          }
+          return repository.updateSignal(context, decide);
+        },
+      },
+    });
+    const request = {
+      league: seeded.league,
+      capital: tx('1000'),
+      reserve: tx('100'),
+      maxRiskProbability: 0.25,
+      maxExposurePercent: 50,
+      horizonDays: 30,
+      recipeIds: [recipe.id, secondId],
+      idempotencyKey: randomUUID(),
+    };
+    try {
+      armed = true;
+      const feed = await service.opportunities(seeded.league);
+      expect(collisions).toBe(1);
+      expect(feed.coverage.complete).toBe(true);
+      expect(feed.opportunities).toHaveLength(2);
+      expect(
+        feed.opportunities.every(
+          (entry) => entry.signal.evaluatedAt === clock.toISOString(),
+        ),
+      ).toBe(true);
+      armed = true;
+      const plan = await service.allocate(request);
+      expect(collisions).toBe(2);
+      expect(
+        plan.plan.scenarios.some((scenario) => scenario.status === 'plan'),
+      ).toBe(true);
+      const stored = (await repository.findPlan(plan.id)) as {
+        sources: { signal: { evaluatedAt: string } }[];
+      };
+      expect(stored.sources).toHaveLength(2);
+      expect(
+        stored.sources.every(
+          (source) => source.signal.evaluatedAt === clock.toISOString(),
+        ),
+      ).toBe(true);
+      reads = 0;
+      expireAtDecision = true;
+      const expired = await service.allocate({
+        ...request,
+        idempotencyKey: randomUUID(),
+      });
+      expect(expired.plan.evaluatedAt).toBe(clock.toISOString());
+      expect(
+        expired.plan.scenarios.every((scenario) => scenario.status === 'hold'),
+      ).toBe(true);
+      expect(JSON.stringify(expired.plan)).toMatch(/stale|expired/);
+      reads = 0;
+      changePolicy = true;
+      const policyPlan = await service.allocate({
+        ...request,
+        idempotencyKey: randomUUID(),
+      });
+      expect(reads).toBe(4); // Old-policy pass is discarded and every recipe is reevaluated.
+      const savedPolicy = (await repository.findPlan(policyPlan.id)) as {
+        settings: { enterProfitChaos: string };
+        sources: { sourceInputs: { settings: { enterProfitChaos: string } } }[];
+      };
+      expect(savedPolicy.settings.enterProfitChaos).toBe('9999');
+      expect(
+        savedPolicy.sources.every(
+          (source) => source.sourceInputs.settings.enterProfitChaos === '9999',
+        ),
+      ).toBe(true);
+      expect(
+        policyPlan.plan.scenarios.every(
+          (scenario) => scenario.status === 'hold',
+        ),
+      ).toBe(true);
+    } finally {
+      await service.close();
+      await newer.close();
+      await seeded.service.close();
+      await seeded.analysis.close();
+    }
+  });
+
+  it('bounds persistent stale races and exposes a retryable 503 rather than an idempotency conflict', async () => {
+    const seeded = await scenario();
+    const recipe = (await repositories.recipes.findById(seeded.recipeId))!;
+    let attempts = 0;
+    const service = createIntelligenceService({
+      repository: {
+        ...createIntelligenceRepository(pool),
+        updateSignal: async () => {
+          attempts++;
+          throw new StaleIntelligenceEvaluation();
+        },
+      },
+      factory: createFactoryRepository(pool),
+      analysis: seeded.analysis,
+      recipes: { ...repositories.recipes, listActive: async () => [recipe] },
+      leagues: repositories.leagues,
+      marketDependencies,
+      settings: async () => intelligenceSettingsSchema.parse({}),
+      maximumQuoteAgeMs: async () => 3600000,
+      runWorker: false,
+    });
+    const api = buildApi(
+      pino({ level: 'silent' }),
+      async () => {},
+      async () => ({ active: null, published: null }),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      { intelligence: service },
+    );
+    try {
+      const response = await api.inject({
+        url: `/api/admin/intelligence/opportunities?league=${encodeURIComponent(seeded.league)}`,
+        headers: { host: 'localhost' },
+      });
+      expect(attempts).toBe(3);
+      expect(response.statusCode, response.body).toBe(503);
+      expect(response.json().error).toMatchObject({
+        code: 'INTELLIGENCE_RETRY_LATER',
+        retryable: true,
+      });
+    } finally {
+      await api.close();
+      await seeded.service.close();
+      await seeded.analysis.close();
+    }
+  });
+
   it('replays exact cohorts beyond 100 batches and retains old unsold inventory without unrelated coverage poisoning', async () => {
     const seeded = await scenario(),
       factory = createFactoryRepository(pool);
@@ -205,7 +401,7 @@ describe('persisted intelligence with real repositories and labelled synthetic e
     await update('A', 0);
     await update('B', 2);
     await expect(update('OLDER', 1)).rejects.toMatchObject({
-      code: 'PERSISTENCE_CONFLICT',
+      code: 'STALE_INTELLIGENCE_EVALUATION',
     });
     expect(await repository.state(key)).toMatchObject({
       signal: { state: 'B' },

@@ -59,7 +59,7 @@ export async function seedIntelligenceScenario(
     );
   const at = input.now ?? new Date(),
     atMs = at.getTime();
-  let clock = new Date(atMs - 120_000);
+  let clock = at;
   const repositories = createPostgresRepositories(pool),
     models = createCraftAnalysisRepository(pool),
     factory = createFactoryRepository(pool),
@@ -462,9 +462,11 @@ export async function seedIntelligenceScenario(
     clock: () => clock,
     runWorker: false,
   });
+  // Observation spacing comes from snapshots, not a backwards evaluation clock.
+  clock = input.now ?? new Date();
   const first = await service.opportunity(recipe.id, input.league);
   await snapshot(60_000);
-  clock = at;
+  clock = input.now ?? new Date();
   const confirmed = await service.opportunity(recipe.id, input.league);
   return {
     recipeId: recipe.id,

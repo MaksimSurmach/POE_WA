@@ -275,7 +275,7 @@ describe('production intelligence UI', () => {
     expect(html).toContain('Maximum combined risk (%)');
     expect(html).toContain('cash loss or exceeding the planned P95 bankroll');
   });
-  it('announces emitted decisions once per recipe and timestamp without hiding cooldown-suppressed state', () => {
+  it('announces durable worker emissions once even after GET clears emit, with current state and session dedup', () => {
     const values = new Map<string, string>();
     const storage = {
       getItem: (key: string) => values.get(key) ?? null,
@@ -285,15 +285,17 @@ describe('production intelligence UI', () => {
     };
     const value = opportunity();
     value.recipeId = 'synthetic-notification';
-    value.signal.emit = true;
+    // The worker emitted; a subsequent GET recomputed this unchanged decision.
+    value.signal.emit = false;
     value.signal.lastEmittedAt = now;
     expect(consumeSignalEmissions([value], storage)).toEqual([
-      'Synthetic crafting recipe: INSUFFICIENT DATA',
+      'Synthetic crafting recipe: signal update available; current state INSUFFICIENT DATA',
     ]);
     expect(consumeSignalEmissions([value], storage)).toEqual([]);
     value.signal.state = 'WATCH';
     value.signal.emit = false;
-    value.signal.lastEmittedAt = '2026-11-04T12:01:00Z';
+    // Cooldown permits current-state changes without a new emission timestamp.
+    expect(value.signal.lastEmittedAt).toBe(now);
     expect(consumeSignalEmissions([value], storage)).toEqual([]);
     expect(
       renderToStaticMarkup(
@@ -302,13 +304,13 @@ describe('production intelligence UI', () => {
         </MemoryRouter>,
       ),
     ).toContain('WATCH');
-    value.signal.emit = true;
+    value.signal.lastEmittedAt = '2026-11-04T12:01:00Z';
     expect(consumeSignalEmissions([value], storage)).toEqual([
-      'Synthetic crafting recipe: WATCH',
+      'Synthetic crafting recipe: signal update available; current state WATCH',
     ]);
     const restored = opportunity();
     restored.recipeId = 'synthetic-restored-notification';
-    restored.signal.emit = true;
+    restored.signal.emit = false;
     restored.signal.lastEmittedAt = now;
     values.set(
       `worksmith:intelligence:emission:${cohort.league}:${restored.recipeId}`,
