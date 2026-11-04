@@ -71,7 +71,8 @@ export const riskSimulationResultSchema = z.strictObject({
   profitQuantiles: riskQuantilesSchema.nullable(),
   probabilityOverBudget: z.number().min(0).max(1).nullable(),
   probabilityOfLoss: z.number().min(0).max(1).nullable(),
-  targetWithinRunsProbability: z.number().min(0).max(1).nullable(),
+  // First target only, not completion of an objective requiring multiple target items.
+  atLeastOneTargetWithinRunsProbability: z.number().min(0).max(1).nullable(),
   reachWithinAttempts: z.number().int(),
   expectedShortfall95Cost: z.string().nullable(),
   expectedShortfall95Loss: z.string().nullable(),
@@ -179,7 +180,7 @@ export function analyzeIndependentGeometric(
     costQuantiles: costs,
     probabilityOverBudget: over(input.budget),
     probabilityOfLoss: over(input.saleValue),
-    targetWithinRunsProbability: new D(1)
+    atLeastOneTargetWithinRunsProbability: new D(1)
       .sub(failure.pow(input.withinAttempts))
       .toNumber(),
     expectedShortfall95Cost: outcomeMoney(
@@ -223,7 +224,7 @@ export async function simulateCraftingRisk(
     profitQuantiles: null,
     probabilityOverBudget: null,
     probabilityOfLoss: null,
-    targetWithinRunsProbability: null,
+    atLeastOneTargetWithinRunsProbability: null,
     reachWithinAttempts: request.reachWithinAttempts,
     expectedShortfall95Cost: null,
     expectedShortfall95Loss: null,
@@ -420,7 +421,7 @@ export async function simulateCraftingRisk(
     probabilityOverBudget:
       costs.filter((v) => v.gt(request.budget)).length / request.trials,
     probabilityOfLoss: profits.filter((v) => v.lt(0)).length / request.trials,
-    targetWithinRunsProbability: new D(1)
+    atLeastOneTargetWithinRunsProbability: new D(1)
       .sub(new D(1).sub(targetP).pow(request.reachWithinAttempts))
       .toNumber(),
     expectedShortfall95Cost: outcomeMoney(mean(costs.slice(-tailCount))),

@@ -93,8 +93,8 @@ export function CraftEconomicsSummary({
         <summary>Cost breakdown and sensitivity</summary>
         <dl className="craft-risk__metrics">
           <div>
-            <dt>Expected bases consumed</dt>
-            <dd>{analysis.expectedBaseConsumption ?? 'Unavailable'}</dd>
+            <dt>Expected base inputs acquired</dt>
+            <dd>{analysis.expectedBaseAcquisition ?? 'Unavailable'}</dd>
           </div>
           <div>
             <dt>Base spending</dt>
@@ -335,7 +335,9 @@ export function CraftRiskResult({
               At least one target within {result.reachWithinAttempts} method
               runs
             </dt>
-            <dd>{formatRiskPercent(result.targetWithinRunsProbability)}</dd>
+            <dd>
+              {formatRiskPercent(result.atLeastOneTargetWithinRunsProbability)}
+            </dd>
           </div>
           <div>
             <dt>Mean method runs</dt>

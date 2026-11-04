@@ -36,7 +36,7 @@ describe('crafting risk', () => {
       meanStageExecutions: 4,
       costQuantiles: { p50: '16', p75: '20', p90: '28', p95: '32', p99: '44' },
       probabilityOverBudget: new Decimal('.75').pow(5).toNumber(),
-      targetWithinRunsProbability: new Decimal(1)
+      atLeastOneTargetWithinRunsProbability: new Decimal(1)
         .sub(new Decimal('.75').pow(5))
         .toNumber(),
     });
@@ -126,6 +126,19 @@ describe('crafting risk', () => {
     expect(
       successes.capitalRequirements.find((c) => c.confidence === 0.95)?.budget,
     ).toBe(successes.costQuantiles!.p95);
+  });
+  it('reports first-target probability separately from a multi-target production objective', async () => {
+    const result = await simulateCraftingRisk({
+      ...request(),
+      objective: { kind: 'successes', count: 2 },
+      reachWithinAttempts: 1,
+    });
+    // One run can yield at most one target: two-item completion is impossible, first-target probability is 1/4.
+    expect(result).toMatchObject({
+      status: 'complete',
+      objective: { kind: 'successes', count: 2 },
+      atLeastOneTargetWithinRunsProbability: 0.25,
+    });
   });
   it('reproduces multistep conditional costs with the same model and seed', async () => {
     const input = syntheticGeometricInput();

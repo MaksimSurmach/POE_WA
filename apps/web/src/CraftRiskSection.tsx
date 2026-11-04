@@ -471,7 +471,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                   </select>
                 </label>
                 <label>
-                  Check target within N method runs
+                  Check first target within N method runs
                   <input
                     type="number"
                     min="1"

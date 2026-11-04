@@ -23,7 +23,7 @@ describe('outcome economics', () => {
         finishing: '0',
         recovery: '0',
       },
-      expectedBaseConsumption: '1',
+      expectedBaseAcquisition: '1',
       expectedTotalCost: '12',
       expectedGrossResale: { min: '7.5', max: '7.5' },
       expectedSalvageRecovery: { min: '1.5', max: '1.5' },
@@ -67,13 +67,25 @@ describe('outcome economics', () => {
     expect(result).toMatchObject({
       status: 'complete',
       expectedTotalCost: '17',
-      expectedBaseConsumption: '1',
+      expectedBaseAcquisition: '1',
       expectedCosts: { material: '4', finishing: '3' },
       expectedNetProfit: { min: '13', max: '13' },
       targetProbability: '1',
     });
     expect(result.stageValues.find((s) => s.stageId === 'roll')).toMatchObject({
       cost: '7',
+    });
+  });
+  it('reports initial base acquisition even when the completed run retains that base', () => {
+    const input = syntheticOutcomeInput();
+    input.model.initialCosts = [input.model.stages[0]!.costs.shift()!];
+    input.model.stages[0]!.outcomes = [
+      { ...syntheticOutcome('retained', '1'), baseDisposition: 'retained' },
+    ];
+    expect(analyzeOutcomeModel(input)).toMatchObject({
+      status: 'complete',
+      expectedBaseAcquisition: '1',
+      expectedCosts: { base: '10' },
     });
   });
   it('counts transition recovery costs and returned-resource credits separately', () => {
