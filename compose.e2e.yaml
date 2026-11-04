@@ -75,11 +75,16 @@ services:
       com.poe-worksmith.e2e.run: ${E2E_RUN:?E2E_RUN is required}
       com.poe-worksmith.e2e.attempt: ${E2E_ATTEMPT:?E2E_ATTEMPT is required}
       com.poe-worksmith.e2e.owner: master-e2e
-    networks: [app]
+    networks: [app, browser]
 
 networks:
   app:
     internal: true
+    labels:
+      com.poe-worksmith.e2e.run: ${E2E_RUN:?E2E_RUN is required}
+      com.poe-worksmith.e2e.attempt: ${E2E_ATTEMPT:?E2E_ATTEMPT is required}
+      com.poe-worksmith.e2e.owner: master-e2e
+  browser:
     labels:
       com.poe-worksmith.e2e.run: ${E2E_RUN:?E2E_RUN is required}
       com.poe-worksmith.e2e.attempt: ${E2E_ATTEMPT:?E2E_ATTEMPT is required}
