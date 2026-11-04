@@ -1,0 +1,57 @@
+name: Master Build
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.8.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm test:contracts
+      - run: pnpm db:check:migrations
+      - run: pnpm build
+      - name: Build and archive exact images
+        env:
+          IMAGE_TAG: local/poe-worksmith:${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          docker build --platform linux/amd64 --target server --tag "$IMAGE_TAG-server" .
+          docker build --platform linux/amd64 --target web --tag "$IMAGE_TAG-web" .
+          docker image save "$IMAGE_TAG-server" > artifacts/server.tar
+          docker image save "$IMAGE_TAG-web" > artifacts/web.tar
+          SERVER_ID=$(docker image inspect --format '{{.Id}}' "$IMAGE_TAG-server")
+          WEB_ID=$(docker image inspect --format '{{.Id}}' "$IMAGE_TAG-web")
+          SERVER_HASH=$(sha256sum artifacts/server.tar | cut -d' ' -f1)
+          WEB_HASH=$(sha256sum artifacts/web.tar | cut -d' ' -f1)
+          LOCK_HASH=$(sha256sum pnpm-lock.yaml | cut -d' ' -f1)
+          MIGRATION_HASH=$(sha256sum apps/server/drizzle/meta/_journal.json | cut -d' ' -f1)
+          FIXTURE_HASH=$(cat tests/e2e/fixtures.ts tests/e2e/boot.spec.ts compose.e2e.yaml | sha256sum | cut -d' ' -f1)
+          cp apps/server/drizzle/meta/_journal.json artifacts/_journal.json
+          cp pnpm-lock.yaml artifacts/pnpm-lock.yaml
+          SERVER_ID="$SERVER_ID" WEB_ID="$WEB_ID" SERVER_HASH="$SERVER_HASH" WEB_HASH="$WEB_HASH" LOCK_HASH="$LOCK_HASH" MIGRATION_HASH="$MIGRATION_HASH" FIXTURE_HASH="$FIXTURE_HASH" \
+            node -e 'const fs=require("node:fs"); fs.writeFileSync("artifacts/manifest.json", JSON.stringify({schemaVersion:1,repository:process.env.GITHUB_REPOSITORY,sha:process.env.GITHUB_SHA,buildRunId:process.env.GITHUB_RUN_ID,buildAttempt:process.env.GITHUB_RUN_ATTEMPT,platform:"linux/amd64",fixtures:{version:"boot-v1",sha256:process.env.FIXTURE_HASH},lockfile:{path:"pnpm-lock.yaml",sha256:process.env.LOCK_HASH},migrations:{path:"_journal.json",sha256:process.env.MIGRATION_HASH},images:{server:{tag:process.env.IMAGE_TAG+"-server",imageId:process.env.SERVER_ID,archive:"server.tar",archiveSha256:process.env.SERVER_HASH},web:{tag:process.env.IMAGE_TAG+"-web",imageId:process.env.WEB_ID,archive:"web.tar",archiveSha256:process.env.WEB_HASH}}},null,2)+"\n")'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: master-images-${{ github.run_attempt }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30

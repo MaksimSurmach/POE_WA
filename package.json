@@ -44,7 +44,9 @@
     "local:start": "sh scripts/local-runtime.sh start",
     "local:stop": "sh scripts/local-runtime.sh stop",
     "local:status": "sh scripts/local-runtime.sh status",
-    "test:e2e:browser": "playwright test"
+    "test:e2e:browser": "playwright test",
+    "test:e2e:master": "node scripts/master-e2e.mjs",
+    "test:e2e:master:self-check": "node scripts/master-e2e.mjs --self-check"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

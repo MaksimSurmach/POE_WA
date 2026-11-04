@@ -1,0 +1,79 @@
+name: Master E2E
+
+on:
+  workflow_run:
+    workflows: [Master Build]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Successful Master Build run ID
+        required: true
+        type: string
+      build_attempt:
+        description: Run attempt (default 1)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  packaged-smoke:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Validate upstream build identity
+        id: build
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const id = context.eventName === 'workflow_run'
+              ? context.payload.workflow_run.id
+              : Number(context.payload.inputs.build_run_id);
+            if (!Number.isSafeInteger(id) || id <= 0) throw new Error('Invalid build run ID');
+            const { data: run } = await github.rest.actions.getWorkflowRun({ ...context.repo, run_id: id });
+            if (run.repository.full_name !== `${context.repo.owner}/${context.repo.repo}` ||
+                run.path.split('@')[0] !== '.github/workflows/master-build.yml' || run.head_branch !== 'master' ||
+                !['push', 'workflow_dispatch'].includes(run.event) ||
+                run.status !== 'completed' || run.conclusion !== 'success') {
+              throw new Error('Upstream run is not a successful Master Build on master in this repository');
+            }
+            const expectedAttempt = context.eventName === 'workflow_run'
+              ? run.run_attempt : Number(context.payload.inputs.build_attempt || run.run_attempt);
+            if (expectedAttempt !== run.run_attempt) throw new Error('Build attempt mismatch');
+            core.setOutput('run_id', String(run.id));
+            core.setOutput('attempt', String(run.run_attempt));
+            core.setOutput('sha', run.head_sha);
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.build.outputs.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: master-images-${{ steps.build.outputs.attempt }}
+          path: artifacts
+          run-id: ${{ steps.build.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.8.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Run exact artifact smoke
+        env:
+          GITHUB_RUN_ID: ${{ steps.build.outputs.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ steps.build.outputs.attempt }}
+        run: pnpm test:e2e:master -- --manifest artifacts/manifest.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: master-e2e-${{ steps.build.outputs.run_id }}-${{ steps.build.outputs.attempt }}
+          path: output/master-e2e/
+          if-no-files-found: warn
+          retention-days: 14
