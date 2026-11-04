@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { outcomeModelSchema } from './outcomeModel.js';
 
 import {
   canonicalCraftMethodSchema,
@@ -63,6 +64,7 @@ const methodStepSchema = z.strictObject({
 const craftProcedureSchema = z
   .strictObject({
     evidence: evidenceSchema.optional(),
+    outcomeModel: outcomeModelSchema.optional(),
     method: canonicalCraftMethodSchema,
     startingMods: z.array(canonicalStartingModSchema).default([]),
     baseConsumption: z
