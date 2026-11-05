@@ -75,6 +75,7 @@ const environmentSchema = z
       try {
         decodeURIComponent(databaseUrl.username);
         decodeURIComponent(databaseUrl.password);
+        decodeURIComponent(databaseUrl.hostname);
         decodeURI(databaseUrl.pathname);
         decodeURIComponent(databaseUrl.search.slice(1));
       } catch {

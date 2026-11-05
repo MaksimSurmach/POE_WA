@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   EnvironmentConfigurationError,
@@ -56,6 +56,38 @@ describe('database environment configuration', () => {
     expect(databaseUrl.searchParams.get('channel_binding')).toBe('require');
   });
 
+  it('uses the guarded URL in drizzle.config and requires APP_ENV', async () => {
+    const previousEnvironment = {
+      APP_ENV: process.env.APP_ENV,
+      DATABASE_SSL_MODE: process.env.DATABASE_SSL_MODE,
+      DATABASE_URL: process.env.DATABASE_URL,
+      TEST_DATABASE_URL: process.env.TEST_DATABASE_URL,
+    };
+    process.env.APP_ENV = 'staging';
+    process.env.DATABASE_SSL_MODE = 'require';
+    process.env.DATABASE_URL =
+      'postgresql://postgres:password@db.example/postgres?sslmode=require';
+    delete process.env.TEST_DATABASE_URL;
+
+    try {
+      const config = await import('../drizzle.config.js');
+      const databaseUrl = new URL(config.default.dbCredentials.url);
+      expect(databaseUrl.searchParams.getAll('sslmode')).toEqual([
+        'verify-full',
+      ]);
+
+      await vi.resetModules();
+      delete process.env.APP_ENV;
+      await expect(import('../drizzle.config.js')).rejects.toThrow(/APP_ENV:/);
+    } finally {
+      for (const [key, value] of Object.entries(previousEnvironment)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+      await vi.resetModules();
+    }
+  });
+
   it('reports missing test configuration without exposing secrets', () => {
     expect(() => loadDatabaseConfig({ APP_ENV: 'test' })).toThrow(
       'TEST_DATABASE_URL: Required when APP_ENV=test',
@@ -108,6 +140,7 @@ describe('database environment configuration', () => {
     'postgresql://postgres:password@db.example/postgres?ssl%6Dode=require&x=%zz',
     'postgresql://u:%ff@db.example/postgres?sslmode=require',
     'postgresql://u@db.example/postgres?sslmode=require&x=%ff',
+    'postgresql://u@%ff/postgres?sslmode=require',
   ])('rejects staging URLs that can override verified TLS', (databaseUrl) => {
     expect(() =>
       loadDatabaseConfig({
