@@ -8,6 +8,7 @@ import {
 } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
 import type { Pool } from 'pg';
+import { randomUUID } from 'node:crypto';
 
 import {
   createImportedMarketSnapshot,
@@ -24,6 +25,29 @@ export function createMarketCollectionRepository(
   pool: Pool,
 ): MarketCollectionStore {
   return {
+    async enqueueRequest(targetId, requestedBy) {
+      const id = randomUUID();
+      await pool.query(
+        `insert into market_collection_requests (id, target_id, requested_by)
+         values ($1, $2, $3)`,
+        [id, targetId, requestedBy],
+      );
+      return id;
+    },
+    async findRequest(requestId) {
+      const result = await pool.query<{
+        id: string;
+        state: 'queued' | 'claimed' | 'completed' | 'cancelled';
+        run_id: string | null;
+      }>(
+        'select id::text,state,run_id::text from market_collection_requests where id=$1',
+        [requestId],
+      );
+      const row = result.rows[0];
+      return row
+        ? { requestId: row.id, status: row.state, runId: row.run_id }
+        : null;
+    },
     async isSourceBlocked(sourceId, options) {
       const result = await pool.query<{ blocked: boolean }>(
         `select exists (

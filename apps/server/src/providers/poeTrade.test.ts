@@ -35,6 +35,63 @@ const mockFetchResponse = {
 };
 
 describe('PoE Trade Merchant client', () => {
+  it('allows the Go queue path for recipe targets while keeping direct network requests blocked', async () => {
+    const collect = vi.fn().mockResolvedValue({
+      batchCount: 1,
+      cached: false,
+      capturedAt: '2026-11-05T12:00:00.000Z',
+      coverage: 'complete',
+      currency: 'chaos',
+      fetchedCount: 0,
+      listings: [],
+      reportedTotal: 0,
+      returnedCount: 0,
+    });
+    const fetch = vi.fn();
+    const client = new PoeTradeClient({
+      allowRequests: false,
+      allowQueuedCollection: true,
+      collectionSource: {
+        descriptor: {
+          id: 'go-queue',
+          name: 'Go request queue',
+          access: 'blocked',
+          dataKind: 'demo',
+          reason: 'Queued collection only',
+        },
+        collect,
+      },
+      fetch,
+      userAgent: 'fixture',
+    });
+    const target = {
+      name: 'Queue target',
+      game: 'poe1',
+      realm: 'pc',
+      league: 'Fixture',
+      patch: '3.29',
+      slot: 'base',
+      baseTypes: ['Belt'],
+      builds: [],
+      requiredMods: [],
+      sources: [],
+    };
+    await client.search({
+      league: 'Fixture',
+      query: { handbookTarget: JSON.stringify(target) },
+      schemaVersion: 1,
+    });
+    expect(collect).toHaveBeenCalledOnce();
+    expect(fetch).not.toHaveBeenCalled();
+    await expect(
+      client.search({
+        league: 'Fixture',
+        query: { query: { type: 'Belt' } },
+        schemaVersion: 1,
+      }),
+    ).rejects.toMatchObject({ code: 'MARKET_ACCESS_BLOCKED' });
+  });
+
   it('keeps exchange and item-search policy mappings and circuits independent', async () => {
     const repository = createInMemoryRepositories().rateLimits;
     let now = new Date('2026-07-20T00:00:00Z');

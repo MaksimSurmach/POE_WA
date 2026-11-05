@@ -16,18 +16,30 @@ export function createMarketAdminStatusReader(options: {
   economy: MarketEconomyRepository;
   ninja: NinjaEconomyClient;
   readCatalog(id: string): Promise<CatalogResponse>;
+  collectorStatus?(): Promise<NonNullable<
+    MarketAdminStatus['collector']
+  > | null>;
 }) {
   return async (): Promise<MarketAdminStatus> => {
-    const [settings, health, league, runs, rateLimits, catalog, attempts] =
-      await Promise.all([
-        options.store.read(),
-        options.store.workerHealth(),
-        options.repositories.leagues.findCurrent(),
-        options.store.runs(),
-        options.repositories.rateLimits.list(),
-        options.readCatalog('admin-status'),
-        options.economy.listAttempts(),
-      ]);
+    const [
+      settings,
+      health,
+      league,
+      runs,
+      rateLimits,
+      catalog,
+      attempts,
+      collector,
+    ] = await Promise.all([
+      options.store.read(),
+      options.store.workerHealth(),
+      options.repositories.leagues.findCurrent(),
+      options.store.runs(),
+      options.repositories.rateLimits.list(),
+      options.readCatalog('admin-status'),
+      options.economy.listAttempts(),
+      options.collectorStatus?.() ?? Promise.resolve(null),
+    ]);
     const { effective } = settings;
     const enabled =
       effective.automaticRefreshEnabled &&
@@ -90,6 +102,7 @@ export function createMarketAdminStatusReader(options: {
           !effective.collectionsPaused &&
           health.healthy,
       },
+      ...(collector ? { collector } : {}),
       coverage: {
         activeRecipes: entries.length,
         pricedRecipes: entries.filter(

@@ -7,6 +7,23 @@ permissions:
   contents: read
 
 jobs:
+  market-collector:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.8'
+          cache-dependency-path: services/market-collector/go.sum
+      - run: test -z "$(gofmt -l .)"
+        working-directory: services/market-collector
+      - run: go vet ./...
+        working-directory: services/market-collector
+      - run: go test ./...
+        working-directory: services/market-collector
+      - run: docker build --tag market-collector:test .
+        working-directory: services/market-collector
+
   quality:
     runs-on: ubuntu-latest
     env:

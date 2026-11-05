@@ -122,6 +122,7 @@ export class PoeTradeClient implements MarketSearchProvider {
   readonly #collectionTimeoutMs: number;
   readonly #collectionSource: MarketCollectionAdapter | undefined;
   readonly #allowRequests: boolean;
+  readonly #allowQueuedCollection: boolean;
   #accessBlocked = false;
   readonly #shutdown = new AbortController();
   readonly #baseUrl: URL;
@@ -139,6 +140,7 @@ export class PoeTradeClient implements MarketSearchProvider {
     collectionSource?: MarketCollectionAdapter;
     collectionTimeoutMs?: number;
     allowRequests?: boolean;
+    allowQueuedCollection?: boolean;
     circuits?: ProviderCircuitGate;
     clock?: () => Date;
     fetch?: PoeTradeFetch;
@@ -151,6 +153,7 @@ export class PoeTradeClient implements MarketSearchProvider {
     this.#collectionTimeoutMs = options.collectionTimeoutMs ?? 15 * 60_000;
     this.#collectionSource = options.collectionSource;
     this.#allowRequests = options.allowRequests ?? true;
+    this.#allowQueuedCollection = options.allowQueuedCollection ?? false;
     this.#baseUrl = new URL(options.baseUrl ?? defaultBaseUrl);
     this.#circuits = options.circuits;
     this.#clock = options.clock ?? (() => new Date());
@@ -177,12 +180,15 @@ export class PoeTradeClient implements MarketSearchProvider {
   async search(request: MarketSearchRequest): Promise<MarketSearchResult> {
     if (this.#shutdown.signal.aborted)
       throw new DomainError('MARKET_COLLECTION_CANCELLED');
-    if (!this.#allowRequests || this.#accessBlocked)
+    const queuedCollection =
+      this.#allowQueuedCollection && Boolean(request.query.handbookTarget);
+    if ((!this.#allowRequests && !queuedCollection) || this.#accessBlocked)
       throw new DomainError('MARKET_ACCESS_BLOCKED');
     if (request.query.handbookTarget) {
       if (
         !this.#collectionSource ||
-        this.#collectionSource.descriptor.access !== 'authorized'
+        (this.#collectionSource.descriptor.access !== 'authorized' &&
+          !queuedCollection)
       )
         throw new DomainError('MARKET_ACCESS_BLOCKED');
       const target = recipeQueryTarget(request.query.handbookTarget);

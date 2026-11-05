@@ -92,6 +92,15 @@ export interface MarketCollectionTransport {
 }
 
 export interface MarketCollectionStore {
+  enqueueRequest?(
+    targetId: string,
+    requestedBy: string | null,
+  ): Promise<string>;
+  findRequest?(requestId: string): Promise<{
+    requestId: string;
+    status: 'queued' | 'claimed' | 'completed' | 'cancelled';
+    runId: string | null;
+  } | null>;
   isSourceBlocked(
     sourceId: string,
     options?: { ignoreAuthFailures?: boolean },
@@ -622,6 +631,31 @@ export class MarketCollectionManager {
     this.#clock = options.clock ?? (() => new Date());
     this.#store = options.store;
     this.#readControls = options.readControls;
+  }
+
+  async enqueueRequest(
+    targetId: string,
+    requestedBy: string | null = null,
+    activeRefresh = false,
+  ) {
+    if (!(await this.#store.findTarget(targetId)))
+      throw new DomainError('MARKET_TARGET_NOT_FOUND');
+    const controls = await this.#readControls?.();
+    if (!activeRefresh && controls?.collectionsPaused)
+      throw new DomainError('MARKET_COLLECTION_PAUSED');
+    if ((await this.#store.findSettings(targetId))?.paused)
+      throw new DomainError('MARKET_COLLECTION_PAUSED');
+    if (!this.#store.enqueueRequest)
+      throw new DomainError('PERSISTENCE_UNAVAILABLE');
+    return this.#store.enqueueRequest(targetId, requestedBy);
+  }
+
+  async findRequest(requestId: string) {
+    return this.#store.findRequest?.(requestId) ?? null;
+  }
+
+  async findRun(runId: string) {
+    return this.#store.findRun(runId);
   }
 
   get source() {

@@ -107,6 +107,19 @@ export const marketAdminStatusSchema = z.object({
     scheduled: z.boolean(),
     manualAvailable: z.boolean(),
   }),
+  collector: z
+    .object({
+      runner: z.enum(['node', 'go']),
+      enabled: z.boolean(),
+      state: z
+        .enum(['starting', 'healthy', 'draining', 'unhealthy'])
+        .nullable(),
+      heartbeatAt: z.string().nullable(),
+      ownerEpoch: z.number().nullable(),
+      queuedRequests: z.number().int().nonnegative(),
+      claimedRequests: z.number().int().nonnegative(),
+    })
+    .optional(),
   coverage: z.object({
     activeRecipes: z.number(),
     pricedRecipes: z.number(),

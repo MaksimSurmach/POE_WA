@@ -4,9 +4,20 @@ import {
   EnvironmentConfigurationError,
   getDrizzleConnectionString,
   loadDatabaseConfig,
+  marketCollectionRunner,
 } from './config.js';
 
 describe('database environment configuration', () => {
+  it('defaults collection ownership to Node and validates the runner enum', () => {
+    expect(marketCollectionRunner({})).toBe('node');
+    expect(marketCollectionRunner({ MARKET_COLLECTION_RUNNER: 'go' })).toBe(
+      'go',
+    );
+    expect(() =>
+      marketCollectionRunner({ MARKET_COLLECTION_RUNNER: 'other' }),
+    ).toThrow(EnvironmentConfigurationError);
+  });
+
   it('loads development configuration with bounded pool defaults', () => {
     const config = loadDatabaseConfig({
       APP_ENV: 'development',
