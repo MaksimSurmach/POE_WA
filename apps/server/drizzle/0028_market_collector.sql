@@ -1,51 +1,59 @@
-ALTER TABLE market_collection_runs
-  ADD COLUMN runner_id text,
-  ADD COLUMN owner_epoch bigint;
-
-CREATE TABLE market_collection_requests (
-  id uuid PRIMARY KEY,
-  target_id uuid NOT NULL REFERENCES market_targets(id) ON DELETE RESTRICT,
-  requested_at timestamptz NOT NULL DEFAULT now(),
-  requested_by text,
-  state text NOT NULL DEFAULT 'queued' CHECK (state IN ('queued','claimed','completed','cancelled')),
-  claim_owner text,
-  claimed_at timestamptz,
-  claim_expires_at timestamptz,
-  run_id uuid REFERENCES market_collection_runs(id) ON DELETE SET NULL,
-  error_code text,
-  CHECK (error_code IS NULL OR error_code ~ '^[A-Z0-9_]{1,100}$')
+CREATE TABLE "market_collection_checkpoints" (
+	"provider" text NOT NULL,
+	"realm" text NOT NULL,
+	"cursor" text,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "market_collection_checkpoints_provider_realm_pk" PRIMARY KEY("provider","realm")
 );
-CREATE INDEX market_collection_requests_queue_idx ON market_collection_requests(state, requested_at) WHERE state = 'queued';
-CREATE INDEX market_collection_requests_target_idx ON market_collection_requests(target_id, requested_at DESC);
-
-CREATE TABLE market_collection_workers (
-  instance_id text PRIMARY KEY,
-  version text NOT NULL,
-  started_at timestamptz NOT NULL DEFAULT now(),
-  heartbeat_at timestamptz NOT NULL DEFAULT now(),
-  state text NOT NULL CHECK (state IN ('starting','healthy','draining','unhealthy')),
-  active_runs integer NOT NULL DEFAULT 0 CHECK (active_runs >= 0),
-  last_error_code text CHECK (last_error_code IS NULL OR last_error_code ~ '^[A-Z0-9_]{1,100}$')
+--> statement-breakpoint
+CREATE TABLE "market_collection_ownership" (
+	"singleton" boolean PRIMARY KEY DEFAULT true NOT NULL,
+	"owner_instance_id" text,
+	"owner_epoch" bigint DEFAULT 0 NOT NULL,
+	"lease_expires_at" timestamp with time zone,
+	CONSTRAINT "market_collection_ownership_singleton_check" CHECK ("market_collection_ownership"."singleton"),
+	CONSTRAINT "market_collection_ownership_epoch_check" CHECK ("market_collection_ownership"."owner_epoch" >= 0)
 );
-CREATE TABLE market_collection_ownership (
-  singleton boolean PRIMARY KEY DEFAULT true CHECK (singleton),
-  owner_instance_id text,
-  owner_epoch bigint NOT NULL DEFAULT 0 CHECK (owner_epoch >= 0),
-  lease_expires_at timestamptz
+--> statement-breakpoint
+CREATE TABLE "market_collection_requests" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"target_id" uuid NOT NULL,
+	"requested_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"requested_by" text,
+	"state" text DEFAULT 'queued' NOT NULL,
+	"claim_owner" text,
+	"claimed_at" timestamp with time zone,
+	"claim_expires_at" timestamp with time zone,
+	"run_id" uuid,
+	"error_code" text,
+	CONSTRAINT "market_collection_requests_state_check" CHECK ("market_collection_requests"."state" in ('queued','claimed','completed','cancelled')),
+	CONSTRAINT "market_collection_requests_error_check" CHECK ("market_collection_requests"."error_code" is null or "market_collection_requests"."error_code" ~ '^[A-Z0-9_]{1,100}$')
 );
+--> statement-breakpoint
+CREATE TABLE "market_collection_workers" (
+	"instance_id" text PRIMARY KEY NOT NULL,
+	"version" text NOT NULL,
+	"started_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"heartbeat_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"state" text NOT NULL,
+	"active_runs" integer DEFAULT 0 NOT NULL,
+	"last_error_code" text,
+	CONSTRAINT "market_collection_workers_state_check" CHECK ("market_collection_workers"."state" in ('starting','healthy','draining','unhealthy')),
+	CONSTRAINT "market_collection_workers_active_runs_check" CHECK ("market_collection_workers"."active_runs" >= 0),
+	CONSTRAINT "market_collection_workers_error_check" CHECK ("market_collection_workers"."last_error_code" is null or "market_collection_workers"."last_error_code" ~ '^[A-Z0-9_]{1,100}$')
+);
+--> statement-breakpoint
+ALTER TABLE "market_collection_runs" ADD COLUMN "runner_id" text;--> statement-breakpoint
+ALTER TABLE "market_collection_runs" ADD COLUMN "owner_epoch" bigint;--> statement-breakpoint
+ALTER TABLE "market_research_snapshots" ADD COLUMN "runner_id" text;--> statement-breakpoint
+ALTER TABLE "market_research_snapshots" ADD COLUMN "owner_epoch" bigint;--> statement-breakpoint
+ALTER TABLE "market_collection_requests" ADD CONSTRAINT "market_collection_requests_target_id_market_targets_id_fk" FOREIGN KEY ("target_id") REFERENCES "public"."market_targets"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "market_collection_requests" ADD CONSTRAINT "market_collection_requests_run_id_market_collection_runs_id_fk" FOREIGN KEY ("run_id") REFERENCES "public"."market_collection_runs"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "market_collection_requests_queue_idx" ON "market_collection_requests" USING btree ("state","requested_at") WHERE "market_collection_requests"."state" = 'queued';--> statement-breakpoint
+CREATE INDEX "market_collection_requests_target_idx" ON "market_collection_requests" USING btree ("target_id","requested_at" DESC NULLS LAST);
+--> statement-breakpoint
 INSERT INTO market_collection_ownership(singleton) VALUES (true);
-CREATE TABLE market_collection_checkpoints (
-  provider text NOT NULL,
-  realm text NOT NULL,
-  cursor text,
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY(provider, realm)
-);
-
-ALTER TABLE market_research_snapshots
-  ADD COLUMN runner_id text,
-  ADD COLUMN owner_epoch bigint;
-
+--> statement-breakpoint
 CREATE FUNCTION market_collection_assert_write_owner() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE
   current_owner text;

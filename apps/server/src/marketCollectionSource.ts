@@ -140,7 +140,10 @@ export function managedCollectionSource(
           }
           await new Promise<void>((resolve) => setTimeout(resolve, 250));
         }
-        if (!completed) throw new DomainError('MARKET_COLLECTION_CANCELLED');
+        if (!completed) {
+          await manager.cancelQueuedRequest(requestId);
+          throw new DomainError('MARKET_COLLECTION_CANCELLED');
+        }
       } else {
         run = await manager.collectNow(stored.id, signal);
       }

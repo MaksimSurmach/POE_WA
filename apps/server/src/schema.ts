@@ -788,7 +788,7 @@ export const marketCollectionRequests = pgTable(
     id: uuid('id').primaryKey(),
     targetId: uuid('target_id')
       .notNull()
-      .references(() => marketTargets.id),
+      .references(() => marketTargets.id, { onDelete: 'restrict' }),
     requestedAt: timestamp('requested_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -808,7 +808,7 @@ export const marketCollectionRequests = pgTable(
       .where(sql`${table.state} = 'queued'`),
     index('market_collection_requests_target_idx').on(
       table.targetId,
-      table.requestedAt,
+      table.requestedAt.desc(),
     ),
     check(
       'market_collection_requests_state_check',
@@ -864,6 +864,10 @@ export const marketCollectionOwnership = pgTable(
     check(
       'market_collection_ownership_singleton_check',
       sql`${table.singleton}`,
+    ),
+    check(
+      'market_collection_ownership_epoch_check',
+      sql`${table.ownerEpoch} >= 0`,
     ),
   ],
 );

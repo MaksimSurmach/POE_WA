@@ -96,6 +96,7 @@ export interface MarketCollectionStore {
     targetId: string,
     requestedBy: string | null,
   ): Promise<string>;
+  cancelQueuedRequest?(requestId: string): Promise<void>;
   findRequest?(requestId: string): Promise<{
     requestId: string;
     status: 'queued' | 'claimed' | 'completed' | 'cancelled';
@@ -648,6 +649,10 @@ export class MarketCollectionManager {
     if (!this.#store.enqueueRequest)
       throw new DomainError('PERSISTENCE_UNAVAILABLE');
     return this.#store.enqueueRequest(targetId, requestedBy);
+  }
+
+  async cancelQueuedRequest(requestId: string) {
+    await this.#store.cancelQueuedRequest?.(requestId);
   }
 
   async findRequest(requestId: string) {

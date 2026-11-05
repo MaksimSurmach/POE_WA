@@ -47,7 +47,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await pool.query(
-    'truncate market_collection_runs, market_collection_settings, market_research_snapshots, belt_price_updates, market_targets',
+    'truncate market_collection_requests, market_collection_runs, market_collection_settings, market_research_snapshots, belt_price_updates, market_targets',
   );
 });
 
@@ -104,6 +104,30 @@ function makeRun(
 }
 
 describe('persistent managed market collection', () => {
+  it('cancels only queued collector requests', async () => {
+    const target = await targets.saveTarget(makeTarget());
+    const queued = await repository.enqueueRequest!(
+      target.id,
+      'recipe-refresh',
+    );
+    const completed = await repository.enqueueRequest!(
+      target.id,
+      'recipe-refresh',
+    );
+    await pool.query(
+      "update market_collection_requests set state='completed' where id=$1",
+      [completed],
+    );
+    await repository.cancelQueuedRequest!(queued);
+    await repository.cancelQueuedRequest!(completed);
+    expect(await repository.findRequest!(queued)).toMatchObject({
+      status: 'cancelled',
+    });
+    expect(await repository.findRequest!(completed)).toMatchObject({
+      status: 'completed',
+    });
+  });
+
   it('publishes sequential demo collections through matcher and the existing ranking API, idempotently', async () => {
     const now = new Date();
     const fixture = beltDemoFixture(now);

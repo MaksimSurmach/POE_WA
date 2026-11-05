@@ -135,3 +135,29 @@ Migrations are additive; rollback disables the worker and leaves historical runs
 ## Open decision for the EDD
 
 The first unattended source candidate is the documented Public Stash feed, subject to a short feasibility spike for OAuth scope/client availability and whether its realm-wide feed can match stored `market_targets` fields at useful coverage. GGG currently says it cannot process new API application registrations, so do not send provider requests until an authorized `service:psapi` client/scope is confirmed. Exact Trade Search remains human-driven until GGG provides a supported server integration. If the feed cannot meet target-matching requirements, ship worker health/request plumbing first and use the existing manual snapshot import rather than inventing an undocumented endpoint.
+
+## Home Assistant OS
+
+Copy `services/market-collector` to the local apps directory as
+`poe_market_collector`. Reload the app store and install
+`local_poe_market_collector` under **Local apps**. Supervisor builds for the
+host architecture. The same Dockerfile also builds a standalone container.
+
+The app starts in standby with `enabled: false`. With no database configured,
+liveness responds successfully and readiness returns 503. For an isolated
+smoke test, migrate a PostgreSQL database whose name ends in `_test`, set
+`database_url` in the app configuration, and enable it. Home Assistant uses
+verified TLS by default. Use a dedicated database user and an explicit
+`sslmode=verify-full` for hosted PostgreSQL. The add-on reads its own settings
+through the Supervisor API and does not request elevated permissions or
+publish a host port.
+
+Inspect the app logs with `ha apps logs local_poe_market_collector`. Startup,
+lease acquisition, completed demo runs and changes in polling health emit JSON
+logs. The existing database run and worker tables retain operational status.
+After an isolated smoke test, stop the app, remove its test DSN, set
+`enabled: false` and start it in standby.
+
+This build's fake source only completes demo runs with partial coverage.
+Live source rollout and production runner cutover require an authorized
+provider and separate verification.

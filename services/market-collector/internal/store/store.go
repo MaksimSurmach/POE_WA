@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -22,6 +23,7 @@ var (
 type Store struct {
 	Pool     *pgxpool.Pool
 	Instance string
+	Version  string
 }
 type Token struct {
 	Instance string
@@ -29,7 +31,7 @@ type Token struct {
 }
 
 // Tick renews/takes over the singleton lease and records liveness in one transaction.
-func (s Store) Tick(ctx context.Context) (Token, error) {
+func (s Store) Tick(ctx context.Context, previous Token) (Token, error) {
 	tx, err := s.Pool.Begin(ctx)
 	if err != nil {
 		return Token{}, err
@@ -41,10 +43,18 @@ func (s Store) Tick(ctx context.Context) (Token, error) {
 	if err = tx.QueryRow(ctx, `select owner_instance_id,owner_epoch,coalesce(lease_expires_at>now(),false) from market_collection_ownership where singleton for update`).Scan(&owner, &epoch, &active); err != nil {
 		return Token{}, err
 	}
-	if owner != nil && *owner != s.Instance && active {
+	if active && (owner == nil || *owner != s.Instance || previous != (Token{Instance: s.Instance, Epoch: epoch})) {
 		return Token{}, ErrNotOwner
 	}
-	if owner == nil || *owner != s.Instance || !active {
+	if !active {
+		// Match the Node collector's grace period before recovering interrupted runs.
+		if _, err = tx.Exec(ctx, `update market_collection_runs
+			set status='failed', completed_at=now(), payload=payload || jsonb_build_object(
+				'status','failed','completedAt',to_char(now() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+				'errorCode','MARKET_COLLECTION_INTERRUPTED','coverage','partial')
+			where status='running' and runner_id is null and heartbeat_at < now()-interval '30 minutes'`); err != nil {
+			return Token{}, err
+		}
 		var legacyRunActive bool
 		if err = tx.QueryRow(ctx, `select exists(select 1 from market_collection_runs where status='running' and runner_id is null)`).Scan(&legacyRunActive); err != nil {
 			return Token{}, err
@@ -57,7 +67,7 @@ func (s Store) Tick(ctx context.Context) (Token, error) {
 	if _, err = tx.Exec(ctx, `update market_collection_ownership set owner_instance_id=$1,owner_epoch=$2,lease_expires_at=now()+interval '90 seconds' where singleton`, s.Instance, epoch); err != nil {
 		return Token{}, err
 	}
-	if _, err = tx.Exec(ctx, `insert into market_collection_workers(instance_id,version,state,active_runs) values($1,'dev','healthy',0) on conflict(instance_id) do update set heartbeat_at=now(),state='healthy',last_error_code=null`, s.Instance); err != nil {
+	if _, err = tx.Exec(ctx, `insert into market_collection_workers(instance_id,version,state,active_runs) values($1,$2,'healthy',0) on conflict(instance_id) do update set heartbeat_at=now(),version=excluded.version,state='healthy',last_error_code=null`, s.Instance, s.Version); err != nil {
 		return Token{}, err
 	}
 	if err = tx.Commit(ctx); err != nil {
@@ -154,7 +164,21 @@ func (s Store) ProcessFakeRequest(ctx context.Context, token Token) error {
 			return err
 		}
 	}
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	slog.Info("collection finished", "run_id", id, "target_id", targetID, "trigger", trigger, "source", "demo", "status", "empty")
+	return nil
+}
+
+func (s Store) MarkUnhealthy(ctx context.Context, token Token) error {
+	_, err := s.Pool.Exec(ctx, `update market_collection_workers w
+		set state='unhealthy',last_error_code='DB_TICK'
+		from (select owner_instance_id from market_collection_ownership
+			where singleton and owner_instance_id=$1 and owner_epoch=$2 and lease_expires_at>now()
+			for share) o
+		where w.instance_id=o.owner_instance_id`, token.Instance, token.Epoch)
+	return err
 }
 
 func (s Store) Drain(ctx context.Context, token Token) error {

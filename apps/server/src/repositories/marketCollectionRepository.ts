@@ -34,6 +34,12 @@ export function createMarketCollectionRepository(
       );
       return id;
     },
+    async cancelQueuedRequest(requestId) {
+      await pool.query(
+        "update market_collection_requests set state='cancelled' where id=$1 and state='queued'",
+        [requestId],
+      );
+    },
     async findRequest(requestId) {
       const result = await pool.query<{
         id: string;
