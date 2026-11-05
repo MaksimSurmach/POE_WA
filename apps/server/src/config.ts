@@ -167,7 +167,21 @@ export function loadDatabaseConfig(
   };
 }
 
-export function drizzleConnectionString(config: DatabaseConfig) {
+export function getDrizzleConnectionString(
+  environment: Record<string, string | undefined> = process.env,
+) {
+  if (
+    environment.APP_ENV === undefined &&
+    environment.DATABASE_URL === undefined &&
+    environment.TEST_DATABASE_URL === undefined
+  ) {
+    return undefined;
+  }
+
+  return drizzleConnectionString(loadDatabaseConfig(environment));
+}
+
+function drizzleConnectionString(config: DatabaseConfig) {
   if (config.environment !== 'staging') return config.connectionString;
 
   const databaseUrl = new URL(config.connectionString);
