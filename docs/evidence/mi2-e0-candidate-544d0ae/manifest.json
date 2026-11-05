@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "repository": "MaksimSurmach/POE_WA",
-  "sha": "d1ffa9f10bfa0502b954c4798f337e222ca5b908",
-  "buildRunId": "local-candidate-d1ffa9f",
+  "sha": "544d0aef71eeb4ff92217300d0eedce9b0f79ad9",
+  "buildRunId": "local-candidate-544d0ae",
   "buildAttempt": "1",
   "platform": "linux/amd64",
   "fixtures": {
@@ -19,16 +19,16 @@
   },
   "images": {
     "server": {
-      "tag": "local/poe-worksmith:d1ffa9f10bfa0502b954c4798f337e222ca5b908-server",
-      "imageId": "sha256:f3c4730eb2f2fbc556a455709242c61791f96597cf3a3135e9a6ad912b3829c7",
+      "tag": "local/poe-worksmith:544d0aef71eeb4ff92217300d0eedce9b0f79ad9-server",
+      "imageId": "sha256:3ff650f3cffe052205a1a1eef57c0248a40bca8c0e822405e4404cf54d6565e3",
       "archive": "server.tar",
-      "archiveSha256": "3af1e08e810dd33d527296e0924879291db2510ddeee1f80b95b6ed9e9c08954"
+      "archiveSha256": "1bd36b39c0137f0795be55d76ca44a74ab3d87e2d2c42afd44d602a5b6f36fe8"
     },
     "web": {
-      "tag": "local/poe-worksmith:d1ffa9f10bfa0502b954c4798f337e222ca5b908-web",
-      "imageId": "sha256:6f955abf91184e2b0a211e7d96cfdfba5721870452815968b87f097cfecdc086",
+      "tag": "local/poe-worksmith:544d0aef71eeb4ff92217300d0eedce9b0f79ad9-web",
+      "imageId": "sha256:7f1b8b1cdae3ab14be99c940f3dbb890d1c82eac90885ae60bff2d2e05eb51f6",
       "archive": "web.tar",
-      "archiveSha256": "7a111ee377698843bc583981c8ac3ed99c25353dabaff99fb9bab118a6dc7120"
+      "archiveSha256": "705d8adf30bb3c33c8b7e53e113cc596af3b4a695dc07a98384cd00cd610e2cd"
     }
   }
 }
