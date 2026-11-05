@@ -19,6 +19,7 @@ import {
   integer,
   jsonb,
   numeric,
+  pgSchema,
   pgTable,
   pgView,
   primaryKey,
@@ -1373,4 +1374,18 @@ export const craftAllocationPlans = pgTable(
     uniqueIndex('craft_allocation_plans_idempotency_uq').on(t.idempotencyKey),
     index('craft_allocation_plans_league_idx').on(t.leagueId, t.createdAt),
   ],
+);
+
+export const marketCollectorPrivate = pgSchema('market_collector_private');
+
+export const marketTradeSession = marketCollectorPrivate.table(
+  'trade_session',
+  {
+    singleton: boolean('singleton').primaryKey().default(true),
+    sealedSession: text('sealed_session').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [check('trade_session_singleton_check', sql`${table.singleton}`)],
 );

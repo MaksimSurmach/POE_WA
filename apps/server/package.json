@@ -30,6 +30,7 @@
     "market:seed-belt-demo": "node --env-file-if-exists=../../.env.development dist/entrypoints/seedBeltDemo.js",
     "market:import-belt-evidence": "node --env-file-if-exists=../../.env.development dist/entrypoints/importBeltEvidence.js",
     "market:import-catalog": "node --env-file-if-exists=../../.env.development dist/entrypoints/importMarketCatalog.js",
+    "market:trade": "node --env-file-if-exists=../../.env.development dist/entrypoints/collectTrade.js",
     "market:test-connection": "node --env-file-if-exists=../../.env.development dist/entrypoints/testTradeConnection.js"
   },
   "dependencies": {

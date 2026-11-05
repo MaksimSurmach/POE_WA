@@ -121,7 +121,11 @@ export interface MarketCollectionStore {
   listObservations(targetId: string): Promise<MarketCollectionObservation[]>;
   saveRun(run: MarketCollectionRun): Promise<MarketCollectionRun>;
   requestCancel(runId: string): Promise<MarketCollectionRun | null>;
-  recoverRunningRuns(at: string, activeRunIds?: string[]): Promise<string[]>;
+  recoverRunningRuns(
+    at: string,
+    activeRunIds?: string[],
+    targetId?: string,
+  ): Promise<string[]>;
 }
 
 export function collectionSettings(

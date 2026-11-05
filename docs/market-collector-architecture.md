@@ -161,3 +161,24 @@ After an isolated smoke test, stop the app, remove its test DSN, set
 This build's fake source only completes demo runs with partial coverage.
 Live source rollout and production runner cutover require an authorized
 provider and separate verification.
+
+## One-shot Trade collection
+
+The Node one-shot command uses the #36 Trade-compatible adapter, saved target
+profiles, database rate limits, and the existing snapshot publisher. It can
+run from the server Docker image or a separate Node process on ARM64. It starts
+no scheduler.
+
+Apply the migrations and provision a 32-byte hex `POE_TRADE_SESSION_KEY`
+outside PostgreSQL. Supply the database DSN through the runtime secret
+environment. Send the saved website session to `pnpm market:trade store-session`
+over stdin. PostgreSQL stores an AES-256-GCM ciphertext in the private
+`market_collector_private` schema. The command prints status only. Keep the key
+in a separate secret store and use the same key for storing and collecting.
+
+Run `pnpm market:trade collect <target-id>` with `POE_TRADE_ACCESS=owner_permitted`
+and a configured `POE_TRADE_USER_AGENT`. A completed run reports its snapshot ID,
+status, and coverage. The existing market API reads the resulting snapshot.
+The command respects persisted provider denials and manual collection controls.
+Storing a replacement session clears Trade HTTP 401 blocks while retaining
+HTTP 403 blocks and rate-limit windows.

@@ -23,6 +23,8 @@ import { GggRateLimitController } from '../rateLimitController.js';
 import { createPostgresRepositories } from './index.js';
 import { createMarketResearchRepository } from './marketResearchRepository.js';
 import { createMarketCollectionRepository } from './marketCollectionRepository.js';
+import { createTradeSessionRepository } from './tradeSessionRepository.js';
+import { clearTradeAuthenticationDenials } from './postgresRepositories.js';
 
 const config = loadDatabaseConfig();
 const databaseUrl = new URL(config.connectionString);
@@ -104,6 +106,56 @@ function makeRun(
 }
 
 describe('persistent managed market collection', () => {
+  it('stores one encrypted Trade session and rejects a different key', async () => {
+    const key = '12'.repeat(32);
+    const session = 'fake-trade-session';
+    const sessions = createTradeSessionRepository(pool, key);
+    try {
+      await sessions.save(session);
+      const stored = () =>
+        pool.query<{ sealed_session: string }>(
+          'select sealed_session from market_collector_private.trade_session',
+        );
+      const first = (await stored()).rows[0]?.sealed_session;
+      expect(first).toBeTruthy();
+      expect(first).not.toContain(session);
+      expect(await sessions.read()).toBe(session);
+      await expect(
+        createTradeSessionRepository(pool, '34'.repeat(32)).read(),
+      ).rejects.toThrow('TRADE_SESSION_DECRYPT_FAILED');
+      await sessions.save(session);
+      const second = (await stored()).rows;
+      expect(second).toHaveLength(1);
+      expect(second[0]?.sealed_session).not.toBe(first);
+    } finally {
+      await pool.query(
+        'delete from market_collector_private.trade_session where singleton',
+      );
+    }
+  });
+
+  it('retains Trade HTTP 403 when a session is rotated', async () => {
+    const client = await pool.connect();
+    try {
+      await client.query('begin');
+      await client.query(`
+        insert into rate_limit_states(policy, last_status)
+        values ('trade-search-request-limit',401),('trade-fetch-request-limit',403)
+        on conflict(policy) do update set last_status=excluded.last_status
+      `);
+      await clearTradeAuthenticationDenials(client, new Date());
+      const result = await client.query<{ last_status: number | null }>(`
+        select last_status from rate_limit_states
+        where policy in ('trade-search-request-limit','trade-fetch-request-limit')
+        order by policy
+      `);
+      expect(result.rows.map((row) => row.last_status)).toEqual([403, null]);
+    } finally {
+      await client.query('rollback');
+      client.release();
+    }
+  });
+
   it('cancels only queued collector requests', async () => {
     const target = await targets.saveTarget(makeTarget());
     const queued = await repository.enqueueRequest!(
@@ -715,7 +767,19 @@ describe('persistent managed market collection', () => {
       status: 'running',
     });
 
-    await repository.recoverRunningRuns('2026-10-30T10:31:00.000Z', []);
+    await repository.recoverRunningRuns(
+      '2026-10-30T10:31:00.000Z',
+      [],
+      randomUUID(),
+    );
+    await expect(repository.findRun(running.id)).resolves.toMatchObject({
+      status: 'running',
+    });
+    await repository.recoverRunningRuns(
+      '2026-10-30T10:31:00.000Z',
+      [],
+      target.id,
+    );
     await expect(repository.findRun(running.id)).resolves.toMatchObject({
       status: 'failed',
       errorCode: 'MARKET_COLLECTION_INTERRUPTED',

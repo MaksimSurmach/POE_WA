@@ -377,7 +377,7 @@ export function createMarketCollectionRepository(
         ? marketCollectionRunSchema.parse(result.rows[0].payload)
         : null;
     },
-    async recoverRunningRuns(at, activeRunIds = []) {
+    async recoverRunningRuns(at, activeRunIds = [], targetId) {
       if (activeRunIds.length > 0)
         await pool.query(
           `update market_collection_runs set heartbeat_at = $1::timestamptz
@@ -407,16 +407,19 @@ export function createMarketCollectionRepository(
                ),
                '{errorCode}', '"MARKET_COLLECTION_INTERRUPTED"'::jsonb
              ), '{coverage}', '"partial"'::jsonb)
-         where status = 'running'
+         where status = 'running' and runner_id is null
            and heartbeat_at < $1::timestamptz - interval '30 minutes'
-           and not (id = any($2::uuid[]))`,
-        [at, activeRunIds],
+           and not (id = any($2::uuid[]))
+           and ($3::uuid is null or target_id = $3)`,
+        [at, activeRunIds, targetId ?? null],
       );
       const pending = await pool.query<{ payload: unknown }>(
         `select payload from market_collection_runs
-         where payload->>'snapshotId' is null
+         where runner_id is null and payload->>'snapshotId' is null
+           and ($1::uuid is null or target_id = $1)
            and (payload->>'errorCode' in ('MARKET_COLLECTION_PUBLICATION_FAILED', 'MARKET_COLLECTION_INTERRUPTED')
              or payload->'publicationResult' is not null)`,
+        [targetId ?? null],
       );
       for (const row of pending.rows)
         await this.saveRun(marketCollectionRunSchema.parse(row.payload));

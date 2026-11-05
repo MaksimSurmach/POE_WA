@@ -21,6 +21,7 @@ export class DatabaseConnectionError extends Error {
 export function createDatabasePool(
   config: DatabaseConfig,
   logger?: Pick<Logger, 'warn'>,
+  queryTimeoutMillis?: number,
 ) {
   const pool = new Pool({
     application_name: `poe-worksmith-${config.environment}`,
@@ -29,6 +30,9 @@ export function createDatabasePool(
     idleTimeoutMillis: config.idleTimeoutMillis,
     max: config.maxConnections,
     ssl: config.ssl,
+    ...(queryTimeoutMillis === undefined
+      ? {}
+      : { query_timeout: queryTimeoutMillis }),
   });
   // pg removes broken idle clients; active-query errors still reject their caller.
   pool.on('error', () =>
