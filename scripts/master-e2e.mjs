@@ -38,6 +38,11 @@ const failureStatus = (error, wasInterrupted = false) => {
   const daemonUnavailable =
     dockerOutput &&
     /cannot connect to the Docker daemon|error during connect/i.test(stderr);
+  const missingImage =
+    error.command === 'docker' &&
+    args.includes('image') &&
+    args.includes('inspect') &&
+    /no such (?:image|object)/i.test(stderr);
   const infrastructureFailure =
     error.spawnFailure ||
     daemonUnavailable ||
@@ -46,6 +51,7 @@ const failureStatus = (error, wasInterrupted = false) => {
       /no space left on device|context deadline exceeded|failed to dial|network is unreachable|i\/o timeout/i.test(
         stderr,
       ));
+  if (missingImage) return 'FAIL';
   return infrastructureFailure ||
     (error.command === 'docker' && !workloadCommand)
     ? 'INFRA_BLOCKED'
@@ -226,6 +232,14 @@ async function readSql(compose, env, sql) {
 const diagnostic = (compose, env, sql) =>
   readSql(compose, env, sql).catch((error) => `unavailable: ${error.message}`);
 
+async function writeDiagnostic(file, content) {
+  try {
+    await writeFile(file, content);
+  } catch (error) {
+    return error;
+  }
+}
+
 const readMigrationState = (compose, env) =>
   readSql(
     compose,
@@ -376,6 +390,27 @@ async function selfCheck() {
   assert(
     failureStatus({ command: 'docker' }, true) === 'FAIL',
     'interruption was not classified as a failed run',
+  );
+  assert(
+    failureStatus(
+      {
+        command: 'docker',
+        commandArgs: ['image', 'inspect', 'missing:tag'],
+        stderr: 'Error response from daemon: No such image: missing:tag',
+      },
+      true,
+    ) === 'FAIL' &&
+      failureStatus({
+        command: 'docker',
+        commandArgs: ['image', 'inspect', 'missing:tag'],
+        stderr: 'Error response from daemon: No such object: missing:tag',
+      }) === 'FAIL' &&
+      failureStatus({
+        command: 'docker',
+        commandArgs: ['image', 'inspect', 'tag'],
+        stderr: 'Cannot connect to the Docker daemon',
+      }) === 'INFRA_BLOCKED',
+    'missing image or interrupted image inspection was misclassified',
   );
   assert(
     preflightStatus(false) === 'INFRA_BLOCKED' &&
@@ -592,6 +627,13 @@ async function selfCheck() {
         'invalid manifest did not write a single-line FAIL receipt',
       );
     }
+    assert(
+      (await writeDiagnostic(
+        path.join(temp, 'missing', 'diagnostics.txt'),
+        '',
+      )) instanceof Error,
+      'diagnostics write failure was not captured',
+    );
   } finally {
     await rm(temp, { recursive: true, force: true });
   }
@@ -714,7 +756,7 @@ else {
   } catch (error) {
     await writeFile(
       verdictPath,
-      receipt(failureStatus(error), metadata, error.message),
+      receipt(failureStatus(error, interrupted), metadata, error.message),
     );
     throw error;
   }
@@ -832,6 +874,7 @@ else {
   let passVerdict;
   let runError;
   let cleanupError;
+  const evidenceErrors = [];
   try {
     await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
     const migrationStateAfterInitialMigration = await readMigrationState(
@@ -1067,14 +1110,22 @@ else {
           'select id,status,requested_at,finished_at,error_code from market_admin_runs order by requested_at desc limit 1',
         ),
       ]);
-      await writeFile(
+      const diagnosticsError = await writeDiagnostic(
         path.join(output, 'diagnostics.txt'),
         `Migration journal:\n${migrationJournal}\nQueue snapshot:\n${queueSnapshot}\nLast admin run:\n${lastRun}\n`,
       );
-      const logs = await capture('docker', [...compose, 'logs', '--no-color'], {
-        env,
-      }).catch(() => 'Unable to retrieve compose logs.');
-      await writeFile(composeLogPath, logs);
+      if (diagnosticsError) evidenceErrors.push(diagnosticsError.message);
+      let logs;
+      try {
+        logs = await capture('docker', [...compose, 'logs', '--no-color'], {
+          env,
+        });
+      } catch (error) {
+        logs = 'Unable to retrieve compose logs.';
+        evidenceErrors.push(error.message);
+      }
+      const logsError = await writeDiagnostic(composeLogPath, logs);
+      if (logsError) evidenceErrors.push(logsError.message);
       const ids = (await capture('docker', [...compose, 'ps', '-aq'], { env }))
         .split(/\s+/)
         .filter(Boolean);
@@ -1169,16 +1220,17 @@ else {
       cleanupError = error;
     }
   }
-  if (cleanupError) {
+  if (cleanupError || evidenceErrors.length) {
+    const failure = cleanupError ?? new Error(evidenceErrors.join('; '));
     await writeFile(
       verdictPath,
       receipt(
-        failureStatus(runError ?? cleanupError, interrupted),
+        failureStatus(runError ?? failure, interrupted),
         metadata,
-        `${interrupted ? 'reason=interrupted ' : ''}cleanup=${cleanupError.message}${runError ? ` original=${runError.message}` : ''}`,
+        `${interrupted ? 'reason=interrupted ' : ''}${cleanupError ? `cleanup=${cleanupError.message} ` : ''}${evidenceErrors.length ? `evidence=${evidenceErrors.join('; ')}` : ''}${runError ? ` original=${runError.message}` : ''}`,
       ),
     );
-    throw cleanupError;
+    throw failure;
   }
   if (interrupted) {
     await writeFile(
