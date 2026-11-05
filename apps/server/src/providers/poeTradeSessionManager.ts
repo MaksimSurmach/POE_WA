@@ -35,6 +35,7 @@ export class PoeTradeSessionManager {
   #loginFailed = false;
   #sessionId: string | undefined;
   #sessionAvailable = false;
+  #sessionAuthenticated = false;
   readonly #sessionSecrets = new Set<string>();
   #stopped = false;
   connectionStatus: ConnectionStatus = 'AUTH_REQUIRED';
@@ -127,6 +128,7 @@ export class PoeTradeSessionManager {
         this.connectionStatus = 'AUTH_REQUIRED';
         if (currentSessionId === sentSessionId) {
           this.#sessionAvailable = false;
+          this.#sessionAuthenticated = false;
           await this.#clearSessionCookie();
         } else {
           nativeResponse.headers.set('x-poe-session-stale', 'true');
@@ -154,6 +156,7 @@ export class PoeTradeSessionManager {
     this.#context = undefined;
     this.#sessionId = undefined;
     this.#sessionAvailable = false;
+    this.#sessionAuthenticated = false;
     await context?.close().catch(() => undefined);
     await this.#login?.catch(() => undefined);
     this.#sessionSecrets.clear();
@@ -164,7 +167,7 @@ export class PoeTradeSessionManager {
     this.#sessionAvailable = false;
     try {
       await this.#ensureSession(true);
-      return this.#sessionAvailable;
+      return this.#sessionAvailable && this.#sessionAuthenticated;
     } catch {
       return false;
     }
@@ -177,9 +180,11 @@ export class PoeTradeSessionManager {
     if (this.#login) return this.#login;
     if (existing) {
       this.#sessionAvailable = true;
-      if (this.connectionStatus !== 'CONNECTED')
-        this.connectionStatus = 'AUTH_REQUIRED';
-      return;
+      if (this.#sessionAuthenticated) {
+        if (this.connectionStatus !== 'CONNECTED')
+          this.connectionStatus = 'AUTH_REQUIRED';
+        return;
+      }
     }
     if (this.#loginFailed && !forceLogin)
       throw new DomainError('MARKET_ACCESS_BLOCKED');
@@ -213,8 +218,12 @@ export class PoeTradeSessionManager {
         this.connectionStatus = 'ACCESS_DENIED';
         throw new DomainError('MARKET_ACCESS_BLOCKED');
       }
-      if (await this.#readSessionId()) {
+      if (
+        (await this.#readSessionId()) &&
+        (await this.#hasAuthenticatedAccount(page))
+      ) {
         this.#sessionAvailable = true;
+        this.#sessionAuthenticated = true;
         this.connectionStatus = 'AUTH_REQUIRED';
         return;
       }
@@ -245,8 +254,12 @@ export class PoeTradeSessionManager {
           this.connectionStatus = 'ACCESS_DENIED';
           throw new DomainError('MARKET_ACCESS_BLOCKED');
         }
-        if (await this.#readSessionId()) {
+        if (
+          (await this.#readSessionId()) &&
+          (await this.#hasAuthenticatedAccount(page))
+        ) {
           this.#sessionAvailable = true;
+          this.#sessionAuthenticated = true;
           this.connectionStatus = 'AUTH_REQUIRED';
           await this.#onLogin?.();
           return;
@@ -275,6 +288,16 @@ export class PoeTradeSessionManager {
     return /just a moment|attention required|verify you are human/i.test(title);
   }
 
+  async #hasAuthenticatedAccount(
+    page: Awaited<ReturnType<BrowserContext['newPage']>>,
+  ) {
+    return page
+      .getByText(/logged in as|log out/i)
+      .first()
+      .isVisible()
+      .catch(() => false);
+  }
+
   async #readSessionId() {
     if (!this.#context) return undefined;
     const cookie = (await this.#context.cookies(this.#baseURL)).find(
@@ -290,6 +313,7 @@ export class PoeTradeSessionManager {
 
   async #clearSessionCookie() {
     this.#sessionId = undefined;
+    this.#sessionAuthenticated = false;
     await this.#context?.clearCookies({ name: 'POESESSID' });
   }
 
