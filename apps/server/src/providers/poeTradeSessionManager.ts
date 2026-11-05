@@ -312,11 +312,18 @@ export class PoeTradeSessionManager {
     page: Awaited<ReturnType<BrowserContext['newPage']>>,
   ) {
     if (new URL(page.url()).origin !== this.#baseURL) return false;
-    return page
-      .locator('a[href*="/account/view-profile/"]')
+    const statusBar = page.locator('.statusBar');
+    const loggedIn = await statusBar
+      .getByText(/logged in as/i)
       .first()
       .isVisible()
       .catch(() => false);
+    const logout = await statusBar
+      .getByText(/log out/i)
+      .first()
+      .isVisible()
+      .catch(() => false);
+    return loggedIn && logout;
   }
 
   async #readSessionId() {
