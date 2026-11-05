@@ -55,7 +55,8 @@ async function run(command, commandArgs, options = {}) {
     });
     child.on('exit', (code) => {
       if (activeChild === child) activeChild = undefined;
-      code === 0 ? resolve() : reject(new Error(`${command} exited ${code}`));
+      if (code === 0) resolve();
+      else reject(new Error(`${command} exited ${code}`));
     });
   });
 }
@@ -75,9 +76,8 @@ async function capture(command, commandArgs, options = {}) {
     });
     child.on('exit', (code) => {
       if (activeChild === child) activeChild = undefined;
-      code === 0
-        ? resolve(output.trim())
-        : reject(new Error(`${command} exited ${code}`));
+      if (code === 0) resolve(output.trim());
+      else reject(new Error(`${command} exited ${code}`));
     });
   });
 }
@@ -122,7 +122,9 @@ async function waitForWorkerHeartbeat(compose, env, after) {
     try {
       assertWorkerHeartbeat(heartbeat, after);
       return heartbeat;
-    } catch {}
+    } catch {
+      // Keep polling until the heartbeat is fresh.
+    }
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   assertWorkerHeartbeat('', after);
@@ -498,6 +500,7 @@ else {
     'E2E resources already exist; refusing stale state',
   );
   let passVerdict;
+  let cleanupError;
   try {
     await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
     await run(
@@ -711,12 +714,15 @@ else {
           { env },
         );
     } catch (error) {
-      await writeFile(
-        verdictPath,
-        receipt('FAIL', metadata, `cleanup=${error.message}`),
-      );
-      throw error;
+      cleanupError = error;
     }
+  }
+  if (cleanupError) {
+    await writeFile(
+      verdictPath,
+      receipt('FAIL', metadata, `cleanup=${cleanupError.message}`),
+    );
+    throw cleanupError;
   }
   if (interrupted) {
     await writeFile(
