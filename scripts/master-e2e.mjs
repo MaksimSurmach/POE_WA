@@ -1,13 +1,23 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { copyFile, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
+import { validateManifest } from './master-e2e-manifest.mjs';
 
 const args = process.argv.slice(2);
 const arg = (name) => args[args.indexOf(name) + 1];
+let interrupted = false;
+let cleaningUp = false;
+let activeChild;
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, () => {
+    interrupted = true;
+    if (!cleaningUp) activeChild?.kill(signal);
+  });
+}
 const sha256 = async (file) =>
   createHash('sha256')
     .update(await readFile(file))
@@ -35,36 +45,60 @@ export function validateOwnership(labels, expected) {
 }
 
 async function run(command, commandArgs, options = {}) {
+  if (interrupted && !cleaningUp) throw new Error('E2E harness interrupted');
   await new Promise((resolve, reject) => {
     const child = spawn(command, commandArgs, { stdio: 'inherit', ...options });
-    child.on('error', reject);
-    child.on('exit', (code) =>
-      code === 0 ? resolve() : reject(new Error(`${command} exited ${code}`)),
-    );
+    activeChild = child;
+    child.on('error', (error) => {
+      if (activeChild === child) activeChild = undefined;
+      reject(error);
+    });
+    child.on('exit', (code) => {
+      if (activeChild === child) activeChild = undefined;
+      code === 0 ? resolve() : reject(new Error(`${command} exited ${code}`));
+    });
   });
 }
 async function capture(command, commandArgs, options = {}) {
+  if (interrupted && !cleaningUp) throw new Error('E2E harness interrupted');
   return new Promise((resolve, reject) => {
     const child = spawn(command, commandArgs, {
       stdio: ['ignore', 'pipe', 'inherit'],
       ...options,
     });
+    activeChild = child;
     let output = '';
     child.stdout.on('data', (chunk) => (output += chunk));
-    child.on('error', reject);
-    child.on('exit', (code) =>
+    child.on('error', (error) => {
+      if (activeChild === child) activeChild = undefined;
+      reject(error);
+    });
+    child.on('exit', (code) => {
+      if (activeChild === child) activeChild = undefined;
       code === 0
         ? resolve(output.trim())
-        : reject(new Error(`${command} exited ${code}`)),
-    );
+        : reject(new Error(`${command} exited ${code}`));
+    });
   });
 }
 
-function assertWorkerHeartbeat(result) {
-  assert(result === 't', 'catalog worker heartbeat is missing or stale');
+function assertWorkerHeartbeat(heartbeat, after) {
+  const timestamp = Date.parse(heartbeat);
+  assert(Number.isFinite(timestamp), 'catalog worker heartbeat is missing');
+  if (after) {
+    assert(
+      timestamp > Date.parse(after),
+      'catalog worker did not heartbeat after restart',
+    );
+  } else {
+    assert(
+      Date.now() - timestamp < 20_000,
+      'catalog worker heartbeat is stale',
+    );
+  }
 }
 
-async function waitForWorkerHeartbeat(compose, env) {
+async function waitForWorkerHeartbeat(compose, env, after) {
   const deadline = Date.now() + 60_000;
   while (Date.now() < deadline) {
     const heartbeat = await capture(
@@ -81,25 +115,110 @@ async function waitForWorkerHeartbeat(compose, env) {
         '-d',
         'poe_worksmith_e2e',
         '-c',
-        "select exists(select 1 from market_worker_health where id='catalog' and heartbeat_at > now() - interval '20 seconds')",
+        "select to_char(heartbeat_at at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"') from market_worker_health where id='catalog'",
       ],
       { env },
     ).catch(() => '');
-    if (heartbeat === 't') return;
+    try {
+      assertWorkerHeartbeat(heartbeat, after);
+      return heartbeat;
+    } catch {}
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  assertWorkerHeartbeat('f');
+  assertWorkerHeartbeat('', after);
+}
+
+async function readRecipeState(compose, env) {
+  return capture(
+    'docker',
+    [
+      ...compose,
+      'exec',
+      '-T',
+      'postgres',
+      'psql',
+      '-At',
+      '-U',
+      'e2e',
+      '-d',
+      'poe_worksmith_e2e',
+      '-c',
+      "select count(*)::text || ':' || md5(coalesce(string_agg(id || ':' || content_hash, ',' order by id), '')) from recipes",
+    ],
+    { env },
+  );
+}
+
+function collectPassedTestIds(report) {
+  const ids = new Set();
+  const visit = (suite) => {
+    for (const spec of suite.specs ?? []) {
+      const id = /^([A-Z]+-\d+)\b/.exec(spec.title)?.[1];
+      if (
+        id &&
+        spec.tests?.some((test) =>
+          test.results?.some((result) => result.status === 'passed'),
+        )
+      ) {
+        ids.add(id);
+      }
+    }
+    for (const child of suite.suites ?? []) visit(child);
+  };
+  for (const suite of report.suites ?? []) visit(suite);
+  return [...ids].sort();
+}
+
+function receipt(status, metadata, details = '') {
+  const manifest = metadata.manifest;
+  const value = (item) => item ?? 'unavailable';
+  return [
+    `${status} type=${metadata.type}`,
+    `source_sha=${value(manifest?.sha)}`,
+    `harness_sha=${value(metadata.harnessSha)}`,
+    `build_run_id=${value(manifest?.buildRunId)}`,
+    `build_attempt=${value(manifest?.buildAttempt)}`,
+    `e2e_run_id=${value(metadata.e2eRunId)}`,
+    `e2e_attempt=${value(metadata.e2eAttempt)}`,
+    `platform=${value(manifest?.platform)}`,
+    `server_image=${value(manifest?.images?.server?.imageId)}`,
+    `web_image=${value(manifest?.images?.web?.imageId)}`,
+    `executed_test_ids=${metadata.executedTestIds?.join(',') || 'none'}`,
+    details,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .concat('\n');
 }
 
 async function selfCheck() {
-  assertWorkerHeartbeat('t');
+  const heartbeat = new Date().toISOString();
+  assertWorkerHeartbeat(heartbeat);
+  assertWorkerHeartbeat(new Date(Date.now() + 1_000).toISOString(), heartbeat);
   try {
-    assertWorkerHeartbeat('f');
+    assertWorkerHeartbeat(new Date(Date.now() - 30_000).toISOString());
     throw new Error('heartbeat check accepted a stale worker');
   } catch (error) {
     if (error.message === 'heartbeat check accepted a stale worker')
       throw error;
   }
+  const testIds = collectPassedTestIds({
+    suites: [
+      {
+        specs: [
+          {
+            title: 'BOOT-01 packaged route',
+            tests: [{ results: [{ status: 'passed' }] }],
+          },
+          {
+            title: 'ACL-01 denied mutation',
+            tests: [{ results: [{ status: 'failed' }] }],
+          },
+        ],
+      },
+    ],
+  });
+  assert(testIds.join(',') === 'BOOT-01', 'test receipt included a failed ID');
   validateOwnership(
     {
       'com.poe-worksmith.e2e.owner': 'master-e2e',
@@ -108,6 +227,45 @@ async function selfCheck() {
     },
     { run: 'run', attempt: '1' },
   );
+  const validManifest = {
+    schemaVersion: 1,
+    repository: 'MaksimSurmach/POE_WA',
+    sha: 'a'.repeat(40),
+    buildRunId: 'run',
+    buildAttempt: '1',
+    platform: 'linux/amd64',
+    fixtures: { version: 'boot-v1', sha256: 'a'.repeat(64) },
+    lockfile: { path: 'pnpm-lock.yaml', sha256: 'a'.repeat(64) },
+    migrations: { path: '_journal.json', sha256: 'a'.repeat(64) },
+    images: Object.fromEntries(
+      ['server', 'web'].map((kind) => [
+        kind,
+        {
+          tag: `${kind}:test`,
+          imageId: `sha256:${'a'.repeat(64)}`,
+          archive: `${kind}.tar`,
+          archiveSha256: 'a'.repeat(64),
+        },
+      ]),
+    ),
+  };
+  validateManifest(validManifest);
+  for (const mutate of [
+    (manifest) => (manifest.repository = 'foreign/repo'),
+    (manifest) => (manifest.sha = 'bad'),
+    (manifest) => (manifest.fixtures.version = 'foreign-fixture'),
+    (manifest) => (manifest.images.server.archive = '../server.tar'),
+  ]) {
+    const invalid = structuredClone(validManifest);
+    mutate(invalid);
+    try {
+      validateManifest(invalid);
+      throw new Error('manifest check accepted invalid input');
+    } catch (error) {
+      if (error.message === 'manifest check accepted invalid input')
+        throw error;
+    }
+  }
   for (const bad of [
     { run: 'other', attempt: '1' },
     { run: 'run', attempt: '2' },
@@ -156,21 +314,28 @@ else {
   const output = path.resolve('output/master-e2e');
   const verdictPath = path.join(output, 'verdict.txt');
   const composeLogPath = path.join(output, 'compose.log');
+  await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
-  await rm(verdictPath, { force: true });
-  await rm(composeLogPath, { force: true });
-  await writeFile(verdictPath, 'FAIL: run did not complete successfully\n');
+  await writeFile(verdictPath, 'NOT_RUN: harness did not complete\n');
   const manifestPath = arg('--manifest');
   assert(manifestPath, 'usage: pnpm test:e2e:master -- --manifest <path>');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-  assert(manifest.schemaVersion === 1, 'unsupported manifest schema');
-  assert(
-    manifest.repository === 'MaksimSurmach/POE_WA',
-    'manifest repository mismatch',
+  validateManifest(manifest);
+  await copyFile(manifestPath, path.join(output, 'manifest.json'));
+  const e2eRunId = process.env.GITHUB_RUN_ID ?? `local-e2e-${process.pid}`;
+  const e2eAttempt = process.env.GITHUB_RUN_ATTEMPT ?? '1';
+  const metadata = {
+    type: process.env.MASTER_BUILD_RUN_ID ? 'master-e2e' : 'local-candidate',
+    manifest,
+    harnessSha: 'unverified',
+    e2eRunId,
+    e2eAttempt,
+    executedTestIds: [],
+  };
+  await writeFile(
+    verdictPath,
+    receipt('FAIL', metadata, 'reason=preflight-did-not-complete'),
   );
-  assert(/^[0-9a-f]{40}$/.test(manifest.sha), 'invalid source SHA');
-  assert(manifest.platform === 'linux/amd64', 'E0 accepts linux/amd64 only');
-  assert(manifest.fixtures?.version === 'boot-v1', 'fixture identity mismatch');
   const fixtureHash = createHash('sha256')
     .update(
       Buffer.concat(
@@ -200,17 +365,8 @@ else {
       'build attempt mismatch',
     );
   }
+  metadata.harnessSha = checkoutSha;
   const artifactRoot = path.resolve(path.dirname(manifestPath));
-  for (const file of [
-    manifest.lockfile.path,
-    manifest.migrations.path,
-    ...['server', 'web'].map((key) => manifest.images[key].archive),
-  ]) {
-    assert(
-      !path.isAbsolute(file) && !file.split(/[\\/]/).includes('..'),
-      'manifest path escapes artifact directory',
-    );
-  }
   await verifyChecksum(
     path.join(artifactRoot, manifest.lockfile.path),
     manifest.lockfile.sha256,
@@ -219,6 +375,20 @@ else {
     path.join(artifactRoot, manifest.migrations.path),
     manifest.migrations.sha256,
   );
+  try {
+    await run('docker', ['info']);
+    await run('docker', ['compose', 'version']);
+  } catch (error) {
+    await writeFile(
+      verdictPath,
+      receipt(
+        interrupted ? 'FAIL' : 'INFRA_BLOCKED',
+        metadata,
+        `reason=${error.message}`,
+      ),
+    );
+    throw error;
+  }
   for (const kind of ['server', 'web']) {
     const image = manifest.images[kind];
     const archive = path.join(artifactRoot, image.archive);
@@ -234,8 +404,8 @@ else {
     assert(imageId === image.imageId, `${kind} image ID mismatch`);
   }
 
-  const runId = process.env.MASTER_BUILD_RUN_ID ?? `local-${process.pid}`;
-  const attempt = process.env.MASTER_BUILD_ATTEMPT ?? '1';
+  const runId = e2eRunId;
+  const attempt = e2eAttempt;
   const e2ePort = process.env.E2E_PORT || '18080';
   const project = `mi2e0-${runId}-${attempt}`
     .toLowerCase()
@@ -251,68 +421,82 @@ else {
   };
   const compose = ['compose', '-f', 'compose.e2e.yaml', '-p', project];
   const expectedOwner = { run: runId, attempt };
-  const existing = async (commandArgs) => {
-    const names = (
-      await capture('docker', commandArgs, { env }).catch(() => '')
-    )
+  const existing = async (commandArgs, kind) => {
+    const names = (await capture('docker', commandArgs, { env }))
       .split(/\s+/)
       .filter(Boolean);
     for (const name of names) {
       const details = JSON.parse(
-        await capture('docker', ['inspect', name], { env }),
+        await capture(
+          'docker',
+          kind === 'container' ? ['inspect', name] : [kind, 'inspect', name],
+          { env },
+        ),
       )[0];
       validateOwnership(
         details.Config?.Labels ?? details.Labels ?? {},
         expectedOwner,
       );
     }
+    return names;
   };
-  await existing([
-    'ps',
-    '-aq',
-    '--filter',
-    `label=com.docker.compose.project=${project}`,
-  ]);
-  await existing([
-    'volume',
-    'ls',
-    '-q',
-    '--filter',
-    `label=com.docker.compose.project=${project}`,
-  ]);
-  await existing([
-    'network',
-    'ls',
-    '-q',
-    '--filter',
-    `label=com.docker.compose.project=${project}`,
-  ]);
+  const existingResources = [
+    ...(await existing(
+      ['ps', '-aq', '--filter', `label=com.docker.compose.project=${project}`],
+      'container',
+    )),
+    ...(await existing(
+      [
+        'volume',
+        'ls',
+        '-q',
+        '--filter',
+        `label=com.docker.compose.project=${project}`,
+      ],
+      'volume',
+    )),
+    ...(await existing(
+      [
+        'network',
+        'ls',
+        '-q',
+        '--filter',
+        `label=com.docker.compose.project=${project}`,
+      ],
+      'network',
+    )),
+  ];
   for (const [kind, name] of [
     ['volume', `${project}_pgdata`],
     ['network', `${project}_app`],
     ['network', `${project}_browser`],
   ]) {
-    const matches = (
-      await capture(
-        'docker',
-        [kind, 'ls', '-q', '--filter', `name=^${name}$`],
-        {
-          env,
-        },
-      ).catch(() => '')
-    )
+    const listArgs =
+      kind === 'volume'
+        ? ['volume', 'ls', '-q', '--filter', `name=${name}`]
+        : [
+            'network',
+            'ls',
+            '--format',
+            '{{.Name}}',
+            '--filter',
+            `name=${name}`,
+          ];
+    const matches = (await capture('docker', listArgs, { env }))
       .split(/\s+/)
-      .filter(Boolean);
+      .filter((resource) => resource === name);
+    existingResources.push(...matches);
     for (const resource of matches) {
       const details = JSON.parse(
         await capture('docker', [kind, 'inspect', resource], { env }),
-      )[0];
-      validateOwnership(
-        details.Config?.Labels ?? details.Labels ?? {},
-        expectedOwner,
       );
+      validateOwnership(details[0].Labels ?? {}, expectedOwner);
     }
   }
+  assert(
+    existingResources.length === 0,
+    'E2E resources already exist; refusing stale state',
+  );
   let passVerdict;
   try {
     await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
@@ -329,7 +513,17 @@ else {
       ],
       { env },
     );
+    const recipeStateAfterSeed = await readRecipeState(compose, env);
+    assert(
+      !recipeStateAfterSeed.startsWith('0:'),
+      'recipe catalog seed is empty',
+    );
     await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
+    const recipeStateAfterRepeatMigration = await readRecipeState(compose, env);
+    assert(
+      recipeStateAfterRepeatMigration === recipeStateAfterSeed,
+      'repeat migration changed the seeded recipe catalog',
+    );
     await run('docker', [...compose, 'up', '-d', '--wait', 'app', 'web'], {
       env,
     });
@@ -359,9 +553,9 @@ else {
       ],
       { env },
     );
-    await waitForWorkerHeartbeat(compose, env);
+    const heartbeatBeforeRestart = await waitForWorkerHeartbeat(compose, env);
     const sideEffects =
-      "select (select count(*) from market_admin_runs)::text || ':' || (select count(*) from market_admin_audit)::text || ':' || (select count(*) from jobs)::text";
+      "select (select count(*) from market_admin_runs)::text || ':' || (select count(*) from market_admin_audit)::text || ':' || (select count(*) from jobs)::text || ':' || coalesce((select version::text from market_admin_settings where id=1), 'missing')";
     const beforeDeniedMutation = await capture(
       'docker',
       [
@@ -415,6 +609,7 @@ else {
       beforeDeniedMutation === afterDeniedMutation,
       'public admin denial created side effects',
     );
+    metadata.executedTestIds.push('ACL-01');
     await run(
       'pnpm',
       ['exec', 'playwright', 'test', '-c', 'playwright.master.config.ts'],
@@ -425,117 +620,110 @@ else {
         },
       },
     );
-    const recipeCountArgs = [
-      ...compose,
-      'exec',
-      '-T',
-      'postgres',
-      'psql',
-      '-At',
-      '-U',
-      'e2e',
-      '-d',
-      'poe_worksmith_e2e',
-      '-c',
-      'select count(*) from recipes',
-    ];
-    const recipeCount = await capture('docker', recipeCountArgs, { env });
-    assert(Number(recipeCount) > 0, 'recipe catalog is empty before restart');
+    const playwrightReport = JSON.parse(
+      await readFile(path.join(output, 'report.json'), 'utf8'),
+    );
+    const passedTestIds = collectPassedTestIds(playwrightReport);
+    assert(passedTestIds.includes('BOOT-01'), 'BOOT-01 did not pass');
+    metadata.executedTestIds.push(...passedTestIds);
+    const recipeStateBeforeRestart = await readRecipeState(compose, env);
     await run('docker', [...compose, 'restart', 'app'], { env });
     await run('docker', [...compose, 'up', '-d', '--wait', 'app'], { env });
-    await waitForWorkerHeartbeat(compose, env);
-    const restartedRecipeCount = await capture('docker', recipeCountArgs, {
-      env,
-    });
+    await waitForWorkerHeartbeat(compose, env, heartbeatBeforeRestart);
+    const recipeStateAfterRestart = await readRecipeState(compose, env);
     assert(
-      restartedRecipeCount === recipeCount,
-      'recipe catalog changed after app restart',
+      recipeStateAfterRestart === recipeStateBeforeRestart,
+      'recipe catalog changed after app restart and repeated migration',
     );
-    passVerdict = `PASS candidate=${manifest.sha} server=${manifest.images.server.imageId} web=${manifest.images.web.imageId}\n`;
+    passVerdict = receipt(
+      'PASS',
+      metadata,
+      'checks=migrations,catalog,api,worker,acl,boot,restart',
+    );
   } catch (error) {
-    await writeFile(
-      path.join(output, 'verdict.txt'),
-      `FAIL candidate=${manifest.sha}\n${error.stack ?? error}\n`,
-    );
+    await writeFile(verdictPath, receipt('FAIL', metadata, error.message));
     throw error;
   } finally {
-    const logs = await capture('docker', [...compose, 'logs', '--no-color'], {
-      env,
-    }).catch(() => 'Unable to retrieve compose logs.');
-    await writeFile(composeLogPath, logs);
-    const ids = (
-      await capture('docker', [...compose, 'ps', '-aq'], { env }).catch(
-        () => '',
+    cleaningUp = true;
+    try {
+      const logs = await capture('docker', [...compose, 'logs', '--no-color'], {
+        env,
+      }).catch(() => 'Unable to retrieve compose logs.');
+      await writeFile(composeLogPath, logs);
+      const ids = (await capture('docker', [...compose, 'ps', '-aq'], { env }))
+        .split(/\s+/)
+        .filter(Boolean);
+      for (const id of ids) {
+        const raw = await capture('docker', ['inspect', id], { env });
+        const labels = JSON.parse(raw)[0].Config.Labels ?? {};
+        validateOwnership(labels, expectedOwner);
+      }
+      const volumes = (
+        await capture(
+          'docker',
+          [
+            'volume',
+            'ls',
+            '-q',
+            '--filter',
+            `label=com.docker.compose.project=${project}`,
+          ],
+          { env },
+        )
       )
-    )
-      .split(/\s+/)
-      .filter(Boolean);
-    for (const id of ids) {
-      const raw = await new Promise((resolve, reject) => {
-        const child = spawn('docker', ['inspect', id], {
-          stdio: ['ignore', 'pipe', 'inherit'],
-        });
-        let data = '';
-        child.stdout.on('data', (chunk) => (data += chunk));
-        child.on('exit', (code) =>
-          code === 0 ? resolve(data) : reject(new Error('inspect failed')),
+        .split(/\s+/)
+        .filter(Boolean);
+      for (const volume of volumes) {
+        const raw = await capture(
+          'docker',
+          ['volume', 'inspect', volume, '--format', '{{json .Labels}}'],
+          { env },
         );
-      });
-      const labels = JSON.parse(raw)[0].Config.Labels ?? {};
-      validateOwnership(labels, expectedOwner);
-    }
-    const volumes = (
-      await capture(
-        'docker',
-        [
-          'volume',
-          'ls',
-          '-q',
-          '--filter',
-          `label=com.docker.compose.project=${project}`,
-        ],
-        { env },
-      ).catch(() => '')
-    )
-      .split(/\s+/)
-      .filter(Boolean);
-    for (const volume of volumes) {
-      const raw = await capture(
-        'docker',
-        ['volume', 'inspect', volume, '--format', '{{json .Labels}}'],
-        { env },
+        validateOwnership(JSON.parse(raw), { run: runId, attempt });
+      }
+      const networks = (
+        await capture(
+          'docker',
+          [
+            'network',
+            'ls',
+            '-q',
+            '--filter',
+            `label=com.docker.compose.project=${project}`,
+          ],
+          { env },
+        )
+      )
+        .split(/\s+/)
+        .filter(Boolean);
+      for (const network of networks) {
+        const raw = await capture(
+          'docker',
+          ['network', 'inspect', network, '--format', '{{json .Labels}}'],
+          { env },
+        );
+        validateOwnership(JSON.parse(raw), expectedOwner);
+      }
+      if (ids.length || volumes.length || networks.length)
+        await run(
+          'docker',
+          [...compose, 'down', '--volumes', '--remove-orphans'],
+          { env },
+        );
+    } catch (error) {
+      await writeFile(
+        verdictPath,
+        receipt('FAIL', metadata, `cleanup=${error.message}`),
       );
-      validateOwnership(JSON.parse(raw), { run: runId, attempt });
+      throw error;
     }
-    const networks = (
-      await capture(
-        'docker',
-        [
-          'network',
-          'ls',
-          '-q',
-          '--filter',
-          `label=com.docker.compose.project=${project}`,
-        ],
-        { env },
-      ).catch(() => '')
-    )
-      .split(/\s+/)
-      .filter(Boolean);
-    for (const network of networks) {
-      const raw = await capture(
-        'docker',
-        ['network', 'inspect', network, '--format', '{{json .Labels}}'],
-        { env },
-      );
-      validateOwnership(JSON.parse(raw), expectedOwner);
-    }
-    if (ids.length || volumes.length || networks.length)
-      await run(
-        'docker',
-        [...compose, 'down', '--volumes', '--remove-orphans'],
-        { env },
-      );
+  }
+  if (interrupted) {
+    await writeFile(
+      verdictPath,
+      receipt('FAIL', metadata, 'reason=interrupted'),
+    );
+    throw new Error('E2E harness interrupted');
   }
   await writeFile(verdictPath, passVerdict);
 }

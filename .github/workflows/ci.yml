@@ -40,6 +40,7 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm test:contracts
+      - run: pnpm test:e2e:master:self-check
       - run: pnpm db:check:migrations
       - run: pnpm db:migrate
       - run: pnpm test:integration
