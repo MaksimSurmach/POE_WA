@@ -3,7 +3,9 @@ import { z } from 'zod';
 const postgresUrlSchema = z
   .url('Must be a valid PostgreSQL connection URL')
   .refine(
-    (value) => ['postgres:', 'postgresql:'].includes(new URL(value).protocol),
+    (value) =>
+      URL.canParse(value) &&
+      ['postgres:', 'postgresql:'].includes(new URL(value).protocol),
     'Must use the postgres:// or postgresql:// protocol',
   );
 
@@ -30,6 +32,14 @@ const environmentSchema = z
       });
     }
 
+    if (environment.APP_ENV !== 'test' && environment.TEST_DATABASE_URL) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Only allowed when APP_ENV=test',
+        path: ['TEST_DATABASE_URL'],
+      });
+    }
+
     if (environment.APP_ENV !== 'test' && !environment.DATABASE_URL) {
       context.addIssue({
         code: 'custom',
@@ -47,6 +57,58 @@ const environmentSchema = z
         message: 'Must be require when APP_ENV=staging',
         path: ['DATABASE_SSL_MODE'],
       });
+    }
+
+    if (
+      environment.APP_ENV === 'staging' &&
+      environment.DATABASE_URL &&
+      URL.canParse(environment.DATABASE_URL)
+    ) {
+      if (/%(?![0-9a-f]{2})/i.test(environment.DATABASE_URL)) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Must use valid percent-encoding when APP_ENV=staging',
+          path: ['DATABASE_URL'],
+        });
+      }
+      const databaseUrl = new URL(environment.DATABASE_URL);
+      try {
+        decodeURIComponent(databaseUrl.username);
+        decodeURIComponent(databaseUrl.password);
+        decodeURIComponent(databaseUrl.hostname);
+        decodeURI(databaseUrl.pathname);
+        decodeURIComponent(databaseUrl.search.slice(1));
+      } catch {
+        context.addIssue({
+          code: 'custom',
+          message: 'Must use valid UTF-8 percent-encoding when APP_ENV=staging',
+          path: ['DATABASE_URL'],
+        });
+      }
+      const sslModes = databaseUrl.searchParams.getAll('sslmode');
+      if (sslModes.length !== 1 || sslModes[0] !== 'require') {
+        context.addIssue({
+          code: 'custom',
+          message: 'Must include sslmode=require when APP_ENV=staging',
+          path: ['DATABASE_URL'],
+        });
+      }
+      for (const parameter of [
+        'ssl',
+        'sslcert',
+        'sslkey',
+        'sslrootcert',
+        'sslnegotiation',
+        'uselibpqcompat',
+      ]) {
+        if (databaseUrl.searchParams.has(parameter)) {
+          context.addIssue({
+            code: 'custom',
+            message: `Must not include ${parameter} when APP_ENV=staging`,
+            path: ['DATABASE_URL'],
+          });
+        }
+      }
     }
   });
 
@@ -84,9 +146,16 @@ export function loadDatabaseConfig(
     result.data.APP_ENV === 'test'
       ? result.data.TEST_DATABASE_URL!
       : result.data.DATABASE_URL!;
+  const poolConnectionString = new URL(connectionString);
+  if (result.data.APP_ENV === 'staging') {
+    poolConnectionString.searchParams.delete('sslmode');
+  }
 
   return {
-    connectionString,
+    connectionString:
+      result.data.APP_ENV === 'staging'
+        ? poolConnectionString.toString()
+        : connectionString,
     connectionTimeoutMillis: result.data.DATABASE_CONNECTION_TIMEOUT_MS,
     environment: result.data.APP_ENV,
     idleTimeoutMillis: result.data.DATABASE_IDLE_TIMEOUT_MS,
@@ -96,4 +165,26 @@ export function loadDatabaseConfig(
         ? { rejectUnauthorized: true }
         : false,
   };
+}
+
+export function getDrizzleConnectionString(
+  environment: Record<string, string | undefined> = process.env,
+) {
+  if (
+    environment.APP_ENV === undefined &&
+    environment.DATABASE_URL === undefined &&
+    environment.TEST_DATABASE_URL === undefined
+  ) {
+    return undefined;
+  }
+
+  return drizzleConnectionString(loadDatabaseConfig(environment));
+}
+
+function drizzleConnectionString(config: DatabaseConfig) {
+  if (config.environment !== 'staging') return config.connectionString;
+
+  const databaseUrl = new URL(config.connectionString);
+  databaseUrl.searchParams.set('sslmode', 'verify-full');
+  return databaseUrl.toString();
 }

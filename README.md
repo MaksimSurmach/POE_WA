@@ -144,13 +144,20 @@ reapplies the full migration history. This command deletes local data.
 ## Supabase staging
 
 1. Create a Free project in the Supabase dashboard.
-2. Copy `.env.staging.example` to `.env.staging` and replace the placeholders
-   with the connection string shown by the dashboard's **Connect** action.
+2. Copy `.env.staging.example` to `.env.staging` and replace `DATABASE_URL`
+   with the connection string from the dashboard's **Connect** action; keep
+   `sslmode=require` on the URL.
 3. Build and check it without changing application code:
 
    ```bash
    pnpm --filter @poe-worksmith/server build
    node --env-file=.env.staging apps/server/dist/checkDatabase.js
+   ```
+
+4. Apply migrations with the staging configuration:
+
+   ```bash
+   node --env-file=.env.staging apps/server/dist/migrate.js
    ```
 
 For a persistent IPv6-capable backend, prefer the direct endpoint

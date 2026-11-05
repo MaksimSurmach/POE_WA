@@ -1,10 +1,11 @@
 import { defineConfig } from 'drizzle-kit';
 
+import { getDrizzleConnectionString } from './src/config.js';
+
 export default defineConfig({
   dbCredentials: {
     url:
-      process.env.TEST_DATABASE_URL ??
-      process.env.DATABASE_URL ??
+      getDrizzleConnectionString() ??
       'postgresql://postgres:postgres@127.0.0.1:54322/poe_worksmith_dev',
   },
   dialect: 'postgresql',
