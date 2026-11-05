@@ -278,14 +278,34 @@ export class PoeTradeSessionManager {
   }
 
   async #hasChallenge(page: Awaited<ReturnType<BrowserContext['newPage']>>) {
-    const challengeFrame = await page
-      .locator(
-        'iframe[src*="challenges.cloudflare.com"], .cf-turnstile, #challenge-running',
-      )
-      .count();
-    if (challengeFrame) return true;
+    if (
+      await page
+        .locator(
+          '#challenge-running, #challenge-form, .cf-browser-verification',
+        )
+        .first()
+        .isVisible()
+        .catch(() => false)
+    )
+      return true;
+    if (
+      await page
+        .locator('iframe[src*="challenges.cloudflare.com"]')
+        .first()
+        .isVisible()
+        .catch(() => false)
+    )
+      return true;
     const title = await page.title().catch(() => '');
-    return /just a moment|attention required|verify you are human/i.test(title);
+    if (/just a moment|attention required|verify you are human/i.test(title))
+      return true;
+    const bodyText = await page
+      .locator('body')
+      .innerText()
+      .catch(() => '');
+    return /verify you are human|complete the security check|checking your browser/i.test(
+      bodyText,
+    );
   }
 
   async #hasAuthenticatedAccount(
