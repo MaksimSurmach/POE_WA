@@ -32,7 +32,8 @@ const failureStatus = (error, wasInterrupted = false) => {
     args.includes(name),
   );
   const dockerOutput =
-    error.command === 'docker' && !['exec', 'run'].some((name) => args.includes(name));
+    error.command === 'docker' &&
+    !['exec', 'run'].some((name) => args.includes(name));
   const stderr = error.stderr ?? '';
   const daemonUnavailable =
     dockerOutput &&
@@ -357,7 +358,10 @@ async function selfCheck() {
     '-e',
     "process.stdout.write('x'.repeat(262144),()=>process.exit(0))",
   ]);
-  assert(capturedOutput.length === 262144, 'capture returned before stdout closed');
+  assert(
+    capturedOutput.length === 262144,
+    'capture returned before stdout closed',
+  );
   try {
     await run(process.execPath, [
       '-e',
@@ -366,7 +370,10 @@ async function selfCheck() {
     throw new Error('run accepted a failing child process');
   } catch (error) {
     if (error.message === 'run accepted a failing child process') throw error;
-    assert(error.stderr === 'close-marker', 'run returned before stderr closed');
+    assert(
+      error.stderr === 'close-marker',
+      'run returned before stderr closed',
+    );
   }
   try {
     assertWorkerHeartbeat(new Date(Date.now() - 30_000).toISOString());
