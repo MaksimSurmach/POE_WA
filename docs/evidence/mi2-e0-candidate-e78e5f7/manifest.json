@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "repository": "MaksimSurmach/POE_WA",
+  "sha": "e78e5f700e45454c366bdc9723bee6f9eaafbccb",
+  "buildRunId": "local-candidate-e78e5f7",
+  "buildAttempt": "1",
+  "platform": "linux/amd64",
+  "fixtures": {
+    "version": "boot-v1",
+    "sha256": "16ad9d35ad3bebef24e3af81bbcbf6f3f520ae1dfc34ffedfaabd3f801b64ffb"
+  },
+  "lockfile": {
+    "path": "pnpm-lock.yaml",
+    "sha256": "6d0591bc4525bbdf0ffd071c605044522684029978e7139a828f33589961e15e"
+  },
+  "migrations": {
+    "path": "_journal.json",
+    "sha256": "83fc62b452e7c3bdb813e61efc33c0b79e3e6a1926cc5641fa17d38999f769b5"
+  },
+  "images": {
+    "server": {
+      "tag": "local/poe-worksmith:e78e5f700e45454c366bdc9723bee6f9eaafbccb-server",
+      "imageId": "sha256:91b48f7a67539502b980ce135c7713dd47b9b8fe4d61b3fe7925a15cfdf4a122",
+      "archive": "server.tar",
+      "archiveSha256": "c5338b056c82fdc7e017e69d8b506e96c1773e34d12ca32947c62cc634225714"
+    },
+    "web": {
+      "tag": "local/poe-worksmith:e78e5f700e45454c366bdc9723bee6f9eaafbccb-web",
+      "imageId": "sha256:97d46081d98ab3ecb13930f060a9adc27ddf06d0e7ce3da589f80eaa27b2f56a",
+      "archive": "web.tar",
+      "archiveSha256": "e2e1ba5ba64fff534c3e7032b9dddca02711cf3d9754d2f43248c9b28b56cac8"
+    }
+  }
+}
