@@ -1,0 +1,65 @@
+name: Master Build
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APP_ENV: test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/poe_worksmith_test
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: poe_worksmith_test
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d poe_worksmith_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: 11.8.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm test:contracts
+      - run: pnpm db:check:migrations
+      - run: pnpm test:e2e:master:self-check
+      - run: pnpm build
+      - name: Build and archive exact images
+        env:
+          IMAGE_TAG: local/poe-worksmith:${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          docker build --platform linux/amd64 --target server --tag "$IMAGE_TAG-server" .
+          docker build --platform linux/amd64 --target web --tag "$IMAGE_TAG-web" .
+          docker image save "$IMAGE_TAG-server" > artifacts/server.tar
+          docker image save "$IMAGE_TAG-web" > artifacts/web.tar
+          node scripts/master-e2e-manifest.mjs artifacts/manifest.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: master-images-${{ github.run_attempt }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
