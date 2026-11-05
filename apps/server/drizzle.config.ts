@@ -1,5 +1,9 @@
 import { defineConfig } from 'drizzle-kit';
 
+import { loadDatabaseConfig } from './src/config.js';
+
+if (process.env.APP_ENV === 'staging') loadDatabaseConfig();
+
 export default defineConfig({
   dbCredentials: {
     url:
