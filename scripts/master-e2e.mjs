@@ -40,9 +40,8 @@ const failureStatus = (error) => {
       /no space left on device|context deadline exceeded|failed to dial|network is unreachable|i\/o timeout/i.test(
         stderr,
       ));
-  return (
-    infrastructureFailure || (error.command === 'docker' && !workloadCommand)
-  )
+  return infrastructureFailure ||
+    (error.command === 'docker' && !workloadCommand)
     ? 'INFRA_BLOCKED'
     : 'FAIL';
 };
