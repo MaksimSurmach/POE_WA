@@ -1,22 +1,20 @@
 # E0 implementation notes
 
-## Run record
+## Deviations
 
-- Scope: E0. Starting SHA: `0421e4729ca43eb3f66e24bfc38a4e88309cccf8`.
-- Branch: `codex/mi2-e0`; reviewed candidate: `e0d41a5c6b8bf783a7fc13146c48edc7606bdf4e` (9 local commits; PR #34 open as draft).
-- Builds and runtime validation ran on Contabo via `ssh contabo-main-443`; local machine was used for code and docs only.
-- Implemented exact-build artifact workflows, guarded manifest/image validation, isolated Compose smoke environment, packaged boot test, workflow action SHA pins, and launch instructions.
+- Plan said / Code required / Taken / Why / Validation: Plan's ACL-01 matrix includes owner success and forged-origin/header cases; E0 implements the packaged-public denial only and records it as `ACL-PUBLIC-01`. This keeps the receipt honest; the full ACL matrix remains for stage 3. The public nginx route returned `401 OPERATOR_AUTH_REQUIRED`, and admin runs, audit, jobs and settings version were unchanged.
+- Plan said / Code required / Taken / Why / Validation: Catalog equality alone cannot prove durable data survived because startup re-syncs recipes. E0 now writes an audit sentinel, restarts PostgreSQL and the app, compares the Drizzle migration journal, verifies the sentinel, checks a fresh post-restart worker heartbeat and fetches a recipe through web→API. All passed on the tested candidate.
+- Plan said / Code required / Taken / Why / Validation: The manifest's platform must match the actual image. E0 checks archive hashes before loading, then checks image ID and OS/architecture after Docker loads each archive. `linux/amd64` was verified for both images on Contabo.
+- Plan said / Code required / Taken / Why / Validation: A receipt must not label dirty runtime source with the committed HEAD SHA. The manifest generator and harness reject dirty source while allowing generated `artifacts/` and untracked plan documents, which are outside the Docker build context. The guard self-check and candidate run passed.
+- Plan said / Code required / Taken / Why / Validation: E0 reports infrastructure blockers separately and retains diagnostics. Docker host/image command errors report `INFRA_BLOCKED`; workload failures report `FAIL`. Queue snapshot, last admin run, migration journal, Compose logs and Playwright reports are retained before teardown. Normal-path artifacts were verified; forced infrastructure failure and cancellation paths were not exercised.
 
-## Validation
+## How the run ended
 
-- Contabo: frozen pnpm install, lint, typecheck, Compose config, Linux/amd64 Docker builds, harness self-check and packaged E2E passed.
-- Smoke applied migrations twice, seeded 28 recipes, confirmed a fresh catalog-worker heartbeat, checked API/recipe reads, denied admin mutation through packaged nginx with `401 OPERATOR_AUTH_REQUIRED` and no DB side effects, loaded the recipe page and successful JS/CSS assets, restarted the app and confirmed the recipe count remained unchanged, then removed only its labelled containers, networks and volume.
-- Final verdict: **PASS candidate** for `e0d41a5c6b8bf783a7fc13146c48edc7606bdf4e`. Server image `sha256:caf3a4d3c89e0fc1a331d5c2d17daeb55efe3b9f907b8d4252f100d9c412beaf`; web image `sha256:395f3782e5f0639d2cdee3af26c15125dfc926f6cbccd7312bafe5f246cdc739`.
-- Report and manifest: `output/master-e2e/`.
-- GitHub Actions `quality` passed on the PR. Master Build/Master E2E were not run because they trigger on master/dispatch. This Contabo candidate result is not a master receipt or release acceptance. E1 was not started.
-
-## Constraints and deviations
-
-- The harness asserts the API's actual `401 OPERATOR_AUTH_REQUIRED` response and verifies unchanged admin-run, audit and jobs counts.
-- API, worker and PostgreSQL use an internal network; nginx also joins a browser network so Playwright can reach the packaged web. No market provider collection is enabled.
-- Local Node was v24, outside the repository's Node 22 range. Remote checks used Node v22.22.1 and pnpm 11.8.0.
+- `RUN_SCOPE: E0`; starting SHA: `0421e4729ca43eb3f66e24bfc38a4e88309cccf8`; final tested source SHA: `029b1379e326550ac38a5cbe68cef9544e1c614a`.
+- Worktree: `/Users/maksimsurmach/.codex/worktrees/poe-mi2-e0`; branch: `codex/mi2-e0`; baseline: `origin/master` at the starting SHA. Local use was limited to code/docs and Git; installs, checks, builds and runtime validation ran on Contabo through `ssh contabo-main-443`.
+- Implemented exact-build image manifest and guarded E0 packaged smoke, including migration repeat/restart, public ACL denial, BOOT-01, worker liveness, restart durability, image platform checks and retained diagnostics.
+- Contabo used Node `v22.22.1`, pnpm `11.8.0`, Docker Engine `29.7.2`, Compose `5.5.0`. Frozen install, lint, typecheck and harness self-check passed. Linux/amd64 server and web images built; packaged smoke passed after migrations, 28-recipe seed, API/worker readiness, ACL-PUBLIC-01, BOOT-01 in Chromium, PostgreSQL/app restart, migration-journal comparison, sentinel check, web→API request and owned-resource cleanup.
+- PR CI `quality` passed on the tested SHA: [run 41942658281](https://github.com/MaksimSurmach/POE_WA/actions/runs/41942658281). It ran lint, typecheck, unit/contracts, migration checks, integration/backend/browser suites, build and both Docker targets.
+- Candidate receipt and reports: [`output/master-e2e/`](/Users/maksimsurmach/.codex/worktrees/poe-mi2-e0/output/master-e2e/). Verdict: **PASS candidate**, `ACL-PUBLIC-01,BOOT-01`. Server image: `sha256:273b305f42d0507e051713a1d197643750922d8f559ccc1cca79390dbe6d13f2`; web image: `sha256:f8b07d0720d77d59a5fa399ab0e5c8507d7406def37cd840b765dc1cbfbbff48`.
+- NOT_RUN: GitHub `Master Build`/`Master E2E` workflow chain (triggered from master or manual dispatch), the full ACL-01 matrix, forced infrastructure/cancellation cases, E1 and later stages. The Contabo run is a local candidate, not a GitHub acceptance receipt or release authorization.
+- Limits/next stage: E0 proves the packaged public smoke on Contabo; it does not prove hosted workflow artifact transfer or the owner/forged-header ACL matrix. Stop at E0; review this PR before starting E1.
