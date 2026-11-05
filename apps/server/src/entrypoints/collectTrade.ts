@@ -140,7 +140,7 @@ async function runCommand(
                 ...input,
                 signal: AbortSignal.any([
                   input.signal,
-                  AbortSignal.timeout(90_000),
+                  AbortSignal.timeout(4 * 60_000),
                 ]),
               });
             } finally {
