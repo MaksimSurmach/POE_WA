@@ -54,11 +54,11 @@ const environmentSchema = z
       if (databaseUrl.searchParams.get('sslmode') !== 'require') {
         context.addIssue({
           code: 'custom',
-          message: 'Must be require when APP_ENV=staging',
+          message: 'Must include sslmode=require when APP_ENV=staging',
           path: ['DATABASE_URL'],
         });
       }
-      for (const parameter of ['sslcert', 'sslkey', 'sslrootcert']) {
+      for (const parameter of ['ssl', 'sslcert', 'sslkey', 'sslrootcert']) {
         if (databaseUrl.searchParams.has(parameter)) {
           context.addIssue({
             code: 'custom',

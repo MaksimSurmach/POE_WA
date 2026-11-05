@@ -145,6 +145,7 @@ reapplies the full migration history. This command deletes local data.
 
 1. Create a Free project in the Supabase dashboard.
 2. Copy `.env.staging.example` to `.env.staging` and replace the placeholders
+   in `DATABASE_URL`; keep `sslmode=require` on the URL.
    with the connection string shown by the dashboard's **Connect** action.
 3. Build and check it without changing application code:
 

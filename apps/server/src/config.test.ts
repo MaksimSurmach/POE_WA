@@ -50,6 +50,8 @@ describe('database environment configuration', () => {
     'postgresql://postgres:password@db.example/postgres?sslmode=disable',
     'postgresql://postgres:password@db.example/postgres?sslmode=no-verify',
     'postgresql://postgres:password@db.example/postgres',
+    'postgresql://postgres:password@db.example/postgres?sslmode=require&ssl=0',
+    'postgresql://postgres:password@db.example/postgres?sslmode=require&ssl=no-verify',
     'postgresql://postgres:password@db.example/postgres?sslmode=require&sslrootcert=system',
   ])('rejects staging URLs that can override verified TLS', (databaseUrl) => {
     expect(() =>
@@ -59,5 +61,16 @@ describe('database environment configuration', () => {
         DATABASE_URL: databaseUrl,
       }),
     ).toThrow(/DATABASE_URL:/);
+  });
+
+  it('requires the staging TLS environment flag independently of the URL', () => {
+    expect(() =>
+      loadDatabaseConfig({
+        APP_ENV: 'staging',
+        DATABASE_SSL_MODE: 'disable',
+        DATABASE_URL:
+          'postgresql://postgres:password@db.example/postgres?sslmode=require',
+      }),
+    ).toThrow(/DATABASE_SSL_MODE: Must be require/);
   });
 });
