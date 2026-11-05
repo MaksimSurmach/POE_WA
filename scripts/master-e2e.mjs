@@ -170,6 +170,7 @@ async function readSql(compose, env, sql) {
       'postgres',
       'psql',
       '-At',
+      '-q',
       '-U',
       'e2e',
       '-d',
