@@ -214,6 +214,10 @@ export class PoeTradeSessionManager {
         waitUntil: 'domcontentloaded',
         timeout: 20_000,
       });
+      if (new URL(page.url()).origin !== this.#baseURL) {
+        this.connectionStatus = 'ACCESS_DENIED';
+        throw new DomainError('MARKET_ACCESS_BLOCKED');
+      }
       if (await this.#hasChallenge(page)) {
         this.connectionStatus = 'ACCESS_DENIED';
         throw new DomainError('MARKET_ACCESS_BLOCKED');
@@ -233,6 +237,10 @@ export class PoeTradeSessionManager {
           'input[name="login_email"], input[name="username"], input[type="email"]',
         )
         .first();
+      if (new URL(page.url()).origin !== this.#baseURL) {
+        this.connectionStatus = 'ACCESS_DENIED';
+        throw new DomainError('MARKET_ACCESS_BLOCKED');
+      }
       const password = page.locator('input[type="password"]').first();
       if (!(await username.count()) || !(await password.count())) {
         this.connectionStatus = 'AUTH_REQUIRED';
@@ -278,24 +286,12 @@ export class PoeTradeSessionManager {
   }
 
   async #hasChallenge(page: Awaited<ReturnType<BrowserContext['newPage']>>) {
-    if (
-      await page
-        .locator(
-          '#challenge-running, #challenge-form, .cf-browser-verification',
-        )
-        .first()
-        .isVisible()
-        .catch(() => false)
-    )
-      return true;
-    if (
-      await page
-        .locator('iframe[src*="challenges.cloudflare.com"]')
-        .first()
-        .isVisible()
-        .catch(() => false)
-    )
-      return true;
+    for (const selector of [
+      '#challenge-running, #challenge-form, .cf-browser-verification',
+      'iframe[src*="challenges.cloudflare.com"]',
+    ])
+      for (const element of await page.locator(selector).all())
+        if (await element.isVisible().catch(() => false)) return true;
     const title = await page.title().catch(() => '');
     if (
       /just a moment|attention required|verify you are human|один момент|проверка безопасности/iu.test(
@@ -315,8 +311,9 @@ export class PoeTradeSessionManager {
   async #hasAuthenticatedAccount(
     page: Awaited<ReturnType<BrowserContext['newPage']>>,
   ) {
+    if (new URL(page.url()).origin !== this.#baseURL) return false;
     return page
-      .getByText(/logged in as|log out/i)
+      .locator('a[href*="/account/view-profile/"]')
       .first()
       .isVisible()
       .catch(() => false);
