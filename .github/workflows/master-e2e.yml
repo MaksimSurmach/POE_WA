@@ -78,3 +78,10 @@ jobs:
           path: output/master-e2e/
           if-no-files-found: warn
           retention-days: 14
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: master-e2e-receipt-${{ steps.build.outputs.run_id }}-${{ steps.build.outputs.attempt }}
+          path: output/master-e2e/verdict.txt
+          if-no-files-found: warn
+          retention-days: 30

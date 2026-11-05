@@ -5,7 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
-import { validateManifest } from './master-e2e-manifest.mjs';
+import { assertCleanSource, validateManifest } from './master-e2e-manifest.mjs';
 
 const args = process.argv.slice(2);
 const arg = (name) => args[args.indexOf(name) + 1];
@@ -24,6 +24,13 @@ const sha256 = async (file) =>
     .digest('hex');
 const assert = (ok, message) => {
   if (!ok) throw new Error(message);
+};
+const failureStatus = (error) => {
+  const args = error.command === 'docker' ? (error.commandArgs ?? []) : [];
+  return error.command === 'docker' &&
+    !['exec', 'run', 'up'].some((name) => args.includes(name))
+    ? 'INFRA_BLOCKED'
+    : 'FAIL';
 };
 export async function verifyChecksum(file, expected) {
   assert((await sha256(file)) === expected, 'artifact checksum mismatch');
@@ -51,12 +58,19 @@ async function run(command, commandArgs, options = {}) {
     activeChild = child;
     child.on('error', (error) => {
       if (activeChild === child) activeChild = undefined;
+      error.command = command;
+      error.commandArgs = commandArgs;
       reject(error);
     });
     child.on('exit', (code) => {
       if (activeChild === child) activeChild = undefined;
       if (code === 0) resolve();
-      else reject(new Error(`${command} exited ${code}`));
+      else {
+        const error = new Error(`${command} exited ${code}`);
+        error.command = command;
+        error.commandArgs = commandArgs;
+        reject(error);
+      }
     });
   });
 }
@@ -72,12 +86,19 @@ async function capture(command, commandArgs, options = {}) {
     child.stdout.on('data', (chunk) => (output += chunk));
     child.on('error', (error) => {
       if (activeChild === child) activeChild = undefined;
+      error.command = command;
+      error.commandArgs = commandArgs;
       reject(error);
     });
     child.on('exit', (code) => {
       if (activeChild === child) activeChild = undefined;
       if (code === 0) resolve(output.trim());
-      else reject(new Error(`${command} exited ${code}`));
+      else {
+        const error = new Error(`${command} exited ${code}`);
+        error.command = command;
+        error.commandArgs = commandArgs;
+        reject(error);
+      }
     });
   });
 }
@@ -123,6 +144,7 @@ async function waitForWorkerHeartbeat(compose, env, after) {
       assertWorkerHeartbeat(heartbeat, after);
       return heartbeat;
     } catch {
+      if (interrupted) throw new Error('E2E harness interrupted');
       // Keep polling until the heartbeat is fresh.
     }
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -131,6 +153,14 @@ async function waitForWorkerHeartbeat(compose, env, after) {
 }
 
 async function readRecipeState(compose, env) {
+  return readSql(
+    compose,
+    env,
+    "select count(*)::text || ':' || md5(coalesce(string_agg(id || ':' || content_hash, ',' order by id), '')) from recipes",
+  );
+}
+
+async function readSql(compose, env, sql) {
   return capture(
     'docker',
     [
@@ -145,17 +175,34 @@ async function readRecipeState(compose, env) {
       '-d',
       'poe_worksmith_e2e',
       '-c',
-      "select count(*)::text || ':' || md5(coalesce(string_agg(id || ':' || content_hash, ',' order by id), '')) from recipes",
+      sql,
     ],
     { env },
   );
 }
 
+const diagnostic = (compose, env, sql) =>
+  readSql(compose, env, sql).catch((error) => `unavailable: ${error.message}`);
+
+const readMigrationState = (compose, env) =>
+  readSql(
+    compose,
+    env,
+    "select count(*)::text || ':' || md5(coalesce(string_agg(id || ':' || hash || ':' || created_at::text, ',' order by id), '')) from drizzle.__drizzle_migrations",
+  );
+
+const databaseNow = (compose, env) =>
+  readSql(
+    compose,
+    env,
+    'select to_char(now() at time zone \'UTC\',\'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"\')',
+  );
+
 function collectPassedTestIds(report) {
   const ids = new Set();
   const visit = (suite) => {
     for (const spec of suite.specs ?? []) {
-      const id = /^([A-Z]+-\d+)\b/.exec(spec.title)?.[1];
+      const id = /^([A-Z]+(?:-[A-Z]+)*-\d+)\b/.exec(spec.title)?.[1];
       if (
         id &&
         spec.tests?.some((test) =>
@@ -213,14 +260,25 @@ async function selfCheck() {
             tests: [{ results: [{ status: 'passed' }] }],
           },
           {
-            title: 'ACL-01 denied mutation',
-            tests: [{ results: [{ status: 'failed' }] }],
+            title: 'ACL-PUBLIC-01 denied mutation',
+            tests: [{ results: [{ status: 'passed' }] }],
           },
         ],
       },
     ],
   });
-  assert(testIds.join(',') === 'BOOT-01', 'test receipt included a failed ID');
+  assert(
+    testIds.join(',') === 'ACL-PUBLIC-01,BOOT-01',
+    'test receipt included an invalid ID',
+  );
+  assertCleanSource('artifacts/candidate', '?? artifacts/candidate/server.tar');
+  try {
+    assertCleanSource('artifacts/candidate', ' M scripts/master-e2e.mjs');
+    throw new Error('dirty source check accepted a modified file');
+  } catch (error) {
+    if (error.message === 'dirty source check accepted a modified file')
+      throw error;
+  }
   validateOwnership(
     {
       'com.poe-worksmith.e2e.owner': 'master-e2e',
@@ -369,6 +427,15 @@ else {
   }
   metadata.harnessSha = checkoutSha;
   const artifactRoot = path.resolve(path.dirname(manifestPath));
+  assertCleanSource(
+    artifactRoot,
+    await capture('git', ['status', '--porcelain', '--untracked-files=all']),
+  );
+  await verifyChecksum('pnpm-lock.yaml', manifest.lockfile.sha256);
+  await verifyChecksum(
+    'apps/server/drizzle/meta/_journal.json',
+    manifest.migrations.sha256,
+  );
   await verifyChecksum(
     path.join(artifactRoot, manifest.lockfile.path),
     manifest.lockfile.sha256,
@@ -391,19 +458,35 @@ else {
     );
     throw error;
   }
-  for (const kind of ['server', 'web']) {
-    const image = manifest.images[kind];
-    const archive = path.join(artifactRoot, image.archive);
-    await verifyChecksum(archive, image.archiveSha256);
-    await run('docker', ['load', '--input', archive]);
-    const imageId = await capture('docker', [
-      'image',
-      'inspect',
-      '--format',
-      '{{.Id}}',
-      image.tag,
-    ]);
-    assert(imageId === image.imageId, `${kind} image ID mismatch`);
+  try {
+    for (const kind of ['server', 'web']) {
+      const image = manifest.images[kind];
+      const archive = path.join(artifactRoot, image.archive);
+      await verifyChecksum(archive, image.archiveSha256);
+      await run('docker', ['load', '--input', archive]);
+      const imageId = await capture('docker', [
+        'image',
+        'inspect',
+        '--format',
+        '{{.Id}}',
+        image.tag,
+      ]);
+      assert(imageId === image.imageId, `${kind} image ID mismatch`);
+      const platform = await capture('docker', [
+        'image',
+        'inspect',
+        '--format',
+        '{{.Os}}/{{.Architecture}}',
+        image.tag,
+      ]);
+      assert(platform === manifest.platform, `${kind} image platform mismatch`);
+    }
+  } catch (error) {
+    await writeFile(
+      verdictPath,
+      receipt(failureStatus(error), metadata, error.message),
+    );
+    throw error;
   }
 
   const runId = e2eRunId;
@@ -503,6 +586,10 @@ else {
   let cleanupError;
   try {
     await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
+    const migrationStateAfterInitialMigration = await readMigrationState(
+      compose,
+      env,
+    );
     await run(
       'docker',
       [
@@ -522,6 +609,15 @@ else {
       'recipe catalog seed is empty',
     );
     await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
+    const migrationStateAfterRepeatMigration = await readMigrationState(
+      compose,
+      env,
+    );
+    assert(
+      migrationStateAfterRepeatMigration ===
+        migrationStateAfterInitialMigration,
+      'repeat migration changed the applied migration journal',
+    );
     const recipeStateAfterRepeatMigration = await readRecipeState(compose, env);
     assert(
       recipeStateAfterRepeatMigration === recipeStateAfterSeed,
@@ -556,7 +652,7 @@ else {
       ],
       { env },
     );
-    const heartbeatBeforeRestart = await waitForWorkerHeartbeat(compose, env);
+    await waitForWorkerHeartbeat(compose, env);
     const sideEffects =
       "select (select count(*) from market_admin_runs)::text || ':' || (select count(*) from market_admin_audit)::text || ':' || (select count(*) from jobs)::text || ':' || coalesce((select version::text from market_admin_settings where id=1), 'missing')";
     const beforeDeniedMutation = await capture(
@@ -612,7 +708,7 @@ else {
       beforeDeniedMutation === afterDeniedMutation,
       'public admin denial created side effects',
     );
-    metadata.executedTestIds.push('ACL-01');
+    metadata.executedTestIds.push('ACL-PUBLIC-01');
     await run(
       'pnpm',
       ['exec', 'playwright', 'test', '-c', 'playwright.master.config.ts'],
@@ -630,13 +726,46 @@ else {
     assert(passedTestIds.includes('BOOT-01'), 'BOOT-01 did not pass');
     metadata.executedTestIds.push(...passedTestIds);
     const recipeStateBeforeRestart = await readRecipeState(compose, env);
-    await run('docker', [...compose, 'restart', 'app'], { env });
-    await run('docker', [...compose, 'up', '-d', '--wait', 'app'], { env });
-    await waitForWorkerHeartbeat(compose, env, heartbeatBeforeRestart);
+    const sentinelId = await readSql(
+      compose,
+      env,
+      "insert into market_admin_audit(actor,action,details) values ('master-e2e','restart-sentinel','{}'::jsonb) returning id",
+    );
+    await run('docker', [...compose, 'restart', 'postgres'], { env });
+    await run('docker', [...compose, 'up', '-d', '--wait', 'postgres'], {
+      env,
+    });
+    await run('docker', [...compose, 'up', '-d', '--wait', 'app', 'web'], {
+      env,
+    });
+    await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
+    assert(
+      (await readMigrationState(compose, env)) ===
+        migrationStateAfterRepeatMigration,
+      'restart changed the applied migration journal',
+    );
+    await waitForWorkerHeartbeat(compose, env, await databaseNow(compose, env));
     const recipeStateAfterRestart = await readRecipeState(compose, env);
     assert(
       recipeStateAfterRestart === recipeStateBeforeRestart,
-      'recipe catalog changed after app restart and repeated migration',
+      'recipe catalog changed after database restart and repeated migration',
+    );
+    assert(
+      (await readSql(
+        compose,
+        env,
+        `select count(*) from market_admin_audit where id=${sentinelId} and actor='master-e2e' and action='restart-sentinel'`,
+      )) === '1',
+      'database restart lost the sentinel row',
+    );
+    await run('node', [
+      '-e',
+      `fetch('http://127.0.0.1:${e2ePort}/api/recipes/physical-large-cluster-jagged').then(async r=>{if(!r.ok)throw Error('web recipe route returned '+r.status);await r.json()}).catch(e=>{console.error(e);process.exit(1)})`,
+    ]);
+    assert(
+      (await readMigrationState(compose, env)) ===
+        migrationStateAfterRepeatMigration,
+      'migration journal changed after restart checks',
     );
     passVerdict = receipt(
       'PASS',
@@ -644,11 +773,35 @@ else {
       'checks=migrations,catalog,api,worker,acl,boot,restart',
     );
   } catch (error) {
-    await writeFile(verdictPath, receipt('FAIL', metadata, error.message));
+    await writeFile(
+      verdictPath,
+      receipt(failureStatus(error), metadata, error.message),
+    );
     throw error;
   } finally {
     cleaningUp = true;
     try {
+      const [migrationJournal, queueSnapshot, lastRun] = await Promise.all([
+        diagnostic(
+          compose,
+          env,
+          'select id,hash,created_at from drizzle.__drizzle_migrations order by id',
+        ),
+        diagnostic(
+          compose,
+          env,
+          'select status,count(*) from jobs group by status order by status',
+        ),
+        diagnostic(
+          compose,
+          env,
+          'select id,status,requested_at,finished_at,error_code from market_admin_runs order by requested_at desc limit 1',
+        ),
+      ]);
+      await writeFile(
+        path.join(output, 'diagnostics.txt'),
+        `Migration journal:\n${migrationJournal}\nQueue snapshot:\n${queueSnapshot}\nLast admin run:\n${lastRun}\n`,
+      );
       const logs = await capture('docker', [...compose, 'logs', '--no-color'], {
         env,
       }).catch(() => 'Unable to retrieve compose logs.');

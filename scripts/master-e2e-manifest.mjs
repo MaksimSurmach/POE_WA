@@ -16,6 +16,21 @@ const assert = (ok, message) => {
   if (!ok) throw new Error(message);
 };
 
+export function assertCleanSource(artifactRoot, status) {
+  const artifactPath = `${path.relative(process.cwd(), artifactRoot)}/`;
+  // Plan documents and generated archives are outside the image build context.
+  const dirty = status
+    .split('\n')
+    .filter(Boolean)
+    .filter(
+      (line) =>
+        !line.startsWith(`?? ${artifactPath}`) &&
+        !line.startsWith('?? artifacts/') &&
+        !line.startsWith('?? docs/plans/2026-11-04-market-intelligence-2/'),
+    );
+  assert(dirty.length === 0, `dirty source worktree: ${dirty.join(', ')}`);
+}
+
 function safeArtifactPath(value) {
   return (
     typeof value === 'string' &&
@@ -63,11 +78,17 @@ export function validateManifest(manifest) {
 }
 
 export async function createMasterE2EManifest(outputPath) {
+  const artifactRoot = path.dirname(outputPath);
+  assertCleanSource(
+    artifactRoot,
+    execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], {
+      encoding: 'utf8',
+    }),
+  );
   const sha =
     process.env.GITHUB_SHA ??
     execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   const imageTag = process.env.IMAGE_TAG ?? `local/poe-worksmith:${sha}`;
-  const artifactRoot = path.dirname(outputPath);
   await mkdir(artifactRoot, { recursive: true });
   await copyFile('pnpm-lock.yaml', path.join(artifactRoot, 'pnpm-lock.yaml'));
   await copyFile(
