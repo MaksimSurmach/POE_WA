@@ -99,16 +99,28 @@ export class PoeTradeSessionManager {
         maxRedirects: 0,
       });
       const responseHeaders = new Headers();
-      for (const header of response.headersArray())
+      const headersArray = response.headersArray();
+      for (const header of headersArray)
         responseHeaders.append(header.name, header.value);
-      const responseBody = await response.body();
       const status = response.status();
+      const contentLength = Number(responseHeaders.get('content-length'));
+      if (Number.isFinite(contentLength) && contentLength > 4 * 1024 * 1024) {
+        await response.dispose();
+        throw new DomainError('PROVIDER_RESPONSE_INVALID');
+      }
+      let responseBody: Buffer;
+      try {
+        responseBody = await response.body();
+      } finally {
+        await response.dispose();
+      }
+      if (responseBody.byteLength > 4 * 1024 * 1024)
+        throw new DomainError('PROVIDER_RESPONSE_INVALID');
       const nativeResponse = new Response(
         [204, 205, 304].includes(status) ? null : responseBody,
         { status, headers: responseHeaders },
       );
       nativeResponse.headers.delete('x-poe-session-stale');
-      await response.dispose();
       const currentSessionId = await this.#readSessionId();
 
       if (nativeResponse.status === 401) {
