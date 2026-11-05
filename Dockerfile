@@ -30,7 +30,13 @@ FROM nginxinc/nginx-unprivileged:1.29-alpine AS web
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /workspace/apps/web/dist /usr/share/nginx/html
 
-FROM node:22.22.0-alpine AS server
+FROM node:22.22.0-bookworm-slim AS server
+
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+WORKDIR /app
+COPY --from=build --chown=node:node /opt/server ./
+RUN PLAYWRIGHT_BROWSERS_PATH=/ms-playwright ./node_modules/.bin/playwright install --with-deps chromium
 
 ENV APP_ENV=development \
     APP_HOST=0.0.0.0 \
@@ -51,8 +57,6 @@ ENV APP_ENV=development \
     SHUTDOWN_TIMEOUT_MS=30000 \
     SNAPSHOT_TTL_MS=1800000
 
-WORKDIR /app
-COPY --from=build --chown=node:node /opt/server ./
 COPY --from=build --chown=node:node /workspace/apps/server/drizzle ./drizzle
 COPY --from=build --chown=node:node /workspace/apps/server/mappings ./mappings
 COPY --from=build --chown=node:node /workspace/apps/server/presentation ./presentation

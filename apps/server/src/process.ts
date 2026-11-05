@@ -163,13 +163,14 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       : undefined;
   const research = createMarketResearchRepository(pool);
   const collectionStore = createMarketCollectionRepository(pool);
+  const collectionSource = configuredCollectionSource(
+    new GggRateLimitController({ repository: repositories.rateLimits }),
+    process.env,
+    economy,
+    async () => (await admin.read()).effective.requestTimeoutMs,
+  );
   const collectionManager = new MarketCollectionManager({
-    adapter: configuredCollectionSource(
-      new GggRateLimitController({ repository: repositories.rateLimits }),
-      process.env,
-      economy,
-      async () => (await admin.read()).effective.requestTimeoutMs,
-    ),
+    adapter: collectionSource,
     store: collectionStore,
     readControls: async () => (await admin.read()).effective,
   });
@@ -476,7 +477,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     afterApiClose: async () => {
       workerShutdown.abort();
       tradeClient?.stop();
-      await collectionManager?.stop();
+      await Promise.all([collectionManager?.stop(), collectionSource.close()]);
     },
     host: config.host,
     ...(jobs ? { jobs } : {}),
@@ -487,22 +488,9 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     shutdownTimeoutMs: config.shutdownTimeoutMs,
   });
 
-  try {
-    await runtime.start();
-    if (modeIncludesWorker(config.mode)) await collectionManager.start(5000);
-  } catch (error) {
-    logger.fatal({ err: error }, 'application startup failed');
-    await collectionManager?.stop().catch((cleanupError: unknown) => {
-      logger.error({ err: cleanupError }, 'market collection cleanup failed');
-    });
-    await runtime.stop().catch((cleanupError: unknown) => {
-      logger.error({ err: cleanupError }, 'application startup cleanup failed');
-    });
-    process.exitCode = 1;
-    return;
-  }
-
+  let shuttingDown = false;
   const shutdown = async (signal: NodeJS.Signals) => {
+    shuttingDown = true;
     logger.info({ signal }, 'shutdown requested');
     try {
       await runtime.stop();
@@ -514,4 +502,25 @@ export async function runProcess(forcedMode?: ApplicationMode) {
 
   process.once('SIGINT', () => void shutdown('SIGINT'));
   process.once('SIGTERM', () => void shutdown('SIGTERM'));
+
+  try {
+    await runtime.start();
+    if (shuttingDown) return;
+    await collectionSource.start();
+    if (shuttingDown) return;
+    if (modeIncludesWorker(config.mode)) await collectionManager.start(5000);
+  } catch (error) {
+    logger.fatal({ err: error }, 'application startup failed');
+    await collectionManager?.stop().catch((cleanupError: unknown) => {
+      logger.error({ err: cleanupError }, 'market collection cleanup failed');
+    });
+    await collectionSource.close().catch((cleanupError: unknown) => {
+      logger.error({ err: cleanupError }, 'Trade session cleanup failed');
+    });
+    await runtime.stop().catch((cleanupError: unknown) => {
+      logger.error({ err: cleanupError }, 'application startup cleanup failed');
+    });
+    process.exitCode = 1;
+    return;
+  }
 }

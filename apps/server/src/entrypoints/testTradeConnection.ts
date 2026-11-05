@@ -8,6 +8,10 @@ import {
   TradeCompatibleTransport,
   loadTradeCompatibleConfig,
 } from '../providers/tradeCompatible.js';
+import {
+  loadTradeLoginConfig,
+  PoeTradeSessionManager,
+} from '../providers/poeTradeSessionManager.js';
 
 const targetId = process.argv[2];
 if (!targetId)
@@ -17,21 +21,33 @@ if (process.env.POE_TRADE_ACCESS !== 'owner_permitted')
     'Set POE_TRADE_ACCESS=owner_permitted for access you are permitted to use',
   );
 const pool = createDatabasePool(loadDatabaseConfig());
+let sessionManager: PoeTradeSessionManager | undefined;
 try {
   const target =
     await createMarketResearchRepository(pool).findTarget(targetId);
   if (!target) throw new Error('Saved target not found');
+  const tradeConfig = loadTradeCompatibleConfig();
+  const loginConfig = loadTradeLoginConfig();
+  const gate = new GggRateLimitController({
+    repository: createPostgresRepositories(pool).rateLimits,
+  });
+  sessionManager = loginConfig
+    ? new PoeTradeSessionManager(tradeConfig.baseURL, loginConfig, {
+        onLogin: () => gate.clearAuthenticationDenials(),
+      })
+    : undefined;
+  if (sessionManager) await sessionManager.start();
   if (
     await createMarketCollectionRepository(pool).isSourceBlocked(
       'trade-compatible',
+      { ignoreAuthFailures: Boolean(sessionManager?.sessionAvailable) },
     )
   )
     throw new Error(
       'Source has a durable denial; resolve it before testing again',
     );
-  const transport = new TradeCompatibleTransport(loadTradeCompatibleConfig());
-  const gate = new GggRateLimitController({
-    repository: createPostgresRepositories(pool).rateLimits,
+  const transport = new TradeCompatibleTransport(tradeConfig, {
+    ...(sessionManager ? { sessionManager } : {}),
   });
   const signal = AbortSignal.timeout(90_000);
   let connected = false;
@@ -63,12 +79,15 @@ try {
     JSON.stringify({
       status,
       targetId,
-      sessionConfigured: Boolean(process.env.POE_TRADE_SESSION_ID),
+      sessionConfigured: Boolean(
+        sessionManager || process.env.POE_TRADE_SESSION_ID,
+      ),
       scope:
         'At most one search and one listing fetch; no snapshot or schedule is created.',
     }),
   );
   if (status !== 'CONNECTED') process.exitCode = 1;
 } finally {
+  await sessionManager?.stop();
   await pool.end();
 }

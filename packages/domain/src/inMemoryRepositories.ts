@@ -593,6 +593,35 @@ export function createInMemoryRepositories(): Repositories {
           state: clone(rateLimitStates.get(governing.policy)!),
         };
       },
+      async clearAuthenticationDenials(now) {
+        for (const [policy, state] of rateLimitStates) {
+          if (
+            state.lastStatus !== 401 ||
+            !(
+              state.endpoints.some((endpoint) =>
+                [
+                  'trade',
+                  'trade-search',
+                  'trade-fetch',
+                  'trade-exchange',
+                ].includes(endpoint),
+              ) ||
+              [
+                'poe-trade',
+                'trade-search-request-limit',
+                'trade-fetch-request-limit',
+                'trade-exchange-request-limit',
+              ].includes(policy)
+            )
+          )
+            continue;
+          rateLimitStates.set(policy, {
+            ...state,
+            lastStatus: null,
+            updatedAt: now,
+          });
+        }
+      },
       async list() {
         return [...rateLimitStates.values()]
           .filter(

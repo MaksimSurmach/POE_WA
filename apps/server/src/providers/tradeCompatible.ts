@@ -12,6 +12,7 @@ import { generateMarketTradeQuery } from '../marketTradeQuery.js';
 import { tradeStatMappings } from '../tradeStatMappings.js';
 import { convertMarketQuote } from '../marketCurrency.js';
 import type { MarketEconomyRepository } from '../marketEconomy.js';
+import type { PoeTradeSessionManager } from './poeTradeSessionManager.js';
 
 const configSchema = z.object({
   POE_TRADE_BASE_URL: z.url().default('https://www.pathofexile.com'),
@@ -428,6 +429,7 @@ export function normalizeTradeCompatibleListing(
 export class TradeCompatibleTransport implements MarketCollectionTransport {
   readonly #config: TradeCompatibleConfig;
   readonly #fetch: typeof fetch;
+  readonly #sessionManager: PoeTradeSessionManager | undefined;
   readonly #targets = new Map<string, MarketTarget>();
   readonly #cache = new Map<
     string,
@@ -452,6 +454,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     config: TradeCompatibleConfig,
     options: {
       fetcher?: typeof fetch;
+      sessionManager?: PoeTradeSessionManager;
       clock?: () => Date;
       readTimeoutMs?: () => Promise<number>;
       economy?: Pick<MarketEconomyRepository, 'find'> &
@@ -459,10 +462,22 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     } = {},
   ) {
     this.#config = config;
-    this.#fetch = options.fetcher ?? fetch;
+    this.#fetch = options.sessionManager?.fetch ?? options.fetcher ?? fetch;
+    this.#sessionManager = options.sessionManager;
     this.#clock = options.clock ?? (() => new Date());
     this.#economy = options.economy;
     this.#readTimeoutMs = options.readTimeoutMs;
+  }
+
+  async reconnectAuthentication() {
+    if (!this.#sessionManager) return false;
+    const reconnected = await this.#sessionManager.reconnect();
+    if (!reconnected) return false;
+    this.#denied = false;
+    this.#cache.clear();
+    this.#targets.clear();
+    this.connectionStatus = this.#sessionManager.connectionStatus;
+    return true;
   }
 
   async #request(
@@ -516,7 +531,10 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
               : status >= 400
                 ? 'UNAVAILABLE'
                 : 'CONNECTED';
-      if (status === 401 || status === 403) this.#denied = true;
+      if (status === 401 || status === 403)
+        this.#denied =
+          status !== 401 ||
+          response.headers.get('x-poe-session-stale') !== 'true';
       if (status >= 400) {
         await response.body?.cancel();
         return {
@@ -567,7 +585,12 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
       return result;
     } catch (error) {
       if (signal.aborted) throw error;
-      this.connectionStatus = 'UNAVAILABLE';
+      this.connectionStatus =
+        error instanceof DomainError &&
+        error.code === 'MARKET_ACCESS_BLOCKED' &&
+        this.#sessionManager
+          ? this.#sessionManager.connectionStatus
+          : 'UNAVAILABLE';
       // Fetch errors can include headers/URLs in injected transports. Do not retain their cause.
       throw error instanceof DomainError
         ? error
@@ -576,10 +599,16 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
   }
 
   #redact(value: unknown): unknown {
-    if (typeof value === 'string')
-      return this.#config.sessionId
-        ? value.split(this.#config.sessionId).join('[REDACTED]')
-        : value;
+    if (typeof value === 'string') {
+      const secrets = [
+        this.#config.sessionId,
+        ...(this.#sessionManager?.redactionValues ?? []),
+      ].filter((secret): secret is string => Boolean(secret));
+      return secrets.reduce(
+        (redacted, secret) => redacted.split(secret).join('[REDACTED]'),
+        value,
+      );
+    }
     if (Array.isArray(value)) return value.map((entry) => this.#redact(entry));
     if (value && typeof value === 'object')
       return Object.fromEntries(
