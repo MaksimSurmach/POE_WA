@@ -54,14 +54,14 @@ try {
 
   const research = createMarketResearchRepository(pool);
   const now = new Date();
-  const intervalMinutes = 12 * 60;
+  const intervalMinutes = 120;
   let scheduled = 0;
   if (apply) {
     for (const target of targets.values()) {
       const saved = await research.saveTarget(target);
       const updatedAt = now.toISOString();
       const nextRunAt = new Date(
-        now.getTime() + Math.max(0, scheduled - 1) * 10 * 60_000,
+        now.getTime() + scheduled * 2 * 60_000,
       ).toISOString();
       const settings = {
         targetId: saved.id,

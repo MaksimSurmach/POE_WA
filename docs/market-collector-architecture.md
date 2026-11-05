@@ -203,8 +203,7 @@ With game data and Trade mappings loaded, run
 `node apps/server/dist/entrypoints/scheduleTradeCatalog.js` to preview the
 current league's recipe bases and outputs. Add `--apply` to create schedules
 for validated profiles. Existing schedules are preserved. New schedules run
-every 12 hours, with two initial targets due immediately and later targets
-staggered by 10 minutes. The application's general refresh
+every two hours, with initial start times staggered by two minutes. The application's general refresh
 scheduler is independent. The worker reads the stored Trade session for each run. Restart it after
 rotating an expired session if the previous credential blocked the worker.
 
