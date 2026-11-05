@@ -30,6 +30,18 @@ describe('database environment configuration', () => {
     expect(config.connectionString).toContain('poe_worksmith_test');
   });
 
+  it('does not ignore a test database URL outside test mode', () => {
+    expect(() =>
+      loadDatabaseConfig({
+        APP_ENV: 'development',
+        DATABASE_URL:
+          'postgresql://postgres:postgres@127.0.0.1:54322/poe_worksmith_dev',
+        TEST_DATABASE_URL:
+          'postgresql://postgres:postgres@127.0.0.1:54324/poe_worksmith_test',
+      }),
+    ).toThrow(/TEST_DATABASE_URL: Only allowed when APP_ENV=test/);
+  });
+
   it('reports missing test configuration without exposing secrets', () => {
     expect(() => loadDatabaseConfig({ APP_ENV: 'test' })).toThrow(
       'TEST_DATABASE_URL: Required when APP_ENV=test',

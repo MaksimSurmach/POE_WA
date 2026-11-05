@@ -32,6 +32,14 @@ const environmentSchema = z
       });
     }
 
+    if (environment.APP_ENV !== 'test' && environment.TEST_DATABASE_URL) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Only allowed when APP_ENV=test',
+        path: ['TEST_DATABASE_URL'],
+      });
+    }
+
     if (environment.APP_ENV !== 'test' && !environment.DATABASE_URL) {
       context.addIssue({
         code: 'custom',

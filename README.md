@@ -153,6 +153,11 @@ reapplies the full migration history. This command deletes local data.
    pnpm --filter @poe-worksmith/server build
    node --env-file=.env.staging apps/server/dist/checkDatabase.js
    ```
+4. Apply migrations with the staging configuration:
+
+   ```bash
+   node --env-file=.env.staging apps/server/dist/migrate.js
+   ```
 
 For a persistent IPv6-capable backend, prefer the direct endpoint
 `db.<project-ref>.supabase.co:5432`. On an IPv4-only host, use the shared
