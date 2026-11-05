@@ -72,6 +72,18 @@ const environmentSchema = z
         });
       }
       const databaseUrl = new URL(environment.DATABASE_URL);
+      try {
+        decodeURIComponent(databaseUrl.username);
+        decodeURIComponent(databaseUrl.password);
+        decodeURI(databaseUrl.pathname);
+        decodeURIComponent(databaseUrl.search.slice(1));
+      } catch {
+        context.addIssue({
+          code: 'custom',
+          message: 'Must use valid UTF-8 percent-encoding when APP_ENV=staging',
+          path: ['DATABASE_URL'],
+        });
+      }
       const sslModes = databaseUrl.searchParams.getAll('sslmode');
       if (sslModes.length !== 1 || sslModes[0] !== 'require') {
         context.addIssue({
@@ -152,4 +164,12 @@ export function loadDatabaseConfig(
         ? { rejectUnauthorized: true }
         : false,
   };
+}
+
+export function drizzleConnectionString(config: DatabaseConfig) {
+  if (config.environment !== 'staging') return config.connectionString;
+
+  const databaseUrl = new URL(config.connectionString);
+  databaseUrl.searchParams.set('sslmode', 'verify-full');
+  return databaseUrl.toString();
 }

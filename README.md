@@ -153,6 +153,7 @@ reapplies the full migration history. This command deletes local data.
    pnpm --filter @poe-worksmith/server build
    node --env-file=.env.staging apps/server/dist/checkDatabase.js
    ```
+
 4. Apply migrations with the staging configuration:
 
    ```bash

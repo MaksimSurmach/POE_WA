@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   EnvironmentConfigurationError,
+  drizzleConnectionString,
   loadDatabaseConfig,
 } from './config.js';
 
@@ -40,6 +41,19 @@ describe('database environment configuration', () => {
           'postgresql://postgres:postgres@127.0.0.1:54324/poe_worksmith_test',
       }),
     ).toThrow(/TEST_DATABASE_URL: Only allowed when APP_ENV=test/);
+  });
+
+  it('normalizes the Drizzle staging URL to one verified SSL mode', () => {
+    const config = loadDatabaseConfig({
+      APP_ENV: 'staging',
+      DATABASE_SSL_MODE: 'require',
+      DATABASE_URL:
+        'postgresql://postgres:password@db.example/postgres?sslmode=require&channel_binding=require',
+    });
+
+    const databaseUrl = new URL(drizzleConnectionString(config));
+    expect(databaseUrl.searchParams.getAll('sslmode')).toEqual(['verify-full']);
+    expect(databaseUrl.searchParams.get('channel_binding')).toBe('require');
   });
 
   it('reports missing test configuration without exposing secrets', () => {
@@ -92,6 +106,8 @@ describe('database environment configuration', () => {
     'postgresql://postgres:password@db.example/postgres?sslmode=require&sslnegotiation=direct',
     'postgresql://postgres:password@db.example/postgres?sslmode=require&uselibpqcompat=true',
     'postgresql://postgres:password@db.example/postgres?ssl%6Dode=require&x=%zz',
+    'postgresql://u:%ff@db.example/postgres?sslmode=require',
+    'postgresql://u@db.example/postgres?sslmode=require&x=%ff',
   ])('rejects staging URLs that can override verified TLS', (databaseUrl) => {
     expect(() =>
       loadDatabaseConfig({

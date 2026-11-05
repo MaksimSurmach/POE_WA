@@ -1,23 +1,21 @@
 import { defineConfig } from 'drizzle-kit';
 
-import { loadDatabaseConfig } from './src/config.js';
+import { drizzleConnectionString, loadDatabaseConfig } from './src/config.js';
 
-const stagingDatabaseConfig =
-  process.env.APP_ENV === 'staging' ? loadDatabaseConfig() : undefined;
-const stagingDatabaseUrl = stagingDatabaseConfig
-  ? new URL(stagingDatabaseConfig.connectionString)
+const hasDatabaseEnvironment =
+  process.env.APP_ENV ||
+  process.env.DATABASE_URL ||
+  process.env.TEST_DATABASE_URL;
+const configuredDatabase = hasDatabaseEnvironment
+  ? loadDatabaseConfig()
   : undefined;
-
-if (stagingDatabaseUrl) {
-  stagingDatabaseUrl.searchParams.set('sslmode', 'verify-full');
-}
 
 export default defineConfig({
   dbCredentials: {
     url:
-      stagingDatabaseUrl?.toString() ??
-      process.env.TEST_DATABASE_URL ??
-      process.env.DATABASE_URL ??
+      (configuredDatabase
+        ? drizzleConnectionString(configuredDatabase)
+        : undefined) ??
       'postgresql://postgres:postgres@127.0.0.1:54322/poe_worksmith_dev',
   },
   dialect: 'postgresql',
