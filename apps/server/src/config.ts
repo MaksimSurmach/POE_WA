@@ -48,6 +48,26 @@ const environmentSchema = z
         path: ['DATABASE_SSL_MODE'],
       });
     }
+
+    if (environment.APP_ENV === 'staging' && environment.DATABASE_URL) {
+      const databaseUrl = new URL(environment.DATABASE_URL);
+      if (databaseUrl.searchParams.get('sslmode') !== 'require') {
+        context.addIssue({
+          code: 'custom',
+          message: 'Must be require when APP_ENV=staging',
+          path: ['DATABASE_URL'],
+        });
+      }
+      for (const parameter of ['sslcert', 'sslkey', 'sslrootcert']) {
+        if (databaseUrl.searchParams.has(parameter)) {
+          context.addIssue({
+            code: 'custom',
+            message: `Must not include ${parameter} when APP_ENV=staging`,
+            path: ['DATABASE_URL'],
+          });
+        }
+      }
+    }
   });
 
 export type DatabaseConfig = {
@@ -84,9 +104,16 @@ export function loadDatabaseConfig(
     result.data.APP_ENV === 'test'
       ? result.data.TEST_DATABASE_URL!
       : result.data.DATABASE_URL!;
+  const poolConnectionString = new URL(connectionString);
+  if (result.data.APP_ENV === 'staging') {
+    poolConnectionString.searchParams.delete('sslmode');
+  }
 
   return {
-    connectionString,
+    connectionString:
+      result.data.APP_ENV === 'staging'
+        ? poolConnectionString.toString()
+        : connectionString,
     connectionTimeoutMillis: result.data.DATABASE_CONNECTION_TIMEOUT_MS,
     environment: result.data.APP_ENV,
     idleTimeoutMillis: result.data.DATABASE_IDLE_TIMEOUT_MS,

@@ -34,13 +34,30 @@ describe('database environment configuration', () => {
   });
 
   it('requires TLS for staging connections', () => {
+    const databaseUrl =
+      'postgresql://postgres.example:password@pooler.supabase.com:5432/postgres?sslmode=require';
+    const config = loadDatabaseConfig({
+      APP_ENV: 'staging',
+      DATABASE_SSL_MODE: 'require',
+      DATABASE_URL: databaseUrl,
+    });
+
+    expect(config.ssl).toEqual({ rejectUnauthorized: true });
+    expect(config.connectionString).not.toContain('sslmode=');
+  });
+
+  it.each([
+    'postgresql://postgres:password@db.example/postgres?sslmode=disable',
+    'postgresql://postgres:password@db.example/postgres?sslmode=no-verify',
+    'postgresql://postgres:password@db.example/postgres',
+    'postgresql://postgres:password@db.example/postgres?sslmode=require&sslrootcert=system',
+  ])('rejects staging URLs that can override verified TLS', (databaseUrl) => {
     expect(() =>
       loadDatabaseConfig({
         APP_ENV: 'staging',
-        DATABASE_SSL_MODE: 'disable',
-        DATABASE_URL:
-          'postgresql://postgres.example:password@pooler.supabase.com:5432/postgres',
+        DATABASE_SSL_MODE: 'require',
+        DATABASE_URL: databaseUrl,
       }),
-    ).toThrow(/DATABASE_SSL_MODE: Must be require/);
+    ).toThrow(/DATABASE_URL:/);
   });
 });
