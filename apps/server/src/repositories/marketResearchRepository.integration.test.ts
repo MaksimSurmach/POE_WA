@@ -36,7 +36,7 @@ afterAll(async () => {
 });
 beforeEach(async () => {
   await pool.query(
-    'truncate market_collection_runs, market_collection_settings, belt_price_updates, market_research_snapshots, market_targets',
+    'truncate market_collection_requests, market_collection_runs, market_collection_settings, belt_price_updates, market_research_snapshots, market_targets',
   );
 });
 

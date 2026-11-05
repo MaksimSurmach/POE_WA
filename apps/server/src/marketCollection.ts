@@ -92,6 +92,16 @@ export interface MarketCollectionTransport {
 }
 
 export interface MarketCollectionStore {
+  enqueueRequest?(
+    targetId: string,
+    requestedBy: string | null,
+  ): Promise<string>;
+  cancelQueuedRequest?(requestId: string): Promise<void>;
+  findRequest?(requestId: string): Promise<{
+    requestId: string;
+    status: 'queued' | 'claimed' | 'completed' | 'cancelled';
+    runId: string | null;
+  } | null>;
   isSourceBlocked(
     sourceId: string,
     options?: { ignoreAuthFailures?: boolean },
@@ -111,7 +121,11 @@ export interface MarketCollectionStore {
   listObservations(targetId: string): Promise<MarketCollectionObservation[]>;
   saveRun(run: MarketCollectionRun): Promise<MarketCollectionRun>;
   requestCancel(runId: string): Promise<MarketCollectionRun | null>;
-  recoverRunningRuns(at: string, activeRunIds?: string[]): Promise<string[]>;
+  recoverRunningRuns(
+    at: string,
+    activeRunIds?: string[],
+    targetId?: string,
+  ): Promise<string[]>;
 }
 
 export function collectionSettings(
@@ -624,6 +638,35 @@ export class MarketCollectionManager {
     this.#readControls = options.readControls;
   }
 
+  async enqueueRequest(
+    targetId: string,
+    requestedBy: string | null = null,
+    activeRefresh = false,
+  ) {
+    if (!(await this.#store.findTarget(targetId)))
+      throw new DomainError('MARKET_TARGET_NOT_FOUND');
+    const controls = await this.#readControls?.();
+    if (!activeRefresh && controls?.collectionsPaused)
+      throw new DomainError('MARKET_COLLECTION_PAUSED');
+    if ((await this.#store.findSettings(targetId))?.paused)
+      throw new DomainError('MARKET_COLLECTION_PAUSED');
+    if (!this.#store.enqueueRequest)
+      throw new DomainError('PERSISTENCE_UNAVAILABLE');
+    return this.#store.enqueueRequest(targetId, requestedBy);
+  }
+
+  async cancelQueuedRequest(requestId: string) {
+    await this.#store.cancelQueuedRequest?.(requestId);
+  }
+
+  async findRequest(requestId: string) {
+    return this.#store.findRequest?.(requestId) ?? null;
+  }
+
+  async findRun(runId: string) {
+    return this.#store.findRun(runId);
+  }
+
   get source() {
     return this.#accessBlocked
       ? {
@@ -643,12 +686,20 @@ export class MarketCollectionManager {
       : this.#adapter.descriptor;
   }
 
-  async start(intervalMs = 30_000) {
+  async start(intervalMs = 30_000, onTickError?: (error: unknown) => void) {
     if (this.#timer) return;
     this.#accessBlocked = await this.#persistedSourceBlock();
     await this.#recoverRunningRuns();
-    this.#timer = setInterval(() => this.#track(this.tick()), intervalMs);
-    await this.tick();
+    this.#timer = setInterval(
+      () =>
+        this.#track(
+          this.tick(onTickError).catch((error: unknown) =>
+            onTickError?.(error),
+          ),
+        ),
+      intervalMs,
+    );
+    await this.tick(onTickError);
   }
 
   async stop() {
@@ -821,7 +872,7 @@ export class MarketCollectionManager {
     return requested;
   }
 
-  async tick() {
+  async tick(onRunError?: (error: unknown) => void) {
     await this.#recoverRunningRuns();
     this.#accessBlocked ||= await this.#persistedSourceBlock();
     if (this.source.access === 'blocked') return;
@@ -862,7 +913,9 @@ export class MarketCollectionManager {
         setting.nextRunAt,
       );
       if (!claimed) continue;
-      await this.runNow(target.id, 'scheduled').catch(() => undefined);
+      await this.runNow(target.id, 'scheduled').catch((error: unknown) =>
+        onRunError?.(error),
+      );
     }
   }
 

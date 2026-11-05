@@ -40,6 +40,7 @@
     "market:seed-belt-demo": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:seed-belt-demo",
     "market:import-belt-evidence": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:import-belt-evidence",
     "market:import-catalog": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:import-catalog",
+    "market:trade": "pnpm --filter @poe-worksmith/server market:trade",
     "market:test-connection": "pnpm --filter @poe-worksmith/server build && pnpm --filter @poe-worksmith/server market:test-connection",
     "local:start": "sh scripts/local-runtime.sh start",
     "local:stop": "sh scripts/local-runtime.sh stop",

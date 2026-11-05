@@ -437,6 +437,23 @@ export function AdminMarketPage() {
             </p>
           ) : null}
           {notice('collection')}
+          {status?.collector ? (
+            <p role="status">
+              {status.collector.runner === 'go'
+                ? 'Go collector'
+                : 'Node collector'}
+              :{' '}
+              {status.collector.enabled
+                ? (status.collector.state ?? 'waiting for heartbeat')
+                : 'disabled'}
+              {' · heartbeat '}
+              {time(status.collector.heartbeatAt)}
+              {' · queued '}
+              {status.collector.queuedRequests}
+              {' · claimed '}
+              {status.collector.claimedRequests}
+            </p>
+          ) : null}
         </div>
       </header>
       <section

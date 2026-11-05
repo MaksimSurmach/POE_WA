@@ -9,6 +9,8 @@ import {
   marketCollectionSettingsInputSchema,
   marketCollectionSettingsResponseSchema,
   marketCollectionRunResponseSchema,
+  marketCollectionRequestResponseSchema,
+  marketCollectionRequestStatusResponseSchema,
   marketTargetResponseSchema,
   marketWorkbenchResponseSchema,
   marketStarterLibraryResponseSchema,
@@ -24,6 +26,7 @@ import type {
 import type { Logger } from 'pino';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
+import { marketCollectionRunner } from './config.js';
 
 import { analyzeBeltSnapshot } from './beltComparability.js';
 import { activeCatalogTargets, importMarketCatalog } from './marketCatalog.js';
@@ -306,7 +309,8 @@ export function registerMarketResearchRoutes(
                 (snapshot) =>
                   snapshot.targetId === target.id &&
                   snapshot.targetDigest === target.digest &&
-                  snapshot.dataKind === kind,
+                  snapshot.dataKind === kind &&
+                  (kind === 'demo' || snapshot.coverage === 'complete'),
               )
               .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))[0];
             const snapshot = latest ? await repo.findSnapshot(latest.id) : null;
@@ -673,14 +677,56 @@ export function registerMarketResearchRoutes(
     },
   );
 
+  api.get<{ Params: { id: string } }>(
+    '/api/market/collection/requests/:id',
+    async (request) => {
+      if (!z.uuid().safeParse(request.params.id).success)
+        throw new DomainError('MARKET_COLLECTION_NOT_RUNNING');
+      const result = await requireCollectionManager(
+        collection?.manager,
+      ).findRequest(request.params.id);
+      if (!result) throw new DomainError('MARKET_COLLECTION_NOT_RUNNING');
+      return marketCollectionRequestStatusResponseSchema.parse({
+        correlationId: request.id,
+        data: result,
+      });
+    },
+  );
+
+  api.get<{ Params: { id: string } }>(
+    '/api/market/collection/runs/:id',
+    async (request) => {
+      if (!z.uuid().safeParse(request.params.id).success)
+        throw new DomainError('MARKET_COLLECTION_NOT_RUNNING');
+      const run = await requireCollectionManager(collection?.manager).findRun(
+        request.params.id,
+      );
+      if (!run) throw new DomainError('MARKET_COLLECTION_NOT_RUNNING');
+      return marketCollectionRunResponseSchema.parse({
+        correlationId: request.id,
+        data: run,
+      });
+    },
+  );
+
   api.post<{ Params: { id: string } }>(
     '/api/market/targets/:id/collection/run',
     async (request, reply) => {
       if (!z.uuid().safeParse(request.params.id).success)
         throw new DomainError('MARKET_TARGET_NOT_FOUND');
-      const run = await persist(() =>
-        requireCollectionManager(collection?.manager).runNow(request.params.id),
-      );
+      const manager = requireCollectionManager(collection?.manager);
+      if (marketCollectionRunner() === 'go') {
+        const requestId = await persist(() =>
+          manager.enqueueRequest(request.params.id, null),
+        );
+        return reply.code(202).send(
+          marketCollectionRequestResponseSchema.parse({
+            correlationId: request.id,
+            data: { requestId, status: 'queued' },
+          }),
+        );
+      }
+      const run = await persist(() => manager.runNow(request.params.id));
       return reply.code(202).send(
         marketCollectionRunResponseSchema.parse({
           correlationId: request.id,
@@ -694,6 +740,8 @@ export function registerMarketResearchRoutes(
     '/api/market/collection/runs/:id/cancel',
     async (request) => {
       if (!z.uuid().safeParse(request.params.id).success)
+        throw new DomainError('MARKET_COLLECTION_NOT_RUNNING');
+      if (marketCollectionRunner() === 'go')
         throw new DomainError('MARKET_COLLECTION_NOT_RUNNING');
       const run = await persist(() =>
         requireCollectionManager(collection?.manager).cancel(request.params.id),

@@ -68,6 +68,7 @@ import { createMarketResearchRepository } from './repositories/marketResearchRep
 import { createMarketEconomyRepository } from './repositories/marketEconomyRepository.js';
 import { createMarketCollectionRepository } from './repositories/marketCollectionRepository.js';
 import { createPriceHistoryRepository } from './repositories/priceHistoryRepository.js';
+import { marketCollectionRunner } from './config.js';
 import { createMarketTrendsReader } from './marketTrendsApi.js';
 import { NinjaEconomyClient } from './providers/ninjaEconomy.js';
 import { MarketCollectionManager } from './marketCollection.js';
@@ -77,6 +78,7 @@ import {
 } from './marketCollectionSource.js';
 
 export async function runProcess(forcedMode?: ApplicationMode) {
+  const collectionRunner = marketCollectionRunner(process.env);
   const config = loadRuntimeConfig(process.env, forcedMode);
   const logger = pino({
     level: config.logLevel,
@@ -246,6 +248,45 @@ export async function runProcess(forcedMode?: ApplicationMode) {
               economy,
               ninja: economyClient,
               readCatalog: resourceReaders.readCatalog,
+              collectorStatus: async () => {
+                if (collectionRunner !== 'go') return null;
+                try {
+                  const result = await pool.query<{
+                    state: 'starting' | 'healthy' | 'draining' | 'unhealthy';
+                    heartbeat_at: Date | null;
+                    owner_epoch: string | null;
+                    owns_lease: boolean;
+                  }>(`select case when w.heartbeat_at > now()-interval '90 seconds'
+                                       and o.lease_expires_at > now() then w.state else 'unhealthy' end as state,
+                              w.heartbeat_at,o.owner_epoch::text,
+                              (o.owner_instance_id=w.instance_id and o.lease_expires_at>now()) as owns_lease
+                      from market_collection_workers w
+                      left join market_collection_ownership o on o.owner_instance_id=w.instance_id
+                      order by w.heartbeat_at desc limit 1`);
+                  const row = result.rows[0];
+                  const requests = await pool.query<{
+                    queued: string;
+                    claimed: string;
+                  }>(`select count(*) filter (where state='queued')::text as queued,
+                            count(*) filter (where state='claimed')::text as claimed
+                       from market_collection_requests`);
+                  return {
+                    runner: collectionRunner,
+                    enabled: row?.owns_lease ?? false,
+                    state: row?.state ?? null,
+                    heartbeatAt: row?.heartbeat_at?.toISOString() ?? null,
+                    ownerEpoch:
+                      row?.owner_epoch === null ||
+                      row?.owner_epoch === undefined
+                        ? null
+                        : Number(row.owner_epoch),
+                    queuedRequests: Number(requests.rows[0]?.queued ?? 0),
+                    claimedRequests: Number(requests.rows[0]?.claimed ?? 0),
+                  };
+                } catch {
+                  return null;
+                }
+              },
             }),
           },
           diagnosticsToken: config.operatorDiagnosticsToken,
@@ -294,7 +335,10 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     });
     function createTradeClient(requestTimeoutMs: number) {
       return new PoeTradeClient({
-        allowRequests: process.env.POE_TRADE_ACCESS === 'owner_permitted',
+        allowRequests:
+          collectionRunner !== 'go' &&
+          process.env.POE_TRADE_ACCESS === 'owner_permitted',
+        allowQueuedCollection: collectionRunner === 'go',
         collectionTimeoutMs: Math.min(
           15 * 60_000,
           Math.max(1000, config.jobLeaseTimeoutMs - 1000),
@@ -508,7 +552,8 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     if (shuttingDown) return;
     await collectionSource.start();
     if (shuttingDown) return;
-    if (modeIncludesWorker(config.mode)) await collectionManager.start(5000);
+    if (modeIncludesWorker(config.mode) && collectionRunner !== 'go')
+      await collectionManager.start(5000);
   } catch (error) {
     logger.fatal({ err: error }, 'application startup failed');
     await collectionManager?.stop().catch((cleanupError: unknown) => {

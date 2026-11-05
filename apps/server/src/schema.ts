@@ -19,6 +19,7 @@ import {
   integer,
   jsonb,
   numeric,
+  pgSchema,
   pgTable,
   pgView,
   primaryKey,
@@ -688,6 +689,8 @@ export const marketResearchSnapshots = pgTable(
     retrievedAt: timestamp('retrieved_at', { withTimezone: true }).notNull(),
     dataKind: text('data_kind').notNull(),
     currency: text('currency').notNull(),
+    runnerId: text('runner_id'),
+    ownerEpoch: bigint('owner_epoch', { mode: 'number' }),
     summary: jsonb('summary').$type<MarketResearchSnapshotSummary>().notNull(),
     listings: jsonb('listings').$type<MarketImportListing[]>().notNull(),
   },
@@ -757,6 +760,8 @@ export const marketCollectionRuns = pgTable(
     startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
     heartbeatAt: timestamp('heartbeat_at', { withTimezone: true }).notNull(),
     completedAt: timestamp('completed_at', { withTimezone: true }),
+    runnerId: text('runner_id'),
+    ownerEpoch: bigint('owner_epoch', { mode: 'number' }),
     payload: jsonb('payload').$type<MarketCollectionRun>().notNull(),
   },
   (table) => [
@@ -776,6 +781,109 @@ export const marketCollectionRuns = pgTable(
       sql`jsonb_typeof(${table.payload}) = 'object'`,
     ),
   ],
+);
+
+export const marketCollectionRequests = pgTable(
+  'market_collection_requests',
+  {
+    id: uuid('id').primaryKey(),
+    targetId: uuid('target_id')
+      .notNull()
+      .references(() => marketTargets.id, { onDelete: 'restrict' }),
+    requestedAt: timestamp('requested_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    requestedBy: text('requested_by'),
+    state: text('state').notNull().default('queued'),
+    claimOwner: text('claim_owner'),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }),
+    claimExpiresAt: timestamp('claim_expires_at', { withTimezone: true }),
+    runId: uuid('run_id').references(() => marketCollectionRuns.id, {
+      onDelete: 'set null',
+    }),
+    errorCode: text('error_code'),
+  },
+  (table) => [
+    index('market_collection_requests_queue_idx')
+      .on(table.state, table.requestedAt)
+      .where(sql`${table.state} = 'queued'`),
+    index('market_collection_requests_target_idx').on(
+      table.targetId,
+      table.requestedAt.desc(),
+    ),
+    check(
+      'market_collection_requests_state_check',
+      sql`${table.state} in ('queued','claimed','completed','cancelled')`,
+    ),
+    check(
+      'market_collection_requests_error_check',
+      sql`${table.errorCode} is null or ${table.errorCode} ~ '^[A-Z0-9_]{1,100}$'`,
+    ),
+  ],
+);
+
+export const marketCollectionWorkers = pgTable(
+  'market_collection_workers',
+  {
+    instanceId: text('instance_id').primaryKey(),
+    version: text('version').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    heartbeatAt: timestamp('heartbeat_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    state: text('state').notNull(),
+    activeRuns: integer('active_runs').notNull().default(0),
+    lastErrorCode: text('last_error_code'),
+  },
+  (table) => [
+    check(
+      'market_collection_workers_state_check',
+      sql`${table.state} in ('starting','healthy','draining','unhealthy')`,
+    ),
+    check(
+      'market_collection_workers_active_runs_check',
+      sql`${table.activeRuns} >= 0`,
+    ),
+    check(
+      'market_collection_workers_error_check',
+      sql`${table.lastErrorCode} is null or ${table.lastErrorCode} ~ '^[A-Z0-9_]{1,100}$'`,
+    ),
+  ],
+);
+
+export const marketCollectionOwnership = pgTable(
+  'market_collection_ownership',
+  {
+    singleton: boolean('singleton').primaryKey().default(true),
+    ownerInstanceId: text('owner_instance_id'),
+    ownerEpoch: bigint('owner_epoch', { mode: 'number' }).notNull().default(0),
+    leaseExpiresAt: timestamp('lease_expires_at', { withTimezone: true }),
+  },
+  (table) => [
+    check(
+      'market_collection_ownership_singleton_check',
+      sql`${table.singleton}`,
+    ),
+    check(
+      'market_collection_ownership_epoch_check',
+      sql`${table.ownerEpoch} >= 0`,
+    ),
+  ],
+);
+
+export const marketCollectionCheckpoints = pgTable(
+  'market_collection_checkpoints',
+  {
+    provider: text('provider').notNull(),
+    realm: text('realm').notNull(),
+    cursor: text('cursor'),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.provider, table.realm] })],
 );
 
 export const beltPriceUpdates = pgTable(
@@ -1266,4 +1374,18 @@ export const craftAllocationPlans = pgTable(
     uniqueIndex('craft_allocation_plans_idempotency_uq').on(t.idempotencyKey),
     index('craft_allocation_plans_league_idx').on(t.leagueId, t.createdAt),
   ],
+);
+
+export const marketCollectorPrivate = pgSchema('market_collector_private');
+
+export const marketTradeSession = marketCollectorPrivate.table(
+  'trade_session',
+  {
+    singleton: boolean('singleton').primaryKey().default(true),
+    sealedSession: text('sealed_session').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [check('trade_session_singleton_check', sql`${table.singleton}`)],
 );

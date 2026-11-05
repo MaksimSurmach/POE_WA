@@ -133,6 +133,21 @@ export class EnvironmentConfigurationError extends Error {
   }
 }
 
+export function marketCollectionRunner(
+  environment: Record<string, string | undefined> = process.env,
+): 'node' | 'go' {
+  const runner = environment.MARKET_COLLECTION_RUNNER ?? 'node';
+  if (runner !== 'node' && runner !== 'go')
+    throw new EnvironmentConfigurationError([
+      {
+        code: 'custom',
+        path: ['MARKET_COLLECTION_RUNNER'],
+        message: 'Must be node or go',
+      },
+    ]);
+  return runner;
+}
+
 export function loadDatabaseConfig(
   environment: Record<string, string | undefined> = process.env,
 ): DatabaseConfig {

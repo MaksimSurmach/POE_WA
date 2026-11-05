@@ -913,6 +913,18 @@ export const marketCollectionRunResponseSchema = z.strictObject({
   correlationId: z.uuid(),
   data: marketCollectionRunSchema,
 });
+export const marketCollectionRequestResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: z.strictObject({ requestId: z.uuid(), status: z.literal('queued') }),
+});
+export const marketCollectionRequestStatusResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: z.strictObject({
+    requestId: z.uuid(),
+    status: z.enum(['queued', 'claimed', 'completed', 'cancelled']),
+    runId: z.uuid().nullable(),
+  }),
+});
 
 export type MarketCollectionSettings = z.infer<
   typeof marketCollectionSettingsSchema
