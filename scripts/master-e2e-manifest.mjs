@@ -19,11 +19,10 @@ const assert = (ok, message) => {
 export function assertCleanSource(artifactRoot, status) {
   const artifactPath = `${path.relative(process.cwd(), artifactRoot)}/`;
   // Dockerfile copies selected runtime paths, so plan documents and artifacts do not enter images.
-  const allowed = [
-    artifactPath,
-    'artifacts/',
-    'docs/plans/2026-11-04-market-intelligence-2/',
-  ];
+  assert(
+    artifactPath.startsWith('artifacts/'),
+    'manifest artifacts must be stored under artifacts/',
+  );
   const entries = status.split('\0').filter(Boolean);
   const dirty = [];
   for (let index = 0; index < entries.length; index += 1) {
@@ -33,7 +32,12 @@ export function assertCleanSource(artifactRoot, status) {
     if (statusCode.includes('R') || statusCode.includes('C'))
       files.push(entries[++index] ?? '');
     for (const file of files) {
-      if (!allowed.some((prefix) => file.startsWith(prefix))) dirty.push(file);
+      const generatedArtifact =
+        statusCode === '??' && file.startsWith('artifacts/');
+      const planDocument = file.startsWith(
+        'docs/plans/2026-11-04-market-intelligence-2/',
+      );
+      if (!generatedArtifact && !planDocument) dirty.push(file);
     }
   }
   assert(dirty.length === 0, `dirty source worktree: ${dirty.join(', ')}`);

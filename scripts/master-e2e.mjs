@@ -25,18 +25,23 @@ const sha256 = async (file) =>
 const assert = (ok, message) => {
   if (!ok) throw new Error(message);
 };
-const failureStatus = (error) => {
+const failureStatus = (error, wasInterrupted = false) => {
+  if (wasInterrupted) return 'FAIL';
   const args = error.command === 'docker' ? (error.commandArgs ?? []) : [];
   const workloadCommand = ['exec', 'run', 'up', 'restart'].some((name) =>
     args.includes(name),
   );
+  const dockerOutput =
+    error.command === 'docker' && !['exec', 'run'].some((name) => args.includes(name));
   const stderr = error.stderr ?? '';
   const daemonUnavailable =
+    dockerOutput &&
     /cannot connect to the Docker daemon|error during connect/i.test(stderr);
   const infrastructureFailure =
     error.spawnFailure ||
     daemonUnavailable ||
-    (!workloadCommand &&
+    (error.command === 'docker' &&
+      ['up', 'restart'].some((name) => args.includes(name)) &&
       /no space left on device|context deadline exceeded|failed to dial|network is unreachable|i\/o timeout/i.test(
         stderr,
       ));
@@ -322,11 +327,47 @@ async function selfCheck() {
     'container workload failure was classified as infrastructure',
   );
   assert(
+    failureStatus({
+      command: 'docker',
+      commandArgs: ['compose', 'run', 'migrate'],
+      stderr: 'error during connect: application boot failed',
+    }) === 'FAIL' &&
+      failureStatus({ command: 'pnpm', stderr: 'i/o timeout' }) === 'FAIL',
+    'container or non-Docker stderr was classified as infrastructure',
+  );
+  assert(
+    failureStatus({
+      command: 'docker',
+      commandArgs: ['compose', 'up', '-d'],
+      stderr: 'no space left on device',
+    }) === 'INFRA_BLOCKED',
+    'Docker host resource failure was classified as a workload failure',
+  );
+  assert(
     failureStatus({ command: 'node', code: 'ENOENT' }) === 'FAIL' &&
       failureStatus({ command: 'node', code: 'ENOENT', spawnFailure: true }) ===
         'INFRA_BLOCKED',
     'only spawn errors should be classified as infrastructure',
   );
+  assert(
+    failureStatus({ command: 'docker' }, true) === 'FAIL',
+    'interruption was not classified as a failed run',
+  );
+  const capturedOutput = await capture(process.execPath, [
+    '-e',
+    "process.stdout.write('x'.repeat(262144),()=>process.exit(0))",
+  ]);
+  assert(capturedOutput.length === 262144, 'capture returned before stdout closed');
+  try {
+    await run(process.execPath, [
+      '-e',
+      "process.stderr.write('close-marker',()=>process.exit(1))",
+    ]);
+    throw new Error('run accepted a failing child process');
+  } catch (error) {
+    if (error.message === 'run accepted a failing child process') throw error;
+    assert(error.stderr === 'close-marker', 'run returned before stderr closed');
+  }
   try {
     assertWorkerHeartbeat(new Date(Date.now() - 30_000).toISOString());
     throw new Error('heartbeat check accepted a stale worker');
@@ -381,6 +422,25 @@ async function selfCheck() {
       'dirty source check accepted a rename into runtime source'
     )
       throw error;
+  }
+  for (const [artifactRoot, status, message] of [
+    [
+      'artifacts/candidate',
+      ' M artifacts/candidate/manifest.json\0',
+      'source guard allowed a tracked artifact change',
+    ],
+    [
+      'scripts',
+      ' M scripts/master-e2e.mjs\0',
+      'source guard allowed a runtime path as artifact root',
+    ],
+  ]) {
+    try {
+      assertCleanSource(artifactRoot, status);
+      throw new Error(message);
+    } catch (error) {
+      if (error.message === message) throw error;
+    }
   }
   validateOwnership(
     {
@@ -699,9 +759,9 @@ else {
     await writeFile(
       verdictPath,
       receipt(
-        failureStatus(error),
+        failureStatus(error, interrupted),
         metadata,
-        `resource preflight: ${error.message}`,
+        `${interrupted ? 'reason=interrupted ' : ''}resource preflight: ${error.message}`,
       ),
     );
     throw error;
@@ -1050,9 +1110,9 @@ else {
     await writeFile(
       verdictPath,
       receipt(
-        failureStatus(runError ?? cleanupError),
+        failureStatus(runError ?? cleanupError, interrupted),
         metadata,
-        `cleanup=${cleanupError.message}${runError ? ` original=${runError.message}` : ''}`,
+        `${interrupted ? 'reason=interrupted ' : ''}cleanup=${cleanupError.message}${runError ? ` original=${runError.message}` : ''}`,
       ),
     );
     throw cleanupError;
