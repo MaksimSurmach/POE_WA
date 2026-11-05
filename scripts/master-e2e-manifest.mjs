@@ -18,16 +18,18 @@ const assert = (ok, message) => {
 
 export function assertCleanSource(artifactRoot, status) {
   const artifactPath = `${path.relative(process.cwd(), artifactRoot)}/`;
-  // Plan documents and generated archives are outside the image build context.
+  // Dockerfile copies selected runtime paths, so plan documents and artifacts do not enter images.
   const dirty = status
     .split('\n')
     .filter(Boolean)
-    .filter(
-      (line) =>
-        !line.startsWith(`?? ${artifactPath}`) &&
-        !line.startsWith('?? artifacts/') &&
-        !line.startsWith('?? docs/plans/2026-11-04-market-intelligence-2/'),
-    );
+    .filter((line) => {
+      const file = line.slice(3);
+      return ![
+        artifactPath,
+        'artifacts/',
+        'docs/plans/2026-11-04-market-intelligence-2/',
+      ].some((path) => file.startsWith(path));
+    });
   assert(dirty.length === 0, `dirty source worktree: ${dirty.join(', ')}`);
 }
 

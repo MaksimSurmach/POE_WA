@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: e2e-only
       POSTGRES_USER: e2e
     healthcheck:
-      test: [CMD-SHELL, pg_isready -U e2e -d poe_worksmith_e2e]
+      test: [CMD-SHELL, pg_isready -h 127.0.0.1 -U e2e -d poe_worksmith_e2e]
       interval: 2s
       timeout: 2s
       retries: 30
@@ -32,6 +32,7 @@ services:
       MARKET_COLLECTION_SOURCE: disabled
       POE_TRADE_ACCESS: disabled
       POE_USER_AGENT: 'OAuth poe-worksmith-e2e/1.0 (offline fixture)'
+      PG_BOSS_SCHEMA: pgboss
       LOG_LEVEL: info
     depends_on:
       postgres: { condition: service_healthy }

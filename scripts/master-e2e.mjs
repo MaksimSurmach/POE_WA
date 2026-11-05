@@ -27,8 +27,15 @@ const assert = (ok, message) => {
 };
 const failureStatus = (error) => {
   const args = error.command === 'docker' ? (error.commandArgs ?? []) : [];
-  return error.command === 'docker' &&
-    !['exec', 'run', 'up'].some((name) => args.includes(name))
+  const engineFailure =
+    error.code ||
+    /cannot connect to the Docker daemon|error during connect|no space left on device|context deadline exceeded|failed to dial|connection refused|network is unreachable|i\/o timeout|error response from daemon/i.test(
+      error.stderr ?? '',
+    );
+  const workloadCommand = ['exec', 'run', 'up', 'restart'].some((name) =>
+    args.includes(name),
+  );
+  return engineFailure || (error.command === 'docker' && !workloadCommand)
     ? 'INFRA_BLOCKED'
     : 'FAIL';
 };
@@ -54,12 +61,21 @@ export function validateOwnership(labels, expected) {
 async function run(command, commandArgs, options = {}) {
   if (interrupted && !cleaningUp) throw new Error('E2E harness interrupted');
   await new Promise((resolve, reject) => {
-    const child = spawn(command, commandArgs, { stdio: 'inherit', ...options });
+    const child = spawn(command, commandArgs, {
+      stdio: ['ignore', 'inherit', 'pipe'],
+      ...options,
+    });
     activeChild = child;
+    let stderr = '';
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk;
+      process.stderr.write(chunk);
+    });
     child.on('error', (error) => {
       if (activeChild === child) activeChild = undefined;
       error.command = command;
       error.commandArgs = commandArgs;
+      error.stderr = stderr;
       reject(error);
     });
     child.on('exit', (code) => {
@@ -69,6 +85,7 @@ async function run(command, commandArgs, options = {}) {
         const error = new Error(`${command} exited ${code}`);
         error.command = command;
         error.commandArgs = commandArgs;
+        error.stderr = stderr;
         reject(error);
       }
     });
@@ -78,16 +95,22 @@ async function capture(command, commandArgs, options = {}) {
   if (interrupted && !cleaningUp) throw new Error('E2E harness interrupted');
   return new Promise((resolve, reject) => {
     const child = spawn(command, commandArgs, {
-      stdio: ['ignore', 'pipe', 'inherit'],
+      stdio: ['ignore', 'pipe', 'pipe'],
       ...options,
     });
     activeChild = child;
     let output = '';
+    let stderr = '';
     child.stdout.on('data', (chunk) => (output += chunk));
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk;
+      process.stderr.write(chunk);
+    });
     child.on('error', (error) => {
       if (activeChild === child) activeChild = undefined;
       error.command = command;
       error.commandArgs = commandArgs;
+      error.stderr = stderr;
       reject(error);
     });
     child.on('exit', (code) => {
@@ -97,6 +120,7 @@ async function capture(command, commandArgs, options = {}) {
         const error = new Error(`${command} exited ${code}`);
         error.command = command;
         error.commandArgs = commandArgs;
+        error.stderr = stderr;
         reject(error);
       }
     });
@@ -199,6 +223,18 @@ const databaseNow = (compose, env) =>
     'select to_char(now() at time zone \'UTC\',\'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"\')',
   );
 
+async function containerStartedAt(compose, env, service) {
+  const container = await capture('docker', [...compose, 'ps', '-q', service], {
+    env,
+  });
+  assert(container, `${service} container is missing`);
+  return capture(
+    'docker',
+    ['inspect', '--format', '{{.State.StartedAt}}', container],
+    { env },
+  );
+}
+
 function collectPassedTestIds(report) {
   const ids = new Set();
   const visit = (suite) => {
@@ -245,6 +281,21 @@ async function selfCheck() {
   const heartbeat = new Date().toISOString();
   assertWorkerHeartbeat(heartbeat);
   assertWorkerHeartbeat(new Date(Date.now() + 1_000).toISOString(), heartbeat);
+  assert(
+    failureStatus({
+      command: 'docker',
+      commandArgs: ['compose', 'restart', 'postgres'],
+    }) === 'FAIL',
+    'workload restart failure was classified as infrastructure',
+  );
+  assert(
+    failureStatus({
+      command: 'docker',
+      commandArgs: ['compose', 'up'],
+      stderr: 'Cannot connect to the Docker daemon',
+    }) === 'INFRA_BLOCKED',
+    'Docker daemon failure was classified as a workload failure',
+  );
   try {
     assertWorkerHeartbeat(new Date(Date.now() - 30_000).toISOString());
     throw new Error('heartbeat check accepted a stale worker');
@@ -273,6 +324,10 @@ async function selfCheck() {
     'test receipt included an invalid ID',
   );
   assertCleanSource('artifacts/candidate', '?? artifacts/candidate/server.tar');
+  assertCleanSource(
+    'artifacts/candidate',
+    ' M docs/plans/2026-11-04-market-intelligence-2/implementation-notes.md',
+  );
   try {
     assertCleanSource('artifacts/candidate', ' M scripts/master-e2e.mjs');
     throw new Error('dirty source check accepted a modified file');
@@ -526,64 +581,82 @@ else {
     }
     return names;
   };
-  const existingResources = [
-    ...(await existing(
-      ['ps', '-aq', '--filter', `label=com.docker.compose.project=${project}`],
-      'container',
-    )),
-    ...(await existing(
-      [
+  try {
+    const existingResources = [
+      ...(await existing(
+        [
+          'ps',
+          '-aq',
+          '--filter',
+          `label=com.docker.compose.project=${project}`,
+        ],
+        'container',
+      )),
+      ...(await existing(
+        [
+          'volume',
+          'ls',
+          '-q',
+          '--filter',
+          `label=com.docker.compose.project=${project}`,
+        ],
         'volume',
-        'ls',
-        '-q',
-        '--filter',
-        `label=com.docker.compose.project=${project}`,
-      ],
-      'volume',
-    )),
-    ...(await existing(
-      [
+      )),
+      ...(await existing(
+        [
+          'network',
+          'ls',
+          '-q',
+          '--filter',
+          `label=com.docker.compose.project=${project}`,
+        ],
         'network',
-        'ls',
-        '-q',
-        '--filter',
-        `label=com.docker.compose.project=${project}`,
-      ],
-      'network',
-    )),
-  ];
-  for (const [kind, name] of [
-    ['volume', `${project}_pgdata`],
-    ['network', `${project}_app`],
-    ['network', `${project}_browser`],
-  ]) {
-    const listArgs =
-      kind === 'volume'
-        ? ['volume', 'ls', '-q', '--filter', `name=${name}`]
-        : [
-            'network',
-            'ls',
-            '--format',
-            '{{.Name}}',
-            '--filter',
-            `name=${name}`,
-          ];
-    const matches = (await capture('docker', listArgs, { env }))
-      .split(/\s+/)
-      .filter((resource) => resource === name);
-    existingResources.push(...matches);
-    for (const resource of matches) {
-      const details = JSON.parse(
-        await capture('docker', [kind, 'inspect', resource], { env }),
-      );
-      validateOwnership(details[0].Labels ?? {}, expectedOwner);
+      )),
+    ];
+    for (const [kind, name] of [
+      ['volume', `${project}_pgdata`],
+      ['network', `${project}_app`],
+      ['network', `${project}_browser`],
+    ]) {
+      const listArgs =
+        kind === 'volume'
+          ? ['volume', 'ls', '-q', '--filter', `name=${name}`]
+          : [
+              'network',
+              'ls',
+              '--format',
+              '{{.Name}}',
+              '--filter',
+              `name=${name}`,
+            ];
+      const matches = (await capture('docker', listArgs, { env }))
+        .split(/\s+/)
+        .filter((resource) => resource === name);
+      existingResources.push(...matches);
+      for (const resource of matches) {
+        const details = JSON.parse(
+          await capture('docker', [kind, 'inspect', resource], { env }),
+        );
+        validateOwnership(details[0].Labels ?? {}, expectedOwner);
+      }
     }
+    assert(
+      existingResources.length === 0,
+      'E2E resources already exist; refusing stale state',
+    );
+  } catch (error) {
+    await writeFile(
+      verdictPath,
+      receipt(
+        failureStatus(error),
+        metadata,
+        `resource preflight: ${error.message}`,
+      ),
+    );
+    throw error;
   }
-  assert(
-    existingResources.length === 0,
-    'E2E resources already exist; refusing stale state',
-  );
   let passVerdict;
+  let runError;
   let cleanupError;
   try {
     await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
@@ -732,11 +805,18 @@ else {
       env,
       "insert into market_admin_audit(actor,action,details) values ('master-e2e','restart-sentinel','{}'::jsonb) returning id",
     );
+    const appStartedAtBeforeRestart = await containerStartedAt(
+      compose,
+      env,
+      'app',
+    );
+    const webStartedAtBeforeRestart = await containerStartedAt(
+      compose,
+      env,
+      'web',
+    );
     await run('docker', [...compose, 'restart', 'postgres'], { env });
     await run('docker', [...compose, 'up', '-d', '--wait', 'postgres'], {
-      env,
-    });
-    await run('docker', [...compose, 'up', '-d', '--wait', 'app', 'web'], {
       env,
     });
     await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
@@ -744,6 +824,20 @@ else {
       (await readMigrationState(compose, env)) ===
         migrationStateAfterRepeatMigration,
       'restart changed the applied migration journal',
+    );
+    await run('docker', [...compose, 'restart', 'app', 'web'], { env });
+    await run('docker', [...compose, 'up', '-d', '--wait', 'app', 'web'], {
+      env,
+    });
+    assert(
+      (await containerStartedAt(compose, env, 'app')) !==
+        appStartedAtBeforeRestart,
+      'app container did not restart',
+    );
+    assert(
+      (await containerStartedAt(compose, env, 'web')) !==
+        webStartedAtBeforeRestart,
+      'web container did not restart',
     );
     await waitForWorkerHeartbeat(compose, env, await databaseNow(compose, env));
     const recipeStateAfterRestart = await readRecipeState(compose, env);
@@ -771,14 +865,14 @@ else {
     passVerdict = receipt(
       'PASS',
       metadata,
-      'checks=migrations,catalog,api,worker,acl,boot,restart',
+      'checks=migrations,catalog,api,worker,acl,boot,postgres-restart,app-restart,web-restart',
     );
   } catch (error) {
+    runError = error;
     await writeFile(
       verdictPath,
       receipt(failureStatus(error), metadata, error.message),
     );
-    throw error;
   } finally {
     cleaningUp = true;
     try {
@@ -791,7 +885,7 @@ else {
         diagnostic(
           compose,
           env,
-          'select status,count(*) from jobs group by status order by status',
+          "select q.name,coalesce(j.state::text,'empty'),count(j.id) from pgboss.queue q left join pgboss.job j on j.name=q.name group by q.name,j.state order by q.name,j.state",
         ),
         diagnostic(
           compose,
@@ -867,6 +961,36 @@ else {
           [...compose, 'down', '--volumes', '--remove-orphans'],
           { env },
         );
+      const [remainingContainers, remainingVolumes, remainingNetworks] =
+        await Promise.all([
+          capture('docker', [...compose, 'ps', '-aq'], { env }),
+          capture(
+            'docker',
+            [
+              'volume',
+              'ls',
+              '-q',
+              '--filter',
+              `label=com.docker.compose.project=${project}`,
+            ],
+            { env },
+          ),
+          capture(
+            'docker',
+            [
+              'network',
+              'ls',
+              '-q',
+              '--filter',
+              `label=com.docker.compose.project=${project}`,
+            ],
+            { env },
+          ),
+        ]);
+      assert(
+        !remainingContainers && !remainingVolumes && !remainingNetworks,
+        'owned resources remain after teardown',
+      );
     } catch (error) {
       cleanupError = error;
     }
@@ -874,10 +998,15 @@ else {
   if (cleanupError) {
     await writeFile(
       verdictPath,
-      receipt('FAIL', metadata, `cleanup=${cleanupError.message}`),
+      receipt(
+        'FAIL',
+        metadata,
+        `cleanup=${cleanupError.message}${runError ? ` original=${runError.message}` : ''}`,
+      ),
     );
     throw cleanupError;
   }
+  if (runError) throw runError;
   if (interrupted) {
     await writeFile(
       verdictPath,
