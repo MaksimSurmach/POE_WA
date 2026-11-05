@@ -27,15 +27,22 @@ const assert = (ok, message) => {
 };
 const failureStatus = (error) => {
   const args = error.command === 'docker' ? (error.commandArgs ?? []) : [];
-  const engineFailure =
-    error.code ||
-    /cannot connect to the Docker daemon|error during connect|no space left on device|context deadline exceeded|failed to dial|connection refused|network is unreachable|i\/o timeout|error response from daemon/i.test(
-      error.stderr ?? '',
-    );
   const workloadCommand = ['exec', 'run', 'up', 'restart'].some((name) =>
     args.includes(name),
   );
-  return engineFailure || (error.command === 'docker' && !workloadCommand)
+  const stderr = error.stderr ?? '';
+  const daemonUnavailable =
+    /cannot connect to the Docker daemon|error during connect/i.test(stderr);
+  const infrastructureFailure =
+    error.spawnFailure ||
+    daemonUnavailable ||
+    (!workloadCommand &&
+      /no space left on device|context deadline exceeded|failed to dial|network is unreachable|i\/o timeout/i.test(
+        stderr,
+      ));
+  return (
+    infrastructureFailure || (error.command === 'docker' && !workloadCommand)
+  )
     ? 'INFRA_BLOCKED'
     : 'FAIL';
 };
@@ -76,9 +83,10 @@ async function run(command, commandArgs, options = {}) {
       error.command = command;
       error.commandArgs = commandArgs;
       error.stderr = stderr;
+      error.spawnFailure = true;
       reject(error);
     });
-    child.on('exit', (code) => {
+    child.on('close', (code) => {
       if (activeChild === child) activeChild = undefined;
       if (code === 0) resolve();
       else {
@@ -93,10 +101,11 @@ async function run(command, commandArgs, options = {}) {
 }
 async function capture(command, commandArgs, options = {}) {
   if (interrupted && !cleaningUp) throw new Error('E2E harness interrupted');
+  const { preserveOutput = false, ...spawnOptions } = options;
   return new Promise((resolve, reject) => {
     const child = spawn(command, commandArgs, {
       stdio: ['ignore', 'pipe', 'pipe'],
-      ...options,
+      ...spawnOptions,
     });
     activeChild = child;
     let output = '';
@@ -111,11 +120,12 @@ async function capture(command, commandArgs, options = {}) {
       error.command = command;
       error.commandArgs = commandArgs;
       error.stderr = stderr;
+      error.spawnFailure = true;
       reject(error);
     });
-    child.on('exit', (code) => {
+    child.on('close', (code) => {
       if (activeChild === child) activeChild = undefined;
-      if (code === 0) resolve(output.trim());
+      if (code === 0) resolve(preserveOutput ? output : output.trim());
       else {
         const error = new Error(`${command} exited ${code}`);
         error.command = command;
@@ -296,6 +306,28 @@ async function selfCheck() {
     }) === 'INFRA_BLOCKED',
     'Docker daemon failure was classified as a workload failure',
   );
+  assert(
+    failureStatus({
+      command: 'docker',
+      commandArgs: ['compose', 'exec', 'postgres', 'psql'],
+      stderr: 'psql: connection refused',
+    }) === 'FAIL',
+    'database workload failure was classified as infrastructure',
+  );
+  assert(
+    failureStatus({
+      command: 'docker',
+      commandArgs: ['compose', 'run', 'migrate'],
+      stderr: 'Error response from daemon: failed to create task',
+    }) === 'FAIL',
+    'container workload failure was classified as infrastructure',
+  );
+  assert(
+    failureStatus({ command: 'node', code: 'ENOENT' }) === 'FAIL' &&
+      failureStatus({ command: 'node', code: 'ENOENT', spawnFailure: true }) ===
+        'INFRA_BLOCKED',
+    'only spawn errors should be classified as infrastructure',
+  );
   try {
     assertWorkerHeartbeat(new Date(Date.now() - 30_000).toISOString());
     throw new Error('heartbeat check accepted a stale worker');
@@ -323,16 +355,32 @@ async function selfCheck() {
     testIds.join(',') === 'ACL-PUBLIC-01,BOOT-01',
     'test receipt included an invalid ID',
   );
-  assertCleanSource('artifacts/candidate', '?? artifacts/candidate/server.tar');
   assertCleanSource(
     'artifacts/candidate',
-    ' M docs/plans/2026-11-04-market-intelligence-2/implementation-notes.md',
+    '?? artifacts/candidate/server.tar\0',
+  );
+  assertCleanSource(
+    'artifacts/candidate',
+    ' M docs/plans/2026-11-04-market-intelligence-2/implementation-notes.md\0',
   );
   try {
-    assertCleanSource('artifacts/candidate', ' M scripts/master-e2e.mjs');
+    assertCleanSource('artifacts/candidate', ' M scripts/master-e2e.mjs\0');
     throw new Error('dirty source check accepted a modified file');
   } catch (error) {
     if (error.message === 'dirty source check accepted a modified file')
+      throw error;
+  }
+  try {
+    assertCleanSource(
+      'artifacts/candidate',
+      'R  scripts/master-e2e.mjs\0docs/plans/2026-11-04-market-intelligence-2/master-e2e.mjs\0',
+    );
+    throw new Error('dirty source check accepted a rename into runtime source');
+  } catch (error) {
+    if (
+      error.message ===
+      'dirty source check accepted a rename into runtime source'
+    )
       throw error;
   }
   validateOwnership(
@@ -485,7 +533,11 @@ else {
   const artifactRoot = path.resolve(path.dirname(manifestPath));
   assertCleanSource(
     artifactRoot,
-    await capture('git', ['status', '--porcelain', '--untracked-files=all']),
+    await capture(
+      'git',
+      ['status', '--porcelain=v1', '-z', '--untracked-files=all'],
+      { preserveOutput: true },
+    ),
   );
   await verifyChecksum('pnpm-lock.yaml', manifest.lockfile.sha256);
   await verifyChecksum(
@@ -999,14 +1051,13 @@ else {
     await writeFile(
       verdictPath,
       receipt(
-        'FAIL',
+        failureStatus(runError ?? cleanupError),
         metadata,
         `cleanup=${cleanupError.message}${runError ? ` original=${runError.message}` : ''}`,
       ),
     );
     throw cleanupError;
   }
-  if (runError) throw runError;
   if (interrupted) {
     await writeFile(
       verdictPath,
@@ -1014,5 +1065,6 @@ else {
     );
     throw new Error('E2E harness interrupted');
   }
+  if (runError) throw runError;
   await writeFile(verdictPath, passVerdict);
 }

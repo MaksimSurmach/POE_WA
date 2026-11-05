@@ -19,17 +19,23 @@ const assert = (ok, message) => {
 export function assertCleanSource(artifactRoot, status) {
   const artifactPath = `${path.relative(process.cwd(), artifactRoot)}/`;
   // Dockerfile copies selected runtime paths, so plan documents and artifacts do not enter images.
-  const dirty = status
-    .split('\n')
-    .filter(Boolean)
-    .filter((line) => {
-      const file = line.slice(3);
-      return ![
-        artifactPath,
-        'artifacts/',
-        'docs/plans/2026-11-04-market-intelligence-2/',
-      ].some((path) => file.startsWith(path));
-    });
+  const allowed = [
+    artifactPath,
+    'artifacts/',
+    'docs/plans/2026-11-04-market-intelligence-2/',
+  ];
+  const entries = status.split('\0').filter(Boolean);
+  const dirty = [];
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index];
+    const statusCode = entry.slice(0, 2);
+    const files = [entry.slice(3)];
+    if (statusCode.includes('R') || statusCode.includes('C'))
+      files.push(entries[++index] ?? '');
+    for (const file of files) {
+      if (!allowed.some((prefix) => file.startsWith(prefix))) dirty.push(file);
+    }
+  }
   assert(dirty.length === 0, `dirty source worktree: ${dirty.join(', ')}`);
 }
 
@@ -83,9 +89,11 @@ export async function createMasterE2EManifest(outputPath) {
   const artifactRoot = path.dirname(outputPath);
   assertCleanSource(
     artifactRoot,
-    execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], {
-      encoding: 'utf8',
-    }),
+    execFileSync(
+      'git',
+      ['status', '--porcelain=v1', '-z', '--untracked-files=all'],
+      { encoding: 'utf8' },
+    ),
   );
   const sha =
     process.env.GITHUB_SHA ??
