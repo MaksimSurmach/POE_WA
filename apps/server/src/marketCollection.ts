@@ -686,12 +686,20 @@ export class MarketCollectionManager {
       : this.#adapter.descriptor;
   }
 
-  async start(intervalMs = 30_000) {
+  async start(intervalMs = 30_000, onTickError?: (error: unknown) => void) {
     if (this.#timer) return;
     this.#accessBlocked = await this.#persistedSourceBlock();
     await this.#recoverRunningRuns();
-    this.#timer = setInterval(() => this.#track(this.tick()), intervalMs);
-    await this.tick();
+    this.#timer = setInterval(
+      () =>
+        this.#track(
+          this.tick(onTickError).catch((error: unknown) =>
+            onTickError?.(error),
+          ),
+        ),
+      intervalMs,
+    );
+    await this.tick(onTickError);
   }
 
   async stop() {
@@ -864,7 +872,7 @@ export class MarketCollectionManager {
     return requested;
   }
 
-  async tick() {
+  async tick(onRunError?: (error: unknown) => void) {
     await this.#recoverRunningRuns();
     this.#accessBlocked ||= await this.#persistedSourceBlock();
     if (this.source.access === 'blocked') return;
@@ -905,7 +913,9 @@ export class MarketCollectionManager {
         setting.nextRunAt,
       );
       if (!claimed) continue;
-      await this.runNow(target.id, 'scheduled').catch(() => undefined);
+      await this.runNow(target.id, 'scheduled').catch((error: unknown) =>
+        onRunError?.(error),
+      );
     }
   }
 

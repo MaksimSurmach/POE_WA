@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { once } from 'node:events';
 import { DomainError } from '@poe-worksmith/domain';
 import { marketAdminSettingsSchema } from '@poe-worksmith/contracts';
 import { z } from 'zod';
@@ -18,9 +19,12 @@ async function main() {
   const [command, targetId] = process.argv.slice(2);
   if (
     command !== 'store-session' &&
-    (command !== 'collect' || !z.uuid().safeParse(targetId).success)
+    (!['collect', 'serve'].includes(command ?? '') ||
+      !z.uuid().safeParse(targetId).success)
   ) {
-    console.error('Usage: market:trade store-session | collect <target-id>');
+    console.error(
+      'Usage: market:trade store-session | collect <target-id> | serve <target-id>',
+    );
     process.exitCode = 2;
     return;
   }
@@ -31,23 +35,35 @@ async function main() {
     15_000,
   );
   try {
-    const lock = await pool.connect();
-    try {
-      await lock.query('begin');
-      const lease = await lock.query<{ acquired: boolean }>(
-        "select pg_try_advisory_xact_lock(hashtext('poe-worksmith:trade-collection')) as acquired",
-      );
-      if (!lease.rows[0]?.acquired)
-        throw new DomainError('MARKET_COLLECTION_BUSY');
-      await runCommand(command, targetId, pool, lock);
-      await lock.query('commit');
-      if (command === 'store-session')
-        console.log(JSON.stringify({ status: 'session_stored' }));
-    } finally {
-      lock.release(true);
-    }
+    if (command === 'serve')
+      return await runCommand(command, targetId, pool, pool);
+    await withTradeLock(pool, (client) =>
+      runCommand(command, targetId, pool, client),
+    );
+    if (command === 'store-session')
+      console.log(JSON.stringify({ status: 'session_stored' }));
   } finally {
     await pool.end();
+  }
+}
+
+async function withTradeLock<T>(
+  pool: Pool,
+  work: (client: PoolClient) => Promise<T>,
+) {
+  const lock = await pool.connect();
+  try {
+    await lock.query('begin');
+    const lease = await lock.query<{ acquired: boolean }>(
+      "select pg_try_advisory_xact_lock(hashtext('poe-worksmith:trade-collection')) as acquired",
+    );
+    if (!lease.rows[0]?.acquired)
+      throw new DomainError('MARKET_COLLECTION_BUSY');
+    const result = await work(lock);
+    await lock.query('commit');
+    return result;
+  } finally {
+    lock.release(true);
   }
 }
 
@@ -55,7 +71,7 @@ async function runCommand(
   command: string | undefined,
   targetId: string | undefined,
   pool: Pool,
-  client: PoolClient,
+  client: Pick<Pool, 'query'>,
 ) {
   const sessions = createTradeSessionRepository(
     client,
@@ -91,23 +107,107 @@ async function runCommand(
   const rateLimits = new GggRateLimitController({
     repository: createPostgresRepositories(pool).rateLimits,
   });
-  const adapter = configuredCollectionSource(
-    rateLimits,
-    {
-      MARKET_COLLECTION_SOURCE: 'trade-compatible',
-      POE_TRADE_ACCESS: 'owner_permitted',
-      POE_TRADE_BASE_URL: 'https://www.pathofexile.com',
-      POE_TRADE_SESSION_ID: session,
-      POE_TRADE_USER_AGENT: process.env.POE_TRADE_USER_AGENT,
-    },
-    createMarketEconomyRepository(pool),
-    async () => (await readSettings()).requestTimeoutMs,
-  );
+  const makeAdapter = (sessionId: string) =>
+    configuredCollectionSource(
+      rateLimits,
+      {
+        MARKET_COLLECTION_SOURCE: 'trade-compatible',
+        POE_TRADE_ACCESS: 'owner_permitted',
+        POE_TRADE_BASE_URL: 'https://www.pathofexile.com',
+        POE_TRADE_SESSION_ID: sessionId,
+        POE_TRADE_USER_AGENT: process.env.POE_TRADE_USER_AGENT,
+      },
+      createMarketEconomyRepository(pool),
+      async () => (await readSettings()).requestTimeoutMs,
+    );
+  const adapter = makeAdapter(session);
   if (!targetId) throw new DomainError('MARKET_TARGET_NOT_FOUND');
+  const store = createMarketCollectionRepository(pool);
+  if (command === 'serve') {
+    const manager = new MarketCollectionManager({
+      adapter: {
+        ...adapter,
+        collect: (input) =>
+          withTradeLock(pool, async (locked) => {
+            const current = await createTradeSessionRepository(
+              locked,
+              process.env.POE_TRADE_SESSION_KEY,
+            ).read();
+            if (!current) throw new DomainError('PROVIDER_AUTH_FAILED');
+            const source = makeAdapter(current);
+            try {
+              return await source.collect({
+                ...input,
+                signal: AbortSignal.any([
+                  input.signal,
+                  AbortSignal.timeout(90_000),
+                ]),
+              });
+            } finally {
+              await source.close();
+            }
+          }),
+      },
+      store: {
+        ...store,
+        async listSettings() {
+          const settings = await store.findSettings(targetId);
+          return settings ? [settings] : [];
+        },
+        recoverRunningRuns: (at, ids) =>
+          store.recoverRunningRuns(at, ids, targetId),
+        async saveRun(run) {
+          const saved = await store.saveRun(run);
+          if (saved.status !== 'running')
+            console.log(
+              JSON.stringify({
+                event: 'trade_run',
+                runId: saved.id,
+                targetId,
+                status: saved.status,
+                coverage: saved.coverage,
+                listingCount: saved.listingCount,
+                snapshotId: saved.snapshotId,
+                errorCode: saved.errorCode,
+              }),
+            );
+          return saved;
+        },
+      },
+      readControls: async () => ({
+        collectionsPaused: (await readSettings()).collectionsPaused,
+        scheduledCollectionEnabled: true,
+        automaticRefreshEnabled: true,
+        collectionConcurrency: 1,
+      }),
+    });
+    const stop = new AbortController();
+    const abort = () => stop.abort();
+    process.once('SIGTERM', abort);
+    process.once('SIGINT', abort);
+    try {
+      console.log(JSON.stringify({ event: 'trade_scraper_started', targetId }));
+      await manager.start(30_000, (error) =>
+        console.error(
+          JSON.stringify({
+            event: 'trade_scheduler_error',
+            errorCode:
+              error instanceof DomainError ? error.code : 'MARKET_TICK_FAILED',
+          }),
+        ),
+      );
+      if (!stop.signal.aborted) await once(stop.signal, 'abort');
+    } finally {
+      process.off('SIGTERM', abort);
+      process.off('SIGINT', abort);
+      await manager.stop();
+      await adapter.close();
+    }
+    return;
+  }
   const settings = await readSettings();
   if (settings.collectionsPaused || !settings.manualRefreshEnabled)
     throw new DomainError('MARKET_COLLECTION_PAUSED');
-  const store = createMarketCollectionRepository(pool);
   await store.recoverRunningRuns(new Date().toISOString(), [], targetId);
   const manager = new MarketCollectionManager({ adapter, store });
   const controller = new AbortController();

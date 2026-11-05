@@ -21,6 +21,20 @@ import type {
   MarketCollectionStore,
 } from '../marketCollection.js';
 
+type CollectionSettingsRow = {
+  payload: Record<string, unknown>;
+  next_run_at: Date | null;
+  updated_at: Date;
+};
+
+function readCollectionSettings(row: CollectionSettingsRow) {
+  return marketCollectionSettingsSchema.parse({
+    ...row.payload,
+    nextRunAt: row.next_run_at?.toISOString() ?? null,
+    updatedAt: row.updated_at.toISOString(),
+  });
+}
+
 export function createMarketCollectionRepository(
   pool: Pool,
 ): MarketCollectionStore {
@@ -76,21 +90,17 @@ export function createMarketCollectionRepository(
         : null;
     },
     async findSettings(targetId) {
-      const result = await pool.query<{ payload: unknown }>(
-        'select payload from market_collection_settings where target_id = $1',
+      const result = await pool.query<CollectionSettingsRow>(
+        'select payload, next_run_at, updated_at from market_collection_settings where target_id = $1',
         [targetId],
       );
-      return result.rows[0]
-        ? marketCollectionSettingsSchema.parse(result.rows[0].payload)
-        : null;
+      return result.rows[0] ? readCollectionSettings(result.rows[0]) : null;
     },
     async listSettings() {
-      const result = await pool.query<{ payload: unknown }>(
-        'select payload from market_collection_settings order by target_id',
+      const result = await pool.query<CollectionSettingsRow>(
+        'select payload, next_run_at, updated_at from market_collection_settings order by target_id',
       );
-      return result.rows.map((row) =>
-        marketCollectionSettingsSchema.parse(row.payload),
-      );
+      return result.rows.map(readCollectionSettings);
     },
     async saveSettings(settings: MarketCollectionSettings) {
       const parsed = marketCollectionSettingsSchema.parse(settings);
@@ -125,13 +135,20 @@ export function createMarketCollectionRepository(
       const parsed = marketCollectionSettingsSchema.parse(settings);
       const result = await pool.query(
         `update market_collection_settings
-         set next_run_at = $3::timestamptz, updated_at = $4::timestamptz,
+         set next_run_at = ($3::text)::timestamptz, updated_at = ($4::text)::timestamptz,
              payload = jsonb_set(
                jsonb_set(payload, '{nextRunAt}', to_jsonb($3::text), true),
                '{updatedAt}', to_jsonb($4::text), true
              )
          where target_id = $1 and enabled and not paused
-           and next_run_at = $2::timestamptz and next_run_at <= $4::timestamptz
+           and next_run_at = $2::timestamptz and next_run_at <= ($4::text)::timestamptz
+           and not exists (
+             select 1 from market_collection_runs r
+             where r.target_id = market_collection_settings.target_id and r.status = 'running'
+           )
+           and not exists (
+             select 1 from market_collection_ownership where lease_expires_at > now()
+           )
          returning target_id`,
         [parsed.targetId, dueAt, parsed.nextRunAt, parsed.updatedAt],
       );

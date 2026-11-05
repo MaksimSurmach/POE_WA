@@ -727,6 +727,40 @@ describe('persistent managed market collection', () => {
     ).resolves.toMatchObject({ status: 'failed' });
   });
 
+  it('preserves ISO schedule timestamps and skips a target with a live run', async () => {
+    const target = await targets.saveTarget(makeTarget());
+    const due = {
+      targetId: target.id,
+      enabled: true,
+      paused: false,
+      intervalMinutes: 5,
+      nextRunAt: '2026-10-30T10:05:00.000Z',
+      updatedAt: '2026-10-30T10:00:00.000Z',
+    };
+    const next = {
+      ...due,
+      nextRunAt: '2026-10-30T10:10:00.000Z',
+      updatedAt: due.nextRunAt,
+    };
+    await repository.saveSettings(due);
+    const run = await repository.saveRun(makeRun(target.digest, target.id));
+    await expect(
+      repository.claimScheduledSettings(next, due.nextRunAt),
+    ).resolves.toBe(false);
+    await pool.query('delete from market_collection_runs where id=$1', [
+      run.id,
+    ]);
+    await expect(
+      repository.claimScheduledSettings(next, due.nextRunAt),
+    ).resolves.toBe(true);
+    await expect(repository.findSettings(target.id)).resolves.toEqual(next);
+    await pool.query(
+      "update market_collection_settings set payload=jsonb_set(payload,'{nextRunAt}',to_jsonb(next_run_at::text)) where target_id=$1",
+      [target.id],
+    );
+    await expect(repository.listSettings()).resolves.toEqual([next]);
+  });
+
   it('does not claim a schedule after a concurrent pause', async () => {
     const target = await targets.saveTarget(makeTarget());
     const due = {

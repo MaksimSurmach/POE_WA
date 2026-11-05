@@ -182,3 +182,26 @@ status, and coverage. The existing market API reads the resulting snapshot.
 The command respects persisted provider denials and manual collection controls.
 Storing a replacement session clears Trade HTTP 401 blocks while retaining
 HTTP 403 blocks and rate-limit windows.
+
+## Scheduled Trade collection on Home Assistant
+
+Build the server with `pnpm --filter @poe-worksmith/server... build`. Prepare its
+production dependencies with
+`pnpm --filter @poe-worksmith/server deploy --prod --legacy <staging-dir>`.
+Copy `services/market-trade-scraper` to the Home Assistant local apps directory,
+then copy the staged `package.json`, `node_modules` and current server `dist`
+into its `runtime` directory. Reload the app store and install
+`local_poe_trade_scraper`. The image runs the existing Trade adapter without
+Chromium, using the saved website session.
+
+Set the app's database DSN, encryption key and one saved target ID in its
+Supervisor options. Set that target's interval and enabled flag in
+`market_collection_settings`. The worker uses that target's schedule and
+respects the global collection pause. The application's general refresh
+scheduler is independent. The worker reads the stored Trade session for each run. Restart it after
+rotating an expired session if the previous credential blocked the worker.
+
+Inspect `ha apps logs local_poe_trade_scraper` for terminal runs and snapshot IDs.
+The shared rate limiter applies to all requests. A provider denial stops further
+requests until the access issue is resolved. A partial snapshot retains the
+observed listings and its coverage.

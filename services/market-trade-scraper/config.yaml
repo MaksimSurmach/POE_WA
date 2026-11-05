@@ -1,0 +1,18 @@
+name: POE Trade Scraper
+description: Collect market listings for one saved Worksmith profile
+version: '0.1.0'
+slug: poe_trade_scraper
+arch:
+  - aarch64
+  - amd64
+startup: application
+boot: manual
+init: false
+options:
+  database_url: ''
+  session_key: ''
+  target_id: ''
+schema:
+  database_url: password
+  session_key: password
+  target_id: str
