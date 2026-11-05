@@ -3,7 +3,9 @@ import { z } from 'zod';
 const postgresUrlSchema = z
   .url('Must be a valid PostgreSQL connection URL')
   .refine(
-    (value) => ['postgres:', 'postgresql:'].includes(new URL(value).protocol),
+    (value) =>
+      URL.canParse(value) &&
+      ['postgres:', 'postgresql:'].includes(new URL(value).protocol),
     'Must use the postgres:// or postgresql:// protocol',
   );
 
@@ -49,7 +51,11 @@ const environmentSchema = z
       });
     }
 
-    if (environment.APP_ENV === 'staging' && environment.DATABASE_URL) {
+    if (
+      environment.APP_ENV === 'staging' &&
+      environment.DATABASE_URL &&
+      URL.canParse(environment.DATABASE_URL)
+    ) {
       const databaseUrl = new URL(environment.DATABASE_URL);
       if (databaseUrl.searchParams.get('sslmode') !== 'require') {
         context.addIssue({
@@ -58,7 +64,13 @@ const environmentSchema = z
           path: ['DATABASE_URL'],
         });
       }
-      for (const parameter of ['ssl', 'sslcert', 'sslkey', 'sslrootcert']) {
+      for (const parameter of [
+        'ssl',
+        'sslcert',
+        'sslkey',
+        'sslrootcert',
+        'sslnegotiation',
+      ]) {
         if (databaseUrl.searchParams.has(parameter)) {
           context.addIssue({
             code: 'custom',

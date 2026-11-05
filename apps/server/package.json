@@ -8,7 +8,7 @@
     "db:check": "node dist/checkDatabase.js",
     "db:check:migrations": "drizzle-kit check --config drizzle.config.ts",
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
-    "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
+    "db:migrate": "pnpm --filter @poe-worksmith/server... build && node dist/migrate.js",
     "game-data:activate": "node --env-file-if-exists=../../.env.development dist/entrypoints/gameData.js activate",
     "game-data:import": "node --env-file-if-exists=../../.env.development dist/entrypoints/gameData.js import",
     "game-data:validate": "node dist/entrypoints/gameData.js validate",

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { loadDatabaseConfig } from './config.js';
+import {
+  EnvironmentConfigurationError,
+  loadDatabaseConfig,
+} from './config.js';
 
 describe('database environment configuration', () => {
   it('loads development configuration with bounded pool defaults', () => {
@@ -33,6 +36,25 @@ describe('database environment configuration', () => {
     );
   });
 
+  it('reports malformed database URLs without echoing credentials', () => {
+    let error: unknown;
+    try {
+      loadDatabaseConfig({
+        APP_ENV: 'staging',
+        DATABASE_SSL_MODE: 'require',
+        DATABASE_URL: 'not-a-url-with-password-secret',
+      });
+    } catch (caught) {
+      error = caught;
+    }
+
+    expect(error).toBeInstanceOf(EnvironmentConfigurationError);
+    expect((error as Error).message).toContain(
+      'DATABASE_URL: Must be a valid PostgreSQL connection URL',
+    );
+    expect((error as Error).message).not.toContain('password-secret');
+  });
+
   it('requires TLS for staging connections', () => {
     const databaseUrl =
       'postgresql://postgres.example:password@pooler.supabase.com:5432/postgres?sslmode=require';
@@ -53,6 +75,7 @@ describe('database environment configuration', () => {
     'postgresql://postgres:password@db.example/postgres?sslmode=require&ssl=0',
     'postgresql://postgres:password@db.example/postgres?sslmode=require&ssl=no-verify',
     'postgresql://postgres:password@db.example/postgres?sslmode=require&sslrootcert=system',
+    'postgresql://postgres:password@db.example/postgres?sslmode=require&sslnegotiation=direct',
   ])('rejects staging URLs that can override verified TLS', (databaseUrl) => {
     expect(() =>
       loadDatabaseConfig({
