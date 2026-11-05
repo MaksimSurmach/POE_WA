@@ -623,6 +623,36 @@ export function createPostgresRepositories(pool: Pool): Repositories {
           }
         });
       },
+      clearAuthenticationDenials(now) {
+        return mapRepositoryError(
+          'rateLimits',
+          'clearAuthenticationDenials',
+          async () => {
+            await pool.query(
+              `update rate_limit_states state
+               set last_status = null, updated_at = $1
+               where last_status = 401
+                 and (
+                   policy = any($2::text[])
+                   or policy in (
+                     select policy from rate_limit_endpoint_policies
+                     where endpoint = any($3::text[])
+                   )
+                 )`,
+              [
+                now,
+                [
+                  'poe-trade',
+                  'trade-search-request-limit',
+                  'trade-fetch-request-limit',
+                  'trade-exchange-request-limit',
+                ],
+                ['trade', 'trade-search', 'trade-fetch', 'trade-exchange'],
+              ],
+            );
+          },
+        );
+      },
       list() {
         return mapRepositoryError('rateLimits', 'list', async () => {
           const result = await pool.query<RateLimitStateSqlRow>(

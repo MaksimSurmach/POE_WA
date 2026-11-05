@@ -96,6 +96,7 @@ export interface RetentionRepository {
 
 export interface RateLimitRepository {
   acquire(input: RateLimitAcquireInput): Promise<RateLimitPermit>;
+  clearAuthenticationDenials?(now: Date): Promise<void>;
   list(): Promise<RateLimitState[]>;
   observe(input: RateLimitObservation): Promise<RateLimitState>;
 }

@@ -19,6 +19,7 @@ export type RateLimitedResponse = {
 };
 
 export interface RateLimitGate {
+  clearAuthenticationDenials?(): Promise<void>;
   observeResponse(
     endpoint: string,
     response: RateLimitedResponse,
@@ -81,6 +82,10 @@ export class GggRateLimitController implements RateLimitGate {
     ) {
       throw new TypeError('Rate-limit controller options are invalid');
     }
+  }
+
+  async clearAuthenticationDenials() {
+    await this.#repository.clearAuthenticationDenials?.(this.#clock());
   }
 
   async waitForPermit(

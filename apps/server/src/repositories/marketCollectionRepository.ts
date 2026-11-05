@@ -24,14 +24,15 @@ export function createMarketCollectionRepository(
   pool: Pool,
 ): MarketCollectionStore {
   return {
-    async isSourceBlocked(sourceId) {
+    async isSourceBlocked(sourceId, options) {
       const result = await pool.query<{ blocked: boolean }>(
         `select exists (
            select 1 from market_collection_runs
            where payload->>'sourceId' = $1
              and payload->>'errorCode' in ('PROVIDER_AUTH_FAILED', 'PROVIDER_ACCESS_DENIED', 'PROVIDER_CHALLENGE')
+             and ($2::boolean is not true or payload->>'errorCode' <> 'PROVIDER_AUTH_FAILED')
          ) as blocked`,
-        [sourceId],
+        [sourceId, options?.ignoreAuthFailures ?? false],
       );
       return result.rows[0]?.blocked ?? false;
     },

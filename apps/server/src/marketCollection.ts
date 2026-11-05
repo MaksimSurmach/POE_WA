@@ -48,6 +48,8 @@ export type MarketCollectionBatch = {
 
 export interface MarketCollectionAdapter {
   descriptor: MarketCollectionSource;
+  /** Current rate-limit state owns recovery; old run history remains audit-only. */
+  recoverableAuth?: boolean;
   collect(input: {
     target: MarketTarget;
     signal: AbortSignal;
@@ -64,6 +66,7 @@ export type MarketCollectionTransportResponse<T> = {
 };
 
 export interface MarketCollectionTransport {
+  reconnectAuthentication?(): Promise<boolean>;
   search(input: { signal: AbortSignal; target: MarketTarget }): Promise<
     MarketCollectionTransportResponse<{
       capturedAt: string | null;
@@ -89,7 +92,10 @@ export interface MarketCollectionTransport {
 }
 
 export interface MarketCollectionStore {
-  isSourceBlocked(sourceId: string): Promise<boolean>;
+  isSourceBlocked(
+    sourceId: string,
+    options?: { ignoreAuthFailures?: boolean },
+  ): Promise<boolean>;
   findTarget(id: string): Promise<MarketTarget | null>;
   findSettings(targetId: string): Promise<MarketCollectionSettings | null>;
   listSettings(): Promise<MarketCollectionSettings[]>;
@@ -193,6 +199,7 @@ export function createBatchedMarketCollectionSource(options: {
   let accessBlocked = false;
   return {
     descriptor: options.descriptor,
+    recoverableAuth: options.descriptor.id === 'trade-compatible',
     async collect({ target, signal, beforeRequest, onProgress }) {
       if (options.descriptor.access === 'blocked')
         throw new DomainError('MARKET_ACCESS_BLOCKED');
@@ -206,6 +213,9 @@ export function createBatchedMarketCollectionSource(options: {
           accessBlocked = true;
         },
         beforeRequest,
+        () =>
+          options.transport.reconnectAuthentication?.() ??
+          Promise.resolve(false),
       );
       if (
         !search.data ||
@@ -312,6 +322,9 @@ export function createBatchedMarketCollectionSource(options: {
               accessBlocked = true;
             },
             beforeRequest,
+            () =>
+              options.transport.reconnectAuthentication?.() ??
+              Promise.resolve(false),
           );
           const detailResponse = marketImportListingSchema
             .nullable()
@@ -403,7 +416,9 @@ async function rateLimitedRequest<T>(
   accessBlocked: () => boolean,
   blockAccess: () => void,
   beforeRequest?: () => Promise<void>,
+  reconnectAuthentication?: () => Promise<boolean>,
 ) {
+  let authenticationRetried = false;
   // Every retry re-enters the shared durable gate and checks current cancellation/settings.
   for (let attempt = 0; ; attempt += 1) {
     throwIfAborted(signal);
@@ -413,7 +428,27 @@ async function rateLimitedRequest<T>(
     await beforeRequest?.();
     throwIfAborted(signal);
     const response = await request();
-    if (response.status === 401 || response.status === 403) blockAccess();
+    if (response.status === 401) {
+      if (
+        !authenticationRetried &&
+        response.headers.get('x-poe-session-stale') === 'true'
+      ) {
+        authenticationRetried = true;
+        continue;
+      }
+      await rateLimits.observeResponse(endpoint, response);
+      if (
+        !authenticationRetried &&
+        reconnectAuthentication &&
+        (await reconnectAuthentication())
+      ) {
+        authenticationRetried = true;
+        continue;
+      }
+      blockAccess();
+      throw new DomainError('PROVIDER_AUTH_FAILED');
+    }
+    if (response.status === 403) blockAccess();
     const retryable =
       response.status === 429 || [500, 502, 503, 504].includes(response.status);
     if (retryable) {
@@ -435,7 +470,6 @@ async function rateLimitedRequest<T>(
     } else {
       await rateLimits.observeResponse(endpoint, response);
     }
-    if (response.status === 401) throw new DomainError('PROVIDER_AUTH_FAILED');
     if (response.status === 403)
       throw new DomainError(
         response.headers.get('cf-mitigated') === 'challenge'
@@ -611,9 +645,7 @@ export class MarketCollectionManager {
 
   async start(intervalMs = 30_000) {
     if (this.#timer) return;
-    this.#accessBlocked = await this.#store.isSourceBlocked(
-      this.#adapter.descriptor.id,
-    );
+    this.#accessBlocked = await this.#persistedSourceBlock();
     await this.#recoverRunningRuns();
     this.#timer = setInterval(() => this.#track(this.tick()), intervalMs);
     await this.tick();
@@ -700,8 +732,7 @@ export class MarketCollectionManager {
     const target = await this.#store.findTarget(targetId);
     if (!target) throw new DomainError('MARKET_TARGET_NOT_FOUND');
     const settings = await this.#store.findSettings(targetId);
-    if (await this.#store.isSourceBlocked(this.#adapter.descriptor.id))
-      this.#accessBlocked = true;
+    if (await this.#persistedSourceBlock()) this.#accessBlocked = true;
     if (settings?.paused) throw new DomainError('MARKET_COLLECTION_PAUSED');
     if (trigger === 'scheduled' && (!settings?.enabled || settings.paused))
       throw new DomainError('MARKET_COLLECTION_PAUSED');
@@ -792,9 +823,7 @@ export class MarketCollectionManager {
 
   async tick() {
     await this.#recoverRunningRuns();
-    this.#accessBlocked ||= await this.#store.isSourceBlocked(
-      this.#adapter.descriptor.id,
-    );
+    this.#accessBlocked ||= await this.#persistedSourceBlock();
     if (this.source.access === 'blocked') return;
     const controls = await this.#readControls?.();
     if (
@@ -842,6 +871,12 @@ export class MarketCollectionManager {
     void task.catch(() => undefined).finally(() => this.#tasks.delete(task));
   }
 
+  async #persistedSourceBlock() {
+    return this.#store.isSourceBlocked(this.#adapter.descriptor.id, {
+      ignoreAuthFailures: this.#adapter.recoverableAuth,
+    });
+  }
+
   async #recoverRunningRuns() {
     const activeRunIds = [...this.#activeRunIds.keys()];
     const cancelledRunIds = await this.#store.recoverRunningRuns(
@@ -887,7 +922,7 @@ export class MarketCollectionManager {
             const [settings, run, accessBlocked] = await Promise.all([
               this.#store.findSettings(target.id),
               this.#store.findRun(initial.id),
-              this.#store.isSourceBlocked(this.#adapter.descriptor.id),
+              this.#persistedSourceBlock(),
             ]);
             if (accessBlocked) throw new DomainError('MARKET_ACCESS_BLOCKED');
             if (
