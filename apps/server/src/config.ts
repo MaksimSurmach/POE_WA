@@ -65,7 +65,8 @@ const environmentSchema = z
       URL.canParse(environment.DATABASE_URL)
     ) {
       const databaseUrl = new URL(environment.DATABASE_URL);
-      if (databaseUrl.searchParams.get('sslmode') !== 'require') {
+      const sslModes = databaseUrl.searchParams.getAll('sslmode');
+      if (sslModes.length !== 1 || sslModes[0] !== 'require') {
         context.addIssue({
           code: 'custom',
           message: 'Must include sslmode=require when APP_ENV=staging',
@@ -78,6 +79,7 @@ const environmentSchema = z
         'sslkey',
         'sslrootcert',
         'sslnegotiation',
+        'uselibpqcompat',
       ]) {
         if (databaseUrl.searchParams.has(parameter)) {
           context.addIssue({
