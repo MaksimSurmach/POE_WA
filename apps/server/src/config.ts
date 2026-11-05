@@ -64,6 +64,13 @@ const environmentSchema = z
       environment.DATABASE_URL &&
       URL.canParse(environment.DATABASE_URL)
     ) {
+      if (/%(?![0-9a-f]{2})/i.test(environment.DATABASE_URL)) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Must use valid percent-encoding when APP_ENV=staging',
+          path: ['DATABASE_URL'],
+        });
+      }
       const databaseUrl = new URL(environment.DATABASE_URL);
       const sslModes = databaseUrl.searchParams.getAll('sslmode');
       if (sslModes.length !== 1 || sslModes[0] !== 'require') {

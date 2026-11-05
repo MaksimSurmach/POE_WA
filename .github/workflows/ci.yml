@@ -42,6 +42,24 @@ jobs:
       - run: pnpm test:contracts
       - run: pnpm test:e2e:master:self-check
       - run: pnpm db:check:migrations
+      - name: Verify staging Drizzle URL guard
+        shell: bash
+        run: |
+          for query in \
+            'sslmode=require&sslmode=disable' \
+            'sslmode=require&uselibpqcompat=true' \
+            'ssl%6Dode=require&x=%zz'; do
+            url="postgresql://postgres@127.0.0.1/postgres?$query"
+            if output=$(env -u TEST_DATABASE_URL APP_ENV=staging DATABASE_SSL_MODE=require DATABASE_URL="$url" pnpm --filter @poe-worksmith/server exec drizzle-kit check --config drizzle.config.ts 2>&1); then
+              echo "Unsafe staging URL was accepted: $query"
+              exit 1
+            fi
+            case "$output" in
+              *'Invalid database configuration: DATABASE_URL:'*) ;;
+              *) echo "$output"; exit 1 ;;
+            esac
+          done
+          env -u TEST_DATABASE_URL APP_ENV=staging DATABASE_SSL_MODE=require DATABASE_URL='postgresql://postgres@127.0.0.1/postgres?sslmode=require' pnpm --filter @poe-worksmith/server exec drizzle-kit check --config drizzle.config.ts
       - run: pnpm db:migrate
       - run: pnpm test:integration
       - run: pnpm test:e2e:backend

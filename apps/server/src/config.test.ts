@@ -91,6 +91,7 @@ describe('database environment configuration', () => {
     'postgresql://postgres:password@db.example/postgres?sslmode=require&sslrootcert=system',
     'postgresql://postgres:password@db.example/postgres?sslmode=require&sslnegotiation=direct',
     'postgresql://postgres:password@db.example/postgres?sslmode=require&uselibpqcompat=true',
+    'postgresql://postgres:password@db.example/postgres?ssl%6Dode=require&x=%zz',
   ])('rejects staging URLs that can override verified TLS', (databaseUrl) => {
     expect(() =>
       loadDatabaseConfig({
