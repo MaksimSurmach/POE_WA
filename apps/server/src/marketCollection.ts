@@ -873,7 +873,7 @@ export class MarketCollectionManager {
 
   async #persistedSourceBlock() {
     return this.#store.isSourceBlocked(this.#adapter.descriptor.id, {
-      ignoreAuthFailures: this.#adapter.recoverableAuth,
+      ignoreAuthFailures: Boolean(this.#adapter.recoverableAuth),
     });
   }
 

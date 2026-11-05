@@ -117,7 +117,7 @@ export class PoeTradeSessionManager {
       if (responseBody.byteLength > 4 * 1024 * 1024)
         throw new DomainError('PROVIDER_RESPONSE_INVALID');
       const nativeResponse = new Response(
-        [204, 205, 304].includes(status) ? null : responseBody,
+        [204, 205, 304].includes(status) ? null : new Uint8Array(responseBody),
         { status, headers: responseHeaders },
       );
       nativeResponse.headers.delete('x-poe-session-stale');

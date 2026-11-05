@@ -40,7 +40,7 @@ try {
   if (
     await createMarketCollectionRepository(pool).isSourceBlocked(
       'trade-compatible',
-      { ignoreAuthFailures: sessionManager?.sessionAvailable },
+      { ignoreAuthFailures: Boolean(sessionManager?.sessionAvailable) },
     )
   )
     throw new Error(
