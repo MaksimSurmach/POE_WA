@@ -294,6 +294,27 @@ function receipt(status, metadata, details = '') {
     .concat('\n');
 }
 
+async function loadManifest(file, verdictPath, metadata) {
+  try {
+    assert(file, 'manifest path is required');
+    const manifest = JSON.parse(await readFile(file, 'utf8'));
+    validateManifest(manifest);
+    await copyFile(file, path.join(path.dirname(verdictPath), 'manifest.json'));
+    metadata.manifest = manifest;
+    return manifest;
+  } catch (error) {
+    await writeFile(
+      verdictPath,
+      receipt(
+        'FAIL',
+        metadata,
+        `reason=manifest-invalid message=${encodeURIComponent(error.message)}`,
+      ),
+    );
+    throw error;
+  }
+}
+
 async function selfCheck() {
   const heartbeat = new Date().toISOString();
   assertWorkerHeartbeat(heartbeat);
@@ -540,6 +561,37 @@ async function selfCheck() {
       if (error.message === 'checksum check accepted modified artifact')
         throw error;
     }
+    const manifestFile = path.join(temp, 'manifest.json');
+    const verdictFile = path.join(temp, 'verdict.txt');
+    const metadata = {
+      type: 'local-candidate',
+      manifest: undefined,
+      harnessSha: 'unverified',
+      e2eRunId: 'self-check',
+      e2eAttempt: '1',
+      executedTestIds: [],
+    };
+    for (const [file, contents] of [
+      [undefined, undefined],
+      [manifestFile, '{'],
+      [manifestFile, '{}'],
+    ]) {
+      if (contents !== undefined) await writeFile(manifestFile, contents);
+      try {
+        await loadManifest(file, verdictFile, metadata);
+        throw new Error('manifest check accepted invalid input');
+      } catch (error) {
+        if (error.message === 'manifest check accepted invalid input')
+          throw error;
+      }
+      const verdict = await readFile(verdictFile, 'utf8');
+      assert(
+        verdict.startsWith('FAIL type=local-candidate') &&
+          verdict.includes('reason=manifest-invalid message=') &&
+          verdict.split('\n').length === 2,
+        'invalid manifest did not write a single-line FAIL receipt',
+      );
+    }
   } finally {
     await rm(temp, { recursive: true, force: true });
   }
@@ -555,20 +607,17 @@ else {
   await mkdir(output, { recursive: true });
   await writeFile(verdictPath, 'NOT_RUN: harness did not complete\n');
   const manifestPath = arg('--manifest');
-  assert(manifestPath, 'usage: pnpm test:e2e:master -- --manifest <path>');
-  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-  validateManifest(manifest);
-  await copyFile(manifestPath, path.join(output, 'manifest.json'));
   const e2eRunId = process.env.GITHUB_RUN_ID ?? `local-e2e-${process.pid}`;
   const e2eAttempt = process.env.GITHUB_RUN_ATTEMPT ?? '1';
   const metadata = {
     type: process.env.MASTER_BUILD_RUN_ID ? 'master-e2e' : 'local-candidate',
-    manifest,
+    manifest: undefined,
     harnessSha: 'unverified',
     e2eRunId,
     e2eAttempt,
     executedTestIds: [],
   };
+  const manifest = await loadManifest(manifestPath, verdictPath, metadata);
   await writeFile(
     verdictPath,
     receipt('FAIL', metadata, 'reason=preflight-did-not-complete'),
