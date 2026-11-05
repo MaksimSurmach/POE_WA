@@ -51,6 +51,8 @@ const failureStatus = (error, wasInterrupted = false) => {
     ? 'INFRA_BLOCKED'
     : 'FAIL';
 };
+const preflightStatus = (wasInterrupted) =>
+  wasInterrupted ? 'FAIL' : 'INFRA_BLOCKED';
 export async function verifyChecksum(file, expected) {
   assert((await sha256(file)) === expected, 'artifact checksum mismatch');
 }
@@ -353,6 +355,11 @@ async function selfCheck() {
   assert(
     failureStatus({ command: 'docker' }, true) === 'FAIL',
     'interruption was not classified as a failed run',
+  );
+  assert(
+    preflightStatus(false) === 'INFRA_BLOCKED' &&
+      preflightStatus(true) === 'FAIL',
+    'preflight blocker status was misclassified',
   );
   const capturedOutput = await capture(process.execPath, [
     '-e',
@@ -766,7 +773,7 @@ else {
     await writeFile(
       verdictPath,
       receipt(
-        failureStatus(error, interrupted),
+        preflightStatus(interrupted),
         metadata,
         `${interrupted ? 'reason=interrupted ' : ''}resource preflight: ${error.message}`,
       ),
