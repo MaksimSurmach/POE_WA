@@ -59,6 +59,8 @@ const failureStatus = (error, wasInterrupted = false) => {
 };
 const preflightStatus = (wasInterrupted) =>
   wasInterrupted ? 'FAIL' : 'INFRA_BLOCKED';
+const failureCause = (runError, cleanupError, evidenceError) =>
+  runError ?? cleanupError ?? evidenceError;
 export async function verifyChecksum(file, expected) {
   assert((await sha256(file)) === expected, 'artifact checksum mismatch');
 }
@@ -392,14 +394,11 @@ async function selfCheck() {
     'interruption was not classified as a failed run',
   );
   assert(
-    failureStatus(
-      {
-        command: 'docker',
-        commandArgs: ['image', 'inspect', 'missing:tag'],
-        stderr: 'Error response from daemon: No such image: missing:tag',
-      },
-      true,
-    ) === 'FAIL' &&
+    failureStatus({
+      command: 'docker',
+      commandArgs: ['image', 'inspect', 'missing:tag'],
+      stderr: 'Error response from daemon: No such image: missing:tag',
+    }) === 'FAIL' &&
       failureStatus({
         command: 'docker',
         commandArgs: ['image', 'inspect', 'missing:tag'],
@@ -410,7 +409,17 @@ async function selfCheck() {
         commandArgs: ['image', 'inspect', 'tag'],
         stderr: 'Cannot connect to the Docker daemon',
       }) === 'INFRA_BLOCKED',
-    'missing image or interrupted image inspection was misclassified',
+    'missing image or daemon failure was misclassified',
+  );
+  const dockerLogError = {
+    command: 'docker',
+    commandArgs: ['compose', 'logs', '--no-color'],
+    stderr: 'Docker log collection failed',
+  };
+  assert(
+    failureStatus(failureCause(undefined, undefined, dockerLogError)) ===
+      'INFRA_BLOCKED',
+    'Docker evidence failure was misclassified as a workload failure',
   );
   assert(
     preflightStatus(false) === 'INFRA_BLOCKED' &&
@@ -874,6 +883,7 @@ else {
   let passVerdict;
   let runError;
   let cleanupError;
+  let evidenceError;
   const evidenceErrors = [];
   try {
     await run('docker', [...compose, 'run', '--rm', 'migrate'], { env });
@@ -1114,7 +1124,10 @@ else {
         path.join(output, 'diagnostics.txt'),
         `Migration journal:\n${migrationJournal}\nQueue snapshot:\n${queueSnapshot}\nLast admin run:\n${lastRun}\n`,
       );
-      if (diagnosticsError) evidenceErrors.push(diagnosticsError.message);
+      if (diagnosticsError) {
+        evidenceError ??= diagnosticsError;
+        evidenceErrors.push(diagnosticsError.message);
+      }
       let logs;
       try {
         logs = await capture('docker', [...compose, 'logs', '--no-color'], {
@@ -1122,10 +1135,14 @@ else {
         });
       } catch (error) {
         logs = 'Unable to retrieve compose logs.';
+        evidenceError ??= error;
         evidenceErrors.push(error.message);
       }
       const logsError = await writeDiagnostic(composeLogPath, logs);
-      if (logsError) evidenceErrors.push(logsError.message);
+      if (logsError) {
+        evidenceError ??= logsError;
+        evidenceErrors.push(logsError.message);
+      }
       const ids = (await capture('docker', [...compose, 'ps', '-aq'], { env }))
         .split(/\s+/)
         .filter(Boolean);
@@ -1221,11 +1238,16 @@ else {
     }
   }
   if (cleanupError || evidenceErrors.length) {
-    const failure = cleanupError ?? new Error(evidenceErrors.join('; '));
+    const failure =
+      failureCause(runError, cleanupError, evidenceError) ??
+      new Error(evidenceErrors.join('; '));
     await writeFile(
       verdictPath,
       receipt(
-        failureStatus(runError ?? failure, interrupted),
+        failureStatus(
+          failureCause(runError, cleanupError, evidenceError) ?? failure,
+          interrupted,
+        ),
         metadata,
         `${interrupted ? 'reason=interrupted ' : ''}${cleanupError ? `cleanup=${cleanupError.message} ` : ''}${evidenceErrors.length ? `evidence=${evidenceErrors.join('; ')}` : ''}${runError ? ` original=${runError.message}` : ''}`,
       ),
