@@ -297,13 +297,17 @@ export class PoeTradeSessionManager {
     )
       return true;
     const title = await page.title().catch(() => '');
-    if (/just a moment|attention required|verify you are human/i.test(title))
+    if (
+      /just a moment|attention required|verify you are human|один момент|проверка безопасности/iu.test(
+        title,
+      )
+    )
       return true;
     const bodyText = await page
       .locator('body')
       .innerText()
       .catch(() => '');
-    return /verify you are human|complete the security check|checking your browser/i.test(
+    return /verify you are human|complete the security check|checking your browser|выполнение проверки безопасности|подтвердите, что вы человек/iu.test(
       bodyText,
     );
   }
