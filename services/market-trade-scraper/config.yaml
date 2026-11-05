@@ -1,5 +1,5 @@
 name: POE Trade Scraper
-description: Collect market listings for one saved Worksmith profile
+description: Collect market listings for enabled Worksmith profiles
 version: '0.1.0'
 slug: poe_trade_scraper
 arch:

@@ -17,13 +17,14 @@ import { createTradeSessionRepository } from '../repositories/tradeSessionReposi
 
 async function main() {
   const [command, targetId] = process.argv.slice(2);
+  const validTarget = z.uuid().safeParse(targetId).success;
   if (
     command !== 'store-session' &&
-    (!['collect', 'serve'].includes(command ?? '') ||
-      !z.uuid().safeParse(targetId).success)
+    !(command === 'collect' && validTarget) &&
+    !(command === 'serve' && (targetId === undefined || validTarget))
   ) {
     console.error(
-      'Usage: market:trade store-session | collect <target-id> | serve <target-id>',
+      'Usage: market:trade store-session | collect <target-id> | serve [target-id]',
     );
     process.exitCode = 2;
     return;
@@ -121,7 +122,6 @@ async function runCommand(
       async () => (await readSettings()).requestTimeoutMs,
     );
   const adapter = makeAdapter(session);
-  if (!targetId) throw new DomainError('MARKET_TARGET_NOT_FOUND');
   const store = createMarketCollectionRepository(pool);
   if (command === 'serve') {
     const manager = new MarketCollectionManager({
@@ -151,6 +151,7 @@ async function runCommand(
       store: {
         ...store,
         async listSettings() {
+          if (!targetId) return store.listSettings();
           const settings = await store.findSettings(targetId);
           return settings ? [settings] : [];
         },
@@ -163,7 +164,7 @@ async function runCommand(
               JSON.stringify({
                 event: 'trade_run',
                 runId: saved.id,
-                targetId,
+                targetId: saved.targetId,
                 status: saved.status,
                 coverage: saved.coverage,
                 listingCount: saved.listingCount,
@@ -186,7 +187,12 @@ async function runCommand(
     process.once('SIGTERM', abort);
     process.once('SIGINT', abort);
     try {
-      console.log(JSON.stringify({ event: 'trade_scraper_started', targetId }));
+      console.log(
+        JSON.stringify({
+          event: 'trade_scraper_started',
+          targetId: targetId ?? null,
+        }),
+      );
       await manager.start(30_000, (error) =>
         console.error(
           JSON.stringify({
@@ -205,6 +211,7 @@ async function runCommand(
     }
     return;
   }
+  if (!targetId) throw new DomainError('MARKET_TARGET_NOT_FOUND');
   const settings = await readSettings();
   if (settings.collectionsPaused || !settings.manualRefreshEnabled)
     throw new DomainError('MARKET_COLLECTION_PAUSED');

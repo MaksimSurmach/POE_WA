@@ -12,8 +12,7 @@ try {
     typeof options.database_url !== 'string' ||
     !options.database_url ||
     !/^[a-fA-F0-9]{64}$/.test(options.session_key) ||
-    typeof options.target_id !== 'string' ||
-    !options.target_id
+    typeof options.target_id !== 'string'
   )
     throw new Error();
   Object.assign(process.env, {
@@ -29,7 +28,7 @@ try {
     process.execPath,
     'collectTrade.js',
     'serve',
-    options.target_id,
+    ...(options.target_id ? [options.target_id] : []),
   ];
   await import('./dist/entrypoints/collectTrade.js');
 } catch {

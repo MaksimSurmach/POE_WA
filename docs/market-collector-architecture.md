@@ -194,10 +194,17 @@ into its `runtime` directory. Reload the app store and install
 `local_poe_trade_scraper`. The image runs the existing Trade adapter without
 Chromium, using the saved website session.
 
-Set the app's database DSN, encryption key and one saved target ID in its
-Supervisor options. Set that target's interval and enabled flag in
-`market_collection_settings`. The worker uses that target's schedule and
-respects the global collection pause. The application's general refresh
+Set the app's database DSN and encryption key in its Supervisor options. With
+an empty target ID, the worker collects all enabled profiles in
+`market_collection_settings` one at a time. Set a target ID to restrict it to
+one profile. Both modes respect the global collection pause.
+
+With game data and Trade mappings loaded, run
+`node apps/server/dist/entrypoints/scheduleTradeCatalog.js` to preview the
+current league's recipe bases and outputs. Add `--apply` to create schedules
+for validated profiles. Existing schedules are preserved. New schedules run
+every 12 hours, with two initial targets due immediately and later targets
+staggered by 10 minutes. The application's general refresh
 scheduler is independent. The worker reads the stored Trade session for each run. Restart it after
 rotating an expired session if the previous credential blocked the worker.
 
