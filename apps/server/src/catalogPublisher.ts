@@ -25,7 +25,10 @@ import {
 } from './recipeMarket.js';
 import type { Logger } from 'pino';
 import type { Metrics } from './observability/metrics.js';
-import { convertMarketQuote } from './marketCurrency.js';
+import {
+  convertMarketQuote,
+  revalueSavedTradeListings,
+} from './marketCurrency.js';
 import {
   verifyEconomySnapshot,
   type MarketEconomyRepository,
@@ -729,6 +732,9 @@ async function evaluateFreshRecipe(
       ? (definition.craft.baseConsumption?.expectedBases ?? null)
       : null,
     currencyExchange: conversionEvidence.values().next().value ?? null,
+    ...(output?.marketExchange
+      ? { marketExchange: output.marketExchange }
+      : {}),
     expectedCost:
       expectedCraftCost === null
         ? null
@@ -807,6 +813,35 @@ async function resolveMarket(
     ...listing,
     indexedAt: new Date(listing.indexedAt),
   }));
+  const latestRate = context.currencyExchange;
+  const rateAt = latestRate
+    ? Date.parse(latestRate.verifiedAt ?? latestRate.capturedAt)
+    : 0;
+  let marketExchange = null;
+  if (
+    snapshot.dedupeKey.startsWith('scheduled-trade:') &&
+    latestRate &&
+    rateAt <= context.now.getTime() &&
+    rateAt + maximumQuoteAgeMs > context.now.getTime()
+  ) {
+    const rate = await convertMarketQuote({
+      money: { amount: '1', currency: 'divine' },
+      currency: 'chaos',
+      target: { league: context.league },
+      capturedAt: snapshot.capturedAt.toISOString(),
+      exchangeSnapshotId: latestRate.id,
+      economy: { find: async () => latestRate },
+      now: context.now.getTime(),
+      dataKind: 'observed',
+    });
+    if (rate?.exchange) {
+      const repriced = revalueSavedTradeListings(listings, rate.exchange);
+      if (repriced.some((row, index) => row !== listings[index])) {
+        listings = repriced;
+        marketExchange = rate.exchange;
+      }
+    }
+  }
   // An unconverted matching ask could be the true floor of this sorted sample.
   const unconverted = Boolean(
     tradeQuery.query.handbookTarget &&
@@ -893,6 +928,7 @@ async function resolveMarket(
       (payload.data.sortedSampleComplete ?? false),
     currencyAvailable,
     conversionAt,
+    marketExchange,
     snapshotExpiresAt: snapshot.expiresAt,
     marketQueryId: marketQuery.id,
     snapshotCapturedAt: snapshot.capturedAt,

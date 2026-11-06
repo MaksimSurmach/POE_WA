@@ -52,6 +52,7 @@ async function evaluate(
     maximumQuoteAgeMs?: number;
     sellers?: number;
     convertedAt?: string;
+    savedTrade?: boolean;
     convertedVerifiedAt?: string;
     economy?: StoredMarketEconomySnapshot;
     revalidatedAt?: string;
@@ -162,10 +163,15 @@ async function evaluate(
     if (dependency.kind === 'target' && options.convertedAt)
       listings[0]!.item = {
         ...listings[0]!.item,
+        ...(options.savedTrade
+          ? { originalCurrency: 'divine', originalPrice: 1.5 }
+          : {}),
         exchange: {
           capturedAt: options.convertedAt,
           league: league.gggId,
-          snapshotId: options.economy?.id ?? 'old-rate',
+          snapshotId: options.savedTrade
+            ? 'old-rate'
+            : (options.economy?.id ?? 'old-rate'),
           chaosPerDivine: 150,
           ...(options.convertedVerifiedAt
             ? { verifiedAt: options.convertedVerifiedAt }
@@ -186,7 +192,7 @@ async function evaluate(
     });
     await repositories.snapshots.save({
       capturedAt,
-      dedupeKey: `snapshot-${index}`,
+      dedupeKey: `${options.savedTrade ? 'scheduled-trade:' : ''}snapshot-${index}`,
       expiresAt: new Date(
         now.getTime() +
           (material ? (options.materialExpiryMinutes ?? 30) : 30) * minute,
@@ -459,6 +465,25 @@ describe('catalog input evidence', () => {
       methodCost: {
         oldestInputAt: verifiedAt,
         expiresAt: new Date(now.getTime() + 29 * minute).toISOString(),
+      },
+    });
+    const scheduled = await evaluate({
+      convertedAt: capturedAt,
+      economy: snapshot,
+      revalidatedAt: verifiedAt,
+      savedTrade: true,
+    });
+    expect(scheduled.evaluation).toMatchObject({
+      status: 'success',
+      estimatedSalePrice: '225',
+      methodCost: {
+        marketExchange: {
+          snapshotId: snapshot.id,
+          verifiedAt,
+          chaosPerDivine: 150,
+        },
+        oldestInputAt: verifiedAt,
+        source: { capturedAt: now.toISOString() },
       },
     });
   });
