@@ -70,14 +70,16 @@ export function createMarketResearchRepository(
       // The Raspberry scraper assigns independent IDs to runs and snapshots.
       const result = await pool.query<{ data: unknown }>(
         `with scheduled as materialized (
-          select distinct r.target_id, p."snapshotId" as snapshot_id
+          select distinct on (r.target_id, p."snapshotId") r.target_id, p."snapshotId" as snapshot_id,
+            p."reportedTotal" as reported_total, coalesce(p.inexact, false) as inexact
           from market_collection_runs r
-          cross join lateral jsonb_to_record(r.payload) as p("snapshotId" uuid, "sourceId" text, cached boolean)
+          cross join lateral jsonb_to_record(r.payload) as p("snapshotId" uuid, "sourceId" text, cached boolean, "reportedTotal" integer, inexact boolean)
           where r.trigger = 'scheduled' and r.status in ('succeeded', 'partial', 'empty')
             and r.completed_at >= $1 and r.started_at <= $2
             and p."sourceId" = 'trade-compatible' and p.cached = false and p."snapshotId" is not null
+          order by r.target_id, p."snapshotId", r.completed_at desc, r.id desc
         ), eligible as (
-          select s.id, s.target_id, s.captured_at, s.currency, s.summary,
+          select s.id, s.target_id, s.captured_at, s.currency, s.summary, r.reported_total, r.inexact,
             s.summary->>'queryDigest' as query_digest,
             s.summary->>'targetDigest' as target_digest,
             s.summary->>'league' as league, s.summary->>'patch' as patch
@@ -114,7 +116,8 @@ export function createMarketResearchRepository(
             'targetId', l.target_id, 'league', l.league, 'patch', l.patch, 'currency', l.currency,
             'points', (select jsonb_agg(jsonb_build_object(
               'id', e.id, 'capturedAt', e.summary->'capturedAt', 'median', e.summary->'median',
-              'count', e.summary->'count', 'coverage', coalesce(e.summary->>'coverage', 'unknown')
+              'count', e.summary->'count', 'coverage', coalesce(e.summary->>'coverage', 'unknown'),
+              'reportedTotal', e.reported_total, 'inexact', e.inexact
             ) order by e.captured_at, e.id)
               from eligible e where (e.target_id, e.query_digest, e.target_digest, e.league, e.patch, e.currency)
                 = (l.target_id, l.query_digest, l.target_digest, l.league, l.patch, l.currency))
@@ -122,7 +125,51 @@ export function createMarketResearchRepository(
         ) as data`,
         [start, end, targetId ?? null],
       );
-      return scheduledTradeTrendDataSchema.parse(result.rows[0]?.data);
+      const data = scheduledTradeTrendDataSchema.parse(result.rows[0]?.data);
+      const [previous, current] = data.series?.points.slice(-2) ?? [];
+      if (
+        !data.series ||
+        !previous ||
+        !current ||
+        previous.capturedAt >= current.capturedAt ||
+        previous.coverage !== 'complete' ||
+        current.coverage !== 'complete' ||
+        previous.inexact ||
+        current.inexact
+      )
+        return data;
+
+      const ids = await pool.query<{
+        id: string;
+        listings: Array<string | null>;
+      }>(
+        `select id, array(select listing->>'externalId' from jsonb_array_elements(listings) listing) as listings
+         from market_research_snapshots where id = any($1::uuid[])
+           and summary->>'rawAvailable' is distinct from 'false'`,
+        [[previous.id, current.id]],
+      );
+      const priorIds = ids.rows.find((row) => row.id === previous.id)?.listings;
+      const currentIds = ids.rows.find(
+        (row) => row.id === current.id,
+      )?.listings;
+      if (
+        !priorIds ||
+        !currentIds ||
+        priorIds.length < previous.count ||
+        currentIds.length < current.count ||
+        priorIds.some((id) => !id) ||
+        currentIds.some((id) => !id)
+      )
+        return data;
+
+      const prior = new Set(priorIds);
+      const present = new Set(currentIds);
+      data.series.activity = {
+        previousAt: previous.capturedAt,
+        missingCount: [...prior].filter((id) => !present.has(id)).length,
+        newCount: [...present].filter((id) => !prior.has(id)).length,
+      };
+      return data;
     },
     async listSnapshots() {
       const result = await pool.query<{ summary: unknown }>(

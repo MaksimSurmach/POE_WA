@@ -14,6 +14,7 @@ import {
   completeOutputLimit,
   isCompleteSortedPriceSample,
   type MarketCollectionAdapter,
+  type MarketCollectionBatch,
 } from '../marketCollection.js';
 import {
   recipeQueryTarget,
@@ -24,6 +25,77 @@ import type { ProviderCircuitGate } from '../circuitBreaker.js';
 import type { RateLimitGate } from '../rateLimitController.js';
 import { ProviderContractError } from './providerContractError.js';
 import type { Metrics } from '../observability/metrics.js';
+
+/** Interpret a saved or newly fetched batch under the same coverage rules. */
+export function collectionSearchResult(
+  batch: MarketCollectionBatch,
+  query: CanonicalJsonObject,
+  target: ReturnType<typeof recipeQueryTarget>,
+): MarketSearchResult {
+  if (!batch.capturedAt) throw new DomainError('PROVIDER_RESPONSE_INVALID');
+  const skippedOversizedOutput =
+    requiresCompleteOutputCoverage(query) &&
+    batch.coverage === 'partial' &&
+    batch.batchCount === 0 &&
+    Math.max(batch.returnedCount, batch.reportedTotal ?? 0) >
+      completeOutputLimit;
+  if (
+    (batch.reportedTotal ?? 0) > 0 &&
+    batch.fetchedCount === 0 &&
+    !skippedOversizedOutput
+  )
+    throw new DomainError('MARKET_COLLECTION_FAILED');
+  const fetchedAt = new Date(batch.capturedAt);
+  return {
+    provider: 'poe-trade',
+    fetchedAt,
+    coverage: batch.coverage,
+    sortedPageComplete:
+      !requiresCompleteOutputCoverage(query) &&
+      batch.sortedSampleComplete === undefined &&
+      batch.coverage === 'partial' &&
+      batch.inexact === false &&
+      batch.fetchedCount === batch.returnedCount &&
+      batch.returnedCount > 0 &&
+      (batch.reportedTotal ?? 0) > batch.returnedCount &&
+      z
+        .object({ sort: z.object({ price: z.literal('asc') }) })
+        .safeParse(batch.searchEvidence?.request).success,
+    sortedSampleComplete:
+      !requiresCompleteOutputCoverage(query) &&
+      batch.sortedSampleComplete === true &&
+      isCompleteSortedPriceSample(batch, target),
+    totalResults: batch.reportedTotal ?? batch.returnedCount,
+    listings: batch.listings.flatMap((row) =>
+      row.price === null ||
+      !row.currency ||
+      !row.externalId ||
+      typeof row.item.seller !== 'string'
+        ? []
+        : [
+            {
+              id: row.externalId,
+              account: row.item.seller,
+              ageSeconds: row.listedAt
+                ? Math.max(
+                    0,
+                    Math.floor(
+                      (fetchedAt.getTime() - Date.parse(row.listedAt)) / 1000,
+                    ),
+                  )
+                : 0,
+              indexedAt: new Date(row.listedAt ?? batch.capturedAt!),
+              fee:
+                row.fee === undefined
+                  ? null
+                  : { amount: String(row.fee), currency: 'gold' },
+              price: { amount: String(row.price), currency: row.currency },
+              item: { ...row.item, rawListing: row.rawListing ?? null },
+            },
+          ],
+    ),
+  };
+}
 
 const jsonValueSchema: z.ZodType<CanonicalJsonValue> = z.lazy(() =>
   z.union([
@@ -219,70 +291,7 @@ export class PoeTradeClient implements MarketSearchProvider {
           code.success ? code.data : 'MARKET_COLLECTION_FAILED',
         );
       }
-      if (!batch.capturedAt) throw new DomainError('PROVIDER_RESPONSE_INVALID');
-      const skippedOversizedOutput =
-        requiresCompleteOutputCoverage(request.query) &&
-        batch.coverage === 'partial' &&
-        batch.batchCount === 0 &&
-        Math.max(batch.returnedCount, batch.reportedTotal ?? 0) >
-          completeOutputLimit;
-      if (
-        (batch.reportedTotal ?? 0) > 0 &&
-        batch.fetchedCount === 0 &&
-        !skippedOversizedOutput
-      )
-        throw new DomainError('MARKET_COLLECTION_FAILED');
-      const fetchedAt = new Date(batch.capturedAt);
-      return {
-        provider: this.id,
-        fetchedAt,
-        coverage: batch.coverage,
-        sortedPageComplete:
-          !requiresCompleteOutputCoverage(request.query) &&
-          batch.sortedSampleComplete === undefined &&
-          batch.coverage === 'partial' &&
-          batch.inexact === false &&
-          batch.fetchedCount === batch.returnedCount &&
-          batch.returnedCount > 0 &&
-          (batch.reportedTotal ?? 0) > batch.returnedCount &&
-          z
-            .object({ sort: z.object({ price: z.literal('asc') }) })
-            .safeParse(batch.searchEvidence?.request).success,
-        sortedSampleComplete:
-          !requiresCompleteOutputCoverage(request.query) &&
-          batch.sortedSampleComplete === true &&
-          isCompleteSortedPriceSample(batch, target),
-        totalResults: batch.reportedTotal ?? batch.returnedCount,
-        listings: batch.listings.flatMap((row) =>
-          row.price === null ||
-          !row.currency ||
-          !row.externalId ||
-          typeof row.item.seller !== 'string'
-            ? []
-            : [
-                {
-                  id: row.externalId,
-                  account: row.item.seller,
-                  ageSeconds: row.listedAt
-                    ? Math.max(
-                        0,
-                        Math.floor(
-                          (fetchedAt.getTime() - Date.parse(row.listedAt)) /
-                            1000,
-                        ),
-                      )
-                    : 0,
-                  indexedAt: new Date(row.listedAt ?? batch.capturedAt!),
-                  fee:
-                    row.fee === undefined
-                      ? null
-                      : { amount: String(row.fee), currency: 'gold' },
-                  price: { amount: String(row.price), currency: row.currency },
-                  item: { ...row.item, rawListing: row.rawListing ?? null },
-                },
-              ],
-        ),
-      };
+      return collectionSearchResult(batch, request.query, target);
     }
     const league = request.league.trim();
     if (league.length === 0) throw new DomainError('MARKET_QUERY_INVALID');

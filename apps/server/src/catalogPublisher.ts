@@ -108,6 +108,7 @@ export async function evaluateAndPublishCatalog(
   options: {
     cycleId: string;
     evaluateRecipe?: FreshRecipeEvaluator;
+    allowMissingOutput?: boolean;
     league: string;
     leagueName?: string;
     now?: Date;
@@ -235,6 +236,7 @@ export async function evaluateAndPublishCatalog(
         currencyExchange,
         [...materialEconomies.values()],
         options.maximumQuoteAgeMs,
+        options.allowMissingOutput,
       ));
   const evaluations: RecipeEvaluation[] = [];
   let completedRecipes = 0;
@@ -401,6 +403,7 @@ async function evaluateFreshRecipe(
   currencyExchange?: StoredMarketEconomySnapshot | null,
   materialEconomies: readonly StoredMarketEconomySnapshot[] = [],
   maximumQuoteAgeMs = 30 * 60_000,
+  allowMissingOutput = false,
 ): Promise<FreshEvaluation> {
   let definition;
   try {
@@ -421,9 +424,10 @@ async function evaluateFreshRecipe(
     ...context,
     currencyExchange: currencyExchange ?? null,
   };
-  const optionalMarket = async (
+  const readMarket = async (
     query: import('./recipeMarket.js').RecipeMarketQuery,
     requiredStock?: number,
+    allowMissing = true,
   ) => {
     try {
       const market = await resolveMarket(
@@ -432,15 +436,23 @@ async function evaluateFreshRecipe(
         requiredStock,
         maximumQuoteAgeMs,
       );
-      return market.currencyAvailable ? market : null;
+      return market;
     } catch (error) {
       if (
+        allowMissing &&
         error instanceof DomainError &&
         ['SNAPSHOT_MISSING', 'SNAPSHOT_EXPIRED'].includes(error.code)
       )
         return null;
       throw error;
     }
+  };
+  const optionalMarket = async (
+    query: import('./recipeMarket.js').RecipeMarketQuery,
+    stock?: number,
+  ) => {
+    const market = await readMarket(query, stock);
+    return market?.currencyAvailable ? market : null;
   };
   const usage = expectedMethodMaterialUsage(definition.craft);
   const base = await optionalMarket(baseDependency.query);
@@ -464,13 +476,12 @@ async function evaluateFreshRecipe(
         };
       }),
   );
-  const output = await resolveMarket(
+  const output = await readMarket(
     targetDependency.query,
-    marketContext,
     undefined,
-    maximumQuoteAgeMs,
+    allowMissingOutput,
   );
-  const currency = output.aggregation.sampleSize
+  const currency = output?.aggregation.sampleSize
     ? output.aggregation.currency
     : (base?.aggregation.currency ?? 'chaos');
   const conversionEvidence = new Map<
@@ -605,7 +616,7 @@ async function evaluateFreshRecipe(
       break;
     }
   }
-  const outputEstimate = output.currencyAvailable
+  const outputEstimate = output?.currencyAvailable
     ? output.aggregation.estimators.find(({ id }) => id === 'cheapest')?.price
     : undefined;
   const materialEconomics = calculateMethodMaterialEconomics({
@@ -621,22 +632,24 @@ async function evaluateFreshRecipe(
     ) &&
     definition.craft.baseConsumption?.evidence.patch === definition.patch;
   const salePrice = outputEstimate?.amount ?? null;
-  const comparableSellers = output.aggregation.sampleSize;
+  const comparableSellers = output?.aggregation.sampleSize ?? 0;
   // A lone seller's ask is not a competitive price; show it, but derive no profit from it.
   const saleEvidence = {
     comparableSellers,
     minimumComparableSellers,
     ...(definition.verification.profitBlockedReason
       ? { reason: definition.verification.profitBlockedReason }
-      : output.coverage !== 'complete'
-        ? {
-            reason:
-              'Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.',
-          }
-        : {}),
+      : !output
+        ? { reason: 'No fresh Trade observation for this crafted item.' }
+        : output.coverage !== 'complete'
+          ? {
+              reason:
+                'Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.',
+            }
+          : {}),
     status: definition.verification.profitBlockedReason
       ? ('unverified_output_value' as const)
-      : !output.currencyAvailable
+      : !output?.currencyAvailable
         ? ('unavailable_currency' as const)
         : output.coverage !== 'complete'
           ? ('insufficient_coverage' as const)
@@ -664,7 +677,7 @@ async function evaluateFreshRecipe(
   );
   const inputTimes = [
     context.now.getTime(),
-    output.snapshotCapturedAt.getTime(),
+    ...(output ? [output.snapshotCapturedAt.getTime()] : []),
     ...(base ? [base.snapshotCapturedAt.getTime()] : []),
     ...usedTradeMaterials.map((m) => m.capturedAt.getTime()),
     ...[...usedMaterialEconomies].map((s) =>
@@ -672,7 +685,7 @@ async function evaluateFreshRecipe(
     ),
     ...[...conversionEvidence.values()].map((e) => Date.parse(e.verifiedAt)),
     ...[
-      output.currencyAvailable ? output.conversionAt : null,
+      output?.currencyAvailable ? output.conversionAt : null,
       base?.conversionAt,
       ...usedTradeMaterials.map((m) => m.conversionAt),
     ].flatMap((at) => (at ? [at.getTime()] : [])),
@@ -683,23 +696,28 @@ async function evaluateFreshRecipe(
     oldestInputAt: new Date(Math.min(...inputTimes)).toISOString(),
     expiresAt: new Date(
       Math.min(
-        output.snapshotExpiresAt.getTime(),
+        output?.snapshotExpiresAt.getTime() ?? Infinity,
         base?.snapshotExpiresAt.getTime() ?? Infinity,
         ...usedTradeMaterials.map((m) => m.expiresAt?.getTime() ?? Infinity),
         ...inputTimes.map((at) => at + maximumQuoteAgeMs),
       ),
     ).toISOString(),
-    source: {
-      capturedAt: output.snapshotCapturedAt.toISOString(),
-      sampleSize: output.aggregation.sampleSize,
-      priceBasis: 'asking',
-      coverage: output.coverage,
-      sortedPageComplete: output.sortedPageComplete,
-      sortedSampleComplete: output.sortedSampleComplete,
-      currencyAvailable: output.currencyAvailable,
-    },
-    marketStatus:
-      output.coverage !== 'complete'
+    ...(output
+      ? {
+          source: {
+            capturedAt: output.snapshotCapturedAt.toISOString(),
+            sampleSize: output.aggregation.sampleSize,
+            priceBasis: 'asking',
+            coverage: output.coverage,
+            sortedPageComplete: output.sortedPageComplete,
+            sortedSampleComplete: output.sortedSampleComplete,
+            currencyAvailable: output.currencyAvailable,
+          },
+        }
+      : {}),
+    marketStatus: !output
+      ? 'unavailable'
+      : output.coverage !== 'complete'
         ? 'partial'
         : output.aggregation.sampleSize
           ? 'priced'
@@ -716,18 +734,20 @@ async function evaluateFreshRecipe(
         ? null
         : { amount: expectedCraftCost, currency },
   };
-  const observations = await context.repositories.observations.listRecent(
-    output.marketQueryId,
-    context.leagueId,
-    new Date(0),
-  );
+  const observations = output
+    ? await context.repositories.observations.listRecent(
+        output.marketQueryId,
+        context.leagueId,
+        output.snapshotCapturedAt,
+      )
+    : [];
   const observation = observations.find(
     ({ observedAt }) =>
-      observedAt.getTime() === output.snapshotCapturedAt.getTime(),
+      observedAt.getTime() === output?.snapshotCapturedAt.getTime(),
   );
   return {
     confidence:
-      output.coverage === 'complete' && !base?.sortedSampleComplete
+      output?.coverage === 'complete' && !base?.sortedSampleComplete
         ? confidence(output.aggregation.sampleSize)
         : 'low',
     currency,
@@ -736,7 +756,7 @@ async function evaluateFreshRecipe(
     marginPercent: comparison.marginPercent,
     observationId: observation?.id ?? null,
     profit: comparison.profit,
-    sourceSnapshotDedupeKey: output.snapshotDedupeKey,
+    sourceSnapshotDedupeKey: output?.snapshotDedupeKey ?? null,
     status:
       salePrice === null ||
       expectedCraftCost === null ||

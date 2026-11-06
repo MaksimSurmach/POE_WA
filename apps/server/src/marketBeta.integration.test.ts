@@ -196,11 +196,15 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
         currency = 'chaos',
         cached = false,
         trigger = 'scheduled',
+        coverage = 'partial',
+        externalId = 'sample',
       }: {
         queryDigest?: string;
         currency?: 'chaos' | 'divine';
         cached?: boolean;
         trigger?: 'manual' | 'scheduled';
+        coverage?: 'partial' | 'complete';
+        externalId?: string;
       } = {},
     ) => {
       const capturedAt = new Date(
@@ -213,13 +217,13 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
             capturedAt,
             dataKind: 'observed',
             currency,
-            listings: [{ price: 10, item: {} }],
+            listings: [{ externalId, price: 10, item: {} }],
           },
           target,
         ),
         queryDigest,
         provenance: 'collection',
-        coverage: 'partial',
+        coverage,
       });
       await client.query(
         `insert into market_collection_runs
@@ -237,6 +241,7 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
             sourceId: 'trade-compatible',
             snapshotId: snapshot.id,
             cached,
+            reportedTotal: 1,
           }),
         ],
       );
@@ -264,6 +269,15 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
         [first, 10],
         [second, 10],
       ]);
+      expect(after.series?.activity).toBeUndefined();
+      await save(1.5, { coverage: 'complete' });
+      await save(0.5, { coverage: 'complete', externalId: 'replacement' });
+      const complete = await read();
+      expect(complete.series?.points.at(-1)?.reportedTotal).toBe(1);
+      expect(complete.series?.activity).toMatchObject({
+        missingCount: 1,
+        newCount: 1,
+      });
     } finally {
       client.release();
     }
