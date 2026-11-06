@@ -184,7 +184,7 @@ export function ScheduledTradeTrends({ range }: { range: TrendRange }) {
         snapshot. Sales volume is unknown.
       </p>
       {data?.targets.length ? (
-        <label className="market-trends__picker">
+        <label className="market-trends__picker market-trends__picker--trade">
           Trade target
           <select
             value={target || series?.targetId || ''}
