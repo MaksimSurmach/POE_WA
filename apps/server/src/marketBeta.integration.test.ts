@@ -242,6 +242,7 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
             snapshotId: snapshot.id,
             cached,
             reportedTotal: 1,
+            fetchedCount: 1,
           }),
         ],
       );
@@ -273,7 +274,10 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
       await save(1.5, { coverage: 'complete' });
       await save(0.5, { coverage: 'complete', externalId: 'replacement' });
       const complete = await read();
-      expect(complete.series?.points.at(-1)?.reportedTotal).toBe(1);
+      expect(complete.series?.points.at(-1)).toMatchObject({
+        reportedTotal: 1,
+        capturedCount: 1,
+      });
       expect(complete.series?.activity).toMatchObject({
         missingCount: 1,
         newCount: 1,

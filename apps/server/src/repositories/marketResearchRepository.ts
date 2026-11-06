@@ -71,15 +71,15 @@ export function createMarketResearchRepository(
       const result = await pool.query<{ data: unknown }>(
         `with scheduled as materialized (
           select distinct on (r.target_id, p."snapshotId") r.target_id, p."snapshotId" as snapshot_id,
-            p."reportedTotal" as reported_total, coalesce(p.inexact, false) as inexact
+            p."reportedTotal" as reported_total, p."fetchedCount" as captured_count, coalesce(p.inexact, false) as inexact
           from market_collection_runs r
-          cross join lateral jsonb_to_record(r.payload) as p("snapshotId" uuid, "sourceId" text, cached boolean, "reportedTotal" integer, inexact boolean)
+          cross join lateral jsonb_to_record(r.payload) as p("snapshotId" uuid, "sourceId" text, cached boolean, "reportedTotal" integer, "fetchedCount" integer, inexact boolean)
           where r.trigger = 'scheduled' and r.status in ('succeeded', 'partial', 'empty')
             and r.completed_at >= $1 and r.started_at <= $2
             and p."sourceId" = 'trade-compatible' and p.cached = false and p."snapshotId" is not null
           order by r.target_id, p."snapshotId", r.completed_at desc, r.id desc
         ), eligible as (
-          select s.id, s.target_id, s.captured_at, s.currency, s.summary, r.reported_total, r.inexact,
+          select s.id, s.target_id, s.captured_at, s.currency, s.summary, r.reported_total, r.captured_count, r.inexact,
             s.summary->>'queryDigest' as query_digest,
             s.summary->>'targetDigest' as target_digest,
             s.summary->>'league' as league, s.summary->>'patch' as patch
@@ -117,7 +117,7 @@ export function createMarketResearchRepository(
             'points', (select jsonb_agg(jsonb_build_object(
               'id', e.id, 'capturedAt', e.summary->'capturedAt', 'median', e.summary->'median',
               'count', e.summary->'count', 'coverage', coalesce(e.summary->>'coverage', 'unknown'),
-              'reportedTotal', e.reported_total, 'inexact', e.inexact
+              'reportedTotal', e.reported_total, 'capturedCount', e.captured_count, 'inexact', e.inexact
             ) order by e.captured_at, e.id)
               from eligible e where (e.target_id, e.query_digest, e.target_digest, e.league, e.patch, e.currency)
                 = (l.target_id, l.query_digest, l.target_digest, l.league, l.patch, l.currency))
