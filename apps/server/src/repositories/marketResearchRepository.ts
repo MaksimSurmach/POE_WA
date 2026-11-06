@@ -69,21 +69,23 @@ export function createMarketResearchRepository(
     async readScheduledTradeTrend(start, end, targetId) {
       // The Raspberry scraper assigns independent IDs to runs and snapshots.
       const result = await pool.query<{ data: unknown }>(
-        `with eligible as (
+        `with scheduled as materialized (
+          select distinct r.target_id, p."snapshotId" as snapshot_id
+          from market_collection_runs r
+          cross join lateral jsonb_to_record(r.payload) as p("snapshotId" uuid, "sourceId" text, cached boolean)
+          where r.trigger = 'scheduled' and r.status in ('succeeded', 'partial', 'empty')
+            and r.completed_at >= $1 and r.started_at <= $2
+            and p."sourceId" = 'trade-compatible' and p.cached = false and p."snapshotId" is not null
+        ), eligible as (
           select s.id, s.target_id, s.captured_at, s.currency, s.summary,
             s.summary->>'queryDigest' as query_digest,
             s.summary->>'targetDigest' as target_digest,
             s.summary->>'league' as league, s.summary->>'patch' as patch
-          from market_research_snapshots s
+          from scheduled r join market_research_snapshots s on s.id = r.snapshot_id and s.target_id = r.target_id
           where s.captured_at >= $1 and s.captured_at <= $2
             and s.data_kind = 'observed' and s.summary->>'provenance' = 'collection'
             and s.summary->>'queryDigest' is not null
-            and exists (
-              select 1 from market_collection_runs r
-              where r.target_id = s.target_id and r.payload->>'snapshotId' = s.id::text
-                and r.trigger = 'scheduled' and r.status in ('succeeded', 'partial', 'empty')
-                and r.payload->>'sourceId' = 'trade-compatible' and r.payload->>'cached' = 'false'
-            )
+
         ), target_counts as (
           select target_id as id, count(*) filter (where summary->>'median' is not null) as priced
           from eligible group by target_id
