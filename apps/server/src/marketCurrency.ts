@@ -1,3 +1,5 @@
+import type { MarketListing } from '@poe-worksmith/domain';
+import { z } from 'zod';
 import type { MarketTarget } from '@poe-worksmith/contracts';
 import {
   convertChaosDivineQuote,
@@ -64,4 +66,45 @@ export async function convertMarketQuote(input: {
       url: exchange.endpoint,
     },
   };
+}
+
+export const savedTradeExchangeSchema = z.strictObject({
+  snapshotId: z.uuid(),
+  league: z.string(),
+  capturedAt: z.iso.datetime(),
+  verifiedAt: z.iso.datetime(),
+  chaosPerDivine: z.number().positive(),
+  url: z.url(),
+});
+
+export function revalueSavedTradeListings(
+  listings: readonly MarketListing[],
+  exchange: z.infer<typeof savedTradeExchangeSchema>,
+): MarketListing[] {
+  return listings.map((listing) => {
+    const amount =
+      listing.item.originalCurrency === 'divine' &&
+      typeof listing.item.originalPrice === 'number'
+        ? listing.item.originalPrice
+        : listing.price.currency === 'divine'
+          ? Number(listing.price.amount)
+          : null;
+    if (amount === null || !Number.isFinite(amount) || amount <= 0)
+      return listing;
+    return {
+      ...listing,
+      price: convertChaosDivineQuote(
+        { amount: String(amount), currency: 'divine' },
+        'chaos',
+        exchange.chaosPerDivine,
+      ),
+      item: {
+        ...listing.item,
+        currency: 'chaos',
+        originalCurrency: 'divine',
+        originalPrice: amount,
+        exchange,
+      },
+    };
+  });
 }

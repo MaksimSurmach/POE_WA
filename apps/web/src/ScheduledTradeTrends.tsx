@@ -215,7 +215,10 @@ export function ScheduledTradeTrends({ range }: { range: TrendRange }) {
               {formatUtc(latest.capturedAt)}
             </time>
             {' · '}
-            {latest.count} captured · {latest.coverage ?? 'unknown'} coverage
+            {latest.capturedCount != null
+              ? `${latest.capturedCount} captured · `
+              : null}
+            {latest.count} priced · {latest.coverage ?? 'unknown'} coverage
             {latest.reportedTotal != null
               ? ` · Trade reported ${latest.inexact ? 'about ' : ''}${latest.reportedTotal} matching listings`
               : null}

@@ -34,6 +34,10 @@ import {
   type ItemPresentationCatalog,
 } from './itemPresentation.js';
 import { marketTradeUrl } from './marketTradeQuery.js';
+import {
+  revalueSavedTradeListings,
+  savedTradeExchangeSchema,
+} from './marketCurrency.js';
 
 export function createResourceReaders(
   repositories: Repositories,
@@ -264,6 +268,36 @@ async function latestOutputSnapshot(input: {
   const listings = Array.isArray(snapshot.payload.listings)
     ? snapshot.payload.listings
     : [];
+  const observed = listings.flatMap((value) => {
+    if (!value || typeof value !== 'object') return [];
+    const row = value as Record<string, unknown>;
+    const price = row.price as Record<string, unknown> | undefined;
+    const amount =
+      typeof price?.amount === 'string' ? Number(price.amount) : price?.amount;
+    if (
+      typeof row.id !== 'string' ||
+      typeof row.account !== 'string' ||
+      typeof row.indexedAt !== 'string' ||
+      typeof row.ageSeconds !== 'number' ||
+      typeof amount !== 'number' ||
+      (price?.currency !== 'chaos' && price?.currency !== 'divine')
+    )
+      return [];
+    return [
+      {
+        id: row.id,
+        account: row.account,
+        fee: null,
+        item: (row.item as CanonicalJsonObject) ?? {},
+        indexedAt: new Date(row.indexedAt),
+        ageSeconds: row.ageSeconds,
+        price: { amount: String(amount), currency: price.currency },
+      },
+    ];
+  });
+  const exchange = savedTradeExchangeSchema.safeParse(
+    input.evaluation?.methodCost?.marketExchange,
+  );
   const parsed = marketSnapshotSchema.safeParse({
     id: String(snapshot.id),
     queryHash,
@@ -279,35 +313,9 @@ async function latestOutputSnapshot(input: {
     totalResults: snapshot.payload.totalResults,
     listings: comparableRecipeListings(
       result.query,
-      listings.flatMap((value) => {
-        if (!value || typeof value !== 'object') return [];
-        const row = value as Record<string, unknown>;
-        const price = row.price as Record<string, unknown> | undefined;
-        const amount =
-          typeof price?.amount === 'string'
-            ? Number(price.amount)
-            : price?.amount;
-        if (
-          typeof row.id !== 'string' ||
-          typeof row.account !== 'string' ||
-          typeof row.indexedAt !== 'string' ||
-          typeof row.ageSeconds !== 'number' ||
-          typeof amount !== 'number' ||
-          (price?.currency !== 'chaos' && price?.currency !== 'divine')
-        )
-          return [];
-        return [
-          {
-            id: row.id,
-            account: row.account,
-            fee: null,
-            item: (row.item as CanonicalJsonObject) ?? {},
-            indexedAt: new Date(row.indexedAt),
-            ageSeconds: row.ageSeconds,
-            price: { amount: String(amount), currency: price.currency },
-          },
-        ];
-      }),
+      exchange.success && exchange.data.league === input.currentLeague.gggId
+        ? revalueSavedTradeListings(observed, exchange.data)
+        : observed,
       snapshot.capturedAt,
       new Date(),
     ).map((row) => ({

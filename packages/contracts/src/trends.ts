@@ -146,6 +146,7 @@ export const scheduledTradeTrendDataSchema = z.strictObject({
           })
           .extend({
             reportedTotal: z.number().int().nonnegative().nullable().optional(),
+            capturedCount: z.number().int().nonnegative().nullable().optional(),
             inexact: z.boolean().optional(),
           }),
       ),
