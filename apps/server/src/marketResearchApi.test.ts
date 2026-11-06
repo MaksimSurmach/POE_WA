@@ -80,6 +80,46 @@ function testApi(repository?: MarketResearchRepository) {
 }
 
 describe('market workbench API', () => {
+  it('serves a no-cache read of scheduled Trade trends for the requested range and target', async () => {
+    const repository = inMemoryTestRepository();
+    const target = createMarketTarget(targetInput);
+    const requests: string[] = [];
+    Object.assign(repository, {
+      readScheduledTradeTrend: async (
+        start: Date,
+        end: Date,
+        targetId: string,
+      ) => {
+        requests.push(targetId);
+        expect(end.getTime() - start.getTime()).toBe(86_400_000);
+        return {
+          targets: [{ id: target.id, name: target.name }],
+          series: null,
+        };
+      },
+    });
+    const api = testApi(repository);
+    try {
+      const result = await api.inject({
+        url: `/api/market/trade-trends?range=24h&target=${target.id}`,
+      });
+      expect(result.statusCode).toBe(200);
+      expect(result.headers['cache-control']).toBe('no-store');
+      expect(result.json().data).toMatchObject({
+        range: '24h',
+        targets: [{ id: target.id, name: target.name }],
+        series: null,
+      });
+      expect(
+        (await api.inject({ url: '/api/market/trade-trends?target=invalid' }))
+          .statusCode,
+      ).toBe(400);
+      expect(requests).toEqual([target.id]);
+    } finally {
+      await api.close();
+    }
+  });
+
   it('withholds belt analysis after raw retention while preserving snapshot details and summaries', async () => {
     const repository = inMemoryTestRepository();
     const fixture = beltDemoFixture();

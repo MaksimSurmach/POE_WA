@@ -17,6 +17,7 @@ import {
   formatPercent,
   formatUtc,
 } from './PriceTrendChart.js';
+import { ScheduledTradeTrends } from './ScheduledTradeTrends.js';
 import './marketTrends.css';
 
 const apiClient = createApiClient();
@@ -290,6 +291,12 @@ export function MarketTrendsPage() {
         </div>
       </header>
 
+      <RangeControls
+        range={range}
+        onChange={(value) => update({ range: value })}
+      />
+      <ScheduledTradeTrends range={range} />
+
       <section
         aria-label="Market trend controls"
         className="handbook-controls trend-controls"
@@ -315,10 +322,6 @@ export function MarketTrendsPage() {
             <option value="title">Recipe</option>
           </select>
         </label>
-        <RangeControls
-          range={range}
-          onChange={(value) => update({ range: value })}
-        />
         <label className="market-trends__picker">
           <span>Recipe</span>
           <select

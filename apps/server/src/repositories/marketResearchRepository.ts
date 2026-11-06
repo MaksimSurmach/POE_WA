@@ -2,6 +2,7 @@ import {
   marketResearchSnapshotSchema,
   marketResearchSnapshotSummarySchema,
   marketTargetSchema,
+  scheduledTradeTrendDataSchema,
   beltPriceUpdateSchema,
   marketCollectionRunSchema,
   type MarketResearchSnapshot,
@@ -64,6 +65,64 @@ export function createMarketResearchRepository(
         [target.id, target.digest, JSON.stringify(target), target.createdAt],
       );
       return marketTargetSchema.parse(result.rows[0]!.profile);
+    },
+    async readScheduledTradeTrend(start, end, targetId) {
+      // The Raspberry scraper assigns independent IDs to runs and snapshots.
+      const result = await pool.query<{ data: unknown }>(
+        `with scheduled as materialized (
+          select distinct r.target_id, p."snapshotId" as snapshot_id
+          from market_collection_runs r
+          cross join lateral jsonb_to_record(r.payload) as p("snapshotId" uuid, "sourceId" text, cached boolean)
+          where r.trigger = 'scheduled' and r.status in ('succeeded', 'partial', 'empty')
+            and r.completed_at >= $1 and r.started_at <= $2
+            and p."sourceId" = 'trade-compatible' and p.cached = false and p."snapshotId" is not null
+        ), eligible as (
+          select s.id, s.target_id, s.captured_at, s.currency, s.summary,
+            s.summary->>'queryDigest' as query_digest,
+            s.summary->>'targetDigest' as target_digest,
+            s.summary->>'league' as league, s.summary->>'patch' as patch
+          from scheduled r join market_research_snapshots s on s.id = r.snapshot_id and s.target_id = r.target_id
+          where s.captured_at >= $1 and s.captured_at <= $2
+            and s.data_kind = 'observed' and s.summary->>'provenance' = 'collection'
+            and s.summary->>'queryDigest' is not null
+
+        ), target_counts as (
+          select target_id as id, count(*) filter (where summary->>'median' is not null) as priced
+          from eligible group by target_id
+        ), targets as (
+          select c.id, c.priced,
+            case t.profile->>'slot'
+              when 'starting-base' then concat_ws(' · ', t.profile->'baseTypes'->>0,
+                'iLvl ' || (t.profile->>'minItemLevel'),
+                regexp_replace(t.profile->>'name', '^base:(base:|.*/)?', ''))
+              when 'crafted-item' then concat_ws(' · ', t.profile->'baseTypes'->>0,
+                'iLvl ' || (t.profile->>'minItemLevel'),
+                case when t.profile#>>'{tradeSearch,fractured}' = 'true' then 'Fractured' end,
+                right(t.profile->>'name', 8))
+              else t.profile->>'name'
+            end as name
+          from target_counts c join market_targets t on t.id = c.id
+        ), latest as (
+          select * from eligible
+          where target_id = coalesce($3::uuid, (select id from targets order by priced desc, name, id limit 1))
+          order by captured_at desc, id desc limit 1
+        )
+        select jsonb_build_object(
+          'targets', coalesce((select jsonb_agg(jsonb_build_object('id', id, 'name', name)
+            order by name, id) from targets), '[]'::jsonb),
+          'series', (select jsonb_build_object(
+            'targetId', l.target_id, 'league', l.league, 'patch', l.patch, 'currency', l.currency,
+            'points', (select jsonb_agg(jsonb_build_object(
+              'id', e.id, 'capturedAt', e.summary->'capturedAt', 'median', e.summary->'median',
+              'count', e.summary->'count', 'coverage', coalesce(e.summary->>'coverage', 'unknown')
+            ) order by e.captured_at, e.id)
+              from eligible e where (e.target_id, e.query_digest, e.target_digest, e.league, e.patch, e.currency)
+                = (l.target_id, l.query_digest, l.target_digest, l.league, l.patch, l.currency))
+          ) from latest l)
+        ) as data`,
+        [start, end, targetId ?? null],
+      );
+      return scheduledTradeTrendDataSchema.parse(result.rows[0]?.data);
     },
     async listSnapshots() {
       const result = await pool.query<{ summary: unknown }>(
