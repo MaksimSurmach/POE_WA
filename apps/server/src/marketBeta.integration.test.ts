@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import pino from 'pino';
@@ -11,7 +12,10 @@ import { buildApi } from './api.js';
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
 import { createPostgresRepositories } from './repositories/index.js';
-import { createMarketResearchRepository } from './repositories/marketResearchRepository.js';
+import {
+  createMarketResearchRepository,
+  insertMarketResearchSnapshot,
+} from './repositories/marketResearchRepository.js';
 import { createMarketCollectionRepository } from './repositories/marketCollectionRepository.js';
 import {
   importMarketCatalog,
@@ -172,6 +176,92 @@ function demoProfiles(): MarketTargetInput[] {
 }
 
 describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
+  it('reads new scheduled snapshots without mixing query scopes, currencies or cached runs', async () => {
+    const fixture = beltDemoFixture();
+    const target = await research.saveTarget(
+      createMarketTarget(fixture.target),
+    );
+    const now = new Date();
+    const start = new Date(now.getTime() - 86_400_000);
+    const client = await pool.connect();
+    const save = async (
+      hoursAgo: number,
+      {
+        queryDigest = 'a'.repeat(64),
+        currency = 'chaos',
+        cached = false,
+        trigger = 'scheduled',
+      }: {
+        queryDigest?: string;
+        currency?: 'chaos' | 'divine';
+        cached?: boolean;
+        trigger?: 'manual' | 'scheduled';
+      } = {},
+    ) => {
+      const capturedAt = new Date(
+        now.getTime() - hoursAgo * 3_600_000,
+      ).toISOString();
+      const snapshot = await insertMarketResearchSnapshot(client, {
+        ...createImportedMarketSnapshot(
+          {
+            ...fixture.observation(target.id),
+            capturedAt,
+            dataKind: 'observed',
+            currency,
+            listings: [{ price: 10, item: {} }],
+          },
+          target,
+        ),
+        queryDigest,
+        provenance: 'collection',
+        coverage: 'partial',
+      });
+      await client.query(
+        `insert into market_collection_runs
+          (id, target_id, target_digest, league, patch, status, trigger, started_at, heartbeat_at, completed_at, payload)
+          values ($1, $2, $3, $4, $5, 'partial', $6, $7, $7, $7, $8)`,
+        [
+          randomUUID(),
+          target.id,
+          target.digest,
+          target.league,
+          target.patch,
+          trigger,
+          capturedAt,
+          JSON.stringify({
+            sourceId: 'trade-compatible',
+            snapshotId: snapshot.id,
+            cached,
+          }),
+        ],
+      );
+      return snapshot.id;
+    };
+    try {
+      const first = await save(4);
+      await save(6, { queryDigest: 'b'.repeat(64) });
+      await save(5, { currency: 'divine' });
+      await save(3, { cached: true });
+      await save(2.5, { trigger: 'manual' });
+      const read = () =>
+        research.readScheduledTradeTrend!(start, now, target.id);
+      expect((await read()).series?.points.map(({ id }) => id)).toEqual([
+        first,
+      ]);
+      const second = await save(2);
+      const after = await read();
+      expect(after.targets).toEqual([{ id: target.id, name: target.name }]);
+      expect(
+        after.series?.points.map(({ id, median }) => [id, median]),
+      ).toEqual([
+        [first, 10],
+        [second, 10],
+      ]);
+    } finally {
+      client.release();
+    }
+  });
+
   it('imports five real structured profiles and runs catalog → query → search/fetch → matching → snapshots → ranking → API', async () => {
     let now = new Date(Date.now() - 600_000);
     const profiles = demoProfiles();

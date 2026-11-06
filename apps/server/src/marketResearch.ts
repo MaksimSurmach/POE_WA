@@ -9,6 +9,7 @@ import {
   type MarketSourceCapability,
   type MarketTarget,
   type BeltPriceUpdate,
+  type ScheduledTradeTrendData,
 } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
 
@@ -18,6 +19,11 @@ export interface MarketResearchRepository {
   listTargets(): Promise<MarketTarget[]>;
   findTarget(id: string): Promise<MarketTarget | null>;
   saveTarget(target: MarketTarget): Promise<MarketTarget>;
+  readScheduledTradeTrend?(
+    start: Date,
+    end: Date,
+    targetId?: string,
+  ): Promise<ScheduledTradeTrendData>;
   listSnapshots(): Promise<MarketResearchSnapshotSummary[]>;
   findSnapshot(id: string): Promise<MarketResearchSnapshot | null>;
   saveSnapshot(

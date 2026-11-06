@@ -13,6 +13,7 @@ import {
   marketCollectionRequestStatusResponseSchema,
   marketTargetResponseSchema,
   marketWorkbenchResponseSchema,
+  scheduledTradeTrendResponseSchema,
   marketStarterLibraryResponseSchema,
   marketStarterMarketSnapshotSchema,
 } from '@poe-worksmith/contracts';
@@ -27,6 +28,8 @@ import type { Logger } from 'pino';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
 import { marketCollectionRunner } from './config.js';
+import { parseTrendRange } from './marketTrendsApi.js';
+import { priceHistoryRanges } from './repositories/priceHistoryRepository.js';
 
 import { analyzeBeltSnapshot } from './beltComparability.js';
 import { activeCatalogTargets, importMarketCatalog } from './marketCatalog.js';
@@ -250,6 +253,32 @@ export function registerMarketResearchRoutes(
       }),
     });
   });
+
+  api.get<{ Querystring: { range?: string; target?: string } }>(
+    '/api/market/trade-trends',
+    async (request, reply) => {
+      const range = parseTrendRange(request.query.range);
+      const target = z.uuid().optional().safeParse(request.query.target);
+      if (!target.success) throw new DomainError('MARKET_QUERY_INVALID');
+      if (!repository?.readScheduledTradeTrend)
+        throw new DomainError('PERSISTENCE_UNAVAILABLE');
+      const end = new Date();
+      const start = new Date(end.getTime() - priceHistoryRanges[range].rangeMs);
+      const data = await persist(() =>
+        repository.readScheduledTradeTrend!(start, end, target.data),
+      );
+      reply.header('cache-control', 'no-store');
+      return scheduledTradeTrendResponseSchema.parse({
+        correlationId: request.id,
+        data: {
+          ...data,
+          range,
+          windowStart: start.toISOString(),
+          windowEnd: end.toISOString(),
+        },
+      });
+    },
+  );
 
   api.get('/api/market', async (request) => {
     const unavailable = () =>

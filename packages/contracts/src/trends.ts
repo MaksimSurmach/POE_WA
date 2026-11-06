@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+import {
+  marketResearchSnapshotSummarySchema,
+  marketTargetSchema,
+} from './market.js';
+
 /** Supported history windows; anything else is rejected. */
 export const trendRangeSchema = z.enum(['24h', '7d', '30d', '1y']);
 
@@ -114,3 +119,40 @@ export type TrendOverviewEntry = z.infer<typeof trendOverviewEntrySchema>;
 export type TrendOverview = z.infer<typeof trendOverviewSchema>;
 export type RecipeTrendResponse = z.infer<typeof recipeTrendResponseSchema>;
 export type TrendOverviewResponse = z.infer<typeof trendOverviewResponseSchema>;
+
+export const scheduledTradeTrendDataSchema = z.strictObject({
+  targets: z.array(marketTargetSchema.pick({ id: true, name: true })),
+  series: z
+    .strictObject({
+      targetId: z.uuid(),
+      league: z.string(),
+      patch: z.string(),
+      currency: trendCurrencySchema,
+      points: z.array(
+        marketResearchSnapshotSummarySchema.pick({
+          id: true,
+          capturedAt: true,
+          median: true,
+          count: true,
+          coverage: true,
+        }),
+      ),
+    })
+    .nullable(),
+});
+
+export const scheduledTradeTrendResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: scheduledTradeTrendDataSchema.extend({
+    range: trendRangeSchema,
+    windowStart: z.iso.datetime(),
+    windowEnd: z.iso.datetime(),
+  }),
+});
+
+export type ScheduledTradeTrendData = z.infer<
+  typeof scheduledTradeTrendDataSchema
+>;
+export type ScheduledTradeTrendResponse = z.infer<
+  typeof scheduledTradeTrendResponseSchema
+>;

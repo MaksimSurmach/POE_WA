@@ -18,6 +18,7 @@ import {
   type TrendOverviewResponse,
   trendOverviewResponseSchema,
   type TrendRange,
+  scheduledTradeTrendResponseSchema,
   craftingPricesResponseSchema,
   craftAnalysisResponseSchema,
   craftModelResponseSchema,
@@ -246,6 +247,14 @@ export function createApiClient(
     },
     getLeagues(): Promise<LeaguesResponse> {
       return request('/api/leagues', leaguesResponseSchema);
+    },
+    getScheduledTradeTrend(range: TrendRange, target?: string) {
+      const query = new URLSearchParams({ range });
+      if (target) query.set('target', target);
+      return request(
+        `/api/market/trade-trends?${query}`,
+        scheduledTradeTrendResponseSchema,
+      );
     },
     getTrendOverview(range: TrendRange): Promise<TrendOverviewResponse> {
       return request(

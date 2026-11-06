@@ -2,6 +2,7 @@ import {
   marketResearchSnapshotSchema,
   marketResearchSnapshotSummarySchema,
   marketTargetSchema,
+  scheduledTradeTrendDataSchema,
   beltPriceUpdateSchema,
   marketCollectionRunSchema,
   type MarketResearchSnapshot,
@@ -64,6 +65,51 @@ export function createMarketResearchRepository(
         [target.id, target.digest, JSON.stringify(target), target.createdAt],
       );
       return marketTargetSchema.parse(result.rows[0]!.profile);
+    },
+    async readScheduledTradeTrend(start, end, targetId) {
+      // The Raspberry scraper assigns independent IDs to runs and snapshots.
+      const result = await pool.query<{ data: unknown }>(
+        `with eligible as (
+          select s.id, s.target_id, s.captured_at, s.currency, s.summary,
+            s.summary->>'queryDigest' as query_digest,
+            s.summary->>'targetDigest' as target_digest,
+            s.summary->>'league' as league, s.summary->>'patch' as patch
+          from market_research_snapshots s
+          where s.captured_at >= $1 and s.captured_at <= $2
+            and s.data_kind = 'observed' and s.summary->>'provenance' = 'collection'
+            and s.summary->>'queryDigest' is not null
+            and exists (
+              select 1 from market_collection_runs r
+              where r.target_id = s.target_id and r.payload->>'snapshotId' = s.id::text
+                and r.trigger = 'scheduled' and r.status in ('succeeded', 'partial', 'empty')
+                and r.payload->>'sourceId' = 'trade-compatible' and r.payload->>'cached' = 'false'
+            )
+        ), targets as (
+          select e.target_id as id, t.profile->>'name' as name,
+            count(*) filter (where e.summary->>'median' is not null) as priced
+          from eligible e join market_targets t on t.id = e.target_id
+          group by e.target_id, t.profile->>'name'
+        ), latest as (
+          select * from eligible
+          where target_id = coalesce($3::uuid, (select id from targets order by priced desc, name, id limit 1))
+          order by captured_at desc, id desc limit 1
+        )
+        select jsonb_build_object(
+          'targets', coalesce((select jsonb_agg(jsonb_build_object('id', id, 'name', name)
+            order by name, id) from targets), '[]'::jsonb),
+          'series', (select jsonb_build_object(
+            'targetId', l.target_id, 'league', l.league, 'patch', l.patch, 'currency', l.currency,
+            'points', (select jsonb_agg(jsonb_build_object(
+              'id', e.id, 'capturedAt', e.summary->'capturedAt', 'median', e.summary->'median',
+              'count', e.summary->'count', 'coverage', coalesce(e.summary->>'coverage', 'unknown')
+            ) order by e.captured_at, e.id)
+              from eligible e where (e.target_id, e.query_digest, e.target_digest, e.league, e.patch, e.currency)
+                = (l.target_id, l.query_digest, l.target_digest, l.league, l.patch, l.currency))
+          ) from latest l)
+        ) as data`,
+        [start, end, targetId ?? null],
+      );
+      return scheduledTradeTrendDataSchema.parse(result.rows[0]?.data);
     },
     async listSnapshots() {
       const result = await pool.query<{ summary: unknown }>(
