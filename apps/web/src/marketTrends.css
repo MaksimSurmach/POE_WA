@@ -92,11 +92,6 @@
   gap: 4px;
 }
 
-.market-trends__picker--trade {
-  display: grid;
-  max-width: 38rem;
-}
-
 .market-trends__picker select {
   width: 100%;
   min-width: 0;

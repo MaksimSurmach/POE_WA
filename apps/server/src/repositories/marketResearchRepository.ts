@@ -10,10 +10,26 @@ import {
 import type { Pool, PoolClient } from 'pg';
 
 import {
+  summarizeTradeHistory,
+  tradeDashboardHistorySchema,
+} from '../tradeDashboard.js';
+
+import {
   marketDigest,
   type MarketResearchRepository,
   summarizeMarketSnapshot,
 } from '../marketResearch.js';
+
+const scheduledCaptures = `scheduled as materialized (
+          select distinct on (r.target_id, p."snapshotId") r.target_id, p."snapshotId" as snapshot_id,
+            p."reportedTotal" as reported_total, p."fetchedCount" as captured_count, coalesce(p.inexact, false) as inexact
+          from market_collection_runs r
+          cross join lateral jsonb_to_record(r.payload) as p("snapshotId" uuid, "sourceId" text, cached boolean, "reportedTotal" integer, "fetchedCount" integer, inexact boolean)
+          where r.trigger = 'scheduled' and r.status in ('succeeded', 'partial', 'empty')
+            and r.completed_at >= $1 and r.started_at <= $2
+            and p."sourceId" = 'trade-compatible' and p.cached = false and p."snapshotId" is not null
+          order by r.target_id, p."snapshotId", r.completed_at desc, r.id desc
+        )`;
 
 /** Dedicated immutable research records. Legacy recipe refresh retention does not delete them. */
 export function createMarketResearchRepository(
@@ -69,16 +85,7 @@ export function createMarketResearchRepository(
     async readScheduledTradeTrend(start, end, targetId) {
       // The Raspberry scraper assigns independent IDs to runs and snapshots.
       const result = await pool.query<{ data: unknown }>(
-        `with scheduled as materialized (
-          select distinct on (r.target_id, p."snapshotId") r.target_id, p."snapshotId" as snapshot_id,
-            p."reportedTotal" as reported_total, p."fetchedCount" as captured_count, coalesce(p.inexact, false) as inexact
-          from market_collection_runs r
-          cross join lateral jsonb_to_record(r.payload) as p("snapshotId" uuid, "sourceId" text, cached boolean, "reportedTotal" integer, "fetchedCount" integer, inexact boolean)
-          where r.trigger = 'scheduled' and r.status in ('succeeded', 'partial', 'empty')
-            and r.completed_at >= $1 and r.started_at <= $2
-            and p."sourceId" = 'trade-compatible' and p.cached = false and p."snapshotId" is not null
-          order by r.target_id, p."snapshotId", r.completed_at desc, r.id desc
-        ), eligible as (
+        `with ${scheduledCaptures}, eligible as (
           select s.id, s.target_id, s.captured_at, s.currency, s.summary, r.reported_total, r.captured_count, r.inexact,
             s.summary->>'queryDigest' as query_digest,
             s.summary->>'targetDigest' as target_digest,
@@ -170,6 +177,101 @@ export function createMarketResearchRepository(
         newCount: [...present].filter((id) => !prior.has(id)).length,
       };
       return data;
+    },
+    async readTradeDashboard(start, end, league, targetId) {
+      const horizon = new Date(
+        start.getTime() - (end.getTime() - start.getTime()) - 2 * 86_400_000,
+      );
+      const result = await pool.query<{
+        league: string | null;
+        histories: unknown;
+      }>(
+        `with ${scheduledCaptures}, eligible as materialized (
+          select s.id, s.target_id, s.captured_at, s.currency, s.summary,
+            r.captured_count, r.inexact,
+            array[s.summary->>'queryDigest', s.summary->>'targetDigest',
+                  s.summary->>'league', s.summary->>'patch', s.currency] as scope
+          from scheduled r join market_research_snapshots s on s.id = r.snapshot_id and s.target_id = r.target_id
+          where s.captured_at between $1 and $2
+            and s.data_kind = 'observed' and s.summary->>'provenance' = 'collection'
+            and s.summary->>'queryDigest' is not null
+            and ($4::uuid is null or s.target_id = $4)
+        ), league as (
+          select coalesce($3::text,
+            (select profile->>'league' from market_targets where id = $4),
+            (select summary->>'league' from eligible order by captured_at desc, id desc limit 1),
+            (select profile->>'league' from market_targets order by created_at desc, id limit 1)
+          ) as name
+        ), targets as materialized (
+          select t.id, t.profile, coalesce(settings.interval_minutes, 60) as interval_minutes
+          from market_targets t left join market_collection_settings settings on settings.target_id = t.id
+          where t.profile->>'league' = (select name from league) and ($4::uuid is null or t.id = $4)
+        ), scoped as (
+          select e.*,
+            first_value(scope) over recent as latest_scope,
+            row_number() over recent as recent_rank
+          from eligible e join targets t on t.id = e.target_id
+          where e.summary->>'league' = (select name from league)
+          window recent as (partition by e.target_id order by e.captured_at desc, e.id desc)
+        ), bounded as (
+          select * from (
+            select scoped.*, min(recent_rank) filter (where scope is distinct from latest_scope)
+              over (partition by target_id) as scope_boundary
+            from scoped
+          ) scoped_epochs
+          where recent_rank < coalesce(scope_boundary, 385) and recent_rank <= 384
+        ), recent as (
+          select bounded.*, count(*) filter (
+            where summary->>'coverage' = 'complete' and not inexact
+              and summary->>'inexact' is distinct from 'true'
+              and summary->>'rawAvailable' is distinct from 'false'
+          ) over (partition by target_id) >= 2 as has_comparison_history
+          from bounded
+        ), histories as (
+          select r.target_id, jsonb_agg(jsonb_build_object(
+            'id', r.id, 'at', r.summary->'capturedAt', 'currency', r.currency,
+            'ask', r.summary->'median',
+            'captured', coalesce(r.captured_count,
+              case when r.summary->>'rawAvailable' is distinct from 'false' then jsonb_array_length(s.listings) end),
+            'coverage', case when r.inexact or r.summary->>'inexact' = 'true' then 'partial'
+              else coalesce(r.summary->>'coverage', 'unknown') end,
+            'identities', case when r.has_comparison_history and r.summary->>'rawAvailable' is distinct from 'false' then
+              array(select listing->>'externalId' from jsonb_array_elements(s.listings) listing) end,
+            'sellers', case when r.recent_rank = 1 and r.summary->>'rawAvailable' is distinct from 'false' then
+              array(select lower(nullif(btrim(listing#>>'{item,seller}'), '')) from jsonb_array_elements(s.listings) listing) end
+          ) order by r.captured_at, r.id) as captures
+          from recent r join market_research_snapshots s on s.id = r.id
+          group by r.target_id
+        )
+        select league.name as league, coalesce((select jsonb_agg(jsonb_build_object(
+          'id', t.id, 'slot', t.profile->>'slot',
+          'name', case t.profile->>'slot'
+            when 'starting-base' then concat_ws(' · ', t.profile->'baseTypes'->>0,
+              'iLvl ' || (t.profile->>'minItemLevel'), regexp_replace(t.profile->>'name', '^base:(base:|.*/)?', ''))
+            when 'crafted-item' then concat_ws(' · ', t.profile->'baseTypes'->>0,
+              'iLvl ' || (t.profile->>'minItemLevel'),
+              case when t.profile#>>'{tradeSearch,fractured}' = 'true' then 'Fractured' end, right(t.profile->>'name', 8))
+            else t.profile->>'name' end,
+          'intervalMinutes', t.interval_minutes, 'captures', coalesce(h.captures, '[]'::jsonb)
+        ) order by t.profile->>'name', t.id)
+          from targets t left join histories h on h.target_id = t.id), '[]'::jsonb) as histories
+        from league`,
+        [horizon, end, league ?? null, targetId ?? null],
+      );
+      const rows = tradeDashboardHistorySchema.parse(result.rows[0]?.histories);
+      const dashboard = rows.map((history) =>
+        summarizeTradeHistory(
+          history,
+          start.getTime(),
+          end.getTime(),
+          Boolean(targetId),
+        ),
+      );
+      return {
+        league: result.rows[0]?.league ?? null,
+        items: dashboard.map((row) => row.item),
+        points: dashboard.flatMap((row) => row.points),
+      };
     },
     async listSnapshots() {
       const result = await pool.query<{ summary: unknown }>(
