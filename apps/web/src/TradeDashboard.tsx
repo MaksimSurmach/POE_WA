@@ -95,7 +95,8 @@ function TurnoverMap({
   const step = Math.ceil((peak * 1.1) / 4 / magnitude) * magnitude;
   const yMax = step * 4;
   const leading = new Set(
-    [...items]
+    items
+      .filter((item) => item.exitsPerDay > 0)
       .sort((left, right) => right.exitsPerDay - left.exitsPerDay)
       .slice(0, 6)
       .map((item) => item.id),
@@ -177,22 +178,33 @@ function TurnoverMap({
             />
           ),
         )}
-        {marks.map(({ item, left, bottom }) => (
-          <button
-            aria-label={`${item.name}, ${divineAsk(item)}, ${rate.format(item.exitsPerDay)} sustained exits per day`}
-            aria-pressed={item.id === selected.id}
-            className={`trade-map__point${left > 78 ? ' trade-map__point--label-left' : ''}${leading.has(item.id) ? ' trade-map__point--leading' : ''}`}
-            key={item.id}
-            onClick={() => onSelect(item.id)}
-            style={{ left: `${left}%`, bottom: `${bottom}%` }}
-            title={item.name}
-            type="button"
-          >
-            <span className="trade-map__label" aria-hidden="true">
-              {item.name.split(' · ')[0] ?? item.name}
-            </span>
-          </button>
-        ))}
+        {marks.map(({ item, left, bottom }) => {
+          const crowdedOnRight =
+            left > 16 &&
+            marks.some(
+              (other) =>
+                other.left > left &&
+                other.left - left < 16 &&
+                Math.abs(other.bottom - bottom) < 5 &&
+                leading.has(other.item.id),
+            );
+          return (
+            <button
+              aria-label={`${item.name}, ${divineAsk(item)}, ${rate.format(item.exitsPerDay)} sustained exits per day`}
+              aria-pressed={item.id === selected.id}
+              className={`trade-map__point${left > 78 || crowdedOnRight ? ' trade-map__point--label-left' : ''}${leading.has(item.id) ? ' trade-map__point--leading' : ''}`}
+              key={item.id}
+              onClick={() => onSelect(item.id)}
+              style={{ left: `${left}%`, bottom: `${bottom}%` }}
+              title={item.name}
+              type="button"
+            >
+              <span className="trade-map__label" aria-hidden="true">
+                {item.name.split(' · ')[0] ?? item.name}
+              </span>
+            </button>
+          );
+        })}
       </div>
       <p className="trade-map__axis trade-map__axis--price">
         Latest median ask · divines (log scale)
