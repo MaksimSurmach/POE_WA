@@ -169,3 +169,54 @@ export type ScheduledTradeTrendData = z.infer<
 export type ScheduledTradeTrendResponse = z.infer<
   typeof scheduledTradeTrendResponseSchema
 >;
+
+export const tradeDashboardRangeSchema = z.enum(['24h', '7d']);
+export type TradeDashboardRange = z.infer<typeof tradeDashboardRangeSchema>;
+
+const countSchema = z.number().int().nonnegative();
+const tradeDashboardCaptureSchema = z.strictObject({
+  id: z.uuid(),
+  at: z.iso.datetime(),
+  currency: trendCurrencySchema,
+  ask: amountSchema.nullable(),
+  captured: countSchema.nullable(),
+  coverage: z.enum(['complete', 'partial', 'unknown']),
+});
+const tradeDashboardPointSchema = tradeDashboardCaptureSchema.extend({
+  previousId: z.uuid().nullable(),
+  firstSeen: countSchema.nullable(),
+  missing: countSchema.nullable(),
+  sustained: countSchema.nullable(),
+});
+export const tradeDashboardItemSchema = z.strictObject({
+  id: z.uuid(),
+  name: z.string(),
+  slot: z.string(),
+  latest: tradeDashboardCaptureSchema.nullable(),
+  chartAskDivine: amountSchema.optional(),
+  firstSeen: countSchema.nullable(),
+  exits: countSchema.nullable(),
+  exitsPerDay: amountSchema.nullable(),
+  changePerDay: z.number().finite().nullable(),
+  settledHours: amountSchema,
+  visible48h: countSchema.nullable(),
+  sellers: countSchema.nullable(),
+  topSellerListings: countSchema.nullable(),
+  sellerListings: countSchema.nullable(),
+});
+export const tradeDashboardDataSchema = z.strictObject({
+  league: z.string().nullable(),
+  items: z.array(tradeDashboardItemSchema),
+  points: z.array(tradeDashboardPointSchema),
+});
+export const tradeDashboardResponseSchema = z.strictObject({
+  correlationId: z.uuid(),
+  data: tradeDashboardDataSchema.extend({
+    range: tradeDashboardRangeSchema,
+    windowStart: z.iso.datetime(),
+    windowEnd: z.iso.datetime(),
+  }),
+});
+export type TradeDashboardData = z.infer<typeof tradeDashboardDataSchema>;
+export type TradeDashboardItem = z.infer<typeof tradeDashboardItemSchema>;
+export type TradeDashboardPoint = z.infer<typeof tradeDashboardPointSchema>;

@@ -18,7 +18,9 @@ import {
   type TrendOverviewResponse,
   trendOverviewResponseSchema,
   type TrendRange,
-  scheduledTradeTrendResponseSchema,
+  type TradeDashboardRange,
+  tradeDashboardResponseSchema,
+  marketResearchSnapshotResponseSchema,
   craftingPricesResponseSchema,
   craftAnalysisResponseSchema,
   craftModelResponseSchema,
@@ -248,12 +250,23 @@ export function createApiClient(
     getLeagues(): Promise<LeaguesResponse> {
       return request('/api/leagues', leaguesResponseSchema);
     },
-    getScheduledTradeTrend(range: TrendRange, target?: string) {
+    getTradeDashboard(
+      range: TradeDashboardRange,
+      league?: string,
+      target?: string,
+    ) {
       const query = new URLSearchParams({ range });
+      if (league) query.set('league', league);
       if (target) query.set('target', target);
       return request(
-        `/api/market/trade-trends?${query}`,
-        scheduledTradeTrendResponseSchema,
+        `/api/market/trade-dashboard?${query}`,
+        tradeDashboardResponseSchema,
+      );
+    },
+    getTradeSnapshot(id: string) {
+      return request(
+        `/api/market/snapshots/${encodeURIComponent(id)}`,
+        marketResearchSnapshotResponseSchema,
       );
     },
     getTrendOverview(range: TrendRange): Promise<TrendOverviewResponse> {

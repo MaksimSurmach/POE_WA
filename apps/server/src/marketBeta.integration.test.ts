@@ -282,6 +282,37 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
         missingCount: 1,
         newCount: 1,
       });
+      const unobserved = await research.saveTarget(
+        createMarketTarget({ ...fixture.target, name: 'Never sampled' }),
+      );
+      const dashboard = await research.readTradeDashboard!(
+        start,
+        now,
+        target.league,
+      );
+      expect(dashboard.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: unobserved.id, latest: null }),
+          expect.objectContaining({
+            id: target.id,
+            latest: expect.objectContaining({ captured: 1, ask: 10 }),
+            exitsPerDay: null,
+          }),
+        ]),
+      );
+      expect(dashboard.points).toEqual([]);
+      const detail = await research.readTradeDashboard!(
+        start,
+        now,
+        target.league,
+        target.id,
+      );
+      expect(detail.items).toHaveLength(1);
+      expect(detail.points.at(-1)).toMatchObject({
+        missing: 1,
+        firstSeen: 1,
+        sustained: null,
+      });
     } finally {
       client.release();
     }

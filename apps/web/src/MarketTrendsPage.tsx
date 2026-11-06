@@ -17,7 +17,7 @@ import {
   formatPercent,
   formatUtc,
 } from './PriceTrendChart.js';
-import { ScheduledTradeTrends } from './ScheduledTradeTrends.js';
+import { TradeDashboard } from './TradeDashboard.js';
 import './marketTrends.css';
 
 const apiClient = createApiClient();
@@ -284,18 +284,21 @@ export function MarketTrendsPage() {
         <div>
           <h1 id="market-trends-heading">Market trends</h1>
           <p>
-            {overview?.league
-              ? `${overview.league.name} · cheapest comparable asks per recipe, saved at each refresh`
-              : 'Cheapest comparable asks per recipe, saved at each refresh'}
+            Compare asking prices and how quickly listings leave Trade search.
           </p>
+        </div>
+        <div className="trade-dashboard__league">
+          <small>PATH OF EXILE 1</small>
+          {overview?.league ? `${overview.league.name} · PC` : 'PC'}
         </div>
       </header>
 
+      <TradeDashboard league={overview?.league?.name} />
+      <h2 className="recipe-trends-heading">Recipe price history</h2>
       <RangeControls
         range={range}
         onChange={(value) => update({ range: value })}
       />
-      <ScheduledTradeTrends range={range} />
 
       <section
         aria-label="Market trend controls"

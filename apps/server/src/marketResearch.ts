@@ -10,6 +10,7 @@ import {
   type MarketTarget,
   type BeltPriceUpdate,
   type ScheduledTradeTrendData,
+  type TradeDashboardData,
 } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
 
@@ -24,6 +25,12 @@ export interface MarketResearchRepository {
     end: Date,
     targetId?: string,
   ): Promise<ScheduledTradeTrendData>;
+  readTradeDashboard?(
+    start: Date,
+    end: Date,
+    league?: string,
+    targetId?: string,
+  ): Promise<TradeDashboardData>;
   listSnapshots(): Promise<MarketResearchSnapshotSummary[]>;
   findSnapshot(id: string): Promise<MarketResearchSnapshot | null>;
   saveSnapshot(
