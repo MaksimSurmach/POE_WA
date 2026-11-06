@@ -322,19 +322,7 @@ function prepareResult(
     expiresAt: new Date(result.fetchedAt.getTime() + snapshotTtlMs),
     leagueId,
     marketQueryId: job.marketQueryId!,
-    payload: {
-      listings: result.listings.map((listing) => ({
-        ...listing,
-        indexedAt: listing.indexedAt.toISOString(),
-      })),
-      coverage:
-        result.coverage ??
-        (result.totalResults > result.listings.length ? 'partial' : 'complete'),
-      sortedPageComplete: result.sortedPageComplete ?? false,
-      sortedSampleComplete: result.sortedSampleComplete ?? false,
-      provider: result.provider,
-      totalResults: result.totalResults,
-    },
+    payload: marketSearchPayload(result),
     providerStatus: 200,
     refreshCycleId: job.refreshCycleId!,
   };
@@ -367,4 +355,20 @@ function assertPositiveInteger(name: string, value: number) {
   if (!Number.isInteger(value) || value < 1) {
     throw new TypeError(`${name} must be a positive integer`);
   }
+}
+
+export function marketSearchPayload(result: MarketSearchResult) {
+  return {
+    listings: result.listings.map((listing) => ({
+      ...listing,
+      indexedAt: listing.indexedAt.toISOString(),
+    })),
+    coverage:
+      result.coverage ??
+      (result.totalResults > result.listings.length ? 'partial' : 'complete'),
+    sortedPageComplete: result.sortedPageComplete ?? false,
+    sortedSampleComplete: result.sortedSampleComplete ?? false,
+    provider: result.provider,
+    totalResults: result.totalResults,
+  };
 }

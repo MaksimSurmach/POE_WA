@@ -113,7 +113,7 @@ describe('mixed currency output coverage', () => {
     expect(Math.min(...batch.listings.map((x) => x.price!))).toBe(650);
   });
   it.each([
-    [101, false, false, 0],
+    [101, false, false, 20],
     [31, true, false, 31],
     [31, false, true, 30],
   ] as const)(
@@ -129,11 +129,11 @@ describe('mixed currency output coverage', () => {
   );
   it.each([
     [100, 100, 100, 'complete'],
-    [100, 101, 0, 'partial'],
-    [101, null, 0, 'partial'],
+    [100, 101, 20, 'partial'],
+    [101, null, 20, 'partial'],
     [0, 101, 0, 'partial'],
   ] as const)(
-    'avoids detail requests for oversized outputs while retaining search evidence: %s IDs / %s total',
+    'keeps a bounded detail sample and search evidence for oversized outputs: %s IDs / %s total',
     async (count, total, fetched, coverage) => {
       const batch = await collect(count, 'crafted-item', false, false, total);
       expect(batch).toMatchObject({
@@ -169,7 +169,12 @@ describe('mixed currency output coverage', () => {
   ] as const)(
     'still rejects an unexpectedly empty %s collection',
     async (slot, reportedTotal) => {
-      const batch = { ...(await collect(101)), reportedTotal };
+      const batch = {
+        ...(await collect(101)),
+        reportedTotal,
+        fetchedCount: 0,
+        listings: [],
+      };
       const provider = new PoeTradeClient({
         userAgent: 'fixture coverage',
         collectionSource: {

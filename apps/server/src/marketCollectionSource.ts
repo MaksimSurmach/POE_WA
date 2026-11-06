@@ -1,4 +1,7 @@
-import type { MarketCollectionSource } from '@poe-worksmith/contracts';
+import type {
+  MarketCollectionRun,
+  MarketCollectionSource,
+} from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
 import {
   configuredMarketCollectionSource,
@@ -148,31 +151,37 @@ export function managedCollectionSource(
         run = await manager.collectNow(stored.id, signal);
       }
       if (!run) throw new DomainError('MARKET_COLLECTION_FAILED');
-      return {
-        batchCount: run.batchCount,
-        cancelled: run.status === 'cancelled',
-        cached: run.cached,
-        ...(run.inexact === undefined ? {} : { inexact: run.inexact }),
-        capturedAt: run.capturedAt,
-        coverage: run.coverage ?? 'unknown',
-        currency: run.currency,
-        fetchedCount: run.fetchedCount,
-        listings: run.listings,
-        reportedTotal: run.reportedTotal,
-        returnedCount: run.returnedCount,
-        errorCode: run.errorCode,
-        retryAt: run.retryAt,
-        searchEvidence: run.searchEvidence,
-        ...(run.sortedSampleComplete === undefined
-          ? {}
-          : {
-              sortedSampleComplete:
-                run.sortedSampleComplete &&
-                !run.cancelRequested &&
-                !run.errorCode &&
-                run.status === 'partial',
-            }),
-      };
+      return collectionRunBatch(run);
     },
+  };
+}
+
+export function collectionRunBatch(
+  run: MarketCollectionRun,
+): import('./marketCollection.js').MarketCollectionBatch {
+  return {
+    batchCount: run.batchCount,
+    cancelled: run.status === 'cancelled',
+    cached: run.cached,
+    ...(run.inexact === undefined ? {} : { inexact: run.inexact }),
+    capturedAt: run.capturedAt,
+    coverage: run.coverage ?? 'unknown',
+    currency: run.currency,
+    fetchedCount: run.fetchedCount,
+    listings: run.listings,
+    reportedTotal: run.reportedTotal,
+    returnedCount: run.returnedCount,
+    errorCode: run.errorCode,
+    retryAt: run.retryAt,
+    searchEvidence: run.searchEvidence,
+    ...(run.sortedSampleComplete === undefined
+      ? {}
+      : {
+          sortedSampleComplete:
+            run.sortedSampleComplete &&
+            !run.cancelRequested &&
+            !run.errorCode &&
+            run.status === 'partial',
+        }),
   };
 }

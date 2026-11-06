@@ -128,14 +128,26 @@ export const scheduledTradeTrendDataSchema = z.strictObject({
       league: z.string(),
       patch: z.string(),
       currency: trendCurrencySchema,
+      activity: z
+        .strictObject({
+          previousAt: z.iso.datetime(),
+          missingCount: z.number().int().nonnegative(),
+          newCount: z.number().int().nonnegative(),
+        })
+        .optional(),
       points: z.array(
-        marketResearchSnapshotSummarySchema.pick({
-          id: true,
-          capturedAt: true,
-          median: true,
-          count: true,
-          coverage: true,
-        }),
+        marketResearchSnapshotSummarySchema
+          .pick({
+            id: true,
+            capturedAt: true,
+            median: true,
+            count: true,
+            coverage: true,
+          })
+          .extend({
+            reportedTotal: z.number().int().nonnegative().nullable().optional(),
+            inexact: z.boolean().optional(),
+          }),
       ),
     })
     .nullable(),

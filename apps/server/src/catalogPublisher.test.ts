@@ -553,7 +553,7 @@ describe('sale evidence acceptance', () => {
   async function evaluateWithTargetSellers(
     sellers: readonly string[],
     profitBlockedReason?: string,
-    coverage: 'complete' | 'partial' = 'complete',
+    coverage: 'complete' | 'partial' | 'missing' = 'complete',
   ) {
     const repositories = createInMemoryRepositories();
     const definition = fixtureRecipe(canonicalRecipeFixture);
@@ -586,6 +586,7 @@ describe('sale evidence acceptance', () => {
     await repositories.cycles.save(refreshCycle);
     const targetIndex = tradeQueries.length - 1;
     for (const [queryIndex, tradeQuery] of tradeQueries.entries()) {
+      if (coverage === 'missing' && queryIndex === targetIndex) continue;
       const marketQueryId = `query-${queryIndex}`;
       await repositories.marketQueries.save({
         active: true,
@@ -638,6 +639,7 @@ describe('sale evidence acceptance', () => {
     }
     const report = await evaluateAndPublishCatalog(repositories, {
       cycleId: refreshCycle.id,
+      allowMissingOutput: coverage === 'missing',
       marketDependencies: fixtureMarketDependencies,
       league: 'Mercenaries',
       now,
@@ -645,6 +647,22 @@ describe('sale evidence acceptance', () => {
     expect(report).toMatchObject({ completedRecipes: 1, published: true });
     return report.evaluations[0]!;
   }
+
+  it('publishes the craft cost when a scheduled output has no fresh observation', async () => {
+    const evaluation = await evaluateWithTargetSellers(
+      [],
+      undefined,
+      'missing',
+    );
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      expectedCraftCost: expect.any(String),
+      estimatedSalePrice: null,
+      sourceSnapshotDedupeKey: null,
+      profit: null,
+      methodCost: { marketStatus: 'unavailable' },
+    });
+  });
 
   it('withholds ROI from a partial output even with two sellers and legacy sorted proof', async () => {
     const evaluation = await evaluateWithTargetSellers(

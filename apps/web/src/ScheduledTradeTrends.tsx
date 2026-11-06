@@ -215,7 +215,15 @@ export function ScheduledTradeTrends({ range }: { range: TrendRange }) {
               {formatUtc(latest.capturedAt)}
             </time>
             {' · '}
-            {latest.count} listings · {latest.coverage ?? 'unknown'} coverage
+            {latest.count} captured · {latest.coverage ?? 'unknown'} coverage
+            {latest.reportedTotal != null
+              ? ` · Trade reported ${latest.inexact ? 'about ' : ''}${latest.reportedTotal} matching listings`
+              : null}
+          </p>
+          <p>
+            {series.activity
+              ? `${series.activity.newCount} new · ${series.activity.missingCount} no longer in this search since ${formatUtc(series.activity.previousAt)}. Sale status unknown.`
+              : 'Listing changes require two complete comparable snapshots.'}
           </p>
           <TradeChart name={name} series={series} />
         </>

@@ -257,7 +257,7 @@ export function createBatchedMarketCollectionSource(options: {
         target.slot,
       );
       // Trade's mixed-currency order need not match our FX; collect small output cohorts fully.
-      // shortcut: cap outputs at 100 listings; larger cohorts remain unpriced until deeper collection exists.
+      // shortcut: use 20 asks for oversized cohorts until deeper sampling fits the rate budget.
       const mixedOutput =
         target.slot === 'crafted-item' &&
         target.tradeSearch?.includeOtherCurrencies;
@@ -265,12 +265,14 @@ export function createBatchedMarketCollectionSource(options: {
         mixedOutput &&
         Math.max(ids.length, search.data.reportedTotal ?? 0) >
           completeOutputLimit;
-      const selectedIds = oversizedOutput
-        ? []
-        : ids.slice(
-            0,
-            mixedOutput ? completeOutputLimit : handbookSample ? 20 : 1000,
-          );
+      const selectedIds = ids.slice(
+        0,
+        mixedOutput && !oversizedOutput
+          ? completeOutputLimit
+          : handbookSample
+            ? 20
+            : 1000,
+      );
       const listings: MarketImportListing[] = [];
       let cached = search.cached;
       let batchCount = 0;
