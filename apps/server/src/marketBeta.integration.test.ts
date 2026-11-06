@@ -179,7 +179,12 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
   it('reads new scheduled snapshots without mixing query scopes, currencies or cached runs', async () => {
     const fixture = beltDemoFixture();
     const target = await research.saveTarget(
-      createMarketTarget(fixture.target),
+      createMarketTarget({
+        ...fixture.target,
+        name: 'base:base:stygian-vise',
+        slot: 'starting-base',
+        minItemLevel: 85,
+      }),
     );
     const now = new Date();
     const start = new Date(now.getTime() - 86_400_000);
@@ -250,7 +255,9 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
       ]);
       const second = await save(2);
       const after = await read();
-      expect(after.targets).toEqual([{ id: target.id, name: target.name }]);
+      expect(after.targets).toEqual([
+        { id: target.id, name: 'Stygian Vise · iLvl 85 · stygian-vise' },
+      ]);
       expect(
         after.series?.points.map(({ id, median }) => [id, median]),
       ).toEqual([

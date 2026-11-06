@@ -84,11 +84,22 @@ export function createMarketResearchRepository(
                 and r.trigger = 'scheduled' and r.status in ('succeeded', 'partial', 'empty')
                 and r.payload->>'sourceId' = 'trade-compatible' and r.payload->>'cached' = 'false'
             )
+        ), target_counts as (
+          select target_id as id, count(*) filter (where summary->>'median' is not null) as priced
+          from eligible group by target_id
         ), targets as (
-          select e.target_id as id, t.profile->>'name' as name,
-            count(*) filter (where e.summary->>'median' is not null) as priced
-          from eligible e join market_targets t on t.id = e.target_id
-          group by e.target_id, t.profile->>'name'
+          select c.id, c.priced,
+            case t.profile->>'slot'
+              when 'starting-base' then concat_ws(' · ', t.profile->'baseTypes'->>0,
+                'iLvl ' || (t.profile->>'minItemLevel'),
+                regexp_replace(t.profile->>'name', '^base:(base:|.*/)?', ''))
+              when 'crafted-item' then concat_ws(' · ', t.profile->'baseTypes'->>0,
+                'iLvl ' || (t.profile->>'minItemLevel'),
+                case when t.profile#>>'{tradeSearch,fractured}' = 'true' then 'Fractured' end,
+                right(t.profile->>'name', 8))
+              else t.profile->>'name'
+            end as name
+          from target_counts c join market_targets t on t.id = c.id
         ), latest as (
           select * from eligible
           where target_id = coalesce($3::uuid, (select id from targets order by priced desc, name, id limit 1))
