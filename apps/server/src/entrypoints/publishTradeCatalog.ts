@@ -92,9 +92,7 @@ async function publish() {
     string,
     {
       recipeId: string;
-      query: Awaited<
-        ReturnType<typeof marketDependencies>
-      >[number]['query'] & {};
+      query: RecipeMarketQuery;
       target: ReturnType<typeof recipeQueryTarget>;
     }
   >();
@@ -145,11 +143,25 @@ async function publish() {
       );
       if (!result.rows[0]) continue;
       const run = marketCollectionRunSchema.parse(result.rows[0].payload);
-      const market = collectionSearchResult(
-        collectionRunBatch(run),
-        query.query,
-        target,
-      );
+      let market;
+      try {
+        market = collectionSearchResult(
+          collectionRunBatch(run),
+          query.query,
+          target,
+        );
+      } catch (error) {
+        if (
+          !(error instanceof DomainError) ||
+          error.code !== 'MARKET_COLLECTION_FAILED'
+        )
+          throw error;
+        logger.warn(
+          { targetId: run.targetId, runId: run.id, code: error.code },
+          'saved_trade.query.unusable',
+        );
+        continue;
+      }
       if (market.fetchedAt <= oldest || market.fetchedAt > now) continue;
       const marketQuery =
         (await repositories.marketQueries.findByCanonicalHash(hash)) ??
