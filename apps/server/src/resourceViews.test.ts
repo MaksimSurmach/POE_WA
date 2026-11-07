@@ -564,9 +564,10 @@ describe('repository-backed resource views', () => {
   });
 });
 
-it.each([false, true])(
-  'omits expired raw output snapshot even without a published evaluation (expired=%s)',
-  async (expired) => {
+it.each(['fresh', 'expired', 'policy-expired'] as const)(
+  'omits expired raw output snapshot even without a published evaluation (state=%s)',
+  async (state) => {
+    const expired = state === 'expired';
     const repositories = createInMemoryRepositories();
     await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
     const league = await repositories.leagues.upsert({
@@ -617,7 +618,11 @@ it.each([false, true])(
       leagueId: league.id,
       refreshCycleId: cycleId,
       dedupeKey: 'fixture-stale',
-      capturedAt: new Date(expired ? '2019-01-01' : Date.now()),
+      capturedAt: new Date(
+        expired
+          ? '2019-01-01'
+          : Date.now() - (state === 'policy-expired' ? 600_000 : 0),
+      ),
       expiresAt: new Date(expired ? '2020-01-01' : '2099-01-01'),
       providerStatus: 200,
       payload: { listings: [], totalResults: 0, coverage: 'partial' },
@@ -626,10 +631,16 @@ it.each([false, true])(
       repositories,
       await loadItemPresentationCatalog(presentationPath),
       trade,
+      async () => 300_000,
     );
     const response = await readers.readRecipe(correlationId, recipe.id);
-    expect(response.data?.snapshot === null).toBe(expired);
-    if (!expired)
+    expect(response.data?.snapshot === null).toBe(state !== 'fresh');
+    const catalog = await readers.readCatalog(correlationId);
+    expect(
+      catalog.data?.entries.find((entry) => entry.recipe.id === recipe.id)
+        ?.snapshot === null,
+    ).toBe(state !== 'fresh');
+    if (state === 'fresh')
       expect(response.data?.snapshot).toMatchObject({
         coverage: 'partial',
         listings: [],

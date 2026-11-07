@@ -255,8 +255,11 @@ export function buildApi(
       createRefreshFreshnessReader({
         getProgress: readRefreshProgress,
         findLatestAttempt: async () => null,
-        cron: '0 * * * *',
-        timezone: 'UTC',
+        readSchedule: async () => ({
+          cron: '0 * * * *',
+          timezone: 'UTC',
+          enabled: true,
+        }),
       })
     )();
     return refreshProgressResponseSchema.parse({
@@ -271,7 +274,8 @@ export function buildApi(
         published: serializeCycle(freshness.published),
         schedule: {
           cron: freshness.schedule.cron,
-          nextScheduledAt: freshness.schedule.nextScheduledAt.toISOString(),
+          nextScheduledAt:
+            freshness.schedule.nextScheduledAt?.toISOString() ?? null,
           timezone: freshness.schedule.timezone,
         },
         serverTime: freshness.serverTime.toISOString(),

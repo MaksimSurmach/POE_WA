@@ -340,6 +340,20 @@ export function AdminMarketPage() {
     delete changes.collectionsPaused;
     setSettings(value);
     setDraft({ ...value.configured, ...changes });
+    setStatus(
+      (current) =>
+        current && {
+          ...current,
+          collection: {
+            ...current.collection,
+            paused: value.effective.collectionsPaused,
+            manualAvailable:
+              value.effective.manualRefreshEnabled &&
+              !value.effective.collectionsPaused &&
+              current.worker.healthy,
+          },
+        },
+    );
     setSettingsError('');
   }
   function focusInvalidSetting() {
@@ -365,7 +379,7 @@ export function AdminMarketPage() {
     ) : null;
   }
   const paused =
-    settings?.configured.collectionsPaused ?? status?.collection.paused;
+    status?.collection.paused ?? settings?.configured.collectionsPaused;
   const runDisabledReason = busy
     ? 'An operation is being applied.'
     : !status || statusError
@@ -516,7 +530,7 @@ export function AdminMarketPage() {
                 <select disabled aria-label="Recipe">
                   <option>Loading recipes…</option>
                 </select>
-              ) : recipes.length ? (
+              ) : catalogState === 'ready' && recipes.length ? (
                 <select
                   required
                   value={recipeId}
@@ -652,7 +666,11 @@ export function AdminMarketPage() {
           {settings && draft ? (
             <>
               {settings.warnings
-                .filter((warning) => !status?.warnings.includes(warning))
+                .filter(
+                  (warning) =>
+                    !status?.scheduler.enabled ||
+                    !status.warnings.includes(warning),
+                )
                 .map((warning) => (
                   <p className="market-admin__warning" key={warning}>
                     {warning}

@@ -19,6 +19,7 @@ import { evaluateAndPublishCatalog } from '../catalogPublisher.js';
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
 import { collectionRunBatch } from '../marketCollectionSource.js';
+import { trySavedTradePublicationLock } from '../marketAdmin.js';
 import { marketSearchPayload } from '../marketJobProcessor.js';
 import { collectionSearchResult } from '../providers/poeTrade.js';
 import {
@@ -38,10 +39,12 @@ try {
   const lock = await pool.connect();
   try {
     await lock.query('begin');
-    const result = await lock.query<{ acquired: boolean }>(
-      "select pg_try_advisory_xact_lock(hashtext('poe-worksmith:publish-trade-catalog')) as acquired",
-    );
-    if (result.rows[0]?.acquired) await publish();
+    if (await trySavedTradePublicationLock(lock)) {
+      const active = await lock.query(
+        "select 1 from market_admin_runs where status='running' limit 1",
+      );
+      if (!active.rowCount) await publish();
+    }
     await lock.query('commit');
   } finally {
     lock.release(true);

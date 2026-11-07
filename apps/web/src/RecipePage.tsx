@@ -9,13 +9,15 @@ import {
   economicClass,
 } from './components.js';
 import { formatMarginPercent } from './catalog.js';
-import { createApiClient } from './apiClient.js';
+import { ApiClientError, createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
 import { RecipeTrendPanel } from './MarketTrendsPage.js';
 import { CraftRiskSection } from './CraftRiskSection.js';
 import { RecipeIntelligencePanel } from './IntelligencePanel.js';
 
-const apiClient = createApiClient();
+const apiClient = createApiClient('', (url, options) =>
+  fetch(url, { ...options, signal: AbortSignal.timeout(15_000) }),
+);
 
 export function RecipePage() {
   const { recipeId } = useParams();
@@ -25,6 +27,7 @@ export function RecipePage() {
 
   useEffect(() => {
     let active = true;
+    let inFlight = false;
     setResponse(null);
     setLoadError(false);
     if (!recipeId) {
@@ -33,24 +36,43 @@ export function RecipePage() {
         active = false;
       };
     }
-    apiClient
-      .getRecipe(recipeId)
-      .then((recipe) => {
-        if (active) setResponse(recipe);
-      })
-      .catch(() => {
-        if (active) setLoadError(true);
-      });
+    const id = recipeId;
+    async function load() {
+      if (inFlight) return;
+      inFlight = true;
+      try {
+        const recipe = await apiClient.getRecipe(id);
+        if (active) {
+          setResponse(recipe);
+          setLoadError(false);
+        }
+      } catch (error) {
+        if (active) {
+          if (error instanceof ApiClientError && error.status === 404)
+            setResponse(null);
+          setLoadError(true);
+        }
+      } finally {
+        inFlight = false;
+      }
+    }
+    void load();
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') void load();
+    }, 30_000);
+    const onFocus = () => void load();
+    window.addEventListener('focus', onFocus);
     return () => {
       active = false;
+      clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
     };
   }, [recipeId]);
 
-  if (loadError) return <RecipeMessage title="Recipe unavailable" />;
   if (!response?.data)
     return (
       <RecipeMessage
-        title={response ? 'Recipe unavailable' : 'Loading recipe'}
+        title={response || loadError ? 'Recipe unavailable' : 'Loading recipe'}
       />
     );
 
@@ -85,6 +107,12 @@ export function RecipePage() {
       >
         Start a production batch →
       </Link>
+      {loadError ? (
+        <p role="status" className="recipe-warning">
+          Price update unavailable. Displayed prices are from the last
+          successful load.
+        </p>
+      ) : null}
       <header className="recipe-detail__header">
         <div className="recipe-detail__identity">
           <ItemTooltip item={detail.presentation.target} />

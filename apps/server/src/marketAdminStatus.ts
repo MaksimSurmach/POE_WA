@@ -7,7 +7,10 @@ import type { Repositories } from '@poe-worksmith/domain';
 import type { MarketCollectionManager } from './marketCollection.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
 import type { NinjaEconomyClient } from './providers/ninjaEconomy.js';
-import type { MarketAdminStore } from './marketAdmin.js';
+import {
+  scheduledRefreshEnabled,
+  type MarketAdminStore,
+} from './marketAdmin.js';
 
 export function createMarketAdminStatusReader(options: {
   store: MarketAdminStore;
@@ -30,6 +33,7 @@ export function createMarketAdminStatusReader(options: {
       catalog,
       attempts,
       collector,
+      cooldownUntil,
     ] = await Promise.all([
       options.store.read(),
       options.store.workerHealth(),
@@ -39,12 +43,10 @@ export function createMarketAdminStatusReader(options: {
       options.readCatalog('admin-status'),
       options.economy.listAttempts(),
       options.collectorStatus?.() ?? Promise.resolve(null),
+      options.ninja.readCooldownUntil(),
     ]);
     const { effective } = settings;
-    const enabled =
-      effective.automaticRefreshEnabled &&
-      effective.scheduledCollectionEnabled &&
-      !effective.collectionsPaused;
+    const enabled = scheduledRefreshEnabled(effective);
     const source = options.collection.source;
     const entries = catalog.data?.entries ?? [];
     const now = Date.now();
@@ -72,10 +74,10 @@ export function createMarketAdminStatusReader(options: {
       },
       ninja: {
         configured: true,
-        status: options.ninja.cooldownUntil
+        status: cooldownUntil
           ? 'COOLDOWN'
           : (attempts[0]?.status ?? 'not-checked'),
-        cooldownUntil: options.ninja.cooldownUntil,
+        cooldownUntil,
       },
       worker: health,
       scheduler: {

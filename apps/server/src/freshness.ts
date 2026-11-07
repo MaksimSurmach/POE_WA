@@ -12,7 +12,7 @@ export type RefreshFreshnessState =
 export type RefreshFreshness = {
   serverTime: Date;
   state: RefreshFreshnessState;
-  schedule: { cron: string; timezone: string; nextScheduledAt: Date };
+  schedule: { cron: string; timezone: string; nextScheduledAt: Date | null };
   active: RefreshCycle | null;
   published: RefreshCycle | null;
   lastAttempt: RefreshCycle | null;
@@ -21,18 +21,22 @@ export type RefreshFreshness = {
 
 export function deriveRefreshFreshness(input: {
   now: Date;
+  enabled?: boolean;
   active: RefreshCycle | null;
   published: RefreshCycle | null;
   lastAttempt: RefreshCycle | null;
   cron: string;
   timezone: string;
 }): RefreshFreshness {
-  const nextScheduledAt = CronExpressionParser.parse(input.cron, {
-    currentDate: input.now,
-    tz: input.timezone,
-  })
-    .next()
-    .toDate();
+  const nextScheduledAt =
+    input.enabled === false
+      ? null
+      : CronExpressionParser.parse(input.cron, {
+          currentDate: input.now,
+          tz: input.timezone,
+        })
+          .next()
+          .toDate();
   const state =
     input.active?.status === 'running'
       ? 'running'
@@ -66,22 +70,25 @@ export function deriveRefreshFreshness(input: {
 export function createRefreshFreshnessReader(options: {
   getProgress: () => Promise<CatalogProgress>;
   findLatestAttempt: () => Promise<RefreshCycle | null>;
-  cron: string;
-  timezone: string;
+  readSchedule: () => Promise<{
+    cron: string;
+    timezone: string;
+    enabled: boolean;
+  }>;
   clock?: () => Date;
 }) {
   return async () => {
     const now = (options.clock ?? (() => new Date()))();
-    const [progress, lastAttempt] = await Promise.all([
+    const [progress, lastAttempt, schedule] = await Promise.all([
       options.getProgress(),
       options.findLatestAttempt(),
+      options.readSchedule(),
     ]);
     return deriveRefreshFreshness({
       ...progress,
       lastAttempt,
       now,
-      cron: options.cron,
-      timezone: options.timezone,
+      ...schedule,
     });
   };
 }

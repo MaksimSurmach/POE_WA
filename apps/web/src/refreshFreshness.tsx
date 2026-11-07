@@ -25,15 +25,18 @@ export function formatRefreshFreshness(
       hour: '2-digit',
       minute: '2-digit',
       month: 'short',
+      timeZone: freshness.schedule.timezone,
     }).format(new Date(timestamp))} (${freshness.schedule.timezone})`;
-  const next = absolute(freshness.schedule.nextScheduledAt);
+  const next = freshness.schedule.nextScheduledAt
+    ? `Next refresh ${absolute(freshness.schedule.nextScheduledAt)}`
+    : 'Automatic refresh disabled';
   switch (freshness.state) {
     case 'never-published':
       return 'Awaiting first market publication';
     case 'scheduled':
-      return `Next refresh ${relative(freshness.schedule.nextScheduledAt)}; ${next}`;
+      return next;
     case 'queued':
-      return `Refresh queued; next scheduled ${next}`;
+      return `Refresh queued · ${next}`;
     case 'running': {
       const cycle = freshness.active;
       return cycle
@@ -41,11 +44,11 @@ export function formatRefreshFreshness(
         : 'Refresh in progress';
     }
     case 'failed':
-      return `Last refresh failed ${freshness.lastAttempt ? relative(freshness.lastAttempt.requestedAt) : 'recently'};${freshness.lastSuccessful ? ` previous snapshot ${relative(freshness.lastSuccessful.publishedAt)};` : ''} next schedule ${next}`;
+      return `Last refresh failed ${freshness.lastAttempt ? relative(freshness.lastAttempt.requestedAt) : 'recently'};${freshness.lastSuccessful ? ` previous snapshot ${relative(freshness.lastSuccessful.publishedAt)};` : ''} ${next}`;
     case 'published':
       return freshness.lastSuccessful
-        ? `Last snapshot ${relative(freshness.lastSuccessful.publishedAt)}; next refresh ${relative(freshness.schedule.nextScheduledAt)}`
-        : `Next refresh ${relative(freshness.schedule.nextScheduledAt)}`;
+        ? `Last snapshot ${relative(freshness.lastSuccessful.publishedAt)} · ${next}`
+        : next;
   }
 }
 

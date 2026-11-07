@@ -785,6 +785,78 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     ).toBe(true);
   });
 
+  it('leaves a live saved-Trade cycle alone and recovers it after lock release', async () => {
+    const id = randomUUID();
+    const publisher = await pool.connect();
+    try {
+      await publisher.query('begin');
+      await publisher.query(
+        "select pg_advisory_xact_lock(hashtext('poe-worksmith:publish-trade-catalog'))",
+      );
+      await seedCycle(id);
+      await store.reconcile(producer);
+      expect(
+        (await createPostgresRepositories(pool).cycles.findById(id))?.status,
+      ).toBe('running');
+    } finally {
+      await publisher.query('rollback');
+      publisher.release();
+    }
+    await store.reconcile(producer);
+    expect(
+      await createPostgresRepositories(pool).cycles.findById(id),
+    ).toMatchObject({
+      status: 'failed',
+      errorMessage: 'REFRESH_WORKER_INTERRUPTED',
+    });
+  });
+
+  it('aborts a worker claim waiting for saved-Trade publication', async () => {
+    const id = await enqueue();
+    const publisher = await pool.connect();
+    const controller = new AbortController();
+    let claim: Promise<boolean> | undefined;
+    try {
+      await publisher.query('begin');
+      await publisher.query(
+        "select pg_advisory_xact_lock(hashtext('poe-worksmith:publish-trade-catalog'))",
+      );
+      claim = store.claim(
+        id,
+        { scope: 'all', source: 'manual' },
+        controller.signal,
+      );
+      setTimeout(() => controller.abort(), 50);
+      const outcome = await Promise.race([
+        claim.catch((error: unknown) => error),
+        new Promise((resolve) => setTimeout(resolve, 500, 'claim blocked')),
+      ]);
+      expect(outcome).toMatchObject({ name: 'AbortError' });
+      expect((await store.runs())[0]).toMatchObject({ id, status: 'queued' });
+    } finally {
+      await publisher.query('rollback');
+      publisher.release();
+      await claim?.catch(() => undefined);
+    }
+  });
+
+  it('honors economy cancellation accepted before terminal completion', async () => {
+    const id = await enqueue({ scope: 'economy' });
+    expect(await store.claim(id, { scope: 'economy', source: 'manual' })).toBe(
+      true,
+    );
+    expect(await secondStore.cancel(id, 'operator', producer)).toEqual({
+      requested: true,
+    });
+    await store.finish(id, 'succeeded');
+    expect((await store.runs())[0]).toMatchObject({
+      id,
+      status: 'cancelled',
+      cancelRequested: true,
+      errorCode: 'MARKET_COLLECTION_CANCELLED',
+    });
+  });
+
   it('reconciles interrupted queue runs and orphan cycles while preserving recipes and raw observations', async () => {
     const id = await enqueue();
     await seedCycle(id);

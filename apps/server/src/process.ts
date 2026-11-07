@@ -8,6 +8,7 @@ import { collectRecipeMaterialPrices } from './marketEconomy.js';
 import {
   createMarketAdminStore,
   defaultAdminSettings,
+  scheduledRefreshEnabled,
   type AdminQueue,
 } from './marketAdmin.js';
 import { createMarketAdminStatusReader } from './marketAdminStatus.js';
@@ -26,11 +27,7 @@ import {
   createJobBoss,
   ManualRefreshProducer,
 } from './jobs.js';
-import {
-  HttpPoeNinjaLeagueClient,
-  HttpPoeTradeLeagueClient,
-  LeagueResolver,
-} from './leagues.js';
+import { HttpPoeTradeLeagueClient, LeagueResolver } from './leagues.js';
 import { MarketJobProcessor } from './marketJobProcessor.js';
 import { PoeTradeClient } from './providers/poeTrade.js';
 import { GggRateLimitController } from './rateLimitController.js';
@@ -70,7 +67,10 @@ import { createMarketCollectionRepository } from './repositories/marketCollectio
 import { createPriceHistoryRepository } from './repositories/priceHistoryRepository.js';
 import { marketCollectionRunner } from './config.js';
 import { createMarketTrendsReader } from './marketTrendsApi.js';
-import { NinjaEconomyClient } from './providers/ninjaEconomy.js';
+import {
+  NinjaEconomyClient,
+  NinjaEconomyError,
+} from './providers/ninjaEconomy.js';
 import { MarketCollectionManager } from './marketCollection.js';
 import {
   configuredCollectionSource,
@@ -118,8 +118,17 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     concurrencyLimit: config.marketConcurrency,
   });
   await admin.init();
+  async function readSchedule() {
+    const { effective, timezone } = await admin.read();
+    return {
+      enabled: scheduledRefreshEnabled(effective),
+      cron: effective.refreshCron,
+      timezone,
+    };
+  }
   const economyClient = new NinjaEconomyClient({
     userAgent: process.env.NINJA_USER_AGENT ?? config.poeUserAgent,
+    cooldowns: repositories.providerCircuits,
     readTimeoutMs: async () => (await admin.read()).effective.requestTimeoutMs,
   });
   const recipeRoot = fileURLToPath(
@@ -309,10 +318,9 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           readCircuits: repositories.providerCircuits.list,
           readOperationalDiagnostics: repositories.operationalDiagnostics.read,
           readRefreshFreshness: createRefreshFreshnessReader({
-            cron: config.refreshCron,
+            readSchedule,
             findLatestAttempt: repositories.cycles.findLatestAttempt,
             getProgress: repositories.catalog.getProgress,
-            timezone: config.refreshTimezone,
           }),
           triggerRefresh: async () =>
             (
@@ -354,10 +362,21 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     }
     const resolver = new LeagueResolver({
       leagues: repositories.leagues,
-      poeNinja: new HttpPoeNinjaLeagueClient({
-        requestTimeoutMs: config.poeRequestTimeoutMs,
-        userAgent: config.poeUserAgent,
-      }),
+      poeNinja: {
+        async fetchEconomyLeagues() {
+          try {
+            return (await economyClient.discoverLeagues()).snapshot.leagues;
+          } catch (cause) {
+            throw new DomainError(
+              cause instanceof NinjaEconomyError &&
+                cause.code === 'SCHEMA_INVALID'
+                ? 'POE_NINJA_LEAGUES_INVALID'
+                : 'POE_NINJA_LEAGUES_UNAVAILABLE',
+              { cause },
+            );
+          }
+        },
+      },
       trade: new HttpPoeTradeLeagueClient({
         requestTimeoutMs: config.poeRequestTimeoutMs,
         userAgent: config.poeUserAgent,
@@ -370,17 +389,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       refreshCron: config.refreshCron,
       refreshTimezone: config.refreshTimezone,
       control: {
-        readSchedule: async () => {
-          const settings = (await admin.read()).effective;
-          return {
-            enabled:
-              settings.automaticRefreshEnabled &&
-              settings.scheduledCollectionEnabled &&
-              !settings.collectionsPaused,
-            cron: settings.refreshCron,
-            timezone: config.refreshTimezone,
-          };
-        },
+        readSchedule,
         heartbeat: async () => {
           const current = (await admin.read()).version;
           await admin.reconcile({
@@ -420,7 +429,11 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             : { scope: rawData?.scope ?? 'all' },
         );
         const data = { ...scope, source: rawData?.source ?? 'scheduler' };
-        if (!(await admin.claim(cycleId, data))) return { skipped: true };
+        const workerSignal = jobSignal
+          ? AbortSignal.any([jobSignal, workerShutdown.signal])
+          : workerShutdown.signal;
+        if (!(await admin.claim(cycleId, data, workerSignal)))
+          return { skipped: true };
         const cancellation = watchRefreshCancellation(
           () => admin.cancellationRequested(cycleId),
           () =>
@@ -429,9 +442,6 @@ export async function runProcess(forcedMode?: ApplicationMode) {
               'refresh cancellation check failed; will retry',
             ),
         );
-        const workerSignal = jobSignal
-          ? AbortSignal.any([jobSignal, workerShutdown.signal])
-          : workerShutdown.signal;
         const signal = AbortSignal.any([workerSignal, cancellation.signal]);
         let runClient: PoeTradeClient | undefined;
         const abort = () => runClient?.stop();

@@ -447,7 +447,7 @@ export const refreshProgressResponseSchema = z.strictObject({
     schedule: z.strictObject({
       cron: z.string().min(1),
       timezone: z.string().min(1),
-      nextScheduledAt: z.iso.datetime(),
+      nextScheduledAt: z.iso.datetime().nullable(),
     }),
     active: refreshCycleSchema.nullable(),
     published: refreshCycleSchema.nullable(),
