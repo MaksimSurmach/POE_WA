@@ -82,6 +82,7 @@ export function createResourceReaders(
             const snapshot = await latestOutputSnapshot({
               currentLeague,
               evaluation,
+              maximumQuoteAgeMs,
               recipe,
               repositories,
               trade,
@@ -160,6 +161,7 @@ export function createResourceReaders(
           snapshot: await latestOutputSnapshot({
             currentLeague,
             evaluation,
+            maximumQuoteAgeMs,
             recipe,
             repositories,
             trade,
@@ -230,6 +232,7 @@ function toCatalogEntry(
 }
 
 async function latestOutputSnapshot(input: {
+  maximumQuoteAgeMs?: number | undefined;
   currentLeague: Awaited<ReturnType<Repositories['leagues']['findCurrent']>>;
   evaluation: RecipeEvaluation | undefined;
   recipe: StoredRecipe;
@@ -258,9 +261,12 @@ async function latestOutputSnapshot(input: {
     marketQuery.id,
     input.currentLeague.id,
   );
+  const now = Date.now();
   if (
     !snapshot ||
-    snapshot.expiresAt.getTime() <= Date.now() ||
+    snapshot.expiresAt.getTime() <= now ||
+    (input.maximumQuoteAgeMs !== undefined &&
+      snapshot.capturedAt.getTime() + input.maximumQuoteAgeMs <= now) ||
     (input.evaluation?.sourceSnapshotDedupeKey &&
       snapshot.dedupeKey !== input.evaluation.sourceSnapshotDedupeKey)
   )

@@ -27,7 +27,7 @@ describe('market snapshot aggregation', () => {
     const listings = [
       listing('outlier', 100, { ageSeconds: 8 * 24 * 60 * 60 }),
       listing('equal-b', 2, {
-        account: 'same-seller',
+        account: 'SAME-SELLER',
         ageSeconds: 25 * 60 * 60,
       }),
       listing('cheap', 1, { ageSeconds: 30 * 60 }),

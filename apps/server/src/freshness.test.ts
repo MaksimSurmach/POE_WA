@@ -1,7 +1,10 @@
 import type { RefreshCycle } from '@poe-worksmith/domain';
 import { describe, expect, it } from 'vitest';
 
-import { deriveRefreshFreshness } from './freshness.js';
+import {
+  createRefreshFreshnessReader,
+  deriveRefreshFreshness,
+} from './freshness.js';
 
 const now = new Date('2026-03-29T00:30:00.000Z');
 const cycle = (
@@ -61,6 +64,25 @@ describe('refresh freshness', () => {
     });
   });
 
+  it('reads current schedule changes and returns no ETA while disabled', async () => {
+    let schedule = { enabled: true, cron: '15 * * * *', timezone: 'UTC' };
+    const read = createRefreshFreshnessReader({
+      clock: () => now,
+      getProgress: async () => ({ active: null, published: null }),
+      findLatestAttempt: async () => null,
+      readSchedule: async () => schedule,
+    });
+    expect((await read()).schedule.nextScheduledAt?.toISOString()).toBe(
+      '2026-03-29T01:15:00.000Z',
+    );
+    schedule = { ...schedule, cron: '45 * * * *' };
+    expect((await read()).schedule.nextScheduledAt?.toISOString()).toBe(
+      '2026-03-29T00:45:00.000Z',
+    );
+    schedule = { ...schedule, enabled: false };
+    expect((await read()).schedule.nextScheduledAt).toBeNull();
+  });
+
   it('calculates UTC and DST-aware next occurrences', () => {
     expect(
       deriveRefreshFreshness({
@@ -70,7 +92,7 @@ describe('refresh freshness', () => {
         lastAttempt: null,
         cron: '0 */4 * * *',
         timezone: 'UTC',
-      }).schedule.nextScheduledAt.toISOString(),
+      }).schedule.nextScheduledAt?.toISOString(),
     ).toBe('2026-03-29T04:00:00.000Z');
     expect(
       deriveRefreshFreshness({
@@ -80,7 +102,7 @@ describe('refresh freshness', () => {
         lastAttempt: null,
         cron: '0 3 * * *',
         timezone: 'Europe/Warsaw',
-      }).schedule.nextScheduledAt.toISOString(),
+      }).schedule.nextScheduledAt?.toISOString(),
     ).toBe('2026-03-30T01:00:00.000Z');
   });
 });

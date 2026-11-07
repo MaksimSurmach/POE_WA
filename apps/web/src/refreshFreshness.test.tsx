@@ -18,6 +18,19 @@ const base = {
 } as const;
 
 describe('refresh freshness', () => {
+  it('shows that automatic refresh is disabled when the ETA is null', () => {
+    expect(
+      formatRefreshFreshness(
+        {
+          ...base,
+          state: 'scheduled',
+          schedule: { ...base.schedule, nextScheduledAt: null },
+        },
+        now,
+      ),
+    ).toBe('Automatic refresh disabled');
+  });
+
   it.each([
     ['never-published', 'Awaiting first market publication'],
     ['scheduled', 'Next refresh'],

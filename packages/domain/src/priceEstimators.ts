@@ -227,8 +227,9 @@ function compareListings(left: MarketListing, right: MarketListing) {
 function deduplicateSellers(listings: readonly MarketListing[]) {
   const sellers = new Set<string>();
   return listings.filter((listing) => {
-    if (sellers.has(listing.account)) return false;
-    sellers.add(listing.account);
+    const account = listing.account.trim().toLowerCase();
+    if (sellers.has(account)) return false;
+    sellers.add(account);
     return true;
   });
 }
