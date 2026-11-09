@@ -53,7 +53,7 @@ describe('repository-backed resource views', () => {
       await readers.readCatalog(correlationId),
     );
     expect(catalog.state).toBe('loading');
-    expect(catalog.data?.entries).toHaveLength(28);
+    expect(catalog.data?.entries).toHaveLength(25);
     expect(
       catalog.data?.entries.find(
         ({ recipe }) => recipe.id === 'physical-large-cluster-jagged',
@@ -344,7 +344,7 @@ describe('repository-backed resource views', () => {
         recipesPath,
         repositories.recipes,
       );
-      expect(upgraded.updated).toHaveLength(28);
+      expect(upgraded.updated).toHaveLength(25);
       for (const previous of oldRecipes) {
         expect(
           (await repositories.recipes.findById(previous.id))?.contentHash,
