@@ -1389,3 +1389,208 @@ export const marketTradeSession = marketCollectorPrivate.table(
   },
   (table) => [check('trade_session_singleton_check', sql`${table.singleton}`)],
 );
+
+export const collectorSchedule = pgTable(
+  'collector_schedule',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    kind: text('kind').notNull(),
+    key: text('key').notNull(),
+    leagueId: uuid('league_id').references(() => poeLeagues.id),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+    intervalMinutes: integer('interval_minutes').notNull(),
+    nextDueAt: timestamp('next_due_at', { withTimezone: true }).notNull(),
+    attempt: integer('attempt').default(0).notNull(),
+    retryAt: timestamp('retry_at', { withTimezone: true }),
+    leasedUntil: timestamp('leased_until', { withTimezone: true }),
+    lastStartedAt: timestamp('last_started_at', { withTimezone: true }),
+    lastFinishedAt: timestamp('last_finished_at', { withTimezone: true }),
+    lastStatus: text('last_status'),
+    lastError: text('last_error'),
+    enabled: boolean('enabled').default(true).notNull(),
+  },
+  (table) => [
+    uniqueIndex('collector_schedule_kind_key_uq').on(table.kind, table.key),
+    index('collector_schedule_enabled_due_idx')
+      .on(table.nextDueAt)
+      .where(sql`${table.enabled}`),
+    check(
+      'collector_schedule_kind_check',
+      sql`${table.kind} in ('trade-target', 'economy', 'league', 'retention')`,
+    ),
+    check(
+      'collector_schedule_interval_check',
+      sql`${table.intervalMinutes} > 0`,
+    ),
+    check('collector_schedule_attempt_check', sql`${table.attempt} >= 0`),
+  ],
+);
+
+export const runRequests = pgTable(
+  'run_requests',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    scope: text('scope').notNull(),
+    recipeId: text('recipe_id').references(() => recipes.id),
+    requestedAt: timestamp('requested_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    state: text('state').default('queued').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    summary: jsonb('summary').$type<Record<string, unknown>>(),
+  },
+  (table) => [
+    uniqueIndex('run_requests_queued_scope_recipe_uq')
+      .on(table.scope, sql`coalesce(${table.recipeId}, '')`)
+      .where(sql`${table.state} = 'queued'`),
+    check(
+      'run_requests_scope_recipe_check',
+      sql`(${table.scope} = 'all' and ${table.recipeId} is null)
+        or (${table.scope} = 'recipe' and ${table.recipeId} is not null)`,
+    ),
+    check(
+      'run_requests_state_check',
+      sql`${table.state} in ('queued', 'running', 'done', 'failed')`,
+    ),
+  ],
+);
+
+export const collectorState = pgTable(
+  'collector_state',
+  {
+    id: integer('id').default(1).primaryKey(),
+    lastRunStartedAt: timestamp('last_run_started_at', { withTimezone: true }),
+    lastRunFinishedAt: timestamp('last_run_finished_at', {
+      withTimezone: true,
+    }),
+    lastRunStatus: text('last_run_status'),
+    lastRunSummary: jsonb('last_run_summary').$type<Record<string, unknown>>(),
+    blockedReason: text('blocked_reason'),
+    sessionCheckedAt: timestamp('session_checked_at', { withTimezone: true }),
+  },
+  (table) => [check('collector_state_singleton_check', sql`${table.id} = 1`)],
+);
+
+export const captures = pgTable(
+  'captures',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    scheduleId: uuid('schedule_id')
+      .notNull()
+      .references(() => collectorSchedule.id),
+    capturedAt: timestamp('captured_at', { withTimezone: true }).notNull(),
+    reportedTotal: integer('reported_total').notNull(),
+    fetched: integer('fetched').notNull(),
+    complete: boolean('complete').notNull(),
+    partialReason: text('partial_reason'),
+    slices: integer('slices').notNull(),
+    // Preserve the source ID after economy snapshot retention expires.
+    fxSnapshotId: uuid('fx_snapshot_id'),
+    durationMs: integer('duration_ms').notNull(),
+  },
+  (table) => [
+    uniqueIndex('captures_schedule_time_uq').on(
+      table.scheduleId,
+      table.capturedAt,
+    ),
+  ],
+);
+
+export const listings = pgTable(
+  'listings',
+  {
+    scheduleId: uuid('schedule_id')
+      .notNull()
+      .references(() => collectorSchedule.id),
+    itemId: text('item_id').notNull(),
+    seller: text('seller'),
+    fingerprint: text('fingerprint'),
+    firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull(),
+    firstCaptureId: uuid('first_capture_id')
+      .notNull()
+      .references(() => captures.id),
+    lastCaptureId: uuid('last_capture_id')
+      .notNull()
+      .references(() => captures.id),
+    priceOriginal: numeric('price_original', { precision: 20, scale: 8 }),
+    currency: text('currency'),
+    priceChaos: numeric('price_chaos', { precision: 20, scale: 8 }),
+    indexedAt: timestamp('indexed_at', { withTimezone: true }),
+    status: text('status').default('active').notNull(),
+    missedCompleteCaptures: integer('missed_complete_captures')
+      .default(0)
+      .notNull(),
+    goneAt: timestamp('gone_at', { withTimezone: true }),
+    item: jsonb('item').$type<MarketImportListing['item']>().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.scheduleId, table.itemId] }),
+    index('listings_schedule_status_idx').on(table.scheduleId, table.status),
+    index('listings_schedule_seller_fingerprint_idx').on(
+      table.scheduleId,
+      table.seller,
+      table.fingerprint,
+    ),
+    check(
+      'listings_status_check',
+      sql`${table.status} in ('active', 'missing', 'gone')`,
+    ),
+    check(
+      'listings_missed_complete_captures_check',
+      sql`${table.missedCompleteCaptures} >= 0`,
+    ),
+  ],
+);
+
+export const listingEvents = pgTable(
+  'listing_events',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    scheduleId: uuid('schedule_id')
+      .notNull()
+      .references(() => collectorSchedule.id),
+    itemId: text('item_id').notNull(),
+    captureId: uuid('capture_id')
+      .notNull()
+      .references(() => captures.id),
+    at: timestamp('at', { withTimezone: true }).notNull(),
+    type: text('type').notNull(),
+    fromPriceChaos: numeric('from_price_chaos', { precision: 20, scale: 8 }),
+    toPriceChaos: numeric('to_price_chaos', { precision: 20, scale: 8 }),
+    relatedItemId: text('related_item_id'),
+  },
+  (table) => [
+    index('listing_events_schedule_item_time_idx').on(
+      table.scheduleId,
+      table.itemId,
+      table.at,
+    ),
+    index('listing_events_schedule_type_time_idx').on(
+      table.scheduleId,
+      table.type,
+      table.at,
+    ),
+    check(
+      'listing_events_type_check',
+      sql`${table.type} in ('first_seen', 'price_changed', 'missed', 'reappeared', 'gone', 'possible_relist')`,
+    ),
+  ],
+);
+
+export const recipeResults = pgTable(
+  'recipe_results',
+  {
+    recipeId: text('recipe_id')
+      .notNull()
+      .references(() => recipes.id),
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id),
+    recipeContentHash: text('recipe_content_hash').notNull(),
+    evaluatedAt: timestamp('evaluated_at', { withTimezone: true }).notNull(),
+    result: jsonb('result').$type<Record<string, unknown>>().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.recipeId, table.leagueId] })],
+);
