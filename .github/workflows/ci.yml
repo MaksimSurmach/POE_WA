@@ -98,6 +98,9 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e:browser
+      - run: pnpm test:e2e:browser tests/browser/two-methods.spec.ts
+        env:
+          BROWSER_FIXTURE_SCENARIO: two-methods-priced
       - name: Validate and preview recipe catalog
         run: |
           echo '## Recipe catalog' >> "$GITHUB_STEP_SUMMARY"
