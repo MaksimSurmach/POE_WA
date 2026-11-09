@@ -630,7 +630,7 @@ describe('sale evidence acceptance', () => {
         marketQueryId,
         payload: {
           coverage: queryIndex === targetIndex ? coverage : 'complete',
-          sortedSampleComplete: true,
+          sortedSampleComplete: coverage !== 'partial',
           listings,
           provider: 'poe-trade',
           totalResults: listings.length,
@@ -666,7 +666,7 @@ describe('sale evidence acceptance', () => {
     });
   });
 
-  it('withholds ROI from a partial output even with two sellers and legacy sorted proof', async () => {
+  it('withholds ROI from a partial output without sorted-sample proof', async () => {
     const evaluation = await evaluateWithTargetSellers(
       ['one', 'two'],
       undefined,
@@ -688,7 +688,10 @@ describe('sale evidence acceptance', () => {
 
   it('retains cost and asks but withholds ROI when the priced output is not the modelled craft', async () => {
     const reason = 'Observed items include an unmodelled finishing stage.';
-    const evaluation = await evaluateWithTargetSellers(['one', 'two'], reason);
+    const evaluation = await evaluateWithTargetSellers(
+      ['one', 'two', 'three', 'four', 'five'],
+      reason,
+    );
     expect(evaluation.expectedCraftCost).not.toBeNull();
     expect(evaluation.estimatedSalePrice).toBe('1000');
     expect(evaluation).toMatchObject({
@@ -700,34 +703,52 @@ describe('sale evidence acceptance', () => {
         saleEvidence: { status: 'unverified_output_value', reason },
       },
     });
+    expect(evaluation.methodCost?.saleEvidence).not.toHaveProperty('grade');
   });
 
   it.each([
     ['one listing', ['lone-seller']],
     ['one seller repeating the ask', ['lone-seller', 'lone-seller']],
   ])(
-    'withholds profit and ROI when the sale ask rests on %s',
+    'publishes grade C profit and ROI when the sale ask rests on %s',
     async (_, sellers) => {
       const evaluation = await evaluateWithTargetSellers(sellers);
 
       expect(evaluation).toMatchObject({
         confidence: 'low',
         estimatedSalePrice: '1000',
-        marginPercent: null,
-        profit: null,
-        status: 'partial',
+        marginPercent: '5163.15789474',
+        profit: '981',
+        status: 'success',
         methodCost: {
           saleEvidence: {
             comparableSellers: 1,
-            minimumComparableSellers: 2,
-            status: 'insufficient_sellers',
+            minimumComparableSellers: 1,
+            status: 'accepted',
+            grade: 'C',
+            gradeReasons: ['1 seller'],
           },
         },
       });
       expect(evaluation.expectedCraftCost).not.toBeNull();
-      expect(evaluation.lastSuccessfulAt).toBeNull();
+      expect(evaluation.lastSuccessfulAt).toEqual(now);
     },
   );
+
+  it('grades complete, fresh evidence from five sellers A', async () => {
+    const evaluation = await evaluateWithTargetSellers([
+      'one',
+      'two',
+      'three',
+      'four',
+      'five',
+    ]);
+    expect(evaluation).toMatchObject({
+      confidence: 'high',
+      profit: '981',
+      methodCost: { saleEvidence: { grade: 'A', gradeReasons: [] } },
+    });
+  });
 
   it('publishes the first comparable sale ask after a leading outlier', async () => {
     const evaluation = await evaluateWithTargetSellers(
@@ -747,6 +768,8 @@ describe('sale evidence acceptance', () => {
           saleBasis: 'cheapest-after-outlier',
           ignoredOutliers: 1,
           status: 'accepted',
+          grade: 'B',
+          gradeReasons: ['outlier ask ignored'],
         },
       },
     });
@@ -764,8 +787,10 @@ describe('sale evidence acceptance', () => {
       methodCost: {
         saleEvidence: {
           comparableSellers: 2,
-          minimumComparableSellers: 2,
+          minimumComparableSellers: 1,
           status: 'accepted',
+          grade: 'B',
+          gradeReasons: ['2–4 sellers'],
         },
       },
     });

@@ -532,4 +532,6 @@ the homepage request issues 3 or fewer SQL statements on the test database.
 
 | Date | Task | PR | Notes |
 |---|---|---|---|
-| 2026-11-09 | P1-01 | — | Both R1 blocks passed on `b0d3c1303c434d6e3ed996ecc99299b308008f39`: 818 Vitest unit tests, 1 Node runtime test, 169 integration tests, 8 backend E2E tests, 10 browser tests, 28 recipes. PostgreSQL 17.11 was isolated; no live Trade. |
+| 2026-11-09 | P1-01 | [#44](https://github.com/MaksimSurmach/POE_WA/pull/44) | Both R1 blocks passed on `b0d3c1303c434d6e3ed996ecc99299b308008f39`: 818 Vitest unit tests, 1 Node runtime test, 169 integration tests, 8 backend E2E tests, 10 browser tests, 28 recipes. PostgreSQL 17.11 was isolated; no live Trade. |
+| 2026-11-09 | P1-02 | [#45](https://github.com/MaksimSurmach/POE_WA/pull/45) | Both R1 blocks and CI passed. Removed 8 unit cases and 1 integration case covering only the deleted code. |
+| 2026-11-09 | P1-03 | [#46](https://github.com/MaksimSurmach/POE_WA/pull/46) | R1 first block and CI passed. Regression confirms the guarded ask drives the profit calculation. |

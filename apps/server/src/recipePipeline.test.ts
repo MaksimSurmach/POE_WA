@@ -455,8 +455,9 @@ describe('authored recipe to provider to published economics', () => {
       expect(snapshot?.payload.sortedPageComplete).toBe(false);
       if (coverage === 'base-sample')
         expect(byId.get(first.id)).toMatchObject({
-          confidence: 'low',
+          confidence: 'medium',
           methodCost: {
+            saleEvidence: { grade: 'B', gradeReasons: ['2–4 sellers'] },
             materialEvidence: {
               base: { sortedSampleComplete: true, totalResults: 340 },
             },

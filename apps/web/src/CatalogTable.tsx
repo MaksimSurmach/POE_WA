@@ -90,6 +90,9 @@ export function CatalogTable({
           {entries.map((entry) => {
             const { recipe, evaluation, snapshot } = entry;
             const source = evaluation.source ?? snapshot;
+            const gradeReasons = evaluation.gradeReasons?.join(' · ');
+            const showWithheld =
+              evaluation.profit === null && evaluation.marginPercent === null;
             const sellers =
               evaluation.source?.comparableSellers ??
               (snapshot
@@ -131,6 +134,14 @@ export function CatalogTable({
                   ) : (
                     <span aria-label="Profit unavailable">—</span>
                   )}
+                  {evaluation.grade ? (
+                    <small
+                      title={gradeReasons}
+                      aria-label={`Evidence grade ${evaluation.grade}`}
+                    >
+                      {evaluation.grade}
+                    </small>
+                  ) : null}
                 </td>
                 <td className={economicClass(evaluation.marginPercent)}>
                   {evaluation.marginPercent === null ? (
@@ -141,17 +152,23 @@ export function CatalogTable({
                 </td>
                 <td className="craft-table__evidence">
                   <span>
-                    {getPriceStatus(evaluation.status)}
+                    {evaluation.status === 'loading'
+                      ? 'No price collected yet'
+                      : getPriceStatus(evaluation.status)}
                     {sellers !== null
                       ? ` · ${sellers} ${sellers === 1 ? 'seller' : 'sellers'}`
                       : ''}
                   </span>
-                  {sellers === 1 ? (
+                  {sellers === 1 &&
+                  !evaluation.grade &&
+                  !evaluation.profitBlockedReason &&
+                  showWithheld ? (
                     <small className="recipe-warning">
                       Single ask · ROI withheld
                     </small>
                   ) : null}
-                  {evaluation.profitBlockedReason ? (
+                  {gradeReasons ? <small>{gradeReasons}</small> : null}
+                  {showWithheld && evaluation.profitBlockedReason ? (
                     <small className="recipe-warning">
                       ROI withheld: {evaluation.profitBlockedReason}
                     </small>
@@ -166,9 +183,9 @@ export function CatalogTable({
                         {observedAt.format(new Date(source.capturedAt))}
                       </time>
                     </>
-                  ) : (
+                  ) : evaluation.status !== 'loading' ? (
                     <small>Source details unavailable</small>
-                  )}
+                  ) : null}
                 </td>
               </tr>
             );

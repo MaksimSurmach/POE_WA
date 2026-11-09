@@ -35,6 +35,114 @@ describe('catalog table', () => {
     expect(html).toContain('2026-11-04T10:00:00.000Z');
     expect(html).not.toContain('Source details unavailable');
   });
+  it('shows the grade beside profit and reasons in market evidence', () => {
+    const entry = catalogFixtures[0]!;
+    const html = renderToStaticMarkup(
+      <MemoryRouter>
+        <CatalogTable
+          entries={[
+            {
+              ...entry,
+              evaluation: {
+                ...entry.evaluation,
+                grade: 'C',
+                gradeReasons: ['1 seller', 'outlier ask ignored'],
+                source: {
+                  capturedAt: '2026-11-04T10:00:00.000Z',
+                  comparableSellers: 1,
+                  coverage: 'complete',
+                },
+              },
+            },
+          ]}
+          filters={defaultCatalogFilters}
+          onSort={() => {}}
+        />
+      </MemoryRouter>,
+    );
+    expect(html).toContain('title="1 seller · outlier ask ignored"');
+    expect(html).toContain('>C</');
+    expect(html).toContain('>1 seller · outlier ask ignored</');
+    expect(html).not.toContain('ROI withheld');
+  });
+
+  it('omits the withholding warning when an unexpired stale fallback still shows profit', () => {
+    const entry = catalogFixtures[0]!;
+    const html = renderToStaticMarkup(
+      <MemoryRouter>
+        <CatalogTable
+          entries={[
+            {
+              ...entry,
+              evaluation: {
+                ...entry.evaluation,
+                status: 'stale',
+                profit: { amount: 10, currency: 'chaos' },
+                marginPercent: 20,
+                source: {
+                  capturedAt: '2026-11-04T10:00:00.000Z',
+                  comparableSellers: 1,
+                  coverage: 'complete',
+                },
+              },
+            },
+          ]}
+          filters={defaultCatalogFilters}
+          onSort={() => {}}
+        />
+      </MemoryRouter>,
+    );
+    expect(html).toContain('Outdated');
+    expect(html).toContain('20.0%');
+    expect(html).not.toContain('ROI withheld');
+  });
+
+  it('shows the blocker and explains a loading row without evidence', () => {
+    const entry = catalogFixtures[0]!;
+    const html = renderToStaticMarkup(
+      <MemoryRouter>
+        <CatalogTable
+          entries={[
+            {
+              ...entry,
+              snapshot: null,
+              evaluation: {
+                ...entry.evaluation,
+                profit: null,
+                marginPercent: null,
+                profitBlockedReason: 'Paid finish is outside the cost model.',
+                source: {
+                  capturedAt: '2026-11-04T10:00:00.000Z',
+                  comparableSellers: 1,
+                  coverage: 'complete',
+                },
+              },
+            },
+            {
+              ...entry,
+              recipe: { ...entry.recipe, id: 'loading' },
+              snapshot: null,
+              evaluation: {
+                ...entry.evaluation,
+                status: 'loading',
+                profit: null,
+                marginPercent: null,
+              },
+            },
+          ]}
+          filters={defaultCatalogFilters}
+          onSort={() => {}}
+        />
+      </MemoryRouter>,
+    );
+    expect(html).toContain(
+      'ROI withheld: Paid finish is outside the cost model.',
+    );
+    expect(html).not.toContain('Single ask · ROI withheld');
+    expect(html).toContain('No price collected yet');
+    expect(html).not.toContain('Updating');
+  });
+
   it('exposes sortable column headers and readable full item names', () => {
     const html = renderToStaticMarkup(
       <MemoryRouter>

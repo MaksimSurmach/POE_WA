@@ -850,6 +850,54 @@ describe('legacy single-seller profit on the read boundary', () => {
     },
   );
 
+  it.each(['success', 'stale', 'expired'] as const)(
+    'reads graded single-seller profit with %s evidence',
+    async (scenario) => {
+      const { catalog, detail } = await publishLegacy({
+        status: scenario === 'stale' ? 'stale' : 'success',
+        methodCost: {
+          ...(scenario === 'expired'
+            ? { expiresAt: '2000-01-01T00:00:00.000Z' }
+            : {}),
+          source: { sampleSize: 1 },
+          saleEvidence: {
+            comparableSellers: 1,
+            status: 'accepted',
+            grade: 'C',
+            gradeReasons: ['1 seller'],
+          },
+        },
+      });
+      for (const evaluation of [catalog, detail]) {
+        expect(evaluation).toMatchObject(
+          scenario === 'expired'
+            ? {
+                status: 'stale',
+                estimatedSalePrice: null,
+                expectedCraftCost: null,
+                profit: null,
+                marginPercent: null,
+              }
+            : {
+                ...askAndCost,
+                status: scenario,
+                profit: { amount: 18925.72, currency: 'chaos' },
+                marginPercent: 2177.17,
+              },
+        );
+        if (scenario !== 'expired')
+          expect(evaluation).toMatchObject({
+            grade: 'C',
+            gradeReasons: ['1 seller'],
+          });
+        else {
+          expect(evaluation).not.toHaveProperty('grade');
+          expect(evaluation).not.toHaveProperty('gradeReasons');
+        }
+      }
+    },
+  );
+
   it('keeps a legacy single-seller stale fallback stale while withholding its profit', async () => {
     const { catalog, detail } = await publishLegacy({
       status: 'stale',
