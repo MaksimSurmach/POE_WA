@@ -55,6 +55,19 @@ describe('repository-backed resource views', () => {
     expect(catalog.state).toBe('loading');
     expect(catalog.data?.entries).toHaveLength(26);
     expect(
+      catalog.data?.entries
+        .filter(({ recipe }) =>
+          [
+            'physical-large-cluster-chaos',
+            'physical-large-cluster-jagged',
+          ].includes(recipe.id),
+        )
+        .map(({ recipe }) => recipe.targetSignature),
+    ).toEqual([
+      '3.29.3.3:7bf68c4f67b27b2ae65c467e1d5bfac5',
+      '3.29.3.3:7bf68c4f67b27b2ae65c467e1d5bfac5',
+    ]);
+    expect(
       catalog.data?.entries.find(
         ({ recipe }) => recipe.id === 'physical-large-cluster-jagged',
       ),

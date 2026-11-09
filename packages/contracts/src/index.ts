@@ -60,6 +60,7 @@ export const recipeSchema = z
     summary: z.string().min(1),
     category: z.string().min(1),
     craftMethod: z.string().min(1),
+    targetSignature: z.string().min(1),
     patch: z.string().min(1).optional(),
     tags: z.array(z.string().min(1)),
     minimumCapital: priceSchema.nullable(),

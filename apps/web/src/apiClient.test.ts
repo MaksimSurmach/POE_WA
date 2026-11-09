@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ApiClientError, createApiClient } from './apiClient.js';
+import { catalogFixtures } from './mocks/catalog.js';
 import { syntheticOutcomeInput } from '@poe-worksmith/domain/fixtures';
 
 const correlationId = '33333333-3333-4333-8333-333333333333';
@@ -14,7 +15,7 @@ describe('typed API client', () => {
   it('parses catalog states through the shared contract', async () => {
     const payload = {
       correlationId,
-      data: { entries: [] },
+      data: { entries: catalogFixtures.slice(0, 1) },
       errorCode: null,
       isStale: false,
       lastSuccessfulAt: timestamp,

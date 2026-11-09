@@ -135,10 +135,12 @@ const defaultGuide = {
     materialsPerAttempt: null,
     steps: [],
   },
-  targetSignature: 'fixture',
   verification: 'unverified',
   uncertainties: [],
-} satisfies Omit<RecipeDetailView, 'evaluation' | 'recipe' | 'snapshot'>;
+} satisfies Omit<
+  RecipeDetailView,
+  'evaluation' | 'recipe' | 'snapshot' | 'targetSignature'
+>;
 
 function createDetail(
   entry: CatalogEntry,
@@ -147,6 +149,7 @@ function createDetail(
   return recipeDetailViewSchema.parse({
     ...defaultGuide,
     recipe: entry.recipe,
+    targetSignature: entry.recipe.targetSignature,
     evaluation: entry.evaluation,
     snapshot: entry.snapshot,
     ...overrides,

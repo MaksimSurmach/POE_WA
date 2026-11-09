@@ -1,4 +1,10 @@
-import type { RecipeResponse, TrendRange } from '@poe-worksmith/contracts';
+import {
+  domainErrorDefinitions,
+  type CatalogEntry,
+  type CatalogResponse,
+  type RecipeResponse,
+  type TrendRange,
+} from '@poe-worksmith/contracts';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -24,10 +30,13 @@ export function RecipePage() {
   const [response, setResponse] = useState<RecipeResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [trendRange, setTrendRange] = useState<TrendRange>('30d');
+  const [catalogEntries, setCatalogEntries] = useState<CatalogEntry[]>([]);
 
   useEffect(() => {
     let active = true;
     let inFlight = false;
+    let catalog: CatalogResponse | null = null;
+    setCatalogEntries([]);
     setResponse(null);
     setLoadError(false);
     if (!recipeId) {
@@ -42,12 +51,24 @@ export function RecipePage() {
       inFlight = true;
       try {
         const recipe = await apiClient.getRecipe(id);
-        if (active) {
-          setResponse(recipe);
-          setLoadError(false);
+        if (!active) return;
+        setResponse(recipe);
+        setLoadError(false);
+        if (
+          recipe.data &&
+          shouldRefreshMethodComparison(
+            catalog,
+            recipe.data.targetSignature,
+            recipe.publishedAt,
+          )
+        ) {
+          catalog = await apiClient.getCatalog().catch(() => null);
+          if (active) setCatalogEntries(catalog?.data?.entries ?? []);
         }
       } catch (error) {
         if (active) {
+          catalog = null;
+          setCatalogEntries([]);
           if (error instanceof ApiClientError && error.status === 404)
             setResponse(null);
           setLoadError(true);
@@ -181,6 +202,11 @@ export function RecipePage() {
         10 div and an ask of 12 div means 2 div profit and 20% ROI. Expected
         cost is a mean across repeated crafts, not a guaranteed budget.
       </p>
+
+      <MethodsForTarget
+        entries={catalogEntries}
+        targetSignature={detail.targetSignature}
+      />
 
       <RecipeIntelligencePanel
         key={`intelligence:${recipe.id}`}
@@ -417,4 +443,128 @@ function DetailSection({
       {children}
     </section>
   );
+}
+
+export function shouldRefreshMethodComparison(
+  catalog: CatalogResponse | null,
+  targetSignature: string,
+  publishedAt: string | null,
+) {
+  if (!catalog?.data || catalog.publishedAt !== publishedAt) return true;
+  return (
+    catalog.data.entries.filter(
+      ({ recipe }) => recipe.targetSignature === targetSignature,
+    ).length > 1
+  );
+}
+
+export function MethodsForTarget({
+  entries,
+  targetSignature,
+}: {
+  entries: CatalogEntry[];
+  targetSignature: string;
+}) {
+  const methods = entries
+    .filter(({ recipe }) => recipe.targetSignature === targetSignature)
+    .sort(({ evaluation: a }, { evaluation: b }) => {
+      if (!a.profit) return b.profit ? 1 : 0;
+      if (!b.profit) return -1;
+      return b.profit.amount - a.profit.amount;
+    });
+
+  if (methods.length < 2) return null;
+
+  return (
+    <DetailSection title="Methods for this target">
+      <div
+        className="craft-risk__table-wrap"
+        role="region"
+        aria-label="Method comparison, scroll for more columns"
+        tabIndex={0}
+      >
+        <table aria-label="Methods for this target">
+          <caption>
+            Expected profit uses mean cost. For one finished item, at least half
+            of runs cost at or below p50, and at least nine in ten cost at or
+            below p90.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Method</th>
+              <th scope="col">Mean cost</th>
+              <th scope="col">Sale ask</th>
+              <th scope="col">Expected profit</th>
+              <th scope="col">ROI</th>
+              <th scope="col">Budget p50</th>
+              <th scope="col">Budget p90</th>
+              <th scope="col">Grade or block reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            {methods.map(({ recipe, evaluation }, index) => (
+              <tr key={recipe.id}>
+                <th scope="row">
+                  <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
+                    {recipe.craftMethod}
+                  </Link>
+                  {index === 0 && evaluation.profit ? (
+                    <small>Best by expected profit</small>
+                  ) : null}
+                </th>
+                <td>
+                  <Money price={evaluation.expectedCraftCost} />
+                </td>
+                <td>
+                  <Money price={evaluation.estimatedSalePrice} />
+                </td>
+                <td>
+                  {evaluation.profit ? (
+                    <ProfitBadge {...evaluation.profit} />
+                  ) : (
+                    <span aria-label="Profit unavailable">—</span>
+                  )}
+                </td>
+                <td className={economicClass(evaluation.marginPercent)}>
+                  {evaluation.marginPercent === null ? (
+                    <span aria-label="ROI unavailable">—</span>
+                  ) : (
+                    formatMarginPercent(evaluation.marginPercent)
+                  )}
+                </td>
+                <td>
+                  <Money price={evaluation.budget?.p50 ?? null} />
+                </td>
+                <td>
+                  <Money price={evaluation.budget?.p90 ?? null} />
+                </td>
+                <td>
+                  {evaluation.grade ? (
+                    <span aria-label={`Evidence grade ${evaluation.grade}`}>
+                      {evaluation.grade}
+                    </span>
+                  ) : evaluation.profit ? (
+                    '—'
+                  ) : (
+                    unpricedMethodReason(evaluation)
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </DetailSection>
+  );
+}
+
+function unpricedMethodReason(evaluation: CatalogEntry['evaluation']) {
+  if (evaluation.profitBlockedReason) return evaluation.profitBlockedReason;
+  if (evaluation.errorCode)
+    return domainErrorDefinitions[evaluation.errorCode].publicMessage;
+  if (evaluation.status === 'stale')
+    return domainErrorDefinitions.SNAPSHOT_EXPIRED.publicMessage;
+  if (evaluation.status === 'loading')
+    return domainErrorDefinitions.SNAPSHOT_MISSING.publicMessage;
+  return 'Expected profit unavailable.';
 }
