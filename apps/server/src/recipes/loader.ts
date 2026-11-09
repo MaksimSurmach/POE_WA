@@ -1,6 +1,10 @@
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import {
+  canonicalCraftSetupFromRecipe,
+  type CanonicalCraftMethod,
+  normalizeCanonicalCraftSetup,
   RecipeValidationError,
   type LoadedRecipeDefinition,
   validateRecipeDocument,
@@ -76,16 +80,74 @@ export async function loadRecipeCatalog(
   }
 
   const firstFileById = new Map<string, string>();
+  const methodsByTarget = new Map<
+    string,
+    { file: string; method: CanonicalCraftMethod }[]
+  >();
   for (const recipe of loaded) {
-    const firstFile = firstFileById.get(recipe.definition.id);
+    const { definition, sourcePath: file } = recipe;
+    const { craft, id, targetSignature, verification } = definition;
+    const firstFile = firstFileById.get(id);
     if (firstFile) {
       issues.push({
-        file: recipe.sourcePath,
-        message: `Duplicate recipe id "${recipe.definition.id}"; first defined in ${firstFile}`,
+        file,
+        message: `Duplicate recipe id "${id}"; first defined in ${firstFile}`,
         path: 'id',
       });
     } else {
-      firstFileById.set(recipe.definition.id, recipe.sourcePath);
+      firstFileById.set(id, file);
+    }
+
+    const { method } = normalizeCanonicalCraftSetup(
+      canonicalCraftSetupFromRecipe(definition),
+    );
+    const sameTarget = methodsByTarget.get(targetSignature) ?? [];
+    const duplicate = sameTarget.find((other) =>
+      isDeepStrictEqual(other.method, method),
+    );
+    if (duplicate) {
+      issues.push({
+        file,
+        message: `Recipe has the same target signature and craft method as ${duplicate.file}`,
+        path: 'craft.method',
+      });
+    } else {
+      sameTarget.push({ file, method });
+      methodsByTarget.set(targetSignature, sameTarget);
+    }
+
+    if (verification.status !== 'verified') continue;
+    if (!craft.baseConsumption) {
+      issues.push({
+        file,
+        message: 'Verified recipe requires base consumption',
+        path: 'craft.baseConsumption',
+      });
+    }
+    for (const step of craft.steps) {
+      const probability = step.success?.probability;
+      const count = craft.expectedExecutions?.find(
+        (e) => e.stepId === step.id,
+      )?.count;
+      if (count === undefined) {
+        if (step.materials.length > 0 || probability !== undefined) {
+          issues.push({
+            file,
+            message: `Missing expected execution count for step "${step.id}"`,
+            path: 'craft.expectedExecutions',
+          });
+        }
+      } else if (probability !== undefined) {
+        // Multiplying by p expresses the same relative tolerance around 1/p.
+        const ratio = count * probability;
+        if (ratio < 0.95 || ratio > 1.05) {
+          issues.push({
+            file,
+            message: `Step "${step.id}" execution count ${count} must be within 5% of ${1 / probability}`,
+            path: 'craft.expectedExecutions',
+          });
+        }
+      }
     }
   }
 
@@ -135,7 +197,8 @@ async function findRecipeFiles(directory: string): Promise<string[]> {
   const files: string[] = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const file = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...(await findRecipeFiles(file)));
+    if (entry.isDirectory() && !entry.name.startsWith('_'))
+      files.push(...(await findRecipeFiles(file)));
     else if (entry.isFile() && entry.name.endsWith('.json')) files.push(file);
   }
   return files.sort();

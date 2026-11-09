@@ -46,7 +46,7 @@ describe('recipe synchronization', () => {
       repositories.recipes,
     );
 
-    expect(first.created).toHaveLength(28);
+    expect(first.created).toHaveLength(25);
     expect(first.created).toEqual(
       expect.arrayContaining([
         'physical-large-cluster-alteration',
