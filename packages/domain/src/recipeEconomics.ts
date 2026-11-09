@@ -155,3 +155,26 @@ export function compareCraftWithAsk(input: {
         : null,
   };
 }
+
+/** Grades evidence after the sale and cost inputs pass validation. */
+export function gradeSaleEvidence(input: {
+  sellers: number;
+  coverage: 'complete' | 'partial' | 'unknown';
+  sortedSampleComplete: boolean;
+  oldestInputAgeMs: number;
+  freshnessWarningMs: number;
+  ignoredOutliers: number;
+}): { grade: 'A' | 'B' | 'C'; reasons: string[] } {
+  const reasons: string[] = [];
+  if (input.sellers === 1) reasons.push('1 seller');
+  else if (input.sellers <= 4) reasons.push('2–4 sellers');
+  if (input.coverage !== 'complete' && input.sortedSampleComplete)
+    reasons.push('sorted sample, not full coverage');
+  if (input.oldestInputAgeMs > input.freshnessWarningMs)
+    reasons.push('inputs older than warning age');
+  if (input.ignoredOutliers > 0) reasons.push('outlier ask ignored');
+  return {
+    grade: input.sellers === 1 ? 'C' : reasons.length > 0 ? 'B' : 'A',
+    reasons,
+  };
+}

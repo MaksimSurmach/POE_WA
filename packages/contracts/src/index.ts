@@ -77,6 +77,8 @@ export const recipeEvaluationSchema = z
   .object({
     recipeId: z.string().min(1),
     confidence: z.enum(['low', 'medium', 'high']).nullable().optional(),
+    grade: z.enum(['A', 'B', 'C']).nullable().optional(),
+    gradeReasons: z.array(z.string()).optional(),
     source: recipePriceSourceSchema.optional(),
     profitBlockedReason: z.string().min(1).optional(),
     status: z.enum(['success', 'stale', 'loading', 'partial', 'error']),

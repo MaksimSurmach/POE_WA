@@ -13,6 +13,7 @@ import {
   estimateSaleAsk,
   expectedMethodMaterialUsage,
   compareCraftWithAsk,
+  gradeSaleEvidence,
   hashMarketQuery,
   transitionRefreshCycle,
   validateRecipeDocument,
@@ -122,6 +123,7 @@ export async function evaluateAndPublishCatalog(
     logger?: Logger;
     metrics?: Metrics;
     maximumQuoteAgeMs?: number;
+    freshnessWarningMs?: number;
     recipeId?: string;
     signal?: AbortSignal;
   },
@@ -241,6 +243,7 @@ export async function evaluateAndPublishCatalog(
         [...materialEconomies.values()],
         options.maximumQuoteAgeMs,
         options.allowMissingOutput,
+        options.freshnessWarningMs,
       ));
   const evaluations: RecipeEvaluation[] = [];
   let completedRecipes = 0;
@@ -408,6 +411,7 @@ async function evaluateFreshRecipe(
   materialEconomies: readonly StoredMarketEconomySnapshot[] = [],
   maximumQuoteAgeMs = 30 * 60_000,
   allowMissingOutput = false,
+  freshnessWarningMs = 60 * 60_000,
 ): Promise<FreshEvaluation> {
   let definition;
   try {
@@ -637,47 +641,20 @@ async function evaluateFreshRecipe(
     definition.craft.baseConsumption?.evidence.patch === definition.patch;
   const salePrice = saleAsk?.price?.amount ?? null;
   const comparableSellers = output?.aggregation.sampleSize ?? 0;
-  // A lone seller's ask is not a competitive price; show it, but derive no profit from it.
-  const saleEvidence = {
-    comparableSellers,
-    ignoredOutliers: saleAsk?.ignoredOutliers ?? 0,
-    minimumComparableSellers,
-    saleBasis: saleAsk?.basis ?? 'none',
-    ...(definition.verification.profitBlockedReason
-      ? { reason: definition.verification.profitBlockedReason }
-      : !output
-        ? { reason: 'No fresh Trade observation for this crafted item.' }
-        : output.coverage !== 'complete'
-          ? {
-              reason:
-                'Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.',
-            }
-          : {}),
-    status: definition.verification.profitBlockedReason
-      ? ('unverified_output_value' as const)
-      : !output?.currencyAvailable
-        ? ('unavailable_currency' as const)
-        : output.coverage !== 'complete'
-          ? ('insufficient_coverage' as const)
-          : comparableSellers >= minimumComparableSellers
-            ? ('accepted' as const)
-            : ('insufficient_sellers' as const),
-  };
-  const comparison = compareCraftWithAsk({
-    basePrice,
-    currency,
-    materialCost:
-      evidenceValid &&
-      usage &&
-      Object.keys(usage).every((id) => bulkSupported.has(id))
-        ? materialEconomics.expectedCost
-        : null,
-    expectedBases: evidenceValid
-      ? (definition.craft.baseConsumption?.expectedBases ?? null)
-      : null,
-    ask: saleEvidence.status === 'accepted' ? (saleAsk?.price ?? null) : null,
-  });
-  const { expectedCraftCost } = comparison;
+  const coverageBlocked =
+    output &&
+    output.coverage !== 'complete' &&
+    (requiresCompleteOutputCoverage(targetDependency.query.query) ||
+      !output.sortedSampleComplete);
+  const saleStatus = definition.verification.profitBlockedReason
+    ? 'unverified_output_value'
+    : !output?.currencyAvailable
+      ? 'unavailable_currency'
+      : coverageBlocked
+        ? 'insufficient_coverage'
+        : comparableSellers >= minimumComparableSellers
+          ? 'accepted'
+          : 'insufficient_sellers';
   const usedTradeMaterials = materialMarkets.filter((m) =>
     tradeMaterialIds.has(m.id),
   );
@@ -696,18 +673,62 @@ async function evaluateFreshRecipe(
       ...usedTradeMaterials.map((m) => m.conversionAt),
     ].flatMap((at) => (at ? [at.getTime()] : [])),
   ];
+  const oldestInputAt = Math.min(...inputTimes);
+  const expiresAt = Math.min(
+    output?.snapshotExpiresAt.getTime() ?? Infinity,
+    base?.snapshotExpiresAt.getTime() ?? Infinity,
+    ...usedTradeMaterials.map((m) => m.expiresAt?.getTime() ?? Infinity),
+    oldestInputAt + maximumQuoteAgeMs,
+  );
+  const inputsFresh = expiresAt > context.now.getTime();
+  const comparison = compareCraftWithAsk({
+    basePrice,
+    currency,
+    materialCost:
+      evidenceValid &&
+      usage &&
+      Object.keys(usage).every((id) => bulkSupported.has(id))
+        ? materialEconomics.expectedCost
+        : null,
+    expectedBases: evidenceValid
+      ? (definition.craft.baseConsumption?.expectedBases ?? null)
+      : null,
+    ask:
+      saleStatus === 'accepted' && inputsFresh
+        ? (saleAsk?.price ?? null)
+        : null,
+  });
+  const { expectedCraftCost } = comparison;
+  const gradedEvidence =
+    output && comparison.profit !== null
+      ? gradeSaleEvidence({
+          sellers: comparableSellers,
+          coverage: output.coverage,
+          sortedSampleComplete: output.sortedSampleComplete,
+          oldestInputAgeMs: context.now.getTime() - oldestInputAt,
+          freshnessWarningMs,
+          ignoredOutliers: saleAsk?.ignoredOutliers ?? 0,
+        })
+      : null;
+  const saleBlockedReason = {
+    unverified_output_value: definition.verification.profitBlockedReason,
+    unavailable_currency: output
+      ? 'A matching ask has no verified, fresh currency conversion.'
+      : 'No fresh Trade observation for this crafted item.',
+    insufficient_coverage:
+      'Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.',
+    insufficient_sellers: 'No matching Trade sellers for this crafted item.',
+    accepted: !inputsFresh
+      ? 'At least one market input has expired.'
+      : expectedCraftCost === null
+        ? 'Complete, verified craft cost evidence is unavailable.'
+        : undefined,
+  }[saleStatus];
   const methodCost = {
     ...materialEconomics,
     recipeContentHash: recipe.contentHash,
-    oldestInputAt: new Date(Math.min(...inputTimes)).toISOString(),
-    expiresAt: new Date(
-      Math.min(
-        output?.snapshotExpiresAt.getTime() ?? Infinity,
-        base?.snapshotExpiresAt.getTime() ?? Infinity,
-        ...usedTradeMaterials.map((m) => m.expiresAt?.getTime() ?? Infinity),
-        ...inputTimes.map((at) => at + maximumQuoteAgeMs),
-      ),
-    ).toISOString(),
+    oldestInputAt: new Date(oldestInputAt).toISOString(),
+    expiresAt: new Date(expiresAt).toISOString(),
     ...(output
       ? {
           source: {
@@ -728,7 +749,17 @@ async function evaluateFreshRecipe(
         : output.aggregation.sampleSize
           ? 'priced'
           : 'empty',
-    saleEvidence,
+    saleEvidence: {
+      comparableSellers,
+      ignoredOutliers: saleAsk?.ignoredOutliers ?? 0,
+      minimumComparableSellers,
+      saleBasis: saleAsk?.basis ?? 'none',
+      status: saleStatus,
+      ...(saleBlockedReason ? { reason: saleBlockedReason } : {}),
+      ...(gradedEvidence
+        ? { grade: gradedEvidence.grade, gradeReasons: gradedEvidence.reasons }
+        : {}),
+    },
     materialEvidence,
     baseCost: basePrice,
     expectedBases: evidenceValid
@@ -756,9 +787,11 @@ async function evaluateFreshRecipe(
   );
   return {
     confidence:
-      output?.coverage === 'complete' && !base?.sortedSampleComplete
-        ? confidence(output.aggregation.sampleSize)
-        : 'low',
+      gradedEvidence?.grade === 'A'
+        ? 'high'
+        : gradedEvidence?.grade === 'B'
+          ? 'medium'
+          : 'low',
     currency,
     estimatedSalePrice: salePrice,
     expectedCraftCost,
@@ -766,12 +799,7 @@ async function evaluateFreshRecipe(
     observationId: observation?.id ?? null,
     profit: comparison.profit,
     sourceSnapshotDedupeKey: output?.snapshotDedupeKey ?? null,
-    status:
-      salePrice === null ||
-      expectedCraftCost === null ||
-      saleEvidence.status !== 'accepted'
-        ? 'partial'
-        : 'success',
+    status: comparison.profit === null ? 'partial' : 'success',
     methodCost,
   };
 }
@@ -952,12 +980,7 @@ function reusableEvaluation(
   );
 }
 
-/** Distinct sellers needed before the cheapest comparable ask may yield profit or ROI. */
-const minimumComparableSellers = 2;
-
-function confidence(sampleSize: number) {
-  return sampleSize >= 10 ? 'high' : sampleSize >= 3 ? 'medium' : 'low';
-}
+const minimumComparableSellers = 1;
 
 function toDomainError(cause: unknown): DomainError<DomainErrorCode> {
   return cause instanceof DomainError

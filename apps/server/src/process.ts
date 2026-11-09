@@ -494,6 +494,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             metrics,
             snapshotTtlMs: settings.snapshotReuseTtlMs,
             maximumQuoteAgeMs: settings.maximumQuoteAgeMs,
+            freshnessWarningMs: settings.freshnessWarningMs,
             signal,
             ...(scope.scope === 'recipe' ? { recipeId: scope.recipeId } : {}),
             workerId: `worker-${process.pid}`,

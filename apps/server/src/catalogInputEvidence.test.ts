@@ -1,3 +1,4 @@
+import type { MarketTargetInput } from '@poe-worksmith/contracts';
 import { describe, expect, it } from 'vitest';
 import {
   createInMemoryRepositories,
@@ -12,6 +13,7 @@ import { fixtureRecipe } from '@poe-worksmith/domain/fixtures';
 import { evaluateAndPublishCatalog } from './catalogPublisher.js';
 import {
   createRecipeMarketDependencies,
+  type RecipeMarketDependencies,
   recipeQueryTarget,
 } from './recipeMarket.js';
 import { synchronizeRecipes } from './recipes/synchronizeRecipes.js';
@@ -50,6 +52,8 @@ async function evaluate(
     materialAgeMinutes?: number;
     materialExpiryMinutes?: number;
     maximumQuoteAgeMs?: number;
+    freshnessWarningMs?: number;
+    outputSample?: 'mixed-sorted' | 'single-sorted' | 'single-page';
     sellers?: number;
     convertedAt?: string;
     savedTrade?: boolean;
@@ -83,7 +87,25 @@ async function evaluate(
     metadata: {},
     syncedAt: now,
   });
-  const queries = await dependencies({ recipe, league: league.gggId });
+  const marketDependencies: RecipeMarketDependencies = async (input) =>
+    (await dependencies(input)).map((dependency) => {
+      if (dependency.kind !== 'target' || !options.outputSample)
+        return dependency;
+      const query = dependency.query!;
+      const target = JSON.parse(
+        query.query.handbookTarget as string,
+      ) as MarketTargetInput;
+      target.tradeSearch!.includeOtherCurrencies =
+        options.outputSample === 'mixed-sorted';
+      return {
+        ...dependency,
+        query: {
+          ...query,
+          query: { ...query.query, handbookTarget: JSON.stringify(target) },
+        },
+      };
+    });
+  const queries = await marketDependencies({ recipe, league: league.gggId });
   const cycle: RefreshCycle = {
     id: 'evidence-cycle',
     leagueId: league.id,
@@ -203,8 +225,18 @@ async function evaluate(
       refreshCycleId: cycle.id,
       payload: {
         listings,
-        coverage: 'complete',
-        totalResults: listings.length,
+        coverage:
+          dependency.kind === 'target' && options.outputSample
+            ? 'partial'
+            : 'complete',
+        sortedSampleComplete:
+          dependency.kind === 'target' &&
+          (options.outputSample === 'mixed-sorted' ||
+            options.outputSample === 'single-sorted'),
+        totalResults:
+          dependency.kind === 'target' && options.outputSample
+            ? listings.length + 50
+            : listings.length,
         sortedPageComplete: true,
       },
     });
@@ -213,7 +245,10 @@ async function evaluate(
     cycleId: cycle.id,
     league: league.gggId,
     now,
-    marketDependencies: dependencies,
+    marketDependencies,
+    ...(options.freshnessWarningMs
+      ? { freshnessWarningMs: options.freshnessWarningMs }
+      : {}),
     ...(options.maximumQuoteAgeMs
       ? { maximumQuoteAgeMs: options.maximumQuoteAgeMs }
       : {}),
@@ -290,8 +325,82 @@ describe('catalog input evidence', () => {
               marginPercent: null,
             },
       );
+      if (stock === 9)
+        expect(evaluation.methodCost?.saleEvidence).not.toHaveProperty('grade');
     },
   );
+
+  it.each(['mixed-sorted', 'single-page'] as const)(
+    'withholds ROI from a partial %s target',
+    async (outputSample) => {
+      const { evaluation } = await evaluate({ sellers: 5, outputSample });
+      expect(evaluation).toMatchObject({
+        status: 'partial',
+        confidence: 'low',
+        profit: null,
+        marginPercent: null,
+        methodCost: {
+          saleEvidence: {
+            status: 'insufficient_coverage',
+            reason: expect.stringContaining('Incomplete output coverage'),
+          },
+        },
+      });
+      expect(evaluation.methodCost?.saleEvidence).not.toHaveProperty('grade');
+      if (outputSample === 'mixed-sorted')
+        expect(evaluation.estimatedSalePrice).toBeNull();
+    },
+  );
+
+  it('grades a validated single-currency sorted sample B', async () => {
+    const { evaluation } = await evaluate({
+      sellers: 5,
+      outputSample: 'single-sorted',
+    });
+    expect(evaluation).toMatchObject({
+      status: 'success',
+      confidence: 'medium',
+      profit: expect.any(String),
+      methodCost: {
+        saleEvidence: {
+          status: 'accepted',
+          grade: 'B',
+          gradeReasons: ['sorted sample, not full coverage'],
+        },
+      },
+    });
+    expect(evaluation.methodCost?.saleEvidence).not.toHaveProperty('reason');
+  });
+
+  it('grades above-warning-age but unexpired inputs B', async () => {
+    const { evaluation } = await evaluate({
+      sellers: 5,
+      materialAgeMinutes: 22,
+      freshnessWarningMs: 15 * minute,
+    });
+    expect(evaluation).toMatchObject({
+      status: 'success',
+      confidence: 'medium',
+      methodCost: {
+        saleEvidence: {
+          grade: 'B',
+          gradeReasons: ['inputs older than warning age'],
+        },
+      },
+    });
+  });
+
+  it('keeps a complete observation without matching sellers ungraded', async () => {
+    const { evaluation } = await evaluate({ sellers: 0 });
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      confidence: 'low',
+      profit: null,
+      estimatedSalePrice: null,
+      methodCost: { saleEvidence: { status: 'insufficient_sellers' } },
+    });
+    expect(evaluation.methodCost?.saleEvidence).not.toHaveProperty('grade');
+  });
 
   it('withholds a price floor when a matching divine ask cannot be converted', async () => {
     const { evaluation } = await evaluate({ foreign: 'matching' });
@@ -337,7 +446,9 @@ describe('catalog input evidence', () => {
   });
 
   it('does not invent a successful time when a partial estimate falls back', async () => {
-    const { evaluation, repositories, cycle } = await evaluate({ sellers: 1 });
+    const { evaluation, repositories, cycle } = await evaluate({
+      materialStock: 0,
+    });
     await repositories.evaluations.save({
       ...evaluation,
       methodCost: {
@@ -382,6 +493,50 @@ describe('catalog input evidence', () => {
       estimatedSalePrice: null,
       profit: null,
     });
+  });
+
+  it('withholds profit when a used economy quote reaches its maximum age', async () => {
+    const recipe = fixtureRecipe();
+    const material = recipe.craft.steps[0]!.materials[0]!;
+    const snapshot: StoredMarketEconomySnapshot = {
+      id: '11111111-1111-4111-8111-111111111111',
+      schemaVersion: 1,
+      kind: 'economy-overview',
+      source: 'poe.ninja',
+      game: 'poe1',
+      league: 'Mercenaries',
+      category: 'Currency',
+      endpoint: 'https://example.com/fixture',
+      payloadHash: 'a'.repeat(64),
+      capturedAt: new Date(now.getTime() - 30 * minute).toISOString(),
+      sourceUpdatedAt: null,
+      priceBasis: 'currency-exchange',
+      raw: {},
+      lines: [
+        {
+          id: material.itemId,
+          name: 'Crafting material',
+          detailsId: material.itemId,
+          baseType: null,
+          price: { amount: 2, currency: 'chaos' },
+          listingCount: null,
+          observationCount: 1,
+          tradedVolume: null,
+        },
+      ],
+    };
+    const { evaluation } = await evaluate({
+      recipe,
+      economy: snapshot,
+      sellers: 1,
+    });
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      profit: null,
+      marginPercent: null,
+      methodCost: { expiresAt: now.toISOString() },
+    });
+    expect(evaluation.methodCost?.saleEvidence).not.toHaveProperty('grade');
   });
 
   it('does not let an unused old exchange observation expire a chaos-only calculation', async () => {

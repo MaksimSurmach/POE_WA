@@ -52,6 +52,7 @@ export class FullRefreshOrchestrator {
   readonly #signal: AbortSignal | undefined;
   readonly #recipeId: string | undefined;
   readonly #maximumQuoteAgeMs: number;
+  readonly #freshnessWarningMs: number | undefined;
 
   constructor(options: {
     collectMaterialPrices?: () => Promise<void>;
@@ -69,6 +70,7 @@ export class FullRefreshOrchestrator {
     signal?: AbortSignal;
     recipeId?: string;
     maximumQuoteAgeMs?: number;
+    freshnessWarningMs?: number;
   }) {
     this.#collectMaterialPrices = options.collectMaterialPrices;
     this.#clock = options.clock ?? (() => new Date());
@@ -84,6 +86,7 @@ export class FullRefreshOrchestrator {
     this.#signal = options.signal;
     this.#recipeId = options.recipeId;
     this.#maximumQuoteAgeMs = options.maximumQuoteAgeMs ?? 30 * 60_000;
+    this.#freshnessWarningMs = options.freshnessWarningMs;
     if (
       Object.values(this.#league).some((value) => value.trim().length === 0) ||
       this.#workerId.length === 0 ||
@@ -171,6 +174,9 @@ export class FullRefreshOrchestrator {
         leagueName: this.#league.leagueName,
         now: this.#clock(),
         maximumQuoteAgeMs: this.#maximumQuoteAgeMs,
+        ...(this.#freshnessWarningMs !== undefined
+          ? { freshnessWarningMs: this.#freshnessWarningMs }
+          : {}),
         ...(this.#recipeId ? { recipeId: this.#recipeId } : {}),
         ...(this.#signal ? { signal: this.#signal } : {}),
         ...(logger ? { logger } : {}),

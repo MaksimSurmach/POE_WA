@@ -73,6 +73,7 @@ async function publish() {
   );
   const {
     collectionsPaused,
+    freshnessWarningMs,
     maximumQuoteAgeMs,
     rawRetentionHours,
     historyRetentionDays,
@@ -196,6 +197,7 @@ async function publish() {
       leagueName: league.name,
       now,
       maximumQuoteAgeMs,
+      freshnessWarningMs,
       marketDependencies,
       economy: createMarketEconomyRepository(pool),
       logger,

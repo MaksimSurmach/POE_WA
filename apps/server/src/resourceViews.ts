@@ -14,6 +14,7 @@ import {
   type RecipeEvaluation as ApiRecipeEvaluation,
   type RecipeResponse,
   type RefreshStatus,
+  recipeEvaluationSchema,
   recipeMethodViewSchema,
   recipePriceSourceSchema,
   marketSnapshotSchema,
@@ -352,6 +353,11 @@ function toRecipeSummary(recipe: StoredRecipe, evaluation?: RecipeEvaluation) {
   };
 }
 
+const saleGradeSchema = recipeEvaluationSchema.pick({
+  grade: true,
+  gradeReasons: true,
+});
+
 function toEvaluation(
   recipeId: string,
   evaluation?: RecipeEvaluation,
@@ -373,6 +379,11 @@ function toEvaluation(
   }
   const source = record(evaluation.methodCost?.source);
   const saleEvidence = record(evaluation.methodCost?.saleEvidence);
+  const evaluationProfit = profit(evaluation.profit, evaluation.currency);
+  const saleGrade = saleGradeSchema.safeParse({
+    grade: saleEvidence?.grade,
+    gradeReasons: saleEvidence?.gradeReasons,
+  });
   const priceSource = recipePriceSourceSchema.safeParse({
     capturedAt: source?.capturedAt,
     comparableSellers: source?.sampleSize,
@@ -380,6 +391,9 @@ function toEvaluation(
   });
   return {
     ...(priceSource.success ? { source: priceSource.data } : {}),
+    ...(evaluationProfit !== null && saleGrade.success && saleGrade.data.grade
+      ? saleGrade.data
+      : {}),
     ...(typeof saleEvidence?.reason === 'string'
       ? { profitBlockedReason: saleEvidence.reason }
       : {}),
@@ -393,7 +407,7 @@ function toEvaluation(
     expectedCraftCost: price(evaluation.expectedCraftCost, evaluation.currency),
     lastSuccessfulAt: evaluation.lastSuccessfulAt?.toISOString() ?? null,
     marginPercent: finiteNumber(evaluation.marginPercent),
-    profit: profit(evaluation.profit, evaluation.currency),
+    profit: evaluationProfit,
     recipeId,
     snapshotId: null,
     status: evaluation.status,
@@ -607,7 +621,7 @@ function currentEvaluation(
   return withoutUnsupportedProfit(evaluation);
 }
 
-/** Matches the publisher's minimum before a cheapest ask may yield profit or ROI. */
+/** Minimum seller count applied to legacy evaluations without a grade. */
 const minimumComparableSellers = 2;
 
 /**
@@ -618,6 +632,12 @@ const minimumComparableSellers = 2;
 function withoutUnsupportedProfit(evaluation: RecipeEvaluation) {
   const methodCost = evaluation.methodCost ?? {};
   const saleEvidence = record(methodCost.saleEvidence);
+  const grade = saleEvidence?.grade;
+  if (
+    saleEvidence?.status === 'accepted' &&
+    (grade === 'A' || grade === 'B' || grade === 'C')
+  )
+    return evaluation;
   const source = record(methodCost.source);
   const sellers =
     typeof saleEvidence?.comparableSellers === 'number'
