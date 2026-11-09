@@ -542,6 +542,7 @@ the homepage request issues 3 or fewer SQL statements on the test database.
 | 2026-11-10 | P1-08 | [#51](https://github.com/MaksimSurmach/POE_WA/pull/51) | R1 first block and CI passed. The existing detail refresh also updates the comparison when needed, so expired values do not keep ranking. |
 | 2026-11-10 | P1-09 | [Browser proof PR](https://github.com/MaksimSurmach/POE_WA/pulls?q=is%3Apr+head%3Arefocus%2Fp1-09-browser-proof) | Both R1 blocks and the separate priced browser scenario passed locally. CI runs the default suite and the priced scenario separately. |
 | 2026-11-10 | P2-01 | [Evidence PR](https://github.com/MaksimSurmach/POE_WA/pulls?q=is%3Apr+head%3Arefocus%2Fp2-01-listing-evidence) | Passed for observed repricing. See evidence below. |
+| 2026-11-10 | P2-02 | [#54](https://github.com/MaksimSurmach/POE_WA/pull/54) | Both R1 blocks, CI, and migration checks passed. PostgreSQL 17 applied the migration locally. All 25 generated DDL statements also passed on a temporary copy of live PostgreSQL 16, preserving legacy row counts. |
 
 P2-01 used read-only aggregates over all 759 observed snapshots from November 5–7 UTC. Each snapshot matched the capture time of a noncached `trade-compatible` run. The sample had 552 complete captures (126 empty), 207 partial captures, 49 targets, and 14,952 listing rows.
 
