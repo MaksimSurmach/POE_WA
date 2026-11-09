@@ -35,6 +35,33 @@ describe('catalog table', () => {
     expect(html).toContain('2026-11-04T10:00:00.000Z');
     expect(html).not.toContain('Source details unavailable');
   });
+  it('shows the two one-item budgets below the mean cost', () => {
+    const entry = catalogFixtures[0]!;
+    const withBudget = {
+      ...entry,
+      evaluation: {
+        ...entry.evaluation,
+        expectedCraftCost: { amount: 120, currency: 'chaos' as const },
+        budget: {
+          p50: { amount: 110, currency: 'chaos' as const },
+          p90: { amount: 140, currency: 'chaos' as const },
+        },
+      },
+    };
+    const html = renderToStaticMarkup(
+      <MemoryRouter>
+        <CatalogTable
+          entries={[withBudget]}
+          filters={defaultCatalogFilters}
+          onSort={() => {}}
+        />
+      </MemoryRouter>,
+    );
+    expect(html).toMatch(
+      /<td>[^]*120 c[^]*budget for one[^]*p50[^]*110 c[^]*p90[^]*140 c[^]*<\/td>/,
+    );
+  });
+
   it('shows the grade beside profit and reasons in market evidence', () => {
     const entry = catalogFixtures[0]!;
     const html = renderToStaticMarkup(

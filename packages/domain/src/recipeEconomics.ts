@@ -1,7 +1,14 @@
 import { Decimal } from 'decimal.js';
 
+import { analyzeIndependentGeometric } from './craftingRisk.js';
+import { isOutcomeAmount } from './outcomeModel.js';
 import type { DecimalMoney } from './economics.js';
 import type { CraftProcedure } from './recipeSchema.js';
+
+const DecimalValue = Decimal.clone({
+  precision: 40,
+  rounding: Decimal.ROUND_HALF_UP,
+});
 
 /** Returns entered expected material usage per finished item, or null if unknown. */
 export function expectedMethodMaterialUsage(
@@ -37,10 +44,6 @@ export function calculateMethodMaterialEconomics(input: {
   >;
   method: CraftProcedure;
 }) {
-  const DecimalValue = Decimal.clone({
-    precision: 40,
-    rounding: Decimal.ROUND_HALF_UP,
-  });
   const expectedExecutions = new Map(
     input.method.expectedExecutions?.map(({ count, stepId }) => [
       stepId,
@@ -123,6 +126,60 @@ export function calculateMethodMaterialEconomics(input: {
         : null,
     steps,
   };
+}
+
+export function singleItemCraftBudget(input: {
+  currency: string;
+  expectedCraftCost: string | null;
+  expectedExecutions: CraftProcedure['expectedExecutions'];
+  steps: ReturnType<typeof calculateMethodMaterialEconomics>['steps'];
+}) {
+  const probabilisticSteps = input.steps.filter(
+    ({ success }) =>
+      success && success.probability > 0 && success.probability < 1,
+  );
+  const [step] = probabilisticSteps;
+  // shortcut: single geometric stage only; use simulateCraftingRisk for multi-stage budgets (Phase 6).
+  if (
+    input.expectedCraftCost === null ||
+    probabilisticSteps.length !== 1 ||
+    !step?.success
+  )
+    return null;
+  const execution = input.expectedExecutions?.find(
+    ({ stepId }) => stepId === step.id,
+  );
+  if (step.materials.length > 0 && !execution) return null;
+
+  let attemptCost = new DecimalValue(0);
+  // The displayed attempt costs round before multiplying by the execution count.
+  for (const { unitPrice, quantityPerAttempt } of step.materials) {
+    if (!unitPrice || quantityPerAttempt === null) return null;
+    attemptCost = attemptCost.add(
+      new DecimalValue(unitPrice.amount).mul(quantityPerAttempt),
+    );
+  }
+  const successProbability = new DecimalValue(step.success.probability)
+    .toSignificantDigits(12)
+    .toFixed();
+  const perAttemptCost = attemptCost.toDecimalPlaces(16).toFixed();
+  const setupCost = new DecimalValue(input.expectedCraftCost)
+    .sub(attemptCost.mul(execution?.count ?? 0))
+    .toDecimalPlaces(8)
+    .toFixed();
+  if (![successProbability, perAttemptCost, setupCost].every(isOutcomeAmount))
+    return null;
+  const {
+    costQuantiles: { p50, p90 },
+  } = analyzeIndependentGeometric({
+    successProbability,
+    perAttemptCost,
+    setupCost,
+    saleValue: '0',
+    budget: '0',
+    withinAttempts: 1,
+  });
+  return { p50, p90, currency: input.currency };
 }
 
 export function compareCraftWithAsk(input: {
