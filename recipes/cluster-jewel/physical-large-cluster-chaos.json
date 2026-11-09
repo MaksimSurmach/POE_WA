@@ -1,0 +1,152 @@
+{
+  "base": {
+    "baseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "physical-damage"
+    }
+  },
+  "category": "cluster-jewel",
+  "notes": "Use an 8-passive physical Large Cluster Jewel with 2 jewel sockets. Notable placement and extra affixes are unrestricted.",
+  "craft": {
+    "evidence": {
+      "method": "Craft of Exile calculator, displayed rounded probability and expected consumption",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=0%2C5%2C0&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6W10sInAiOm51bGx9LHsiaSI6IjU3NDQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpbXSwicCI6bnVsbH0seyJpIjoiNTc0MiIsInQiOm51bGwsImIiOnRydWUsInMiOltdLCJwIjpudWxsfV19XQ%3D%3D&class=158",
+      "verifiedAt": "2026-11-09",
+      "settings": "PoE 1 rare physical Large Cluster Jewel at exactly item level 83. One ordinary Chaos Orb per reroll. Battle-Hardened, Furious Assault and Master the Fundamentals must all be present.",
+      "assumptions": "Independent rerolls on one reusable rare base. The expected consumption is the rounded calculator display. No finishing step is required.",
+      "artifact": "docs/plans/2026-11-09-worksmith-refocus.md"
+    },
+    "method": {
+      "kind": "currency",
+      "currency": "chaos-orb"
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Craft of Exile calculator, displayed rounded probability and expected consumption",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=0%2C5%2C0&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6W10sInAiOm51bGx9LHsiaSI6IjU3NDQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpbXSwicCI6bnVsbH0seyJpIjoiNTc0MiIsInQiOm51bGwsImIiOnRydWUsInMiOltdLCJwIjpudWxsfV19XQ%3D%3D&class=158",
+        "verifiedAt": "2026-11-09",
+        "settings": "PoE 1 rare physical Large Cluster Jewel at exactly item level 83. One ordinary Chaos Orb per reroll. Battle-Hardened, Furious Assault and Master the Fundamentals must all be present.",
+        "assumptions": "Independent rerolls on one reusable rare base. The expected consumption is the rounded calculator display. No finishing step is required.",
+        "artifact": "docs/plans/2026-11-09-worksmith-refocus.md"
+      }
+    },
+    "uncertainties": [
+      "Craft of Exile displays rounded probability and expected consumption. Asking prices do not establish completed sales.",
+      "Starting-base acquisition must use exactly item level 83. Higher item levels can change the affix pool and require a separate cost model."
+    ],
+    "id": "chaos-orb",
+    "name": "Chaos Orb · 3 Notables",
+    "steps": [
+      {
+        "action": "Use one Chaos Orb on an eligible rare base of exactly item level 83.",
+        "continueWhen": "The item has Battle-Hardened, Furious Assault and Master the Fundamentals.",
+        "failureAction": "Repeat on the same rare base with another Chaos Orb.",
+        "id": "roll-with-chaos",
+        "materials": [
+          {
+            "itemId": "chaos-orb",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "evidence": {
+            "method": "Craft of Exile calculator, displayed rounded probability and expected consumption",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=0%2C5%2C0&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6W10sInAiOm51bGx9LHsiaSI6IjU3NDQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpbXSwicCI6bnVsbH0seyJpIjoiNTc0MiIsInQiOm51bGwsImIiOnRydWUsInMiOltdLCJwIjpudWxsfV19XQ%3D%3D&class=158",
+            "verifiedAt": "2026-11-09",
+            "settings": "PoE 1 rare physical Large Cluster Jewel at exactly item level 83. One ordinary Chaos Orb per reroll. Battle-Hardened, Furious Assault and Master the Fundamentals must all be present.",
+            "assumptions": "Independent rerolls on one reusable rare base. The expected consumption is the rounded calculator display. No finishing step is required.",
+            "artifact": "docs/plans/2026-11-09-worksmith-refocus.md"
+          },
+          "probability": 8.69e-5
+        },
+        "title": "Roll all three notables together"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 11502,
+        "evidence": {
+          "method": "Craft of Exile calculator, displayed rounded probability and expected consumption",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=0%2C5%2C0&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6W10sInAiOm51bGx9LHsiaSI6IjU3NDQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpbXSwicCI6bnVsbH0seyJpIjoiNTc0MiIsInQiOm51bGwsImIiOnRydWUsInMiOltdLCJwIjpudWxsfV19XQ%3D%3D&class=158",
+          "verifiedAt": "2026-11-09",
+          "settings": "PoE 1 rare physical Large Cluster Jewel at exactly item level 83. One ordinary Chaos Orb per reroll. Battle-Hardened, Furious Assault and Master the Fundamentals must all be present.",
+          "assumptions": "Independent rerolls on one reusable rare base. The expected consumption is the rounded calculator display. No finishing step is required.",
+          "artifact": "docs/plans/2026-11-09-worksmith-refocus.md"
+        },
+        "stepId": "roll-with-chaos"
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "physical-damage"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame", "Hardcore Allflame", "Standard", "Hardcore"],
+    "checkedAt": "2026-11-09",
+    "sources": [
+      "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=0%2C5%2C0&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6W10sInAiOm51bGx9LHsiaSI6IjU3NDQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpbXSwicCI6bnVsbH0seyJpIjoiNTc0MiIsInQiOm51bGwsImIiOnRydWUsInMiOltdLCJwIjpudWxsfV19XQ%3D%3D&class=158"
+    ],
+    "notes": "Craft of Exile models the generic 8–12 passive mod pool; Trade acquisition and finished item searches use exactly 8 passives."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "physical-large-cluster-chaos",
+  "schemaVersion": 3,
+  "summary": "8-passive Large Cluster Jewel with Battle-Hardened, Furious Assault and Master the Fundamentals, rolled with Chaos Orbs.",
+  "tags": ["physical", "chaos-orb"],
+  "targetSignature": "3.29.3.3:7bf68c4f67b27b2ae65c467e1d5bfac5",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:battle-hardened"
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:master-the-fundamentals"
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:furious-assault"
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Physical Cluster Jewel · 3 Notables"
+}
