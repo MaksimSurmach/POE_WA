@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import {
   RegisteredTradeQueryGenerator,
   clusterJewelVariantFilter,
+  hashMarketQuery,
   noVariantFilter,
   mappedTargetFilter,
 } from '@poe-worksmith/domain';
@@ -114,6 +115,61 @@ async function mappedTrade() {
 }
 
 describe('authored source catalog integrity', () => {
+  it('shares the exact 8-passive output search but prices normal and rare bases separately', async () => {
+    const catalog = await recipes();
+    const jagged = catalog.find(
+      ({ definition }) => definition.id === 'physical-large-cluster-jagged',
+    )?.definition;
+    const chaos = catalog.find(
+      ({ definition }) => definition.id === 'physical-large-cluster-chaos',
+    )?.definition;
+    if (!jagged || !chaos)
+      throw new Error('Expected both physical cluster methods');
+    expect(chaos.targetSignature).toBe(jagged.targetSignature);
+
+    const trade = await mappedTrade();
+    const league = 'Fixture League';
+    const query = (recipe: typeof jagged, starting = false) =>
+      generateRecipeMarketQuery(trade, recipe, league, starting);
+    const hash = (input: Awaited<ReturnType<typeof query>>) =>
+      hashMarketQuery({ ...input, league });
+    const [jaggedOutput, chaosOutput, normal, rare] = await Promise.all([
+      query(jagged),
+      query(chaos),
+      query(jagged, true),
+      query(chaos, true),
+    ]);
+    expect(await hash(jaggedOutput)).toBe(await hash(chaosOutput));
+    expect(await hash(normal)).not.toBe(await hash(rare));
+
+    for (const result of [jaggedOutput, chaosOutput, normal, rare]) {
+      expect(result.query).toMatchObject({
+        query: {
+          stats: expect.arrayContaining([
+            expect.objectContaining({
+              filters: expect.arrayContaining([
+                { id: 'enchant.stat_3086156145', value: { min: 8, max: 8 } },
+              ]),
+            }),
+          ]),
+        },
+      });
+    }
+    for (const [base, rarity] of [
+      [normal, 'normal'],
+      [rare, 'rare'],
+    ] as const) {
+      expect(base.query).toMatchObject({
+        query: {
+          filters: {
+            misc_filters: { filters: { ilvl: { min: 83, max: 83 } } },
+            type_filters: { filters: { rarity: { option: rarity } } },
+          },
+        },
+      });
+    }
+  });
+
   it('loads every current recipe with resolvable target/base identities, material slugs and readable presentation', async () => {
     const catalog = await recipes();
     expect(catalog.length).toBeGreaterThan(0);
