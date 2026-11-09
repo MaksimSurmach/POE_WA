@@ -348,6 +348,7 @@ function toRecipeSummary(recipe: StoredRecipe, evaluation?: RecipeEvaluation) {
     id: recipe.id,
     minimumCapital: price(evaluation?.expectedCraftCost, evaluation?.currency),
     summary: definition.summary ?? recipe.title,
+    targetSignature: definition.targetSignature,
     tags: [...recipe.tags],
     title: recipe.title,
   };

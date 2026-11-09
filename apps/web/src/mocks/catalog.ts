@@ -136,6 +136,7 @@ const catalogInput = [
   {
     recipe: {
       id: 'profitable-cluster',
+      targetSignature: 'fixture:profitable-cluster',
       title: 'Physical Large Cluster Jewel',
       summary: 'Harvest-reforge a physical cluster into a three-notable jewel.',
       category: 'cluster-jewel',
@@ -160,6 +161,7 @@ const catalogInput = [
   {
     recipe: {
       id: 'low-margin-ring',
+      targetSignature: 'fixture:low-margin-ring',
       title: 'Essence Attribute Ring',
       summary: 'Essence-spam an attribute base for a narrow resale spread.',
       category: 'ring',
@@ -184,6 +186,7 @@ const catalogInput = [
   {
     recipe: {
       id: 'no-listings-bow',
+      targetSignature: 'fixture:no-listings-bow',
       title: 'Niche Elemental Bow',
       summary: 'A narrow bow search currently has no merchant listings.',
       category: 'weapon',
@@ -208,6 +211,7 @@ const catalogInput = [
   {
     recipe: {
       id: 'stale-boots',
+      targetSignature: 'fixture:stale-boots',
       title: 'Movement Speed Boots',
       summary:
         'A previous profitable result retained during provider degradation.',
@@ -233,6 +237,7 @@ const catalogInput = [
   {
     recipe: {
       id: 'calculation-error-amulet',
+      targetSignature: 'fixture:calculation-error-amulet',
       title: 'Influenced Critical Amulet',
       summary: 'A fixture with an unavailable expected cost calculation.',
       category: 'amulet',
@@ -257,6 +262,7 @@ const catalogInput = [
   {
     recipe: {
       id: 'invalid-recipe',
+      targetSignature: 'fixture:invalid-recipe',
       title: 'Invalid Recipe Fixture',
       summary: 'A recipe source that failed structured validation.',
       category: 'cluster-jewel',
@@ -281,6 +287,7 @@ const catalogInput = [
   {
     recipe: {
       id: 'loading-gloves',
+      targetSignature: 'fixture:loading-gloves',
       title: 'Suppression Gloves',
       summary: 'A newly queued recipe waiting for its first market snapshot.',
       category: 'gloves',
