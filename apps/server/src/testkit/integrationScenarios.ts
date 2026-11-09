@@ -1,4 +1,33 @@
-import type { MarketSearchResult } from '@poe-worksmith/domain';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { Pool } from 'pg';
+import {
+  clusterJewelVariantFilter,
+  mappedTargetFilter,
+  RegisteredTradeQueryGenerator,
+  type MarketSearchResult,
+} from '@poe-worksmith/domain';
+import { evaluateAndPublishCatalog } from '../catalogPublisher.js';
+import {
+  newEconomyAttempt,
+  newStoredEconomySnapshot,
+} from '../marketEconomy.js';
+import {
+  createRecipeMarketDependencies,
+  recipeQueryTarget,
+} from '../recipeMarket.js';
+import { loadRecipeCatalog } from '../recipes/loader.js';
+import { synchronizeRecipes } from '../recipes/synchronizeRecipes.js';
+import { planCatalogRefresh } from '../refreshPlanner.js';
+import { createMarketEconomyRepository } from '../repositories/marketEconomyRepository.js';
+import { createPostgresRepositories } from '../repositories/postgresRepositories.js';
+import {
+  createPostgresResourceResolver,
+  createPostgresTradeMappingCatalog,
+  importTradeMappings,
+} from '../tradeMappings.js';
 import { FIXTURE_NOW } from './fixedClock.js';
 import {
   expectedDefaultQueryHashes,
@@ -112,5 +141,229 @@ function result(
     listings,
     provider: 'poe-trade',
     totalResults: listings.length,
+  };
+}
+
+export const twoMethodsPricedScenario = 'two-methods-priced';
+
+export function assertLocalBrowserFixtureDatabase() {
+  const target = new URL(
+    process.env.TEST_DATABASE_URL ?? 'postgresql://invalid',
+  );
+  if (
+    process.env.APP_ENV !== 'test' ||
+    !['127.0.0.1', 'localhost'].includes(target.hostname) ||
+    target.pathname !== '/poe_worksmith_test' ||
+    !target.port ||
+    target.port === '54326' ||
+    target.search
+  )
+    throw new Error(
+      'Browser tests require the isolated local poe_worksmith_test database; native data is never reset.',
+    );
+}
+
+export async function seedTwoMethodsPriced(pool: Pool) {
+  const repositories = createPostgresRepositories(pool);
+  const root = fileURLToPath(new URL('../../../../recipes/', import.meta.url));
+  const recipes = (await loadRecipeCatalog(root)).filter(({ definition }) =>
+    ['physical-large-cluster-jagged', 'physical-large-cluster-chaos'].includes(
+      definition.id,
+    ),
+  );
+  assert.equal(recipes.length, 2);
+  const report = await synchronizeRecipes(
+    repositories.recipes,
+    recipes,
+    (path) => readFile(resolve(root, path)),
+  );
+  assert.deepEqual(report.failed, []);
+
+  const patch = '3.29.3.3';
+  await pool.query(
+    `update game_data_versions set status = 'archived'
+     where game = 'poe1' and status = 'active' and patch_version <> $1`,
+    [patch],
+  );
+  await pool.query(
+    `insert into game_data_versions (game, patch_version, source, source_revision, manifest_hash, status)
+     values ('poe1', $1, 'browser-fixture', 'browser-fixture', 'two-methods-priced', 'active')
+     on conflict (game) where status = 'active' do nothing`,
+    [patch],
+  );
+  for (const name of ['physical-large-cluster', 'recipe-catalog']) {
+    const manifest = JSON.parse(
+      await readFile(
+        new URL(
+          `../../mappings/poe-trade/${patch}/${name}.json`,
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    await importTradeMappings(pool, {
+      ...manifest,
+      sourceRevision: manifest.mappingVersion,
+    });
+  }
+  const marketDependencies = createRecipeMarketDependencies({
+    resolveResource: createPostgresResourceResolver(pool),
+    trade: new RegisteredTradeQueryGenerator(
+      createPostgresTradeMappingCatalog(pool),
+      [clusterJewelVariantFilter],
+      [mappedTargetFilter],
+    ),
+  });
+
+  const now = new Date();
+  const timestamp = now.toISOString();
+  const league = 'Standard';
+  const { id: leagueId } = await repositories.leagues.upsert({
+    endAt: null,
+    game: 'poe1',
+    gggId: league,
+    isCurrent: true,
+    metadata: {},
+    name: league,
+    realm: 'pc',
+    startAt: null,
+    syncedAt: now,
+  });
+  const economy = createMarketEconomyRepository(pool);
+  const exchange = await economy.save(
+    newStoredEconomySnapshot({
+      schemaVersion: 1,
+      kind: 'economy-overview',
+      source: 'poe.ninja',
+      game: 'poe1',
+      league,
+      category: 'Currency',
+      endpoint: 'https://poe.ninja/fixture/two-methods-priced',
+      payloadHash: '0'.repeat(64),
+      capturedAt: timestamp,
+      sourceUpdatedAt: null,
+      priceBasis: 'currency-exchange',
+      raw: { fixture: twoMethodsPricedScenario },
+      lines: [
+        {
+          id: 'divine',
+          name: 'Divine Orb',
+          detailsId: 'divine-orb',
+          baseType: null,
+          price: { amount: 200, currency: 'chaos' },
+          listingCount: null,
+          observationCount: 10,
+          tradedVolume: null,
+        },
+      ],
+    }),
+  );
+  await economy.saveAttempt({
+    ...newEconomyAttempt({ league, category: 'Currency', startedAt: now }),
+    completedAt: timestamp,
+    status: 'succeeded',
+    cacheStatus: 'fetched',
+    snapshotId: exchange.id,
+  });
+
+  const snapshotTtlMs = 30 * 60_000;
+  const plan = await planCatalogRefresh(repositories, {
+    league: { leagueId, leagueGggId: league, leagueName: league },
+    marketDependencies,
+    now,
+    snapshotTtlMs,
+  });
+  assert.equal(plan.queries.length, 5);
+  assert.equal(plan.report.deduplicatedDependencies, 1);
+
+  const clusterMods = [
+    { id: 'enchant.stat_3086156145', value: 8 },
+    { id: 'enchant.stat_3948993189|12', value: 12 },
+    { id: 'enchant.stat_4079888060', value: 2 },
+  ];
+  const finishedMods = [
+    ...clusterMods,
+    { id: 'explicit.stat_4188581520', value: 1 },
+    { id: 'explicit.stat_3415827027', value: 1 },
+    { id: 'explicit.stat_3585232432', value: 1 },
+  ];
+
+  for (const { marketQuery } of plan.queries) {
+    const target = marketQuery.query.handbookTarget
+      ? recipeQueryTarget(marketQuery.query.handbookTarget)
+      : null;
+    const finished = target?.slot === 'crafted-item';
+    const rarity = target?.tradeSearch?.rarity ?? 'normal';
+    const currency = finished ? 'divine' : 'chaos';
+    const baseAsk = rarity === 'rare' ? '17' : '10';
+    const materialAsk = JSON.stringify(marketQuery.query.exchange)?.includes(
+      'jagged-fossil',
+    )
+      ? '2'
+      : '3';
+    const amount = finished ? '75' : target ? baseAsk : materialAsk;
+    const listings = Array.from({ length: finished ? 5 : 1 }, (_, index) => {
+      const account = `seller-${index}`;
+      return {
+        id: `${marketQuery.id}-${index}`,
+        account,
+        ageSeconds: 60,
+        fee: null,
+        indexedAt: timestamp,
+        price: { amount, currency },
+        item: target
+          ? {
+              baseType: 'Large Cluster Jewel',
+              rarity,
+              itemLevel: 83,
+              league,
+              patch,
+              currency,
+              seller: account,
+              status: 'listed',
+              corrupted: false,
+              fractured: false,
+              synthesised: false,
+              influences: [],
+              modsComplete: true,
+              mods: finished ? finishedMods : clusterMods,
+            }
+          : { stock: 1000 },
+      };
+    });
+    await repositories.snapshots.save({
+      capturedAt: now,
+      dedupeKey: `scheduled-trade:${plan.cycle.id}:${marketQuery.id}`,
+      expiresAt: new Date(now.getTime() + snapshotTtlMs),
+      leagueId,
+      marketQueryId: marketQuery.id,
+      payload: {
+        listings,
+        coverage: 'complete',
+        totalResults: listings.length,
+      },
+      providerStatus: 200,
+      refreshCycleId: plan.cycle.id,
+    });
+  }
+  await repositories.cycles.save({
+    ...plan.cycle,
+    completedQueries: plan.queries.length,
+  });
+  const publication = await evaluateAndPublishCatalog(repositories, {
+    cycleId: plan.cycle.id,
+    league,
+    marketDependencies,
+    economy,
+    now,
+  });
+  assert.equal(publication.published, true);
+  assert.equal(publication.completedRecipes, 2);
+  assert.equal(publication.failedRecipes, 0);
+  return {
+    scenario: twoMethodsPricedScenario,
+    published: publication.published,
+    succeeded: publication.completedRecipes,
+    failed: publication.failedRecipes,
   };
 }

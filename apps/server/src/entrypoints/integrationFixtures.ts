@@ -7,31 +7,47 @@ import { planCatalogRefresh } from '../refreshPlanner.js';
 import { createPostgresRepositories } from '../repositories/index.js';
 import { synchronizeRecipes } from '../recipes/synchronizeRecipes.js';
 import {
+  assertLocalBrowserFixtureDatabase,
   integrationScenarioNames,
   DeterministicMarketProvider,
   FixedClock,
   integrationMarketDependencies,
   integrationScenario,
   loadIntegrationCatalog,
+  seedTwoMethodsPriced,
+  twoMethodsPricedScenario,
   type IntegrationScenarioName,
 } from '../testkit/index.js';
 
 const args = process.argv.slice(2);
+const validScenarios = [
+  ...integrationScenarioNames,
+  twoMethodsPricedScenario,
+] as const;
 const scenario =
-  args[0] === '--scenario' &&
-  integrationScenarioNames.includes(args[1] as IntegrationScenarioName)
-    ? (args[1] as IntegrationScenarioName)
+  args[0] === '--scenario'
+    ? validScenarios.find((name) => name === args[1])
     : undefined;
 if (!scenario)
   throw new Error(
-    `Usage: fixtures:seed-integration --scenario <${integrationScenarioNames.join('|')}>`,
+    `Usage: fixtures:seed-integration --scenario <${validScenarios.join('|')}>`,
   );
 if (process.env.APP_ENV !== 'test' && process.env.APP_ENV !== 'development')
   throw new Error(
     'fixtures:seed-integration requires APP_ENV=test or APP_ENV=development',
   );
+if (scenario === twoMethodsPricedScenario) assertLocalBrowserFixtureDatabase();
+
 const pool = createDatabasePool(loadDatabaseConfig());
 try {
+  if (scenario === twoMethodsPricedScenario)
+    console.log(JSON.stringify(await seedTwoMethodsPriced(pool)));
+  else await seedDefaultScenario(scenario);
+} finally {
+  await pool.end();
+}
+
+async function seedDefaultScenario(scenario: IntegrationScenarioName) {
   const repositories = createPostgresRepositories(pool);
   const recipes = await loadIntegrationCatalog();
   const report = await synchronizeRecipes(
@@ -106,6 +122,4 @@ try {
       failed: evaluations.filter(({ status }) => status === 'error').length,
     }) + '\n',
   );
-} finally {
-  await pool.end();
 }
