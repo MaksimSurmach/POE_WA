@@ -555,11 +555,43 @@ describe('sale evidence acceptance', () => {
     profitBlockedReason?: string,
     coverage: 'complete' | 'partial' | 'missing' = 'complete',
     targetAsks?: readonly number[],
+    budgetFixture?: {
+      probabilities: readonly number[];
+      quantity: number;
+      baseAsk: number;
+    },
   ) {
     const repositories = createInMemoryRepositories();
     const definition = fixtureRecipe(canonicalRecipeFixture);
     if (profitBlockedReason)
       definition.verification.profitBlockedReason = profitBlockedReason;
+    if (budgetFixture) {
+      const [roll] = definition.craft.steps;
+      const evidence = definition.craft.evidence!;
+      definition.craft.steps = budgetFixture.probabilities.map(
+        (probability, index) => ({
+          ...roll!,
+          id: index === 0 ? 'roll' : 'finish',
+          materials:
+            budgetFixture.quantity === 0
+              ? []
+              : [
+                  {
+                    itemId: 'primal-crystallised-lifeforce',
+                    quantity: budgetFixture.quantity,
+                  },
+                ],
+          success: { evidence, probability },
+        }),
+      );
+      definition.craft.expectedExecutions = definition.craft.steps
+        .filter(({ materials }) => materials.length > 0)
+        .map((step) => ({
+          count: 1 / step.success!.probability,
+          evidence,
+          stepId: step.id,
+        }));
+    }
     await repositories.recipes.save(
       storedRecipe(definition.id, { ...definition } as JsonRecord),
     );
@@ -612,12 +644,13 @@ describe('sale evidence acceptance', () => {
         fee: null,
         id: `${marketQueryId}-listing-${listingIndex}`,
         indexedAt: new Date(now.getTime() - 60_000).toISOString(),
-        item: { stock: 10000 },
+        item: { stock: budgetFixture ? 1_000_000 : 10_000 },
         price: {
           amount: String(
             queryIndex === targetIndex
               ? (targetAsks?.[listingIndex] ?? 1000 + listingIndex)
-              : (queryIndex === 0 ? 10 : 0.01) + listingIndex,
+              : (queryIndex === 0 ? (budgetFixture?.baseAsk ?? 10) : 0.01) +
+                  listingIndex,
           ),
           currency: 'chaos',
         },
@@ -649,6 +682,62 @@ describe('sale evidence acceptance', () => {
     expect(report).toMatchObject({ completedRecipes: 1, published: true });
     return report.evaluations[0]!;
   }
+
+  it.each([
+    {
+      probabilities: [0.5],
+      mean: '120',
+      profit: '880',
+      budget: { p50: '110', p90: '140', currency: 'chaos' },
+    },
+    { probabilities: [0.5, 0.5], mean: '140', profit: '860', budget: null },
+    {
+      probabilities: [0.0016300000000000002],
+      mean: '6234.96932515',
+      profit: '-5234.96932515',
+      budget: { p50: '4350', p90: '14220', currency: 'chaos' },
+    },
+    {
+      probabilities: [1e-17],
+      quantity: 0,
+      mean: '100',
+      profit: '900',
+      budget: null,
+    },
+    {
+      probabilities: [1e-9],
+      quantity: 0.00010055,
+      baseAsk: 1,
+      mean: '1006.5',
+      profit: '-6.5',
+      budget: { p50: '697.9594905', p90: '2316.24931001', currency: 'chaos' },
+    },
+    {
+      probabilities: [0.5],
+      quantity: 0,
+      mean: '100',
+      profit: '900',
+      budget: { p50: '100', p90: '100', currency: 'chaos' },
+    },
+  ])(
+    'publishes the one-item budget for stage probabilities $probabilities and mean $mean',
+    async ({ probabilities, quantity, baseAsk, mean, profit, budget }) => {
+      const evaluation = await evaluateWithTargetSellers(
+        ['one', 'two'],
+        undefined,
+        'complete',
+        undefined,
+        { probabilities, quantity: quantity ?? 1000, baseAsk: baseAsk ?? 100 },
+      );
+
+      expect(evaluation).toMatchObject({
+        status: 'success',
+        expectedCraftCost: mean,
+        profit,
+        methodCost: { budget },
+      });
+    },
+  );
 
   it('publishes the craft cost when a scheduled output has no fresh observation', async () => {
     const evaluation = await evaluateWithTargetSellers(

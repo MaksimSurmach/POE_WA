@@ -84,6 +84,10 @@ export const recipeEvaluationSchema = z
     status: z.enum(['success', 'stale', 'loading', 'partial', 'error']),
     evaluatedAt: z.iso.datetime().nullable(),
     expectedCraftCost: priceSchema.nullable(),
+    budget: z
+      .strictObject({ p50: priceSchema, p90: priceSchema })
+      .nullable()
+      .optional(),
     estimatedSalePrice: priceSchema.nullable(),
     profit: profitSchema.nullable(),
     marginPercent: z.number().finite().nullable(),

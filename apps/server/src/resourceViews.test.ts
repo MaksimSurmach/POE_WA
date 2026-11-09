@@ -746,6 +746,32 @@ describe('legacy single-seller profit on the read boundary', () => {
     expectedCraftCost: { amount: 869.28, currency: 'chaos' },
   };
 
+  it.each(['fresh', 'expired'] as const)(
+    'returns one-item budget prices only from fresh evidence (%s)',
+    async (scenario) => {
+      const { catalog, detail } = await publishLegacy({
+        status: 'success',
+        methodCost: {
+          budget: { p50: '603.82', p90: '1998', currency: 'chaos' },
+          ...(scenario === 'expired'
+            ? { expiresAt: '2000-01-01T00:00:00.000Z' }
+            : {}),
+        },
+      });
+
+      for (const evaluation of [catalog, detail]) {
+        expect(evaluation?.budget).toEqual(
+          scenario === 'expired'
+            ? null
+            : {
+                p50: { amount: 603.82, currency: 'chaos' },
+                p90: { amount: 1998, currency: 'chaos' },
+              },
+        );
+      }
+    },
+  );
+
   it('keeps the valuation source visible without a raw snapshot and validates stored evidence', async () => {
     const capturedAt = '2026-11-04T10:00:00.000Z';
     const { catalog, detail } = await publishLegacy({

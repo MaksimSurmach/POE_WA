@@ -379,6 +379,15 @@ function toEvaluation(
   }
   const source = record(evaluation.methodCost?.source);
   const saleEvidence = record(evaluation.methodCost?.saleEvidence);
+  const savedBudget = record(evaluation.methodCost?.budget);
+  const p50 = persistedPrice({
+    amount: savedBudget?.p50,
+    currency: savedBudget?.currency,
+  });
+  const p90 = persistedPrice({
+    amount: savedBudget?.p90,
+    currency: savedBudget?.currency,
+  });
   const evaluationProfit = profit(evaluation.profit, evaluation.currency);
   const saleGrade = saleGradeSchema.safeParse({
     grade: saleEvidence?.grade,
@@ -405,6 +414,7 @@ function toEvaluation(
     ),
     evaluatedAt: evaluation.evaluatedAt.toISOString(),
     expectedCraftCost: price(evaluation.expectedCraftCost, evaluation.currency),
+    budget: p50 && p90 ? { p50, p90 } : null,
     lastSuccessfulAt: evaluation.lastSuccessfulAt?.toISOString() ?? null,
     marginPercent: finiteNumber(evaluation.marginPercent),
     profit: evaluationProfit,
@@ -613,6 +623,7 @@ function currentEvaluation(
       marginPercent: null,
       methodCost: {
         ...evaluation.methodCost,
+        budget: null,
         expectedCost: null,
         marketStatus: 'unavailable',
       },

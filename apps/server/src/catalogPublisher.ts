@@ -15,6 +15,7 @@ import {
   compareCraftWithAsk,
   gradeSaleEvidence,
   hashMarketQuery,
+  singleItemCraftBudget,
   transitionRefreshCycle,
   validateRecipeDocument,
 } from '@poe-worksmith/domain';
@@ -726,6 +727,12 @@ async function evaluateFreshRecipe(
   }[saleStatus];
   const methodCost = {
     ...materialEconomics,
+    budget: singleItemCraftBudget({
+      currency,
+      expectedCraftCost,
+      expectedExecutions: definition.craft.expectedExecutions,
+      steps: materialEconomics.steps,
+    }),
     recipeContentHash: recipe.contentHash,
     oldestInputAt: new Date(oldestInputAt).toISOString(),
     expiresAt: new Date(expiresAt).toISOString(),

@@ -124,6 +124,13 @@ export function CatalogTable({
                 </td>
                 <td>
                   <Money price={evaluation.expectedCraftCost} />
+                  {evaluation.budget ? (
+                    <small>
+                      budget for one: p50{' '}
+                      <Money price={evaluation.budget.p50} /> · p90{' '}
+                      <Money price={evaluation.budget.p90} />
+                    </small>
+                  ) : null}
                 </td>
                 <td>
                   <Money price={evaluation.estimatedSalePrice} />
