@@ -125,31 +125,6 @@ export function calculateMethodMaterialEconomics(input: {
   };
 }
 
-export function calculateExpectedCraftCost(input: {
-  basePrice: DecimalMoney | null;
-  currency: string;
-  materialCost: DecimalMoney | null;
-}): DecimalMoney | null {
-  if (
-    !input.basePrice ||
-    !input.materialCost ||
-    input.basePrice.currency !== input.currency ||
-    input.materialCost.currency !== input.currency
-  )
-    return null;
-  const DecimalValue = Decimal.clone({
-    precision: 40,
-    rounding: Decimal.ROUND_HALF_UP,
-  });
-  return {
-    amount: new DecimalValue(input.basePrice.amount)
-      .add(input.materialCost.amount)
-      .toDecimalPlaces(8)
-      .toFixed(),
-    currency: input.currency,
-  };
-}
-
 export function compareCraftWithAsk(input: {
   basePrice: DecimalMoney | null;
   materialCost: DecimalMoney | null;

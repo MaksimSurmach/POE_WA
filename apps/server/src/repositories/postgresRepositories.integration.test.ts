@@ -3,7 +3,6 @@ import type {
   MarketQuery,
   Recipe,
   RefreshCycle,
-  StoredCraftProbability,
 } from '@poe-worksmith/domain';
 import { transitionRefreshCycle } from '@poe-worksmith/domain';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
@@ -89,43 +88,6 @@ async function seedDependencies() {
 }
 
 describe('PostgreSQL repositories', () => {
-  it('round-trips exact probability values and idempotently saves concurrent cache keys', async () => {
-    const probability: StoredCraftProbability = {
-      cacheKey: 'probability-cache-key',
-      setupHash: 'setup-hash',
-      gameDataVersion: '3.26.0',
-      rulesetId: 'ruleset-1',
-      engineId: 'fake-engine',
-      engineVersion: '1',
-      calculatorContractVersion: 1,
-      calculatorVersion: '1',
-      probability: {
-        numerator: '123456789012345678901234567890',
-        denominator: '999999999999999999999999999999',
-      },
-      probabilityDecimal: '0.123456789012',
-      expectedAttempts: {
-        numerator: '999999999999999999999999999999',
-        denominator: '123456789012345678901234567890',
-      },
-      expectedAttemptsDecimal: '8.100000072900',
-      diagnostics: [],
-      calculatedAt: now,
-      createdAt: now,
-    };
-    const [first, second] = await Promise.all([
-      repositories.craftProbabilities.save(probability),
-      repositories.craftProbabilities.save(probability),
-    ]);
-    expect(first).toEqual(probability);
-    expect(second).toEqual(probability);
-    expect(
-      await repositories.craftProbabilities.findByCacheKey(
-        probability.cacheKey,
-      ),
-    ).toEqual(probability);
-  });
-
   it('stores recipes and maps database conflicts', async () => {
     await repositories.recipes.save(recipe);
 

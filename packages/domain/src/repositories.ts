@@ -26,7 +26,6 @@ import type {
   RetentionCleanupOptions,
   RetentionCleanupReport,
 } from './models.js';
-import type { CraftProbabilityRepository } from './probability/types.js';
 
 export interface RecipeRepository {
   findById(id: string): Promise<Recipe | null>;
@@ -183,7 +182,6 @@ export type Repositories = {
   observations: ObservationRepository;
   operationalDiagnostics: OperationalDiagnosticsRepository;
   providerCircuits: ProviderCircuitRepository;
-  craftProbabilities: CraftProbabilityRepository;
   rateLimits: RateLimitRepository;
   recipes: RecipeRepository;
   retention: RetentionRepository;
