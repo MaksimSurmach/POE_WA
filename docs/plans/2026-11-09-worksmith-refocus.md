@@ -538,3 +538,6 @@ the homepage request issues 3 or fewer SQL statements on the test database.
 | 2026-11-09 | P1-04 | [#48](https://github.com/MaksimSurmach/POE_WA/pull/48) | Both R1 blocks and CI passed. Single-currency sorted coverage was tested with a fixture. |
 | 2026-11-10 | P1-05 | [#49](https://github.com/MaksimSurmach/POE_WA/pull/49) | Both R1 blocks and CI passed. The budget reuses the domain Decimal implementation and existing risk helper. |
 | 2026-11-10 | P1-06 | [#47](https://github.com/MaksimSurmach/POE_WA/pull/47) | R1 first block and CI passed. Reordered fossils count as the same method, and three unchanged drafts left the active catalog. |
+| 2026-11-10 | P1-07 | [#50](https://github.com/MaksimSurmach/POE_WA/pull/50) | Both R1 blocks and CI passed. Mapped query test uses `recipeCatalog.test.ts`. |
+| 2026-11-10 | P1-08 | [#51](https://github.com/MaksimSurmach/POE_WA/pull/51) | R1 first block and CI passed. The existing detail refresh also updates the comparison when needed, so expired values do not keep ranking. |
+| 2026-11-10 | P1-09 | [Browser proof PR](https://github.com/MaksimSurmach/POE_WA/pulls?q=is%3Apr+head%3Arefocus%2Fp1-09-browser-proof) | Both R1 blocks and the separate priced browser scenario passed locally. CI runs the default suite and the priced scenario separately. |
