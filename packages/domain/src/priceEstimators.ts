@@ -171,6 +171,36 @@ export function selectPriceEstimate(
   );
 }
 
+export function estimateSaleAsk(aggregation: MarketAggregation): Readonly<{
+  price: ProviderMoney | null;
+  basis: 'cheapest' | 'cheapest-after-outlier' | 'none';
+  ignoredOutliers: number;
+}> {
+  const { cheapest, currency, listings, medianTopFive, sampleSize } =
+    aggregation;
+  if (sampleSize >= 5 && medianTopFive) {
+    const threshold = Number(medianTopFive.amount) * 0.5;
+    const firstComparable = listings.findIndex(
+      ({ price }) => Number(price.amount) >= threshold,
+    );
+    if (firstComparable > 0) {
+      return {
+        price: {
+          amount: formatPrice(Number(listings[firstComparable]!.price.amount)),
+          currency,
+        },
+        basis: 'cheapest-after-outlier',
+        ignoredOutliers: firstComparable,
+      };
+    }
+  }
+  return {
+    price: cheapest,
+    basis: cheapest ? 'cheapest' : 'none',
+    ignoredOutliers: 0,
+  };
+}
+
 function estimateFromPrices(
   prices: readonly number[],
   currency: string,
