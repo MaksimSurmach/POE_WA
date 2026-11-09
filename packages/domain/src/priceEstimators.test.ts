@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { MarketListing } from './marketProviders.js';
 import {
   aggregateMarketListings,
+  estimateSaleAsk,
   selectPriceEstimate,
 } from './priceEstimators.js';
 
@@ -195,5 +196,74 @@ describe('market snapshot aggregation', () => {
         totalListings: 0,
       }),
     ).toThrow(/invalid calculation inputs/i);
+  });
+});
+
+describe('sale ask', () => {
+  it.each([
+    {
+      name: 'skips an outlier with six distinct sellers',
+      asks: [1, 100, 105, 110, 120, 130],
+      price: { amount: '100', currency: 'chaos' },
+      basis: 'cheapest-after-outlier',
+      ignoredOutliers: 1,
+    },
+    {
+      name: 'skips multiple outliers and formats the selected ask',
+      asks: [1, 2, 100.123456789, 110, 120],
+      price: { amount: '100.12345679', currency: 'chaos' },
+      basis: 'cheapest-after-outlier',
+      ignoredOutliers: 2,
+    },
+    {
+      name: 'keeps an ask exactly half the median of the five cheapest',
+      asks: [50, 90, 100, 110, 120, 130],
+      price: { amount: '50', currency: 'chaos' },
+      basis: 'cheapest',
+      ignoredOutliers: 0,
+    },
+    {
+      name: 'keeps the cheapest ask with three sellers',
+      asks: [100, 105, 110],
+      price: { amount: '100', currency: 'chaos' },
+      basis: 'cheapest',
+      ignoredOutliers: 0,
+    },
+    {
+      name: 'returns no ask for an empty sample',
+      asks: [],
+      price: null,
+      basis: 'none',
+      ignoredOutliers: 0,
+    },
+  ])('$name', ({ asks, price, basis, ignoredOutliers }) => {
+    const aggregation = aggregateMarketListings({
+      currency: 'chaos',
+      listings: asks.map((amount, index) => listing(String(index), amount)),
+    });
+
+    expect(estimateSaleAsk(aggregation)).toEqual({
+      price,
+      basis,
+      ignoredOutliers,
+    });
+  });
+
+  it('uses the cheapest ask after deduplicating sellers', () => {
+    const aggregation = aggregateMarketListings({
+      currency: 'chaos',
+      listings: [
+        listing('one-higher', 110, { account: 'Seller One' }),
+        listing('two', 100),
+        listing('one-cheapest', 1, { account: ' seller one ' }),
+      ],
+    });
+
+    expect(aggregation.sampleSize).toBe(2);
+    expect(estimateSaleAsk(aggregation)).toEqual({
+      price: { amount: '1', currency: 'chaos' },
+      basis: 'cheapest',
+      ignoredOutliers: 0,
+    });
   });
 });

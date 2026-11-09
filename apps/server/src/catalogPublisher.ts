@@ -10,6 +10,7 @@ import {
   type RecipeEvaluation,
   type Repositories,
   calculateMethodMaterialEconomics,
+  estimateSaleAsk,
   expectedMethodMaterialUsage,
   compareCraftWithAsk,
   hashMarketQuery,
@@ -619,9 +620,9 @@ async function evaluateFreshRecipe(
       break;
     }
   }
-  const outputEstimate = output?.currencyAvailable
-    ? output.aggregation.estimators.find(({ id }) => id === 'cheapest')?.price
-    : undefined;
+  const saleAsk = output?.currencyAvailable
+    ? estimateSaleAsk(output.aggregation)
+    : null;
   const materialEconomics = calculateMethodMaterialEconomics({
     currency,
     materialPrices: materialPriceMap,
@@ -634,12 +635,14 @@ async function evaluateFreshRecipe(
       ({ evidence }) => evidence.patch === definition.patch,
     ) &&
     definition.craft.baseConsumption?.evidence.patch === definition.patch;
-  const salePrice = outputEstimate?.amount ?? null;
+  const salePrice = saleAsk?.price?.amount ?? null;
   const comparableSellers = output?.aggregation.sampleSize ?? 0;
   // A lone seller's ask is not a competitive price; show it, but derive no profit from it.
   const saleEvidence = {
     comparableSellers,
+    ignoredOutliers: saleAsk?.ignoredOutliers ?? 0,
     minimumComparableSellers,
+    saleBasis: saleAsk?.basis ?? 'none',
     ...(definition.verification.profitBlockedReason
       ? { reason: definition.verification.profitBlockedReason }
       : !output
@@ -672,7 +675,7 @@ async function evaluateFreshRecipe(
     expectedBases: evidenceValid
       ? (definition.craft.baseConsumption?.expectedBases ?? null)
       : null,
-    ask: saleEvidence.status === 'accepted' ? (outputEstimate ?? null) : null,
+    ask: saleEvidence.status === 'accepted' ? (saleAsk?.price ?? null) : null,
   });
   const { expectedCraftCost } = comparison;
   const usedTradeMaterials = materialMarkets.filter((m) =>

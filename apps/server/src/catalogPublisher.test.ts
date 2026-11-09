@@ -554,6 +554,7 @@ describe('sale evidence acceptance', () => {
     sellers: readonly string[],
     profitBlockedReason?: string,
     coverage: 'complete' | 'partial' | 'missing' = 'complete',
+    targetAsks?: readonly number[],
   ) {
     const repositories = createInMemoryRepositories();
     const definition = fixtureRecipe(canonicalRecipeFixture);
@@ -614,8 +615,9 @@ describe('sale evidence acceptance', () => {
         item: { stock: 10000 },
         price: {
           amount: String(
-            (queryIndex === 0 ? 10 : queryIndex === targetIndex ? 1000 : 0.01) +
-              listingIndex,
+            queryIndex === targetIndex
+              ? (targetAsks?.[listingIndex] ?? 1000 + listingIndex)
+              : (queryIndex === 0 ? 10 : 0.01) + listingIndex,
           ),
           currency: 'chaos',
         },
@@ -726,6 +728,29 @@ describe('sale evidence acceptance', () => {
       expect(evaluation.lastSuccessfulAt).toBeNull();
     },
   );
+
+  it('publishes the first comparable sale ask after a leading outlier', async () => {
+    const evaluation = await evaluateWithTargetSellers(
+      ['one', 'two', 'three', 'four', 'five'],
+      undefined,
+      'complete',
+      [1, 100, 105, 110, 120],
+    );
+
+    expect(evaluation).toMatchObject({
+      estimatedSalePrice: '100',
+      expectedCraftCost: '19',
+      profit: '81',
+      methodCost: {
+        saleEvidence: {
+          comparableSellers: 5,
+          saleBasis: 'cheapest-after-outlier',
+          ignoredOutliers: 1,
+          status: 'accepted',
+        },
+      },
+    });
+  });
 
   it('publishes profit and ROI once independent sellers corroborate the ask', async () => {
     const evaluation = await evaluateWithTargetSellers([
