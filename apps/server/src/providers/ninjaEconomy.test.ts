@@ -1,3 +1,4 @@
+import { createInMemoryRepositories } from '@poe-worksmith/domain';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -43,6 +44,71 @@ function clock() {
 }
 
 describe('public Ninja economy connector', () => {
+  it('shares Retry-After across clients and resumes at the deadline', async () => {
+    const time = clock();
+    const cooldowns = createInMemoryRepositories().providerCircuits;
+    const fetch = vi
+      .fn<NinjaEconomyFetch>()
+      .mockResolvedValueOnce(
+        new Response(null, { status: 429, headers: { 'Retry-After': '60' } }),
+      )
+      .mockResolvedValueOnce(
+        Response.json([{ id: 'Standard', name: 'Standard' }]),
+      );
+    const options = { fetch, userAgent, now: time.now, cooldowns };
+    const worker = new NinjaEconomyClient(options);
+    const api = new NinjaEconomyClient(options);
+    await expect(worker.fetchSnapshot(request)).rejects.toMatchObject({
+      code: 'RATE_LIMITED',
+    });
+    await expect(api.discoverLeagues()).rejects.toMatchObject({
+      code: 'RATE_LIMITED',
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    time.advance(60_000);
+    await expect(api.discoverLeagues()).resolves.toMatchObject({
+      cacheStatus: 'fetched',
+    });
+  });
+
+  it('checks for a shared cooldown after waiting for request settings', async () => {
+    const cooldowns = createInMemoryRepositories().providerCircuits;
+    const worker = new NinjaEconomyClient({
+      userAgent,
+      cooldowns,
+      fetch: async () =>
+        new Response(null, { status: 429, headers: { 'Retry-After': '60' } }),
+    });
+    const fetch = vi
+      .fn<NinjaEconomyFetch>()
+      .mockResolvedValue(Response.json([]));
+    let notifyEntered!: () => void;
+    const entered = new Promise<void>((resolve) => {
+      notifyEntered = resolve;
+    });
+    let releaseTimeout!: (milliseconds: number) => void;
+    const timeout = new Promise<number>((resolve) => {
+      releaseTimeout = resolve;
+    });
+    const api = new NinjaEconomyClient({
+      userAgent,
+      fetch,
+      cooldowns,
+      readTimeoutMs: () => {
+        notifyEntered();
+        return timeout;
+      },
+    });
+    const pending = api.discoverLeagues();
+    await entered;
+    await expect(worker.fetchSnapshot(request)).rejects.toMatchObject({
+      code: 'RATE_LIMITED',
+    });
+    releaseTimeout(1000);
+    await expect(pending).rejects.toMatchObject({ code: 'RATE_LIMITED' });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it('discovers leagues and distinguishes aggregate price meanings', async () => {
     const fetch = vi.fn<NinjaEconomyFetch>(async (input) => {
       const url = String(input);

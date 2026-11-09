@@ -1,3 +1,4 @@
+import type { ProviderCircuitRepository } from '@poe-worksmith/domain';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 
@@ -152,6 +153,8 @@ type CacheEntry = {
   noStore: boolean;
 };
 
+const economyCircuit = { provider: 'poe-ninja', endpoint: 'economy' };
+
 export class NinjaEconomyClient {
   readonly #fetch: NinjaEconomyFetch;
   readonly #now: () => Date;
@@ -161,11 +164,30 @@ export class NinjaEconomyClient {
   readonly #cache = new Map<string, CacheEntry>();
   readonly #inFlight = new Map<string, Promise<NinjaReadResult<Snapshot>>>();
   #cooldownUntil = 0;
+  readonly #cooldowns:
+    Pick<ProviderCircuitRepository, 'list' | 'recordFailure'> | undefined;
   readonly #readTimeoutMs: (() => Promise<number>) | undefined;
   get cooldownUntil() {
     return this.#cooldownUntil > this.#now().getTime()
       ? new Date(this.#cooldownUntil).toISOString()
       : null;
+  }
+
+  async readCooldownUntil() {
+    await this.#readSharedCooldown();
+    return this.cooldownUntil;
+  }
+
+  async #readSharedCooldown() {
+    const state = (await this.#cooldowns?.list())?.find(
+      ({ provider, endpoint }) =>
+        provider === economyCircuit.provider &&
+        endpoint === economyCircuit.endpoint,
+    );
+    this.#cooldownUntil = Math.max(
+      this.#cooldownUntil,
+      state?.retryAt?.getTime() ?? 0,
+    );
   }
 
   constructor(options: {
@@ -175,6 +197,7 @@ export class NinjaEconomyClient {
     minRefreshMs?: number;
     maxCacheEntries?: number;
     readTimeoutMs?: () => Promise<number>;
+    cooldowns?: Pick<ProviderCircuitRepository, 'list' | 'recordFailure'>;
   }) {
     this.#userAgent = options.userAgent.trim();
     if (!this.#userAgent || /[\r\n]/u.test(this.#userAgent)) {
@@ -185,6 +208,7 @@ export class NinjaEconomyClient {
     this.#minRefreshMs = options.minRefreshMs ?? 5 * 60_000;
     this.#maxCacheEntries = options.maxCacheEntries ?? 32;
     this.#readTimeoutMs = options.readTimeoutMs;
+    this.#cooldowns = options.cooldowns;
     for (const value of [this.#minRefreshMs, this.#maxCacheEntries]) {
       if (!Number.isSafeInteger(value) || value <= 0) {
         throw new TypeError('Cache limits must be positive safe integers');
@@ -286,7 +310,7 @@ export class NinjaEconomyClient {
       etag: cached?.etag ?? null,
       checkedAt: cached?.checkedAt ?? now,
       expiresAt: cached?.expiresAt ?? 0,
-      nextRequestAt: now + this.#minRefreshMs,
+      nextRequestAt: now,
       maxAgeMs: cached?.maxAgeMs ?? 15 * 60_000,
       noStore: false,
     };
@@ -304,14 +328,30 @@ export class NinjaEconomyClient {
     build: (raw: unknown, evidence: Evidence) => Snapshot,
   ): Promise<NinjaReadResult<Snapshot>> {
     let response: Response;
+    let timeoutMs: number;
+    try {
+      timeoutMs = this.#readTimeoutMs ? await this.#readTimeoutMs() : 15_000;
+      if (this.#cooldowns) await this.#readSharedCooldown();
+    } catch (cause) {
+      throw new NinjaEconomyError(
+        'UNAVAILABLE',
+        'Economy request controls unavailable',
+        { cause },
+      );
+    }
+    const now = this.#now().getTime();
+    if (now < this.#cooldownUntil) {
+      throw new NinjaEconomyError('RATE_LIMITED', 'poe.ninja is cooling down', {
+        retryAt: this.#cooldownUntil,
+      });
+    }
+    previous.nextRequestAt = now + this.#minRefreshMs;
     try {
       response = await this.#fetch(url, {
         method: 'GET',
         credentials: 'omit',
         redirect: 'error',
-        signal: AbortSignal.timeout(
-          this.#readTimeoutMs ? await this.#readTimeoutMs() : 15_000,
-        ),
+        signal: AbortSignal.timeout(timeoutMs),
         headers: {
           Accept: 'application/json',
           'User-Agent': this.#userAgent,
@@ -330,6 +370,19 @@ export class NinjaEconomyClient {
         this.#cooldownUntil,
         retryAfter(response.headers.get('retry-after'), checkedAt),
       );
+      if (this.#cooldowns) {
+        const state = await this.#cooldowns.recordFailure({
+          ...economyCircuit,
+          now: new Date(checkedAt),
+          errorCode: 'RATE_LIMITED',
+          failureThreshold: 1,
+          cooldownMs: this.#cooldownUntil - checkedAt,
+        });
+        this.#cooldownUntil = Math.max(
+          this.#cooldownUntil,
+          state.retryAt?.getTime() ?? 0,
+        );
+      }
       throw new NinjaEconomyError(
         'RATE_LIMITED',
         'poe.ninja rate limit reached',

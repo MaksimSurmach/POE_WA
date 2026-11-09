@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import { CronExpressionParser } from 'cron-parser';
 import type { Pool, PoolClient } from 'pg';
 import type { Db } from 'pg-boss';
@@ -11,6 +12,23 @@ import {
   type MarketAdminRefresh,
 } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
+
+export async function trySavedTradePublicationLock(
+  client: Pick<PoolClient, 'query'>,
+) {
+  const result = await client.query<{ acquired: boolean }>(
+    "select pg_try_advisory_xact_lock(hashtext('poe-worksmith:publish-trade-catalog')) as acquired",
+  );
+  return result.rows[0]?.acquired === true;
+}
+
+export function scheduledRefreshEnabled(settings: MarketAdminSettings) {
+  return (
+    settings.automaticRefreshEnabled &&
+    settings.scheduledCollectionEnabled &&
+    !settings.collectionsPaused
+  );
+}
 
 export type AdminRefreshJob = MarketAdminRefresh & {
   source: 'manual' | 'scheduler';
@@ -234,46 +252,56 @@ export function createMarketAdminStore(options: {
       return { accepted: true, id };
     });
   }
-  async function claim(id: string, data: AdminRefreshJob) {
-    return transaction(async (client) => {
-      const selected = await client.query<{ settings: unknown }>(
-        'select settings from market_admin_settings where id=1 for update',
-      );
-      const settings = marketAdminSettingsSchema.parse(
-        selected.rows[0]?.settings,
-      );
-      const allowed =
-        !settings.collectionsPaused &&
-        (data.source === 'manual'
-          ? settings.manualRefreshEnabled
-          : settings.automaticRefreshEnabled &&
-            settings.scheduledCollectionEnabled);
-      await client.query(
-        `insert into market_admin_runs (id,scope,recipe_id,source,status) values ($1,$2,$3,$4,'queued') on conflict do nothing`,
-        [
-          id,
-          data.scope,
-          data.scope === 'recipe' ? data.recipeId : null,
-          data.source,
-        ],
-      );
-      if (!allowed) {
+  async function claim(
+    id: string,
+    data: AdminRefreshJob,
+    signal?: AbortSignal,
+  ) {
+    while (true) {
+      signal?.throwIfAborted();
+      const claimed = await transaction(async (client) => {
+        if (!(await trySavedTradePublicationLock(client))) return null;
+        signal?.throwIfAborted();
+        const selected = await client.query<{ settings: unknown }>(
+          'select settings from market_admin_settings where id=1 for update',
+        );
+        const settings = marketAdminSettingsSchema.parse(
+          selected.rows[0]?.settings,
+        );
+        const allowed =
+          data.source === 'manual'
+            ? settings.manualRefreshEnabled && !settings.collectionsPaused
+            : scheduledRefreshEnabled(settings);
         await client.query(
-          `update market_admin_runs set status='skipped',finished_at=now(),error_code='MARKET_COLLECTION_PAUSED' where id=$1 and status='queued'`,
+          `insert into market_admin_runs (id,scope,recipe_id,source,status) values ($1,$2,$3,$4,'queued') on conflict do nothing`,
+          [
+            id,
+            data.scope,
+            data.scope === 'recipe' ? data.recipeId : null,
+            data.source,
+          ],
+        );
+        if (!allowed) {
+          await client.query(
+            `update market_admin_runs set status='skipped',finished_at=now(),error_code='MARKET_COLLECTION_PAUSED' where id=$1 and status='queued'`,
+            [id],
+          );
+          return false;
+        }
+        await client.query(
+          `update market_admin_runs set status='cancelled',finished_at=now(),error_code='MARKET_COLLECTION_CANCELLED' where id=$1 and status='queued' and cancel_requested`,
           [id],
         );
-        return false;
-      }
-      await client.query(
-        `update market_admin_runs set status='cancelled',finished_at=now(),error_code='MARKET_COLLECTION_CANCELLED' where id=$1 and status='queued' and cancel_requested`,
-        [id],
-      );
-      const result = await client.query(
-        `update market_admin_runs set status='running',started_at=now() where id=$1 and status='queued' and not cancel_requested returning id`,
-        [id],
-      );
-      return Boolean(result.rowCount);
-    });
+        const result = await client.query(
+          `update market_admin_runs set status='running',started_at=now() where id=$1 and status='queued' and not cancel_requested returning id`,
+          [id],
+        );
+        return Boolean(result.rowCount);
+      });
+      if (claimed !== null) return claimed;
+      // Release the connection while the standalone publisher owns admission.
+      await delay(250, undefined, { signal });
+    }
   }
   async function finish(
     id: string,
@@ -281,7 +309,9 @@ export function createMarketAdminStore(options: {
     errorCode: string | null = null,
   ) {
     await pool.query(
-      `update market_admin_runs set status=$2,error_code=$3,finished_at=now() where id=$1 and status in ('queued','running')`,
+      `update market_admin_runs set status=case when scope='economy' and cancel_requested then 'cancelled' else $2 end,
+          error_code=case when scope='economy' and cancel_requested then 'MARKET_COLLECTION_CANCELLED' else $3 end,
+          finished_at=now() where id=$1 and status in ('queued','running')`,
       [id, status, errorCode],
     );
   }
@@ -362,8 +392,9 @@ export function createMarketAdminStore(options: {
       settingsVersion: row?.settings_version ?? null,
     };
   }
-  async function failCycle(id: string, code: string) {
+  async function failCycle(id: string, code: string, orphan = false) {
     await transaction(async (client) => {
+      if (orphan && !(await trySavedTradePublicationLock(client))) return;
       await client.query(
         `update jobs set status='failed',last_error=$2,locked_at=null,locked_by=null,updated_at=now() where refresh_cycle_id=$1 and status in ('queued','running','retry')`,
         [id, code],
@@ -420,7 +451,7 @@ export function createMarketAdminStore(options: {
     for (const cycle of cycles.rows) {
       const state = await queue.state(cycle.id);
       if (!state || !['created', 'retry', 'active'].includes(state))
-        await failCycle(cycle.id, 'REFRESH_WORKER_INTERRUPTED');
+        await failCycle(cycle.id, 'REFRESH_WORKER_INTERRUPTED', true);
     }
   }
   async function cleanupObservations(settings: MarketAdminSettings) {
