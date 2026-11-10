@@ -16,6 +16,7 @@ import {
   synchronizeRecipes,
 } from './recipes/synchronizeRecipes.js';
 import { createPostgresRepositories } from './repositories/index.js';
+import { createCaptureRepository } from './repositories/captureRepository.js';
 import { loadCollectorScheduleConfig } from './runtimeConfig.js';
 import { collectorSchedule } from './schema.js';
 import { importTradeMappings } from './tradeMappings.js';
@@ -289,7 +290,7 @@ it('skips a reconciliation if its source changed before the write lock', async (
   expect(await scheduleRows()).toEqual(previous);
 });
 
-it('adds two bounded Allflame research queries without ranking uncaptured targets', async () => {
+it('ranks Allflame research queries only after three complete captures', async () => {
   await seedPrerequisites('Allflame');
   await syncCli();
   const rows = (await scheduleRows()).filter(
@@ -310,4 +311,40 @@ it('adds two bounded Allflame research queries without ranking uncaptured target
       { fullCoverage: false, lowestObservedAskChaos: null },
     ],
   });
+
+  const target = rows[0]!;
+  const now = new Date('2026-11-10T15:00:00Z');
+  const captureRepository = createCaptureRepository(pool);
+  for (const hoursAgo of [12, 6, 0]) {
+    await captureRepository.saveCapture({
+      scheduleId: target.id,
+      capturedAt: new Date(now.getTime() - hoursAgo * 3_600_000),
+      reportedTotal: 1,
+      fetched: 1,
+      complete: true,
+      slices: 1,
+      durationMs: 10,
+      listings: [
+        {
+          itemId: 'discovery-listing',
+          seller: 'seller',
+          fingerprint: null,
+          price: { amount: '15', currency: 'chaos' },
+          priceChaos: '15',
+          indexedAt: null,
+          item: {},
+        },
+      ],
+    });
+    const report = await readMarketDiscovery(
+      pool,
+      new Date(now.getTime() - hoursAgo * 3_600_000),
+    );
+    expect(report.ranked).toHaveLength(hoursAgo === 0 ? 1 : 0);
+    if (hoursAgo === 0)
+      expect(report.ranked[0]).toMatchObject({
+        completeCaptures72h: 3,
+        lowestObservedAskChaos: 15,
+      });
+  }
 });
