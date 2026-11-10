@@ -31,6 +31,7 @@ import {
   captures,
   collectorSchedule,
   listings,
+  recipePriceObservations,
   recipeResults,
 } from './schema.js';
 import { loadTradeMappingCatalog } from './tradeMappings.js';
@@ -286,6 +287,7 @@ export function createCollectorResultPublisher(
       resolveResource: async () => null,
     });
     const rows = [];
+    const observations: (typeof recipePriceObservations.$inferInsert)[] = [];
     for (const recipe of recipes) {
       let result;
       try {
@@ -326,15 +328,43 @@ export function createCollectorResultPublisher(
           status: 'error',
         };
       }
+      const parsed = recipeResultSchema.parse(result);
+      const { currency, estimatedSalePrice, expectedCraftCost, methodCost } =
+        parsed;
+      const source = methodCost?.source;
+      if (
+        source &&
+        methodCost.saleEvidence.status === 'accepted' &&
+        (currency === 'chaos' || currency === 'divine') &&
+        estimatedSalePrice !== null
+      ) {
+        observations.push({
+          recipeId: recipe.id,
+          recipeContentHash: recipe.contentHash,
+          leagueId: league.id,
+          currency,
+          sourceSnapshotDedupeKey: `collector:${source.captureId}`,
+          observedAt: new Date(source.capturedAt),
+          ask: estimatedSalePrice,
+          craftCost:
+            Date.parse(methodCost.expiresAt) > now.getTime()
+              ? expectedCraftCost
+              : null,
+          comparableSellers: methodCost.saleEvidence.comparableSellers,
+          coverage: source.coverage,
+          sortedSampleComplete: source.sortedSampleComplete,
+        });
+      }
       rows.push({
         recipeId: recipe.id,
         recipeContentHash: recipe.contentHash,
         leagueId: league.id,
         evaluatedAt: now,
-        result: recipeResultSchema.parse(result),
+        result: parsed,
       });
     }
-    await drizzle({ client })
+    const db = drizzle({ client });
+    await db
       .insert(recipeResults)
       .values(rows)
       .onConflictDoUpdate({
@@ -345,5 +375,10 @@ export function createCollectorResultPublisher(
           result: sql`excluded.result`,
         },
       });
+    if (observations.length)
+      await db
+        .insert(recipePriceObservations)
+        .values(observations)
+        .onConflictDoNothing();
   };
 }
