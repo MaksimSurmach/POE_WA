@@ -38,13 +38,7 @@ It is a separate revision 5 scenario: an existing rare Elder83+ base quoted at 2
 
 The dated file references the review database's immutable Currency snapshot. In a new database, collect current same-league Currency data and use **Обновить цены расчёта** to select its snapshot/line IDs and refresh the base quote. Missing or older-than-24-hour quotes leave the calculation unavailable. The two catalog files are also included under `/app/catalog` in the server image. [Scenario receipts](evidence/market-beta-rf-scenario-2026-11-02.json) include the checked CoE requirements and acquisition sample. CoE-specific modifier IDs for RF and Shaper recovery were corrected after the old links opened unrelated requirements; all six variant links were inspected.
 
-For a complete synthetic calculation:
-
-```sh
-pnpm market:seed-belt-demo
-```
-
-Refresh the screen, select the **Demo** league and **DEMO** in the ranking data selector. This demo is synthetic and uses the existing manual importer. The PostgreSQL integration test exercises all five structured targets through the actual search/fetch transport with injected endpoint-format fixtures, not live Trade responses.
+The synthetic belt demo (`market:seed-belt-demo` and the belt-opportunities ranking) was retired in P5-05. The PostgreSQL integration test exercises all five structured targets through the actual search/fetch transport with injected endpoint-format fixtures, not live Trade responses.
 
 ## Trade access
 

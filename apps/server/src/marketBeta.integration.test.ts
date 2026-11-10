@@ -4,7 +4,6 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import pino from 'pino';
 import {
   marketCatalogImportResponseSchema,
-  beltOpportunitiesResponseSchema,
   type MarketTarget,
   type MarketTargetInput,
 } from '@poe-worksmith/contracts';
@@ -318,7 +317,7 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
     }
   });
 
-  it('imports five real structured profiles and runs catalog → query → search/fetch → matching → snapshots → ranking → API', async () => {
+  it('imports five real structured profiles and runs catalog → query → search/fetch → matching → snapshots → API', async () => {
     let now = new Date(Date.now() - 600_000);
     const profiles = demoProfiles();
     const input = { schemaVersion: 1, profiles };
@@ -451,37 +450,6 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
             .confirmedListings,
         ).toBe(6);
       }
-      const response = await api.inject({
-        method: 'GET',
-        url: '/api/market/belt-opportunities?kind=demo',
-      });
-      expect(response.statusCode, response.body).toBe(200);
-      const opportunities = beltOpportunitiesResponseSchema.parse(
-        response.json(),
-      ).data;
-      expect(opportunities).toHaveLength(5);
-      expect(opportunities.every((row) => row.status === 'CALCULATED')).toBe(
-        true,
-      );
-      expect(
-        opportunities.some(
-          (row) =>
-            row.economicConclusion === 'NON_POSITIVE' &&
-            Number(row.calculation?.spread) < 0,
-        ),
-      ).toBe(true);
-      expect(
-        opportunities.every(
-          (row) => row.queryUrl && row.calculation?.roiPercent,
-        ),
-      ).toBe(true);
-      const anotherLeague = await api.inject({
-        method: 'GET',
-        url: '/api/market/belt-opportunities?kind=demo&league=Other',
-      });
-      expect(
-        beltOpportunitiesResponseSchema.parse(anotherLeague.json()).data,
-      ).toEqual([]);
       const dry = await api.inject({
         method: 'POST',
         url: '/api/market/catalog/import?dryRun=true',

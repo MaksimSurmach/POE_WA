@@ -180,7 +180,7 @@ describe('persistent managed market collection', () => {
     });
   });
 
-  it('publishes sequential demo collections through matcher and the existing ranking API, idempotently', async () => {
+  it('publishes sequential demo collections through the matcher, idempotently', async () => {
     const now = new Date();
     const fixture = marketListingFixture(now);
     const target = await targets.saveTarget(
@@ -212,20 +212,6 @@ describe('persistent managed market collection', () => {
       clock: () => now,
       store: repository,
     });
-    const api = buildApi(
-      pino({ level: 'silent' }),
-      async () => {},
-      async () => ({ active: null, published: null }),
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      {
-        marketResearch: targets,
-        marketCollection: { manager, store: repository },
-      },
-    );
     try {
       const collect = async () => {
         const started = await manager.runNow(target.id);
@@ -247,26 +233,8 @@ describe('persistent managed market collection', () => {
         analyzeListingComparability(target, firstSnapshot!, now.getTime())
           .confirmedListings,
       ).toBe(5);
-      const initialRanking = await api.inject(
-        '/api/market/belt-opportunities?kind=demo',
-      );
-      expect(initialRanking.statusCode).toBe(200);
-      expect(initialRanking.json().data[0]).toMatchObject({
-        snapshotId: first.snapshotId,
-        status: 'CALCULATED',
-        economicConclusion: 'POSITIVE',
-      });
       const second = await collect();
       expect(second.snapshotId).not.toBe(first.snapshotId);
-      const updatedRanking = await api.inject(
-        '/api/market/belt-opportunities?kind=demo',
-      );
-      expect(updatedRanking.json().data[0].snapshotId).toBe(second.snapshotId);
-      expect(
-        Number(updatedRanking.json().data[0].calculation.spread),
-      ).toBeGreaterThan(
-        Number(initialRanking.json().data[0].calculation.spread),
-      );
       const duplicate = await collect();
       expect(duplicate.snapshotId).toBe(second.snapshotId);
       const repeated = await collect();
@@ -278,7 +246,6 @@ describe('persistent managed market collection', () => {
       ).toEqual(later.listings);
     } finally {
       await manager.stop();
-      await api.close();
     }
   });
 
