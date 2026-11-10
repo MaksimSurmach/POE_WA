@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
+import { createGameDataRepository } from '../gameData.js';
 import { createPostgresRepositories } from '../repositories/index.js';
 import { loadCollectorScheduleConfig } from '../runtimeConfig.js';
 import {
@@ -25,7 +26,7 @@ try {
   const report = await synchronizeRecipeCatalog(
     catalogPath,
     createPostgresRepositories(pool).recipes,
-    { dryRun },
+    { dryRun, gameData: await createGameDataRepository(pool).openActive() },
   );
   if (schedule && report.failed.length === 0) {
     await synchronizeCollectorSchedules(pool, schedule);

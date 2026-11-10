@@ -34,6 +34,7 @@ import { fileURLToPath } from 'node:url';
 import { buildApi } from './api.js';
 import { ProviderCircuitBreaker } from './circuitBreaker.js';
 import { createDatabasePool } from './database.js';
+import { createGameDataRepository } from './gameData.js';
 import {
   ApplicationJobScheduler,
   createJobBoss,
@@ -115,6 +116,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   const metrics = new Metrics();
   const pool = createDatabasePool(config.database, logger);
   const repositories = createPostgresRepositories(pool);
+  const gameData = createGameDataRepository(pool);
   const economy = createMarketEconomyRepository(pool);
   const priceHistory = createPriceHistoryRepository(pool);
   const admin = createMarketAdminStore({
@@ -246,6 +248,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
               const report = await synchronizeRecipeCatalog(
                 catalogPath,
                 pinned.recipes,
+                { gameData: await gameData.openActive() },
               );
               if (report.failed.length) throw new Error('RECIPE_SYNC_FAILED');
               jobSignal.throwIfAborted();
@@ -334,6 +337,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   const sync = await synchronizeRecipeCatalog(
     catalogPath,
     repositories.recipes,
+    { gameData: await gameData.openActive() },
   );
   if (sync.failed.length) throw new Error('RECIPE_SYNC_FAILED');
   const trade = new RegisteredTradeQueryGenerator(

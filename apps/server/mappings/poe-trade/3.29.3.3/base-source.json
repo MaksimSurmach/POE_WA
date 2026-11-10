@@ -1,7 +1,7 @@
 {
   "patchVersion": "3.29.3.3",
   "source": "https://www.pathofexile.com/api/trade/data/items",
-  "sourceRevision": "mapping-identities-checked-2026-11-03.craft-profit.1",
+  "sourceRevision": "mapping-identities-checked-2026-11-03.craft-profit.1+exiledata-mods-c2af0d896a3b",
   "records": [
     {
       "kind": "base",
@@ -282,6 +282,69 @@
           "identitySource": "https://poedb.tw/us/Twilight_Regalia",
           "baseDefencePercentile": 100
         }
+      }
+    },
+    {
+      "kind": "mod",
+      "payload": {
+        "id": "mod:flask-enchant-effect",
+        "familyId": "mod-family:flask-enchant-effect",
+        "name": "Enkindling increased effect",
+        "generationType": "enchant",
+        "requiredLevel": 1,
+        "tags": [],
+        "spawnWeights": [
+          {
+            "tag": "flask",
+            "weight": 250
+          },
+          {
+            "tag": "default",
+            "weight": 0
+          }
+        ],
+        "stats": [
+          {
+            "id": "local_flask_effect_+%",
+            "minimum": 60,
+            "maximum": 70
+          }
+        ]
+      }
+    },
+    {
+      "kind": "modFamily",
+      "payload": {
+        "id": "mod-family:flask-enchant-effect",
+        "modIds": ["mod:flask-enchant-effect"],
+        "name": "Enkindling increased effect"
+      }
+    },
+    {
+      "kind": "mod",
+      "payload": {
+        "id": "mod:crafted-fire-resistance",
+        "familyId": "mod-family:crafted-fire-resistance",
+        "name": "Bench-crafted fire resistance",
+        "generationType": "suffix",
+        "requiredLevel": 1,
+        "tags": ["elemental", "fire", "resistance"],
+        "spawnWeights": [],
+        "stats": [
+          {
+            "id": "base_fire_damage_resistance_%",
+            "minimum": 27,
+            "maximum": 33
+          }
+        ]
+      }
+    },
+    {
+      "kind": "modFamily",
+      "payload": {
+        "id": "mod-family:crafted-fire-resistance",
+        "modIds": ["mod:crafted-fire-resistance"],
+        "name": "Bench-crafted fire resistance"
       }
     }
   ]

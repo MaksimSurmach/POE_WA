@@ -49,3 +49,12 @@ Scope: 26 active recipes at `2d7e243` (drafts excluded). This is an inventory an
 3. Consider the three existing draft recipes only after each has valid mechanics, source-backed probabilities and comparable output pricing.
 
 No recipe values or verification statuses were changed in this draft.
+
+### Imported modifier bounds
+
+The 3.29.3.3 manifest includes two single-stat Trade mappings with verified numeric
+bounds. The source export records Enkindling increased effect as 60–70
+(`FlaskEnchantmentSealIncreasedEffect_`) and bench fire resistance as 27–33
+(`FireResistanceCrafted`). The validator applies these bounds to exact modifier
+conditions in the matching patch. The life threshold uses a broader Trade
+condition and remains outside this check. [Versioned data manifest](https://data.exiledata.dev/poe1/3.29.3.3/manifest.json).
