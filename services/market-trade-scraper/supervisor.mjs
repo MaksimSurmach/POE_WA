@@ -34,9 +34,21 @@ try {
       'poe-worksmith/0.1.0 (contact: https://github.com/MaksimSurmach/POE_WA)',
   });
   if (options.target_id) {
-    process.argv = [process.execPath, 'collectTrade.js', 'serve', options.target_id];
+    process.argv = [
+      process.execPath,
+      'collectTrade.js',
+      'serve',
+      options.target_id,
+    ];
     await import('./dist/entrypoints/collectTrade.js');
   } else {
+    if (options.trade_username && options.trade_password) {
+      Object.assign(process.env, {
+        POE_TRADE_USERNAME: options.trade_username,
+        POE_TRADE_PASSWORD: options.trade_password,
+        POE_TRADE_BROWSER_PROFILE_DIR: '/tmp/worksmith-trade-browser',
+      });
+    }
     await import('./dist/entrypoints/collector.js');
   }
 } catch {
