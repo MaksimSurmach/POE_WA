@@ -31,8 +31,6 @@ trap cleanup EXIT
 test "$("${compose[@]}" config --services | sort | xargs)" = 'app collector postgres'
 "${compose[@]}" up -d --build --wait --wait-timeout 120 app
 "${compose[@]}" exec -T postgres psql -U worksmith -d worksmith -v ON_ERROR_STOP=1 <<'SQL'
-insert into poe_leagues (ggg_id, name, is_current, synced_at)
-values ('FixtureGGG', 'Fixture display name', true, now());
 insert into game_data_versions (game, patch_version, source, source_revision, manifest_hash, status)
 values ('poe1', '3.29.3.3', 'fixture', 'fixture', 'collector-schedule', 'active');
 SQL
