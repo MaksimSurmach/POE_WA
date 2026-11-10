@@ -3,7 +3,11 @@ import path from 'node:path';
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
 import { createPostgresRepositories } from '../repositories/index.js';
-import { synchronizeRecipeCatalog } from './synchronizeRecipes.js';
+import { loadCollectorScheduleConfig } from '../runtimeConfig.js';
+import {
+  synchronizeCollectorSchedules,
+  synchronizeRecipeCatalog,
+} from './synchronizeRecipes.js';
 
 const arguments_ = process.argv.slice(2);
 const unknownOption = arguments_.find(
@@ -17,11 +21,15 @@ const catalogPath = path.resolve(
 const pool = createDatabasePool(loadDatabaseConfig());
 
 try {
+  const schedule = dryRun ? undefined : loadCollectorScheduleConfig();
   const report = await synchronizeRecipeCatalog(
     catalogPath,
     createPostgresRepositories(pool).recipes,
     { dryRun },
   );
+  if (schedule && report.failed.length === 0) {
+    await synchronizeCollectorSchedules(pool, schedule);
+  }
   process.stdout.write(
     `${JSON.stringify({ catalogPath, dryRun, ...report })}\n`,
   );

@@ -7,8 +7,28 @@ import type {
   Recipe,
   RecipeRepository,
 } from '@poe-worksmith/domain';
-import { recipeDocumentMetadata } from '@poe-worksmith/domain';
+import {
+  clusterJewelVariantFilter,
+  hashMarketQuery,
+  mappedTargetFilter,
+  noVariantFilter,
+  recipeDocumentMetadata,
+  RegisteredTradeQueryGenerator,
+  validateRecipeDocument,
+} from '@poe-worksmith/domain';
+import { CronExpressionParser } from 'cron-parser';
+import { and, eq, notInArray, or, sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import type { Pool } from 'pg';
 
+import {
+  generateRecipeMarketQuery,
+  type RecipeMarketQuery,
+} from '../recipeMarket.js';
+import { createPostgresRepositories } from '../repositories/index.js';
+import type { RuntimeConfig } from '../runtimeConfig.js';
+import { collectorSchedule, poeLeagues, recipes } from '../schema.js';
+import { createPostgresTradeMappingCatalog } from '../tradeMappings.js';
 import { type LoadedRecipe, loadRecipeCatalog } from './loader.js';
 
 export type RecipeSyncFailure = {
@@ -140,6 +160,189 @@ export async function synchronizeRecipeCatalog(
     (assetPath) => readFile(path.resolve(catalogRoot, assetPath)),
     options,
   );
+}
+
+export async function synchronizeCollectorSchedules(
+  pool: Pool,
+  config: Pick<
+    RuntimeConfig,
+    'cleanupCron' | 'leagueResolveCron' | 'leagueResolveTimezone'
+  >,
+  now = new Date(),
+): Promise<
+  'synchronized' | 'league-unavailable' | 'mapping-unavailable' | 'stale-input'
+> {
+  const repositories = createPostgresRepositories(pool);
+  const league = await repositories.leagues.findCurrent();
+  if (!league) return 'league-unavailable';
+  const activeRecipes = await repositories.recipes.listActive();
+  const trade = new RegisteredTradeQueryGenerator(
+    createPostgresTradeMappingCatalog(pool),
+    [noVariantFilter, clusterJewelVariantFilter],
+    [mappedTargetFilter],
+  );
+  const targets = new Map<
+    string,
+    {
+      query: RecipeMarketQuery;
+      recipeIds: Set<string>;
+      intervalMinutes: number;
+    }
+  >();
+  for (const recipe of activeRecipes) {
+    const definition = validateRecipeDocument(recipe.definition);
+    for (const starting of [true, false]) {
+      let query: RecipeMarketQuery;
+      try {
+        query = await generateRecipeMarketQuery(
+          trade,
+          definition,
+          league.gggId,
+          starting,
+        );
+      } catch (error) {
+        // An incomplete catalog must not disable existing collection targets.
+        if (
+          error instanceof Error &&
+          error.message
+            .split(',')
+            .every((code) => code === 'TRADE_MAPPING_MISSING')
+        ) {
+          return 'mapping-unavailable';
+        }
+        throw error;
+      }
+      const key = await hashMarketQuery({ ...query, league: league.gggId });
+      const intervalMinutes = starting ? 120 : 60;
+      const target = targets.get(key);
+      if (target) {
+        target.recipeIds.add(recipe.id);
+        target.intervalMinutes = Math.min(
+          target.intervalMinutes,
+          intervalMinutes,
+        );
+      } else {
+        targets.set(key, {
+          query,
+          recipeIds: new Set([recipe.id]),
+          intervalMinutes,
+        });
+      }
+    }
+  }
+
+  const rows: (typeof collectorSchedule.$inferInsert)[] = [
+    ...Array.from(targets, ([key, { query, recipeIds, intervalMinutes }]) => ({
+      kind: 'trade-target',
+      key,
+      leagueId: league.id,
+      payload: { ...query, recipeIds: [...recipeIds].sort() },
+      intervalMinutes,
+      nextDueAt: now,
+    })),
+    {
+      kind: 'economy',
+      key: league.gggId,
+      leagueId: league.id,
+      payload: { league: league.gggId },
+      intervalMinutes: 30,
+      nextDueAt: now,
+    },
+    cronSchedule(
+      'league',
+      config.leagueResolveCron,
+      config.leagueResolveTimezone,
+      now,
+    ),
+    cronSchedule('retention', config.cleanupCron, 'UTC', now),
+  ];
+  const recipeHashes = new Map(
+    activeRecipes.map(({ id, contentHash }) => [id, contentHash]),
+  );
+  return drizzle({ client: pool }).transaction(async (transaction) => {
+    await transaction.execute(
+      sql`select pg_advisory_xact_lock(hashtext('poe-worksmith:collector-schedule-sync'))`,
+    );
+    const [currentLeague] = await transaction
+      .select({ id: poeLeagues.id })
+      .from(poeLeagues)
+      .where(eq(poeLeagues.isCurrent, true))
+      .limit(1);
+    if (currentLeague?.id !== league.id) return 'stale-input';
+    const currentRecipes = await transaction
+      .select({ id: recipes.id, contentHash: recipes.contentHash })
+      .from(recipes)
+      .where(eq(recipes.active, true));
+    if (
+      currentRecipes.length !== recipeHashes.size ||
+      currentRecipes.some(
+        ({ id, contentHash }) => recipeHashes.get(id) !== contentHash,
+      )
+    ) {
+      return 'stale-input';
+    }
+    await transaction
+      .insert(collectorSchedule)
+      .values(rows)
+      .onConflictDoUpdate({
+        target: [collectorSchedule.kind, collectorSchedule.key],
+        set: {
+          enabled: true,
+          leagueId: sql`excluded.league_id`,
+          payload: sql`excluded.payload`,
+          intervalMinutes: sql`excluded.interval_minutes`,
+          nextDueAt: sql`case
+            when excluded.kind in ('league', 'retention')
+              and ${collectorSchedule.payload} is distinct from excluded.payload
+              and (${collectorSchedule.leasedUntil} is null or ${collectorSchedule.leasedUntil} <= ${now.toISOString()}::timestamptz)
+            then excluded.next_due_at
+            else ${collectorSchedule.nextDueAt}
+          end`,
+        },
+      });
+    await transaction
+      .update(collectorSchedule)
+      .set({ enabled: false })
+      .where(
+        and(
+          eq(collectorSchedule.enabled, true),
+          or(
+            ...['trade-target', 'economy', 'league', 'retention'].map((kind) =>
+              and(
+                eq(collectorSchedule.kind, kind),
+                notInArray(
+                  collectorSchedule.key,
+                  rows.filter((row) => row.kind === kind).map(({ key }) => key),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    return 'synchronized';
+  });
+}
+
+function cronSchedule(
+  kind: 'league' | 'retention',
+  cron: string,
+  timezone: string,
+  now: Date,
+) {
+  const schedule = CronExpressionParser.parse(cron, {
+    currentDate: now,
+    tz: timezone,
+  });
+  const nextDueAt = schedule.next().toDate();
+  return {
+    kind,
+    key: kind,
+    payload: { cron, timezone },
+    intervalMinutes: Math.ceil(
+      (schedule.next().getTime() - nextDueAt.getTime()) / 60_000,
+    ),
+    nextDueAt,
+  };
 }
 
 function toRecipe(source: LoadedRecipe, contentHash: string): Recipe {
