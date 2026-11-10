@@ -11,16 +11,13 @@ try {
   if (
     typeof options.database_url !== 'string' ||
     !options.database_url ||
-    !/^[a-fA-F0-9]{64}$/.test(options.session_key) ||
-    typeof options.target_id !== 'string'
+    !/^[a-fA-F0-9]{64}$/.test(options.session_key)
   )
     throw new Error();
   const databaseUrl = new URL(options.database_url);
-  if (!options.target_id) {
-    if (databaseUrl.searchParams.has('host')) throw new Error();
-    if (databaseUrl.hostname.endsWith('.neon.tech'))
-      databaseUrl.hostname = databaseUrl.hostname.replace(/-pooler\./, '.');
-  }
+  if (databaseUrl.searchParams.has('host')) throw new Error();
+  if (databaseUrl.hostname.endsWith('.neon.tech'))
+    databaseUrl.hostname = databaseUrl.hostname.replace(/-pooler\./, '.');
   Object.assign(process.env, {
     APP_ENV: 'staging',
     DATABASE_SSL_MODE: 'require',
@@ -33,24 +30,14 @@ try {
     POE_TRADE_USER_AGENT:
       'poe-worksmith/0.1.0 (contact: https://github.com/MaksimSurmach/POE_WA)',
   });
-  if (options.target_id) {
-    process.argv = [
-      process.execPath,
-      'collectTrade.js',
-      'serve',
-      options.target_id,
-    ];
-    await import('./dist/entrypoints/collectTrade.js');
-  } else {
-    if (options.trade_username && options.trade_password) {
-      Object.assign(process.env, {
-        POE_TRADE_USERNAME: options.trade_username,
-        POE_TRADE_PASSWORD: options.trade_password,
-        POE_TRADE_BROWSER_PROFILE_DIR: '/tmp/worksmith-trade-browser',
-      });
-    }
-    await import('./dist/entrypoints/collector.js');
+  if (options.trade_username && options.trade_password) {
+    Object.assign(process.env, {
+      POE_TRADE_USERNAME: options.trade_username,
+      POE_TRADE_PASSWORD: options.trade_password,
+      POE_TRADE_BROWSER_PROFILE_DIR: '/tmp/worksmith-trade-browser',
+    });
   }
+  await import('./dist/entrypoints/collector.js');
 } catch {
   console.error(JSON.stringify({ errorCode: 'TRADE_SUPERVISOR_CONFIG' }));
   process.exitCode = 1;

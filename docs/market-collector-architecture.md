@@ -191,8 +191,7 @@ Home Assistant local app directory, reload the store and install or update
 `local_poe_trade_scraper`.
 
 Set the app's database DSN and existing encryption key in Supervisor options.
-With an empty target ID, the add-on starts the dedicated Node collector and
-publishes to `captures`, `listing_events`, and `recipe_results`. It uses a direct
+The add-on starts the dedicated Node collector and publishes to `captures`, `listing_events`, and `recipe_results`. It uses a direct
 connection for the PostgreSQL lock and wake notifications. For a standard Neon
 pooler URL the add-on derives the direct hostname. New Trade schedules start a
 minute apart. The add-on runs with two pool connections plus the leader session,
@@ -200,16 +199,10 @@ and with retention disabled. It uses the sealed Trade session. Optional
 `trade_username` and `trade_password` enable one Chromium login after an
 authentication rejection. Keep both empty to renew the session separately.
 
-A nonempty target ID keeps the legacy single-profile behavior and its database
-connection unchanged.
-
-With game data and Trade mappings loaded, run
-`node apps/server/dist/entrypoints/scheduleTradeCatalog.js` to preview the
-current league's recipe bases and outputs. Add `--apply` to create schedules
-for validated profiles. Existing schedules are preserved. New schedules run
-every two hours, with initial start times staggered by two minutes. The application's general refresh
-scheduler is independent. The worker reads the stored Trade session for each run. Restart it after
-rotating an expired session if the previous credential blocked the worker.
+With game data and Trade mappings loaded, run `pnpm recipes:sync --dry-run`
+to preview the validated recipe catalog. Run `pnpm recipes:sync` to apply changes
+and reconcile the dedicated collector's schedules. The worker reads the sealed
+Trade session as it collects.
 
 Inspect `ha apps logs local_poe_trade_scraper` for terminal runs and snapshot IDs.
 The shared rate limiter applies to all requests. A provider denial stops further

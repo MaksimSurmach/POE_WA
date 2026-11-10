@@ -1220,11 +1220,15 @@ describe('managed collection runner', () => {
     });
   });
 
-  it('aborts a local collection after another manager requests cancellation', async () => {
+  it('checks remote cancellation before the next request', async () => {
     const store = makeStore();
     let collecting!: () => void;
     const started = new Promise<void>((resolve) => {
       collecting = resolve;
+    });
+    let advance!: () => void;
+    const nextRequest = new Promise<void>((resolve) => {
+      advance = resolve;
     });
     const manager = new MarketCollectionManager({
       adapter: {
@@ -1235,21 +1239,17 @@ describe('managed collection runner', () => {
           dataKind: 'observed',
           reason: null,
         },
-        async collect({ signal }) {
+        async collect({ beforeRequest, onProgress }) {
+          const batch = {
+            ...fixture,
+            coverage: 'partial' as const,
+            listings: [listing('before-cancel', 9)],
+          };
+          await onProgress?.(batch);
           collecting();
-          return await new Promise<MarketCollectionBatch>((resolve) => {
-            signal.addEventListener(
-              'abort',
-              () =>
-                resolve({
-                  ...fixture,
-                  cancelled: true,
-                  coverage: 'partial',
-                  listings: [listing('before-cancel', 9)],
-                }),
-              { once: true },
-            );
-          });
+          await nextRequest;
+          await beforeRequest?.();
+          return batch;
         },
       },
       store,
@@ -1257,7 +1257,7 @@ describe('managed collection runner', () => {
     const run = await manager.runNow(target.id);
     await started;
     await store.requestCancel(run.id);
-    await manager.tick();
+    advance();
 
     await expect(waitUntilDone(store, run.id)).resolves.toMatchObject({
       status: 'cancelled',

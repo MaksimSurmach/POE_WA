@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { once } from 'node:events';
 import { DomainError } from '@poe-worksmith/domain';
 import { storedMarketAdminSettingsSchema } from '@poe-worksmith/contracts';
 import { z } from 'zod';
@@ -18,14 +17,8 @@ import { createTradeSessionRepository } from '../repositories/tradeSessionReposi
 async function main() {
   const [command, targetId] = process.argv.slice(2);
   const validTarget = z.uuid().safeParse(targetId).success;
-  if (
-    command !== 'store-session' &&
-    !(command === 'collect' && validTarget) &&
-    !(command === 'serve' && (targetId === undefined || validTarget))
-  ) {
-    console.error(
-      'Usage: market:trade store-session | collect <target-id> | serve [target-id]',
-    );
+  if (command !== 'store-session' && !(command === 'collect' && validTarget)) {
+    console.error('Usage: market:trade store-session | collect <target-id>');
     process.exitCode = 2;
     return;
   }
@@ -36,8 +29,6 @@ async function main() {
     15_000,
   );
   try {
-    if (command === 'serve')
-      return await runCommand(command, targetId, pool, pool);
     await withTradeLock(pool, (client) =>
       runCommand(command, targetId, pool, client),
     );
@@ -123,94 +114,6 @@ async function runCommand(
     );
   const adapter = makeAdapter(session);
   const store = createMarketCollectionRepository(pool);
-  if (command === 'serve') {
-    const manager = new MarketCollectionManager({
-      adapter: {
-        ...adapter,
-        collect: (input) =>
-          withTradeLock(pool, async (locked) => {
-            const current = await createTradeSessionRepository(
-              locked,
-              process.env.POE_TRADE_SESSION_KEY,
-            ).read();
-            if (!current) throw new DomainError('PROVIDER_AUTH_FAILED');
-            const source = makeAdapter(current);
-            try {
-              return await source.collect({
-                ...input,
-                signal: AbortSignal.any([
-                  input.signal,
-                  AbortSignal.timeout(4 * 60_000),
-                ]),
-              });
-            } finally {
-              await source.close();
-            }
-          }),
-      },
-      store: {
-        ...store,
-        async listSettings() {
-          if (!targetId) return store.listSettings();
-          const settings = await store.findSettings(targetId);
-          return settings ? [settings] : [];
-        },
-        recoverRunningRuns: (at, ids) =>
-          store.recoverRunningRuns(at, ids, targetId),
-        async saveRun(run) {
-          const saved = await store.saveRun(run);
-          if (saved.status !== 'running')
-            console.log(
-              JSON.stringify({
-                event: 'trade_run',
-                runId: saved.id,
-                targetId: saved.targetId,
-                status: saved.status,
-                coverage: saved.coverage,
-                listingCount: saved.listingCount,
-                snapshotId: saved.snapshotId,
-                errorCode: saved.errorCode,
-              }),
-            );
-          return saved;
-        },
-      },
-      readControls: async () => ({
-        collectionsPaused: (await readSettings()).collectionsPaused,
-        scheduledCollectionEnabled: true,
-        automaticRefreshEnabled: true,
-        collectionConcurrency: 1,
-      }),
-    });
-    const stop = new AbortController();
-    const abort = () => stop.abort();
-    process.once('SIGTERM', abort);
-    process.once('SIGINT', abort);
-    try {
-      console.log(
-        JSON.stringify({
-          event: 'trade_scraper_started',
-          targetId: targetId ?? null,
-        }),
-      );
-      await manager.start(30_000, (error) =>
-        console.error(
-          JSON.stringify({
-            event: 'trade_scheduler_error',
-            errorCode:
-              error instanceof DomainError ? error.code : 'MARKET_TICK_FAILED',
-          }),
-        ),
-      );
-      if (!stop.signal.aborted) await once(stop.signal, 'abort');
-    } finally {
-      process.off('SIGTERM', abort);
-      process.off('SIGINT', abort);
-      await manager.stop();
-      await adapter.close();
-    }
-    return;
-  }
   if (!targetId) throw new DomainError('MARKET_TARGET_NOT_FOUND');
   const settings = await readSettings();
   if (settings.collectionsPaused || !settings.manualRefreshEnabled)
