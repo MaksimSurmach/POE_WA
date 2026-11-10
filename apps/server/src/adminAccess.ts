@@ -27,8 +27,16 @@ export function isLocalAdmin(request: Pick<FastifyRequest, 'headers' | 'ip'>) {
   return site === undefined || site === 'same-origin' || site === 'none';
 }
 
+export function isCollectorOperatorRoute(method: string, path: string) {
+  return (
+    (path === '/api/run' && method === 'POST') ||
+    (path === '/api/collector/status' && ['GET', 'HEAD'].includes(method))
+  );
+}
+
 export function needsAdminAccess(method: string, path: string) {
   return (
+    isCollectorOperatorRoute(method, path) ||
     path.startsWith('/api/admin/') ||
     (!['GET', 'HEAD', 'OPTIONS'].includes(method) &&
       (path === '/api/refresh' || path.startsWith('/api/market/')))

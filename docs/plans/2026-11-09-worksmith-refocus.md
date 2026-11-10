@@ -544,6 +544,7 @@ the homepage request issues 3 or fewer SQL statements on the test database.
 | 2026-11-10 | P2-01 | [Evidence PR](https://github.com/MaksimSurmach/POE_WA/pulls?q=is%3Apr+head%3Arefocus%2Fp2-01-listing-evidence) | Passed for observed repricing. See evidence below. |
 | 2026-11-10 | P2-02 | [#54](https://github.com/MaksimSurmach/POE_WA/pull/54) | Both R1 blocks, CI, and migration checks passed. PostgreSQL 17 applied the migration locally. All 25 generated DDL statements also passed on a temporary copy of live PostgreSQL 16, preserving legacy row counts. |
 | 2026-11-10 | P2-03 | [#55](https://github.com/MaksimSurmach/POE_WA/pull/55) | R1 first block and CI passed. The 23 reducer cases include an earlier replacement appearing before the old listing becomes gone. |
+| 2026-11-10 | P2-04 | [#56](https://github.com/MaksimSurmach/POE_WA/pull/56) | Both R1 blocks and CI passed. Seven PostgreSQL cases cover atomic writes, lock and socket failure, bounded history reads, and price precision. |
 
 P2-01 used read-only aggregates over all 759 observed snapshots from November 5–7 UTC. Each snapshot matched the capture time of a noncached `trade-compatible` run. The sample had 552 complete captures (126 empty), 207 partial captures, 49 targets, and 14,952 listing rows.
 
