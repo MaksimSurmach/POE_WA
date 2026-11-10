@@ -52,7 +52,7 @@ export type ListingEvent = Readonly<{
   relatedItemId: string | null;
 }>;
 
-const relistWindowMs = 7 * 24 * 60 * 60 * 1000;
+export const captureRelistWindowMs = 7 * 24 * 60 * 60 * 1000;
 
 /** Applies one capture to the previous listings for its schedule. */
 export function applyCapture(
@@ -144,7 +144,7 @@ export function applyCapture(
       if (row.status === 'gone') {
         if (row.goneAt === null) continue;
         const age = capturedAt.getTime() - row.goneAt.getTime();
-        if (age < 0 || age > relistWindowMs) continue;
+        if (age < 0 || age > captureRelistWindowMs) continue;
       }
       const key = JSON.stringify([row.seller, row.fingerprint]);
       const group = groups.get(key);
@@ -161,7 +161,8 @@ export function applyCapture(
       const seenBeforeGone =
         newlyGoneIds.has(before.itemId) &&
         next.firstSeenAt > before.lastSeenAt &&
-        capturedAt.getTime() - next.firstSeenAt.getTime() <= relistWindowMs;
+        capturedAt.getTime() - next.firstSeenAt.getTime() <=
+          captureRelistWindowMs;
       if (!newIds.has(next.itemId) && !seenBeforeGone) continue;
       emit(before.itemId, 'possible_relist', null, null, next.itemId);
       emit(next.itemId, 'possible_relist', null, null, before.itemId);
