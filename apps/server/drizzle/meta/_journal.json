@@ -225,6 +225,13 @@
       "when": 1794272102942,
       "tag": "0031_collector_sorted_sample",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794317705031,
+      "tag": "0032_retire_unused_collector_tables",
+      "breakpoints": true
     }
   ]
 }
