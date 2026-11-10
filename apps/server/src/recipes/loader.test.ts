@@ -20,7 +20,7 @@ async function write(r: string, name: string, value: unknown) {
   await writeFile(path.join(r, 'cluster-jewel', name), JSON.stringify(value));
 }
 describe('canonical Git JSON recipe loader', () => {
-  it('loads category directories deterministically and ignores obsolete Markdown', async () => {
+  it('loads category directories deterministically and ignores hidden files and obsolete Markdown', async () => {
     const r = await root();
     await write(r, 'b.json', {
       ...canonicalRecipeFixture,
@@ -32,6 +32,7 @@ describe('canonical Git JSON recipe loader', () => {
     });
     await write(r, 'a.json', { ...canonicalRecipeFixture, id: 'a' });
     await writeFile(path.join(r, 'recipe.md'), 'obsolete');
+    await writeFile(path.join(r, 'cluster-jewel', '._a.json'), 'metadata');
     expect((await loadRecipeCatalog(r)).map((r) => r.definition.id)).toEqual([
       'a',
       'b',

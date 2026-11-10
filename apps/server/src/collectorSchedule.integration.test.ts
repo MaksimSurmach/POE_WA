@@ -91,7 +91,14 @@ it('reconciles the 26-recipe catalog without resetting existing schedule rows', 
   await syncCli();
   const first = await scheduleRows();
   expect(first).toHaveLength(46);
-  expect(first.filter(({ kind }) => kind === 'trade-target')).toHaveLength(43);
+  const tradeDue = first
+    .filter(({ kind }) => kind === 'trade-target')
+    .map(({ nextDueAt }) => nextDueAt.getTime())
+    .sort((a, b) => a - b);
+  expect(tradeDue).toHaveLength(43);
+  expect(tradeDue.map((due) => due - tradeDue[0]!)).toEqual(
+    Array.from({ length: 43 }, (_, index) => index * 60_000),
+  );
   expect(first.find(({ kind }) => kind === 'economy')).toMatchObject({
     leagueId: league.id,
     intervalMinutes: 30,
