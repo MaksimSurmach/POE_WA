@@ -13,8 +13,6 @@ import {
   currentLeagueResponseSchema,
   type LeaguesResponse,
   leaguesResponseSchema,
-  type RefreshTriggerResponse,
-  refreshTriggerResponseSchema,
   type RecipeTrendResponse,
   recipeTrendResponseSchema,
   type TrendOverviewResponse,
@@ -233,9 +231,6 @@ export function createApiClient(
     },
     getRefreshFreshness(): Promise<RefreshProgressResponse> {
       return request('/api/refresh', refreshProgressResponseSchema);
-    },
-    triggerPriceRefresh(): Promise<RefreshTriggerResponse> {
-      return request('/api/refresh', refreshTriggerResponseSchema, 'POST');
     },
     getCurrentLeague(signal?: AbortSignal): Promise<CurrentLeagueResponse> {
       return request(

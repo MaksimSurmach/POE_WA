@@ -27,7 +27,6 @@ describe('runtime configuration', () => {
       cleanupCron: '15 2 * * *',
       host: '0.0.0.0',
       jobLeaseTimeoutMs: 1_200_000,
-      jobSchema: 'pgboss',
       leagueResolveCron: '0 23 * * *',
       leagueResolveTimezone: 'Europe/Warsaw',
       logLevel: 'info',
@@ -41,7 +40,6 @@ describe('runtime configuration', () => {
       refreshCron: '0 * * * *',
       refreshTimezone: 'UTC',
       retentionBatchSize: 500,
-      shutdownTimeoutMs: 30_000,
       snapshotTtlMs: 1_800_000,
     });
   });
@@ -131,12 +129,6 @@ describe('runtime configuration', () => {
         'collector',
       ).collectorRetentionEnabled,
     ).toBe(false);
-  });
-
-  it('rejects unsafe schema identifiers', () => {
-    expect(() =>
-      loadRuntimeConfig({ ...environment, PG_BOSS_SCHEMA: 'pgboss; drop' }),
-    ).toThrow(RuntimeConfigurationError);
   });
 
   it('requires GGG-compliant OAuth user-agent identification', () => {

@@ -58,16 +58,27 @@ describe('typed API client', () => {
     });
   });
 
-  it('posts a manual price refresh through the shared contract', async () => {
-    const payload = { correlationId, data: { accepted: true } };
+  it('posts Run now through the shared contract', async () => {
+    const payload = { requestId: correlationId };
     const fetchMock = vi.fn().mockResolvedValue(response(payload));
     const client = createApiClient('', fetchMock);
 
-    await expect(client.triggerPriceRefresh()).resolves.toEqual(payload);
-    expect(fetchMock).toHaveBeenCalledWith('/api/refresh', {
-      headers: { accept: 'application/json' },
-      method: 'POST',
-    });
+    await expect(client.runCollector('fixture-token')).resolves.toEqual(
+      payload,
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/run',
+      expect.objectContaining({
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer fixture-token',
+          'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify({ scope: 'all' }),
+        redirect: 'error',
+      }),
+    );
   });
 
   it('requests bounded trend ranges and encodes recipe IDs', async () => {
@@ -293,14 +304,12 @@ it('preserves a definitive factory rejection status for safe pending-request cle
   };
   const client = createApiClient(
     '',
-    vi
-      .fn()
-      .mockResolvedValue(
-        new Response(JSON.stringify(payload), {
-          status: 400,
-          headers: { 'content-type': 'application/json' },
-        }),
-      ),
+    vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(payload), {
+        status: 400,
+        headers: { 'content-type': 'application/json' },
+      }),
+    ),
   );
   await expect(client.getFactoryBatch('synthetic')).rejects.toMatchObject({
     status: 400,

@@ -549,11 +549,6 @@ export const currentLeagueResponseSchema = z.strictObject({
   correlationId: correlationIdSchema,
   data: poeLeagueSchema,
 });
-export const refreshTriggerResponseSchema = z.strictObject({
-  correlationId: correlationIdSchema,
-  data: z.strictObject({ accepted: z.boolean() }),
-});
-
 export const rateLimitWindowSchema = z.strictObject({
   activeRestrictionSeconds: z.number().int().nonnegative(),
   currentHits: z.number().int().nonnegative(),
@@ -658,9 +653,6 @@ export type RefreshDiagnosticsResponse = z.infer<
 export type PoeLeague = z.infer<typeof poeLeagueSchema>;
 export type LeaguesResponse = z.infer<typeof leaguesResponseSchema>;
 export type CurrentLeagueResponse = z.infer<typeof currentLeagueResponseSchema>;
-export type RefreshTriggerResponse = z.infer<
-  typeof refreshTriggerResponseSchema
->;
 export * from './admin.js';
 export * from './trends.js';
 export * from './craftingPrices.js';
