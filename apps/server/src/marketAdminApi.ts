@@ -1,6 +1,8 @@
 import {
   marketAdminStatusSchema,
   marketAdminSettingsResponseSchema,
+  marketAdminPatchSchema,
+  marketAdminSettingsSchema,
 } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
 import type {
@@ -11,8 +13,15 @@ import type {
 } from 'fastify';
 import type { Logger } from 'pino';
 import { z } from 'zod';
+import { isLocalAdmin } from './adminAccess.js';
 import type { MarketAdminStore, AdminQueue } from './marketAdmin.js';
 import type { MarketAdminStatus } from '@poe-worksmith/contracts';
+
+const operatorSettingsPatch = marketAdminPatchSchema.extend({
+  settings: marketAdminSettingsSchema
+    .pick({ maximumQuoteAgeMs: true, freshnessWarningMs: true })
+    .partial(),
+});
 
 export type MarketAdminApiOptions = {
   store: MarketAdminStore;
@@ -41,10 +50,17 @@ export function registerMarketAdminRoutes(
   api.patch(
     '/api/admin/market/settings',
     { bodyLimit: 4096 },
-    async (request) => ({
-      correlationId: request.id,
-      data: await store.patch(request.body, request.id),
-    }),
+    async (request) => {
+      if (
+        !isLocalAdmin(request) &&
+        !operatorSettingsPatch.safeParse(request.body).success
+      )
+        throw new DomainError('MARKET_QUERY_INVALID');
+      return {
+        correlationId: request.id,
+        data: await store.patch(request.body, request.id),
+      };
+    },
   );
   for (const action of ['pause', 'resume'] as const)
     api.post(
@@ -86,12 +102,10 @@ export function registerMarketAdminRoutes(
     async (request, reply) => {
       if (!z.uuid().safeParse(request.params.id).success)
         throw new DomainError('MARKET_QUERY_INVALID');
-      return reply
-        .code(202)
-        .send({
-          correlationId: request.id,
-          data: await store.cancel(request.params.id, request.id, queue),
-        });
+      return reply.code(202).send({
+        correlationId: request.id,
+        data: await store.cancel(request.params.id, request.id, queue),
+      });
     },
   );
 }

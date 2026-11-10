@@ -30,7 +30,11 @@ export function isLocalAdmin(request: Pick<FastifyRequest, 'headers' | 'ip'>) {
 export function isCollectorOperatorRoute(method: string, path: string) {
   return (
     (path === '/api/run' && method === 'POST') ||
-    (path === '/api/collector/status' && ['GET', 'HEAD'].includes(method))
+    (path === '/api/collector/status' && ['GET', 'HEAD'].includes(method)) ||
+    (path === '/api/admin/market/settings' &&
+      ['GET', 'HEAD', 'PATCH'].includes(method)) ||
+    (['/api/admin/market/pause', '/api/admin/market/resume'].includes(path) &&
+      method === 'POST')
   );
 }
 

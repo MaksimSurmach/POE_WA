@@ -692,3 +692,28 @@ it('does not repeat a claimed manual recovery after losing leadership', async ()
     'PROVIDER_AUTH_FAILED',
   );
 });
+
+it('pauses collection and resumes via a notification', async () => {
+  const due = await schedule();
+  const maintenance = await schedule({ kind: 'league' });
+  await pool.query(
+    'insert into market_admin_settings (id, settings) values (1, $1::jsonb) on conflict (id) do update set settings = excluded.settings',
+    [JSON.stringify({ collectionsPaused: true })],
+  );
+  try {
+    start(async ({ kind }) =>
+      kind === 'league' ? { status: 'success' } : succeed(),
+    );
+    await vi.waitFor(async () =>
+      expect((await row(maintenance)).lastStatus).toBe('succeeded'),
+    );
+    expect((await row(due)).lastStartedAt).toBeNull();
+    await pool.query('delete from market_admin_settings where id = 1');
+    await wake();
+    await vi.waitFor(async () =>
+      expect((await row(due)).lastStatus).toBe('succeeded'),
+    );
+  } finally {
+    await pool.query('delete from market_admin_settings where id = 1');
+  }
+});

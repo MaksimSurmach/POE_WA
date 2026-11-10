@@ -10,8 +10,10 @@ function authRequired(error: unknown) {
 
 export function CollectorControls({
   onResultsChanged,
+  onOperatorConnected,
 }: {
   onResultsChanged: () => void;
+  onOperatorConnected?: (token: string | null) => void;
 }) {
   // undefined: try loopback access; null: the server requires a bearer.
   const [token, setToken] = useState<string | null>();
@@ -33,6 +35,7 @@ export function CollectorControls({
         const next = await api.getCollectorStatus(token ?? undefined);
         if (!active) return;
         setStatus(next);
+        onOperatorConnected?.(token ?? '');
         setStatusUnavailable(false);
         const finishedAt = next.collectorState?.lastRunFinishedAt ?? null;
         if (finishedAt !== lastFinish.current) {
@@ -51,6 +54,7 @@ export function CollectorControls({
           setStatus(null);
           setTokenRejected(Boolean(token));
           setToken(null);
+          onOperatorConnected?.(null);
           return;
         }
         setStatusUnavailable(true);
@@ -62,7 +66,7 @@ export function CollectorControls({
       active = false;
       clearTimeout(timer);
     };
-  }, [token, pollRevision, onResultsChanged]);
+  }, [token, pollRevision, onResultsChanged, onOperatorConnected]);
 
   function connect(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

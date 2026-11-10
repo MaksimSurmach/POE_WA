@@ -202,6 +202,8 @@ export function createMarketAdminStore(options: {
         settings,
         version: row.version + 1,
       });
+      if (previous.collectionsPaused !== settings.collectionsPaused)
+        await client.query("select pg_notify('worksmith_wake', '')");
       return response({ version: row.version + 1, settings });
     });
   }

@@ -21,6 +21,7 @@ import {
 import { StatusPanel } from './components.js';
 import { CatalogTable } from './CatalogTable.js';
 import { CollectorControls } from './CollectorControls.js';
+import { HomeSettings } from './HomeSettings.js';
 import { collectorRequestTimeoutMs, createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
 import { AdminMarketPage } from './AdminMarketPage.js';
@@ -85,6 +86,7 @@ function AppShell() {
 }
 
 function CatalogRoute() {
+  const [operatorToken, setOperatorToken] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const filters = useMemo(
     () => readCatalogFilters(searchParams),
@@ -316,7 +318,10 @@ function CatalogRoute() {
           ) : null}
         </div>
         {collectorMode ? (
-          <CollectorControls onResultsChanged={reloadCatalog} />
+          <CollectorControls
+            onResultsChanged={reloadCatalog}
+            onOperatorConnected={setOperatorToken}
+          />
         ) : legacyMode ? (
           <div className="handbook-refresh">
             <button
@@ -475,6 +480,9 @@ function CatalogRoute() {
         </>
       )}
 
+      {collectorMode && operatorToken !== null ? (
+        <HomeSettings operatorToken={operatorToken} />
+      ) : null}
       <OpportunitiesIntelligence league={league?.name} />
     </>
   );

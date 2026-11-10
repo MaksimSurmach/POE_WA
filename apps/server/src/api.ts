@@ -326,6 +326,9 @@ export function buildApi(
         request.body === undefined ? { scope: 'all' } : request.body,
       );
       if (!parsed.success) throw new DomainError('MARKET_QUERY_INVALID');
+      const settings = (await options.marketAdmin?.store.read())?.effective;
+      if (settings?.collectionsPaused)
+        throw new DomainError('MARKET_COLLECTION_PAUSED');
       const requestId = await enqueueRunRequest(
         collectorPool,
         parsed.data.scope === 'recipe' ? parsed.data.recipeId : null,

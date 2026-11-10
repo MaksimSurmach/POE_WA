@@ -25,6 +25,7 @@ class SettingsScheduleError extends Error {}
 
 export function createAdminMarketClient(
   fetchImplementation = globalThis.fetch,
+  operatorToken = '',
 ) {
   async function request(path: string, method = 'GET', body?: unknown) {
     const response = await fetchImplementation(`/api/admin/market${path}`, {
@@ -33,6 +34,7 @@ export function createAdminMarketClient(
       signal: AbortSignal.timeout(15_000),
       headers: {
         accept: 'application/json',
+        ...(operatorToken ? { authorization: `Bearer ${operatorToken}` } : {}),
         ...(body === undefined ? {} : { 'content-type': 'application/json' }),
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),

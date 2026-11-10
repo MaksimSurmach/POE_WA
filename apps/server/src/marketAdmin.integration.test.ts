@@ -97,6 +97,7 @@ const api = buildApi(
   undefined,
   {
     marketAdmin: { store, queue: producer, status: async () => status },
+    diagnosticsToken: 'fixture-operator-token',
     triggerRefresh: async () =>
       (await store.enqueue({ scope: 'all' }, 'legacy-refresh', producer)).id,
   },
@@ -604,6 +605,51 @@ describe('market admin PostgreSQL, queue and API integration', () => {
       expect(await store.runs()).toEqual([]);
     },
   );
+
+  it('limits the remote operator to quote ages and pause controls', async () => {
+    const remote = {
+      remoteAddress: '203.0.113.8',
+      headers: { authorization: 'Bearer fixture-operator-token' },
+    };
+    expect(
+      (
+        await api.inject({
+          ...remote,
+          method: 'GET',
+          url: '/api/admin/market/settings',
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect(
+      (
+        await api.inject({
+          ...remote,
+          method: 'PATCH',
+          url: '/api/admin/market/settings',
+          payload: { version: 0, settings: { refreshCron: '0 * * * *' } },
+        })
+      ).statusCode,
+    ).toBe(400);
+    expect(
+      (
+        await api.inject({
+          ...remote,
+          method: 'PATCH',
+          url: '/api/admin/market/settings',
+          payload: { version: 0, settings: { freshnessWarningMs: 600_000 } },
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect(
+      (
+        await api.inject({
+          ...remote,
+          method: 'GET',
+          url: '/api/admin/market/runs',
+        })
+      ).statusCode,
+    ).toBe(401);
+  });
 
   it('pauses new work, permits safe resume, and audits both settings changes', async () => {
     const running = await enqueue();
