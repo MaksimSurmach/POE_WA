@@ -30,7 +30,7 @@ import type {
 export interface RecipeRepository {
   findById(id: string): Promise<Recipe | null>;
   listAll(): Promise<Recipe[]>;
-  listActive(): Promise<Recipe[]>;
+  listActive(ids?: readonly string[]): Promise<Recipe[]>;
   save(recipe: Recipe): Promise<Recipe>;
 }
 

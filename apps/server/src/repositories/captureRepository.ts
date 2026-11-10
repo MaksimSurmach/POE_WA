@@ -5,7 +5,17 @@ import {
   type Capture,
   type Listing,
 } from '@poe-worksmith/domain';
-import { and, eq, gt, gte, inArray, ne, or, sql } from 'drizzle-orm';
+import {
+  and,
+  eq,
+  getTableColumns,
+  gt,
+  gte,
+  inArray,
+  ne,
+  or,
+  sql,
+} from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import type { Pool, PoolClient } from 'pg';
 
@@ -74,7 +84,11 @@ export async function writeCaptureInTransaction(
 
   const relistSince = new Date(capturedAt.getTime() - captureRelistWindowMs);
   const previous = (await db
-    .select()
+    .select({
+      ...getTableColumns(listings),
+      // Existing item payloads stay in PostgreSQL because the upsert preserves them.
+      item: sql<Listing['item']>`'{}'::jsonb`,
+    })
     .from(listings)
     .where(
       and(
