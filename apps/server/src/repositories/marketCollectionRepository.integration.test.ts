@@ -1,5 +1,4 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import pino from 'pino';
 import { randomUUID } from 'node:crypto';
 import {
   marketCollectionRunSchema,
@@ -18,7 +17,6 @@ import {
 } from '../marketCollection.js';
 import { marketListingFixture } from '../marketListingFixture.js';
 import { analyzeListingComparability } from '../listingComparability.js';
-import { buildApi } from '../api.js';
 import { GggRateLimitController } from '../rateLimitController.js';
 import { createPostgresRepositories } from './index.js';
 import { createMarketResearchRepository } from './marketResearchRepository.js';
@@ -273,33 +271,6 @@ describe('persistent managed market collection', () => {
     ).listObservations(target.id);
     expect(observations[0]?.listings[0]).toHaveProperty('price', null);
     expect(compareMarketObservations(observations)[0]?.median).toBeNull();
-    const manager = new MarketCollectionManager({
-      adapter: createReplayMarketCollectionSource([]),
-      store: repository,
-    });
-    const api = buildApi(
-      pino({ level: 'silent' }),
-      async () => {},
-      async () => ({ active: null, published: null }),
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      {
-        marketResearch: targets,
-        marketCollection: { manager, store: repository },
-      },
-    );
-    try {
-      const response = await api.inject(
-        `/api/market/targets/${target.id}/collection`,
-      );
-      expect(response.statusCode).toBe(200);
-      expect(response.json().data.series[0].points[0].median).toBeNull();
-    } finally {
-      await api.close();
-    }
   });
 
   it.each([

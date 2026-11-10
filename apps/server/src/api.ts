@@ -51,8 +51,10 @@ import {
   createRefreshFreshnessReader,
   type RefreshFreshness,
 } from './freshness.js';
-import { registerMarketResearchRoutes } from './marketResearchApi.js';
-import type { MarketResearchRepository } from './marketResearch.js';
+import {
+  registerTradeHistoryRoutes,
+  type TradeHistoryRepository,
+} from './tradeHistoryApi.js';
 import { registerMarketEconomyRoutes } from './marketEconomyApi.js';
 import {
   registerMarketTrendsRoutes,
@@ -60,11 +62,6 @@ import {
 } from './marketTrendsApi.js';
 import type { MarketEconomyOptions } from './marketEconomy.js';
 import { readCraftingPrices } from './craftingPrices.js';
-import type {
-  MarketCollectionManager,
-  MarketCollectionStore,
-} from './marketCollection.js';
-
 export type ReadinessProbe = () => Promise<void>;
 export type RefreshProgressReader = () => Promise<CatalogProgress>;
 export type RefreshFreshnessReader = () => Promise<RefreshFreshness>;
@@ -111,10 +108,7 @@ export function buildApi(
     readOperationalDiagnostics?: OperationalDiagnosticsReader | undefined;
     metrics?: { contentType: string; metrics(): Promise<string> } | undefined;
     readRefreshFreshness?: RefreshFreshnessReader | undefined;
-    marketResearch?: MarketResearchRepository | undefined;
-    marketCollection?:
-      | { manager: MarketCollectionManager; store: MarketCollectionStore }
-      | undefined;
+    marketResearch?: TradeHistoryRepository | undefined;
     marketEconomy?: MarketEconomyOptions | undefined;
     marketTrends?: MarketTrendsReader | undefined;
     triggerRefresh?: (() => Promise<string | null>) | undefined;
@@ -240,13 +234,10 @@ export function buildApi(
     throw new DomainError('ROUTE_NOT_FOUND');
   });
 
-  registerMarketResearchRoutes(
+  registerTradeHistoryRoutes(
     api,
     options.marketResearch,
-    Boolean(options.marketEconomy?.client),
     options.marketEconomy?.repository,
-    options.marketCollection,
-    readRateLimits,
   );
   registerMarketEconomyRoutes(api, options.marketEconomy);
   api.get('/api/crafting-prices', async (request, reply) => {

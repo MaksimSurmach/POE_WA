@@ -1,13 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import pino from 'pino';
 import {
-  marketCatalogImportResponseSchema,
   type MarketTarget,
   type MarketTargetInput,
 } from '@poe-worksmith/contracts';
-import { buildApi } from './api.js';
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
 import { createPostgresRepositories } from './repositories/index.js';
@@ -317,7 +314,7 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
     }
   });
 
-  it('imports five real structured profiles and runs catalog → query → search/fetch → matching → snapshots → API', async () => {
+  it('imports five real structured profiles and runs catalog → query → search/fetch → matching → snapshots', async () => {
     let now = new Date(Date.now() - 600_000);
     const profiles = demoProfiles();
     const input = { schemaVersion: 1, profiles };
@@ -396,17 +393,6 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
       store,
       clock: () => now,
     });
-    const api = buildApi(
-      pino({ level: 'silent' }),
-      async () => {},
-      async () => ({ active: null, published: null }),
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      { marketResearch: research, marketCollection: { manager, store } },
-    );
     try {
       for (round = 0; round < 3; round++) {
         for (const target of targets) {
@@ -450,14 +436,6 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
             .confirmedListings,
         ).toBe(6);
       }
-      const dry = await api.inject({
-        method: 'POST',
-        url: '/api/market/catalog/import?dryRun=true',
-        payload: input,
-      });
-      expect(
-        marketCatalogImportResponseSchema.parse(dry.json()).data,
-      ).toMatchObject({ unchanged: 5, dryRun: true });
       const before = fetcher.mock.calls.length;
       await manager.updateSettings(targets[0]!.id, {
         enabled: true,
@@ -478,7 +456,6 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
       expect(await research.listSnapshots()).toHaveLength(15);
     } finally {
       await manager.stop();
-      await api.close();
     }
   }, 30_000);
 

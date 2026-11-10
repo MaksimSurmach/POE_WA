@@ -1,5 +1,7 @@
 # Working market engine beta
 
+Historical notes for the earlier market workbench. The current API serves the archived Trade reads at `/api/trade-history`.
+
 The beta connects the existing PostgreSQL collection manager to a separately configured Trade-compatible website transport. It does not establish official GGG authorization for the website's internal search/fetch endpoints. Automatic requests remain disabled by default.
 
 ## Run
@@ -15,7 +17,7 @@ pnpm db:migrate
 pnpm build
 pnpm market:import-catalog "$PWD/catalog/market-beta-3.29.json" --dry-run
 pnpm market:import-catalog "$PWD/catalog/market-beta-3.29.json"
-pnpm start:market
+pnpm start:api
 ```
 
 In another terminal:

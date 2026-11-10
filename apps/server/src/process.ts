@@ -49,15 +49,12 @@ import { Metrics } from './observability/metrics.js';
 import { createRefreshFreshnessReader } from './freshness.js';
 import { createMarketResearchRepository } from './repositories/marketResearchRepository.js';
 import { createMarketEconomyRepository } from './repositories/marketEconomyRepository.js';
-import { createMarketCollectionRepository } from './repositories/marketCollectionRepository.js';
 import { createPriceHistoryRepository } from './repositories/priceHistoryRepository.js';
 import { createMarketTrendsReader } from './marketTrendsApi.js';
 import {
   NinjaEconomyClient,
   NinjaEconomyError,
 } from './providers/ninjaEconomy.js';
-import { MarketCollectionManager } from './marketCollection.js';
-import { configuredCollectionSource } from './marketCollectionSource.js';
 
 export async function runProcess(forcedMode?: ApplicationMode) {
   const config = loadRuntimeConfig(process.env, forcedMode);
@@ -333,18 +330,6 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       : undefined,
   );
   const research = createMarketResearchRepository(pool);
-  const collectionStore = createMarketCollectionRepository(pool);
-  const collectionSource = configuredCollectionSource(
-    new GggRateLimitController({ repository: repositories.rateLimits }),
-    process.env,
-    economy,
-    async () => (await admin.read()).effective.requestTimeoutMs,
-  );
-  const collectionManager = new MarketCollectionManager({
-    adapter: collectionSource,
-    store: collectionStore,
-    readControls: async () => (await admin.read()).effective,
-  });
   const craftAnalysis = createCraftAnalysisService({
     repository: createCraftAnalysisRepository(pool, config.pipeline),
     onWorkerError: (error) =>
@@ -381,10 +366,6 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       collectorPool: pool,
       metrics: metrics.registry,
       marketResearch: research,
-      marketCollection:
-        collectionStore && collectionManager
-          ? { manager: collectionManager, store: collectionStore }
-          : undefined,
       marketEconomy: {
         repository: economy,
         client: economyClient,
@@ -406,9 +387,6 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   );
   const runtime = new ApplicationRuntime({
     api,
-    afterApiClose: async () => {
-      await Promise.all([collectionManager?.stop(), collectionSource.close()]);
-    },
     host: config.host,
     logger,
     mode: config.mode,
@@ -417,9 +395,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     shutdownTimeoutMs: config.shutdownTimeoutMs,
   });
 
-  let shuttingDown = false;
   const shutdown = async (signal: NodeJS.Signals) => {
-    shuttingDown = true;
     logger.info({ signal }, 'shutdown requested');
     try {
       await runtime.stop();
@@ -434,16 +410,8 @@ export async function runProcess(forcedMode?: ApplicationMode) {
 
   try {
     await runtime.start();
-    if (shuttingDown) return;
-    await collectionSource.start();
   } catch (error) {
     logger.fatal({ err: error }, 'application startup failed');
-    await collectionManager?.stop().catch((cleanupError: unknown) => {
-      logger.error({ err: cleanupError }, 'market collection cleanup failed');
-    });
-    await collectionSource.close().catch((cleanupError: unknown) => {
-      logger.error({ err: cleanupError }, 'Trade session cleanup failed');
-    });
     await runtime.stop().catch((cleanupError: unknown) => {
       logger.error({ err: cleanupError }, 'application startup cleanup failed');
     });
