@@ -180,7 +180,7 @@ describe('repository-backed resource views', () => {
       await readers.readCatalog(correlationId),
     );
     expect(catalog.state).toBe('loading');
-    expect(catalog.data?.entries).toHaveLength(26);
+    expect(catalog.data?.entries).toHaveLength(31);
     expect(
       catalog.data?.entries
         .filter(({ recipe }) =>
@@ -484,7 +484,7 @@ describe('repository-backed resource views', () => {
         recipesPath,
         repositories.recipes,
       );
-      expect(upgraded.updated).toHaveLength(26);
+      expect(upgraded.updated).toHaveLength(oldRecipes.length);
       for (const previous of oldRecipes) {
         expect(
           (await repositories.recipes.findById(previous.id))?.contentHash,

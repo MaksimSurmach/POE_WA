@@ -1,0 +1,159 @@
+{
+  "base": {
+    "baseId": "base:large-cluster-two-handed",
+    "influences": [],
+    "itemLevel": 68,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "two-handed-damage"
+    }
+  },
+  "category": "cluster-jewel",
+  "notes": "The output target is shared with the Chaos Orb method. The starting base is acquired normal for this fossil route.",
+  "craft": {
+    "evidence": {
+      "method": "Live Craft of Exile beta calculator, displayed rounded probability and average attempts",
+      "patch": "3.29.3.3",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9kYW1hZ2Vfd2l0aF90d29faGFuZGVkX21lbGVlX3dlYXBvbnMiLCJpZCI6bnVsbH0%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&ct=calculator",
+      "verifiedAt": "2026-11-10",
+      "settings": "PoE 1 Damage with Two Handed Weapons Large Cluster, clean normal ilvl 68, one Jagged Fossil, same three AND requirements as the Chaos method.",
+      "artifact": "docs/evidence/worksmith-2026-11-10/coe-jagged-alternates.json",
+      "assumptions": "CoE groups 8–12-passive bases in one modifier pool. The Worksmith Trade target remains exactly 8 passives. Failed rolls repeat on the same base."
+    },
+    "method": {
+      "kind": "fossil",
+      "fossils": ["jagged-fossil"],
+      "resonatorSockets": 1
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Live Craft of Exile beta calculator, displayed rounded probability and average attempts",
+        "patch": "3.29.3.3",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9kYW1hZ2Vfd2l0aF90d29faGFuZGVkX21lbGVlX3dlYXBvbnMiLCJpZCI6bnVsbH0%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&ct=calculator",
+        "verifiedAt": "2026-11-10",
+        "settings": "PoE 1 Damage with Two Handed Weapons Large Cluster, clean normal ilvl 68, one Jagged Fossil, same three AND requirements as the Chaos method.",
+        "artifact": "docs/evidence/worksmith-2026-11-10/coe-jagged-alternates.json",
+        "assumptions": "CoE groups 8–12-passive bases in one modifier pool. The Worksmith Trade target remains exactly 8 passives. Failed rolls repeat on the same base."
+      }
+    },
+    "uncertainties": [
+      "The calculator groups 8–12-passive bases. The Trade target requires exactly 8 passives.",
+      "Starting-base acquisition must use exactly item level 68. Higher item levels can change the affix pool and require a separate cost model.",
+      "Average attempts and probabilities are rounded. Comparable asking prices do not establish a sale."
+    ],
+    "id": "jagged-fossil",
+    "name": "Jagged Fossil · 3 Notables",
+    "steps": [
+      {
+        "id": "roll-with-fossil",
+        "title": "Roll with a Jagged Fossil",
+        "action": "Apply one Jagged Fossil in a Primitive Chaotic Resonator to the same item level 68 base until all three required notables are present.",
+        "continueWhen": "All three are present together: Brutal Infamy, Feed the Fury, Smite the Weak.",
+        "failureAction": "Repeat on the same base.",
+        "materials": [
+          {
+            "itemId": "jagged-fossil",
+            "quantity": 1
+          },
+          {
+            "itemId": "primitive-chaotic-resonator",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "probability": 8.02e-5,
+          "evidence": {
+            "method": "Live Craft of Exile beta calculator, displayed rounded probability and average attempts",
+            "patch": "3.29.3.3",
+            "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9kYW1hZ2Vfd2l0aF90d29faGFuZGVkX21lbGVlX3dlYXBvbnMiLCJpZCI6bnVsbH0%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&ct=calculator",
+            "verifiedAt": "2026-11-10",
+            "settings": "PoE 1 Damage with Two Handed Weapons Large Cluster, clean normal ilvl 68, one Jagged Fossil, same three AND requirements as the Chaos method.",
+            "artifact": "docs/evidence/worksmith-2026-11-10/coe-jagged-alternates.json",
+            "assumptions": "CoE groups 8–12-passive bases in one modifier pool. The Worksmith Trade target remains exactly 8 passives. Failed rolls repeat on the same base."
+          }
+        }
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "stepId": "roll-with-fossil",
+        "count": 12465,
+        "evidence": {
+          "method": "Live Craft of Exile beta calculator, displayed rounded probability and average attempts",
+          "patch": "3.29.3.3",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9kYW1hZ2Vfd2l0aF90d29faGFuZGVkX21lbGVlX3dlYXBvbnMiLCJpZCI6bnVsbH0%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&ct=calculator",
+          "verifiedAt": "2026-11-10",
+          "settings": "PoE 1 Damage with Two Handed Weapons Large Cluster, clean normal ilvl 68, one Jagged Fossil, same three AND requirements as the Chaos method.",
+          "artifact": "docs/evidence/worksmith-2026-11-10/coe-jagged-alternates.json",
+          "assumptions": "CoE groups 8–12-passive bases in one modifier pool. The Worksmith Trade target remains exactly 8 passives. Failed rolls repeat on the same base."
+        }
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "base:large-cluster-two-handed",
+    "influences": [],
+    "itemLevel": 68,
+    "rarity": "normal",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 8,
+      "smallPassiveStatId": "two-handed-damage"
+    }
+  },
+  "patch": "3.29.3.3",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Allflame"],
+    "checkedAt": "2026-11-10",
+    "sources": [
+      "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9kYW1hZ2Vfd2l0aF90d29faGFuZGVkX21lbGVlX3dlYXBvbnMiLCJpZCI6bnVsbH0%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&ct=calculator",
+      "https://beta.craftofexile.com/changelog"
+    ],
+    "notes": "The live calculator returned the linked rounded chance and average attempts for the authored three-notable setup. Prices and sales remain independent evidence."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+  "schemaVersion": 3,
+  "summary": "Roll the same three-notable target using Jagged Fossils and one-socket resonators.",
+  "tags": ["two-handed", "cluster-jewel", "three-notables", "jagged-fossil"],
+  "targetSignature": "3.29.3.3:02ab9b26169e86a7c159698d9f83bec4",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:brutal-infamy"
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:feed-the-fury"
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:smite-the-weak"
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Damage with Two Handed Weapons Large Cluster · Brutal Infamy / Feed the Fury / Smite the Weak"
+}
