@@ -116,12 +116,31 @@ export function createGameDataRepository(pool: Pool): GameDataRepository {
       const client = await pool.connect();
       try {
         await client.query('begin');
+        await client.query(
+          "select pg_advisory_xact_lock(hashtext('poe-worksmith:activate-game-data'))",
+        );
         const candidate = await client.query<{ id: string }>(
           `select id from game_data_versions where id = $1 and game = 'poe1' and status = 'importing' for update`,
           [versionId],
         );
         if (!candidate.rowCount)
           throw new Error('GAME_DATA_VERSION_NOT_ACTIVATABLE');
+        // A same-patch data revision must keep the current Trade identities.
+        await client.query(
+          `insert into provider_mappings (
+             game_data_version_id, provider, entity_kind, canonical_id,
+             external_id, discriminator, payload, status, confidence, source_revision
+           )
+           select next.id, m.provider, m.entity_kind, m.canonical_id,
+                  m.external_id, m.discriminator, m.payload, m.status, m.confidence, m.source_revision
+           from game_data_versions next
+           join game_data_versions prior on prior.game = next.game
+             and prior.patch_version = next.patch_version and prior.status = 'active'
+           join provider_mappings m on m.game_data_version_id = prior.id
+           where next.id = $1
+           on conflict do nothing`,
+          [versionId],
+        );
         await client.query(
           `update game_data_versions set status = 'archived' where game = 'poe1' and status = 'active'`,
         );
