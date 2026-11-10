@@ -85,7 +85,10 @@ function conflict(error: unknown): never {
   throw error;
 }
 
-export function createCraftAnalysisRepository(pool: Pool) {
+export function createCraftAnalysisRepository(
+  pool: Pool,
+  pipeline: 'legacy' | 'collector' = 'legacy',
+) {
   const findRun = async (id: string): Promise<CraftRiskRun | null> => {
     const result = await pool.query<RunRow>(
       'select * from craft_risk_runs where id=$1',
@@ -316,7 +319,17 @@ export function createCraftAnalysisRepository(pool: Pool) {
         evaluated_at: Date;
         source_snapshot_dedupe_key: string | null;
       }>(
-        `select distinct on (e.recipe_id) e.recipe_id,r.content_hash as recipe_content_hash,r.definition->>'targetSignature' as target_signature,
+        pipeline === 'collector'
+          ? `select e.recipe_id, e.recipe_content_hash,
+             r.definition->>'targetSignature' as target_signature,
+             e.result->>'currency' as currency, e.result->>'estimatedSalePrice' as estimated_sale_price,
+             e.result->'methodCost' as method_cost, e.evaluated_at,
+             'collector:' || (e.result#>>'{methodCost,source,captureId}') as source_snapshot_dedupe_key
+             from recipe_results e join recipes r on r.id=e.recipe_id and r.active
+             where e.league_id=$1 and e.recipe_content_hash=r.content_hash
+               and e.result->>'status' in ('success','partial')
+             order by e.recipe_id`
+          : `select distinct on (e.recipe_id) e.recipe_id,r.content_hash as recipe_content_hash,r.definition->>'targetSignature' as target_signature,
          e.currency,e.estimated_sale_price,e.method_cost,e.evaluated_at,e.source_snapshot_dedupe_key
          from recipe_evaluations e join recipes r on r.id=e.recipe_id
          where e.league_id=$1 and e.status in ('success','partial') and e.method_cost->>'recipeContentHash'=r.content_hash
