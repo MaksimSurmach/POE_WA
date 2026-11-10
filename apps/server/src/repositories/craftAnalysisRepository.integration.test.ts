@@ -173,7 +173,22 @@ describe('immutable models and durable risk runs', () => {
     const captureId = randomUUID();
     const methodCost = {
       recipeContentHash: fixture.recipeHash,
-      source: { captureId },
+      oldestInputAt: craftFixtureAt,
+      expiresAt: new Date(Date.parse(craftFixtureAt) + 60_000).toISOString(),
+      marketStatus: 'priced',
+      saleEvidence: { comparableSellers: 3 },
+      budget: null,
+      source: {
+        captureId,
+        captureFxSnapshotId: null,
+        capturedAt: craftFixtureAt,
+        sampleSize: 3,
+        priceBasis: 'asking',
+        coverage: 'complete',
+        sortedPageComplete: true,
+        sortedSampleComplete: true,
+        currencyAvailable: true,
+      },
     };
     const result = {
       status: 'success',
@@ -197,8 +212,17 @@ describe('immutable models and durable risk runs', () => {
         },
       ]);
       await pool.query(
-        "update recipe_results set recipe_content_hash='expired' where recipe_id=$1 and league_id=$2",
-        [fixture.recipeId, leagueId],
+        'update recipe_results set result=$3 where recipe_id=$1 and league_id=$2',
+        [
+          fixture.recipeId,
+          leagueId,
+          { ...result, methodCost: { source: { captureId } } },
+        ],
+      );
+      expect(await collector.readValuationCandidates(leagueId)).toEqual([]);
+      await pool.query(
+        "update recipe_results set recipe_content_hash='expired', result=$3 where recipe_id=$1 and league_id=$2",
+        [fixture.recipeId, leagueId, result],
       );
       expect(await collector.readValuationCandidates(leagueId)).toEqual([]);
     } finally {

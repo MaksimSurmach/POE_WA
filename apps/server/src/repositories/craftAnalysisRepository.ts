@@ -9,6 +9,7 @@ import {
   type CraftRiskRun,
 } from '@poe-worksmith/contracts';
 import { canonicalMarketJson } from '../marketResearch.js';
+import { recipeResultSchema } from '../recipeResult.js';
 
 export function craftRequestHash(value: unknown) {
   return createHash('sha256').update(canonicalMarketJson(value)).digest('hex');
@@ -336,7 +337,15 @@ export function createCraftAnalysisRepository(
          order by e.recipe_id,e.evaluated_at desc,e.id desc`,
         [leagueId],
       );
-      return result.rows;
+      if (pipeline === 'legacy') return result.rows;
+      return result.rows.flatMap((row) => {
+        const methodCost = recipeResultSchema.shape.methodCost.safeParse(
+          row.method_cost,
+        );
+        return methodCost.success
+          ? [{ ...row, method_cost: methodCost.data }]
+          : [];
+      });
     },
   };
 }
