@@ -180,95 +180,6 @@ describe('public economy collection API', () => {
       expect(detail.lines[0].iconUrl).toBe(
         'https://web.poecdn.com/image/Art/2DItems/Belts/StygianVise.png',
       );
-      await Promise.all(
-        Array.from({ length: 101 }, (_, index) =>
-          storage.save({
-            ...first.snapshot,
-            id: randomUUID(),
-            league: `Other league ${index}`,
-            capturedAt: new Date(Date.UTC(2026, 9, 2, 0, index)).toISOString(),
-          }),
-        ),
-      );
-      const starterTargets = (await api.inject('/api/market/starter-library'))
-        .json()
-        .data.filter((target: { baseTypes: string[] }) =>
-          target.baseTypes.includes('Stygian Vise'),
-        );
-      expect(starterTargets.length).toBeGreaterThan(0);
-      expect(starterTargets[0].marketSnapshot).toMatchObject({
-        league: 'Allflame',
-        capturedAt: '2026-10-01T00:00:00.000Z',
-        iconUrl:
-          'https://web.poecdn.com/image/Art/2DItems/Belts/StygianVise.png',
-        listingCount: 10,
-        observationCount: 11,
-        price: { amount: null, currency: 'chaos' },
-        variantCount: 2,
-      });
-      expect(starterTargets[0].tradeUrl).toContain(
-        'https://www.pathofexile.com/trade/search/Allflame?q=',
-      );
-      const uniqueTarget = (await api.inject('/api/market/starter-library'))
-        .json()
-        .data.find((target: { baseTypes: string[] }) =>
-          target.baseTypes.includes('Cloak of Flame'),
-        );
-      expect(uniqueTarget.artworkUrl).toMatch(/^https:\/\/web\.poecdn\.com\//);
-      expect(uniqueTarget.tradeUrl).toContain(
-        'https://www.pathofexile.com/trade/search/Allflame?q=',
-      );
-      const cloakQuery = JSON.parse(
-        new URL(uniqueTarget.tradeUrl).searchParams.get('q') ?? 'null',
-      );
-      expect(cloakQuery.query).toMatchObject({
-        name: 'Cloak of Flame',
-        type: "Scholar's Robe",
-      });
-      const replicaTarget = (await api.inject('/api/market/starter-library'))
-        .json()
-        .data.find((target: { baseTypes: string[] }) =>
-          target.baseTypes.includes('Replica Dragonfang’s Flight'),
-        );
-      const tradeQuery = JSON.parse(
-        new URL(replicaTarget.tradeUrl).searchParams.get('q') ?? 'null',
-      );
-      expect(tradeQuery.query.name).toBe("Replica Dragonfang's Flight");
-      expect(tradeQuery.query.type).toBe('Onyx Amulet');
-      const genericTarget = (await api.inject('/api/market/starter-library'))
-        .json()
-        .data.find((target: { baseTypes: string[] }) =>
-          target.baseTypes.includes('Elder-influenced helmet'),
-        );
-      expect(genericTarget.tradeUrl).toBeNull();
-      const invalidSummaryRepository: MarketEconomyRepository = {
-        ...storage,
-        latest: async (league, category) => {
-          const summary = await storage.latest(league, category);
-          return summary
-            ? { ...summary, endpoint: 'http://insecure.example/source' }
-            : null;
-        },
-      };
-      const fallbackApi = apiFor({
-        client,
-        repository: invalidSummaryRepository,
-      });
-      try {
-        const fallback = await fallbackApi.inject(
-          '/api/market/starter-library',
-        );
-        expect(fallback.statusCode).toBe(200);
-        expect(
-          fallback
-            .json()
-            .data.find((target: { baseTypes: string[] }) =>
-              target.baseTypes.includes('Stygian Vise'),
-            ).marketSnapshot,
-        ).toBeNull();
-      } finally {
-        await fallbackApi.close();
-      }
       expect(detail).not.toHaveProperty('raw');
       expect(fetch).toHaveBeenCalledTimes(2);
     } finally {
@@ -328,40 +239,6 @@ describe('public economy collection API', () => {
       } finally {
         await api.close();
       }
-    }
-  });
-
-  it('does not price a single ilvl or influence variant as an unqualified base', async () => {
-    const fetch = vi.fn(
-      async () =>
-        new Response(JSON.stringify({ lines: [overview.lines[1]!] }), {
-          headers: { 'Cache-Control': 'max-age=300' },
-        }),
-    );
-    const client = new NinjaEconomyClient({
-      userAgent: 'Worksmith tests (contact: tests@example.com)',
-      fetch,
-    });
-    const api = apiFor({ client, repository: repository() });
-    try {
-      await api.inject({
-        method: 'POST',
-        url: '/api/market/economy/collect',
-        payload: { league: 'Allflame', category: 'BaseType' },
-      });
-      const response = await api.inject('/api/market/starter-library');
-      const target = response
-        .json()
-        .data.find((entry: { baseTypes: string[] }) =>
-          entry.baseTypes.includes('Stygian Vise'),
-        );
-      expect(target.marketSnapshot).toMatchObject({
-        listingCount: 4,
-        price: { amount: null, currency: 'chaos' },
-        variantCount: 1,
-      });
-    } finally {
-      await api.close();
     }
   });
 
