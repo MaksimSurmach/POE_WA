@@ -1,7 +1,13 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { canonicalRecipeFixture } from '@poe-worksmith/domain/fixtures';
+import {
+  canonicalRecipeFixture,
+  fixtureRecipe,
+} from '@poe-worksmith/domain/fixtures';
+import { InMemoryGameDataCatalog } from '@poe-worksmith/domain';
+import { fileURLToPath } from 'node:url';
+import { loadGameDataSource } from '../gameData.js';
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadRecipeCatalog } from './loader.js';
 const roots: string[] = [];
@@ -37,6 +43,38 @@ describe('canonical Git JSON recipe loader', () => {
       'a',
       'b',
     ]);
+  });
+  it('rejects a target outside an imported exact modifier range', async () => {
+    const r = await root();
+    const source = await loadGameDataSource(
+      fileURLToPath(
+        new URL(
+          '../../mappings/poe-trade/3.29.3.3/base-source.json',
+          import.meta.url,
+        ),
+      ),
+    );
+    const gameData = new InMemoryGameDataCatalog(source.patchVersion, source);
+    const recipe = fixtureRecipe({
+      ...canonicalRecipeFixture,
+      gameDataVersion: source.patchVersion,
+      target: {
+        ...canonicalRecipeFixture.target,
+        other: [
+          {
+            kind: 'enchant',
+            modId: 'mod:flask-enchant-effect',
+            minimumValue: 71,
+            excluded: false,
+          },
+        ],
+      },
+    });
+    await write(r, 'impossible.json', recipe);
+    await expect(loadRecipeCatalog(r, gameData)).rejects.toThrow(
+      /flask-enchant-effect cannot match the requested range \(supported 60–70\)/,
+    );
+    await expect(loadRecipeCatalog(r)).resolves.toHaveLength(1);
   });
   it('ignores recipes under underscore-prefixed directories', async () => {
     const r = await root();

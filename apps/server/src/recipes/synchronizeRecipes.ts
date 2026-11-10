@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type {
+  GameDataCatalog,
   JsonRecord,
   Recipe,
   RecipeRepository,
@@ -49,6 +50,7 @@ export type ReadRecipeAsset = (assetPath: string) => Promise<Uint8Array>;
 
 export type RecipeSyncOptions = {
   dryRun?: boolean;
+  gameData?: GameDataCatalog | null;
 };
 
 export async function computeRecipeContentHash(
@@ -153,7 +155,7 @@ export async function synchronizeRecipeCatalog(
   options: RecipeSyncOptions = {},
 ) {
   const catalogRoot = path.resolve(catalogPath);
-  const recipes = await loadRecipeCatalog(catalogRoot);
+  const recipes = await loadRecipeCatalog(catalogRoot, options.gameData);
   return synchronizeRecipes(
     repository,
     recipes,
@@ -236,14 +238,17 @@ export async function synchronizeCollectorSchedules(
   }
 
   const rows: (typeof collectorSchedule.$inferInsert)[] = [
-    ...Array.from(targets, ([key, { query, recipeIds, intervalMinutes }], index) => ({
-      kind: 'trade-target',
-      key,
-      leagueId: league.id,
-      payload: { ...query, recipeIds: [...recipeIds].sort() },
-      intervalMinutes,
-      nextDueAt: new Date(now.getTime() + index * 60_000),
-    })),
+    ...Array.from(
+      targets,
+      ([key, { query, recipeIds, intervalMinutes }], index) => ({
+        kind: 'trade-target',
+        key,
+        leagueId: league.id,
+        payload: { ...query, recipeIds: [...recipeIds].sort() },
+        intervalMinutes,
+        nextDueAt: new Date(now.getTime() + index * 60_000),
+      }),
+    ),
     {
       kind: 'economy',
       key: league.gggId,

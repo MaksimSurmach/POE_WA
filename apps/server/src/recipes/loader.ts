@@ -4,6 +4,7 @@ import { isDeepStrictEqual } from 'node:util';
 import {
   canonicalCraftSetupFromRecipe,
   type CanonicalCraftMethod,
+  type GameDataCatalog,
   normalizeCanonicalCraftSetup,
   RecipeValidationError,
   type LoadedRecipeDefinition,
@@ -47,6 +48,7 @@ export class RecipeCatalogError extends Error {
 
 export async function loadRecipeCatalog(
   catalogPath: string,
+  gameData?: GameDataCatalog | null,
 ): Promise<LoadedRecipe[]> {
   const catalogRoot = path.resolve(catalogPath);
   const recipeFiles = await findRecipeFiles(catalogRoot).catch(
@@ -114,6 +116,32 @@ export async function loadRecipeCatalog(
     } else {
       sameTarget.push({ file, method });
       methodsByTarget.set(targetSignature, sameTarget);
+    }
+
+    if (gameData?.version() === definition.gameDataVersion) {
+      for (const [group, requirements] of Object.entries(definition.target)) {
+        for (const requirement of requirements) {
+          if (
+            !requirement.modId ||
+            requirement.kind === 'pseudo' ||
+            (requirement.minimumValue === undefined &&
+              requirement.maximumValue === undefined)
+          )
+            continue;
+          const mod = await gameData.getMod(requirement.modId);
+          const [range] = mod?.stats ?? [];
+          if (mod?.stats.length !== 1 || !range) continue;
+          if (
+            (requirement.minimumValue ?? -Infinity) > range.maximum ||
+            (requirement.maximumValue ?? Infinity) < range.minimum
+          )
+            issues.push({
+              file,
+              path: `target.${group}`,
+              message: `${requirement.modId} cannot match the requested range (supported ${range.minimum}–${range.maximum})`,
+            });
+        }
+      }
     }
 
     if (verification.status !== 'verified') continue;

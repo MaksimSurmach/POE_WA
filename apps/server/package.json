@@ -14,7 +14,7 @@
     "game-data:validate": "node dist/entrypoints/gameData.js validate",
     "market:seed-library": "node --env-file-if-exists=../../.env.development dist/entrypoints/seedMarketLibrary.js",
     "trade-mappings:import": "node --env-file-if-exists=../../.env.development dist/entrypoints/tradeMappings.js",
-    "recipes:validate": "node dist/recipes/validateCatalog.js ../../recipes",
+    "recipes:validate": "node dist/recipes/validateCatalog.js ../../recipes mappings/poe-trade/3.29.3.3/base-source.json",
     "recipes:sync": "node --env-file-if-exists=../../.env.development dist/recipes/syncCatalog.js ../../recipes",
     "fixtures:seed-integration": "node --env-file-if-exists=../../.env.development dist/entrypoints/integrationFixtures.js",
     "start": "node --env-file-if-exists=../../.env.development dist/index.js",
