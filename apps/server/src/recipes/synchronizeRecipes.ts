@@ -236,13 +236,13 @@ export async function synchronizeCollectorSchedules(
   }
 
   const rows: (typeof collectorSchedule.$inferInsert)[] = [
-    ...Array.from(targets, ([key, { query, recipeIds, intervalMinutes }]) => ({
+    ...Array.from(targets, ([key, { query, recipeIds, intervalMinutes }], index) => ({
       kind: 'trade-target',
       key,
       leagueId: league.id,
       payload: { ...query, recipeIds: [...recipeIds].sort() },
       intervalMinutes,
-      nextDueAt: now,
+      nextDueAt: new Date(now.getTime() + index * 60_000),
     })),
     {
       kind: 'economy',
