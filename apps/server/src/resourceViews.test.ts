@@ -87,7 +87,7 @@ describe('repository-backed resource views', () => {
       undefined,
       undefined,
       async (leagueId, id) => {
-        expect(leagueId).toBe(league.id);
+        expect(leagueId).toBe(id === undefined ? undefined : league.id);
         expect(id === undefined || id === recipeId).toBe(true);
         return [row];
       },

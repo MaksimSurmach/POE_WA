@@ -49,7 +49,9 @@ test('run-now-updates-homepage', async ({ page }) => {
   const clickedAt = Date.now();
   await page.getByRole('button', { name: 'Run now' }).click();
   await expect
-    .poll(async () => Date.parse((await lastRun.getAttribute('datetime'))!))
+    .poll(async () => Date.parse((await lastRun.getAttribute('datetime'))!), {
+      timeout: 12_000,
+    })
     .toBeGreaterThan(Date.parse(before));
   await expect(cost).toContainText('11,536 c');
   await expect(page.getByText(/Next Fixture League/)).toBeVisible();

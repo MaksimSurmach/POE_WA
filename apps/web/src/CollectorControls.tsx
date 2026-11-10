@@ -31,6 +31,10 @@ export function CollectorControls({
     let timer: ReturnType<typeof setTimeout>;
     async function poll() {
       let delay = 30_000;
+      if (document.visibilityState !== 'visible') {
+        timer = setTimeout(() => void poll(), delay);
+        return;
+      }
       try {
         const next = await api.getCollectorStatus(token ?? undefined);
         if (!active) return;
@@ -47,7 +51,7 @@ export function CollectorControls({
           (next.latestRequest?.state === 'queued' ||
             next.latestRequest?.state === 'running')
         )
-          delay = 1_000;
+          delay = 5_000;
       } catch (error) {
         if (!active) return;
         if (authRequired(error)) {

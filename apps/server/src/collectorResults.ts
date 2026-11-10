@@ -31,6 +31,7 @@ import {
   captures,
   collectorSchedule,
   listings,
+  poeLeagues,
   recipePriceObservations,
   recipeResults,
 } from './schema.js';
@@ -43,13 +44,18 @@ type QuoteSettings = { maximumQuoteAgeMs: number; freshnessWarningMs: number };
 
 export function createCollectorResultReader(pool: Pool) {
   const db = drizzle({ client: pool });
-  return (leagueId: string, recipeId?: string) =>
+  const currentLeague = db
+    .select({ id: poeLeagues.id })
+    .from(poeLeagues)
+    .where(eq(poeLeagues.isCurrent, true))
+    .limit(1);
+  return (leagueId?: string, recipeId?: string) =>
     db
       .select()
       .from(recipeResults)
       .where(
         and(
-          eq(recipeResults.leagueId, leagueId),
+          eq(recipeResults.leagueId, leagueId ?? currentLeague),
           recipeId === undefined
             ? undefined
             : eq(recipeResults.recipeId, recipeId),
