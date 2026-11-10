@@ -508,6 +508,30 @@ describe('catalog publication with PostgreSQL', () => {
         );
         expect(Number(result.profit)).toBe(Number(old.profit));
       }
+      const readHistory = async () =>
+        (
+          await client.query(
+            'select recipe_id, ask, comparable_sellers, coverage from recipe_price_observations where source_snapshot_dedupe_key = $1 order by recipe_id',
+            [`collector:${outputCaptureId}`],
+          )
+        ).rows;
+      const history = await readHistory();
+      expect(history).toMatchObject([
+        {
+          recipe_id: chaos,
+          ask: '15000.00000000',
+          comparable_sellers: 5,
+          coverage: 'complete',
+        },
+        {
+          recipe_id: jagged,
+          ask: '15000.00000000',
+          comparable_sellers: 5,
+          coverage: 'complete',
+        },
+      ]);
+      await publish(now, 'economy');
+      expect(await readHistory()).toEqual(history);
       await client.query('commit');
 
       // Old active asks still exist after a partial capture, but are not fresh sightings.
