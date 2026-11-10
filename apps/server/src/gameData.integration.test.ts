@@ -5,6 +5,7 @@ import type { GameDataSource } from '@poe-worksmith/domain';
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
 import { createGameDataRepository } from './gameData.js';
+import { importTradeMappings } from './tradeMappings.js';
 
 const pool = createDatabasePool(loadDatabaseConfig());
 const repository = createGameDataRepository(pool);
@@ -74,6 +75,42 @@ describe('PostgreSQL game-data catalog', () => {
       familyId: 'family:physical',
     });
   });
+  it('keeps Trade mappings across revisions of the same patch only', async () => {
+    const original = await repository.import(fixture);
+    await repository.activate(original);
+    const mapping = {
+      entityKind: 'base' as const,
+      canonicalId: 'base:large-physical-cluster',
+      externalId: 'Large Cluster Jewel',
+    };
+    await importTradeMappings(pool, {
+      gameDataVersion: fixture.patchVersion,
+      mappings: [mapping],
+      sourceRevision: 'trade-fixture',
+    });
+    const mappings = async (id: string) =>
+      (
+        await pool.query(
+          'select provider, canonical_id, external_id, source_revision from provider_mappings where game_data_version_id=$1',
+          [id],
+        )
+      ).rows;
+    const updated = await repository.import({
+      ...fixture,
+      sourceRevision: 'updated',
+    });
+    await repository.activate(updated);
+    const expected = await mappings(original);
+    expect(expected).toHaveLength(1);
+    expect(await mappings(updated)).toEqual(expected);
+    const nextPatch = await repository.import({
+      ...fixture,
+      patchVersion: '3.28.0',
+    });
+    await repository.activate(nextPatch);
+    expect(await mappings(nextPatch)).toEqual([]);
+  });
+
   it('preserves the active catalog when an invalid import fails', async () => {
     const versionId = await repository.import(fixture);
     await repository.activate(versionId);
