@@ -7,7 +7,7 @@ import pino from 'pino';
 import { describe, expect, it } from 'vitest';
 
 import { buildApi } from './api.js';
-import { beltDemoFixture } from './beltDemoFixture.js';
+import { marketListingFixture } from './marketListingFixture.js';
 import {
   createImportedMarketSnapshot,
   createMarketTarget,
@@ -122,7 +122,7 @@ describe('market workbench API', () => {
 
   it('withholds belt analysis after raw retention while preserving snapshot details and summaries', async () => {
     const repository = inMemoryTestRepository();
-    const fixture = beltDemoFixture();
+    const fixture = marketListingFixture();
     const target = await repository.saveTarget(
       createMarketTarget(fixture.target),
     );
@@ -183,7 +183,7 @@ describe('market workbench API', () => {
   it('rejects unsearchable profiles and invalid cost scenarios before persistence', async () => {
     const repo = inMemoryTestRepository();
     const api = testApi(repo);
-    const profile = beltDemoFixture().target;
+    const profile = marketListingFixture().target;
     const method = profile.beltCraftMethod!;
     const price = method.basePrice;
     try {
@@ -240,7 +240,7 @@ describe('market workbench API', () => {
     const repo = inMemoryTestRepository();
     const api = testApi(repo);
     try {
-      const fixture = beltDemoFixture();
+      const fixture = marketListingFixture();
       const created = await api.inject({
         method: 'POST',
         url: '/api/market/targets',
@@ -307,7 +307,7 @@ describe('market workbench API', () => {
   it('ranks synthetic evidence through import and opportunity endpoint', async () => {
     const api = testApi(inMemoryTestRepository());
     try {
-      const fixture = beltDemoFixture();
+      const fixture = marketListingFixture();
       const created = await api.inject({
         method: 'POST',
         url: '/api/market/targets',
@@ -350,7 +350,7 @@ describe('market workbench API', () => {
   it('keeps legacy unknown-coverage observations out of observed opportunities', async () => {
     const api = testApi(inMemoryTestRepository());
     try {
-      const fixture = beltDemoFixture();
+      const fixture = marketListingFixture();
       const created = await api.inject({
         method: 'POST',
         url: '/api/market/targets',

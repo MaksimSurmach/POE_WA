@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { marketCatalogImportSchema } from './marketCatalog.js';
 import type { StoredMarketEconomySnapshot } from './marketEconomy.js';
-import { beltDemoFixture } from './beltDemoFixture.js';
+import { marketListingFixture } from './marketListingFixture.js';
 import { evaluateBeltOpportunity } from './beltOpportunity.js';
 import {
   createImportedMarketSnapshot,
@@ -11,7 +11,7 @@ import {
 
 const now = new Date('2026-10-29T12:00:00.000Z');
 function fixture() {
-  const definition = beltDemoFixture(now);
+  const definition = marketListingFixture(now);
   const target = createMarketTarget(definition.target, now);
   const snapshot = createImportedMarketSnapshot(
     definition.observation(target.id),

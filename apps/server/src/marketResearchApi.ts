@@ -33,7 +33,7 @@ import { marketCollectionRunner } from './config.js';
 import { parseTrendRange } from './marketTrendsApi.js';
 import { priceHistoryRanges } from './repositories/priceHistoryRepository.js';
 
-import { analyzeBeltSnapshot } from './beltComparability.js';
+import { analyzeListingComparability } from './listingComparability.js';
 import { activeCatalogTargets, importMarketCatalog } from './marketCatalog.js';
 import { marketStarterLibrary } from './marketStarterLibrary.js';
 import {
@@ -677,7 +677,7 @@ export function registerMarketResearchRoutes(
         throw new DomainError('MARKET_SNAPSHOT_NOT_FOUND');
       return {
         correlationId: request.id,
-        data: analyzeBeltSnapshot(target, snapshot),
+        data: analyzeListingComparability(target, snapshot),
       };
     },
   );

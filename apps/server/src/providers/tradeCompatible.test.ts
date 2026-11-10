@@ -1,13 +1,13 @@
 import type { CanonicalJsonValue } from '@poe-worksmith/domain';
 import { describe, expect, it, vi } from 'vitest';
 import { readFile } from 'node:fs/promises';
-import { beltDemoFixture } from '../beltDemoFixture.js';
+import { marketListingFixture } from '../marketListingFixture.js';
 import {
   createMarketTarget,
   createImportedMarketSnapshot,
 } from '../marketResearch.js';
 import { comparableRecipeListings } from '../recipeMarket.js';
-import { analyzeBeltSnapshot } from '../beltComparability.js';
+import { analyzeListingComparability } from '../listingComparability.js';
 import { generateMarketTradeQuery } from '../marketTradeQuery.js';
 import {
   TradeCompatibleTransport,
@@ -20,7 +20,7 @@ const at = new Date('2026-11-01T12:00:00.000Z');
 export function tradeTarget() {
   return createMarketTarget(
     {
-      ...beltDemoFixture(at).target,
+      ...marketListingFixture(at).target,
       tradeSearch: {
         version: 1,
         scope: 'strict',
@@ -180,7 +180,7 @@ describe('Trade-compatible queries and transport', () => {
     };
     const raw = rawTradeListing();
     const status = () =>
-      analyzeBeltSnapshot(
+      analyzeListingComparability(
         grouped,
         createImportedMarketSnapshot(
           {

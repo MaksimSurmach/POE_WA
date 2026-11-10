@@ -13,7 +13,7 @@ import {
   createMarketTarget,
   createImportedMarketSnapshot,
 } from './marketResearch.js';
-import { analyzeBeltSnapshot } from './beltComparability.js';
+import { analyzeListingComparability } from './listingComparability.js';
 import { marketTargetInputSchema } from '@poe-worksmith/contracts';
 
 export type RecipeMarketQuery = {
@@ -346,7 +346,7 @@ export function matchingRecipeListings(
     now,
   );
   const matches = new Set(
-    analyzeBeltSnapshot(target, imported, now.getTime())
+    analyzeListingComparability(target, imported, now.getTime())
       .rows.filter((row) => row.status === 'MATCH')
       .map((row) => row.externalId),
   );

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { convertMarketQuote } from './marketCurrency.js';
-import { beltDemoFixture } from './beltDemoFixture.js';
+import { marketListingFixture } from './marketListingFixture.js';
 import { createMarketTarget } from './marketResearch.js';
 import type { StoredMarketEconomySnapshot } from './marketEconomy.js';
 import {
@@ -10,7 +10,7 @@ import {
 } from './providers/tradeCompatible.js';
 
 const at = new Date('2026-11-01T12:00:00.000Z');
-const target = createMarketTarget(beltDemoFixture(at).target);
+const target = createMarketTarget(marketListingFixture(at).target);
 const exchange: StoredMarketEconomySnapshot = {
   id: randomUUID(),
   schemaVersion: 1,
@@ -95,7 +95,7 @@ describe('observed exchange provenance', () => {
 
   it('normalizes a mixed-currency listing while retaining its original asking price and exact exchange source', async () => {
     const scoped = createMarketTarget({
-      ...beltDemoFixture(at).target,
+      ...marketListingFixture(at).target,
       tradeSearch: {
         version: 1,
         scope: 'strict',
