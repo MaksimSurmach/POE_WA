@@ -639,31 +639,6 @@ export class MarketCollectionManager {
     this.#readControls = options.readControls;
   }
 
-  async enqueueRequest(
-    targetId: string,
-    requestedBy: string | null = null,
-    activeRefresh = false,
-  ) {
-    if (!(await this.#store.findTarget(targetId)))
-      throw new DomainError('MARKET_TARGET_NOT_FOUND');
-    const controls = await this.#readControls?.();
-    if (!activeRefresh && controls?.collectionsPaused)
-      throw new DomainError('MARKET_COLLECTION_PAUSED');
-    if ((await this.#store.findSettings(targetId))?.paused)
-      throw new DomainError('MARKET_COLLECTION_PAUSED');
-    if (!this.#store.enqueueRequest)
-      throw new DomainError('PERSISTENCE_UNAVAILABLE');
-    return this.#store.enqueueRequest(targetId, requestedBy);
-  }
-
-  async cancelQueuedRequest(requestId: string) {
-    await this.#store.cancelQueuedRequest?.(requestId);
-  }
-
-  async findRequest(requestId: string) {
-    return this.#store.findRequest?.(requestId) ?? null;
-  }
-
   async findRun(runId: string) {
     return this.#store.findRun(runId);
   }
