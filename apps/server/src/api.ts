@@ -5,7 +5,17 @@ import type { FactoryService } from './factory.js';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { registerCraftAnalysisRoutes } from './craftAnalysisApi.js';
 import type { CraftAnalysisService } from './craftAnalysis.js';
-import { isLocalAdmin, needsAdminAccess } from './adminAccess.js';
+import {
+  isCollectorOperatorRoute,
+  isLocalAdmin,
+  needsAdminAccess,
+} from './adminAccess.js';
+import type { Pool } from 'pg';
+import { z } from 'zod';
+import {
+  enqueueRunRequest,
+  readCollectorStatus,
+} from './repositories/runRequestRepository.js';
 import {
   registerMarketAdminRoutes,
   type MarketAdminApiOptions,
@@ -73,6 +83,17 @@ export type OperationalDiagnosticsReader = (input: {
   recentFailures: number;
 }) => Promise<OperationalDiagnosticsSnapshot>;
 
+const runRequestSchema = z.discriminatedUnion('scope', [
+  z.strictObject({ scope: z.literal('all') }),
+  z.strictObject({
+    scope: z.literal('recipe'),
+    recipeId: z
+      .string()
+      .min(1)
+      .refine((id) => !id.includes('\0')),
+  }),
+]);
+
 export function buildApi(
   logger: Logger,
   checkReadiness: ReadinessProbe,
@@ -88,6 +109,7 @@ export function buildApi(
     factory?: FactoryService | undefined;
     intelligence?: IntelligenceService | undefined;
     diagnosticsToken?: string | undefined;
+    collectorPool?: Pool | undefined;
     readCircuits?: (() => Promise<ProviderCircuitState[]>) | undefined;
     readOperationalDiagnostics?: OperationalDiagnosticsReader | undefined;
     metrics?: { contentType: string; metrics(): Promise<string> } | undefined;
@@ -115,9 +137,21 @@ export function buildApi(
   api.addHook('onRequest', async (request, reply) => {
     reply.header('x-request-id', request.id);
     const path = request.routeOptions.url ?? request.url.split('?')[0] ?? '';
-    if (needsAdminAccess(request.method, path) && !isLocalAdmin(request))
+    const collectorRoute = isCollectorOperatorRoute(request.method, path);
+    if (
+      needsAdminAccess(request.method, path) &&
+      !isLocalAdmin(request) &&
+      !(
+        collectorRoute &&
+        options.diagnosticsToken &&
+        isOperatorAuthorized(
+          request.headers.authorization,
+          options.diagnosticsToken,
+        )
+      )
+    )
       throw new DomainError('OPERATOR_AUTH_REQUIRED');
-    if (path.startsWith('/api/admin/'))
+    if (collectorRoute || path.startsWith('/api/admin/'))
       reply.header('cache-control', 'no-store');
     if (
       options.marketAdmin &&
@@ -158,8 +192,10 @@ export function buildApi(
   });
 
   api.setErrorHandler((error, request, reply) => {
+    const runRequest = request.routeOptions.url === '/api/run';
     if (
-      (request.url.startsWith('/api/market') ||
+      (runRequest ||
+        request.url.startsWith('/api/market') ||
         request.url.startsWith('/api/admin/')) &&
       error &&
       typeof error === 'object' &&
@@ -172,7 +208,7 @@ export function buildApi(
       ].includes(String(error.code))
     ) {
       const invalid = new DomainError(
-        request.url.startsWith('/api/admin/')
+        runRequest || request.url.startsWith('/api/admin/')
           ? 'MARKET_QUERY_INVALID'
           : 'MARKET_IMPORT_INVALID',
       );
@@ -283,6 +319,24 @@ export function buildApi(
       },
     });
   });
+  const collectorPool = options.collectorPool;
+  if (collectorPool) {
+    api.post('/api/run', { bodyLimit: 1024 }, async (request, reply) => {
+      const parsed = runRequestSchema.safeParse(
+        request.body === undefined ? { scope: 'all' } : request.body,
+      );
+      if (!parsed.success) throw new DomainError('MARKET_QUERY_INVALID');
+      const requestId = await enqueueRunRequest(
+        collectorPool,
+        parsed.data.scope === 'recipe' ? parsed.data.recipeId : null,
+      );
+      return reply.code(202).send({ requestId });
+    });
+    api.get('/api/collector/status', async () =>
+      readCollectorStatus(collectorPool),
+    );
+  }
+
   const triggerRefresh = options.triggerRefresh;
   if (triggerRefresh)
     api.post('/api/refresh', async (request, reply) => {
@@ -451,13 +505,13 @@ function httpStatus(error: AnyDomainError) {
 }
 
 function isOperatorAuthorized(header: string | undefined, token: string) {
-  const supplied = header?.startsWith('Bearer ') ? header.slice(7) : '';
-  const length = Math.max(supplied.length, token.length, 1);
-  const left = Buffer.alloc(length);
-  const right = Buffer.alloc(length);
-  left.write(supplied);
-  right.write(token);
-  return supplied.length === token.length && timingSafeEqual(left, right);
+  const supplied = Buffer.from(
+    header?.startsWith('Bearer ') ? header.slice(7) : '',
+  );
+  const expected = Buffer.from(token);
+  return (
+    supplied.length === expected.length && timingSafeEqual(supplied, expected)
+  );
 }
 function boundedQueryValue(
   value: string | undefined,

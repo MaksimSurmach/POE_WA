@@ -299,6 +299,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             }),
           },
           diagnosticsToken: config.operatorDiagnosticsToken,
+          collectorPool: pool,
           metrics: metrics.registry,
           marketResearch: research,
           marketCollection:
