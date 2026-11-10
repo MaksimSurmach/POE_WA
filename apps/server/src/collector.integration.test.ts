@@ -11,10 +11,16 @@ import {
 } from './collector.js';
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
+import { GggRateLimitController } from './rateLimitController.js';
 import type { PoolClient } from 'pg';
 import { createPostgresRepositories } from './repositories/index.js';
 import { enqueueRunRequest } from './repositories/runRequestRepository.js';
-import { captures, collectorSchedule, runRequests } from './schema.js';
+import {
+  captures,
+  collectorSchedule,
+  collectorState,
+  runRequests,
+} from './schema.js';
 
 const config = loadDatabaseConfig();
 const address = new URL(config.connectionString);
@@ -39,8 +45,9 @@ const initial = new Date('2026-11-09T12:00:00Z').getTime();
 let time = initial;
 const now = () => new Date(time);
 
-beforeEach(() => {
+beforeEach(async () => {
   time = initial;
+  await pool.query('truncate rate_limit_endpoint_policies, rate_limit_states');
 });
 
 afterEach(async () => {
@@ -482,4 +489,147 @@ it('fences a stale league activation on the terminated leader session', async ()
     await worker.done;
     await pool.query('delete from poe_leagues where id = $1', [league.id]);
   }
+});
+
+it('keeps a Trade auth block through cooldown and allows one recovery per manual request', async () => {
+  const id = await schedule();
+  const blocked = {
+    status: 'blocked',
+    reason: 'PROVIDER_AUTH_FAILED',
+  } as const;
+  const handler = vi
+    .fn<CollectorHandler>()
+    .mockResolvedValueOnce(blocked)
+    .mockResolvedValueOnce({
+      status: 'retry',
+      reason: 'PROVIDER_RATE_LIMITED',
+      retryAt: new Date(initial + 2 * minute),
+    })
+    .mockImplementation(succeed);
+  const readBlock = async () =>
+    (await db.select().from(collectorState))[0]?.blockedReason;
+  const policy = 'trade-fetch-request-limit';
+  const worker = start(handler);
+  try {
+    await vi.waitFor(async () =>
+      expect(await readBlock()).toBe(blocked.reason),
+    );
+    const sibling = await schedule();
+    await pool.query(
+      'insert into rate_limit_states (policy, blocked_until) values ($1, $2)',
+      [policy, new Date(initial + minute)],
+    );
+    const first = await enqueueRunRequest(pool, null);
+    await vi.waitFor(async () =>
+      expect((await request(first)).state).toBe('running'),
+    );
+    expect(await readBlock()).toBe(blocked.reason);
+    expect(handler).toHaveBeenCalledOnce();
+    time += minute;
+    await wake();
+    await vi.waitFor(async () =>
+      expect((await request(first)).state).toBe('failed'),
+    );
+    expect(handler).toHaveBeenCalledTimes(2);
+    expect(handler.mock.calls[1]?.[3]).toBe(true);
+    expect(await readBlock()).toBe(blocked.reason);
+    const second = await enqueueRunRequest(pool, null);
+    await vi.waitFor(async () =>
+      expect((await request(second)).state).toBe('done'),
+    );
+    expect((await db.select().from(collectorState))[0]).toMatchObject({
+      blockedReason: null,
+      sessionCheckedAt: now(),
+    });
+    expect((await row(id)).lastStatus).toBe('succeeded');
+    expect((await row(sibling)).lastStatus).toBe('succeeded');
+  } finally {
+    worker.stop.abort();
+    await worker.done;
+    await pool.query('delete from rate_limit_states where policy = $1', [
+      policy,
+    ]);
+  }
+});
+
+it('stores collector rate windows without retaining a shared auth denial', async () => {
+  const policy = 'test-p2-08-rate-policy';
+  const repository = createPostgresRepositories(pool).rateLimits;
+  const gate = new GggRateLimitController({ repository, clock: now });
+  const headers = new Headers({
+    'x-rate-limit-policy': policy,
+    'retry-after': '120',
+  });
+  const denial = { status: 403, headers };
+  try {
+    expect(
+      await gate.observeResponse('trade-search', denial, { collector: true }),
+    ).toMatchObject({
+      blockedUntil: new Date(initial + 2 * minute),
+      lastStatus: null,
+    });
+    await expect(
+      gate.waitForPermit('trade-fetch', undefined, {
+        collector: true,
+        deferProviderBlock: true,
+      }),
+    ).rejects.toMatchObject({ retryAt: new Date(initial + 2 * minute) });
+    await gate.observeResponse('trade-search', denial);
+    expect(
+      await gate.observeResponse(
+        'trade-search',
+        { status: 200, headers },
+        { collector: true },
+      ),
+    ).toMatchObject({ lastStatus: 403 });
+    await expect(gate.waitForPermit('trade-search')).rejects.toMatchObject({
+      code: 'MARKET_ACCESS_BLOCKED',
+    });
+  } finally {
+    await pool.query(
+      'delete from rate_limit_endpoint_policies where policy = $1',
+      [policy],
+    );
+    await pool.query('delete from rate_limit_states where policy = $1', [
+      policy,
+    ]);
+  }
+});
+
+it('does not repeat a claimed manual recovery after losing leadership', async () => {
+  const id = await schedule();
+  const sibling = await schedule();
+  await db
+    .insert(collectorState)
+    .values({ id: 1, blockedReason: 'PROVIDER_AUTH_FAILED' });
+  const requestId = await enqueueRunRequest(pool, null);
+  const handler = vi.fn<CollectorHandler>(async (_, signal) => {
+    await new Promise<void>((resolve) =>
+      signal.addEventListener('abort', () => resolve(), { once: true }),
+    );
+    return succeed();
+  });
+  const leader = start(handler);
+  await vi.waitFor(() => expect(handler).toHaveBeenCalledOnce());
+  expect(handler.mock.calls[0]?.[3]).toBe(true);
+  expect((await request(requestId)).summary).not.toHaveProperty(
+    'recoverTradeAuthentication',
+  );
+  const originalPid = await leaderPid();
+  const standby = vi.fn(succeed);
+  start(standby);
+  await pool.query('select pg_terminate_backend($1)', [originalPid]);
+  leader.stop.abort();
+  await vi.waitFor(async () =>
+    expect((await request(requestId)).state).toBe('failed'),
+  );
+  expect(standby).not.toHaveBeenCalled();
+  expect(
+    [await row(id), await row(sibling)].filter(
+      (target) => target.lastStartedAt !== null,
+    ),
+  ).toHaveLength(1);
+  expect((await db.select().from(collectorState))[0]?.blockedReason).toBe(
+    'PROVIDER_AUTH_FAILED',
+  );
 });

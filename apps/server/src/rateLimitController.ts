@@ -34,13 +34,16 @@ export interface RateLimitGate {
   observeResponse(
     endpoint: string,
     response: RateLimitedResponse,
+    options?: RateLimitOptions,
   ): Promise<RateLimitState>;
   waitForPermit(
     endpoint: string,
     signal?: AbortSignal,
-    options?: { deferProviderBlock?: boolean },
+    options?: RateLimitOptions & { deferProviderBlock?: boolean },
   ): Promise<RateLimitState>;
 }
+
+type RateLimitOptions = { collector?: boolean };
 
 type RateLimitSleep = (
   milliseconds: number,
@@ -103,7 +106,7 @@ export class GggRateLimitController implements RateLimitGate {
   async waitForPermit(
     endpoint: string,
     signal?: AbortSignal,
-    options?: { deferProviderBlock?: boolean },
+    options?: RateLimitOptions & { deferProviderBlock?: boolean },
   ): Promise<RateLimitState> {
     const normalizedEndpoint = normalizeEndpoint(endpoint);
     // Reuse retained exchange restrictions before the new endpoint has a mapping.
@@ -111,11 +114,12 @@ export class GggRateLimitController implements RateLimitGate {
       normalizedEndpoint === 'trade-exchange'
         ? 'trade-exchange-request-limit'
         : this.#fallbackPolicy;
+    const enforceLegacyDenials =
+      !options?.collector &&
+      ['trade', 'trade-exchange'].includes(normalizedEndpoint);
     for (;;) {
       throwIfAborted(signal);
-      const retainedStates = ['trade', 'trade-exchange'].includes(
-        normalizedEndpoint,
-      )
+      const retainedStates = enforceLegacyDenials
         ? await this.#repository.list()
         : [];
       if (
@@ -159,7 +163,7 @@ export class GggRateLimitController implements RateLimitGate {
       });
       throwIfAborted(signal);
       if (
-        ['trade', 'trade-exchange'].includes(normalizedEndpoint) &&
+        enforceLegacyDenials &&
         (permit.state.lastStatus === 401 || permit.state.lastStatus === 403)
       )
         throw new DomainError('MARKET_ACCESS_BLOCKED');
@@ -174,7 +178,11 @@ export class GggRateLimitController implements RateLimitGate {
     }
   }
 
-  observeResponse(endpoint: string, response: RateLimitedResponse) {
+  observeResponse(
+    endpoint: string,
+    response: RateLimitedResponse,
+    options?: RateLimitOptions,
+  ) {
     const normalizedEndpoint = normalizeEndpoint(endpoint);
     const fallbackPolicy =
       normalizedEndpoint === 'trade-exchange'
@@ -197,6 +205,10 @@ export class GggRateLimitController implements RateLimitGate {
       status: response.status,
     });
     return this.#repository.observe({
+      // Collector auth blocks belong to collector_state. Keep shared rate windows.
+      ...(options?.collector && [401, 403].includes(response.status)
+        ? { suppressAuthenticationDenial: true }
+        : {}),
       blockedUntil: new Date(now.getTime() + parsed.blockedForMs),
       endpoint: normalizeIdentifier(endpoint, normalizedEndpoint),
       fallbackPolicy,

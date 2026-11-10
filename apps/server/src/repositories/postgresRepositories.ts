@@ -728,7 +728,10 @@ export function createPostgresRepositories(
                 locked.rows.find(
                   ({ last_status }) =>
                     last_status === 401 || last_status === 403,
-                )?.last_status ?? input.status,
+                )?.last_status ??
+                  (input.suppressAuthenticationDenial
+                    ? (current?.last_status ?? null)
+                    : input.status),
                 policy,
               ],
             );

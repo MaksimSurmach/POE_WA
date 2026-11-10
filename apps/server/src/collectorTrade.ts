@@ -17,6 +17,11 @@ import { convertMarketQuote } from './marketCurrency.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
 import { marketDigest } from './marketResearch.js';
 import {
+  loadTradeLoginConfig,
+  PoeTradeSessionManager,
+  TradeLoginRateLimited,
+} from './providers/poeTradeSessionManager.js';
+import {
   TradeCompatibleTransport,
   loadTradeCompatibleConfig,
   type TradePriceRange,
@@ -26,6 +31,10 @@ import {
   type RateLimitGate,
 } from './rateLimitController.js';
 import { recipeQueryTarget } from './recipeMarket.js';
+import {
+  TradeSessionDecryptError,
+  type createTradeSessionRepository,
+} from './repositories/tradeSessionRepository.js';
 import type { captures, collectorSchedule } from './schema.js';
 
 const maxPriceSlices = 5;
@@ -58,6 +67,21 @@ type TradeCaptureResult =
 
 type TradeTransport = Pick<TradeCompatibleTransport, 'search' | 'fetchDetails'>;
 type Economy = Pick<MarketEconomyRepository, 'latest' | 'find'>;
+type TradeCaptureOptions = {
+  sessions?: () => ReturnType<typeof createTradeSessionRepository>;
+  recoverAuthentication?: boolean;
+};
+
+function authenticationDenial(
+  response: MarketCollectionTransportResponse<unknown>,
+) {
+  if (response.status === 401) return 'PROVIDER_AUTH_FAILED';
+  if (response.status === 403)
+    return response.headers.get('cf-mitigated') === 'challenge'
+      ? 'PROVIDER_CHALLENGE'
+      : 'PROVIDER_ACCESS_DENIED';
+  return null;
+}
 
 function fingerprint(item: CanonicalJsonObject) {
   const { baseType, itemLevel } = item;
@@ -102,38 +126,81 @@ async function collectTradeCapture(
   transport: TradeTransport,
   rateLimits: RateLimitGate,
   economy: Economy,
+  reauthenticate: (() => Promise<TradeTransport | null>) | undefined,
+  recoverAuthentication: boolean,
 ): Promise<TradeCaptureResult> {
   const started = Date.now();
-  async function request<T>(
-    endpoint: 'trade-search' | 'trade-fetch',
-    run: () => Promise<MarketCollectionTransportResponse<T>>,
-  ) {
+  let authenticationAttempted = false;
+  let currentTransport = transport;
+  async function permit(endpoint: 'trade-search' | 'trade-fetch') {
     signal.throwIfAborted();
     await rateLimits.waitForPermit(endpoint, signal, {
+      collector: true,
       deferProviderBlock: true,
     });
     signal.throwIfAborted();
-    const response = await run();
-    const state = await rateLimits.observeResponse(endpoint, response);
-    signal.throwIfAborted();
-    if (response.status === 429)
-      throw new ProviderRateLimitDeferred(state.blockedUntil);
-    if (
-      response.status === 503 &&
-      response.headers.get('retry-after') &&
-      state.blockedUntil.getTime() > Date.now()
-    )
-      throw new ProviderRateLimitDeferred(
-        state.blockedUntil,
-        'PROVIDER_UNAVAILABLE',
-      );
-    if (response.status === 401) throw new DomainError('PROVIDER_AUTH_FAILED');
-    if (response.status === 403)
-      throw new DomainError(
-        response.headers.get('cf-mitigated') === 'challenge'
-          ? 'PROVIDER_CHALLENGE'
-          : 'PROVIDER_ACCESS_DENIED',
-      );
+  }
+
+  async function request<T>(
+    endpoint: 'trade-search' | 'trade-fetch',
+    run: (
+      transport: TradeTransport,
+    ) => Promise<MarketCollectionTransportResponse<T>>,
+  ) {
+    const refresh = async (
+      reason: NonNullable<ReturnType<typeof authenticationDenial>>,
+    ) => {
+      authenticationAttempted = true;
+      await permit(endpoint);
+      let refreshed: TradeTransport | null | undefined;
+      try {
+        refreshed = await reauthenticate?.();
+      } catch (error) {
+        signal.throwIfAborted();
+        if (error instanceof TradeLoginRateLimited) {
+          const state = await rateLimits.observeResponse(endpoint, error, {
+            collector: true,
+          });
+          throw new ProviderRateLimitDeferred(state.blockedUntil);
+        }
+        throw new DomainError(reason);
+      }
+      signal.throwIfAborted();
+      if (!refreshed) throw new DomainError(reason);
+      currentTransport = refreshed;
+    };
+    const send = async () => {
+      await permit(endpoint);
+      const response = await run(currentTransport);
+      const state = await rateLimits.observeResponse(endpoint, response, {
+        collector: true,
+      });
+      signal.throwIfAborted();
+      if (response.status === 429)
+        throw new ProviderRateLimitDeferred(state.blockedUntil);
+      if (
+        response.status === 503 &&
+        response.headers.get('retry-after') &&
+        state.blockedUntil.getTime() > Date.now()
+      )
+        throw new ProviderRateLimitDeferred(
+          state.blockedUntil,
+          'PROVIDER_UNAVAILABLE',
+        );
+      return response;
+    };
+
+    if (recoverAuthentication && reauthenticate && !authenticationAttempted)
+      await refresh('PROVIDER_AUTH_FAILED');
+    let response = await send();
+    let denial: ReturnType<typeof authenticationDenial> =
+      authenticationDenial(response);
+    if (denial && reauthenticate && !authenticationAttempted) {
+      await refresh(denial);
+      response = await send();
+      denial = authenticationDenial(response);
+    }
+    if (denial) throw new DomainError(denial);
     if (response.status >= 500) throw new DomainError('PROVIDER_UNAVAILABLE');
     if (response.status >= 400) throw new DomainError('MARKET_QUERY_INVALID');
     if (response.cached) throw new DomainError('PROVIDER_RESPONSE_INVALID');
@@ -147,7 +214,7 @@ async function collectTradeCapture(
     for (let i = 0; i < newIds.length; i += detailBatchSize) {
       const batch = newIds.slice(i, i + detailBatchSize);
       batch.forEach((id) => attempted.add(id));
-      const details = await request('trade-fetch', () =>
+      const details = await request('trade-fetch', (transport) =>
         transport.fetchDetails({ target, signal, ids: batch, queryId }),
       );
       const seen = new Set<string>();
@@ -168,7 +235,7 @@ async function collectTradeCapture(
   };
 
   const search = (priceRange?: TradePriceRange) =>
-    request('trade-search', () =>
+    request('trade-search', (transport) =>
       transport.search({
         target,
         signal,
@@ -348,6 +415,7 @@ export function configuredTradeCapture(
 ): (
   schedule: Pick<typeof collectorSchedule.$inferSelect, 'payload'>,
   signal: AbortSignal,
+  options?: TradeCaptureOptions,
 ) => Promise<TradeCaptureResult> {
   if (
     environment.MARKET_COLLECTION_SOURCE !== 'trade-compatible' ||
@@ -355,13 +423,13 @@ export function configuredTradeCapture(
   )
     return async () => ({ status: 'blocked', reason: 'MARKET_ACCESS_BLOCKED' });
 
-  const transport = new TradeCompatibleTransport(
-    loadTradeCompatibleConfig(environment),
-    {
-      collector: true,
-    },
-  );
-  return async (schedule, signal) => {
+  const tradeConfig = loadTradeCompatibleConfig(environment);
+  const makeTransport = (sessionId?: string) =>
+    new TradeCompatibleTransport(
+      { ...tradeConfig, ...(sessionId ? { sessionId } : {}) },
+      { collector: true },
+    );
+  return async (schedule, signal, options = {}) => {
     signal.throwIfAborted();
     let target: MarketTarget;
     try {
@@ -370,6 +438,58 @@ export function configuredTradeCapture(
     } catch {
       return { status: 'retry', reason: 'MARKET_QUERY_INVALID' };
     }
-    return collectTradeCapture(target, signal, transport, rateLimits, economy);
+    const { recoverAuthentication = false } = options;
+    let sessions: ReturnType<typeof createTradeSessionRepository>;
+    try {
+      if (!options.sessions)
+        return { status: 'blocked', reason: 'TRADE_SESSION_KEY_INVALID' };
+      sessions = options.sessions();
+    } catch {
+      return { status: 'blocked', reason: 'TRADE_SESSION_KEY_INVALID' };
+    }
+    let loginConfig;
+    try {
+      loginConfig = loadTradeLoginConfig(environment);
+    } catch {
+      return { status: 'blocked', reason: 'TRADE_LOGIN_CONFIG_INVALID' };
+    }
+    const reauthenticate = loginConfig
+      ? async () => {
+          const manager = new PoeTradeSessionManager(
+            tradeConfig.baseURL,
+            loginConfig,
+          );
+          let refreshed: TradeTransport | null = null;
+          try {
+            await manager.reauthenticate(async (session) => {
+              await sessions.save(session);
+              refreshed = makeTransport(session);
+            }, signal);
+            return refreshed;
+          } finally {
+            await manager.stop();
+          }
+        }
+      : undefined;
+    let session: string | null | undefined;
+    if (!recoverAuthentication || !reauthenticate) {
+      try {
+        session = await sessions.read();
+      } catch (error) {
+        signal.throwIfAborted();
+        return error instanceof TradeSessionDecryptError
+          ? { status: 'blocked', reason: 'TRADE_SESSION_DECRYPT_FAILED' }
+          : { status: 'retry', reason: 'TRADE_SESSION_UNAVAILABLE' };
+      }
+    }
+    return collectTradeCapture(
+      target,
+      signal,
+      makeTransport(session ?? undefined),
+      rateLimits,
+      economy,
+      reauthenticate,
+      recoverAuthentication,
+    );
   };
 }

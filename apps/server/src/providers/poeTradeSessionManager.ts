@@ -1,8 +1,21 @@
-import { chromium, type BrowserContext } from 'playwright';
+import {
+  chromium,
+  type BrowserContext,
+  type Page,
+  type Response as BrowserResponse,
+} from 'playwright';
 import { DomainError } from '@poe-worksmith/domain';
 import type { MarketCollectionSource } from '@poe-worksmith/contracts';
 
 type ConnectionStatus = NonNullable<MarketCollectionSource['connectionStatus']>;
+
+export class TradeLoginRateLimited extends Error {
+  readonly status = 429;
+
+  constructor(readonly headers: Headers) {
+    super('PROVIDER_RATE_LIMITED');
+  }
+}
 
 export type TradeLoginConfig = {
   username: string;
@@ -173,7 +186,30 @@ export class PoeTradeSessionManager {
     }
   }
 
-  async #ensureSession(forceLogin = false) {
+  async reauthenticate(
+    persist: (session: string) => Promise<void>,
+    signal: AbortSignal,
+  ) {
+    signal.throwIfAborted();
+    const abort = () => {
+      void this.stop();
+    };
+    signal.addEventListener('abort', abort, { once: true });
+    try {
+      await this.#ensureSession(true, signal);
+      signal.throwIfAborted();
+      if (
+        this.#sessionAvailable &&
+        this.#sessionAuthenticated &&
+        this.#sessionId
+      )
+        await persist(this.#sessionId);
+    } finally {
+      signal.removeEventListener('abort', abort);
+    }
+  }
+
+  async #ensureSession(forceLogin = false, signal?: AbortSignal) {
     if (this.#stopped) throw new DomainError('PROVIDER_UNAVAILABLE');
     if (this.#login) return this.#login;
     const existing = forceLogin ? undefined : await this.#readSessionId();
@@ -189,13 +225,36 @@ export class PoeTradeSessionManager {
     if (this.#loginFailed && !forceLogin)
       throw new DomainError('MARKET_ACCESS_BLOCKED');
     this.#loginFailed = false;
-    this.#login = this.#loginToWebsite(forceLogin).finally(() => {
+    this.#login = this.#loginToWebsite(forceLogin, signal).finally(() => {
       this.#login = undefined;
     });
     return this.#login;
   }
 
-  async #loginToWebsite(forceLogin: boolean) {
+  async #loginToWebsite(forceLogin: boolean, signal?: AbortSignal) {
+    let page: Page | undefined;
+    let throttle: TradeLoginRateLimited | undefined;
+    const observeNavigation = (response: BrowserResponse) => {
+      if (
+        response.status() === 429 &&
+        new URL(response.url()).origin === this.#baseURL &&
+        (response.request().isNavigationRequest() ||
+          response.request().method() === 'POST')
+      ) {
+        throttle = new TradeLoginRateLimited(
+          new Headers(
+            Object.entries(response.headers()).filter(
+              ([name]) =>
+                name === 'retry-after' || name.startsWith('x-rate-limit-'),
+            ),
+          ),
+        );
+      }
+    };
+    const check = () => {
+      signal?.throwIfAborted();
+      if (throttle) throw throttle;
+    };
     try {
       if (!this.#context) {
         const context = await chromium.launchPersistentContext(
@@ -209,11 +268,14 @@ export class PoeTradeSessionManager {
         this.#context = context;
       }
       if (forceLogin) await this.#context.clearCookies();
-      const page = this.#context.pages()[0] ?? (await this.#context.newPage());
+      page = this.#context.pages()[0] ?? (await this.#context.newPage());
+      if (signal) page.on('response', observeNavigation);
+      check();
       await page.goto(new URL('/login', this.#baseURL).toString(), {
         waitUntil: 'domcontentloaded',
         timeout: 20_000,
       });
+      check();
       if (new URL(page.url()).origin !== this.#baseURL) {
         this.connectionStatus = 'ACCESS_DENIED';
         throw new DomainError('MARKET_ACCESS_BLOCKED');
@@ -246,7 +308,9 @@ export class PoeTradeSessionManager {
         this.connectionStatus = 'AUTH_REQUIRED';
         throw new DomainError('MARKET_ACCESS_BLOCKED');
       }
+      check();
       await username.fill(this.#config.username, { timeout: 5_000 });
+      check();
       await password.fill(this.#config.password, { timeout: 5_000 });
       const submit = page
         .locator('button[type="submit"], input[type="submit"]')
@@ -255,9 +319,11 @@ export class PoeTradeSessionManager {
         this.connectionStatus = 'AUTH_REQUIRED';
         throw new DomainError('MARKET_ACCESS_BLOCKED');
       }
+      check();
       await submit.click({ timeout: 5_000 });
 
       for (let attempt = 0; attempt < 40; attempt += 1) {
+        check();
         if (await this.#hasChallenge(page)) {
           this.connectionStatus = 'ACCESS_DENIED';
           throw new DomainError('MARKET_ACCESS_BLOCKED');
@@ -278,10 +344,13 @@ export class PoeTradeSessionManager {
       throw new DomainError('MARKET_ACCESS_BLOCKED');
     } catch (error) {
       this.#loginFailed = true;
+      if (throttle) throw throttle;
       if (error instanceof DomainError) throw error;
       this.connectionStatus = 'UNAVAILABLE';
       // Browser errors may contain page details or user input; discard their causes.
       throw new DomainError('PROVIDER_UNAVAILABLE');
+    } finally {
+      if (signal) page?.off('response', observeNavigation);
     }
   }
 

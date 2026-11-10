@@ -192,6 +192,7 @@ export type RateLimitAcquireInput = {
 };
 
 export type RateLimitObservation = {
+  suppressAuthenticationDenial?: true;
   blockedUntil: Date;
   endpoint: string;
   fallbackPolicy: string;
