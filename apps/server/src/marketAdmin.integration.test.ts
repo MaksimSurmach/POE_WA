@@ -651,6 +651,43 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     ).toBe(401);
   });
 
+  it('keeps settings without registering legacy queue routes', async () => {
+    const collectorApi = buildApi(
+      logger,
+      async () => {},
+      async () => ({ active: null, published: null }),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      { marketAdmin: { store, status: async () => status } },
+    );
+    try {
+      expect(
+        (
+          await collectorApi.inject({
+            url: '/api/admin/market/settings',
+            headers: local,
+          })
+        ).statusCode,
+      ).toBe(200);
+      expect(
+        (
+          await collectorApi.inject({
+            method: 'POST',
+            url: '/api/admin/market/refresh',
+            headers: local,
+            payload: { scope: 'all' },
+          })
+        ).statusCode,
+      ).toBe(404);
+      expect(await store.runs()).toEqual([]);
+    } finally {
+      await collectorApi.close();
+    }
+  });
+
   it('pauses new work, permits safe resume, and audits both settings changes', async () => {
     const running = await enqueue();
     await boss.fetch(CATALOG_REFRESH_QUEUE);
