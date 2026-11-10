@@ -133,9 +133,10 @@ export class LeagueResolver {
         (league) => league.id !== 'Standard' && trade.has(league.id),
       ),
     ];
-    const saved = await Promise.all(
-      agreed.map((league) =>
-        this.options.leagues.upsert({
+    const saved = [];
+    for (const league of agreed) {
+      saved.push(
+        await this.options.leagues.upsert({
           game: 'poe1',
           realm: 'pc',
           gggId: league.id,
@@ -150,8 +151,8 @@ export class LeagueResolver {
             resolverVersion: 1,
           },
         }),
-      ),
-    );
+      );
+    }
     const selected = ninja.find(
       (league) => league.id !== 'Standard' && trade.has(league.id),
     );
