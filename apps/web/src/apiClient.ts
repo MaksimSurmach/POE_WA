@@ -3,6 +3,8 @@ import {
   apiErrorEnvelopeSchema,
   type CatalogResponse,
   catalogResponseSchema,
+  collectorStatusSchema,
+  collectorRunResponseSchema,
   type RecipeResponse,
   recipeResponseSchema,
   type RefreshProgressResponse,
@@ -62,6 +64,8 @@ export class ApiClientError extends Error {
   }
 }
 
+export const collectorRequestTimeoutMs = 10_000;
+
 export function createApiClient(
   baseUrl = '',
   fetchImplementation: typeof fetch = globalThis.fetch,
@@ -73,14 +77,21 @@ export function createApiClient(
     contract: Contract<T>,
     method: 'GET' | 'POST' = 'GET',
     body?: unknown,
+    {
+      token,
+      signal,
+    }: { token?: string | undefined; signal?: AbortSignal | undefined } = {},
   ): Promise<T> {
     const response = await fetchImplementation(`${root}${path}`, {
       headers: {
         accept: 'application/json',
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
         ...(body === undefined ? {} : { 'content-type': 'application/json' }),
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       ...(method === 'POST' ? { method } : {}),
+      ...(token ? { redirect: 'error' } : {}),
+      ...(signal ? { signal } : {}),
     });
     const payload: unknown = await response.json();
     const result = contract.safeParse(payload);
@@ -229,13 +240,33 @@ export function createApiClient(
     getCraftingPrices() {
       return request('/api/crafting-prices', craftingPricesResponseSchema);
     },
-    getCatalog(): Promise<CatalogResponse> {
-      return request('/api/catalog', catalogResponseSchema);
+    getCatalog(signal?: AbortSignal): Promise<CatalogResponse> {
+      return request('/api/catalog', catalogResponseSchema, 'GET', undefined, {
+        signal,
+      });
     },
     getRecipe(id: string): Promise<RecipeResponse> {
       return request(
         `/api/recipes/${encodeURIComponent(id)}`,
         recipeResponseSchema,
+      );
+    },
+    getCollectorStatus(token?: string) {
+      return request(
+        '/api/collector/status',
+        collectorStatusSchema,
+        'GET',
+        undefined,
+        { token, signal: AbortSignal.timeout(collectorRequestTimeoutMs) },
+      );
+    },
+    runCollector(token?: string) {
+      return request(
+        '/api/run',
+        collectorRunResponseSchema,
+        'POST',
+        { scope: 'all' },
+        { token, signal: AbortSignal.timeout(collectorRequestTimeoutMs) },
       );
     },
     getRefreshFreshness(): Promise<RefreshProgressResponse> {
@@ -244,8 +275,14 @@ export function createApiClient(
     triggerPriceRefresh(): Promise<RefreshTriggerResponse> {
       return request('/api/refresh', refreshTriggerResponseSchema, 'POST');
     },
-    getCurrentLeague(): Promise<CurrentLeagueResponse> {
-      return request('/api/leagues/current', currentLeagueResponseSchema);
+    getCurrentLeague(signal?: AbortSignal): Promise<CurrentLeagueResponse> {
+      return request(
+        '/api/leagues/current',
+        currentLeagueResponseSchema,
+        'GET',
+        undefined,
+        { signal },
+      );
     },
     getLeagues(): Promise<LeaguesResponse> {
       return request('/api/leagues', leaguesResponseSchema);

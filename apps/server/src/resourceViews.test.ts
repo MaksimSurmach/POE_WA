@@ -21,6 +21,7 @@ import { loadRecipeCatalog } from './recipes/loader.js';
 import { generateRecipeMarketQuery } from './recipeMarket.js';
 import { createResourceReaders } from './resourceViews.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
+import { recipeResultSchema } from './recipeResult.js';
 
 const correlationId = '44444444-4444-4444-8444-444444444444';
 const recipesPath = fileURLToPath(new URL('../../../recipes', import.meta.url));
@@ -32,6 +33,132 @@ const presentationPath = fileURLToPath(
 );
 
 describe('repository-backed resource views', () => {
+  it('reads collector results for the current league and hides mismatched or expired prices', async () => {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    const recipeId = 'physical-large-cluster-chaos';
+    const recipe = (await repositories.recipes.findById(recipeId))!;
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Standard',
+      isCurrent: true,
+      metadata: {},
+      name: 'Standard',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: new Date(),
+    });
+    const evaluatedAt = new Date();
+    const result = recipeResultSchema.parse({
+      confidence: 'high',
+      currency: 'chaos',
+      errorCode: null,
+      estimatedSalePrice: null,
+      expectedCraftCost: '17',
+      marginPercent: null,
+      profit: null,
+      status: 'partial',
+      methodCost: {
+        oldestInputAt: evaluatedAt.toISOString(),
+        expiresAt: new Date(evaluatedAt.getTime() + 60_000).toISOString(),
+        baseCost: { amount: '17', currency: 'chaos' },
+        marketStatus: 'priced',
+        saleEvidence: { comparableSellers: 0 },
+        budget: null,
+      },
+    });
+    const row = {
+      leagueId: league.id,
+      recipeId,
+      recipeContentHash: recipe.contentHash,
+      evaluatedAt,
+      result,
+    };
+    const unexpectedRead = async () => {
+      throw new Error('collector view read legacy storage');
+    };
+    repositories.catalog.getPublished = unexpectedRead;
+    repositories.catalog.getProgress = unexpectedRead;
+    repositories.snapshots.findLatest = unexpectedRead;
+    const readers = createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+      undefined,
+      undefined,
+      async (leagueId, id) => {
+        expect(leagueId).toBe(league.id);
+        expect(id === undefined || id === recipeId).toBe(true);
+        return [row];
+      },
+    );
+    const catalog = catalogResponseSchema.parse(
+      await readers.readCatalog(correlationId),
+    );
+    expect(catalog).toMatchObject({
+      data: { pipeline: 'collector' },
+      state: 'partial',
+      isStale: false,
+      lastSuccessfulAt: null,
+      publishedAt: evaluatedAt.toISOString(),
+    });
+    expect(
+      catalog.data?.entries.find(({ recipe }) => recipe.id === recipeId),
+    ).toMatchObject({
+      evaluation: { expectedCraftCost: { amount: 17 } },
+      snapshot: null,
+    });
+    const readDetail = async () =>
+      recipeResponseSchema.parse(
+        await readers.readRecipe(correlationId, recipeId),
+      ).data;
+    expect(await readDetail()).toMatchObject({
+      method: { baseCost: { amount: 17 } },
+      snapshot: null,
+    });
+    row.leagueId = 'previous league';
+    expect((await readDetail())?.evaluation.status).toBe('loading');
+    row.leagueId = league.id;
+    row.recipeContentHash = 'previous recipe';
+    expect((await readDetail())?.evaluation.status).toBe('loading');
+    row.recipeContentHash = recipe.contentHash;
+    row.result.methodCost!.expiresAt = new Date(
+      evaluatedAt.getTime() - 1,
+    ).toISOString();
+    expect(
+      recipeResponseSchema.parse(
+        await readers.readRecipe(correlationId, recipeId),
+      ),
+    ).toMatchObject({
+      state: 'partial',
+      errorCode: 'SNAPSHOT_EXPIRED',
+      isStale: true,
+      lastSuccessfulAt: null,
+      publishedAt: evaluatedAt.toISOString(),
+      data: {
+        evaluation: { status: 'stale', expectedCraftCost: null },
+        method: { baseCost: null },
+      },
+    });
+    row.result = {
+      ...result,
+      errorCode: 'NO_LISTINGS',
+      status: 'error',
+      expectedCraftCost: null,
+      methodCost: null,
+    };
+    expect(
+      recipeResponseSchema.parse(
+        await readers.readRecipe(correlationId, recipeId),
+      ),
+    ).toMatchObject({
+      state: 'partial',
+      errorCode: 'NO_LISTINGS',
+      isStale: false,
+      lastSuccessfulAt: null,
+    });
+  });
+
   it('serves only active recipes synchronized from the Git catalog', async () => {
     const repositories = createInMemoryRepositories();
     const report = await synchronizeRecipeCatalog(

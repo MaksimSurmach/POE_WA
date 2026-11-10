@@ -2,7 +2,7 @@ import type {
   CatalogResponse,
   CurrentLeagueResponse,
 } from '@poe-worksmith/contracts';
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import {
   Link,
   NavLink,
@@ -20,7 +20,8 @@ import {
 } from './catalog.js';
 import { StatusPanel } from './components.js';
 import { CatalogTable } from './CatalogTable.js';
-import { createApiClient } from './apiClient.js';
+import { CollectorControls } from './CollectorControls.js';
+import { collectorRequestTimeoutMs, createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
 import { AdminMarketPage } from './AdminMarketPage.js';
 import { MarketTrendsPage } from './MarketTrendsPage.js';
@@ -114,13 +115,15 @@ function CatalogRoute() {
   const refreshBaseline = useRef<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState('');
+  const collectorMode = response?.data?.pipeline === 'collector';
+  const legacyMode = response !== null && !collectorMode;
+  const [catalogRevision, setCatalogRevision] = useState(0);
+  const reloadCatalog = useCallback(
+    () => setCatalogRevision((value) => value + 1),
+    [],
+  );
   useEffect(() => {
-    apiClient
-      .getCurrentLeague()
-      .then((r) => setLeague(r.data))
-      .catch(() => {});
-  }, []);
-  useEffect(() => {
+    if (!legacyMode) return;
     let active = true;
     apiClient
       .getRefreshFreshness()
@@ -135,9 +138,9 @@ function CatalogRoute() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [legacyMode]);
   useEffect(() => {
-    if (!refreshing) return;
+    if (!legacyMode || !refreshing) return;
     let active = true;
     const queuedAt = Date.now();
     const poll = setInterval(() => {
@@ -186,7 +189,7 @@ function CatalogRoute() {
       active = false;
       clearInterval(poll);
     };
-  }, [refreshing]);
+  }, [legacyMode, refreshing]);
   async function refreshPrices() {
     setRefreshing(true);
     setRefreshMessage('Requesting price refresh…');
@@ -215,7 +218,9 @@ function CatalogRoute() {
   }
   const entries = response?.data?.entries ?? [];
   const marketUpdatedAt = entries
-    .map(({ snapshot }) => snapshot?.capturedAt)
+    .map(({ evaluation, snapshot }) =>
+      collectorMode ? evaluation.source?.capturedAt : snapshot?.capturedAt,
+    )
     .filter((timestamp): timestamp is string => Boolean(timestamp))
     .sort()
     .at(-1);
@@ -231,15 +236,36 @@ function CatalogRoute() {
   useEffect(() => {
     let active = true;
     let inFlight = false;
+    let refreshLeague = true;
+    let collector = catalogRevision > 0;
+    const readLeague = () =>
+      apiClient
+        .getCurrentLeague(AbortSignal.timeout(collectorRequestTimeoutMs))
+        .catch(() => null);
     async function load() {
       if (inFlight) return;
       inFlight = true;
       try {
-        const catalog = await apiClient.getCatalog();
-        if (active) {
-          setResponse(catalog);
-          setLoadError(false);
+        const leagueRead = refreshLeague ? readLeague() : undefined;
+        const catalog = await apiClient.getCatalog(
+          collector
+            ? AbortSignal.timeout(collectorRequestTimeoutMs)
+            : undefined,
+        );
+        if (!active) return;
+        collector = catalog.data?.pipeline === 'collector';
+        refreshLeague = collector;
+        if (collector) {
+          const currentLeague = await (leagueRead ?? readLeague());
+          if (!active) return;
+          setLeague(currentLeague?.data ?? null);
+        } else if (leagueRead) {
+          void leagueRead.then((currentLeague) => {
+            if (active && !collector) setLeague(currentLeague?.data ?? null);
+          });
         }
+        setResponse(catalog);
+        setLoadError(false);
       } catch {
         if (active) setLoadError(true);
       } finally {
@@ -258,7 +284,7 @@ function CatalogRoute() {
       clearInterval(timer);
       window.removeEventListener('focus', onFocus);
     };
-  }, []);
+  }, [catalogRevision]);
 
   function updateFilter<K extends keyof CatalogFilters>(
     key: K,
@@ -289,16 +315,20 @@ function CatalogRoute() {
             </p>
           ) : null}
         </div>
-        <div className="handbook-refresh">
-          <button
-            type="button"
-            disabled={refreshing}
-            onClick={() => void refreshPrices()}
-          >
-            {refreshing ? 'Refreshing…' : 'Refresh Prices'}
-          </button>
-          <span role="status">{refreshMessage}</span>
-        </div>
+        {collectorMode ? (
+          <CollectorControls onResultsChanged={reloadCatalog} />
+        ) : legacyMode ? (
+          <div className="handbook-refresh">
+            <button
+              type="button"
+              disabled={refreshing}
+              onClick={() => void refreshPrices()}
+            >
+              {refreshing ? 'Refreshing…' : 'Refresh Prices'}
+            </button>
+            <span role="status">{refreshMessage}</span>
+          </div>
+        ) : null}
       </section>
 
       <OpportunitiesIntelligence league={league?.name} />

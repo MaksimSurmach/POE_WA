@@ -10,6 +10,9 @@ import {
   type MarketSearchResult,
 } from '@poe-worksmith/domain';
 import { evaluateAndPublishCatalog } from '../catalogPublisher.js';
+import { runCollector } from '../collector.js';
+import { createCollectorResultPublisher } from '../collectorResults.js';
+import { loadCollectorScheduleConfig } from '../runtimeConfig.js';
 import {
   newEconomyAttempt,
   newStoredEconomySnapshot,
@@ -19,7 +22,10 @@ import {
   recipeQueryTarget,
 } from '../recipeMarket.js';
 import { loadRecipeCatalog } from '../recipes/loader.js';
-import { synchronizeRecipes } from '../recipes/synchronizeRecipes.js';
+import {
+  synchronizeCollectorSchedules,
+  synchronizeRecipes,
+} from '../recipes/synchronizeRecipes.js';
 import { planCatalogRefresh } from '../refreshPlanner.js';
 import { createMarketEconomyRepository } from '../repositories/marketEconomyRepository.js';
 import { createPostgresRepositories } from '../repositories/postgresRepositories.js';
@@ -163,7 +169,7 @@ export function assertLocalBrowserFixtureDatabase() {
     );
 }
 
-export async function seedTwoMethodsPriced(pool: Pool) {
+async function prepareTwoMethodsPriced(pool: Pool) {
   const repositories = createPostgresRepositories(pool);
   const root = fileURLToPath(new URL('../../../../recipes/', import.meta.url));
   const recipes = (await loadRecipeCatalog(root)).filter(({ definition }) =>
@@ -266,16 +272,25 @@ export async function seedTwoMethodsPriced(pool: Pool) {
     snapshotId: exchange.id,
   });
 
-  const snapshotTtlMs = 30 * 60_000;
-  const plan = await planCatalogRefresh(repositories, {
-    league: { leagueId, leagueGggId: league, leagueName: league },
+  return {
+    repositories,
     marketDependencies,
+    league,
+    leagueId,
+    economy,
+    exchange,
     now,
-    snapshotTtlMs,
-  });
-  assert.equal(plan.queries.length, 5);
-  assert.equal(plan.report.deduplicatedDependencies, 1);
+  };
+}
 
+function pricedListings(
+  query: object,
+  key: string,
+  at: Date,
+  basePriceMultiplier = 1,
+) {
+  const patch = '3.29.3.3';
+  const league = 'Standard';
   const clusterMods = [
     { id: 'enchant.stat_3086156145', value: 8 },
     { id: 'enchant.stat_3948993189|12', value: 12 },
@@ -288,49 +303,70 @@ export async function seedTwoMethodsPriced(pool: Pool) {
     { id: 'explicit.stat_3585232432', value: 1 },
   ];
 
-  for (const { marketQuery } of plan.queries) {
-    const target = marketQuery.query.handbookTarget
-      ? recipeQueryTarget(marketQuery.query.handbookTarget)
+  const target =
+    'handbookTarget' in query && query.handbookTarget
+      ? recipeQueryTarget(query.handbookTarget)
       : null;
-    const finished = target?.slot === 'crafted-item';
-    const rarity = target?.tradeSearch?.rarity ?? 'normal';
-    const currency = finished ? 'divine' : 'chaos';
-    const baseAsk = rarity === 'rare' ? '17' : '10';
-    const materialAsk = JSON.stringify(marketQuery.query.exchange)?.includes(
-      'jagged-fossil',
-    )
+  const finished = target?.slot === 'crafted-item';
+  const rarity = target?.tradeSearch?.rarity ?? 'normal';
+  const currency = finished ? ('divine' as const) : ('chaos' as const);
+  const baseAsk = String((rarity === 'rare' ? 17 : 10) * basePriceMultiplier);
+  const materialAsk =
+    'exchange' in query &&
+    JSON.stringify(query.exchange)?.includes('jagged-fossil')
       ? '2'
       : '3';
-    const amount = finished ? '75' : target ? baseAsk : materialAsk;
-    const listings = Array.from({ length: finished ? 5 : 1 }, (_, index) => {
-      const account = `seller-${index}`;
-      return {
-        id: `${marketQuery.id}-${index}`,
-        account,
-        ageSeconds: 60,
-        fee: null,
-        indexedAt: timestamp,
-        price: { amount, currency },
-        item: target
-          ? {
-              baseType: 'Large Cluster Jewel',
-              rarity,
-              itemLevel: 83,
-              league,
-              patch,
-              currency,
-              seller: account,
-              status: 'listed',
-              corrupted: false,
-              fractured: false,
-              synthesised: false,
-              influences: [],
-              modsComplete: true,
-              mods: finished ? finishedMods : clusterMods,
-            }
-          : { stock: 1000 },
-      };
-    });
+  const amount = finished ? '75' : target ? baseAsk : materialAsk;
+  return Array.from({ length: finished ? 5 : 1 }, (_, index) => {
+    const account = `seller-${index}`;
+    return {
+      id: `${key}-${index}`,
+      account,
+      ageSeconds: 60,
+      fee: null,
+      indexedAt: at.toISOString(),
+      price: { amount, currency },
+      item: target
+        ? {
+            baseType: 'Large Cluster Jewel',
+            rarity,
+            itemLevel: 83,
+            league,
+            patch,
+            currency,
+            seller: account,
+            status: 'listed',
+            corrupted: false,
+            fractured: false,
+            synthesised: false,
+            influences: [],
+            modsComplete: true,
+            mods: finished ? finishedMods : clusterMods,
+          }
+        : { stock: 1000 },
+    };
+  });
+}
+
+export async function seedTwoMethodsPriced(pool: Pool) {
+  const { repositories, marketDependencies, league, leagueId, economy, now } =
+    await prepareTwoMethodsPriced(pool);
+  const snapshotTtlMs = 30 * 60_000;
+  const plan = await planCatalogRefresh(repositories, {
+    league: { leagueId, leagueGggId: league, leagueName: league },
+    marketDependencies,
+    now,
+    snapshotTtlMs,
+  });
+  assert.equal(plan.queries.length, 5);
+  assert.equal(plan.report.deduplicatedDependencies, 1);
+
+  for (const { marketQuery } of plan.queries) {
+    const listings = pricedListings(
+      marketQuery.query,
+      String(marketQuery.id),
+      now,
+    );
     await repositories.snapshots.save({
       capturedAt: now,
       dedupeKey: `scheduled-trade:${plan.cycle.id}:${marketQuery.id}`,
@@ -366,4 +402,69 @@ export async function seedTwoMethodsPriced(pool: Pool) {
     succeeded: publication.completedRecipes,
     failed: publication.failedRecipes,
   };
+}
+
+/** Local browser fixture: provider data is synthetic; scheduling, writes and evaluation are real. */
+export async function prepareCollectorBrowserFixture(pool: Pool) {
+  const { exchange, now } = await prepareTwoMethodsPriced(pool);
+  const schedules = await synchronizeCollectorSchedules(
+    pool,
+    loadCollectorScheduleConfig(),
+    now,
+  );
+  assert.equal(schedules, 'synchronized');
+  await pool.query(
+    "update collector_schedule set enabled = false where kind <> 'trade-target'",
+  );
+  await pool.query('truncate collector_state');
+  const success = async () => ({ status: 'success' as const });
+  return (signal: AbortSignal) =>
+    runCollector({
+      pool,
+      signal,
+      publishResults: createCollectorResultPublisher(pool, async () => ({
+        maximumQuoteAgeMs: 30 * 60_000,
+        freshnessWarningMs: 15 * 60_000,
+      })),
+      handlers: {
+        'trade-target': async (schedule) => {
+          const query = schedule.payload.query;
+          assert(query && typeof query === 'object' && !Array.isArray(query));
+          const capturedAt = new Date();
+          const listings = pricedListings(
+            query,
+            schedule.key,
+            capturedAt,
+            schedule.lastFinishedAt ? 2 : 1,
+          ).map(({ id, account, item, price }) => ({
+            itemId: id,
+            seller: account,
+            indexedAt: capturedAt,
+            fingerprint: null,
+            item,
+            price,
+            priceChaos:
+              price.currency === 'divine'
+                ? String(Number(price.amount) * 200)
+                : price.amount,
+          }));
+          return {
+            status: 'success',
+            capture: {
+              capturedAt,
+              reportedTotal: listings.length,
+              fetched: listings.length,
+              complete: true,
+              durationMs: 0,
+              fxSnapshotId: exchange.id,
+              slices: 1,
+              listings,
+            },
+          };
+        },
+        economy: success,
+        league: success,
+        retention: success,
+      },
+    });
 }

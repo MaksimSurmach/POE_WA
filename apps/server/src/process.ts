@@ -22,6 +22,7 @@ import { runCollector } from './collector.js';
 import {
   createCollectorEconomyCache,
   createCollectorResultPublisher,
+  createCollectorResultReader,
 } from './collectorResults.js';
 import { configuredTradeCapture } from './collectorTrade.js';
 import { existsSync } from 'node:fs';
@@ -344,6 +345,9 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     presentationCatalog,
     trade,
     async () => (await admin.read()).effective.maximumQuoteAgeMs,
+    config.pipeline === 'collector'
+      ? createCollectorResultReader(pool)
+      : undefined,
   );
   let jobs: ApplicationJobScheduler | undefined;
   let tradeClient: PoeTradeClient | undefined;

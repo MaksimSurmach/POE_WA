@@ -34,6 +34,7 @@ describe('runtime configuration', () => {
       marketConcurrency: 4,
       marketRetryDelayMs: 60_000,
       mode: 'worker',
+      pipeline: 'legacy',
       poeUserAgent: 'OAuth poe-worksmith/0.0.0 (contact: local-development)',
       poeRequestTimeoutMs: 15_000,
       port: 4100,
@@ -76,11 +77,13 @@ describe('runtime configuration', () => {
   });
 
   it('loads collector mode without enabling the API or legacy worker', () => {
-    const { mode } = loadRuntimeConfig({
+    const { mode, pipeline } = loadRuntimeConfig({
       ...environment,
       APP_MODE: 'collector',
+      PIPELINE: 'collector',
     });
     expect(mode).toBe('collector');
+    expect(pipeline).toBe('collector');
     expect(modeIncludesApi(mode)).toBe(false);
     expect(modeIncludesWorker(mode)).toBe(false);
   });
