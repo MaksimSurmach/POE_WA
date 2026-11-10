@@ -8,6 +8,7 @@ import { afterAll, beforeEach, expect, it } from 'vitest';
 
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
+import { readMarketDiscovery } from './marketDiscovery.js';
 import { recipeQueryTarget } from './recipeMarket.js';
 import { loadRecipeCatalog } from './recipes/loader.js';
 import {
@@ -39,11 +40,11 @@ function syncCli(args: string[] = [], env: Record<string, string> = {}) {
   });
 }
 
-async function seedPrerequisites() {
+async function seedPrerequisites(gggId = 'FixtureGGG') {
   const league = await repositories.leagues.upsert({
     endAt: null,
     game: 'poe1',
-    gggId: 'FixtureGGG',
+    gggId,
     isCurrent: true,
     metadata: {},
     name: 'Fixture display name',
@@ -286,4 +287,27 @@ it('skips a reconciliation if its source changed before the write lock', async (
   }
   await expect(pending).resolves.toBe('stale-input');
   expect(await scheduleRows()).toEqual(previous);
+});
+
+it('adds two bounded Allflame research queries without ranking uncaptured targets', async () => {
+  await seedPrerequisites('Allflame');
+  await syncCli();
+  const rows = (await scheduleRows()).filter(
+    ({ payload }) => payload.discovery === true,
+  );
+  expect(rows).toHaveLength(2);
+  expect(
+    rows.every(
+      ({ enabled, intervalMinutes }) => enabled && intervalMinutes === 360,
+    ),
+  ).toBe(true);
+  expect(new Set(rows.map(({ key }) => key)).size).toBe(2);
+  expect(await readMarketDiscovery(pool)).toMatchObject({
+    ranked: [],
+    sales: 'unknown',
+    insufficientCoverage: [
+      { fullCoverage: false, lowestObservedAskChaos: null },
+      { fullCoverage: false, lowestObservedAskChaos: null },
+    ],
+  });
 });

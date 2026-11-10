@@ -208,6 +208,7 @@ export function createCollectorResultPublisher(
     client: PoolClient,
   ) => {
     if (schedule.kind !== 'trade-target' && schedule.kind !== 'economy') return;
+    if (schedule.payload.discovery === true) return;
     const repositories = createPostgresRepositories(pool, client);
     const league = await repositories.leagues.findCurrent();
     if (!league || league.id !== schedule.leagueId) return;

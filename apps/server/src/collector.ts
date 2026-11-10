@@ -135,6 +135,7 @@ async function startRequest(
       .where(
         and(
           eq(collectorSchedule.enabled, true),
+          sql`(${collectorSchedule.payload}->>'discovery') is distinct from 'true'`,
           request.scope === 'recipe'
             ? and(
                 eq(collectorSchedule.kind, 'trade-target'),

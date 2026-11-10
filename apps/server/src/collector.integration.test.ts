@@ -717,3 +717,19 @@ it('pauses collection and resumes via a notification', async () => {
     await pool.query('delete from market_admin_settings where id = 1');
   }
 });
+
+it('leaves discovery cadence untouched by a manual recipe refresh', async () => {
+  const normal = await schedule();
+  const research = await schedule({
+    payload: { discovery: true },
+    nextDueAt: new Date(time + 30 * minute),
+  });
+  const requestId = await enqueueRunRequest(pool, null);
+  start(succeed);
+  await vi.waitFor(async () =>
+    expect((await request(requestId)).state).toBe('done'),
+  );
+  expect((await row(normal)).lastStatus).toBe('succeeded');
+  expect((await row(research)).lastStartedAt).toBeNull();
+  expect((await row(research)).nextDueAt.getTime()).toBe(time + 30 * minute);
+});
