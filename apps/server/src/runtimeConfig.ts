@@ -36,6 +36,7 @@ const runtimeEnvironmentSchema = z
     APP_HOST: z.string().min(1).default('127.0.0.1'),
     APP_MODE: z.enum(['all', 'api', 'worker', 'collector']).default('all'),
     APP_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
+    PIPELINE: z.enum(['legacy', 'collector']).default('legacy'),
     ...collectorScheduleFields,
     JOB_LEASE_TIMEOUT_MS: z.coerce
       .number()
@@ -108,6 +109,7 @@ export type RuntimeConfig = {
   operatorDiagnosticsToken: string | undefined;
   marketRetryDelayMs: number;
   mode: ApplicationMode;
+  pipeline: z.infer<typeof runtimeEnvironmentSchema>['PIPELINE'];
   poeUserAgent: string;
   poeRequestTimeoutMs: number;
   port: number;
@@ -165,6 +167,7 @@ export function loadRuntimeConfig(
     operatorDiagnosticsToken: result.data.OPERATOR_DIAGNOSTICS_TOKEN,
     marketRetryDelayMs: result.data.MARKET_RETRY_DELAY_MS,
     mode: forcedMode ?? result.data.APP_MODE,
+    pipeline: result.data.PIPELINE,
     poeUserAgent: result.data.POE_USER_AGENT,
     poeRequestTimeoutMs: result.data.POE_REQUEST_TIMEOUT_MS,
     port: result.data.APP_PORT,

@@ -40,6 +40,22 @@ type CaptureQuote = QuoteEvidence & {
 };
 type QuoteSettings = { maximumQuoteAgeMs: number; freshnessWarningMs: number };
 
+export function createCollectorResultReader(pool: Pool) {
+  const db = drizzle({ client: pool });
+  return (leagueId: string, recipeId?: string) =>
+    db
+      .select()
+      .from(recipeResults)
+      .where(
+        and(
+          eq(recipeResults.leagueId, leagueId),
+          recipeId === undefined
+            ? undefined
+            : eq(recipeResults.recipeId, recipeId),
+        ),
+      );
+}
+
 export function createCollectorEconomyCache() {
   const snapshots = new Map<string, StoredMarketEconomySnapshot>();
   return async (

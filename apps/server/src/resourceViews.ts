@@ -35,59 +35,107 @@ import {
   type ItemPresentationCatalog,
 } from './itemPresentation.js';
 import { marketTradeUrl } from './marketTradeQuery.js';
+import { recipeResultSchema } from './recipeResult.js';
+import type { recipeResults } from './schema.js';
 import {
   revalueSavedTradeListings,
   savedTradeExchangeSchema,
 } from './marketCurrency.js';
+
+type ResourceEvaluation = Pick<
+  RecipeEvaluation,
+  | 'confidence'
+  | 'currency'
+  | 'errorCode'
+  | 'estimatedSalePrice'
+  | 'evaluatedAt'
+  | 'expectedCraftCost'
+  | 'lastSuccessfulAt'
+  | 'marginPercent'
+  | 'methodCost'
+  | 'profit'
+  | 'status'
+>;
+
+type CollectorResultRow = typeof recipeResults.$inferSelect;
+type CollectorResultsReader = (
+  leagueId: string,
+  recipeId?: string,
+) => Promise<CollectorResultRow[]>;
 
 export function createResourceReaders(
   repositories: Repositories,
   presentationCatalog: ItemPresentationCatalog,
   trade?: TradeQueryGenerator,
   readMaximumQuoteAgeMs?: () => Promise<number>,
+  readCollectorResults?: CollectorResultsReader,
 ) {
-  return {
-    async readCatalog(correlationId: string): Promise<CatalogResponse> {
-      const [
-        recipes,
-        currentPublished,
-        progress,
-        currentLeague,
-        maximumQuoteAgeMs,
-      ] = await Promise.all([
-        repositories.recipes.listActive(),
-        repositories.catalog.getPublished(),
-        repositories.catalog.getProgress(),
+  async function readMarket(recipeId?: string) {
+    const [currentLeague, maximumQuoteAgeMs, published, progress] =
+      await Promise.all([
         repositories.leagues.findCurrent(),
         readMaximumQuoteAgeMs?.(),
+        readCollectorResults ? null : repositories.catalog.getPublished(),
+        readCollectorResults ? null : repositories.catalog.getProgress(),
       ]);
-      const published =
-        currentPublished?.cycle.leagueId === currentLeague?.id
-          ? currentPublished
-          : null;
-      const evaluations = new Map(
-        published?.evaluations.map((evaluation) => [
-          evaluation.recipeId,
-          evaluation,
-        ]),
-      );
+    const legacy =
+      published?.cycle.leagueId === currentLeague?.id ? published : null;
+    const legacyEvaluations = new Map(
+      legacy?.evaluations.map((row) => [row.recipeId, row]),
+    );
+    const collectorRows =
+      currentLeague && readCollectorResults
+        ? await readCollectorResults(currentLeague.id, recipeId)
+        : [];
+    const collectorEvaluations = new Map(
+      collectorRows
+        .filter((row) => row.leagueId === currentLeague?.id)
+        .map((row) => [row.recipeId, row]),
+    );
+    return {
+      currentLeague,
+      maximumQuoteAgeMs,
+      publishedAt: legacy?.cycle.publishedAt ?? null,
+      status: refreshStatus(
+        progress?.active?.status ?? progress?.published?.status,
+      ),
+      evaluationFor(recipe: StoredRecipe) {
+        return readCollectorResults
+          ? collectorEvaluation(
+              recipe,
+              collectorEvaluations.get(recipe.id),
+              maximumQuoteAgeMs,
+            )
+          : currentEvaluation(
+              recipe,
+              legacyEvaluations.get(recipe.id),
+              maximumQuoteAgeMs,
+            );
+      },
+    };
+  }
+
+  return {
+    async readCatalog(correlationId: string): Promise<CatalogResponse> {
+      const [recipes, market] = await Promise.all([
+        repositories.recipes.listActive(),
+        readMarket(),
+      ]);
       const entries = await Promise.all(
         recipes
           .sort((left, right) => left.id.localeCompare(right.id))
           .map(async (recipe) => {
-            const evaluation = currentEvaluation(
-              recipe,
-              evaluations.get(recipe.id),
-              maximumQuoteAgeMs,
-            );
-            const snapshot = await latestOutputSnapshot({
-              currentLeague,
-              evaluation,
-              maximumQuoteAgeMs,
-              recipe,
-              repositories,
-              trade,
-            });
+            const evaluation = market.evaluationFor(recipe);
+            const snapshot = readCollectorResults
+              ? null
+              : await latestOutputSnapshot({
+                  currentLeague: market.currentLeague,
+                  evaluation,
+                  maximumQuoteAgeMs: market.maximumQuoteAgeMs,
+                  recipe,
+                  repositories,
+                  trade,
+                });
             return toCatalogEntry(
               recipe,
               evaluation,
@@ -96,12 +144,17 @@ export function createResourceReaders(
             );
           }),
       );
-
+      if (readCollectorResults)
+        return collectorResourceResponse(
+          correlationId,
+          { entries, pipeline: 'collector' as const },
+          entries.map(({ evaluation }) => evaluation),
+        );
       return resourceResponse(
         correlationId,
         { entries },
-        published?.cycle.publishedAt ?? null,
-        refreshStatus(progress.active?.status ?? progress.published?.status),
+        market.publishedAt,
+        market.status,
       );
     },
 
@@ -109,26 +162,14 @@ export function createResourceReaders(
       correlationId: string,
       recipeId: string,
     ): Promise<RecipeResponse> {
-      const [
-        recipe,
-        currentPublished,
-        progress,
-        currentLeague,
-        maximumQuoteAgeMs,
-      ] = await Promise.all([
+      const [recipe, market] = await Promise.all([
         repositories.recipes.findById(recipeId),
-        repositories.catalog.getPublished(),
-        repositories.catalog.getProgress(),
-        repositories.leagues.findCurrent(),
-        readMaximumQuoteAgeMs?.(),
+        readMarket(recipeId),
       ]);
-      const published =
-        currentPublished?.cycle.leagueId === currentLeague?.id
-          ? currentPublished
-          : null;
       if (!recipe || !recipe.active) {
         throw new DomainError('PERSISTENCE_NOT_FOUND');
       }
+      const { currentLeague, maximumQuoteAgeMs } = market;
       const definition = validateRecipeDocument(recipe.definition);
       const generatedBase =
         trade && currentLeague
@@ -146,32 +187,111 @@ export function createResourceReaders(
               sort: { price: 'asc' },
             })
           : null;
-      const evaluation = currentEvaluation(
-        recipe,
-        published?.evaluations.find(
-          (candidate) => candidate.recipeId === recipe.id,
-        ),
-        maximumQuoteAgeMs,
-      );
+      const evaluation = market.evaluationFor(recipe);
 
-      return resourceResponse(
-        correlationId,
-        {
-          ...toRecipeDetail(recipe, evaluation, presentationCatalog),
-          baseTradeUrl,
-          snapshot: await latestOutputSnapshot({
-            currentLeague,
-            evaluation,
-            maximumQuoteAgeMs,
-            recipe,
-            repositories,
-            trade,
-          }),
-        },
-        published?.cycle.publishedAt ?? null,
-        refreshStatus(progress.active?.status ?? progress.published?.status),
-      );
+      const detail = {
+        ...toRecipeDetail(recipe, evaluation, presentationCatalog),
+        baseTradeUrl,
+        snapshot: readCollectorResults
+          ? null
+          : await latestOutputSnapshot({
+              currentLeague,
+              evaluation,
+              maximumQuoteAgeMs,
+              recipe,
+              repositories,
+              trade,
+            }),
+      };
+      return readCollectorResults
+        ? collectorResourceResponse(correlationId, detail, [detail.evaluation])
+        : resourceResponse(
+            correlationId,
+            detail,
+            market.publishedAt,
+            market.status,
+          );
     },
+  };
+}
+
+function collectorEvaluation(
+  recipe: StoredRecipe,
+  row: CollectorResultRow | undefined,
+  maximumQuoteAgeMs?: number,
+): ResourceEvaluation | undefined {
+  if (row?.recipeContentHash !== recipe.contentHash) return;
+  const parsed = recipeResultSchema.safeParse(row.result);
+  if (!parsed.success) return;
+  const result = parsed.data;
+  const now = Date.now();
+  const method = result.methodCost;
+  const stale =
+    method &&
+    (Date.parse(method.expiresAt) <= now ||
+      (maximumQuoteAgeMs !== undefined &&
+        Date.parse(method.oldestInputAt) + maximumQuoteAgeMs <= now));
+  return {
+    ...result,
+    evaluatedAt: row.evaluatedAt,
+    lastSuccessfulAt:
+      !stale && result.status === 'success' ? row.evaluatedAt : null,
+    ...(stale
+      ? {
+          status: 'stale',
+          methodCost: null,
+          estimatedSalePrice: null,
+          expectedCraftCost: null,
+          marginPercent: null,
+          profit: null,
+        }
+      : {}),
+  };
+}
+
+function collectorResourceResponse<T>(
+  correlationId: string,
+  data: T,
+  evaluations: ApiRecipeEvaluation[],
+) {
+  const latest = (values: (string | null)[]) =>
+    values
+      .filter((at): at is string => at !== null)
+      .sort()
+      .at(-1);
+  const publishedAt = latest(evaluations.map(({ evaluatedAt }) => evaluatedAt));
+  if (!publishedAt) return resourceResponse(correlationId, data, null, 'idle');
+
+  const lastSuccessfulAt = latest(
+    evaluations.map((row) => row.lastSuccessfulAt),
+  );
+  const common = {
+    correlationId,
+    data,
+    publishedAt,
+    refreshStatus: 'idle' as const,
+  };
+  if (lastSuccessfulAt)
+    return {
+      ...common,
+      lastSuccessfulAt,
+      errorCode: null,
+      isStale: false as const,
+      state: 'success' as const,
+    };
+
+  const isStale =
+    evaluations.some((row) => row.status === 'stale') &&
+    !evaluations.some((row) => row.status === 'partial');
+  return {
+    ...common,
+    lastSuccessfulAt: null,
+    errorCode: isStale
+      ? ('SNAPSHOT_EXPIRED' as const)
+      : (evaluations.find((row) => row.errorCode)?.errorCode ??
+        ('PUBLICATION_INCOMPLETE' as const)),
+    isStale,
+    state: 'partial' as const,
   };
 }
 
@@ -207,7 +327,7 @@ function resourceResponse<T>(
 
 function toCatalogEntry(
   recipe: StoredRecipe,
-  evaluation?: RecipeEvaluation,
+  evaluation?: ResourceEvaluation,
   presentationCatalog?: ItemPresentationCatalog,
   snapshot?: CatalogEntry['snapshot'],
 ): CatalogEntry {
@@ -235,7 +355,9 @@ function toCatalogEntry(
 async function latestOutputSnapshot(input: {
   maximumQuoteAgeMs?: number | undefined;
   currentLeague: Awaited<ReturnType<Repositories['leagues']['findCurrent']>>;
-  evaluation: RecipeEvaluation | undefined;
+  evaluation:
+    | (ResourceEvaluation & { sourceSnapshotDedupeKey?: string | null })
+    | undefined;
   recipe: StoredRecipe;
   repositories: Repositories;
   trade: TradeQueryGenerator | undefined;
@@ -339,7 +461,10 @@ async function latestOutputSnapshot(input: {
   return parsed.success ? parsed.data : null;
 }
 
-function toRecipeSummary(recipe: StoredRecipe, evaluation?: RecipeEvaluation) {
+function toRecipeSummary(
+  recipe: StoredRecipe,
+  evaluation?: ResourceEvaluation,
+) {
   const definition = validateRecipeDocument(recipe.definition);
   return {
     category: recipe.category,
@@ -361,7 +486,7 @@ const saleGradeSchema = recipeEvaluationSchema.pick({
 
 function toEvaluation(
   recipeId: string,
-  evaluation?: RecipeEvaluation,
+  evaluation?: ResourceEvaluation,
 ): ApiRecipeEvaluation {
   if (!evaluation) {
     return {
@@ -427,7 +552,7 @@ function toEvaluation(
 
 function toRecipeDetail(
   recipe: StoredRecipe,
-  evaluation?: RecipeEvaluation,
+  evaluation?: ResourceEvaluation,
   presentationCatalog?: ItemPresentationCatalog,
 ): RecipeDetailView {
   const definition = validateRecipeDocument(recipe.definition);

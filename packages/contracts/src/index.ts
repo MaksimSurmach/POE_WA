@@ -430,12 +430,40 @@ function resourceResponseSchema<T extends z.ZodType>(dataSchema: T) {
 }
 
 export const catalogResponseSchema = resourceResponseSchema(
-  z.strictObject({ entries: z.array(catalogEntrySchema) }),
+  z.strictObject({
+    entries: z.array(catalogEntrySchema),
+    pipeline: z.literal('collector').optional(),
+  }),
 );
 
 export const recipeResponseSchema = resourceResponseSchema(
   recipeDetailViewSchema,
 );
+
+export const collectorStatusSchema = z.object({
+  collectorState: z
+    .object({
+      lastRunFinishedAt: z.iso.datetime().nullable(),
+      blockedReason: z.string().nullable(),
+      lastRunStatus: z
+        .enum(['running', 'succeeded', 'failed', 'blocked'])
+        .nullable(),
+    })
+    .nullable(),
+  latestRequest: z
+    .object({
+      id: z.uuid(),
+      state: z.enum(['queued', 'running', 'done', 'failed']),
+    })
+    .nullable(),
+  lockHeld: z.boolean(),
+});
+
+export type CollectorStatus = z.infer<typeof collectorStatusSchema>;
+
+export const collectorRunResponseSchema = z.strictObject({
+  requestId: z.uuid(),
+});
 
 export const refreshFreshnessStateSchema = z.enum([
   'never-published',
