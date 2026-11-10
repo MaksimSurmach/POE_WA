@@ -262,9 +262,9 @@ export function createInMemoryRepositories(): Repositories {
           .sort((left, right) => left.id.localeCompare(right.id))
           .map(clone);
       },
-      async listActive() {
+      async listActive(ids) {
         return [...recipes.values()]
-          .filter(({ active }) => active)
+          .filter(({ active, id }) => active && (!ids || ids.includes(id)))
           .sort((left, right) => left.title.localeCompare(right.title))
           .map(clone);
       },

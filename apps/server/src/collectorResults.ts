@@ -225,9 +225,7 @@ export function createCollectorResultPublisher(
             .nonempty()
             .parse(schedule.payload.recipeIds)
         : undefined;
-    const recipes = (await repositories.recipes.listActive()).filter(
-      ({ id }) => !recipeIds || recipeIds.includes(id),
-    );
+    const recipes = await repositories.recipes.listActive(recipeIds);
     if (!recipes.length) return;
     const settings = await readSettings();
     const quotes = await readCaptureQuotes(

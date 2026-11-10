@@ -775,12 +775,14 @@ export function createPostgresRepositories(
           return rows.map(mapRecipe);
         });
       },
-      listActive() {
+      listActive(ids) {
         return mapRepositoryError('recipes', 'listActive', async () => {
           const rows = await collectorDatabase
             .select()
             .from(recipes)
-            .where(eq(recipes.active, true))
+            .where(
+              and(eq(recipes.active, true), ids && inArray(recipes.id, ids)),
+            )
             .orderBy(recipes.title);
           return rows.map(mapRecipe);
         });
