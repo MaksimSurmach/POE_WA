@@ -190,8 +190,8 @@ production dependencies with
 `pnpm --filter @poe-worksmith/server deploy --prod --legacy <staging-dir>`.
 Copy `services/market-trade-scraper` to the Home Assistant local apps directory,
 then copy the staged `package.json`, `node_modules`, current server `dist`, and
-repository `recipes` directory into its `runtime` directory. Reload the app
-store and install or update `local_poe_trade_scraper`.
+repository `recipes` directory into its `runtime` directory. On macOS, set `COPYFILE_DISABLE=1` when creating the tar archive.
+Reload the app store and install or update `local_poe_trade_scraper`.
 
 Set the app's database DSN and existing encryption key in Supervisor options.
 With an empty target ID, the add-on starts the dedicated Node collector and

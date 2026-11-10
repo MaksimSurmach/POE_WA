@@ -196,6 +196,7 @@ export async function loadRecipeFile(
 async function findRecipeFiles(directory: string): Promise<string[]> {
   const files: string[] = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (entry.name.startsWith('.')) continue;
     const file = path.join(directory, entry.name);
     if (entry.isDirectory() && !entry.name.startsWith('_'))
       files.push(...(await findRecipeFiles(file)));
