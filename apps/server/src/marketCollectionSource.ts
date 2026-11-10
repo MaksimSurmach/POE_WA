@@ -1,15 +1,10 @@
-import type {
-  MarketCollectionRun,
-  MarketCollectionSource,
-} from '@poe-worksmith/contracts';
-import { DomainError } from '@poe-worksmith/domain';
+import type { MarketCollectionSource } from '@poe-worksmith/contracts';
 import {
   configuredMarketCollectionSource,
   createBatchedMarketCollectionSource,
 } from './marketCollection.js';
 import type { RateLimitGate } from './rateLimitController.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
-import { marketCollectionRunner } from './config.js';
 import {
   TradeCompatibleTransport,
   loadTradeCompatibleConfig,
@@ -33,12 +28,6 @@ export function configuredCollectionSource(
     Partial<Pick<MarketEconomyRepository, 'latest'>>,
   readTimeoutMs?: () => Promise<number>,
 ): ConfiguredCollectionSource {
-  if (marketCollectionRunner(environment) === 'go')
-    return {
-      ...configuredMarketCollectionSource('disabled'),
-      async start() {},
-      async close() {},
-    };
   if (environment.MARKET_COLLECTION_SOURCE !== 'trade-compatible')
     return {
       ...configuredMarketCollectionSource(environment.MARKET_COLLECTION_SOURCE),
@@ -97,91 +86,5 @@ export function configuredCollectionSource(
         transport.connectionStatus = await sessionManager.start();
     },
     close: async () => sessionManager?.stop(),
-  };
-}
-
-/** Adapt the existing durable collection owner to queued recipe refreshes. */
-export function managedCollectionSource(
-  manager: import('./marketCollection.js').MarketCollectionManager,
-  research: Pick<
-    import('./marketResearch.js').MarketResearchRepository,
-    'saveTarget'
-  >,
-): import('./marketCollection.js').MarketCollectionAdapter {
-  return {
-    get descriptor() {
-      return manager.source;
-    },
-    async collect({ target, signal }) {
-      const stored = await research.saveTarget(target);
-      let run: Awaited<ReturnType<typeof manager.collectNow>> | null = null;
-      if (marketCollectionRunner() === 'go') {
-        const requestId = await manager.enqueueRequest(
-          stored.id,
-          'recipe-refresh',
-          true,
-        );
-        let completed = false;
-        while (!signal.aborted) {
-          const request = await manager.findRequest(requestId);
-          if (request?.status === 'cancelled')
-            throw new DomainError('MARKET_COLLECTION_CANCELLED');
-          if (request?.runId) {
-            const result = await manager.findRun(request.runId);
-            if (result && result.status !== 'running') {
-              if (
-                result.dataKind !== 'observed' ||
-                result.coverage !== 'complete' ||
-                !result.snapshotId ||
-                !['succeeded', 'empty'].includes(result.status)
-              )
-                throw new DomainError('MARKET_COLLECTION_FAILED');
-              run = result;
-              completed = true;
-              break;
-            }
-          }
-          await new Promise<void>((resolve) => setTimeout(resolve, 250));
-        }
-        if (!completed) {
-          await manager.cancelQueuedRequest(requestId);
-          throw new DomainError('MARKET_COLLECTION_CANCELLED');
-        }
-      } else {
-        run = await manager.collectNow(stored.id, signal);
-      }
-      if (!run) throw new DomainError('MARKET_COLLECTION_FAILED');
-      return collectionRunBatch(run);
-    },
-  };
-}
-
-export function collectionRunBatch(
-  run: MarketCollectionRun,
-): import('./marketCollection.js').MarketCollectionBatch {
-  return {
-    batchCount: run.batchCount,
-    cancelled: run.status === 'cancelled',
-    cached: run.cached,
-    ...(run.inexact === undefined ? {} : { inexact: run.inexact }),
-    capturedAt: run.capturedAt,
-    coverage: run.coverage ?? 'unknown',
-    currency: run.currency,
-    fetchedCount: run.fetchedCount,
-    listings: run.listings,
-    reportedTotal: run.reportedTotal,
-    returnedCount: run.returnedCount,
-    errorCode: run.errorCode,
-    retryAt: run.retryAt,
-    searchEvidence: run.searchEvidence,
-    ...(run.sortedSampleComplete === undefined
-      ? {}
-      : {
-          sortedSampleComplete:
-            run.sortedSampleComplete &&
-            !run.cancelRequested &&
-            !run.errorCode &&
-            run.status === 'partial',
-        }),
   };
 }
