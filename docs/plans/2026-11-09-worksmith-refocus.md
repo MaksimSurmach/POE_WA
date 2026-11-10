@@ -550,6 +550,7 @@ the homepage request issues 3 or fewer SQL statements on the test database.
 | 2026-11-10 | P2-07 | [#59](https://github.com/MaksimSurmach/POE_WA/pull/59) | Both R1 blocks and CI passed: 902 unit tests, 198 integration tests, 8 backend E2E tests, and 11 browser tests. Both collector entrypoints acquired the lock and shut down cleanly. Trade was faked; mixed-currency ranges above the cap remain partial until verified. |
 | 2026-11-10 | P2-08 | [#60](https://github.com/MaksimSurmach/POE_WA/pull/60) | Both R1 blocks and CI passed. Sealed cookie reuse, bounded Playwright recovery, provider cooldowns, and leader failover verified with fake providers and local PostgreSQL; live login remains a cutover gate. |
 | 2026-11-10 | P2-09 | [#61](https://github.com/MaksimSurmach/POE_WA/pull/61) | Both R1 blocks and CI passed. Scheduled legacy and collector fixtures agree on sale ask, mean cost, profit, grade, and p50/p90. The added sample column passed on the Neon copy. Live shadow comparison remains open. |
+| 2026-11-10 | P2-10 | [#62](https://github.com/MaksimSurmach/POE_WA/pull/62) | Both R1 blocks and CI passed. The collector browser scenario exercises a real Run now request and changes the displayed cost from 11,519c to 11,536c. The legacy flag and 11 browser scenarios are preserved. |
 
 P2-01 used read-only aggregates over all 759 observed snapshots from November 5–7 UTC. Each snapshot matched the capture time of a noncached `trade-compatible` run. The sample had 552 complete captures (126 empty), 207 partial captures, 49 targets, and 14,952 listing rows.
 

@@ -200,6 +200,20 @@ it('validates only schedule configuration before writing recipes', async () => {
   expect(await scheduleRows()).toHaveLength(46);
 });
 
+it('disables only retention during shadow collection and can re-enable it', async () => {
+  await seedPrerequisites();
+  await syncCli();
+  const previous = await scheduleRows();
+  await syncCli([], { COLLECTOR_RETENTION_ENABLED: 'false' });
+  expect(await scheduleRows()).toEqual(
+    previous.map((row) =>
+      row.kind === 'retention' ? { ...row, enabled: false } : row,
+    ),
+  );
+  await syncCli();
+  expect(await scheduleRows()).toEqual(previous);
+});
+
 it('moves the due time when cron changes and keeps active leases intact', async () => {
   await seedPrerequisites();
   await syncCli();
@@ -214,6 +228,7 @@ it('moves the due time when cron changes and keeps active leases intact', async 
     pool,
     {
       cleanupCron: '0 15 * * *',
+      collectorRetentionEnabled: true,
       leagueResolveCron: cadence.LEAGUE_RESOLVE_CRON,
       leagueResolveTimezone: 'UTC',
     },

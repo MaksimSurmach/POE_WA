@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CronExpressionParser } from 'cron-parser';
+import { Client } from 'pg';
 
 import { loadDatabaseConfig, type DatabaseConfig } from './config.js';
 
@@ -7,6 +8,7 @@ export type ApplicationMode = 'all' | 'api' | 'worker' | 'collector';
 
 const collectorScheduleFields = {
   CLEANUP_CRON: z.string().min(1).default('15 2 * * *'),
+  COLLECTOR_RETENTION_ENABLED: z.enum(['true', 'false']).default('true'),
   LEAGUE_RESOLVE_CRON: z.string().min(1).default('0 23 * * *'),
   LEAGUE_RESOLVE_TIMEZONE: z.string().min(1).default('Europe/Warsaw'),
 };
@@ -98,6 +100,7 @@ const runtimeEnvironmentSchema = z
 
 export type RuntimeConfig = {
   cleanupCron: string;
+  collectorRetentionEnabled: boolean;
   database: DatabaseConfig;
   host: string;
   jobLeaseTimeoutMs: number;
@@ -139,6 +142,8 @@ export function loadCollectorScheduleConfig(
   if (!result.success) throw new RuntimeConfigurationError(result.error.issues);
   return {
     cleanupCron: result.data.CLEANUP_CRON,
+    collectorRetentionEnabled:
+      result.data.COLLECTOR_RETENTION_ENABLED === 'true',
     leagueResolveCron: result.data.LEAGUE_RESOLVE_CRON,
     leagueResolveTimezone: result.data.LEAGUE_RESOLVE_TIMEZONE,
   };
@@ -154,9 +159,44 @@ export function loadRuntimeConfig(
     throw new RuntimeConfigurationError(result.error.issues);
   }
 
+  const mode = forcedMode ?? result.data.APP_MODE;
+  const database = loadDatabaseConfig(environment);
+  if (mode === 'collector') {
+    const path = [
+      database.environment === 'test' ? 'TEST_DATABASE_URL' : 'DATABASE_URL',
+    ];
+    let host: string;
+    try {
+      host = new Client({
+        connectionString: database.connectionString,
+        ssl: database.ssl,
+      }).host;
+    } catch {
+      throw new RuntimeConfigurationError([
+        {
+          code: 'custom',
+          path,
+          message: 'Invalid PostgreSQL connection options',
+        },
+      ]);
+    }
+    if (/^[^.]+-pooler\..+\.neon\.tech\.?$/i.test(host)) {
+      throw new RuntimeConfigurationError([
+        {
+          code: 'custom',
+          path,
+          message:
+            'Collector requires a direct PostgreSQL endpoint for LISTEN and its advisory lock',
+        },
+      ]);
+    }
+  }
+
   return {
     cleanupCron: result.data.CLEANUP_CRON,
-    database: loadDatabaseConfig(environment),
+    collectorRetentionEnabled:
+      result.data.COLLECTOR_RETENTION_ENABLED === 'true',
+    database,
     host: result.data.APP_HOST,
     jobLeaseTimeoutMs: result.data.JOB_LEASE_TIMEOUT_MS,
     jobSchema: result.data.PG_BOSS_SCHEMA,
@@ -166,7 +206,7 @@ export function loadRuntimeConfig(
     marketConcurrency: result.data.MARKET_CONCURRENCY,
     operatorDiagnosticsToken: result.data.OPERATOR_DIAGNOSTICS_TOKEN,
     marketRetryDelayMs: result.data.MARKET_RETRY_DELAY_MS,
-    mode: forcedMode ?? result.data.APP_MODE,
+    mode,
     pipeline: result.data.PIPELINE,
     poeUserAgent: result.data.POE_USER_AGENT,
     poeRequestTimeoutMs: result.data.POE_REQUEST_TIMEOUT_MS,

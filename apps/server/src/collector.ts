@@ -48,6 +48,7 @@ type CollectorOptions = {
   jitterMs?: () => number;
   maxIdleMs?: number | undefined;
   onError?: (code: string) => void;
+  onLeaderAcquired?: (client: PoolClient) => Promise<void>;
   bootstrap?: (client: PoolClient, signal: AbortSignal) => Promise<void>;
   publishResults?: PublishResults;
 };
@@ -435,6 +436,7 @@ async function collectSession({
   maxIdleMs = 15 * minuteMs,
   bootstrap,
   onError,
+  onLeaderAcquired,
   publishResults,
 }: CollectorOptions) {
   const client = await pool.connect();
@@ -473,6 +475,7 @@ async function collectSession({
     client.on('notification', onNotification);
     stop.addEventListener('abort', onStop);
     await client.query('listen worksmith_wake');
+    await onLeaderAcquired?.(client);
     await client.query(
       'update collector_schedule set leased_until = null where leased_until <= $1',
       [now()],

@@ -1,0 +1,89 @@
+name: poe-worksmith-server
+
+x-database-environment: &database-environment
+  APP_ENV: ${APP_ENV:-development}
+  DATABASE_SSL_MODE: ${DATABASE_SSL_MODE:-disable}
+  DATABASE_URL: ${DATABASE_URL:-postgresql://worksmith:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/worksmith}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: worksmith
+      POSTGRES_USER: worksmith
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD, pg_isready, -h, 127.0.0.1, -U, worksmith, -d, worksmith]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  app:
+    build:
+      context: .
+      target: app
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 45s
+    environment:
+      <<: *database-environment
+      APP_MODE: api
+      APP_HOST: 127.0.0.1
+      COLLECTOR_DATABASE_URL: ${COLLECTOR_DATABASE_URL:-}
+      OPERATOR_DIAGNOSTICS_TOKEN: ${OPERATOR_DIAGNOSTICS_TOKEN:-}
+      PIPELINE: ${PIPELINE:-legacy}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:8080:8080'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - --input-type=module
+        - -e
+        - "const r = await fetch('http://127.0.0.1:8080/health/ready'); if (!r.ok || (await r.json()).status !== 'ready') process.exit(1);"
+      interval: 3s
+      timeout: 2s
+      retries: 20
+      start_period: 15s
+
+  collector:
+    build:
+      context: .
+      target: server
+    command: [node, dist/entrypoints/collector.js]
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 11m
+    shm_size: 256m
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:deploy/chromium-seccomp.json
+    environment:
+      <<: *database-environment
+      APP_MODE: collector
+      DATABASE_URL: ${COLLECTOR_DATABASE_URL:-${DATABASE_URL:-postgresql://worksmith:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/worksmith}}
+      PIPELINE: collector
+      COLLECTOR_RETENTION_ENABLED: ${COLLECTOR_RETENTION_ENABLED:-false}
+      MARKET_COLLECTION_SOURCE: ${MARKET_COLLECTION_SOURCE:-disabled}
+      POE_TRADE_ACCESS: ${POE_TRADE_ACCESS:-disabled}
+      POE_TRADE_BROWSER_PROFILE_DIR: /home/node/worksmith-trade
+      POE_TRADE_USER_AGENT: '${POE_TRADE_USER_AGENT:-OAuth poe-worksmith/0.0.0 (contact: local-development)}'
+      POE_TRADE_USERNAME: ${POE_TRADE_USERNAME:-}
+      POE_TRADE_PASSWORD: ${POE_TRADE_PASSWORD:-}
+      POE_TRADE_SESSION_KEY: ${POE_TRADE_SESSION_KEY:-}
+      NINJA_USER_AGENT: '${NINJA_USER_AGENT:-OAuth poe-worksmith/0.0.0 (contact: local-development)}'
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - trade-profile:/home/node/worksmith-trade
+
+volumes:
+  postgres-data:
+  trade-profile:

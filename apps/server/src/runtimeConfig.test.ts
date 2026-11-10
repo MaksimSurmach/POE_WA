@@ -88,6 +88,36 @@ describe('runtime configuration', () => {
     expect(modeIncludesWorker(mode)).toBe(false);
   });
 
+  it.each([
+    'ep-test-pooler.eu-central-1.aws.neon.tech/worksmith',
+    'ep-test%2dpooler.eu-central-1.aws.neon.tech/worksmith',
+    'localhost/worksmith?host=ep-test-pooler.eu-central-1.aws.neon.tech',
+  ])('allows a pooled Neon URL only outside collector mode (%s)', (target) => {
+    const pooled = {
+      ...environment,
+      TEST_DATABASE_URL: `postgresql://user:password@${target}`,
+    };
+    expect(loadRuntimeConfig(pooled, 'api').mode).toBe('api');
+    expect(() => loadRuntimeConfig(pooled, 'collector')).toThrow(
+      'Collector requires a direct PostgreSQL endpoint',
+    );
+  });
+
+  it('preserves collector retention unless explicitly disabled', () => {
+    expect(
+      loadRuntimeConfig(environment, 'collector').collectorRetentionEnabled,
+    ).toBe(true);
+    expect(
+      loadRuntimeConfig(
+        {
+          ...environment,
+          COLLECTOR_RETENTION_ENABLED: 'false',
+        },
+        'collector',
+      ).collectorRetentionEnabled,
+    ).toBe(false);
+  });
+
   it('rejects unsafe schema identifiers', () => {
     expect(() =>
       loadRuntimeConfig({ ...environment, PG_BOSS_SCHEMA: 'pgboss; drop' }),
