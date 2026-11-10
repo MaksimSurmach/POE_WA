@@ -687,7 +687,9 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
         inexact: data.inexact ?? false,
         sourceUrl: `${this.#config.baseURL}/trade/search/${encodeURIComponent(target.league)}/${encodeURIComponent(data.id)}`,
         ...(this.#collector
-          ? {}
+          ? {
+              request: { scope: generated.scope, sort: generated.request.sort },
+            }
           : {
               request: jsonRecord.parse({
                 version: generated.version,
@@ -739,7 +741,13 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
         data: parsed.data.result.map((entry) => {
           if (entry === null) return null;
           try {
-            return normalizeTradeCompatibleListing(entry, target);
+            const row = normalizeTradeCompatibleListing(entry, target);
+            return {
+              ...row,
+              rawListing: jsonRecord.parse({
+                item: itemSchema.strip().parse(row.rawListing.item),
+              }),
+            };
           } catch (error) {
             if (
               error instanceof DomainError &&

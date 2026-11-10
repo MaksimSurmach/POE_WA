@@ -1,3 +1,4 @@
+import type { RecipeResult } from './recipeResult.js';
 import type { RateLimitWindow } from '@poe-worksmith/domain';
 import type { MarketAdminSettings } from '@poe-worksmith/contracts';
 import type {
@@ -1483,6 +1484,7 @@ export const captures = pgTable(
     reportedTotal: integer('reported_total').notNull(),
     fetched: integer('fetched').notNull(),
     complete: boolean('complete').notNull(),
+    sortedSampleIds: text('sorted_sample_ids').array(),
     partialReason: text('partial_reason'),
     slices: integer('slices').notNull(),
     // Preserve the source ID after economy snapshot retention expires.
@@ -1590,7 +1592,7 @@ export const recipeResults = pgTable(
       .references(() => poeLeagues.id),
     recipeContentHash: text('recipe_content_hash').notNull(),
     evaluatedAt: timestamp('evaluated_at', { withTimezone: true }).notNull(),
-    result: jsonb('result').$type<Record<string, unknown>>().notNull(),
+    result: jsonb('result').$type<RecipeResult>().notNull(),
   },
   (table) => [primaryKey({ columns: [table.recipeId, table.leagueId] })],
 );

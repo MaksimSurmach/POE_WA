@@ -23,7 +23,7 @@ const environment = {
   POE_TRADE_USER_AGENT: 'Worksmith test collector',
 };
 
-function target(mixed = false) {
+function target(mixed = false, slot = 'crafted-item') {
   return {
     payload: {
       provider: 'poe-trade',
@@ -36,7 +36,7 @@ function target(mixed = false) {
           realm: 'pc',
           league: 'Demo',
           patch: '3.28',
-          slot: 'crafted-item',
+          slot,
           baseTypes: ['Stygian Vise'],
           builds: [],
           requiredMods: [],
@@ -274,6 +274,39 @@ describe('collector Trade captures', () => {
       });
       expect(requests.ranged).toBe(mixed ? 0 : 5);
       expect(requests.search).toBe(requests.ranged + 1);
+    },
+  );
+
+  it.each([
+    [180, true],
+    [180, false],
+    [24, true],
+  ])(
+    'preserves sorted starting-base prefix proof for %s asks (proof=%s)',
+    async (count, proof) => {
+      const { rateLimits, economy, requests } = setup(
+        listings(count),
+        proof ? {} : { omit: 'id-19' },
+      );
+      const run = fixtureTradeCapture(rateLimits, economy, environment);
+      expect(
+        await run(target(true, 'starting-base'), new AbortController().signal),
+      ).toMatchObject({
+        status: 'success',
+        capture: {
+          complete: count === 24,
+          sortedSampleIds: proof
+            ? Array.from({ length: 20 }, (_, i) => `id-${i + 1}`)
+            : null,
+          fetched: count === 24 ? 24 : proof ? 20 : 19,
+          reportedTotal: count,
+        },
+      });
+      expect(requests).toEqual({
+        search: 1,
+        ranged: 0,
+        detail: count === 24 ? 3 : 2,
+      });
     },
   );
 

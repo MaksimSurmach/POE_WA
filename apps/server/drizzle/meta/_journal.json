@@ -218,6 +218,13 @@
       "when": 1794268111170,
       "tag": "0030_collector_capture_history",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794272102942,
+      "tag": "0031_collector_sorted_sample",
+      "breakpoints": true
     }
   ]
 }

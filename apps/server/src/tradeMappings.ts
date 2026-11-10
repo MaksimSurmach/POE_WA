@@ -146,25 +146,71 @@ export async function loadAndValidateTradeMappingManifest(
   };
 }
 
+type ActiveTradeMapping = {
+  external_id: string;
+  source_revision: string;
+  discriminator: string | null;
+  payload: Record<string, unknown>;
+};
+
+const activeTradeMappings = `
+  from provider_mappings pm join game_data_versions gdv on gdv.id = pm.game_data_version_id
+  where gdv.status = 'active' and pm.provider = 'poe-trade' and pm.status = 'active'`;
+
 export function createPostgresTradeMappingCatalog(
   pool: Pool,
 ): TradeMappingCatalog {
-  const lookup = async (
+  return tradeMappingCatalog(
+    async (gameDataVersion, entityKind, canonicalId) => {
+      const result = await pool.query<ActiveTradeMapping>(
+        `select pm.external_id, pm.discriminator, pm.payload, pm.source_revision ${activeTradeMappings}
+       and gdv.patch_version = $1 and pm.entity_kind = $2 and pm.canonical_id = $3`,
+        [gameDataVersion, entityKind, canonicalId],
+      );
+      return result.rows;
+    },
+  );
+}
+
+export async function loadTradeMappingCatalog(
+  connection: Pick<Pool, 'query'>,
+  gameDataVersions: string[],
+): Promise<TradeMappingCatalog> {
+  const { rows } = await connection.query<
+    ActiveTradeMapping & {
+      patch_version: string;
+      entity_kind: MappingInput['entityKind'];
+      canonical_id: string;
+    }
+  >(
+    `select gdv.patch_version, pm.entity_kind, pm.canonical_id, pm.external_id, pm.discriminator, pm.payload, pm.source_revision
+     ${activeTradeMappings}
+       and gdv.patch_version = any($1::text[]) and pm.entity_kind in ('base', 'mod', 'modFamily')`,
+    [gameDataVersions],
+  );
+  const mappings = new Map<string, ActiveTradeMapping[]>();
+  for (const row of rows) {
+    const key = JSON.stringify([
+      row.patch_version,
+      row.entity_kind,
+      row.canonical_id,
+    ]);
+    const entries = mappings.get(key);
+    if (entries) entries.push(row);
+    else mappings.set(key, [row]);
+  }
+  return tradeMappingCatalog(
+    (...args) => mappings.get(JSON.stringify(args)) ?? [],
+  );
+}
+
+function tradeMappingCatalog(
+  lookup: (
     gameDataVersion: string,
     entityKind: MappingInput['entityKind'],
     canonicalId: string,
-  ) => {
-    const rows = await pool.query<{
-      external_id: string;
-      source_revision: string;
-      discriminator: string | null;
-      payload: Record<string, unknown>;
-    }>(
-      `select pm.external_id, pm.discriminator, pm.payload, pm.source_revision from provider_mappings pm join game_data_versions gdv on gdv.id = pm.game_data_version_id where gdv.patch_version = $1 and gdv.status = 'active' and pm.provider = 'poe-trade' and pm.entity_kind = $2 and pm.canonical_id = $3 and pm.status = 'active'`,
-      [gameDataVersion, entityKind, canonicalId],
-    );
-    return rows.rows;
-  };
+  ) => ActiveTradeMapping[] | Promise<ActiveTradeMapping[]>,
+): TradeMappingCatalog {
   return {
     async resolveBase({ gameDataVersion, baseId }) {
       const rows = await lookup(gameDataVersion, 'base', baseId);

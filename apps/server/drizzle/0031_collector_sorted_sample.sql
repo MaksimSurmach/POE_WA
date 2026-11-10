@@ -1,0 +1,1 @@
+ALTER TABLE "captures" ADD COLUMN "sorted_sample_ids" text[];
