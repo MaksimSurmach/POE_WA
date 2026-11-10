@@ -803,6 +803,7 @@ export async function evaluateFreshRecipe(
       expectedCraftCost,
       expectedExecutions: definition.craft.expectedExecutions,
       steps: materialEconomics.steps,
+      budgetModel: definition.craft.budgetModel,
     }),
     recipeContentHash: recipe.contentHash,
     oldestInputAt: new Date(oldestInputAt).toISOString(),
