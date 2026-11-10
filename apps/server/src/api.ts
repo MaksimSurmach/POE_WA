@@ -27,7 +27,6 @@ import {
   rateLimitDiagnosticsResponseSchema,
   leaguesResponseSchema,
   currentLeagueResponseSchema,
-  refreshTriggerResponseSchema,
   refreshDiagnosticsResponseSchema,
   type RecipeResponse,
   recipeResponseSchema,
@@ -111,7 +110,6 @@ export function buildApi(
     marketResearch?: TradeHistoryRepository | undefined;
     marketEconomy?: MarketEconomyOptions | undefined;
     marketTrends?: MarketTrendsReader | undefined;
-    triggerRefresh?: (() => Promise<string | null>) | undefined;
   } = {},
 ) {
   const api = Fastify({
@@ -147,7 +145,7 @@ export function buildApi(
     if (
       options.marketAdmin &&
       !['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
-      (path.startsWith('/api/market/') || path === '/api/refresh')
+      path === '/api/market/economy/collect'
     )
       await options.marketAdmin.store.audit(
         request.id,
@@ -157,9 +155,7 @@ export function buildApi(
     if (
       options.marketAdmin &&
       request.method === 'POST' &&
-      /\/api\/market\/(?:economy\/collect|snapshots\/import|targets\/[^/]+\/collection\/run)$/.test(
-        path,
-      )
+      path === '/api/market/economy/collect'
     ) {
       const settings = (await options.marketAdmin.store.read()).effective;
       if (settings.collectionsPaused)
@@ -172,8 +168,7 @@ export function buildApi(
     if (
       options.marketAdmin &&
       !['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
-      (request.url.startsWith('/api/market/') ||
-        request.url.split('?')[0] === '/api/refresh')
+      request.url.split('?')[0] === '/api/market/economy/collect'
     )
       await options.marketAdmin.store.audit(request.id, 'legacy.write', {
         method: request.method,
@@ -327,17 +322,6 @@ export function buildApi(
     );
   }
 
-  const triggerRefresh = options.triggerRefresh;
-  if (triggerRefresh)
-    api.post('/api/refresh', async (request, reply) => {
-      const progress = await readRefreshProgress();
-      const jobId = progress.active ? null : await triggerRefresh();
-      reply.code(202);
-      return refreshTriggerResponseSchema.parse({
-        correlationId: request.id,
-        data: { accepted: jobId !== null },
-      });
-    });
   api.get('/api/diagnostics/rate-limits', async (request) => {
     const policies = await readRateLimits();
     return rateLimitDiagnosticsResponseSchema.parse({

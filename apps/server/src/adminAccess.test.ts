@@ -39,13 +39,10 @@ describe('local administrative boundary', () => {
       expect(isLocalAdmin(request)).toBe(false);
     },
   );
-  it('protects all market writes and admin reads, leaving public reads available', () => {
-    expect(needsAdminAccess('GET', '/api/admin/market/status')).toBe(true);
-    expect(needsAdminAccess('POST', '/api/refresh')).toBe(true);
+  it('protects operator routes and leaves public reads available', () => {
+    expect(needsAdminAccess('GET', '/api/admin/market/settings')).toBe(true);
+    expect(needsAdminAccess('POST', '/api/run')).toBe(true);
     expect(needsAdminAccess('POST', '/api/market/economy/collect')).toBe(true);
-    expect(needsAdminAccess('PATCH', '/api/market/targets/1/collection')).toBe(
-      true,
-    );
     expect(needsAdminAccess('GET', '/api/catalog')).toBe(false);
   });
 });

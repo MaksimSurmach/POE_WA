@@ -2,7 +2,7 @@ import type {
   CatalogResponse,
   CurrentLeagueResponse,
 } from '@poe-worksmith/contracts';
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Link,
   NavLink,
@@ -112,110 +112,12 @@ function CatalogRoute() {
   const [league, setLeague] = useState<CurrentLeagueResponse['data'] | null>(
     null,
   );
-  const refreshBaseline = useRef<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [refreshMessage, setRefreshMessage] = useState('');
   const collectorMode = response?.data?.pipeline === 'collector';
-  const legacyMode = response !== null && !collectorMode;
   const [catalogRevision, setCatalogRevision] = useState(0);
   const reloadCatalog = useCallback(
     () => setCatalogRevision((value) => value + 1),
     [],
   );
-  useEffect(() => {
-    if (!legacyMode) return;
-    let active = true;
-    apiClient
-      .getRefreshFreshness()
-      .then((r) => {
-        if (active && r.data.active) {
-          refreshBaseline.current = r.data.published?.id ?? null;
-          setRefreshing(true);
-          setRefreshMessage('Price refresh running.');
-        }
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [legacyMode]);
-  useEffect(() => {
-    if (!legacyMode || !refreshing) return;
-    let active = true;
-    const queuedAt = Date.now();
-    const poll = setInterval(() => {
-      apiClient
-        .getRefreshFreshness()
-        .then(async (r) => {
-          if (!active) return;
-          if (
-            (r.data.lastAttempt?.id ?? null) === refreshBaseline.current &&
-            Date.now() - queuedAt > 60_000
-          ) {
-            setRefreshing(false);
-            setRefreshMessage(
-              'Refresh has not started. Check worker status and try again.',
-            );
-            return;
-          }
-          const cycle = r.data.active ?? r.data.lastAttempt;
-          if (cycle)
-            setRefreshMessage(
-              `${r.data.state}: ${cycle.completedQueries + cycle.failedQueries}/${cycle.totalQueries} queries`,
-            );
-          if (
-            ['published', 'failed'].includes(r.data.state) &&
-            r.data.lastAttempt?.id !== refreshBaseline.current
-          ) {
-            const [catalog, currentLeague] = await Promise.all([
-              apiClient.getCatalog(),
-              apiClient.getCurrentLeague(),
-            ]);
-            if (active) {
-              setResponse(catalog);
-              setLeague(currentLeague.data);
-              setRefreshing(false);
-            }
-          }
-        })
-        .catch(() => {
-          if (active) {
-            setRefreshing(false);
-            setRefreshMessage('Price refresh status unavailable.');
-          }
-        });
-    }, 2000);
-    return () => {
-      active = false;
-      clearInterval(poll);
-    };
-  }, [legacyMode, refreshing]);
-  async function refreshPrices() {
-    setRefreshing(true);
-    setRefreshMessage('Requesting price refresh…');
-    try {
-      const freshness = (await apiClient.getRefreshFreshness()).data;
-      refreshBaseline.current = freshness.active
-        ? (freshness.published?.id ?? null)
-        : (freshness.lastAttempt?.id ?? null);
-      if (freshness.active) {
-        setRefreshMessage('A price refresh is already running.');
-        return;
-      }
-      const result = await apiClient.triggerPriceRefresh();
-      if (!result.data.accepted) refreshBaseline.current = null;
-      setRefreshMessage(
-        result.data.accepted
-          ? 'Price refresh queued.'
-          : 'A refresh is already queued or running.',
-      );
-    } catch {
-      setRefreshing(false);
-      setRefreshMessage(
-        'Price refresh unavailable. Check the server connection and configured source access.',
-      );
-    }
-  }
   const entries = response?.data?.entries ?? [];
   const marketUpdatedAt = entries
     .map(({ evaluation, snapshot }) =>
@@ -325,17 +227,6 @@ function CatalogRoute() {
             onResultsChanged={reloadCatalog}
             onOperatorConnected={setOperatorToken}
           />
-        ) : legacyMode ? (
-          <div className="handbook-refresh">
-            <button
-              type="button"
-              disabled={refreshing}
-              onClick={() => void refreshPrices()}
-            >
-              {refreshing ? 'Refreshing…' : 'Refresh Prices'}
-            </button>
-            <span role="status">{refreshMessage}</span>
-          </div>
         ) : null}
       </section>
 

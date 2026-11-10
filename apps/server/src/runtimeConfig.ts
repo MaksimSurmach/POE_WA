@@ -54,10 +54,6 @@ const runtimeEnvironmentSchema = z
       z.string().trim().min(1).optional(),
     ),
     MARKET_RETRY_DELAY_MS: z.coerce.number().int().min(1000).default(60_000),
-    PG_BOSS_SCHEMA: z
-      .string()
-      .regex(/^[a-z_][a-z0-9_]*$/)
-      .default('pgboss'),
     POE_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).default(15_000),
     POE_USER_AGENT: z
       .string()
@@ -68,7 +64,6 @@ const runtimeEnvironmentSchema = z
     REFRESH_CRON: z.string().min(1).default('0 * * * *'),
     REFRESH_TIMEZONE: z.string().min(1).default('UTC'),
     RETENTION_BATCH_SIZE: z.coerce.number().int().min(1).default(500),
-    SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().min(1000).default(30_000),
     SNAPSHOT_TTL_MS: z.coerce
       .number()
       .int()
@@ -104,7 +99,6 @@ export type RuntimeConfig = {
   database: DatabaseConfig;
   host: string;
   jobLeaseTimeoutMs: number;
-  jobSchema: string;
   leagueResolveCron: string;
   leagueResolveTimezone: string;
   logLevel: z.infer<typeof runtimeEnvironmentSchema>['LOG_LEVEL'];
@@ -119,7 +113,6 @@ export type RuntimeConfig = {
   refreshCron: string;
   refreshTimezone: string;
   retentionBatchSize: number;
-  shutdownTimeoutMs: number;
   snapshotTtlMs: number;
 };
 
@@ -209,7 +202,6 @@ export function loadRuntimeConfig(
     database,
     host: result.data.APP_HOST,
     jobLeaseTimeoutMs: result.data.JOB_LEASE_TIMEOUT_MS,
-    jobSchema: result.data.PG_BOSS_SCHEMA,
     leagueResolveCron: result.data.LEAGUE_RESOLVE_CRON,
     leagueResolveTimezone: result.data.LEAGUE_RESOLVE_TIMEZONE,
     logLevel: result.data.LOG_LEVEL,
@@ -224,7 +216,6 @@ export function loadRuntimeConfig(
     refreshCron: result.data.REFRESH_CRON,
     refreshTimezone: result.data.REFRESH_TIMEZONE,
     retentionBatchSize: result.data.RETENTION_BATCH_SIZE,
-    shutdownTimeoutMs: result.data.SHUTDOWN_TIMEOUT_MS,
     snapshotTtlMs: result.data.SNAPSHOT_TTL_MS,
   };
 }

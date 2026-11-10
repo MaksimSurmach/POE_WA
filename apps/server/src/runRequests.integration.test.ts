@@ -23,7 +23,6 @@ function createApi(diagnosticsToken?: string) {
   const options = {
     collectorPool: pool,
     diagnosticsToken,
-    triggerRefresh: async () => 'legacy',
   };
   return buildApi(
     pino({ level: 'silent' }),
@@ -211,6 +210,15 @@ describe('collector run request API', () => {
     expect(
       (await api.inject({ ...authorized, method: 'POST', url: '/api/refresh' }))
         .statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await api.inject({
+          ...authorized,
+          method: 'POST',
+          url: '/api/market/economy/collect',
+        })
+      ).statusCode,
     ).toBe(401);
   });
 

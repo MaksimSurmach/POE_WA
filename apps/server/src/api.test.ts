@@ -157,31 +157,6 @@ describe('health API', () => {
     await api.close();
   });
 
-  it('queues one bounded manual price refresh', async () => {
-    const triggerRefresh = vi.fn().mockResolvedValue('job-1');
-    const api = buildApi(
-      pino({ level: 'silent' }),
-      vi.fn(),
-      async () => ({ active: null, published: null }),
-      async () => [],
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      { triggerRefresh },
-    );
-
-    const response = await api.inject({ method: 'POST', url: '/api/refresh' });
-
-    expect(response.statusCode).toBe(202);
-    expect(response.json()).toEqual({
-      correlationId: response.headers['x-request-id'],
-      data: { accepted: true },
-    });
-    expect(triggerRefresh).toHaveBeenCalledOnce();
-    await api.close();
-  });
-
   it('exposes shared rate-limit windows and waiting time', async () => {
     const timestamp = new Date('2026-07-20T00:00:00.000Z');
     const blockedUntil = new Date(timestamp.getTime() + 10_000);
@@ -357,44 +332,4 @@ describe('health API', () => {
     expect(current.json().data).not.toHaveProperty('metadata');
     await api.close();
   });
-});
-
-it('does not queue another manual refresh while a durable cycle is active', async () => {
-  const timestamp = new Date();
-  const triggerRefresh = vi.fn();
-  const active = {
-    id: '11111111-1111-4111-8111-111111111111',
-    leagueId: '22222222-2222-4222-8222-222222222222',
-    status: 'running' as const,
-    totalRecipes: 1,
-    completedRecipes: 0,
-    failedRecipes: 0,
-    totalQueries: 1,
-    completedQueries: 0,
-    failedQueries: 0,
-    requestedAt: timestamp,
-    startedAt: timestamp,
-    finishedAt: null,
-    publishedAt: null,
-    errorMessage: null,
-  };
-  const api = buildApi(
-    pino({ level: 'silent' }),
-    vi.fn(),
-    async () => ({ active, published: null }),
-    async () => [],
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    { triggerRefresh },
-  );
-  try {
-    const response = await api.inject({ method: 'POST', url: '/api/refresh' });
-    expect(response.statusCode).toBe(202);
-    expect(response.json().data.accepted).toBe(false);
-    expect(triggerRefresh).not.toHaveBeenCalled();
-  } finally {
-    await api.close();
-  }
 });

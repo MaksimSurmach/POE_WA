@@ -389,10 +389,8 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     api,
     host: config.host,
     logger,
-    mode: config.mode,
     pool,
     port: config.port,
-    shutdownTimeoutMs: config.shutdownTimeoutMs,
   });
 
   const shutdown = async (signal: NodeJS.Signals) => {

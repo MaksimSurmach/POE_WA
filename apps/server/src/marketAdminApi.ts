@@ -1,5 +1,4 @@
 import {
-  marketAdminStatusSchema,
   marketAdminSettingsResponseSchema,
   marketAdminPatchSchema,
   marketAdminSettingsSchema,
@@ -14,8 +13,7 @@ import type {
 import type { Logger } from 'pino';
 import { z } from 'zod';
 import { isLocalAdmin } from './adminAccess.js';
-import type { MarketAdminStore, AdminQueue } from './marketAdmin.js';
-import type { MarketAdminStatus } from '@poe-worksmith/contracts';
+import type { MarketAdminStore } from './marketAdmin.js';
 
 const operatorSettingsPatch = marketAdminPatchSchema.extend({
   settings: marketAdminSettingsSchema
@@ -25,8 +23,6 @@ const operatorSettingsPatch = marketAdminPatchSchema.extend({
 
 export type MarketAdminApiOptions = {
   store: MarketAdminStore;
-  queue?: AdminQueue | undefined;
-  status?: () => Promise<MarketAdminStatus>;
 };
 export function registerMarketAdminRoutes(
   api: FastifyInstance<
@@ -38,7 +34,7 @@ export function registerMarketAdminRoutes(
   options?: MarketAdminApiOptions,
 ) {
   if (!options) return;
-  const { store, queue, status } = options;
+  const { store } = options;
   api.get('/api/admin/market/settings', async (request) => ({
     correlationId: request.id,
     data: marketAdminSettingsResponseSchema.parse(await store.read()),
@@ -80,34 +76,4 @@ export function registerMarketAdminRoutes(
         };
       },
     );
-  if (!queue) return;
-  if (status)
-    api.get('/api/admin/market/status', async (request) => ({
-      correlationId: request.id,
-      data: marketAdminStatusSchema.parse(await status()),
-    }));
-  api.post(
-    '/api/admin/market/refresh',
-    { bodyLimit: 1024 },
-    async (request, reply) => {
-      const result = await store.enqueue(request.body, request.id, queue);
-      return reply.code(202).send({ correlationId: request.id, data: result });
-    },
-  );
-  api.get('/api/admin/market/runs', async (request) => ({
-    correlationId: request.id,
-    data: await store.runs(),
-  }));
-  api.post<{ Params: { id: string } }>(
-    '/api/admin/market/runs/:id/cancel',
-    { bodyLimit: 1024 },
-    async (request, reply) => {
-      if (!z.uuid().safeParse(request.params.id).success)
-        throw new DomainError('MARKET_QUERY_INVALID');
-      return reply.code(202).send({
-        correlationId: request.id,
-        data: await store.cancel(request.params.id, request.id, queue),
-      });
-    },
-  );
 }

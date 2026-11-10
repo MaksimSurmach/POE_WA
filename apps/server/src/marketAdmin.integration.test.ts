@@ -1,35 +1,19 @@
 import { randomUUID } from 'node:crypto';
-import {
-  marketAdminRunSchema,
-  marketAdminSettingsResponseSchema,
-  type MarketAdminRefresh,
-  type MarketAdminStatus,
-} from '@poe-worksmith/contracts';
+import { marketAdminSettingsResponseSchema } from '@poe-worksmith/contracts';
 import pino from 'pino';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { buildApi } from './api.js';
-import { marketListingFixture } from './marketListingFixture.js';
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
-import {
-  CATALOG_REFRESH_QUEUE,
-  createJobBoss,
-  ManualRefreshProducer,
-} from './jobs.js';
-import {
-  createMarketAdminStore,
-  defaultAdminSettings,
-  type AdminQueue,
-} from './marketAdmin.js';
-import { resetIntegrationDatabase } from './testkit/resetIntegrationDatabase.js';
+import { createMarketAdminStore, defaultAdminSettings } from './marketAdmin.js';
+import { marketListingFixture } from './marketListingFixture.js';
 import {
   createImportedMarketSnapshot,
   createMarketTarget,
 } from './marketResearch.js';
-import { createMarketResearchRepository } from './repositories/marketResearchRepository.js';
 import { createMarketCollectionRepository } from './repositories/marketCollectionRepository.js';
-import { createPostgresRepositories } from './repositories/index.js';
+import { createMarketResearchRepository } from './repositories/marketResearchRepository.js';
 
 const config = loadDatabaseConfig();
 if (
@@ -41,10 +25,6 @@ if (
   );
 const pool = createDatabasePool(config);
 const logger = pino({ level: 'silent' });
-const boss = createJobBoss(pool, 'pgboss_admin_test', logger);
-const secondBoss = createJobBoss(pool, 'pgboss_admin_test', logger);
-const producer = new ManualRefreshProducer(boss);
-const secondProducer = new ManualRefreshProducer(secondBoss);
 const defaults = defaultAdminSettings({
   refreshCron: '0 */4 * * *',
   requestTimeoutMs: 15_000,
@@ -53,37 +33,8 @@ const defaults = defaultAdminSettings({
 });
 const storeOptions = { pool, defaults, timezone: 'UTC', concurrencyLimit: 2 };
 const store = createMarketAdminStore(storeOptions);
-const secondStore = createMarketAdminStore(storeOptions);
-const recipeId = 'admin-regression-recipe';
-const leagueId = '00000000-0000-4000-8000-000000000131';
 const local = { host: 'localhost:3000', origin: 'http://localhost:3000' };
-const status: MarketAdminStatus = {
-  serverTime: '2026-11-02T12:00:00.000Z',
-  access: 'local-only',
-  league: null,
-  trade: { configured: false, status: 'UNAVAILABLE', reason: null },
-  ninja: { configured: false, status: 'UNAVAILABLE', cooldownUntil: null },
-  worker: { healthy: false, heartbeatAt: null, settingsVersion: null },
-  scheduler: {
-    healthy: false,
-    enabled: true,
-    cron: defaults.refreshCron,
-    nextRefreshAt: null,
-  },
-  activeRun: null,
-  lastSuccessful: null,
-  lastFailed: null,
-  collection: { paused: false, scheduled: true, manualAvailable: true },
-  coverage: {
-    activeRecipes: 1,
-    pricedRecipes: 0,
-    freshRecipes: 0,
-    warningRecipes: 0,
-    latestSnapshotAt: null,
-  },
-  rateLimits: [],
-  warnings: [],
-};
+
 const api = buildApi(
   logger,
   async () => {
@@ -96,54 +47,32 @@ const api = buildApi(
   undefined,
   undefined,
   {
-    marketAdmin: { store, queue: producer, status: async () => status },
+    marketAdmin: { store },
+    collectorPool: pool,
     diagnosticsToken: 'fixture-operator-token',
-    triggerRefresh: async () =>
-      (await store.enqueue({ scope: 'all' }, 'legacy-refresh', producer)).id,
   },
 );
 
 async function clear() {
   await pool.query(
-    'truncate market_admin_runs, market_admin_settings, market_admin_audit, market_worker_health restart identity',
+    'truncate market_admin_settings, market_admin_audit, run_requests restart identity',
   );
   await pool.query(
     'truncate market_collection_runs, market_collection_settings, market_research_snapshots, belt_price_updates, market_targets cascade',
   );
-  await resetIntegrationDatabase(pool);
 }
-beforeAll(async () => {
-  await pool.query('drop schema if exists pgboss_admin_test cascade');
-  await producer.start();
-  await secondProducer.start();
-  await api.ready();
-});
+
 beforeEach(async () => {
-  await boss.deleteAllJobs(CATALOG_REFRESH_QUEUE);
   await clear();
   await store.init();
-  await pool.query(
-    `insert into recipes (id,content_hash,title,category,craft_method,game_version,guide_markdown,definition) values ($1,'admin-fixture-hash','Admin regression fixture','jewel','fossil','3.29','# Fixture','{}')`,
-    [recipeId],
-  );
-  await pool.query(
-    `insert into poe_leagues (id,ggg_id,name,synced_at) values ($1,'Admin Fixture','Admin Fixture',now())`,
-    [leagueId],
-  );
 });
+
 afterAll(async () => {
   await api.close();
-  await Promise.all([producer.stop(1000), secondProducer.stop(1000)]);
-  await pool.query('drop schema if exists pgboss_admin_test cascade');
   await clear();
   await pool.end();
 });
 
-async function enqueue(input: MarketAdminRefresh = { scope: 'all' }) {
-  const result = await store.enqueue(input, 'integration-operator', producer);
-  if (!result.id) throw new Error('Expected a newly queued fixture run');
-  return result.id;
-}
 async function auditRows() {
   return (
     await pool.query<{ action: string; actor: string; details: unknown }>(
@@ -151,41 +80,7 @@ async function auditRows() {
     )
   ).rows;
 }
-async function seedCycle(id: string) {
-  await pool.query(
-    `insert into refresh_cycles (id,league_id,status,started_at,total_recipes,total_queries) values ($1,$2,'running',now(),1,1)`,
-    [id, leagueId],
-  );
-  await pool.query(
-    `insert into jobs (dedupe_key,kind,status,refresh_cycle_id,locked_at,locked_by) values ($1,'recipe_refresh','running',$2,now(),'fixture-worker')`,
-    [`admin-job-${id}`, id],
-  );
-}
-async function seedPublishableRun() {
-  const id = await enqueue();
-  await boss.fetch(CATALOG_REFRESH_QUEUE);
-  await store.claim(id, { scope: 'all', source: 'manual' });
-  await seedCycle(id);
-  await pool.query(
-    'update refresh_cycles set completed_recipes=1,completed_queries=1 where id=$1',
-    [id],
-  );
-  await pool.query('update poe_leagues set is_current=true where id=$1', [
-    leagueId,
-  ]);
-  const previousId = randomUUID();
-  await pool.query(
-    `insert into refresh_cycles (id,league_id,status,total_recipes,completed_recipes,published_at,finished_at) values ($1,$2,'published',1,1,now(),now())`,
-    [previousId, leagueId],
-  );
-  await pool.query(
-    'insert into catalog_state (id,published_cycle_id,revision,published_at) values (1,$1,7,now())',
-    [previousId],
-  );
-  return { id, previousId, repositories: createPostgresRepositories(pool) };
-}
-
-describe('market admin PostgreSQL, queue and API integration', () => {
+describe('market admin settings and collector API', () => {
   it('caps a long environment TTL at 30-minute initial reuse so unrelated settings and pause/resume remain usable', async () => {
     await pool.query('truncate market_admin_settings');
     const seeded = defaultAdminSettings({
@@ -266,127 +161,6 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     ).toEqual([]);
   });
 
-  it('refuses publication after a cancellation request and retains the existing catalog pointer', async () => {
-    const { id, previousId, repositories } = await seedPublishableRun();
-    await store.cancel(id, 'operator', producer);
-    await expect(
-      repositories.cycles.publish(id, new Date()),
-    ).rejects.toMatchObject({ code: 'MARKET_COLLECTION_CANCELLED' });
-    expect(
-      (
-        await pool.query(
-          'select published_cycle_id,revision from catalog_state where id=1',
-        )
-      ).rows[0],
-    ).toMatchObject({ published_cycle_id: previousId, revision: '7' });
-    expect(
-      (
-        await pool.query(
-          'select status,published_at from refresh_cycles where id=$1',
-          [id],
-        )
-      ).rows[0],
-    ).toEqual({ status: 'running', published_at: null });
-    expect((await store.runs())[0]).toMatchObject({
-      id,
-      status: 'running',
-      cancelRequested: true,
-    });
-  });
-
-  it('commits successful publication and the admin result together, then refuses late cancellation', async () => {
-    const { id, previousId, repositories } = await seedPublishableRun();
-    const publishedAt = new Date();
-    expect(await repositories.cycles.publish(id, publishedAt)).toBe(true);
-    expect(
-      (
-        await pool.query(
-          'select published_cycle_id,previous_cycle_id,revision from catalog_state where id=1',
-        )
-      ).rows[0],
-    ).toMatchObject({
-      published_cycle_id: id,
-      previous_cycle_id: previousId,
-      revision: '8',
-    });
-    expect((await store.runs())[0]).toMatchObject({
-      id,
-      status: 'succeeded',
-      finishedAt: publishedAt.toISOString(),
-      cancelRequested: false,
-    });
-    await expect(
-      store.cancel(id, 'late-operator', producer),
-    ).rejects.toMatchObject({ code: 'MARKET_COLLECTION_NOT_RUNNING' });
-    const response = await api.inject({
-      method: 'POST',
-      url: `/api/admin/market/runs/${id}/cancel`,
-      headers: local,
-      payload: {},
-    });
-    expect(response.statusCode).toBe(409);
-    expect(response.json().error.code).toBe('MARKET_COLLECTION_NOT_RUNNING');
-    expect((await store.runs())[0]).toMatchObject({
-      status: 'succeeded',
-      cancelRequested: false,
-    });
-    expect(
-      (await auditRows()).filter((entry) => entry.action === 'refresh.cancel'),
-    ).toHaveLength(0);
-  });
-
-  it('waits for a concurrent cancellation row lock and observes its committed flag before publication', async () => {
-    const { id, previousId, repositories } = await seedPublishableRun();
-    const cancellation = await pool.connect();
-    let settledPublication: Promise<unknown> | undefined;
-    try {
-      await cancellation.query('begin');
-      await cancellation.query(
-        'update market_admin_runs set cancel_requested=true where id=$1',
-        [id],
-      );
-      const publication = repositories.cycles.publish(id, new Date()).then(
-        (published) => ({ published, error: null }),
-        (error: unknown) => ({ published: null, error }),
-      );
-      settledPublication = publication;
-      await expect
-        .poll(
-          async () =>
-            (
-              await pool.query(
-                `select count(*)::int as waiting from pg_stat_activity where datname=current_database() and query like 'select cancel_requested from market_admin_runs where id=%' and wait_event_type='Lock'`,
-              )
-            ).rows[0]?.waiting,
-          { timeout: 2000, interval: 10 },
-        )
-        .toBe(1);
-      expect(
-        (
-          await pool.query(
-            'select published_cycle_id from catalog_state where id=1',
-          )
-        ).rows[0]?.published_cycle_id,
-      ).toBe(previousId);
-      await cancellation.query('commit');
-      expect(await publication).toMatchObject({
-        published: null,
-        error: { code: 'MARKET_COLLECTION_CANCELLED' },
-      });
-      expect(
-        (
-          await pool.query(
-            'select published_cycle_id,revision from catalog_state where id=1',
-          )
-        ).rows[0],
-      ).toMatchObject({ published_cycle_id: previousId, revision: '7' });
-    } finally {
-      await cancellation.query('rollback').catch(() => undefined);
-      cancellation.release();
-      await settledPublication;
-    }
-  });
-
   it('exposes configured defaults, deployment caps, TTL mismatch and no browser secrets', async () => {
     const response = await api.inject({
       method: 'GET',
@@ -411,15 +185,6 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     expect(JSON.stringify(value)).not.toMatch(
       /authorization|sessionId|accessToken/,
     );
-    expect(
-      (
-        await api.inject({
-          method: 'GET',
-          url: '/api/admin/market/status',
-          headers: local,
-        })
-      ).json().data,
-    ).toEqual(status);
   });
 
   it('commits exactly one concurrent versioned PATCH and its audit record', async () => {
@@ -481,7 +246,7 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     },
   );
 
-  it('rejects unknown/empty patch structure and inactive or nonexistent recipe refreshes', async () => {
+  it('rejects unknown/empty patch structure', async () => {
     for (const payload of [
       { version: 0, settings: {} },
       { version: 0, settings: { requestTimeoutMs: 10_000 }, unknown: true },
@@ -496,19 +261,6 @@ describe('market admin PostgreSQL, queue and API integration', () => {
           })
         ).statusCode,
       ).toBe(400);
-    await pool.query('update recipes set active=false where id=$1', [recipeId]);
-    for (const id of [recipeId, 'unknown'])
-      expect(
-        (
-          await api.inject({
-            method: 'POST',
-            url: '/api/admin/market/refresh',
-            headers: local,
-            payload: { scope: 'recipe', recipeId: id },
-          })
-        ).statusCode,
-      ).toBe(404);
-    expect(await store.runs()).toEqual([]);
   });
 
   it('reads earlier stored settings and rejects patches for retired controls', async () => {
@@ -583,22 +335,18 @@ describe('market admin PostgreSQL, queue and API integration', () => {
       headers: { ...local, 'x-forwarded-for': '127.0.0.1' },
     },
   ])(
-    'protects admin reads/writes and every legacy market write at one boundary: %j',
+    'protects collector and settings routes at one boundary: %j',
     async (access) => {
       for (const [method, url] of [
-        ['GET', '/api/admin/market/status'],
+        ['GET', '/api/collector/status'],
         ['PATCH', '/api/admin/market/settings'],
-        ['POST', '/api/refresh'],
+        ['POST', '/api/run'],
         ['POST', '/api/market/economy/collect'],
-        ['POST', '/api/market/targets'],
-        ['POST', '/api/market/snapshots/import'],
-        ['PATCH', '/api/market/targets/fixture/collection'],
       ] as const) {
         const response = await api.inject({ method, url, ...access });
         expect(response.statusCode, `${method} ${url}`).toBe(401);
       }
       expect((await store.read()).version).toBe(0);
-      expect(await store.runs()).toEqual([]);
     },
   );
 
@@ -647,550 +395,56 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     ).toBe(401);
   });
 
-  it('keeps settings without registering legacy queue routes', async () => {
-    const collectorApi = buildApi(
-      logger,
-      async () => {},
-      async () => ({ active: null, published: null }),
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      { marketAdmin: { store, status: async () => status } },
-    );
-    try {
-      expect(
-        (
-          await collectorApi.inject({
-            url: '/api/admin/market/settings',
-            headers: local,
-          })
-        ).statusCode,
-      ).toBe(200);
-      expect(
-        (
-          await collectorApi.inject({
-            method: 'POST',
-            url: '/api/admin/market/refresh',
-            headers: local,
-            payload: { scope: 'all' },
-          })
-        ).statusCode,
-      ).toBe(404);
-      expect(await store.runs()).toEqual([]);
-    } finally {
-      await collectorApi.close();
-    }
-  });
-
-  it('pauses new work, permits safe resume, and audits both settings changes', async () => {
-    const running = await enqueue();
-    await boss.fetch(CATALOG_REFRESH_QUEUE);
-    await store.claim(running, { scope: 'all', source: 'manual' });
-    expect(
-      (
-        await api.inject({
-          method: 'POST',
-          url: '/api/admin/market/pause',
-          headers: local,
-          payload: { version: 0 },
-        })
-      ).statusCode,
-    ).toBe(200);
-    expect((await store.runs())[0]).toMatchObject({
-      id: running,
-      status: 'running',
-      cancelRequested: false,
-    });
-    expect(
-      (
-        await api.inject({
-          method: 'POST',
-          url: '/api/admin/market/refresh',
-          headers: local,
-          payload: { scope: 'all' },
-        })
-      ).statusCode,
-    ).toBe(409);
-    expect(
-      (
-        await api.inject({
-          method: 'POST',
-          url: '/api/market/economy/collect',
-          headers: local,
-          payload: { league: 'Admin Fixture', category: 'Currency' },
-        })
-      ).statusCode,
-    ).toBe(409);
-    expect(
-      (
-        await api.inject({
-          method: 'POST',
-          url: '/api/admin/market/resume',
-          headers: local,
-          payload: { version: 1 },
-        })
-      ).statusCode,
-    ).toBe(200);
-    expect((await store.read()).effective.collectionsPaused).toBe(false);
-    expect((await auditRows()).map((row) => row.action)).toEqual(
-      expect.arrayContaining(['collection.pause', 'collection.resume']),
-    );
-  });
-
-  it.each<MarketAdminRefresh>([
-    { scope: 'all' },
-    { scope: 'economy' },
-    { scope: 'recipe', recipeId },
-  ])(
-    'queues the requested scope once across independent producers: %j',
-    async (scope) => {
-      const [first, second] = await Promise.all([
-        store.enqueue(scope, 'first-operator', producer),
-        secondStore.enqueue(scope, 'second-operator', secondProducer),
-      ]);
-      expect([first.accepted, second.accepted].sort()).toEqual([false, true]);
-      const id = first.id ?? second.id;
-      expect(id).toBeTypeOf('string');
-      const queueJobs = await boss.findJobs(CATALOG_REFRESH_QUEUE);
-      expect(queueJobs).toHaveLength(1);
-      expect(queueJobs[0]).toMatchObject({
-        id,
-        data: { ...scope, source: 'manual' },
-        state: 'created',
-      });
-      expect(await store.runs()).toHaveLength(1);
-      expect(await auditRows()).toHaveLength(1);
-    },
-  );
-
-  it('rolls back the run, real queue insert and audit when queue submission fails', async () => {
-    const failingQueue: AdminQueue = {
-      async enqueue(data, id, db) {
-        await producer.enqueue(data, id, db);
-        throw new Error('injected queue failure');
-      },
-      cancel: (id) => producer.cancel(id),
-    };
-    await expect(
-      store.enqueue({ scope: 'all' }, 'operator', failingQueue),
-    ).rejects.toThrow('injected queue failure');
-    expect(await store.runs()).toEqual([]);
-    expect(await boss.findJobs(CATALOG_REFRESH_QUEUE)).toEqual([]);
-    expect(await auditRows()).toEqual([]);
-    expect(
-      (await store.enqueue({ scope: 'all' }, 'operator', producer)).accepted,
-    ).toBe(true);
-  });
-
-  it('cancels queued jobs and records running cancellation cooperatively without discarding history', async () => {
-    const queued = await enqueue();
-    expect(
-      (
-        await api.inject({
-          method: 'POST',
-          url: `/api/admin/market/runs/${queued}/cancel`,
-          headers: local,
-          payload: {},
-        })
-      ).statusCode,
-    ).toBe(202);
-    expect(await producer.state(queued)).toBe('cancelled');
-    expect((await store.runs()).find((run) => run.id === queued)).toMatchObject(
-      { status: 'cancelled', cancelRequested: true },
-    );
-    const running = await enqueue({ scope: 'economy' });
-    await boss.fetch(CATALOG_REFRESH_QUEUE);
-    expect(
-      await store.claim(running, { scope: 'economy', source: 'manual' }),
-    ).toBe(true);
-    await store.cancel(running, 'operator', secondProducer);
-    expect(await secondStore.cancellationRequested(running)).toBe(true);
-    expect(await producer.state(running)).toBe('active');
-    const response = await api.inject({
-      method: 'GET',
-      url: '/api/admin/market/runs',
+  it('preserves settings while retiring the old refresh routes', async () => {
+    const settings = await api.inject({
+      url: '/api/admin/market/settings',
       headers: local,
     });
-    expect(marketAdminRunSchema.array().parse(response.json().data)).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ id: queued, status: 'cancelled' }),
-        expect.objectContaining({
-          id: running,
-          status: 'running',
-          cancelRequested: true,
-        }),
-      ]),
-    );
-  });
-
-  it('skips an already queued scheduled refresh when automatic collection is disabled', async () => {
-    await store.patch(
-      {
-        version: 0,
-        settings: {
-          automaticRefreshEnabled: false,
-          scheduledCollectionEnabled: false,
-        },
-      },
-      'operator',
-    );
-    const id = randomUUID();
-    await boss.send(
-      CATALOG_REFRESH_QUEUE,
-      { source: 'scheduler', scope: 'all' },
-      { id, singletonKey: 'catalog-refresh' },
-    );
-    expect(await store.claim(id, { scope: 'all', source: 'scheduler' })).toBe(
-      false,
-    );
-    expect((await store.runs())[0]).toMatchObject({
-      id,
-      status: 'skipped',
-      errorCode: 'MARKET_COLLECTION_PAUSED',
-    });
-    expect(
-      (await pool.query('select count(*)::int as count from raw_snapshots'))
-        .rows[0]?.count,
-    ).toBe(0);
-    await expect(
-      store.enqueue({ scope: 'economy' }, 'operator', producer),
-    ).rejects.toMatchObject({ code: 'REFRESH_ALREADY_RUNNING' });
-    await boss.cancel(CATALOG_REFRESH_QUEUE, id);
-    expect(
-      (await store.enqueue({ scope: 'economy' }, 'operator', producer))
-        .accepted,
-    ).toBe(true);
-  });
-
-  it('leaves a live saved-Trade cycle alone and recovers it after lock release', async () => {
-    const id = randomUUID();
-    const publisher = await pool.connect();
-    try {
-      await publisher.query('begin');
-      await publisher.query(
-        "select pg_advisory_xact_lock(hashtext('poe-worksmith:publish-trade-catalog'))",
-      );
-      await seedCycle(id);
-      await store.reconcile(producer);
-      expect(
-        (await createPostgresRepositories(pool).cycles.findById(id))?.status,
-      ).toBe('running');
-    } finally {
-      await publisher.query('rollback');
-      publisher.release();
+    expect(settings.statusCode).toBe(200);
+    for (const url of ['/api/refresh', '/api/admin/market/refresh']) {
+      const response = await api.inject({
+        method: 'POST',
+        url,
+        headers: local,
+      });
+      expect(response.statusCode).toBe(404);
     }
-    await store.reconcile(producer);
-    expect(
-      await createPostgresRepositories(pool).cycles.findById(id),
-    ).toMatchObject({
-      status: 'failed',
-      errorMessage: 'REFRESH_WORKER_INTERRUPTED',
-    });
+    const { rows } = await pool.query('select id from run_requests');
+    expect(rows).toHaveLength(0);
   });
 
-  it('aborts a worker claim waiting for saved-Trade publication', async () => {
-    const id = await enqueue();
-    const publisher = await pool.connect();
-    const controller = new AbortController();
-    let claim: Promise<boolean> | undefined;
-    try {
-      await publisher.query('begin');
-      await publisher.query(
-        "select pg_advisory_xact_lock(hashtext('poe-worksmith:publish-trade-catalog'))",
-      );
-      claim = store.claim(
-        id,
-        { scope: 'all', source: 'manual' },
-        controller.signal,
-      );
-      setTimeout(() => controller.abort(), 50);
-      const outcome = await Promise.race([
-        claim.catch((error: unknown) => error),
-        new Promise((resolve) => setTimeout(resolve, 500, 'claim blocked')),
-      ]);
-      expect(outcome).toMatchObject({ name: 'AbortError' });
-      expect((await store.runs())[0]).toMatchObject({ id, status: 'queued' });
-    } finally {
-      await publisher.query('rollback');
-      publisher.release();
-      await claim?.catch(() => undefined);
-    }
-  });
-
-  it('honors economy cancellation accepted before terminal completion', async () => {
-    const id = await enqueue({ scope: 'economy' });
-    expect(await store.claim(id, { scope: 'economy', source: 'manual' })).toBe(
-      true,
-    );
-    expect(await secondStore.cancel(id, 'operator', producer)).toEqual({
-      requested: true,
+  it('pauses Run now and restores it after an audited resume', async () => {
+    const pause = await api.inject({
+      method: 'POST',
+      url: '/api/admin/market/pause',
+      headers: local,
+      payload: { version: 0 },
     });
-    await store.finish(id, 'succeeded');
-    expect((await store.runs())[0]).toMatchObject({
-      id,
-      status: 'cancelled',
-      cancelRequested: true,
-      errorCode: 'MARKET_COLLECTION_CANCELLED',
+    expect(pause.statusCode).toBe(200);
+    const blocked = await api.inject({
+      method: 'POST',
+      url: '/api/run',
+      headers: local,
     });
-  });
-
-  it('reconciles interrupted queue runs and orphan cycles while preserving recipes and raw observations', async () => {
-    const id = await enqueue();
-    await seedCycle(id);
-    const queryId = randomUUID();
-    await pool.query(
-      `insert into market_queries (id,recipe_id,provider,canonical_hash,query) values ($1,$2,'poe-trade','admin-snapshot-query','{}')`,
-      [queryId, recipeId],
-    );
-    await pool.query(
-      `insert into raw_snapshots (dedupe_key,market_query_id,league_id,refresh_cycle_id,captured_at,expires_at,provider_status,payload) values ('admin-preserved-snapshot',$1,$2,$3,now()-interval '1 day',now()-interval '1 hour',200,'{"synthetic":true}')`,
-      [queryId, leagueId, id],
-    );
-    await boss.deleteAllJobs(CATALOG_REFRESH_QUEUE);
-    await store.reconcile(producer);
-    expect((await store.runs())[0]).toMatchObject({
-      id,
-      status: 'failed',
-      errorCode: 'REFRESH_WORKER_INTERRUPTED',
+    expect(blocked.statusCode).toBe(409);
+    const resume = await api.inject({
+      method: 'POST',
+      url: '/api/admin/market/resume',
+      headers: local,
+      payload: { version: 1 },
     });
-    expect(
-      (
-        await pool.query(
-          'select status,error_message from refresh_cycles where id=$1',
-          [id],
-        )
-      ).rows[0],
-    ).toMatchObject({
-      status: 'failed',
-      error_message: 'REFRESH_WORKER_INTERRUPTED',
+    expect(resume.statusCode).toBe(200);
+    const accepted = await api.inject({
+      method: 'POST',
+      url: '/api/run',
+      headers: local,
     });
-    expect(
-      (
-        await pool.query(
-          'select status,locked_by from jobs where refresh_cycle_id=$1',
-          [id],
-        )
-      ).rows[0],
-    ).toMatchObject({ status: 'failed', locked_by: null });
-    expect(
-      (
-        await pool.query(
-          'select payload from raw_snapshots where dedupe_key=$1',
-          ['admin-preserved-snapshot'],
-        )
-      ).rows[0]?.payload,
-    ).toEqual({ synthetic: true });
-    expect(
-      (
-        await pool.query(
-          'select count(*)::int as count from recipes where id=$1',
-          [recipeId],
-        )
-      ).rows[0]?.count,
-    ).toBe(1);
-    const orphan = randomUUID();
-    await seedCycle(orphan);
-    await store.reconcile(producer);
-    expect(
-      (
-        await pool.query('select status from refresh_cycles where id=$1', [
-          orphan,
-        ])
-      ).rows[0]?.status,
-    ).toBe('failed');
-  });
-
-  it('fails queued runs after one hour, but does not expire an older active run based on enqueue age', async () => {
-    const queued = await enqueue();
-    await pool.query(
-      `update market_admin_runs set requested_at=now()-interval '61 minutes' where id=$1`,
-      [queued],
-    );
-    await store.reconcile(producer);
-    expect(await producer.state(queued)).toBe('cancelled');
-    expect((await store.runs())[0]).toMatchObject({
-      id: queued,
-      status: 'failed',
-      errorCode: 'REFRESH_QUEUE_EXPIRED',
-    });
-    const active = await enqueue();
-    await boss.fetch(CATALOG_REFRESH_QUEUE);
-    await store.claim(active, { scope: 'all', source: 'manual' });
-    await pool.query(
-      `update market_admin_runs set requested_at=now()-interval '61 minutes' where id=$1`,
-      [active],
-    );
-    await store.reconcile(producer);
-    expect((await store.runs()).find((run) => run.id === active)?.status).toBe(
-      'running',
-    );
-  });
-
-  it('fails an interrupted cycle without locking it ahead of an in-flight job commit', async () => {
-    const id = await enqueue();
-    await seedCycle(id);
-    const inFlight = await pool.connect();
-    await inFlight.query('begin');
-    await inFlight.query("set local statement_timeout='1s'");
-    await inFlight.query(
-      'select id from jobs where refresh_cycle_id=$1 for update',
-      [id],
-    );
-    const failing = store.failCycle(id, 'REFRESH_WORKER_INTERRUPTED').then(
-      () => null,
-      (error: unknown) => error,
-    );
-    try {
-      await expect
-        .poll(
-          async () =>
-            (
-              await pool.query(
-                "select count(*)::int as waiting from pg_stat_activity where datname=current_database() and query like 'update jobs set status=%' and wait_event_type='Lock'",
-              )
-            ).rows[0]?.waiting,
-        )
-        .toBe(1);
-      await inFlight.query(
-        'update refresh_cycles set updated_at=now() where id=$1',
-        [id],
-      );
-      await inFlight.query('commit');
-      expect(await failing).toBeNull();
-      expect(
-        (
-          await pool.query('select status from refresh_cycles where id=$1', [
-            id,
-          ])
-        ).rows[0]?.status,
-      ).toBe('failed');
-      expect(
-        (
-          await pool.query(
-            'select status from jobs where refresh_cycle_id=$1',
-            [id],
-          )
-        ).rows[0]?.status,
-      ).toBe('failed');
-    } finally {
-      await inFlight.query('rollback').catch(() => undefined);
-      inFlight.release();
-      await failing;
-    }
-  });
-
-  it('does not expire a queued run that a worker claims during reconciliation', async () => {
-    const id = await enqueue();
-    await pool.query(
-      `update market_admin_runs set requested_at=now()-interval '61 minutes' where id=$1`,
-      [id],
-    );
-    let claimed = false;
-    await store.reconcile({
-      async state(runId) {
-        if (!claimed) {
-          claimed = true;
-          await boss.fetch(CATALOG_REFRESH_QUEUE);
-          expect(
-            await secondStore.claim(id, { scope: 'all', source: 'manual' }),
-          ).toBe(true);
-          await seedCycle(id);
-        }
-        return producer.state(runId);
-      },
-      cancel: (runId) => producer.cancel(runId),
-    });
-    expect(await producer.state(id)).toBe('active');
-    expect((await store.runs())[0]).toMatchObject({
-      id,
-      status: 'running',
-      errorCode: null,
-    });
-    expect(
-      (await pool.query('select status from refresh_cycles where id=$1', [id]))
-        .rows[0]?.status,
-    ).toBe('running');
-  });
-
-  it('shares worker heartbeats and makes stale health visible across processes', async () => {
-    expect(await store.workerHealth()).toMatchObject({
-      healthy: false,
-      heartbeatAt: null,
-    });
-    await store.heartbeat(3);
-    expect(await secondStore.workerHealth()).toMatchObject({
-      healthy: true,
-      settingsVersion: 3,
-    });
-    await pool.query(
-      `update market_worker_health set heartbeat_at=now()-interval '21 seconds'`,
-    );
-    expect(await secondStore.workerHealth()).toMatchObject({
-      healthy: false,
-      settingsVersion: 3,
-    });
-  });
-
-  it('persists economy run progress and cooldowns across independent store instances', async () => {
-    const id = await enqueue({ scope: 'economy' });
-    await boss.fetch(CATALOG_REFRESH_QUEUE);
-    expect(await store.claim(id, { scope: 'economy', source: 'manual' })).toBe(
-      true,
-    );
-    const sourceFreshness = new Date().toISOString();
-    const cooldownUntil = new Date(Date.now() + 120_000).toISOString();
-    await store.progress(id, {
-      total: 4,
-      succeeded: 2,
-      failed: 1,
-      sourceFreshness,
-      cooldownUntil,
-    });
-    const restarted = createMarketAdminStore(storeOptions);
-    expect((await restarted.runs())[0]).toMatchObject({
-      id,
-      scope: 'economy',
-      status: 'running',
-      totalQueries: 4,
-      completedQueries: 2,
-      failedQueries: 1,
-      sourceFreshness,
-      cooldownUntil,
-    });
-    await restarted.finish(id, 'failed', 'RATE_LIMITED');
-    expect((await store.runs())[0]).toMatchObject({
-      id,
-      status: 'failed',
-      errorCode: 'RATE_LIMITED',
-      totalQueries: 4,
-      completedQueries: 2,
-      failedQueries: 1,
-      sourceFreshness,
-      cooldownUntil,
-    });
-  });
-
-  it('reconciles a failed pg-boss attempt rather than retaining an active run forever', async () => {
-    const id = await enqueue();
-    await boss.fetch(CATALOG_REFRESH_QUEUE);
-    await store.claim(id, { scope: 'all', source: 'manual' });
-    await seedCycle(id);
-    await boss.fail(CATALOG_REFRESH_QUEUE, id, {
-      error: 'synthetic worker failure',
-    });
-    expect(await producer.state(id)).toBe('failed');
-    await secondStore.reconcile(secondProducer);
-    expect((await store.runs())[0]).toMatchObject({
-      id,
-      status: 'failed',
-      errorCode: 'REFRESH_WORKER_INTERRUPTED',
-    });
-    expect(
-      (await pool.query('select status from refresh_cycles where id=$1', [id]))
-        .rows[0]?.status,
-    ).toBe('failed');
+    expect(accepted.statusCode).toBe(202);
+    expect((await store.read()).effective.collectionsPaused).toBe(false);
+    expect((await auditRows()).map(({ action }) => action)).toEqual([
+      'collection.pause',
+      'collection.resume',
+    ]);
   });
 
   it('applies raw and summary retention independently while preserving valid historical summaries and unarchived runs', async () => {
