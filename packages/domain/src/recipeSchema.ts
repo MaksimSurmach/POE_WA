@@ -74,6 +74,16 @@ const craftProcedureSchema = z
       })
       .optional(),
     uncertainties: z.array(textSchema).default([]),
+    // Opt-in for one-item budgets: each listed step is repeated on the same
+    // retained base until it succeeds, and a later step never undoes an
+    // earlier result. Not declared = no multi-stage budget is derived.
+    budgetModel: z
+      .strictObject({
+        kind: z.literal('independent-repeat-until-success'),
+        stepIds: z.array(slugSchema).length(2),
+        basis: textSchema,
+      })
+      .optional(),
     id: slugSchema,
     name: textSchema,
     steps: z.array(methodStepSchema).min(1),
@@ -119,6 +129,50 @@ const craftProcedureSchema = z
       }
       executionIds.add(execution.stepId);
     });
+    const model = procedure.budgetModel;
+    if (!model) return;
+    const reject = (message: string) =>
+      context.addIssue({ code: 'custom', message, path: ['budgetModel'] });
+    if (procedure.baseConsumption?.expectedBases !== 1)
+      reject('Independent stages must reuse one base');
+    if (procedure.outcomeModel)
+      reject('Declare either an outcome graph or independent stages, not both');
+    if (new Set(model.stepIds).size !== model.stepIds.length)
+      reject('Independent stage ids must be distinct');
+    for (const stepId of model.stepIds)
+      if (!stepIds.has(stepId)) reject(`Unknown step id "${stepId}"`);
+    for (const step of procedure.steps) {
+      const listed = model.stepIds.includes(step.id);
+      const probability = step.success?.probability;
+      if (!listed) {
+        // An unlisted paid or chance step would make the graph uncontrolled.
+        if (
+          probability === undefined
+            ? step.materials.length > 0
+            : probability < 1
+        )
+          reject(`Step "${step.id}" must be an independent stage or certain`);
+        continue;
+      }
+      const count = procedure.expectedExecutions?.find(
+        (execution) => execution.stepId === step.id,
+      )?.count;
+      if (
+        probability === undefined ||
+        probability >= 1 ||
+        count === undefined ||
+        step.materials.length === 0 ||
+        step.materials.some(({ quantity }) => quantity === null)
+      )
+        reject(
+          `Independent stage "${step.id}" needs a probability below one, priced materials and an execution count`,
+        );
+      // A restart or dependent stage shows up as a mean other than 1 / p.
+      else if (Math.abs(count * probability - 1) > 0.01)
+        reject(
+          `Independent stage "${step.id}" execution count ${count} is not 1 / probability`,
+        );
+    }
   });
 
 export const recipeSchema = z.strictObject({

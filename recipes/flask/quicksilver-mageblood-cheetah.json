@@ -107,6 +107,11 @@
         "assumptions": "CoE uniformly draws integer modifier values; exact 14 is 1/3 of Cheetah rolls. Expected means are not guaranteed budgets. No Alt+Aug, Divine reroll, sold by-products or time/gold credit."
       }
     },
+    "budgetModel": {
+      "kind": "independent-repeat-until-success",
+      "stepIds": ["roll-explicits", "enkindle-effect"],
+      "basis": "Both stages reuse one flask. Enkindling rerolls the enchant without changing the explicit modifiers."
+    },
     "uncertainties": [
       "Starting-base acquisition must use exactly item level 85. Higher item levels can change the affix pool and require a separate cost model.",
       "Indicative model: rounded CoE mean and uniformly distributed integer rolls; actual spending varies. No empirical game-frequency or executed-sale verification.",

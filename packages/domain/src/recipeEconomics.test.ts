@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { gradeSaleEvidence } from './recipeEconomics.js';
+import { canonicalRecipeFixture } from './fixtures/recipes.js';
+import {
+  calculateMethodMaterialEconomics,
+  gradeSaleEvidence,
+  singleItemCraftBudget,
+} from './recipeEconomics.js';
 
 describe('sale evidence grades', () => {
   const complete = {
@@ -40,5 +45,88 @@ describe('sale evidence grades', () => {
       grade,
       reasons,
     });
+  });
+});
+
+describe('one-item budgets for independent flask stages', () => {
+  const source = canonicalRecipeFixture.craft;
+  const [sampleStep] = source.steps;
+  const [execution] = source.expectedExecutions!;
+  const budgetModel = {
+    kind: 'independent-repeat-until-success' as const,
+    stepIds: ['roll', 'finish'],
+    basis: 'Repeat each stage on the same item.',
+  };
+  const craft = {
+    ...source,
+    budgetModel,
+    steps: [
+      {
+        ...sampleStep!,
+        id: 'roll',
+        materials: [{ itemId: 'orb-of-alteration', quantity: 1 }],
+      },
+      {
+        ...sampleStep!,
+        id: 'finish',
+        materials: [{ itemId: 'enkindling-orb', quantity: 1 }],
+      },
+    ],
+    expectedExecutions: budgetModel.stepIds.map((stepId) => ({
+      ...execution!,
+      stepId,
+      count: 2,
+    })),
+  };
+  const currency = 'chaos';
+  const unitPrice = { amount: '1', currency };
+
+  it('uses the quantiles of the sum of two geometric stage costs', () => {
+    const method = {
+      ...craft,
+      steps: craft.steps.map((step) => ({
+        ...step,
+        success: { ...step.success!, probability: 0.5 },
+      })),
+      expectedExecutions: craft.expectedExecutions?.map((step) => ({
+        ...step,
+        count: 2,
+      })),
+    };
+    const { steps } = calculateMethodMaterialEconomics({
+      method,
+      currency,
+      materialPrices: {
+        'orb-of-alteration': unitPrice,
+        'enkindling-orb': unitPrice,
+      },
+    });
+    const input = {
+      currency,
+      steps,
+      expectedExecutions: method.expectedExecutions,
+      expectedCraftCost: '14',
+    };
+    expect(
+      singleItemCraftBudget({ ...input, budgetModel: method.budgetModel }),
+    ).toEqual({ p50: '13', p90: '17', currency });
+    expect(singleItemCraftBudget(input)).toBeNull();
+  });
+
+  it('keeps budgets unavailable when a stage has no material price', () => {
+    const { steps } = calculateMethodMaterialEconomics({
+      method: craft,
+      currency,
+      materialPrices: { 'orb-of-alteration': unitPrice },
+    });
+    expect(
+      singleItemCraftBudget({
+        currency,
+        steps,
+        expectedExecutions: craft.expectedExecutions,
+        expectedCraftCost: '10000',
+        budgetModel: craft.budgetModel,
+      }),
+    ).toBeNull();
   });
 });

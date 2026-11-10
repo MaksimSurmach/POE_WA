@@ -133,13 +133,15 @@ export function singleItemCraftBudget(input: {
   expectedCraftCost: string | null;
   expectedExecutions: CraftProcedure['expectedExecutions'];
   steps: ReturnType<typeof calculateMethodMaterialEconomics>['steps'];
+  budgetModel?: CraftProcedure['budgetModel'];
 }) {
+  if (input.budgetModel) return independentStagesBudget(input);
   const probabilisticSteps = input.steps.filter(
     ({ success }) =>
       success && success.probability > 0 && success.probability < 1,
   );
   const [step] = probabilisticSteps;
-  // shortcut: single geometric stage only; use simulateCraftingRisk for multi-stage budgets (Phase 6).
+  // Single geometric stage; two declared independent stages go through budgetModel above.
   if (
     input.expectedCraftCost === null ||
     probabilisticSteps.length !== 1 ||
@@ -180,6 +182,130 @@ export function singleItemCraftBudget(input: {
     withinAttempts: 1,
   });
   return { p50, p90, currency: input.currency };
+}
+
+/**
+ * Budget for two declared independent repeat-until-success stages on one base:
+ * cost = setup + cA·GA + cB·GB with independent geometric GA, GB.
+ * The distribution is summed directly (no sampling). The reported pXX is a
+ * reachable cost x with P(cost ≤ x) ≥ XX% − 1e-9; the mean stays the entered
+ * expected craft cost. Returns null rather than guessing when an input is missing.
+ */
+function independentStagesBudget(
+  input: Parameters<typeof singleItemCraftBudget>[0],
+) {
+  if (!input.budgetModel || input.expectedCraftCost === null) return null;
+  const { stepIds } = input.budgetModel;
+  let setup = new DecimalValue(input.expectedCraftCost);
+  const stages: { p: number; cost: Decimal; p75: number; p95: number }[] = [];
+  for (const step of input.steps) {
+    const probability = step.success?.probability;
+    if (!stepIds.includes(step.id)) {
+      // Same rule as the schema: nothing uncertain may sit outside the declared stages.
+      if (
+        probability === undefined ? step.materials.length > 0 : probability < 1
+      )
+        return null;
+      continue;
+    }
+    const execution = input.expectedExecutions?.find(
+      ({ stepId }) => stepId === step.id,
+    );
+    if (probability === undefined || probability >= 1 || !execution)
+      return null;
+    let cost = new DecimalValue(0);
+    for (const { unitPrice, quantityPerAttempt } of step.materials) {
+      if (!unitPrice || quantityPerAttempt === null) return null;
+      cost = cost.add(
+        new DecimalValue(unitPrice.amount).mul(quantityPerAttempt),
+      );
+    }
+    const successProbability = new DecimalValue(probability)
+      .toSignificantDigits(12)
+      .toFixed();
+    const perAttemptCost = cost.toDecimalPlaces(16).toFixed();
+    if (
+      !cost.gt(0) ||
+      ![successProbability, perAttemptCost].every(isOutcomeAmount)
+    )
+      return null;
+    // Per-stage p75 / p95 bound the sum's p50 / p90 (union bound on the two tails).
+    const { p75, p95 } = analyzeIndependentGeometric({
+      successProbability,
+      perAttemptCost,
+      setupCost: '0',
+      saleValue: '0',
+      budget: '0',
+      withinAttempts: 1,
+    }).costQuantiles;
+    setup = setup.sub(cost.mul(execution.count));
+    stages.push({
+      p: Number(successProbability),
+      cost,
+      p75: Number(p75),
+      p95: Number(p95),
+    });
+  }
+  setup = setup.toDecimalPlaces(8);
+  if (stages.length !== 2 || setup.lt(0)) return null;
+
+  // Enumerate attempts of the likelier stage; the other stage has a closed-form CDF.
+  const [few, many] = [...stages].sort((a, b) => b.p - a.p) as [
+    (typeof stages)[number],
+    (typeof stages)[number],
+  ];
+  const terms = Math.ceil(Math.log(1e-12) / Math.log1p(-few.p));
+  // shortcut: 20k-term cap; revisit when both stage probabilities are below 0.14%.
+  if (!(terms >= 1 && terms <= 20_000)) return null;
+  const fewCost = few.cost.toNumber();
+  const manyCost = many.cost.toNumber();
+  const weights = Array.from(
+    { length: terms },
+    (_, index) => few.p * (1 - few.p) ** index,
+  );
+  const logFailure = Math.log1p(-many.p);
+  const attemptsWithin = (x: number, fewAttempts: number) =>
+    Math.floor((x - fewCost * fewAttempts) / manyCost + 1e-9);
+  const cdf = (x: number) => {
+    let total = 0;
+    for (let b = 1; b <= terms; b++) {
+      const n = attemptsWithin(x, b);
+      if (n < 1) break;
+      total += weights[b - 1]! * -Math.expm1(n * logFailure);
+    }
+    return total;
+  };
+  const quantile = (q: number, upper: number) => {
+    const target = q - 1e-9;
+    let low = fewCost + manyCost;
+    let high = upper;
+    if (!(cdf(high) >= target)) return null;
+    if (cdf(low) >= target) high = low;
+    else
+      for (let i = 0; i < 64; i++) {
+        const middle = (low + high) / 2;
+        if (cdf(middle) >= target) high = middle;
+        else low = middle;
+      }
+    // The quantile is a reachable cost; snap to the nearest one and price it exactly.
+    let best = { distance: Infinity, b: 1, n: 1 };
+    for (let b = 1; b <= terms; b++) {
+      const n = Math.round((high - fewCost * b) / manyCost);
+      if (n < 1) break;
+      const distance = Math.abs(fewCost * b + manyCost * n - high);
+      if (distance < best.distance) best = { distance, b, n };
+    }
+    return setup
+      .add(few.cost.mul(best.b))
+      .add(many.cost.mul(best.n))
+      .toDecimalPlaces(8)
+      .toFixed();
+  };
+  const p50 = quantile(0.5, few.p75 + many.p75);
+  const p90 = quantile(0.9, few.p95 + many.p95);
+  return p50 === null || p90 === null
+    ? null
+    : { p50, p90, currency: input.currency };
 }
 
 export function compareCraftWithAsk(input: {
