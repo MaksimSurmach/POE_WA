@@ -1,0 +1,141 @@
+{
+  "observedAt": "2026-11-10",
+  "source": "Craft of Exile beta public calculator",
+  "results": [
+    {
+      "id": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=4%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9ib3dfZGFtYWdlIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2OTUiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&ct=calculator",
+      "requirements": [
+        {
+          "i": "5694",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5680",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5695",
+          "t": null,
+          "b": true,
+          "s": null
+        }
+      ],
+      "display": "1 out of 6030 tries 0.0166% Expected costs :",
+      "attempts": 6030,
+      "displayedPercent": "0.0166"
+    },
+    {
+      "id": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=150&item=2476.3&method=4%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9ib3dfZGFtYWdlIiwiaWQiOm51bGx9&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1Njk0IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&ct=calculator",
+      "requirements": [
+        {
+          "i": "5694",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5680",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5674",
+          "t": null,
+          "b": true,
+          "s": null
+        }
+      ],
+      "display": "1 out of 1600 tries 0.0625% Expected costs :",
+      "attempts": 1600,
+      "displayedPercent": "0.0625"
+    },
+    {
+      "id": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=154&item=2476.7&method=4%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9hdHRhY2tfZGFtYWdlX3doaWxlX2hvbGRpbmdfYV9zaGllbGQiLCJpZCI6bnVsbH0%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NjgzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY3OSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3MTkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&ct=calculator",
+      "requirements": [
+        {
+          "i": "5683",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5679",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5719",
+          "t": null,
+          "b": true,
+          "s": null
+        }
+      ],
+      "display": "1 out of 6159 tries 0.0162% Expected costs :",
+      "attempts": 6159,
+      "displayedPercent": "0.0162"
+    },
+    {
+      "id": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9kYW1hZ2Vfd2l0aF90d29faGFuZGVkX21lbGVlX3dlYXBvbnMiLCJpZCI6bnVsbH0%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&ct=calculator",
+      "requirements": [
+        {
+          "i": "5705",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5685",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5678",
+          "t": null,
+          "b": true,
+          "s": null
+        }
+      ],
+      "display": "1 out of 12465 tries 0.00802% Expected costs :",
+      "attempts": 12465,
+      "displayedPercent": "0.00802"
+    },
+    {
+      "id": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&class=152&item=2476.5&method=4%2C13&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo2OCwiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9kYW1hZ2Vfd2l0aF90d29faGFuZGVkX21lbGVlX3dlYXBvbnMiLCJpZCI6bnVsbH0%3D&ilvl=68&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzA1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTY4MyIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU2NzgiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&ct=calculator",
+      "requirements": [
+        {
+          "i": "5705",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5683",
+          "t": null,
+          "b": true,
+          "s": null
+        },
+        {
+          "i": "5678",
+          "t": null,
+          "b": true,
+          "s": null
+        }
+      ],
+      "display": "1 out of 6229 tries 0.0161% Expected costs :",
+      "attempts": 6229,
+      "displayedPercent": "0.0161"
+    }
+  ]
+}
