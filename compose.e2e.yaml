@@ -27,12 +27,12 @@ services:
       APP_MODE: api
       APP_HOST: 0.0.0.0
       APP_PORT: 3000
+      PIPELINE: collector
       DATABASE_SSL_MODE: disable
       TEST_DATABASE_URL: postgresql://e2e:e2e-only@postgres:5432/poe_worksmith_e2e
       MARKET_COLLECTION_SOURCE: disabled
       POE_TRADE_ACCESS: disabled
       POE_USER_AGENT: 'OAuth poe-worksmith-e2e/1.0 (offline fixture)'
-      PG_BOSS_SCHEMA: pgboss
       LOG_LEVEL: info
     depends_on:
       postgres: { condition: service_healthy }
@@ -44,10 +44,8 @@ services:
 
   app:
     image: ${SERVER_IMAGE:?SERVER_IMAGE is required}
-    command: [node, dist/entrypoints/all.js]
-    environment:
-      <<: *app_env
-      APP_MODE: all
+    command: [node, dist/entrypoints/api.js]
+    environment: *app_env
     depends_on:
       migrate: { condition: service_completed_successfully }
     healthcheck:
@@ -62,6 +60,21 @@ services:
       timeout: 2s
       retries: 30
       start_period: 10s
+    labels:
+      com.poe-worksmith.e2e.run: ${E2E_RUN:?E2E_RUN is required}
+      com.poe-worksmith.e2e.attempt: ${E2E_ATTEMPT:?E2E_ATTEMPT is required}
+      com.poe-worksmith.e2e.owner: master-e2e
+    networks: [app]
+
+  collector:
+    image: ${SERVER_IMAGE:?SERVER_IMAGE is required}
+    command: [node, dist/entrypoints/collector.js]
+    environment:
+      <<: *app_env
+      APP_MODE: collector
+      COLLECTOR_RETENTION_ENABLED: 'true'
+    depends_on:
+      migrate: { condition: service_completed_successfully }
     labels:
       com.poe-worksmith.e2e.run: ${E2E_RUN:?E2E_RUN is required}
       com.poe-worksmith.e2e.attempt: ${E2E_ATTEMPT:?E2E_ATTEMPT is required}
