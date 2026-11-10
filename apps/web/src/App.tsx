@@ -487,7 +487,7 @@ function CatalogRoute() {
       {collectorMode && operatorToken !== null ? (
         <HomeSettings operatorToken={operatorToken} />
       ) : null}
-      <OpportunitiesIntelligence league={league?.name} />
+      {legacyMode ? <OpportunitiesIntelligence league={league?.name} /> : null}
     </>
   );
 }

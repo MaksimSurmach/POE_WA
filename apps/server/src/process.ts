@@ -431,23 +431,27 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         repositories.leagues.findCurrent,
         {
           craftAnalysis,
-          intelligence: createIntelligenceService({
-            repository: createIntelligenceRepository(pool),
-            economy,
-            factory: createFactoryRepository(pool),
-            analysis: craftAnalysis,
-            recipes: repositories.recipes,
-            leagues: repositories.leagues,
-            marketDependencies,
-            settings: async () => (await admin.read()).effective.intelligence,
-            maximumQuoteAgeMs: async () =>
-              (await admin.read()).effective.maximumQuoteAgeMs,
-            onError: (error) =>
-              logger.warn(
-                { err: error },
-                'Intelligence refresh unavailable; existing evidence preserved',
-              ),
-          }),
+          intelligence:
+            config.pipeline === 'legacy'
+              ? createIntelligenceService({
+                  repository: createIntelligenceRepository(pool),
+                  economy,
+                  factory: createFactoryRepository(pool),
+                  analysis: craftAnalysis,
+                  recipes: repositories.recipes,
+                  leagues: repositories.leagues,
+                  marketDependencies,
+                  settings: async () =>
+                    (await admin.read()).effective.intelligence,
+                  maximumQuoteAgeMs: async () =>
+                    (await admin.read()).effective.maximumQuoteAgeMs,
+                  onError: (error) =>
+                    logger.warn(
+                      { err: error },
+                      'Intelligence refresh unavailable; existing evidence preserved',
+                    ),
+                })
+              : undefined,
           factory: createFactoryService({
             repository: createFactoryRepository(pool),
             analysis: craftAnalysis,
