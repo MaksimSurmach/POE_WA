@@ -34,9 +34,23 @@ test "$("${compose[@]}" config --services | sort | xargs)" = 'app collector post
 insert into game_data_versions (game, patch_version, source, source_revision, manifest_hash, status)
 values ('poe1', '3.29.3.3', 'fixture', 'fixture', 'collector-schedule', 'active');
 SQL
-for mapping in physical-large-cluster recipe-catalog; do
-  "${compose[@]}" exec -T app node dist/entrypoints/tradeMappings.js "mappings/poe-trade/3.29.3.3/$mapping.json"
-done
+"${compose[@]}" exec -T app node --input-type=module <<'JS'
+import { readFile } from 'node:fs/promises';
+import { loadDatabaseConfig } from './dist/config.js';
+import { createDatabasePool } from './dist/database.js';
+import { importTradeMappings } from './dist/tradeMappings.js';
+
+// The CLI validates against live metadata. Use the checked-in manifests offline.
+const pool = createDatabasePool(loadDatabaseConfig());
+try {
+  for (const name of ['physical-large-cluster', 'recipe-catalog']) {
+    const manifest = JSON.parse(await readFile(`mappings/poe-trade/3.29.3.3/${name}.json`, 'utf8'));
+    await importTradeMappings(pool, { ...manifest, sourceRevision: manifest.mappingVersion });
+  }
+} finally {
+  await pool.end();
+}
+JS
 
 "${compose[@]}" up -d --build collector
 "${compose[@]}" exec -T app node --input-type=module <<'JS'
