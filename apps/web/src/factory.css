@@ -9,7 +9,7 @@
   margin: 0;
 }
 .factory-page h2 {
-  font-size: 1.1rem;
+  font-size: var(--font-label);
 }
 .factory-panel {
   border: 1px solid var(--border);
@@ -30,7 +30,7 @@
   margin: 0;
 }
 .factory-fields legend {
-  font-size: 0.85rem;
+  font-size: var(--font-body);
   font-weight: 600;
   margin-bottom: 12px;
 }
@@ -44,7 +44,7 @@
   gap: 6px;
   min-width: 0;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: var(--font-body);
 }
 .factory-page input,
 .factory-page select,
@@ -87,7 +87,7 @@
 }
 .factory-note {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: var(--font-body);
   line-height: 1.5;
   grid-column: 1 / -1;
 }
@@ -107,7 +107,7 @@
   width: 100%;
   min-width: 600px;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: var(--font-body);
   text-align: left;
 }
 .factory-table th,
@@ -127,7 +127,7 @@
 }
 .factory-table code {
   overflow-wrap: anywhere;
-  font-size: 0.7rem;
+  font-size: var(--font-small);
 }
 .factory-metrics {
   margin: 0;
@@ -137,11 +137,11 @@
 }
 .factory-metrics dt {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: var(--font-small);
 }
 .factory-metrics dd {
   margin: 4px 0 0;
-  font-size: 0.95rem;
+  font-size: var(--font-label);
   font-variant-numeric: tabular-nums;
 }
 .factory-allocation {
@@ -154,7 +154,7 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-family: inherit;
-  font-size: 0.75rem;
+  font-size: var(--font-small);
   max-width: 700px;
 }
 @media (max-width: 600px) {

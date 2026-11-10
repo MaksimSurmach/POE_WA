@@ -18,14 +18,14 @@
   margin: 0;
 }
 .intelligence h2 {
-  font-size: 1.1rem;
+  font-size: var(--font-label);
 }
 .intelligence h3 {
-  font-size: 0.95rem;
+  font-size: var(--font-label);
 }
 .intelligence-note {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: var(--font-body);
   line-height: 1.5;
 }
 .intelligence-actions {
@@ -55,7 +55,7 @@
   display: grid;
   gap: 6px;
   min-width: 0;
-  font-size: 0.8rem;
+  font-size: var(--font-body);
   color: var(--muted);
 }
 .intelligence input,
@@ -99,7 +99,7 @@
   border-collapse: collapse;
   width: 100%;
   min-width: 650px;
-  font-size: 0.8rem;
+  font-size: var(--font-body);
   text-align: left;
 }
 .intelligence-plan-table {
@@ -132,16 +132,16 @@
   display: inline-block;
   border: 1px solid var(--border);
   border-radius: 3px;
-  font-size: 0.7rem;
+  font-size: var(--font-small);
   font-weight: 600;
   letter-spacing: 0.03em;
   padding: 3px 6px;
 }
 .intelligence-state--CRAFT {
-  color: var(--positive, #9ac7ab);
+  color: var(--positive);
 }
 .intelligence-state--STOP {
-  color: var(--negative, #e8a5a5);
+  color: var(--negative);
 }
 .intelligence-state--WATCH {
   color: var(--accent);
@@ -154,12 +154,12 @@
 }
 .intelligence-metrics dt {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: var(--font-small);
 }
 .intelligence-metrics dd {
   margin: 4px 0 0;
   font-variant-numeric: tabular-nums;
-  font-size: 0.9rem;
+  font-size: var(--font-body);
 }
 .intelligence-restrictions {
   display: flex;
@@ -180,7 +180,7 @@
   margin: 0;
   padding-left: 18px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: var(--font-body);
 }
 .intelligence-signature {
   overflow-wrap: anywhere;
