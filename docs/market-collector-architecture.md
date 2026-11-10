@@ -185,13 +185,10 @@ HTTP 403 blocks and rate-limit windows.
 
 ## Scheduled Trade collection on Home Assistant
 
-Build the server with `pnpm --filter @poe-worksmith/server... build`. Prepare its
-production dependencies with
-`pnpm --filter @poe-worksmith/server deploy --prod --legacy <staging-dir>`.
-Copy `services/market-trade-scraper` to the Home Assistant local apps directory,
-then copy the staged `package.json`, `node_modules`, current server `dist`, and
-repository `recipes` directory into its `runtime` directory. On macOS, set `COPYFILE_DISABLE=1` when creating the tar archive.
-Reload the app store and install or update `local_poe_trade_scraper`.
+Run `scripts/package-ha-collector.sh /absolute/path/to/addon.tar.gz` from a
+checkout with workspace dependencies installed. Extract the archive into the
+Home Assistant local app directory, reload the store and install or update
+`local_poe_trade_scraper`.
 
 Set the app's database DSN and existing encryption key in Supervisor options.
 With an empty target ID, the add-on starts the dedicated Node collector and
@@ -199,8 +196,9 @@ publishes to `captures`, `listing_events`, and `recipe_results`. It uses a direc
 connection for the PostgreSQL lock and wake notifications. For a standard Neon
 pooler URL the add-on derives the direct hostname. New Trade schedules start a
 minute apart. The add-on runs with two pool connections plus the leader session,
-and with retention disabled. It uses the sealed Trade session. Renew an expired
-session separately, since this image has no Chromium installation.
+and with retention disabled. It uses the sealed Trade session. Optional
+`trade_username` and `trade_password` enable one Chromium login after an
+authentication rejection. Keep both empty to renew the session separately.
 
 A nonempty target ID keeps the legacy single-profile behavior and its database
 connection unchanged.

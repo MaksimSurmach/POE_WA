@@ -29,7 +29,7 @@ End-state acceptance:
 | # | Decision | Decided by |
 |---|---|---|
 | D1 | Output prices come from the PoE Trade website API under the owner's account; currency and materials from poe.ninja. Account risk accepted. | Owner, 2026-11-09 |
-| D2 | Three services: **app** (API + web UI), **collector** (dedicated collection instance), **PostgreSQL** (separate service). Home Assistant add-ons are retired. | Owner, 2026-11-09 |
+| D2 | Three services: **app** (API + web UI), **collector** (dedicated collection instance), **PostgreSQL** (separate service). The dedicated collector runs as the Home Assistant add-on. | Owner, updated 2026-11-10 |
 | D3 | **Keep Playwright** and username/password login. Reuse the stored session cookie while it is valid; use Playwright only to re-authenticate. | Owner, 2026-11-09 |
 | D4 | pg-boss may be removed once the replacement provides scheduling, retries and recovery without frequent database polling (design in Phase 2). | Owner, 2026-11-09 |
 | D5 | Old signals and capital allocator are removed (Phase 5). Accurate calculations and a working collection pipeline come first. | Owner, 2026-11-09 |
@@ -116,7 +116,7 @@ Factory. The two are stored and displayed separately.
 | 2 | Collector instance, new storage with capture history, read path switched together with the worker, Run now on the homepage | 1 |
 | 3 | Reprice / disappearance / relist classification; market activity shown separately | 2 |
 | 4 | Homepage ranking, recipe page, admin page removed | 2 (3 for activity columns) |
-| 5 | Old pipeline, pg-boss, Go service, signals, allocator and unused tables removed | 2–4 stable for 7 days |
+| 5 | Old pipeline, pg-boss, Go service, signals, allocator and unused tables removed | Phases 2–4 ready and 12 hours of stable cutover |
 | 6 | Catalog growth | 1, 4 |
 
 ---
@@ -416,12 +416,12 @@ is written once per item.
 ### Cutover sequence (P2-12)
 
 1. `pg_dump` the database. Keep the dump.
-2. Apply the P2-02 migration (additive).
-3. Start the collector with `PIPELINE=collector` while the old worker still runs and the app still has `PIPELINE=legacy`. Let two full cycles complete.
-4. Compare: for every recipe, `recipe_results` vs the published `recipe_evaluations` (sale ask, mean cost, grade). Record differences in the Progress log. Expected differences: only those explained by newer captures.
-5. In one deploy: stop the old worker (`APP_MODE=worker` process and the Home Assistant scraper add-on) and set `PIPELINE=collector` on the app.
+2. Apply the collector migrations (additive).
+3. Start the dedicated Home Assistant collector while the app still has `PIPELINE=legacy`. Confirm one leader, a Trade capture and an economy update.
+4. Use the parity integration test for identical inputs. Compare live asks, costs and grades when comparable fresh inputs exist. Record stale or unavailable inputs separately.
+5. Switch the app to `PIPELINE=collector` and remove its legacy economy sidecar in the same deploy. Keep the dedicated Home Assistant collector running.
 6. **Acceptance gate:** press Run now on the homepage. Within one collection cycle the "last run" time changes and at least one recipe's `evaluatedAt` is newer than the click. If not, roll back.
-7. Observe for 48 hours: no Trade authentication block, no growing `attempt` counts, homepage data age under the configured maximum.
+7. Observe for 12 hours after the web cutover. Confirm Trade and economy continue to write, the app serves fresh results and no persistent authentication or database failures appear.
 
 **Rollback (any step):** set `PIPELINE=legacy` on the app, stop the collector, start the old worker and add-on. Old tables were never modified. New tables can stay.
 
@@ -431,7 +431,7 @@ is written once per item.
 
 # Phase 3 — repricing, disappearance, relisting; market activity
 
-Depends on a week of `listing_events` from Phase 2.
+Uses `listing_events` from Phase 2. Show the available observation window and keep uncertain exits separate as data accumulates.
 
 ## What the data can say
 
@@ -480,14 +480,14 @@ a personal craft rate, it is a separate, labelled estimate (Q4).
 
 # Phase 5 — removal
 
-Start only when Phase 2 cutover has run 7 days without rollback and Phases 3–4
+Start only when Phase 2 cutover has run 12 hours without rollback and Phases 3–4
 are merged. Take a `pg_dump` first; it is the rollback for every drop. Each row
 is one task and one PR; each begins with R3 on every symbol it removes.
 
 | ID | Remove | Gate (must be true first) |
 |---|---|---|
-| P5-01 | Old refresh path: pg-boss wiring in `jobs.ts` and `process.ts`, `refreshPlanner.ts`, `refreshOrchestrator.ts`, `marketJobProcessor.ts`, `providers/poeTrade.ts`, `PIPELINE=legacy` branches, `pg-boss` dependency | No process has run with `PIPELINE=legacy` for 7 days |
-| P5-02 | `MarketCollectionManager` scheduling, `entrypoints/scheduleTradeCatalog.ts`, `publishTradeCatalog.ts`, `collectTrade.ts serve`, `services/market-trade-scraper/` | Collector handles every target they handled |
+| P5-01 | Old refresh path: pg-boss wiring in `jobs.ts` and `process.ts`, `refreshPlanner.ts`, `refreshOrchestrator.ts`, `marketJobProcessor.ts`, `providers/poeTrade.ts`, `PIPELINE=legacy` branches, `pg-boss` dependency | No process has run with `PIPELINE=legacy` during the 12-hour cutover observation |
+| P5-02 | `MarketCollectionManager` scheduling, `entrypoints/scheduleTradeCatalog.ts`, `publishTradeCatalog.ts`, `collectTrade.ts serve` and the add-on’s single-profile fallback | The dedicated Home Assistant add-on handles every target in the active catalog |
 | P5-03 | `services/market-collector/`, its CI job, `marketCollectionRunner` and every `=== 'go'` branch, `marketCollectorContract.test.ts` | P5-02 merged |
 | P5-04 | Signals and allocator: domain `opportunitySignals.ts`, `capitalAllocation.ts`, `liquidity.ts`, `intelligence.ts`; server `intelligence.ts`, `intelligenceApi.ts`, `repositories/intelligenceRepository.ts`; web `IntelligencePanel.tsx`, `IntelligenceEvidence.tsx`, `IntelligenceSettingsFields.tsx`, `CapitalAllocator.tsx`, `CapitalFields.tsx`; intelligence fields in admin settings | My Factory does not import them (R3; `factory.ts` uses `analyzeOutcomeModel` from the outcome engine, which stays) |
 | P5-05 | Belt demo: `beltOpportunity.ts`, its API routes and contracts, `calculateRecipeEconomics`. **First** move `analyzeBeltSnapshot` to `listingComparability.ts` under a neutral name and replace `beltDemoFixture` in the 9 active test files with a neutral fixture of the same shape. | The 9 test files still pass with the renamed fixture before any deletion |
