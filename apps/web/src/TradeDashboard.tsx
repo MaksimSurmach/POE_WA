@@ -36,7 +36,7 @@ function divineAsk(item: RankedItem) {
 type Sort = 'turnover' | 'ask' | 'change' | 'visible' | 'fresh' | 'age';
 const columns: [Sort, string][] = [
   ['ask', 'Median ask'],
-  ['turnover', 'Exits / day'],
+  ['turnover', 'Observed exits / day'],
   ['change', 'Rate change'],
   ['visible', 'In latest'],
   ['fresh', 'First seen'],
@@ -372,13 +372,13 @@ export function TradeDashboard({ league }: { league: string | undefined }) {
           <div className="trade-dashboard__card">
             <header className="trade-dashboard__heading">
               <div>
-                <h3>Price vs. estimated turnover</h3>
+                <h3>Price vs. observed exits</h3>
                 <p>
                   Higher means more sustained disappearances per day. Farther
                   right means a higher asking price.
                 </p>
               </div>
-              <span className="trade-dashboard__badge">Sales proxy</span>
+              <span className="trade-dashboard__badge">Listing activity</span>
             </header>
             {selected ? (
               <div className="trade-dashboard__map-layout">

@@ -788,6 +788,80 @@ it.each(['fresh', 'expired', 'policy-expired'] as const)(
   },
 );
 
+it('reads market activity by the collector schedule key and leaves the sale basis alone', async () => {
+  const repositories = createInMemoryRepositories();
+  await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+  const league = await repositories.leagues.upsert({
+    game: 'poe1',
+    realm: 'pc',
+    gggId: 'Standard',
+    name: 'Standard',
+    isCurrent: true,
+    startAt: null,
+    endAt: null,
+    syncedAt: new Date(),
+    metadata: {},
+  });
+  const recipe = (await repositories.recipes.findById(
+    'physical-large-cluster-jagged',
+  ))!;
+  const trade: TradeQueryGenerator = {
+    generate: async () => ({
+      ok: true,
+      diagnostics: [],
+      value: {
+        hash: 'fixture',
+        diagnostics: { gameDataVersion: '3.29.3.3', mappingVersion: 'fixture' },
+        query: { query: { type: 'Large Cluster Jewel' } },
+      },
+    }),
+  };
+  const query = await generateRecipeMarketQuery(
+    trade,
+    validateRecipeDocument(recipe.definition),
+    league.gggId,
+  );
+  const marketActivity = {
+    capturedAt: new Date().toISOString(),
+    active: 4,
+    distinctSellers: 3,
+    repriced72h: 1,
+    inferredExits24h: 1,
+    inferredExits72h: 3,
+    uncertainExits72h: 2,
+    recentExitAsk: { amount: 120, currency: 'chaos' as const },
+  };
+  const keys: string[] = [];
+  const loadedPresentation =
+    await loadItemPresentationCatalog(presentationPath);
+  const read = (withActivity: boolean) =>
+    createResourceReaders(
+      repositories,
+      loadedPresentation,
+      trade,
+      async () => 300_000,
+      async () => [],
+      withActivity
+        ? async (leagueId, key) => {
+            expect(leagueId).toBe(league.id);
+            keys.push(key);
+            return marketActivity;
+          }
+        : undefined,
+    ).readRecipe(correlationId, recipe.id);
+
+  const detail = recipeResponseSchema.parse(await read(true)).data!;
+  // Same key synchronizeRecipes writes to collector_schedule for the target.
+  expect(keys).toEqual([
+    await hashMarketQuery({ ...query, league: league.gggId }),
+  ]);
+  expect(detail.marketActivity).toEqual(marketActivity);
+  expect(detail).toEqual({
+    ...recipeResponseSchema.parse(await read(false)).data,
+    marketActivity,
+  });
+});
+
 describe('legacy single-seller profit on the read boundary', () => {
   async function publishLegacy(input: {
     status: 'success' | 'stale';

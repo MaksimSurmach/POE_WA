@@ -25,6 +25,7 @@ import {
   createCollectorResultReader,
 } from './collectorResults.js';
 import { configuredTradeCapture } from './collectorTrade.js';
+import { createMarketActivityReader } from './marketActivity.js';
 import { existsSync } from 'node:fs';
 import pino from 'pino';
 import type { PoolClient } from 'pg';
@@ -359,6 +360,9 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     async () => (await admin.read()).effective.maximumQuoteAgeMs,
     config.pipeline === 'collector'
       ? createCollectorResultReader(pool)
+      : undefined,
+    config.pipeline === 'collector'
+      ? createMarketActivityReader(pool)
       : undefined,
   );
   let jobs: ApplicationJobScheduler | undefined;

@@ -9,6 +9,7 @@ export * from './inMemoryRepositories.js';
 export * from './invariants.js';
 export * from './marketProviders.js';
 export * from './captureReducer.js';
+export * from './marketActivity.js';
 export * from './models.js';
 export * from './priceEstimators.js';
 export * from './recipeSchema.js';
