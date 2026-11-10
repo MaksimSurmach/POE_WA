@@ -283,82 +283,88 @@ export function registerMarketResearchRoutes(
     },
   );
 
-  api.get<{
-    Querystring: { range?: string; league?: string; target?: string };
-  }>('/api/market/trade-dashboard', async (request, reply) => {
-    const query = z
-      .object({
-        range: tradeDashboardRangeSchema.default('24h'),
-        league: z.string().trim().min(1).max(100).optional(),
-        target: z.uuid().optional(),
-      })
-      .safeParse(request.query);
-    if (!query.success) throw new DomainError('MARKET_QUERY_INVALID');
-    if (!repository?.readTradeDashboard)
-      throw new DomainError('PERSISTENCE_UNAVAILABLE');
-    const { range, league, target } = query.data;
-    const end = new Date();
-    const start = new Date(end.getTime() - priceHistoryRanges[range].rangeMs);
-    const data = await persist(() =>
-      repository.readTradeDashboard!(start, end, league, target),
-    );
-    const exchange =
-      !target &&
-      economyRepository &&
-      data.league &&
-      data.items.some(
-        (item) => item.latest?.currency === 'chaos' && item.latest.ask !== null,
-      )
-        ? await economyRepository
-            .latest(data.league, 'Currency')
-            .then((summary) =>
-              summary?.priceBasis === 'currency-exchange'
-                ? economyRepository.find(summary.id)
-                : null,
+  for (const path of ['/api/trade-history', '/api/market/trade-dashboard']) {
+    api.get<{
+      Querystring: { range?: string; league?: string; target?: string };
+    }>(path, async (request, reply) => {
+      const query = z
+        .object({
+          range: tradeDashboardRangeSchema.default('24h'),
+          league: z.string().trim().min(1).max(100).optional(),
+          target: z.uuid().optional(),
+        })
+        .safeParse(request.query);
+      if (!query.success) throw new DomainError('MARKET_QUERY_INVALID');
+      if (!repository?.readTradeDashboard)
+        throw new DomainError('PERSISTENCE_UNAVAILABLE');
+      const { range, league, target } = query.data;
+      const end = new Date();
+      const start = new Date(end.getTime() - priceHistoryRanges[range].rangeMs);
+      const data = await persist(() =>
+        repository.readTradeDashboard!(start, end, league, target),
+      );
+      const exchange =
+        !target &&
+        economyRepository &&
+        data.league &&
+        data.items.some(
+          (item) =>
+            item.latest?.currency === 'chaos' && item.latest.ask !== null,
+        )
+          ? await economyRepository
+              .latest(data.league, 'Currency')
+              .then((summary) =>
+                summary?.priceBasis === 'currency-exchange'
+                  ? economyRepository.find(summary.id)
+                  : null,
+              )
+              .catch((error: unknown) => {
+                request.log.warn(
+                  { err: error },
+                  'Trade chart exchange observation unavailable',
+                );
+                return null;
+              })
+          : null;
+      const dashboardLeague = data.league;
+      const items =
+        exchange && dashboardLeague
+          ? await Promise.all(
+              data.items.map(async (item) => {
+                if (
+                  item.latest?.currency !== 'chaos' ||
+                  item.latest.ask === null
+                )
+                  return item;
+                const quote = await convertMarketQuote({
+                  money: { amount: String(item.latest.ask), currency: 'chaos' },
+                  currency: 'divine',
+                  target: { league: dashboardLeague },
+                  capturedAt: item.latest.at,
+                  exchangeSnapshotId: exchange.id,
+                  economy: { find: async () => exchange },
+                  now: end.getTime(),
+                  dataKind: 'observed',
+                });
+                return quote
+                  ? { ...item, chartAskDivine: Number(quote.money.amount) }
+                  : item;
+              }),
             )
-            .catch((error: unknown) => {
-              request.log.warn(
-                { err: error },
-                'Trade chart exchange observation unavailable',
-              );
-              return null;
-            })
-        : null;
-    const dashboardLeague = data.league;
-    const items =
-      exchange && dashboardLeague
-        ? await Promise.all(
-            data.items.map(async (item) => {
-              if (item.latest?.currency !== 'chaos' || item.latest.ask === null)
-                return item;
-              const quote = await convertMarketQuote({
-                money: { amount: String(item.latest.ask), currency: 'chaos' },
-                currency: 'divine',
-                target: { league: dashboardLeague },
-                capturedAt: item.latest.at,
-                exchangeSnapshotId: exchange.id,
-                economy: { find: async () => exchange },
-                now: end.getTime(),
-                dataKind: 'observed',
-              });
-              return quote
-                ? { ...item, chartAskDivine: Number(quote.money.amount) }
-                : item;
-            }),
-          )
-        : data.items;
-    reply.header('cache-control', 'no-store');
-    return tradeDashboardResponseSchema.parse({
-      correlationId: request.id,
-      data: {
-        ...data,
-        items,
-        range,
-        windowStart: start.toISOString(),
-        windowEnd: end.toISOString(),
-      },
+          : data.items;
+      reply.header('cache-control', 'no-store');
+      return tradeDashboardResponseSchema.parse({
+        correlationId: request.id,
+        data: {
+          ...data,
+          items,
+          range,
+          windowStart: start.toISOString(),
+          windowEnd: end.toISOString(),
+        },
+      });
     });
-  });
+  }
 
   api.get('/api/market', async (request) => {
     const unavailable = () =>
@@ -676,9 +682,11 @@ export function registerMarketResearchRoutes(
     },
   );
 
-  api.get<{ Params: { id: string } }>(
+  for (const path of [
+    '/api/trade-history/snapshots/:id',
     '/api/market/snapshots/:id',
-    async (request) => {
+  ]) {
+    api.get<{ Params: { id: string } }>(path, async (request) => {
       if (!z.uuid().safeParse(request.params.id).success)
         throw new DomainError('MARKET_SNAPSHOT_NOT_FOUND');
       const snapshot = await persist(() =>
@@ -689,8 +697,8 @@ export function registerMarketResearchRoutes(
         correlationId: request.id,
         data: snapshot,
       });
-    },
-  );
+    });
+  }
 
   api.get<{ Params: { id: string } }>(
     '/api/market/targets/:id/collection',

@@ -155,6 +155,14 @@ describe('market workbench API', () => {
         median: 50,
         listings: [],
       });
+      const archive = await api.inject(
+        `/api/trade-history/snapshots/${retained.id}`,
+      );
+      expect(archive.statusCode).toBe(200);
+      expect(archive.json().data).toEqual(detail.json().data);
+      expect(
+        (await api.inject('/api/trade-history?range=invalid')).statusCode,
+      ).toBe(400);
       const overview = await api.inject({ method: 'GET', url: '/api/market' });
       expect(overview.statusCode).toBe(200);
       expect(overview.json().data.snapshots).toEqual([

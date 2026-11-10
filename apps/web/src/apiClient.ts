@@ -296,13 +296,13 @@ export function createApiClient(
       if (league) query.set('league', league);
       if (target) query.set('target', target);
       return request(
-        `/api/market/trade-dashboard?${query}`,
+        `/api/trade-history?${query}`,
         tradeDashboardResponseSchema,
       );
     },
     getTradeSnapshot(id: string) {
       return request(
-        `/api/market/snapshots/${encodeURIComponent(id)}`,
+        `/api/trade-history/snapshots/${encodeURIComponent(id)}`,
         marketResearchSnapshotResponseSchema,
       );
     },
