@@ -277,17 +277,6 @@ describe('market workbench API', () => {
         payload,
       });
       expect(repeated.statusCode).toBe(200);
-      const calculated = await api.inject({
-        method: 'GET',
-        url: '/api/market/belt-opportunities?kind=demo',
-      });
-      expect(calculated.json().data[0]).toMatchObject({
-        targetId: target.id,
-        snapshotId: imported.json().data.id,
-        status: 'CALCULATED',
-        economicConclusion: 'NON_POSITIVE',
-        calculation: { expectedCraftCost: '48', spread: '-8' },
-      });
       expect(
         (
           await api.inject({
@@ -300,78 +289,6 @@ describe('market workbench API', () => {
       expect(
         (await repo.findSnapshot(imported.json().data.id))?.listings,
       ).toEqual(imported.json().data.listings);
-    } finally {
-      await api.close();
-    }
-  });
-  it('ranks synthetic evidence through import and opportunity endpoint', async () => {
-    const api = testApi(inMemoryTestRepository());
-    try {
-      const fixture = marketListingFixture();
-      const created = await api.inject({
-        method: 'POST',
-        url: '/api/market/targets',
-        payload: fixture.target,
-      });
-      expect(created.statusCode).toBe(201);
-      const imported = await api.inject({
-        method: 'POST',
-        url: '/api/market/snapshots/import',
-        payload: fixture.observation(created.json().data.id),
-      });
-      expect(imported.statusCode).toBe(201);
-      const response = await api.inject({
-        method: 'GET',
-        url: '/api/market/belt-opportunities?kind=demo',
-      });
-      expect(response.statusCode).toBe(200);
-      expect(response.json().data[0]).toMatchObject({
-        status: 'CALCULATED',
-        dataKind: 'demo',
-        calculation: {
-          expectedCraftCost: '18',
-          askingPrice: '40',
-          spread: '22',
-        },
-      });
-      const live = await api.inject({
-        method: 'GET',
-        url: '/api/market/belt-opportunities?kind=observed',
-      });
-      expect(live.json().data[0]).toMatchObject({
-        status: 'INSUFFICIENT_DATA',
-        calculation: null,
-      });
-    } finally {
-      await api.close();
-    }
-  });
-
-  it('keeps legacy unknown-coverage observations out of observed opportunities', async () => {
-    const api = testApi(inMemoryTestRepository());
-    try {
-      const fixture = marketListingFixture();
-      const created = await api.inject({
-        method: 'POST',
-        url: '/api/market/targets',
-        payload: fixture.target,
-      });
-      const target = created.json().data;
-      const imported = await api.inject({
-        method: 'POST',
-        url: '/api/market/snapshots/import',
-        payload: { ...fixture.observation(target.id), dataKind: 'observed' },
-      });
-      expect(imported.statusCode).toBe(201);
-      const response = await api.inject({
-        method: 'GET',
-        url: '/api/market/belt-opportunities?kind=observed',
-      });
-      expect(response.json().data[0]).toMatchObject({
-        targetId: target.id,
-        snapshotId: null,
-        status: 'INSUFFICIENT_DATA',
-      });
     } finally {
       await api.close();
     }

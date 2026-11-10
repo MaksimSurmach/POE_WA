@@ -2,7 +2,6 @@ import {
   beltPriceUpdateInputSchema,
   beltPriceUpdateSchema,
   beltPriceUpdatesResponseSchema,
-  beltOpportunitiesResponseSchema,
   marketResearchSnapshotResponseSchema,
   marketSnapshotImportSchema,
   marketCollectionResponseSchema,
@@ -31,13 +30,12 @@ import { parseTrendRange } from './marketTrendsApi.js';
 import { priceHistoryRanges } from './repositories/priceHistoryRepository.js';
 
 import { analyzeListingComparability } from './listingComparability.js';
-import { activeCatalogTargets, importMarketCatalog } from './marketCatalog.js';
+import { importMarketCatalog } from './marketCatalog.js';
 import { marketStarterLibrary } from './marketStarterLibrary.js';
 import {
   generateMarketTradeQuery,
   marketTradeUrl,
 } from './marketTradeQuery.js';
-import { evaluateBeltOpportunity } from './beltOpportunity.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
 import { convertMarketQuote } from './marketCurrency.js';
 import {
@@ -397,104 +395,6 @@ export function registerMarketResearchRoutes(
       return unavailable();
     }
   });
-
-  api.get<{ Querystring: { kind?: string; league?: string } }>(
-    '/api/market/belt-opportunities',
-    async (request) => {
-      const kind = request.query.kind === 'demo' ? 'demo' : 'observed';
-      const repo = requireRepository(repository);
-      const [targets, summaries] = await persist(() =>
-        Promise.all([repo.listTargets(), repo.listSnapshots()]),
-      );
-      const beltTargets = activeCatalogTargets(targets)
-        .filter(
-          (target) =>
-            (target.slot.toLowerCase() === 'belt' || target.tradeSearch) &&
-            (!request.query.league || target.league === request.query.league),
-        )
-        .slice(0, 100);
-      const opportunities = await persist(() =>
-        Promise.all(
-          beltTargets.map(async (target) => {
-            const latest = summaries
-              .filter(
-                (snapshot) =>
-                  snapshot.targetId === target.id &&
-                  snapshot.targetDigest === target.digest &&
-                  snapshot.dataKind === kind &&
-                  (kind === 'demo' || snapshot.coverage === 'complete'),
-              )
-              .sort((a, b) => b.capturedAt.localeCompare(a.capturedAt))[0];
-            const snapshot = latest ? await repo.findSnapshot(latest.id) : null;
-            if (latest && !snapshot) throw new Error('Snapshot unavailable');
-            const updates = (await repo.listPriceUpdates?.(target.id)) ?? [];
-            const update = updates.find(
-              (entry) =>
-                entry.targetDigest === target.digest && entry.dataKind === kind,
-            );
-            const opportunity = await evaluateBeltOpportunity(
-              target,
-              snapshot,
-              economyRepository,
-              Date.now(),
-              update,
-            );
-            const observations = collection
-              ? await collection.store.listObservations(target.id)
-              : [];
-            const compatible = observations.filter(
-              (run) =>
-                run.dataKind === kind &&
-                run.currency === snapshot?.currency &&
-                run.targetDigest === target.digest &&
-                run.queryDigest === snapshot?.queryDigest,
-            );
-            const point =
-              compatible.length >= 2
-                ? compareMarketObservations(compatible).at(-1)
-                : undefined;
-            return {
-              ...opportunity,
-              supply: point
-                ? {
-                    newCount: point.newCount,
-                    missingCount: point.missingCount,
-                    restoredCount: point.restoredCount,
-                    increasedCount: point.increasedCount ?? 0,
-                    decreasedCount: point.decreasedCount ?? 0,
-                    coverage: point.coverage ?? null,
-                  }
-                : null,
-            };
-          }),
-        ),
-      );
-      opportunities.sort((a, b) =>
-        a.calculation && b.calculation
-          ? (a.confidence === b.confidence
-              ? 0
-              : a.confidence === 'MEDIUM'
-                ? -1
-                : 1) ||
-            Number(b.calculation.roiPercent) -
-              Number(a.calculation.roiPercent) ||
-            (b.comparison?.independentSellers ?? 0) -
-              (a.comparison?.independentSellers ?? 0) ||
-            (a.supply?.newCount ?? 0) - (b.supply?.newCount ?? 0)
-          : a.calculation
-            ? -1
-            : b.calculation
-              ? 1
-              : (b.comparison?.independentSellers ?? 0) -
-                  (a.comparison?.independentSellers ?? 0) ||
-                a.name.localeCompare(b.name),
-      );
-      return beltOpportunitiesResponseSchema.parse({
-        correlationId: request.id,
-        data: opportunities,
-      });
-    },
-  );
 
   api.post<{ Querystring: { dryRun?: string } }>(
     '/api/market/catalog/import',

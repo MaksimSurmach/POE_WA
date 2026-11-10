@@ -5,7 +5,6 @@ import { marketStarterLibrary } from '../marketStarterLibrary.js';
 import { marketListingFixture } from '../marketListingFixture.js';
 
 import { analyzeListingComparability } from '../listingComparability.js';
-import { evaluateBeltOpportunity } from '../beltOpportunity.js';
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
 import {
@@ -41,7 +40,7 @@ beforeEach(async () => {
 });
 
 describe('persistent market research', () => {
-  it('routes a manual import through the collection record, matcher and ranking', async () => {
+  it('routes a manual import through the collection record and matcher', async () => {
     const fixture = marketListingFixture(now);
     const sourceUrl = 'https://example.com/manual-observation-fixture';
     const price = (
@@ -91,22 +90,10 @@ describe('persistent market research', () => {
       'select payload from market_collection_runs where id = $1',
       [imported.id],
     );
-    const ranked = await evaluateBeltOpportunity(
-      target,
-      stored,
-      undefined,
-      now.getTime(),
-    );
     expect(run.rows[0]?.payload.sourceId).toBe('manual-import');
     expect(
-      analyzeListingComparability(target, stored, now.getTime())
-        .confirmedListings,
-    ).toBe(5);
-    expect(ranked).toMatchObject({
-      snapshotId: imported.id,
-      status: 'CALCULATED',
-      economicConclusion: 'POSITIVE',
-    });
+      analyzeListingComparability(target, stored, now.getTime()),
+    ).toMatchObject({ snapshotId: imported.id, confirmedListings: 5 });
   });
 
   it('preserves the manually observed Trade rows and refuses an unverified match after repository restart', async () => {
@@ -155,25 +142,21 @@ describe('persistent market research', () => {
         fingerprint: expect.stringMatching(/^[a-f0-9]{64}$/),
       })),
     });
-    expect(
-      analyzeListingComparability(
-        target,
-        restored,
-        Date.parse(restored.capturedAt),
-      ).rows.map((row) => row.status),
-    ).toEqual(['PARTIAL', 'PARTIAL', 'PARTIAL', 'PARTIAL', 'PARTIAL']);
-    const ranked = await evaluateBeltOpportunity(
+    const comparison = analyzeListingComparability(
       target,
       restored,
-      undefined,
       Date.parse(restored.capturedAt),
     );
-    expect(ranked).toMatchObject({
+    expect(comparison.rows.map((row) => row.status)).toEqual([
+      'PARTIAL',
+      'PARTIAL',
+      'PARTIAL',
+      'PARTIAL',
+      'PARTIAL',
+    ]);
+    expect(comparison).toMatchObject({
       snapshotId: saved.id,
-      comparison: {
-        snapshotId: saved.id,
-        confirmedListings: 0,
-      },
+      confirmedListings: 0,
     });
   });
 

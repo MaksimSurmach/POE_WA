@@ -5,19 +5,6 @@ import {
   type RecipeInput,
 } from '../recipeSchema.js';
 
-export const economicsFixture = {
-  estimator: { n: 10, strategy: 'median_top_n' as const },
-  finishingCosts: [{ id: 'divine-orb', label: 'Divine Orb', quantity: 1 }],
-  materials: [
-    {
-      id: 'primal-crystallised-lifeforce',
-      label: 'Primal Crystallised Lifeforce',
-      quantityPerAttempt: 150,
-    },
-  ],
-  success: { expectedAttempts: 6, mode: 'expected_attempts' as const },
-};
-
 const evidence = {
   method: 'Labelled synthetic fixture',
   patch: 'fixture-1',
