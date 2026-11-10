@@ -60,7 +60,7 @@ type ResourceEvaluation = Pick<
 
 type CollectorResultRow = typeof recipeResults.$inferSelect;
 type CollectorResultsReader = (
-  leagueId: string,
+  leagueId?: string,
   recipeId?: string,
 ) => Promise<CollectorResultRow[]>;
 
@@ -72,10 +72,25 @@ export function createResourceReaders(
   readCollectorResults?: CollectorResultsReader,
   readMarketActivity?: MarketActivityReader,
 ) {
+  const recipeDocuments = new Map<
+    string,
+    ReturnType<typeof validateRecipeDocument>
+  >();
+  function readRecipeDocument(recipe: StoredRecipe) {
+    const cached = recipeDocuments.get(recipe.contentHash);
+    if (cached) return cached;
+    const definition = validateRecipeDocument(recipe.definition);
+    if (recipeDocuments.size >= 256)
+      recipeDocuments.delete(recipeDocuments.keys().next().value!);
+    recipeDocuments.set(recipe.contentHash, definition);
+    return definition;
+  }
+
   async function readMarket(recipeId?: string) {
+    const catalogUsesCollector = readCollectorResults && recipeId === undefined;
     const [currentLeague, maximumQuoteAgeMs, published, progress] =
       await Promise.all([
-        repositories.leagues.findCurrent(),
+        catalogUsesCollector ? null : repositories.leagues.findCurrent(),
         readMaximumQuoteAgeMs?.(),
         readCollectorResults ? null : repositories.catalog.getPublished(),
         readCollectorResults ? null : repositories.catalog.getProgress(),
@@ -86,12 +101,14 @@ export function createResourceReaders(
       legacy?.evaluations.map((row) => [row.recipeId, row]),
     );
     const collectorRows =
-      currentLeague && readCollectorResults
-        ? await readCollectorResults(currentLeague.id, recipeId)
+      readCollectorResults && (catalogUsesCollector || currentLeague)
+        ? await readCollectorResults(currentLeague?.id, recipeId)
         : [];
     const collectorEvaluations = new Map(
       collectorRows
-        .filter((row) => row.leagueId === currentLeague?.id)
+        .filter(
+          (row) => catalogUsesCollector || row.leagueId === currentLeague?.id,
+        )
         .map((row) => [row.recipeId, row]),
     );
     return {
@@ -140,6 +157,7 @@ export function createResourceReaders(
                 });
             return toCatalogEntry(
               recipe,
+              readRecipeDocument(recipe),
               evaluation,
               presentationCatalog,
               snapshot,
@@ -172,7 +190,7 @@ export function createResourceReaders(
         throw new DomainError('PERSISTENCE_NOT_FOUND');
       }
       const { currentLeague, maximumQuoteAgeMs } = market;
-      const definition = validateRecipeDocument(recipe.definition);
+      const definition = readRecipeDocument(recipe);
       const generatedBase =
         trade && currentLeague
           ? await generateRecipeMarketQuery(
@@ -210,7 +228,7 @@ export function createResourceReaders(
           : null;
 
       const detail = {
-        ...toRecipeDetail(recipe, evaluation, presentationCatalog),
+        ...toRecipeDetail(recipe, definition, evaluation, presentationCatalog),
         ...(readMarketActivity ? { marketActivity } : {}),
         baseTradeUrl,
         snapshot: readCollectorResults
@@ -348,11 +366,11 @@ function resourceResponse<T>(
 
 function toCatalogEntry(
   recipe: StoredRecipe,
+  definition: ReturnType<typeof validateRecipeDocument>,
   evaluation?: ResourceEvaluation,
   presentationCatalog?: ItemPresentationCatalog,
   snapshot?: CatalogEntry['snapshot'],
 ): CatalogEntry {
-  const definition = validateRecipeDocument(recipe.definition);
   let itemPreview: CatalogEntry['itemPreview'];
   if (presentationCatalog?.get(definition.base.baseId)) {
     try {
@@ -368,7 +386,7 @@ function toCatalogEntry(
   return {
     evaluation: toEvaluation(recipe.id, evaluation),
     ...(itemPreview ? { itemPreview } : {}),
-    recipe: toRecipeSummary(recipe, evaluation),
+    recipe: toRecipeSummary(recipe, definition, evaluation),
     snapshot: snapshot ?? null,
   };
 }
@@ -484,9 +502,9 @@ async function latestOutputSnapshot(input: {
 
 function toRecipeSummary(
   recipe: StoredRecipe,
+  definition: ReturnType<typeof validateRecipeDocument>,
   evaluation?: ResourceEvaluation,
 ) {
-  const definition = validateRecipeDocument(recipe.definition);
   return {
     category: recipe.category,
     craftMethod: recipe.craftMethod,
@@ -573,10 +591,10 @@ function toEvaluation(
 
 function toRecipeDetail(
   recipe: StoredRecipe,
+  definition: ReturnType<typeof validateRecipeDocument>,
   evaluation?: ResourceEvaluation,
   presentationCatalog?: ItemPresentationCatalog,
 ): RecipeDetailView {
-  const definition = validateRecipeDocument(recipe.definition);
   if (!presentationCatalog) throw new DomainError('RECIPE_INVALID');
   const salePrice = price(evaluation?.estimatedSalePrice, evaluation?.currency);
   const presentation = createRecipeItemPresentation({
@@ -674,7 +692,7 @@ function toRecipeDetail(
       unitPrice: material.unitPrice,
     })),
     presentation,
-    recipe: toRecipeSummary(recipe, evaluation),
+    recipe: toRecipeSummary(recipe, definition, evaluation),
     requiredMods: presentation.target.modifiers.map(({ label }) => label),
     selectedEstimatorId: salePrice ? 'cheapest' : null,
     snapshot: null,

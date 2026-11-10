@@ -275,8 +275,13 @@ function CatalogRoute() {
     }
     void load();
     // Re-read server freshness even when nobody requests a manual refresh.
+    let idleTicks = 0;
     const timer = setInterval(() => {
-      if (document.visibilityState === 'visible') void load();
+      if (document.visibilityState !== 'visible') return;
+      idleTicks++;
+      if (collector && idleTicks < 4) return;
+      idleTicks = 0;
+      void load();
     }, 30_000);
     const onFocus = () => void load();
     window.addEventListener('focus', onFocus);
