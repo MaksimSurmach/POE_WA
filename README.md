@@ -25,7 +25,7 @@ use this local workflow.
 
 **Market trends** (`/market`, linked from the header) charts the saved cheapest-ask history per recipe over 24h, 7d, 30d or 1y, with the expected craft cost when it was recorded with that ask. Each refresh adds at most one point per new output snapshot; repeated or carried prices add nothing, and gaps stay visible. The dashboard sorts by percent change or by latest ask within one currency, and shows seller counts, the last source time and a data table. The recipe page embeds the same chart. History is asking prices only, with no sales or volume. Raw points are kept for 30 days, then compacted into daily OHLC rows that are kept for `historyRetentionDays` (default 730); see [price history](docs/database.md#price-history).
 
-The combined server and worker are needed for **Refresh Prices**. `start:market` is a historical research API entrypoint and does not serve the handbook. The UI uses the existing exclusive refresh queue, PostgreSQL rate limiter, Trade-compatible collection owner and economy snapshot cache. Only verified comparable asks enter valuations. The cheapest ask drives indicative profit/ROI; the median is secondary information. Listings are asking prices, not confirmed sales.
+Start the separate collector to update recipe prices. The handbook uses current comparable Trade asks with explicit coverage and quote age. Archive history is available on the Trade page.
 
 For a fresh installation, initialize the current Trade identity mappings through the existing import tools before collecting prices:
 

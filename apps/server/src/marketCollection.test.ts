@@ -13,12 +13,10 @@ import {
 } from './marketCollection.js';
 import { createMarketTarget } from './marketResearch.js';
 import { DomainError, createInMemoryRepositories } from '@poe-worksmith/domain';
-import pino from 'pino';
 import {
   GggRateLimitController,
   type RateLimitGate,
 } from './rateLimitController.js';
-import { buildApi } from './api.js';
 import type {
   MarketCollectionRun,
   MarketCollectionSettings,
@@ -1550,122 +1548,5 @@ describe('managed collection runner', () => {
     releaseSave();
     await stopping;
     expect(store.runs.get(run.id)?.status).toBe('cancelled');
-  });
-
-  it('serves collection settings, replay runs and per-query history through the API', async () => {
-    const store = makeStore();
-    const manager = new MarketCollectionManager({
-      adapter: createReplayMarketCollectionSource([
-        fixture,
-        {
-          ...fixture,
-          currency: null,
-          listings: [],
-          reportedTotal: 0,
-          returnedCount: 0,
-          fetchedCount: 0,
-        },
-      ]),
-      store,
-    });
-    const api = buildApi(
-      pino({ level: 'silent' }),
-      async () => {},
-      async () => ({ active: null, published: null }),
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      { marketCollection: { manager, store } },
-    );
-    try {
-      const settings = await api.inject({
-        method: 'PUT',
-        url: `/api/market/targets/${target.id}/collection/settings`,
-        payload: { enabled: true, intervalMinutes: 5 },
-      });
-      expect(settings.statusCode).toBe(200);
-      expect(settings.json().data).toMatchObject({
-        enabled: true,
-        intervalMinutes: 5,
-      });
-
-      const started = await api.inject({
-        method: 'POST',
-        url: `/api/market/targets/${target.id}/collection/run`,
-      });
-      expect(started.statusCode).toBe(202);
-      const runId = started.json().data.id as string;
-      await waitUntilDone(store, runId);
-      const empty = await api.inject({
-        method: 'POST',
-        url: `/api/market/targets/${target.id}/collection/run`,
-      });
-      await waitUntilDone(store, empty.json().data.id as string);
-
-      const first = store.runs.get(runId)!;
-      const start = Date.parse(first.startedAt);
-      for (let index = 1; index <= 25; index += 1) {
-        const at = new Date(start + index * 60_000).toISOString();
-        const id = crypto.randomUUID();
-        store.runs.set(id, {
-          ...first,
-          id,
-          status: 'empty',
-          coverage: 'complete',
-          returnedCount: 0,
-          fetchedCount: 0,
-          listings: [],
-          listingCount: 0,
-          currency: null,
-          capturedAt: at,
-          startedAt: at,
-          completedAt: at,
-          snapshotId: id,
-        });
-      }
-      const restoredAt = new Date(start + 26 * 60_000).toISOString();
-      const restoredId = crypto.randomUUID();
-      store.runs.set(restoredId, {
-        ...first,
-        id: restoredId,
-        capturedAt: restoredAt,
-        startedAt: restoredAt,
-        completedAt: restoredAt,
-        snapshotId: restoredId,
-      });
-
-      const history = await api.inject({
-        method: 'GET',
-        url: `/api/market/targets/${target.id}/collection`,
-      });
-      expect(history.statusCode).toBe(200);
-      expect(history.json().data.runs).toHaveLength(25);
-      expect(history.json().data.runs[0]).toMatchObject({
-        id: restoredId,
-        status: 'succeeded',
-      });
-      expect(history.json().data.series[0]?.points).toHaveLength(28);
-      expect(history.json().data.series[0]?.points.at(-1)).toMatchObject({
-        count: 1,
-        restoredCount: 1,
-      });
-      expect(history.json().data).toMatchObject({
-        settings: { enabled: true, intervalMinutes: 5 },
-        source: { access: 'replay', dataKind: 'demo' },
-        series: [
-          {
-            dataKind: 'demo',
-            currency: 'chaos',
-            queryDigest: expect.any(String),
-            points: expect.any(Array),
-          },
-        ],
-      });
-    } finally {
-      await api.close();
-      await manager.stop();
-    }
   });
 });
