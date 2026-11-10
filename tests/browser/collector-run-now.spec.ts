@@ -100,3 +100,37 @@ test('Run now becomes available again when its request stalls', async ({
   });
   await expect(button).toBeEnabled();
 });
+
+test('persists quote age changed from the homepage', async ({ page }) => {
+  const url = '/api/admin/market/settings';
+  const response = await page.request.get(url);
+  expect(response.ok()).toBe(true);
+  const before = (await response.json()).data;
+  const field = 'Warning age (minutes)';
+  const oldMinutes = before.configured.freshnessWarningMs / 60_000;
+  const nextMinutes = oldMinutes === 5 ? 6 : 5;
+
+  try {
+    await page.goto('/');
+    await page.getByRole('heading', { name: 'Settings' }).click();
+    await page.getByLabel(field).fill(String(nextMinutes));
+    await page.getByRole('button', { name: 'Save settings' }).click();
+    await expect(page.getByText('Settings saved.')).toBeVisible();
+    await page.reload();
+    await page.getByRole('heading', { name: 'Settings' }).click();
+    await expect(page.getByLabel(field)).toHaveValue(String(nextMinutes));
+  } finally {
+    const current = (await (await page.request.get(url)).json()).data;
+    if (current.version !== before.version) {
+      const restored = await page.request.patch(url, {
+        data: {
+          version: current.version,
+          settings: {
+            freshnessWarningMs: before.configured.freshnessWarningMs,
+          },
+        },
+      });
+      expect(restored.ok()).toBe(true);
+    }
+  }
+});

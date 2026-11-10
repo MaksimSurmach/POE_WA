@@ -5,10 +5,10 @@ import type {
 import { useMemo, useState } from 'react';
 
 import {
-  createAdminMarketClient,
-  settingsChanges,
-  validateSettings,
-} from './AdminMarketPage.js';
+  createHomeSettingsClient,
+  validateQuoteAges,
+} from './homeSettingsClient.js';
+import './homeSettings.css';
 
 const minuteMs = 60_000;
 const ageFields = [
@@ -23,12 +23,12 @@ export function HomeSettings({
 }: {
   operatorToken?: string;
   client?: Pick<
-    ReturnType<typeof createAdminMarketClient>,
+    ReturnType<typeof createHomeSettingsClient>,
     'settings' | 'save' | 'pause'
   >;
 }) {
   const api = useMemo(
-    () => client ?? createAdminMarketClient(fetch, operatorToken),
+    () => client ?? createHomeSettingsClient(operatorToken),
     [client, operatorToken],
   );
   const [settings, setSettings] = useState<MarketAdminSettingsResponse | null>(
@@ -59,7 +59,13 @@ export function HomeSettings({
   }
 
   const changes =
-    settings && draft ? settingsChanges(settings.configured, draft) : {};
+    settings && draft
+      ? Object.fromEntries(
+          ageFields.flatMap(([key]) =>
+            settings.configured[key] === draft[key] ? [] : [[key, draft[key]]],
+          ),
+        )
+      : {};
   const dirty = Object.keys(changes).length > 0;
   const paused = settings?.configured.collectionsPaused;
 
@@ -80,8 +86,8 @@ export function HomeSettings({
             noValidate
             onSubmit={(event) => {
               event.preventDefault();
-              const errors = Object.values(validateSettings(draft));
-              if (errors.length) setMessage(errors.join(' '));
+              const error = validateQuoteAges(draft);
+              if (error) setMessage(error);
               else
                 void apply(
                   () => api.save(settings.version, changes),
