@@ -9,7 +9,7 @@ import { MarketCollectionManager } from '../marketCollection.js';
 import { configuredCollectionSource } from '../marketCollectionSource.js';
 import { GggRateLimitController } from '../rateLimitController.js';
 import { createPostgresRepositories } from '../repositories/index.js';
-import { clearTradeAuthenticationDenials } from '../repositories/postgresRepositories.js';
+import { clearTradeAuthenticationDenials } from '../repositories/postgresProviderRepositories.js';
 import { createMarketCollectionRepository } from '../repositories/marketCollectionRepository.js';
 import { createMarketEconomyRepository } from '../repositories/marketEconomyRepository.js';
 import { createTradeSessionRepository } from '../repositories/tradeSessionRepository.js';

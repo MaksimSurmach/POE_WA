@@ -164,6 +164,15 @@ export function loadRuntimeConfig(
     ]);
   }
   const database = loadDatabaseConfig(environment);
+  if (result.data.PIPELINE === 'legacy' && database.environment !== 'test') {
+    throw new RuntimeConfigurationError([
+      {
+        code: 'custom',
+        path: ['PIPELINE'],
+        message: 'The legacy pipeline is available only to test fixtures',
+      },
+    ]);
+  }
   if (mode === 'collector') {
     const path = [
       database.environment === 'test' ? 'TEST_DATABASE_URL' : 'DATABASE_URL',

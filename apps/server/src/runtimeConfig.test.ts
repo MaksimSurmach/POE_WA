@@ -101,6 +101,20 @@ describe('runtime configuration', () => {
     expect(modeIncludesWorker(mode)).toBe(false);
   });
 
+  it('allows legacy reads only for test fixtures', () => {
+    const legacy = { ...environment, PIPELINE: 'legacy' };
+    expect(loadRuntimeConfig(legacy).pipeline).toBe('legacy');
+    expect(() =>
+      loadRuntimeConfig({
+        ...legacy,
+        APP_ENV: 'staging',
+        TEST_DATABASE_URL: undefined,
+        DATABASE_URL: 'postgresql://postgres@db/worksmith?sslmode=require',
+        DATABASE_SSL_MODE: 'require',
+      }),
+    ).toThrow('The legacy pipeline is available only to test fixtures');
+  });
+
   it.each([
     'ep-test-pooler.eu-central-1.aws.neon.tech/worksmith',
     'ep-test%2dpooler.eu-central-1.aws.neon.tech/worksmith',

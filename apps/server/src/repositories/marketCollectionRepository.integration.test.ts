@@ -22,7 +22,7 @@ import { createPostgresRepositories } from './index.js';
 import { createMarketResearchRepository } from './marketResearchRepository.js';
 import { createMarketCollectionRepository } from './marketCollectionRepository.js';
 import { createTradeSessionRepository } from './tradeSessionRepository.js';
-import { clearTradeAuthenticationDenials } from './postgresRepositories.js';
+import { clearTradeAuthenticationDenials } from './postgresProviderRepositories.js';
 
 const config = loadDatabaseConfig();
 const databaseUrl = new URL(config.connectionString);
