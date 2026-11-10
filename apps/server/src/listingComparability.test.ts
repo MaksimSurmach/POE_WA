@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeBeltSnapshot } from './beltComparability.js';
+import { analyzeListingComparability } from './listingComparability.js';
 import {
   createImportedMarketSnapshot,
   createMarketTarget,
@@ -66,7 +66,7 @@ describe('belt comparability v1', () => {
     const missingLevel = { ...item };
     Reflect.deleteProperty(missingLevel, 'itemLevel');
     const snap = snapshot([item, { ...item, itemLevel: 85 }, missingLevel]);
-    const result = analyzeBeltSnapshot(exact, snap, now.getTime());
+    const result = analyzeListingComparability(exact, snap, now.getTime());
     expect(result.rows.map((row) => row.status)).toEqual([
       'MATCH',
       'REJECT',
@@ -76,7 +76,7 @@ describe('belt comparability v1', () => {
       'target maximum item level: mismatch',
     );
     expect(
-      analyzeBeltSnapshot(
+      analyzeListingComparability(
         target,
         snapshot([{ ...item, itemLevel: 85 }]),
         now.getTime(),
@@ -95,7 +95,7 @@ describe('belt comparability v1', () => {
       { ...item, status: 'delisted' },
     ]);
     const original = JSON.stringify(snap);
-    const result = analyzeBeltSnapshot(target, snap, now.getTime());
+    const result = analyzeListingComparability(target, snap, now.getTime());
     expect(result.rows.map((row) => row.status)).toEqual([
       'MATCH',
       'PARTIAL',
@@ -126,9 +126,9 @@ describe('belt comparability v1', () => {
       now,
     );
     expect(snap.listings).toHaveLength(2);
-    expect(analyzeBeltSnapshot(target, snap, now.getTime()).rows).toHaveLength(
-      1,
-    );
+    expect(
+      analyzeListingComparability(target, snap, now.getTime()).rows,
+    ).toHaveLength(1);
   });
   it('deduplicates sellers, requires a fresh sample and never claims profit', () => {
     const snap = snapshot([
@@ -136,17 +136,17 @@ describe('belt comparability v1', () => {
       { ...item, seller: 'alice' },
       ...['Bob', 'C', 'D', 'E'].map((seller) => ({ ...item, seller })),
     ]);
-    const result = analyzeBeltSnapshot(target, snap, now.getTime());
+    const result = analyzeListingComparability(target, snap, now.getTime());
     expect(result.independentSellers).toBe(5);
     expect(result.askingDistribution).toEqual({ min: 10, median: 13, max: 15 });
     expect(result.conservativeAskingPrice).toBe(12);
     expect(result.status).toBe('INSUFFICIENT_DATA');
     expect(
-      analyzeBeltSnapshot(target, snap, now.getTime() + 86_400_001)
+      analyzeListingComparability(target, snap, now.getTime() + 86_400_001)
         .conservativeAskingPrice,
     ).toBeNull();
     expect(
-      analyzeBeltSnapshot(target, snapshot([item]), now.getTime())
+      analyzeListingComparability(target, snapshot([item]), now.getTime())
         .conservativeAskingPrice,
     ).toBeNull();
   });
@@ -154,7 +154,7 @@ describe('belt comparability v1', () => {
     const legacy = { ...target };
     delete legacy.beltRules;
     expect(
-      analyzeBeltSnapshot(legacy, snapshot([{}]), now.getTime()).rows[0]
+      analyzeListingComparability(legacy, snapshot([{}]), now.getTime()).rows[0]
         ?.status,
     ).toBe('PARTIAL');
   });
@@ -175,7 +175,7 @@ describe('belt comparability v1', () => {
       { ...item, elementalResistances: { fire: 40, cold: 20, lightning: 19 } },
       { ...item, elementalResistances: { fire: 40, cold: 20 } },
     ]);
-    const result = analyzeBeltSnapshot(v2, rows, now.getTime());
+    const result = analyzeListingComparability(v2, rows, now.getTime());
     expect(result.algorithm).toBe('belt-comparability-v2');
     expect(result.rows.map((row) => row.status)).toEqual([
       'MATCH',
@@ -212,11 +212,11 @@ describe('belt comparability v1', () => {
       },
       { ...withoutFilters },
     ]);
-    const result = analyzeBeltSnapshot(v3, rows, now.getTime());
+    const result = analyzeListingComparability(v3, rows, now.getTime());
     expect(result.algorithm).toBe('belt-comparability-v3');
     expect(result.rows.map((row) => row.status)).toEqual(['MATCH', 'PARTIAL']);
     expect(
-      analyzeBeltSnapshot(target, rows, now.getTime()).rows[0]?.status,
+      analyzeListingComparability(target, rows, now.getTime()).rows[0]?.status,
     ).toBe('PARTIAL');
   });
 });

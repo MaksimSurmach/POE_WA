@@ -1,4 +1,4 @@
-import { beltDemoFixture } from '../beltDemoFixture.js';
+import { marketListingFixture } from '../marketListingFixture.js';
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
 import {
@@ -10,7 +10,7 @@ import { createMarketResearchRepository } from '../repositories/marketResearchRe
 const pool = createDatabasePool(loadDatabaseConfig());
 try {
   const repo = createMarketResearchRepository(pool);
-  const fixture = beltDemoFixture();
+  const fixture = marketListingFixture();
   const target = await repo.saveTarget(createMarketTarget(fixture.target));
   const snapshot = await repo.saveSnapshot(
     createImportedMarketSnapshot(fixture.observation(target.id), target),

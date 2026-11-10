@@ -34,12 +34,12 @@ import {
   normalizeTradeCompatibleListing,
 } from './providers/tradeCompatible.js';
 import { tradeStatMappings } from './tradeStatMappings.js';
-import { analyzeBeltSnapshot } from './beltComparability.js';
+import { analyzeListingComparability } from './listingComparability.js';
 import {
   createImportedMarketSnapshot,
   createMarketTarget,
 } from './marketResearch.js';
-import { beltDemoFixture } from './beltDemoFixture.js';
+import { marketListingFixture } from './marketListingFixture.js';
 
 const config = loadDatabaseConfig();
 if (
@@ -133,7 +133,7 @@ function syntheticListing(target: MarketTarget, id: string, amount = 40) {
 }
 
 function demoProfiles(): MarketTargetInput[] {
-  const fixture = beltDemoFixture().target.beltCraftMethod!;
+  const fixture = marketListingFixture().target.beltCraftMethod!;
   return catalog.profiles.map((profile, index) => ({
     ...profile,
     name: `DEMO — ${profile.name}`,
@@ -177,7 +177,7 @@ function demoProfiles(): MarketTargetInput[] {
 
 describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
   it('reads new scheduled snapshots without mixing query scopes, currencies or cached runs', async () => {
-    const fixture = beltDemoFixture();
+    const fixture = marketListingFixture();
     const target = await research.saveTarget(
       createMarketTarget({
         ...fixture.target,
@@ -448,7 +448,8 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
         );
         expect(detail?.listings[0]?.rawListing).toHaveProperty('item.extended');
         expect(
-          analyzeBeltSnapshot(target, detail!, now.getTime()).confirmedListings,
+          analyzeListingComparability(target, detail!, now.getTime())
+            .confirmedListings,
         ).toBe(6);
       }
       const response = await api.inject({
@@ -534,20 +535,20 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
         },
         target,
       );
-    expect(analyzeBeltSnapshot(target, snapshot(raw)).rows[0]?.status).toBe(
-      'MATCH',
-    );
+    expect(
+      analyzeListingComparability(target, snapshot(raw)).rows[0]?.status,
+    ).toBe('MATCH');
     raw.item.explicitMods = ['unsupported changed format'];
-    expect(analyzeBeltSnapshot(target, snapshot(raw)).rows[0]?.status).toBe(
-      'PARTIAL',
-    );
+    expect(
+      analyzeListingComparability(target, snapshot(raw)).rows[0]?.status,
+    ).toBe('PARTIAL');
     raw.item.explicitMods = [
       '+1 to Level of all Minion Skill Gems',
       '+100 to maximum Life',
     ];
-    expect(analyzeBeltSnapshot(target, snapshot(raw)).rows[0]?.status).toBe(
-      'REJECT',
-    );
+    expect(
+      analyzeListingComparability(target, snapshot(raw)).rows[0]?.status,
+    ).toBe('REJECT');
     raw.item.league = 'Other League';
     expect(() => snapshot(raw)).toThrow();
   });

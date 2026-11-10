@@ -9,7 +9,7 @@ import pino from 'pino';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { buildApi } from './api.js';
-import { beltDemoFixture } from './beltDemoFixture.js';
+import { marketListingFixture } from './marketListingFixture.js';
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
 import {
@@ -1208,7 +1208,7 @@ describe('market admin PostgreSQL, queue and API integration', () => {
       )
     ).effective;
     const now = new Date();
-    const fixture = beltDemoFixture(now);
+    const fixture = marketListingFixture(now);
     const research = createMarketResearchRepository(pool);
     const collections = createMarketCollectionRepository(pool);
     const target = await research.saveTarget(

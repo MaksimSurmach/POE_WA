@@ -16,8 +16,8 @@ import {
   MarketCollectionManager,
   type MarketCollectionBatch,
 } from '../marketCollection.js';
-import { beltDemoFixture } from '../beltDemoFixture.js';
-import { analyzeBeltSnapshot } from '../beltComparability.js';
+import { marketListingFixture } from '../marketListingFixture.js';
+import { analyzeListingComparability } from '../listingComparability.js';
 import { buildApi } from '../api.js';
 import { GggRateLimitController } from '../rateLimitController.js';
 import { createPostgresRepositories } from './index.js';
@@ -182,7 +182,7 @@ describe('persistent managed market collection', () => {
 
   it('publishes sequential demo collections through matcher and the existing ranking API, idempotently', async () => {
     const now = new Date();
-    const fixture = beltDemoFixture(now);
+    const fixture = marketListingFixture(now);
     const target = await targets.saveTarget(
       createMarketTarget(fixture.target, now),
     );
@@ -244,7 +244,7 @@ describe('persistent managed market collection', () => {
       });
       expect(firstSnapshot?.listings).toEqual(batch.listings);
       expect(
-        analyzeBeltSnapshot(target, firstSnapshot!, now.getTime())
+        analyzeListingComparability(target, firstSnapshot!, now.getTime())
           .confirmedListings,
       ).toBe(5);
       const initialRanking = await api.inject(
@@ -346,7 +346,7 @@ describe('persistent managed market collection', () => {
     'recovers %s raw rows after snapshot publication rolls back',
     async (status) => {
       const now = new Date();
-      const fixture = beltDemoFixture(now);
+      const fixture = marketListingFixture(now);
       const target = await targets.saveTarget(
         createMarketTarget(fixture.target, now),
       );
@@ -436,7 +436,7 @@ describe('persistent managed market collection', () => {
 
   it('does not publish a collected row against a different profile digest', async () => {
     const now = new Date();
-    const fixture = beltDemoFixture(now);
+    const fixture = marketListingFixture(now);
     const target = await targets.saveTarget(
       createMarketTarget(fixture.target, now),
     );

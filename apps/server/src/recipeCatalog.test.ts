@@ -16,7 +16,7 @@ import {
 } from './recipeMarket.js';
 import { normalizeTradeCompatibleListing } from './providers/tradeCompatible.js';
 import { createImportedMarketSnapshot } from './marketResearch.js';
-import { analyzeBeltSnapshot } from './beltComparability.js';
+import { analyzeListingComparability } from './listingComparability.js';
 import {
   createRecipeItemPresentation,
   loadItemPresentationCatalog,
@@ -444,7 +444,11 @@ describe('authored source catalog integrity', () => {
         target,
         now,
       );
-      const compared = analyzeBeltSnapshot(target, snapshot, now.getTime());
+      const compared = analyzeListingComparability(
+        target,
+        snapshot,
+        now.getTime(),
+      );
       expect(
         compared.rows.map((r) => r.status === 'MATCH'),
         JSON.stringify(compared.rows),
@@ -758,7 +762,11 @@ describe('authored source catalog integrity', () => {
       target,
       now,
     );
-    const rows = analyzeBeltSnapshot(target, snapshot, now.getTime()).rows;
+    const rows = analyzeListingComparability(
+      target,
+      snapshot,
+      now.getTime(),
+    ).rows;
     expect(rows[0]?.status, JSON.stringify(rows)).toBe('MATCH');
     expect(rows[1]?.status).toBe('REJECT');
     expect(rows[2]?.status).not.toBe('MATCH');
@@ -819,7 +827,11 @@ describe('authored source catalog integrity', () => {
       target,
       now,
     );
-    const compared = analyzeBeltSnapshot(target, snapshot, now.getTime());
+    const compared = analyzeListingComparability(
+      target,
+      snapshot,
+      now.getTime(),
+    );
     expect(compared.rows[0]?.status, JSON.stringify(compared.rows)).toBe(
       'MATCH',
     );

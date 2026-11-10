@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { readFile } from 'node:fs/promises';
-import { beltDemoFixture } from './beltDemoFixture.js';
+import { marketListingFixture } from './marketListingFixture.js';
 import {
   activeCatalogTargets,
   importMarketCatalog,
@@ -54,7 +54,7 @@ describe('versioned JSON catalog', () => {
     });
     const repo = { listTargets: async () => records, saveTarget };
     const profile = {
-      ...beltDemoFixture().target,
+      ...marketListingFixture().target,
       catalog: {
         key: 'belt',
         revision: 1,

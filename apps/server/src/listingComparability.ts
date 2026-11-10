@@ -43,7 +43,7 @@ const evidence = z
   .passthrough();
 
 /** Version 1 is an explicit interpretation of immutable imported data. */
-export function analyzeBeltSnapshot(
+export function analyzeListingComparability(
   target: MarketTarget,
   snapshot: MarketResearchSnapshot,
   now = Date.now(),

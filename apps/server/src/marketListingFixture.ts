@@ -4,7 +4,7 @@ import type {
 } from '@poe-worksmith/contracts';
 
 /** Synthetic only. The same UTC day generates the same target and observation. */
-export function beltDemoFixture(now = new Date()) {
+export function marketListingFixture(now = new Date()) {
   const capturedAt = `${now.toISOString().slice(0, 10)}T00:00:00.000Z`;
   const price = (amount: number) => ({
     source: 'manual' as const,

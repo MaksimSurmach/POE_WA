@@ -9,7 +9,7 @@ import {
   type MarketListing,
 } from '@poe-worksmith/domain';
 import { calculateRecipeEconomics } from '@poe-worksmith/domain/economics';
-import { analyzeBeltSnapshot } from './beltComparability.js';
+import { analyzeListingComparability } from './listingComparability.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
 import { convertMarketQuote } from './marketCurrency.js';
 import { generateMarketTradeQuery } from './marketTradeQuery.js';
@@ -145,7 +145,7 @@ export async function evaluateBeltOpportunity(
     reasons.push('Rules are not confirmed to cover the build requirements.');
   if (!snapshot) reasons.push('No imported rare listing observation.');
   const comparison = snapshot
-    ? analyzeBeltSnapshot(target, snapshot, now)
+    ? analyzeListingComparability(target, snapshot, now)
     : null;
   if (comparison && !comparison.conservativeAskingPrice)
     reasons.push(

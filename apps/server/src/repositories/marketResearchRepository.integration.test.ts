@@ -2,9 +2,9 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { marketStarterLibrary } from '../marketStarterLibrary.js';
-import { beltDemoFixture } from '../beltDemoFixture.js';
+import { marketListingFixture } from '../marketListingFixture.js';
 
-import { analyzeBeltSnapshot } from '../beltComparability.js';
+import { analyzeListingComparability } from '../listingComparability.js';
 import { evaluateBeltOpportunity } from '../beltOpportunity.js';
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
@@ -42,7 +42,7 @@ beforeEach(async () => {
 
 describe('persistent market research', () => {
   it('routes a manual import through the collection record, matcher and ranking', async () => {
-    const fixture = beltDemoFixture(now);
+    const fixture = marketListingFixture(now);
     const sourceUrl = 'https://example.com/manual-observation-fixture';
     const price = (
       evidence: NonNullable<typeof fixture.target.beltCraftMethod>['basePrice'],
@@ -99,7 +99,8 @@ describe('persistent market research', () => {
     );
     expect(run.rows[0]?.payload.sourceId).toBe('manual-import');
     expect(
-      analyzeBeltSnapshot(target, stored, now.getTime()).confirmedListings,
+      analyzeListingComparability(target, stored, now.getTime())
+        .confirmedListings,
     ).toBe(5);
     expect(ranked).toMatchObject({
       snapshotId: imported.id,
@@ -155,7 +156,7 @@ describe('persistent market research', () => {
       })),
     });
     expect(
-      analyzeBeltSnapshot(
+      analyzeListingComparability(
         target,
         restored,
         Date.parse(restored.capturedAt),
@@ -177,7 +178,7 @@ describe('persistent market research', () => {
   });
 
   it('persists distinct price observations without mutating the target', async () => {
-    const fixture = beltDemoFixture(now);
+    const fixture = marketListingFixture(now);
     const target = await repository.saveTarget(
       createMarketTarget(fixture.target, now),
     );
@@ -271,8 +272,8 @@ describe('persistent market research', () => {
       throw new Error('Missing stored evidence');
     expect(persisted.listings[0]?.item).toEqual(item);
     expect(
-      analyzeBeltSnapshot(persistedTarget, persisted, now.getTime()).rows[0]
-        ?.status,
+      analyzeListingComparability(persistedTarget, persisted, now.getTime())
+        .rows[0]?.status,
     ).toBe('MATCH');
   });
 
