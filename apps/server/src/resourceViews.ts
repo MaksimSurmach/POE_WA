@@ -6,6 +6,7 @@ import {
 import {
   type CatalogEntry,
   type CatalogResponse,
+  type CollectorReadinessResponse,
   type DomainErrorCode,
   domainErrorCodeSchema,
   type Price,
@@ -34,6 +35,10 @@ import {
   createObservedItemPresentation,
   type ItemPresentationCatalog,
 } from './itemPresentation.js';
+import {
+  targetReadiness,
+  type CollectorReadinessReader,
+} from './collectorReadiness.js';
 import type { MarketActivityReader } from './marketActivity.js';
 import { marketTradeUrl } from './marketTradeQuery.js';
 import { recipeResultSchema } from './recipeResult.js';
@@ -71,6 +76,7 @@ export function createResourceReaders(
   readMaximumQuoteAgeMs?: () => Promise<number>,
   readCollectorResults?: CollectorResultsReader,
   readMarketActivity?: MarketActivityReader,
+  readReadiness?: CollectorReadinessReader,
 ) {
   const recipeDocuments = new Map<
     string,
@@ -115,6 +121,12 @@ export function createResourceReaders(
       currentLeague,
       maximumQuoteAgeMs,
       publishedAt: legacy?.cycle.publishedAt ?? null,
+      captureIdFor(recipe: StoredRecipe) {
+        const row = collectorEvaluations.get(recipe.id);
+        return row?.recipeContentHash === recipe.contentHash
+          ? row.result.methodCost?.source?.captureId
+          : undefined;
+      },
       status: refreshStatus(
         progress?.active?.status ?? progress?.published?.status,
       ),
@@ -135,11 +147,72 @@ export function createResourceReaders(
   }
 
   return {
+    async readCollectorReadiness(): Promise<CollectorReadinessResponse> {
+      const now = new Date();
+      const [recipes, market] = await Promise.all([
+        repositories.recipes.listActive(),
+        readMarket(),
+      ]);
+      const evidence =
+        (await readReadiness?.(now, market.maximumQuoteAgeMs)) ?? [];
+      const byRecipe = new Map(recipes.map((recipe) => [recipe.id, recipe]));
+      return {
+        evaluatedAt: now.toISOString(),
+        targets: evidence.map((row) => {
+          const { key, name, league, role, intervalMinutes, outputRecipeIds } =
+            row.schedule;
+          const evaluations = (
+            outputRecipeIds.length
+              ? outputRecipeIds.flatMap((id) => {
+                  const recipe = byRecipe.get(id);
+                  return recipe ? [recipe] : [];
+                })
+              : role === 'output' && row.schedule.captureId
+                ? recipes.filter(
+                    (recipe) =>
+                      market.captureIdFor(recipe) === row.schedule.captureId,
+                  )
+                : []
+          ).map((recipe) =>
+            toEvaluation(recipe.id, market.evaluationFor(recipe)),
+          );
+          // A target is a candidate as soon as one method clears every gate.
+          // Prefer a fresh comparable price if no method clears the cost gate.
+          const choices = evaluations.map((evaluation) =>
+            targetReadiness(row, now, market.maximumQuoteAgeMs, evaluation),
+          );
+          const readiness =
+            choices.find((value) => value.level === 'preliminary-candidate') ??
+            choices.find(
+              (value) => value.comparableAsks && value.costVerified,
+            ) ??
+            choices.find((value) => value.comparableAsks) ??
+            choices.find((value) => value.costVerified) ??
+            targetReadiness(row, now, market.maximumQuoteAgeMs);
+          return { key, name, league, role, intervalMinutes, readiness };
+        }),
+      };
+    },
+
     async readCatalog(correlationId: string): Promise<CatalogResponse> {
       const [recipes, market] = await Promise.all([
         repositories.recipes.listActive(),
         readMarket(),
       ]);
+      const now = new Date();
+      const readiness = await readReadiness?.(now, market.maximumQuoteAgeMs);
+      const byRecipe = new Map(
+        readiness?.flatMap((row) =>
+          row.schedule.outputRecipeIds.map((id) => [id, row] as const),
+        ),
+      );
+      const byCapture = new Map(
+        readiness?.flatMap((row) =>
+          row.schedule.captureId
+            ? [[row.schedule.captureId, row] as const]
+            : [],
+        ),
+      );
       const entries = await Promise.all(
         recipes
           .sort((left, right) => left.id.localeCompare(right.id))
@@ -155,13 +228,29 @@ export function createResourceReaders(
                   repositories,
                   trade,
                 });
-            return toCatalogEntry(
+            const entry = toCatalogEntry(
               recipe,
               readRecipeDocument(recipe),
               evaluation,
               presentationCatalog,
               snapshot,
             );
+            const evidence =
+              byRecipe.get(recipe.id) ??
+              byCapture.get(market.captureIdFor(recipe) ?? '');
+            return readReadiness
+              ? {
+                  ...entry,
+                  readiness: evidence
+                    ? targetReadiness(
+                        evidence,
+                        now,
+                        market.maximumQuoteAgeMs,
+                        entry.evaluation,
+                      )
+                    : null,
+                }
+              : entry;
           }),
       );
       if (readCollectorResults)
@@ -210,26 +299,55 @@ export function createResourceReaders(
       const evaluation = market.evaluationFor(recipe);
       // The collector keys a target's schedule by this same query hash.
       const target =
-        readMarketActivity && trade && currentLeague
+        (readMarketActivity || readReadiness) && trade && currentLeague
           ? await generateRecipeMarketQuery(
               trade,
               definition,
               currentLeague.gggId,
             ).catch(() => null)
           : null;
-      const marketActivity =
-        readMarketActivity && target && currentLeague
+      const now = new Date();
+      const key =
+        target && currentLeague
+          ? await hashMarketQuery({ ...target, league: currentLeague.gggId })
+          : null;
+      const readiness =
+        key && readReadiness
+          ? (await readReadiness(now, maximumQuoteAgeMs)).find(
+              (row) => row.schedule.key === key,
+            )
+          : null;
+      const marketActivity = readiness
+        ? readiness.activity
+        : readMarketActivity && key && currentLeague
           ? await readMarketActivity(
               currentLeague.id,
-              await hashMarketQuery({ ...target, league: currentLeague.gggId }),
-              new Date(),
+              key,
+              now,
               maximumQuoteAgeMs,
             )
           : null;
-
+      const recipeDetail = toRecipeDetail(
+        recipe,
+        definition,
+        evaluation,
+        presentationCatalog,
+      );
       const detail = {
-        ...toRecipeDetail(recipe, definition, evaluation, presentationCatalog),
+        ...recipeDetail,
         ...(readMarketActivity ? { marketActivity } : {}),
+        ...(readReadiness
+          ? {
+              readiness: readiness
+                ? targetReadiness(
+                    readiness,
+                    now,
+                    maximumQuoteAgeMs,
+                    recipeDetail.evaluation,
+                  )
+                : null,
+            }
+          : {}),
         baseTradeUrl,
         snapshot: readCollectorResults
           ? null
@@ -265,22 +383,41 @@ function collectorEvaluation(
   const result = parsed.data;
   const now = Date.now();
   const method = result.methodCost;
-  const stale =
+  const expired = (expiresAt: string, oldestInputAt: string) =>
+    Date.parse(expiresAt) <= now ||
+    (maximumQuoteAgeMs !== undefined &&
+      Date.parse(oldestInputAt) + maximumQuoteAgeMs <= now);
+  const stale = method && expired(method.expiresAt, method.oldestInputAt);
+  const freshCraftCost =
     method &&
-    (Date.parse(method.expiresAt) <= now ||
-      (maximumQuoteAgeMs !== undefined &&
-        Date.parse(method.oldestInputAt) + maximumQuoteAgeMs <= now));
+    method.craftExpiresAt &&
+    method.craftInputAt &&
+    result.expectedCraftCost !== null &&
+    !expired(method.craftExpiresAt, method.craftInputAt);
+  const methodCost = !stale
+    ? method
+    : freshCraftCost
+      ? {
+          ...method,
+          source: undefined,
+          saleEvidence: {
+            comparableSellers: 0,
+            reason:
+              'The output quote expired. The verified craft inputs are still fresh.',
+          },
+        }
+      : null;
   return {
     ...result,
+    methodCost,
     evaluatedAt: row.evaluatedAt,
     lastSuccessfulAt:
       !stale && result.status === 'success' ? row.evaluatedAt : null,
     ...(stale
       ? {
           status: 'stale',
-          methodCost: null,
           estimatedSalePrice: null,
-          expectedCraftCost: null,
+          expectedCraftCost: freshCraftCost ? result.expectedCraftCost : null,
           marginPercent: null,
           profit: null,
         }
@@ -559,8 +696,14 @@ function toEvaluation(
     gradeReasons: saleEvidence?.gradeReasons,
   });
   const priceSource = recipePriceSourceSchema.safeParse({
+    ...(typeof source?.captureId === 'string'
+      ? { captureId: source.captureId }
+      : {}),
+    ...(typeof saleEvidence?.status === 'string'
+      ? { comparable: saleEvidence.status === 'accepted' }
+      : {}),
     capturedAt: source?.capturedAt,
-    comparableSellers: source?.sampleSize,
+    comparableSellers: saleEvidence?.comparableSellers ?? source?.sampleSize,
     coverage: source?.coverage ?? 'unknown',
   });
   return {

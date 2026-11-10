@@ -69,6 +69,8 @@ export const recipeSchema = z
 
 /** Calculated catalog view; nullable values make loading/failure explicit. */
 export const recipePriceSourceSchema = z.strictObject({
+  captureId: z.uuid().optional(),
+  comparable: z.boolean().optional(),
   capturedAt: z.iso.datetime(),
   comparableSellers: z.number().int().nonnegative(),
   coverage: z.enum(['complete', 'partial', 'unknown']),
@@ -181,11 +183,69 @@ export const itemPresentationContractV1Schema = z.strictObject({
   version: z.literal(1),
 });
 
+const count = z.number().int().nonnegative();
+
+export const marketReadinessSchema = z.strictObject({
+  level: z.enum([
+    'insufficient',
+    'price-observed',
+    'activity-measurable',
+    'preliminary-candidate',
+  ]),
+  capturedAt: z.iso.datetime().nullable(),
+  fresh: z.boolean(),
+  coverage: z.enum(['complete', 'partial']).nullable(),
+  currentListings: count,
+  currentSellers: count,
+  comparableSellers: count.nullable(),
+  currentAskRange: z
+    .strictObject({ min: priceSchema, max: priceSchema })
+    .nullable(),
+  staleFloorCount: count.nullable(),
+  comparableAsks: z.boolean(),
+  costVerified: z.boolean(),
+  saleEligible: z.boolean(),
+  activityMeasurable: z.boolean(),
+  last24h: z.strictObject({
+    complete: count,
+    partial: count,
+    failed: count.nullable(),
+    failuresTrackedSince: z.iso.datetime().nullable(),
+    spanMinutes: count,
+    completeSpanMinutes: count,
+    largestGapMinutes: count.nullable(),
+    overdueIntervals: count.nullable(),
+    sellers: count,
+    listings: count,
+    repriced: count.nullable(),
+    inferredExits: count.nullable(),
+    exitSellers: count.nullable(),
+    uncertainExits: count.nullable(),
+    relisted: count.nullable(),
+    askRange: z.strictObject({ min: priceSchema, max: priceSchema }).nullable(),
+  }),
+});
+
+export const collectorReadinessResponseSchema = z.strictObject({
+  evaluatedAt: z.iso.datetime(),
+  targets: z.array(
+    z.strictObject({
+      key: z.string(),
+      name: z.string(),
+      league: z.string(),
+      role: z.enum(['output', 'base', 'discovery']),
+      intervalMinutes: z.number().int().positive(),
+      readiness: marketReadinessSchema,
+    }),
+  ),
+});
+
 export const catalogEntrySchema = z
   .object({
     recipe: recipeSchema,
     evaluation: recipeEvaluationSchema,
     itemPreview: presentedItemSchema.optional(),
+    readiness: marketReadinessSchema.nullable().optional(),
     snapshot: marketSnapshotSchema.nullable(),
   })
   .strict();
@@ -263,17 +323,25 @@ export const marketActivitySchema = z.strictObject({
   active: z.number().int().nonnegative().nullable(),
   distinctSellers: z.number().int().nonnegative().nullable(),
   repriced72h: z.number().int().nonnegative(),
-  inferredExits24h: z.number().int().nonnegative(),
-  inferredExits72h: z.number().int().nonnegative(),
+  inferredExits24h: z.number().int().nonnegative().nullable(),
+  inferredExits72h: z.number().int().nonnegative().nullable(),
   uncertainExits72h: z.number().int().nonnegative(),
   /** Median last ask of inferred exits; null below three observations. */
   recentExitAsk: priceSchema.nullable(),
   observedAskSample: z.array(priceSchema).max(5).optional(),
+  repriced24h: z.number().int().nonnegative().optional(),
+  relisted24h: z.number().int().nonnegative().optional(),
+  inferredExitSellers24h: z.number().int().nonnegative().optional(),
+  uncertainExits24h: z.number().int().nonnegative().optional(),
+  staleAskCount: z.number().int().nonnegative().nullable().optional(),
+  staleFloorCount: z.number().int().nonnegative().nullable().optional(),
+  observedFloorWithoutStaleAsks: z.number().nonnegative().nullable().optional(),
 });
 
 export const recipeDetailViewSchema = z
   .object({
     marketActivity: marketActivitySchema.nullable().optional(),
+    readiness: marketReadinessSchema.nullable().optional(),
     recipe: recipeSchema,
     gameVersion: z.string().min(1),
     baseTradeUrl: z.url().nullable(),
@@ -558,9 +626,131 @@ export const rateLimitWindowSchema = z.strictObject({
   rule: z.string().min(1),
 });
 
+export const collectorOperationSchema = z.strictObject({
+  operation: z.enum([
+    'search',
+    'fetch',
+    'economy',
+    'league',
+    'retention',
+    'evaluation',
+    'permit',
+    'cooldown',
+    'pause',
+    'session-recovery',
+    'auth-blocked',
+    'idle',
+  ]),
+  target: z.string().nullable(),
+  startedAt: z.iso.datetime(),
+  taskStartedAt: z.iso.datetime().nullable(),
+  reason: z.string().nullable(),
+  until: z.iso.datetime().nullable(),
+});
+
+export const collectorRateLimitSchema = z.strictObject({
+  endpoint: z.string(),
+  policy: z.string(),
+  observedAt: z.iso.datetime(),
+  waitingUntil: z.iso.datetime(),
+  blockedUntil: z.iso.datetime(),
+  headersComplete: z.boolean(),
+  minimumDelayMs: z.number(),
+  windows: z.array(rateLimitWindowSchema),
+});
+
+export const collectorRequestStatsSchema = z.strictObject({
+  provider: z.enum(['ggg', 'poe.ninja']),
+  endpoint: z.enum([
+    'trade-search',
+    'trade-fetch',
+    'trade-login',
+    'trade-leagues',
+    'economy',
+    'leagues',
+  ]),
+  success: z.number(),
+  rateLimited: z.number(),
+  auth: z.number(),
+  serverError: z.number(),
+  networkError: z.number(),
+  other: z.number(),
+});
+
+export const collectorWaitStatsSchema = z.strictObject({
+  reason: z.enum([
+    'pacing',
+    'rate-limit',
+    'restriction',
+    'provider-error',
+    'retry',
+  ]),
+  count: z.number(),
+  durationMs: z.number(),
+});
+export const collectorRateLimitedSchema = z.strictObject({
+  at: z.iso.datetime(),
+  retryAfterMs: z.number().nullable(),
+});
+
+const collectorRangeSchema = z.strictObject({
+  average: z.number().nullable(),
+  max: z.number().nullable(),
+});
+
+export const collectorDiagnosticsSchema = z.strictObject({
+  role: z.enum(['leader', 'standby', 'offline']),
+  contactedAt: z.iso.datetime().nullable(),
+  stale: z.boolean(),
+  current: collectorOperationSchema.nullable(),
+  queue: z.strictObject({
+    due: z.number(),
+    enabled: z.number(),
+    oldestDueAt: z.iso.datetime().nullable(),
+    nextDueAt: z.iso.datetime().nullable(),
+    tradeCapturesPerHour: z.number(),
+  }),
+  rateLimits: z.array(collectorRateLimitSchema),
+  windows: z.array(
+    z.strictObject({
+      hours: z.union([z.literal(1), z.literal(24)]),
+      from: z.iso.datetime(),
+      to: z.iso.datetime(),
+      trackedSince: z.iso.datetime().nullable(),
+      requests: z.array(collectorRequestStatsSchema),
+      captures: z.strictObject({
+        planned: z.number(),
+        successful: z.number(),
+        complete: z.number(),
+        partial: z.number(),
+        failed: z.number(),
+        interrupted: z.number(),
+        targets: z.number(),
+        partialReasons: z.record(z.string(), z.number()),
+        durationMs: collectorRangeSchema,
+        searchRequests: collectorRangeSchema,
+        fetchRequests: collectorRangeSchema,
+        latestCaptureAt: z.iso.datetime().nullable(),
+        observedSpanMs: z.number().nullable(),
+        intervalMs: collectorRangeSchema,
+      }),
+      waits: z.array(collectorWaitStatsSchema),
+      last429: collectorRateLimitedSchema.nullable(),
+    }),
+  ),
+});
+
+export type CollectorOperation = z.infer<typeof collectorOperationSchema>;
+export type CollectorRateLimit = z.infer<typeof collectorRateLimitSchema>;
+export type CollectorRequestStats = z.infer<typeof collectorRequestStatsSchema>;
+export type CollectorWaitStats = z.infer<typeof collectorWaitStatsSchema>;
+export type CollectorRateLimited = z.infer<typeof collectorRateLimitedSchema>;
+export type CollectorDiagnostics = z.infer<typeof collectorDiagnosticsSchema>;
+
 export const rateLimitDiagnosticsResponseSchema = z.strictObject({
   correlationId: correlationIdSchema,
   data: z.strictObject({
+    collector: collectorDiagnosticsSchema.nullable().optional(),
     policies: z.array(
       z.strictObject({
         blockedUntil: z.iso.datetime(),
@@ -625,6 +815,10 @@ export type MarketSnapshot = z.infer<typeof marketSnapshotSchema>;
 export type Recipe = z.infer<typeof recipeSchema>;
 export type RecipeEvaluation = z.infer<typeof recipeEvaluationSchema>;
 export type RefreshCycle = z.infer<typeof refreshCycleSchema>;
+export type MarketReadiness = z.infer<typeof marketReadinessSchema>;
+export type CollectorReadinessResponse = z.infer<
+  typeof collectorReadinessResponseSchema
+>;
 export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
 export type PresentedProperty = z.infer<typeof presentedPropertySchema>;
 export type PresentedModifier = z.infer<typeof presentedModifierSchema>;

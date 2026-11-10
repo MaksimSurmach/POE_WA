@@ -347,6 +347,7 @@ describe('GGG rate-limit controller', () => {
     expect(parseRateLimitHeaders(headers, { now: start, status: 200 })).toEqual(
       {
         blockedForMs: 0,
+        headersComplete: true,
         minimumDelayMs: 1100,
         policy: 'trade-search-request-limit',
         windows: [
@@ -448,6 +449,77 @@ describe('GGG rate-limit controller', () => {
     ]);
   });
 
+  it('separates independent collector pacing and merges a reported shared policy', async () => {
+    const repository = createInMemoryRepositories().rateLimits;
+    let now = start;
+    const observe = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      safetyFactor: 4 / 3,
+      missingHeadersDelayMs: 30_000,
+    });
+    const options = { collector: true } as const;
+    const reply = (policy: string) => ({
+      status: 200,
+      headers: new Headers({
+        'x-rate-limit-policy': policy,
+        'x-rate-limit-rules': 'ip',
+        'x-rate-limit-ip': '3:5:10,600:10800:120',
+        'x-rate-limit-ip-state': '1:5:0,100:10800:0',
+      }),
+    });
+    await observe.observeResponse('trade-search', reply('search'), options);
+    await observe.observeResponse('trade-fetch', reply('fetch'), options);
+    now = new Date(start.getTime() + 24_000);
+    const resumed = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      sleep: async (ms) => {
+        now = new Date(now.getTime() + ms);
+      },
+    });
+    await resumed.waitForPermit('trade-search', undefined, options);
+    await resumed.waitForPermit('trade-fetch', undefined, options);
+    expect(now.getTime() - start.getTime()).toBe(24_000);
+
+    await observe.observeResponse('trade-fetch', reply('search'), options);
+    const before = now.getTime();
+    await resumed.waitForPermit('trade-search', undefined, options);
+    await resumed.waitForPermit('trade-fetch', undefined, options);
+    expect(now.getTime() - before).toBe(48_000);
+  });
+
+  it('preserves retained windows when only one state in an updated header parses', async () => {
+    const repository = createInMemoryRepositories().rateLimits;
+    const gate = new GggRateLimitController({
+      repository,
+      clock: () => start,
+      missingHeadersDelayMs: 30_000,
+    });
+    const headers = new Headers({
+      'x-rate-limit-policy': 'search',
+      'x-rate-limit-rules': 'ip',
+      'x-rate-limit-ip': '3:5:10,600:10800:120',
+      'x-rate-limit-ip-state': '1:5:0,100:10800:0',
+    });
+    await gate.observeResponse(
+      'trade-search',
+      { status: 200, headers },
+      { collector: true },
+    );
+    headers.set('x-rate-limit-ip-state', '1:5:15,:10800:0');
+    const state = await gate.observeResponse(
+      'trade-search',
+      { status: 200, headers },
+      { collector: true },
+    );
+    expect(state.windows.map(({ periodSeconds }) => periodSeconds)).toEqual([
+      5, 10800,
+    ]);
+    expect(state.minimumDelayMs).toBe(30_000);
+    expect(state.blockedUntil.getTime() - start.getTime()).toBe(15_000);
+  });
+
   it('uses safe defaults for malformed headers and a malformed Retry-After', () => {
     const parsed = parseRateLimitHeaders(
       new Headers({
@@ -462,6 +534,7 @@ describe('GGG rate-limit controller', () => {
 
     expect(parsed).toEqual({
       blockedForMs: 60_000,
+      headersComplete: false,
       minimumDelayMs: 1000,
       policy: 'poe-trade',
       windows: [],

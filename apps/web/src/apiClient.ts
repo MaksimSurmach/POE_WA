@@ -3,8 +3,10 @@ import {
   apiErrorEnvelopeSchema,
   type CatalogResponse,
   catalogResponseSchema,
+  collectorReadinessResponseSchema,
   collectorStatusSchema,
   collectorRunResponseSchema,
+  rateLimitDiagnosticsResponseSchema,
   type RecipeResponse,
   recipeResponseSchema,
   type RefreshProgressResponse,
@@ -95,6 +97,15 @@ export function createApiClient(
   }
 
   return {
+    getCollectorReadiness(signal?: AbortSignal) {
+      return request(
+        '/api/collector/readiness',
+        collectorReadinessResponseSchema,
+        'GET',
+        undefined,
+        { signal },
+      );
+    },
     getFactoryBatches(league: string, offset = 0) {
       return request(
         `/api/admin/factory/batches?league=${encodeURIComponent(league)}&offset=${offset}&limit=20`,
@@ -218,6 +229,15 @@ export function createApiClient(
         'GET',
         undefined,
         { token, signal: AbortSignal.timeout(collectorRequestTimeoutMs) },
+      );
+    },
+    getRateLimitDiagnostics(signal: AbortSignal) {
+      return request(
+        '/api/diagnostics/rate-limits',
+        rateLimitDiagnosticsResponseSchema,
+        'GET',
+        undefined,
+        { signal },
       );
     },
     runCollector(token?: string) {

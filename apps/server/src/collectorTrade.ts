@@ -12,6 +12,7 @@ import {
 import { convertChaosDivineQuote } from '@poe-worksmith/domain/economics';
 import { z } from 'zod';
 
+import type { CollectorTelemetry } from './observability/collectorTelemetry.js';
 import type { MarketCollectionTransportResponse } from './marketCollection.js';
 import {
   completeOutputLimit,
@@ -29,10 +30,12 @@ import {
   TradeCompatibleTransport,
   loadTradeCompatibleConfig,
   type TradePriceRange,
+  type TradeResponseObserver,
 } from './providers/tradeCompatible.js';
 import {
   ProviderRateLimitDeferred,
   type RateLimitGate,
+  type RateLimitedResponse,
 } from './rateLimitController.js';
 import { recipeQueryTarget } from './recipeMarket.js';
 import {
@@ -132,16 +135,37 @@ async function collectTradeCapture(
   economy: Economy,
   reauthenticate: (() => Promise<TradeTransport | null>) | undefined,
   recoverAuthentication: boolean,
+  telemetry?: CollectorTelemetry,
 ): Promise<TradeCaptureResult> {
   const started = Date.now();
   let authenticationAttempted = false;
   let currentTransport = transport;
   async function permit(endpoint: 'trade-search' | 'trade-fetch') {
     signal.throwIfAborted();
-    await rateLimits.waitForPermit(endpoint, signal, {
-      collector: true,
-      deferProviderBlock: true,
-    });
+    let waitStarted: number | undefined;
+    let waitReason: 'pacing' | 'restriction' = 'pacing';
+    try {
+      await rateLimits.waitForPermit(endpoint, signal, {
+        collector: true,
+        deferProviderBlock: true,
+        ...(telemetry
+          ? {
+              onWait: async (reason, until) => {
+                waitStarted ??= performance.now();
+                waitReason = reason;
+                await telemetry.operation(
+                  'permit',
+                  reason.toUpperCase(),
+                  until,
+                );
+              },
+            }
+          : {}),
+      });
+    } finally {
+      if (waitStarted !== undefined)
+        telemetry?.wait(waitReason, performance.now() - waitStarted);
+    }
     signal.throwIfAborted();
   }
 
@@ -149,22 +173,29 @@ async function collectTradeCapture(
     endpoint: 'trade-search' | 'trade-fetch',
     run: (
       transport: TradeTransport,
+      onResponse: TradeResponseObserver,
     ) => Promise<MarketCollectionTransportResponse<T>>,
   ) {
     const refresh = async (
       reason: NonNullable<ReturnType<typeof authenticationDenial>>,
     ) => {
       authenticationAttempted = true;
-      await permit(endpoint);
+      if (!telemetry) await permit(endpoint);
+      await telemetry?.operation('session-recovery', reason);
       let refreshed: TradeTransport | null | undefined;
       try {
         refreshed = await reauthenticate?.();
       } catch (error) {
         signal.throwIfAborted();
+        if (error instanceof ProviderRateLimitDeferred) throw error;
         if (error instanceof TradeLoginRateLimited) {
-          const state = await rateLimits.observeResponse(endpoint, error, {
-            collector: true,
-          });
+          const state = await rateLimits.observeResponse(
+            telemetry ? 'trade-login' : endpoint,
+            error,
+            {
+              collector: true,
+            },
+          );
           throw new ProviderRateLimitDeferred(state.blockedUntil);
         }
         throw new DomainError(reason);
@@ -175,18 +206,21 @@ async function collectTradeCapture(
     };
     const send = async () => {
       await permit(endpoint);
-      const response = await run(currentTransport);
-      const state = await rateLimits.observeResponse(endpoint, response, {
-        collector: true,
+      await telemetry?.operation(
+        endpoint === 'trade-search' ? 'search' : 'fetch',
+      );
+      let state:
+        Awaited<ReturnType<RateLimitGate['observeResponse']>> | undefined;
+      const response = await run(currentTransport, async (received) => {
+        state = await rateLimits.observeResponse(endpoint, received, {
+          collector: true,
+        });
       });
+      if (!state) throw new DomainError('PROVIDER_RESPONSE_INVALID');
       signal.throwIfAborted();
       if (response.status === 429)
         throw new ProviderRateLimitDeferred(state.blockedUntil);
-      if (
-        response.status === 503 &&
-        response.headers.get('retry-after') &&
-        state.blockedUntil.getTime() > Date.now()
-      )
+      if (response.status >= 500 && state.blockedUntil.getTime() > Date.now())
         throw new ProviderRateLimitDeferred(
           state.blockedUntil,
           'PROVIDER_UNAVAILABLE',
@@ -218,8 +252,14 @@ async function collectTradeCapture(
     for (let i = 0; i < newIds.length; i += detailBatchSize) {
       const batch = newIds.slice(i, i + detailBatchSize);
       batch.forEach((id) => attempted.add(id));
-      const details = await request('trade-fetch', (transport) =>
-        transport.fetchDetails({ target, signal, ids: batch, queryId }),
+      const details = await request('trade-fetch', (transport, onResponse) =>
+        transport.fetchDetails({
+          target,
+          signal,
+          ids: batch,
+          queryId,
+          onResponse,
+        }),
       );
       const seen = new Set<string>();
       for (const detail of details) {
@@ -239,10 +279,11 @@ async function collectTradeCapture(
   };
 
   const search = (priceRange?: TradePriceRange) =>
-    request('trade-search', (transport) =>
+    request('trade-search', (transport, onResponse) =>
       transport.search({
         target,
         signal,
+        onResponse,
         ...(priceRange ? { priceRange } : {}),
       }),
     );
@@ -431,6 +472,7 @@ async function collectTradeCapture(
         partialReason,
         slices: sliceCount || 1,
         fxSnapshotId: fx?.snapshotId ?? null,
+        fxChaosPerDivine: fx ? String(fx.chaosPerDivine) : null,
         durationMs: Math.max(0, Date.now() - started),
         listings,
       },
@@ -465,6 +507,7 @@ export function configuredTradeCapture(
   rateLimits: RateLimitGate,
   economy: Economy,
   environment: Record<string, string | undefined> = process.env,
+  telemetry?: CollectorTelemetry,
 ): (
   schedule: Pick<typeof collectorSchedule.$inferSelect, 'payload'>,
   signal: AbortSignal,
@@ -477,10 +520,23 @@ export function configuredTradeCapture(
     return async () => ({ status: 'blocked', reason: 'MARKET_ACCESS_BLOCKED' });
 
   const tradeConfig = loadTradeCompatibleConfig(environment);
+  const searchFetch = telemetry?.fetch('ggg', 'trade-search');
+  const detailsFetch = telemetry?.fetch('ggg', 'trade-fetch');
   const makeTransport = (sessionId?: string) =>
     new TradeCompatibleTransport(
       { ...tradeConfig, ...(sessionId ? { sessionId } : {}) },
-      { collector: true },
+      {
+        collector: true,
+        ...(searchFetch && detailsFetch
+          ? {
+              fetcher: (input, init) =>
+                (init?.method === 'POST' ? searchFetch : detailsFetch)(
+                  input,
+                  init,
+                ),
+            }
+          : {}),
+      },
     );
   return async (schedule, signal, options = {}) => {
     signal.throwIfAborted();
@@ -509,9 +565,58 @@ export function configuredTradeCapture(
     }
     const reauthenticate = loginConfig
       ? async () => {
+          const loginResponses: RateLimitedResponse[] = [];
+          const observeLoginResponses = async () => {
+            let deferred: ProviderRateLimitDeferred | undefined;
+            for (const response of loginResponses.splice(0)) {
+              const state = await rateLimits.observeResponse(
+                'trade-login',
+                response,
+                { collector: true },
+              );
+              if (
+                (response.status === 429 || response.status >= 500) &&
+                (!deferred || state.blockedUntil >= deferred.retryAt)
+              )
+                deferred = new ProviderRateLimitDeferred(
+                  state.blockedUntil,
+                  response.status === 429
+                    ? 'PROVIDER_RATE_LIMITED'
+                    : 'PROVIDER_UNAVAILABLE',
+                );
+            }
+            return deferred;
+          };
           const manager = new PoeTradeSessionManager(
             tradeConfig.baseURL,
             loginConfig,
+            telemetry
+              ? {
+                  beforeLoginRequest: async () => {
+                    await observeLoginResponses();
+                    await rateLimits.waitForPermit('trade-login', signal, {
+                      collector: true,
+                      deferProviderBlock: true,
+                      onWait: async (_, until) =>
+                        telemetry.operation(
+                          'session-recovery',
+                          'PACING',
+                          until,
+                        ),
+                    });
+                  },
+                  onLoginResponse: (status, headers) => {
+                    telemetry.recordResponse(
+                      'ggg',
+                      'trade-login',
+                      status,
+                      headers,
+                    );
+                    if (status !== null && headers)
+                      loginResponses.push({ status, headers });
+                  },
+                }
+              : {},
           );
           let refreshed: TradeTransport | null = null;
           try {
@@ -519,7 +624,12 @@ export function configuredTradeCapture(
               await sessions.save(session);
               refreshed = makeTransport(session);
             }, signal);
+            await observeLoginResponses();
             return refreshed;
+          } catch (error) {
+            const deferred = await observeLoginResponses();
+            if (deferred) throw deferred;
+            throw error;
           } finally {
             await manager.stop();
           }
@@ -544,6 +654,7 @@ export function configuredTradeCapture(
       economy,
       reauthenticate,
       recoverAuthentication,
+      telemetry,
     );
   };
 }

@@ -1,8 +1,9 @@
-import { test, expect } from './fixtures';
+import { test, expect, waitForCollector } from './fixtures';
 
 test('BOOT-01 packaged web assets and direct recipe route', async ({
   page,
 }) => {
+  await waitForCollector(page.request);
   const assetResponses: Array<{ type: string; status: number }> = [];
   page.on('response', (response) => {
     const type = response.request().resourceType();

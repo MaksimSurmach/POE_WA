@@ -44,38 +44,44 @@ describe('canonical Git JSON recipe loader', () => {
       'b',
     ]);
   });
-  it('rejects a target outside an imported exact modifier range', async () => {
-    const r = await root();
-    const source = await loadGameDataSource(
-      fileURLToPath(
-        new URL(
-          '../../mappings/poe-trade/3.29.3.3/base-source.json',
-          import.meta.url,
+  it.each([
+    ['enchant', 'mod:flask-enchant-effect', 71, '60–70'],
+    ['explicit', 'mod:flask-movement-speed', 15, '6–14'],
+  ] as const)(
+    'rejects an unsupported %s stat range for %s',
+    async (kind, modId, minimumValue, range) => {
+      const r = await root();
+      const source = await loadGameDataSource(
+        fileURLToPath(
+          new URL(
+            '../../mappings/poe-trade/3.29.3.3/base-source.json',
+            import.meta.url,
+          ),
         ),
-      ),
-    );
-    const gameData = new InMemoryGameDataCatalog(source.patchVersion, source);
-    const recipe = fixtureRecipe({
-      ...canonicalRecipeFixture,
-      gameDataVersion: source.patchVersion,
-      target: {
-        ...canonicalRecipeFixture.target,
-        other: [
-          {
-            kind: 'enchant',
-            modId: 'mod:flask-enchant-effect',
-            minimumValue: 71,
-            excluded: false,
-          },
-        ],
-      },
-    });
-    await write(r, 'impossible.json', recipe);
-    await expect(loadRecipeCatalog(r, gameData)).rejects.toThrow(
-      /flask-enchant-effect cannot match the requested range \(supported 60–70\)/,
-    );
-    await expect(loadRecipeCatalog(r)).resolves.toHaveLength(1);
-  });
+      );
+      const gameData = new InMemoryGameDataCatalog(source.patchVersion, source);
+      const recipe = fixtureRecipe({
+        ...canonicalRecipeFixture,
+        gameDataVersion: source.patchVersion,
+        target: {
+          ...canonicalRecipeFixture.target,
+          [kind === 'enchant' ? 'other' : 'suffixes']: [
+            {
+              kind,
+              modId,
+              minimumValue,
+              excluded: false,
+            },
+          ],
+        },
+      });
+      await write(r, 'impossible.json', recipe);
+      await expect(loadRecipeCatalog(r, gameData)).rejects.toThrow(
+        `${modId} cannot match the requested range (supported ${range})`,
+      );
+      await expect(loadRecipeCatalog(r)).resolves.toHaveLength(1);
+    },
+  );
   it('ignores recipes under underscore-prefixed directories', async () => {
     const r = await root();
     await mkdir(path.join(r, 'cluster-jewel', '_drafts'));

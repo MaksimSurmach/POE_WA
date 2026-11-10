@@ -28,6 +28,7 @@ import { MarketTrendsPage } from './MarketTrendsPage.js';
 import { RecipeLibraryPage } from './RecipeLibraryPage.js';
 import { PohxRecipePage } from './PohxRecipePage.js';
 import { FactoryPage } from './FactoryPage.js';
+import { CollectorReadinessReport } from './MarketReadiness.js';
 
 const apiClient = createApiClient();
 
@@ -230,6 +231,8 @@ function CatalogRoute() {
         ) : null}
       </section>
 
+      {collectorMode ? <CollectorReadinessReport /> : null}
+
       {loadError ? (
         <StatusPanel tone="danger" title="Recipes unavailable">
           The recipe list could not be loaded. Try again when the service is
@@ -368,8 +371,8 @@ function CatalogRoute() {
           <p className="catalog-price-note" id="catalog-price-note">
             Asking-price estimates, not completed sales. ROI = profit ÷ expected
             cost. One eligible seller can earn grade C. Currencies sorted
-            separately. Methods for the same target are grouped, best valid
-            profit first.
+            separately. Methods for the same target are grouped by readiness,
+            then by comparable profit.
           </p>
         </>
       )}

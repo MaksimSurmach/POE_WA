@@ -23,7 +23,7 @@ try {
     DATABASE_SSL_MODE: 'require',
     DATABASE_URL: databaseUrl.toString(),
     DATABASE_POOL_MAX: '2',
-    COLLECTOR_RETENTION_ENABLED: 'false',
+    COLLECTOR_RETENTION_ENABLED: 'true',
     MARKET_COLLECTION_SOURCE: 'trade-compatible',
     POE_TRADE_SESSION_KEY: options.session_key,
     POE_TRADE_ACCESS: 'owner_permitted',

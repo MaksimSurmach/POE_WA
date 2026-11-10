@@ -10,6 +10,33 @@
   catalog pointer longer than observation history. Recipes are deactivated,
   not deleted.
 
+Collector history uses the existing collector retention schedule when
+`COLLECTOR_RETENTION_ENABLED=true`. After recipe price compaction, the
+maintenance task removes events, listings, captures and terminal requests
+outside 30 days in at most 20 bounded batches per run. The worker logs a
+warning when it reaches that cap and may have more rows to prune. Listing age uses the
+latest observation or absence transition. The 96-hour activity read window,
+seven-day relist window, retained listing capture references, current result
+and raw price observation provenance, and latest Run now request stay intact.
+Historical price aggregates remain available under their existing policy.
+Collector telemetry keeps 25 hours of worker attempts for the last-hour and
+last-24-hours reports. Counts start at the first recorded HA contact. They may
+lag during a capture and lose the last unflushed increments when leadership
+is interrupted. The diagnostics endpoint shares a short read cache between
+viewers and does not query Trade.
+
+Validate pruning on a restored backup before enabling it for an existing
+database.
+
+New captures retain their versioned query key, observed normalized range and
+a separate floor only when all listings have a chaos basis and the target has
+complete coverage. The conversion rate is retained with its economy snapshot
+ID when divine asks are normalized. Historic rows have unknown floors. A stale ask has been
+observed with the same original price and currency for seven days, with gaps
+no greater than twice the target's scheduled interval. An unpriced sighting,
+confirmed miss or reprice resets that observation. The unfiltered asks remain
+visible; the floor without stale asks is a separate comparison.
+
 ## Price history
 
 Migration `0024_market_price_history.sql` adds two tables and one read-only view:

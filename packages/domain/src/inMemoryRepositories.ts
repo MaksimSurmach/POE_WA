@@ -534,18 +534,36 @@ export function createInMemoryRepositories(): Repositories {
         if (applicable.length === 0) {
           const policy =
             endpointPolicies.get(input.endpoint) ?? input.fallbackPolicy;
+          const state =
+            rateLimitStates.get(policy) ??
+            initialRateLimitState(policy, input.now, input.conservativeDelayMs);
+          endpointPolicies.set(input.endpoint, policy);
           applicable.push({
-            ...(rateLimitStates.get(policy) ??
-              initialRateLimitState(
-                policy,
-                input.now,
-                input.conservativeDelayMs,
-              )),
-            endpoints: [input.endpoint],
+            ...state,
+            endpoints: [...new Set([...state.endpoints, input.endpoint])],
           });
         }
         const blockedUntil = new Date(
-          Math.max(...applicable.map((state) => state.blockedUntil.getTime())),
+          Math.max(
+            ...applicable.map((state) => state.blockedUntil.getTime()),
+            ...(input.tradeCapture
+              ? [...rateLimitStates.values()]
+                  .filter(
+                    ({ policy, endpoints }) =>
+                      [
+                        'poe-trade',
+                        'trade-search-request-limit',
+                        'trade-fetch-request-limit',
+                      ].includes(policy) ||
+                      endpoints.some((endpoint) =>
+                        ['trade', 'trade-search', 'trade-fetch'].includes(
+                          endpoint,
+                        ),
+                      ),
+                  )
+                  .map((state) => state.blockedUntil.getTime())
+              : []),
+          ),
         );
         const retryAt = new Date(
           Math.max(
@@ -640,7 +658,11 @@ export function createInMemoryRepositories(): Repositories {
           initialRateLimitState(policy, input.now, input.minimumDelayMs);
         const minimumDelayMs =
           input.windows.length === 0
-            ? Math.max(input.minimumDelayMs, current.minimumDelayMs)
+            ? Math.max(
+                input.minimumDelayMs,
+                current.minimumDelayMs,
+                previous.minimumDelayMs,
+              )
             : input.minimumDelayMs;
         if (previousPolicy !== policy) {
           rateLimitStates.set(previousPolicy, {

@@ -56,7 +56,7 @@
       "verifiedAt": "2026-11-03",
       "settings": "Rare uninfluenced Convoking Wand exactly ilvl83; pre-acquired fractured minion Attack and Cast Speed exactly20%; Deafening Essence of Fear guarantees83–94% increased minion damage; AND +1 all Minion Skill Gems and at least1 open suffix. Bench Trigger8s after success. No Annul, Vesper, self-fracture or premium hybrid damage assumed.",
       "artifact": "docs/evidence/craft-profit-2026-11-03/convoking-fear.json",
-      "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger bench3Chaos once; one Scouring reserved conservatively for Remove Crafted Modifiers only, never scour the whole item. Listing asks do not prove sales/profit; gold/time excluded."
+      "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger costs 3 Chaos once on the essence-rolled wand with an open suffix. One optional Scouring is a separate reserve for bench removal of an existing craft. Listing asks do not prove sales/profit; gold/time excluded."
     },
     "baseConsumption": {
       "expectedBases": 1,
@@ -67,7 +67,7 @@
         "verifiedAt": "2026-11-03",
         "settings": "Rare uninfluenced Convoking Wand exactly ilvl83; pre-acquired fractured minion Attack and Cast Speed exactly20%; Deafening Essence of Fear guarantees83–94% increased minion damage; AND +1 all Minion Skill Gems and at least1 open suffix. Bench Trigger8s after success. No Annul, Vesper, self-fracture or premium hybrid damage assumed.",
         "artifact": "docs/evidence/craft-profit-2026-11-03/convoking-fear.json",
-        "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger bench3Chaos once; one Scouring reserved conservatively for Remove Crafted Modifiers only, never scour the whole item. Listing asks do not prove sales/profit; gold/time excluded."
+        "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger costs 3 Chaos once on the essence-rolled wand with an open suffix. One optional Scouring is a separate reserve for bench removal of an existing craft. Listing asks do not prove sales/profit; gold/time excluded."
       }
     },
     "expectedExecutions": [
@@ -81,7 +81,7 @@
           "verifiedAt": "2026-11-03",
           "settings": "Rare uninfluenced Convoking Wand exactly ilvl83; pre-acquired fractured minion Attack and Cast Speed exactly20%; Deafening Essence of Fear guarantees83–94% increased minion damage; AND +1 all Minion Skill Gems and at least1 open suffix. Bench Trigger8s after success. No Annul, Vesper, self-fracture or premium hybrid damage assumed.",
           "artifact": "docs/evidence/craft-profit-2026-11-03/convoking-fear.json",
-          "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger bench3Chaos once; one Scouring reserved conservatively for Remove Crafted Modifiers only, never scour the whole item. Listing asks do not prove sales/profit; gold/time excluded."
+          "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger costs 3 Chaos once on the essence-rolled wand with an open suffix. One optional Scouring is a separate reserve for bench removal of an existing craft. Listing asks do not prove sales/profit; gold/time excluded."
         }
       },
       {
@@ -94,7 +94,7 @@
           "verifiedAt": "2026-11-03",
           "settings": "Rare uninfluenced Convoking Wand exactly ilvl83; pre-acquired fractured minion Attack and Cast Speed exactly20%; Deafening Essence of Fear guarantees83–94% increased minion damage; AND +1 all Minion Skill Gems and at least1 open suffix. Bench Trigger8s after success. No Annul, Vesper, self-fracture or premium hybrid damage assumed.",
           "artifact": "docs/evidence/craft-profit-2026-11-03/convoking-fear.json",
-          "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger bench3Chaos once; one Scouring reserved conservatively for Remove Crafted Modifiers only, never scour the whole item. Listing asks do not prove sales/profit; gold/time excluded."
+          "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger costs 3 Chaos once on the essence-rolled wand with an open suffix. One optional Scouring is a separate reserve for bench removal of an existing craft. Listing asks do not prove sales/profit; gold/time excluded."
         }
       }
     ],
@@ -127,24 +127,20 @@
             "verifiedAt": "2026-11-03",
             "settings": "Rare uninfluenced Convoking Wand exactly ilvl83; pre-acquired fractured minion Attack and Cast Speed exactly20%; Deafening Essence of Fear guarantees83–94% increased minion damage; AND +1 all Minion Skill Gems and at least1 open suffix. Bench Trigger8s after success. No Annul, Vesper, self-fracture or premium hybrid damage assumed.",
             "artifact": "docs/evidence/craft-profit-2026-11-03/convoking-fear.json",
-            "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger bench3Chaos once; one Scouring reserved conservatively for Remove Crafted Modifiers only, never scour the whole item. Listing asks do not prove sales/profit; gold/time excluded."
+            "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger costs 3 Chaos once on the essence-rolled wand with an open suffix. One optional Scouring is a separate reserve for bench removal of an existing craft. Listing asks do not prove sales/profit; gold/time excluded."
           }
         }
       },
       {
         "id": "bench-trigger",
         "title": "Bench Trigger8s",
-        "action": "Bench Trigger a Socketed Spell when you Use a Skill, with8secondCooldown for3Chaos. Keep1Scouring as a conservative reserve for bench Remove Crafted Modifiers if needed; never apply it to the item.",
+        "action": "Bench Trigger a Socketed Spell when you Use a Skill with 8 second cooldown for 3 Chaos. Keep 1 Scouring separately if you intend to replace or remove a crafted modifier at the bench.",
         "continueWhen": "Trigger8s present together with the +1minion/damage/fractured-speed core.",
         "failureAction": "Stop if the suffix is unavailable; that outcome belongs to the paid Fear reroll stage.",
         "materials": [
           {
             "itemId": "chaos-orb",
             "quantity": 3
-          },
-          {
-            "itemId": "orb-of-scouring",
-            "quantity": 1
           }
         ],
         "success": {
@@ -156,7 +152,7 @@
             "verifiedAt": "2026-11-03",
             "settings": "Rare uninfluenced Convoking Wand exactly ilvl83; pre-acquired fractured minion Attack and Cast Speed exactly20%; Deafening Essence of Fear guarantees83–94% increased minion damage; AND +1 all Minion Skill Gems and at least1 open suffix. Bench Trigger8s after success. No Annul, Vesper, self-fracture or premium hybrid damage assumed.",
             "artifact": "docs/evidence/craft-profit-2026-11-03/convoking-fear.json",
-            "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger bench3Chaos once; one Scouring reserved conservatively for Remove Crafted Modifiers only, never scour the whole item. Listing asks do not prove sales/profit; gold/time excluded."
+            "assumptions": "Displayed0.516% chance and194 mean Fear are rounded. Same reusable base; every failed roll pays another Fear. Trigger costs 3 Chaos once on the essence-rolled wand with an open suffix. One optional Scouring is a separate reserve for bench removal of an existing craft. Listing asks do not prove sales/profit; gold/time excluded."
           }
         }
       }
@@ -206,6 +202,6 @@
       "https://beta.craftofexile.com/?group=17&class=123&item=411&game=poe1&method=3%2C7%2C51&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W3siayI6Ik1pbmlvbkF0dGFja0FuZENhc3RTcGVlZDZfXyIsInYiOlsyMF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjpudWxsLCJzIjpbXSwicSI6MCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbIjMwIl1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tc3VmZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
       "https://www.pathofexile.com/api/trade/data/stats"
     ],
-    "notes": "Exact CoE setup and successful finished item checked;0.516% and194 are rounded. Existing sourcebook90attempt estimate rejected. No in-game spending or sales asserted."
+    "notes": "Exact CoE setup and successful finished item checked. 0.516% and 194 are rounded. The Fear roll provides the required open suffix before applying the 3 Chaos Trigger craft. An optional Scouring reserve is outside expected expenditure."
   }
 }

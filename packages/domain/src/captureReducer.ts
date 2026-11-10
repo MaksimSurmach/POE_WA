@@ -17,6 +17,7 @@ export type Capture = Readonly<{
   scheduleId: string;
   capturedAt: Date;
   complete: boolean;
+  maximumAskObservationGapMs?: number;
   listings: readonly CaptureListing[];
 }>;
 
@@ -32,6 +33,8 @@ export type Listing = Readonly<
     status: 'active' | 'missing' | 'gone';
     missedCompleteCaptures: number;
     goneAt: Date | null;
+    firstMissingAt: Date | null;
+    unchangedAskSince: Date | null;
   }
 >;
 
@@ -52,6 +55,8 @@ export type ListingEvent = Readonly<{
   relatedItemId: string | null;
 }>;
 
+export const exitMissSeparationMs = 2 * 60 * 60 * 1000;
+export const staleAskAgeMs = 7 * 24 * 60 * 60 * 1000;
 export const captureRelistWindowMs = 7 * 24 * 60 * 60 * 1000;
 
 /** Applies one capture to the previous listings for its schedule. */
@@ -88,6 +93,23 @@ export function applyCapture(
     const { itemId, priceChaos } = sighting;
     const before = listings.get(itemId);
 
+    const repriced =
+      price &&
+      before?.priceOriginal != null &&
+      before.currency != null &&
+      (price.currency !== before.currency ||
+        !new Decimal(price.amount).eq(before.priceOriginal));
+    const sameAsk =
+      price &&
+      before?.priceOriginal != null &&
+      before.currency != null &&
+      !repriced;
+    const continuesObservation =
+      before?.status === 'active' &&
+      sameAsk &&
+      capturedAt.getTime() - before.lastSeenAt.getTime() <=
+        (capture.maximumAskObservationGapMs ?? Infinity);
+
     listings.set(itemId, {
       ...sighting,
       scheduleId,
@@ -101,6 +123,11 @@ export function applyCapture(
       status: 'active',
       missedCompleteCaptures: 0,
       goneAt: null,
+      firstMissingAt: null,
+      unchangedAskSince: price
+        ? ((continuesObservation ? before.unchangedAskSince : null) ??
+          capturedAt)
+        : null,
     });
 
     if (!before) {
@@ -110,13 +137,7 @@ export function applyCapture(
     }
     if (before.status !== 'active')
       emit(itemId, 'reappeared', null, priceChaos);
-    if (
-      price &&
-      before.priceOriginal !== null &&
-      before.currency !== null &&
-      (price.currency !== before.currency ||
-        !new Decimal(price.amount).eq(before.priceOriginal))
-    ) {
+    if (repriced) {
       emit(itemId, 'price_changed', before.priceChaos, priceChaos);
     }
   }
@@ -124,16 +145,21 @@ export function applyCapture(
   if (capture.complete) {
     for (const before of previous) {
       if (sightings.has(before.itemId) || before.status === 'gone') continue;
+      const firstMissingAt = before.firstMissingAt ?? capturedAt;
+      const elapsed = capturedAt.getTime() - firstMissingAt.getTime();
       const misses = before.missedCompleteCaptures + 1;
-      const gone = misses >= 2;
+      const gone = elapsed >= exitMissSeparationMs;
       listings.set(before.itemId, {
         ...before,
         status: gone ? 'gone' : 'missing',
         missedCompleteCaptures: misses,
+        firstMissingAt,
+        unchangedAskSince: null,
         goneAt: gone ? capturedAt : null,
       });
       if (gone) newlyGoneIds.add(before.itemId);
-      emit(before.itemId, gone ? 'gone' : 'missed', before.priceChaos);
+      if (gone || !before.firstMissingAt)
+        emit(before.itemId, gone ? 'gone' : 'missed', before.priceChaos);
     }
   }
 

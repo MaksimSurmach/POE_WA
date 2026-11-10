@@ -6,13 +6,16 @@ import { afterAll, afterEach, expect, it } from 'vitest';
 
 import { loadDatabaseConfig } from '../config.js';
 import { createDatabasePool } from '../database.js';
+import { createMarketActivityReader } from '../marketActivity.js';
 import {
   captures,
   collectorSchedule,
   listingEvents,
   listings,
+  poeLeagues,
 } from '../schema.js';
 import { createCaptureRepository } from './captureRepository.js';
+import { cleanupCollectorHistory } from './collectorHistoryRetention.js';
 
 const config = loadDatabaseConfig();
 const address = new URL(config.connectionString);
@@ -33,17 +36,21 @@ const repository = createCaptureRepository(pool);
 
 afterEach(async () => {
   await pool.query(
-    'truncate listing_events, listings, captures, collector_schedule',
+    'truncate listing_events, listings, captures, collector_schedule, collector_state, run_requests',
+  );
+  await pool.query(
+    "delete from poe_leagues where name = 'Activity integration'",
   );
 });
 afterAll(() => pool.end());
 
-async function schedule() {
+async function schedule(leagueId?: string) {
   const id = randomUUID();
   await db.insert(collectorSchedule).values({
     id,
     kind: 'trade-target',
     key: id,
+    ...(leagueId ? { leagueId } : {}),
     payload: {},
     intervalMinutes: 60,
     nextDueAt: new Date('2026-11-09T12:00:00Z'),
@@ -269,7 +276,7 @@ it('preserves an old gone listing’s identity when the same ID reappears', asyn
   ]);
   const firstId = await repository.saveCapture(first);
   await repository.saveCapture(capture(target, 1, []));
-  await repository.saveCapture(capture(target, 2, []));
+  await repository.saveCapture(capture(target, 121, []));
   const before = await readState(target);
   const reappearance = {
     ...capture(target, 0, [listing('old-id', '10', 'replacement')]),
@@ -361,4 +368,234 @@ it('discards a checked-out client whose database connection was terminated', asy
   } finally {
     blocker.release();
   }
+});
+
+async function activityTarget() {
+  const leagueId = randomUUID();
+  await db.insert(poeLeagues).values({
+    id: leagueId,
+    gggId: leagueId,
+    name: 'Activity integration',
+    syncedAt: new Date('2026-11-09T12:00:00Z'),
+    isCurrent: false,
+  });
+  return { leagueId, target: await schedule(leagueId) };
+}
+
+it.each([60, 120])(
+  'qualifies a near-floor disappearance on %d-minute captures after two hours of complete absence',
+  async (interval) => {
+    const { target, leagueId } = await activityTarget();
+    const survivor = listing('B', '110');
+    const first = capture(target, 0, [listing('A', '100'), survivor]);
+    const firstId = await repository.saveCapture(first);
+    await repository.saveCapture(capture(target, interval, [survivor]));
+    const partial = {
+      ...capture(target, interval + 10, [survivor]),
+      complete: false,
+      reportedTotal: 2,
+    };
+    await repository.saveCapture(partial);
+    await expect(repository.saveCapture(partial)).rejects.toMatchObject({
+      code: 'conflict',
+    });
+    const restarted = createCaptureRepository(pool);
+    const read = createMarketActivityReader(pool);
+    expect(await read(leagueId, target, partial.capturedAt)).toMatchObject({
+      active: null,
+      inferredExits72h: 0,
+    });
+    if (interval === 60) {
+      const premature = capture(target, interval + 60, [survivor]);
+      await restarted.saveCapture(premature);
+      expect(await read(leagueId, target, premature.capturedAt)).toMatchObject({
+        active: 1,
+        inferredExits72h: 0,
+      });
+    }
+
+    const confirmed = capture(target, interval + 120, [survivor]);
+    await restarted.saveCapture(confirmed);
+    expect(await read(leagueId, target, confirmed.capturedAt)).toMatchObject({
+      active: 1,
+      inferredExits24h: 1,
+      inferredExitSellers24h: 1,
+      uncertainExits72h: 0,
+    });
+    await expect(
+      read(leagueId, target, new Date(confirmed.capturedAt.getTime() - 1)),
+    ).resolves.toBeNull();
+    const state = await readState(target);
+    expect(state.captures[0]).toMatchObject({
+      id: firstId,
+      floorChaos: '100.00000000',
+      observedMinChaos: '100.00000000',
+      observedMaxChaos: '110.00000000',
+      queryVersion: target,
+    });
+    expect(state.listings[1]?.lastCaptureId).not.toBe(firstId);
+    expect(
+      state.events
+        .filter(({ itemId }) => itemId === 'A')
+        .map(({ type }) => type),
+    ).toEqual(['first_seen', 'missed', 'gone']);
+  },
+);
+
+it('does not infer an exit from a pre-migration floor and separates query versions', async () => {
+  const { target, leagueId } = await activityTarget();
+  const alternate = await schedule(leagueId);
+  const survivor = listing('B', '90');
+  const first = await repository.saveCapture(
+    capture(target, 0, [listing('A', '100'), survivor]),
+  );
+  await db
+    .update(captures)
+    .set({ queryVersion: null, floorChaos: null })
+    .where(eq(captures.id, first));
+  expect(
+    await createMarketActivityReader(pool)(
+      leagueId,
+      target,
+      capture(target, 0, []).capturedAt,
+    ),
+  ).toMatchObject({ inferredExits24h: null, inferredExits72h: null });
+  await repository.saveCapture(capture(target, 120, [survivor]));
+  await repository.saveCapture(capture(alternate, 180, [listing('A', '90')]));
+  const last = capture(target, 240, [survivor]);
+  await repository.saveCapture(last);
+  const read = createMarketActivityReader(pool);
+  expect(await read(leagueId, target, last.capturedAt)).toMatchObject({
+    active: 1,
+    inferredExits72h: 0,
+    uncertainExits24h: 1,
+  });
+  expect(await read(leagueId, alternate, last.capturedAt)).toMatchObject({
+    active: 1,
+    inferredExits72h: 0,
+    uncertainExits24h: 0,
+  });
+});
+
+it('removes a relist and a reappearance from inferred exits and counts repricing', async () => {
+  const { target, leagueId } = await activityTarget();
+  const first = capture(target, 0, [
+    listing('A', '100'),
+    listing('B', '110'),
+    listing('C', '110'),
+  ]);
+  await repository.saveCapture(first);
+  const survivor = listing('B', '115');
+  await repository.saveCapture(capture(target, 60, [survivor]));
+  await repository.saveCapture(capture(target, 180, [survivor]));
+  const replacement = { ...listing('D', '100'), fingerprint: 'A' };
+  const latest = capture(target, 240, [
+    survivor,
+    replacement,
+    listing('C', '110'),
+  ]);
+  await repository.saveCapture(latest);
+  expect(
+    await createMarketActivityReader(pool)(leagueId, target, latest.capturedAt),
+  ).toMatchObject({
+    inferredExits24h: 0,
+    uncertainExits72h: 0,
+    repriced24h: 1,
+    relisted24h: 1,
+  });
+  expect((await readState(target)).events).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        itemId: 'A',
+        type: 'possible_relist',
+        relatedItemId: 'D',
+      }),
+      expect.objectContaining({ itemId: 'C', type: 'reappeared' }),
+    ]),
+  );
+});
+
+it('keeps a stale cheap ask visible and identifies the floor without it', async () => {
+  const { target, leagueId } = await activityTarget();
+  await db
+    .update(collectorSchedule)
+    .set({ intervalMinutes: 360 })
+    .where(eq(collectorSchedule.id, target));
+  let latest = capture(target, 0, []);
+  for (let hour = 0; hour <= 168; hour += 12) {
+    latest = capture(target, hour * 60, [
+      listing('old-floor', '100'),
+      listing('recent', hour < 168 ? '130' : '140'),
+    ]);
+    await repository.saveCapture(latest);
+  }
+  expect(
+    await createMarketActivityReader(pool)(leagueId, target, latest.capturedAt),
+  ).toMatchObject({
+    observedAskSample: [
+      { amount: 100, currency: 'chaos' },
+      { amount: 140, currency: 'chaos' },
+    ],
+    staleAskCount: 1,
+    staleFloorCount: 1,
+    observedFloorWithoutStaleAsks: 140,
+  });
+});
+
+it('expires bounded collector history and preserves current provenance and Run now', async () => {
+  const { target, leagueId } = await activityTarget();
+  const keep = listing('keep', '100');
+  const anchor = await repository.saveCapture(
+    capture(target, 0, [keep, listing('expired', '110')]),
+  );
+  const partial = (minute: number, sightings: CaptureListing[] = []) => ({
+    ...capture(target, minute, sightings),
+    complete: false,
+    reportedTotal: 2,
+  });
+  const orphan = await repository.saveCapture(partial(60));
+  const source = await repository.saveCapture(partial(120));
+  await pool.query(
+    "insert into collector_state (id,last_run_summary) values (1,jsonb_build_object('captureId',$1::text))",
+    [source],
+  );
+  const old = capture(target, 0, []).capturedAt;
+  const recent = partial(35 * 24 * 60, [keep]);
+  const latest = await repository.saveCapture(recent);
+  await pool.query(
+    `insert into run_requests (scope,state,requested_at,finished_at)
+     values ('all','done',$1,$1), ('all','failed',$1,$1), ('all','queued',$2,null)`,
+    [old, recent.capturedAt],
+  );
+
+  await expect(
+    cleanupCollectorHistory(pool, { batchSize: 1, now: recent.capturedAt }),
+  ).resolves.toEqual({
+    captures: 1,
+    events: 2,
+    listings: 1,
+    requests: 2,
+    batchLimitReached: false,
+  });
+  const state = await readState(target);
+  expect(state.captures.map(({ id }) => id)).toEqual([anchor, source, latest]);
+  expect(state.captures.some(({ id }) => id === orphan)).toBe(false);
+  expect(state.listings.map(({ itemId }) => itemId)).toEqual(['keep']);
+  expect(
+    await createMarketActivityReader(pool)(leagueId, target, recent.capturedAt),
+  ).toMatchObject({
+    observedAskSample: [{ amount: 100, currency: 'chaos' }],
+  });
+  expect((await pool.query('select state from run_requests')).rows).toEqual([
+    { state: 'queued' },
+  ]);
+  await expect(
+    cleanupCollectorHistory(pool, { batchSize: 1, now: recent.capturedAt }),
+  ).resolves.toEqual({
+    captures: 0,
+    events: 0,
+    listings: 0,
+    requests: 0,
+    batchLimitReached: false,
+  });
 });

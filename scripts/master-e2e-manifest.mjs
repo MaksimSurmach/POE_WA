@@ -130,6 +130,8 @@ export async function createMasterE2EManifest(outputPath) {
           [
             'tests/e2e/fixtures.ts',
             'tests/e2e/boot.spec.ts',
+            'tests/e2e/collector.spec.ts',
+            'scripts/e2e-collector-fixture.mjs',
             'compose.e2e.yaml',
           ].map((file) => readFile(file)),
         ),

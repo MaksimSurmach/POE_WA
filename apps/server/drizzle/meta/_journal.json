@@ -232,6 +232,20 @@
       "when": 1794317705031,
       "tag": "0032_retire_unused_collector_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794330217756,
+      "tag": "0033_capture_activity_evidence",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794330725288,
+      "tag": "0034_collector_telemetry",
+      "breakpoints": true
     }
   ]
 }

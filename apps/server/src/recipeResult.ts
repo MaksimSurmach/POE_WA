@@ -20,6 +20,8 @@ export const recipeResultSchema = z.strictObject({
     .object({
       oldestInputAt: z.iso.datetime(),
       expiresAt: z.iso.datetime(),
+      craftInputAt: z.iso.datetime().optional(),
+      craftExpiresAt: z.iso.datetime().optional(),
       source: z
         .strictObject({
           captureId: z.uuid(),

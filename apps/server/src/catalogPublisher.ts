@@ -730,9 +730,8 @@ export async function evaluateFreshRecipe(
   const usedTradeMaterials = materialMarkets.filter((m) =>
     tradeMaterialIds.has(m.id),
   );
-  const inputTimes = [
+  const craftInputTimes = [
     context.now.getTime(),
-    ...(output ? [output.snapshotCapturedAt.getTime()] : []),
     ...(base ? [base.snapshotCapturedAt.getTime()] : []),
     ...usedTradeMaterials.map((m) => m.capturedAt.getTime()),
     ...[...usedMaterialEconomies].map((s) =>
@@ -740,16 +739,26 @@ export async function evaluateFreshRecipe(
     ),
     ...[...conversionEvidence.values()].map((e) => Date.parse(e.verifiedAt)),
     ...[
-      output?.currencyAvailable ? output.conversionAt : null,
       base?.conversionAt,
       ...usedTradeMaterials.map((m) => m.conversionAt),
     ].flatMap((at) => (at ? [at.getTime()] : [])),
   ];
-  const oldestInputAt = Math.min(...inputTimes);
-  const expiresAt = Math.min(
-    output?.snapshotExpiresAt.getTime() ?? Infinity,
+  const craftInputAt = Math.min(...craftInputTimes);
+  const craftExpiresAt = Math.min(
     base?.snapshotExpiresAt.getTime() ?? Infinity,
     ...usedTradeMaterials.map((m) => m.expiresAt?.getTime() ?? Infinity),
+    craftInputAt + maximumQuoteAgeMs,
+  );
+  const oldestInputAt = Math.min(
+    craftInputAt,
+    output?.snapshotCapturedAt.getTime() ?? Infinity,
+    output?.currencyAvailable
+      ? (output.conversionAt?.getTime() ?? Infinity)
+      : Infinity,
+  );
+  const expiresAt = Math.min(
+    craftExpiresAt,
+    output?.snapshotExpiresAt.getTime() ?? Infinity,
     oldestInputAt + maximumQuoteAgeMs,
   );
   const inputsFresh = expiresAt > context.now.getTime();
@@ -758,6 +767,7 @@ export async function evaluateFreshRecipe(
     currency,
     materialCost:
       evidenceValid &&
+      craftExpiresAt > context.now.getTime() &&
       usage &&
       Object.keys(usage).every((id) => bulkSupported.has(id))
         ? materialEconomics.expectedCost
@@ -808,6 +818,8 @@ export async function evaluateFreshRecipe(
     recipeContentHash: recipe.contentHash,
     oldestInputAt: new Date(oldestInputAt).toISOString(),
     expiresAt: new Date(expiresAt).toISOString(),
+    craftInputAt: new Date(craftInputAt).toISOString(),
+    craftExpiresAt: new Date(craftExpiresAt).toISOString(),
     ...(output
       ? {
           source: {

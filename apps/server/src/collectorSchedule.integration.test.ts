@@ -177,7 +177,14 @@ it('reconciles the 31-recipe catalog without resetting existing schedule rows', 
     withRuntimeState.map((row) => {
       if (row.id === unique.id) return { ...row, enabled: false };
       if (row.id === shared.id)
-        return { ...row, payload: { ...row.payload, recipeIds: [jagged] } };
+        return {
+          ...row,
+          payload: {
+            ...row.payload,
+            recipeIds: [jagged],
+            outputRecipeIds: [jagged],
+          },
+        };
       return row;
     }),
   );
@@ -304,11 +311,10 @@ it('ranks Allflame research queries only after three complete captures', async (
   ).toBe(true);
   expect(new Set(rows.map(({ key }) => key)).size).toBe(2);
   expect(await readMarketDiscovery(pool)).toMatchObject({
-    ranked: [],
     sales: 'unknown',
-    insufficientCoverage: [
-      { fullCoverage: false, lowestObservedAskChaos: null },
-      { fullCoverage: false, lowestObservedAskChaos: null },
+    entries: [
+      { readiness: { level: 'insufficient', currentAskRange: null } },
+      { readiness: { level: 'insufficient', currentAskRange: null } },
     ],
   });
 
@@ -340,11 +346,13 @@ it('ranks Allflame research queries only after three complete captures', async (
       pool,
       new Date(now.getTime() - hoursAgo * 3_600_000),
     );
-    expect(report.ranked).toHaveLength(hoursAgo === 0 ? 1 : 0);
-    if (hoursAgo === 0)
-      expect(report.ranked[0]).toMatchObject({
-        completeCaptures72h: 3,
-        lowestObservedAskChaos: 15,
-      });
+    const entry = report.entries.find(
+      ({ name }) => name === target.payload.name,
+    );
+    expect(entry?.readiness).toMatchObject({
+      level: hoursAgo === 0 ? 'activity-measurable' : 'price-observed',
+      last24h: { complete: 3 - hoursAgo / 6 },
+      currentAskRange: { min: { amount: 15, currency: 'chaos' } },
+    });
   }
 });

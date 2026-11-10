@@ -14,11 +14,15 @@ import {
   StatusPanel,
   economicClass,
 } from './components.js';
-import { formatMarginPercent } from './catalog.js';
+import { evidenceRank, formatMarginPercent } from './catalog.js';
 import { ApiClientError, createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
 import { RecipeTrendPanel } from './MarketTrendsPage.js';
 import { CraftRiskSection } from './CraftRiskSection.js';
+import {
+  isSingleSellerHypothesis,
+  MarketReadiness,
+} from './MarketReadiness.js';
 
 const apiClient = createApiClient('', (url, options) =>
   fetch(url, { ...options, signal: AbortSignal.timeout(15_000) }),
@@ -375,6 +379,11 @@ export function RecipePage() {
           ))}
         </div>
       </DetailSection>
+      {detail.readiness ? (
+        <DetailSection title="Data readiness">
+          <MarketReadiness readiness={detail.readiness} />
+        </DetailSection>
+      ) : null}
       {detail.marketActivity ? (
         <DetailSection title="Market activity">
           <p>Inferred from listings, not sales.</p>
@@ -395,10 +404,35 @@ export function RecipePage() {
               </ul>
             </div>
           ) : null}
+          {detail.marketActivity.staleAskCount ? (
+            <p>
+              {detail.marketActivity.staleAskCount} asks observed unchanged for
+              at least seven days. They are still included in the observed
+              prices.
+              {detail.marketActivity.observedFloorWithoutStaleAsks != null ? (
+                <>
+                  {' '}
+                  Lowest other observed ask:{' '}
+                  <Money
+                    price={{
+                      amount:
+                        detail.marketActivity.observedFloorWithoutStaleAsks,
+                      currency: 'chaos',
+                    }}
+                  />
+                  .
+                </>
+              ) : (
+                ' Every priced observation in this capture is stale.'
+              )}
+            </p>
+          ) : null}
           <p>
             Last 72 h: {detail.marketActivity.repriced72h} repriced ·{' '}
-            {detail.marketActivity.inferredExits72h} inferred exits ·{' '}
-            {detail.marketActivity.uncertainExits72h} uncertain exits
+            {detail.marketActivity.inferredExits72h === null
+              ? 'insufficient evidence for inferred exits'
+              : `${detail.marketActivity.inferredExits72h} inferred exits`}{' '}
+            · {detail.marketActivity.uncertainExits72h} uncertain exits
           </p>
           {detail.marketActivity.recentExitAsk ? (
             <p>
@@ -512,10 +546,16 @@ export function MethodsForTarget({
 }) {
   const methods = entries
     .filter(({ recipe }) => recipe.targetSignature === targetSignature)
-    .sort(({ evaluation: a }, { evaluation: b }) => {
+    .sort((left, right) => {
+      const rank = evidenceRank(left) - evidenceRank(right);
+      if (rank !== 0) return rank;
+      const { evaluation: a } = left;
+      const { evaluation: b } = right;
       if (!a.profit) return b.profit ? 1 : 0;
       if (!b.profit) return -1;
-      return b.profit.amount - a.profit.amount;
+      return a.profit.currency === b.profit.currency
+        ? b.profit.amount - a.profit.amount
+        : a.profit.currency.localeCompare(b.profit.currency);
     });
 
   if (methods.length < 2) return null;
@@ -547,13 +587,17 @@ export function MethodsForTarget({
             </tr>
           </thead>
           <tbody>
-            {methods.map(({ recipe, evaluation }, index) => (
+            {methods.map(({ recipe, evaluation, readiness }, index) => (
               <tr key={recipe.id}>
                 <th scope="row">
                   <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
                     {recipe.craftMethod}
                   </Link>
-                  {index === 0 && evaluation.profit ? (
+                  {readiness && isSingleSellerHypothesis(readiness) ? (
+                    <small>Single-seller price hypothesis</small>
+                  ) : index === 0 &&
+                    evaluation.profit &&
+                    readiness === undefined ? (
                     <small>Best by expected profit</small>
                   ) : null}
                 </th>

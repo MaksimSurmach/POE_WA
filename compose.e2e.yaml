@@ -34,6 +34,7 @@ services:
       POE_TRADE_ACCESS: disabled
       POE_USER_AGENT: 'OAuth poe-worksmith-e2e/1.0 (offline fixture)'
       LOG_LEVEL: info
+      OPERATOR_DIAGNOSTICS_TOKEN: worksmith-e2e-operator-only
     depends_on:
       postgres: { condition: service_healthy }
     labels:
@@ -68,11 +69,14 @@ services:
 
   collector:
     image: ${SERVER_IMAGE:?SERVER_IMAGE is required}
-    command: [node, dist/entrypoints/collector.js]
+    command:
+      [node, '${E2E_COLLECTOR_ENTRYPOINT:-dist/entrypoints/collector.js}']
     environment:
       <<: *app_env
       APP_MODE: collector
       COLLECTOR_RETENTION_ENABLED: 'true'
+    volumes:
+      ['./scripts/e2e-collector-fixture.mjs:/tmp/e2e-collector-fixture.mjs:ro']
     depends_on:
       migrate: { condition: service_completed_successfully }
     labels:

@@ -1,6 +1,6 @@
 name: POE Trade Scraper
 description: Collect market listings for enabled Worksmith profiles
-version: '0.2.5'
+version: '0.2.6'
 slug: poe_trade_scraper
 arch:
   - aarch64

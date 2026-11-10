@@ -14,10 +14,8 @@ services:
       DATABASE_SSL_MODE: disable
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/poe_worksmith_dev
       CLEANUP_CRON: '15 2 * * *'
-      JOB_LEASE_TIMEOUT_MS: 300000
       LOG_LEVEL: info
       MARKET_CONCURRENCY: 4
-      MARKET_RETRY_DELAY_MS: 60000
       POE_LEAGUE: Mercenaries
       POE_REQUEST_TIMEOUT_MS: 15000
       POE_USER_AGENT: 'OAuth poe-worksmith/0.0.0 (contact: local-development)'

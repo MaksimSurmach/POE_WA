@@ -1,14 +1,20 @@
 import type { CatalogEntry } from '@poe-worksmith/contracts';
+import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
   type CatalogFilters,
+  evidenceRank,
   formatMarginPercent,
   getPriceStatus,
   groupByTarget,
 } from './catalog.js';
 import { Money, ProfitBadge, economicClass } from './components.js';
 import { ItemTooltip } from './ItemTooltip.js';
+import {
+  isSingleSellerHypothesis,
+  readinessLabels,
+} from './MarketReadiness.js';
 
 const columns = [
   ['title', 'Item name'],
@@ -19,6 +25,12 @@ const columns = [
   ['roi', 'ROI'],
   ['freshness', 'Market evidence'],
 ] as const;
+
+const evidenceGroups = [
+  'Preliminary candidates',
+  'Comparable asks · activity or cost gates pending',
+  'Price hypotheses and targets with insufficient observations',
+];
 
 const observedAt = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -40,9 +52,19 @@ export function CatalogTable({
   const direction =
     filters.direction ??
     (['title', 'category', 'cost'].includes(sort) ? 'asc' : 'desc');
-  const rows = groupByTarget(entries).flatMap((group) =>
-    group.map((entry, index) => ({ entry, index, methods: group.length })),
-  );
+  const grouped = groupByTarget(entries);
+  const byReadiness = entries.some((entry) => entry.readiness !== undefined);
+  const rank = (entry: CatalogEntry) => (byReadiness ? evidenceRank(entry) : 0);
+  const rows = grouped
+    .sort((a, b) => rank(a[0]!) - rank(b[0]!))
+    .flatMap((group) =>
+      group.map((entry, index) => ({
+        entry,
+        index,
+        methods: group.length,
+        rank: rank(group[0]!),
+      })),
+    );
   return (
     <div
       className="catalog-table-scroll"
@@ -91,8 +113,8 @@ export function CatalogTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ entry, index, methods }) => {
-            const { recipe, evaluation, snapshot } = entry;
+          {rows.map(({ entry, index, methods, rank }, rowIndex) => {
+            const { recipe, evaluation, snapshot, readiness } = entry;
             const source = evaluation.source ?? snapshot;
             const gradeReasons = evaluation.gradeReasons?.join(' · ');
             const showWithheld =
@@ -104,123 +126,138 @@ export function CatalogTable({
                     .size
                 : null);
             return (
-              <tr
-                key={recipe.id}
-                className={index ? 'craft-table__alternative' : undefined}
-              >
-                <th scope="row">
-                  <div className="craft-table__identity">
-                    {entry.itemPreview ? (
-                      <ItemTooltip item={entry.itemPreview} />
-                    ) : (
-                      <span
-                        className="craft-table__missing-art"
-                        aria-hidden="true"
-                      >
-                        {recipe.category.slice(0, 1).toUpperCase()}
-                      </span>
-                    )}
-                    <div>
-                      <Link to={`/recipes/${recipe.id}`}>{recipe.title}</Link>
-                      <small>
-                        {methods > 1
-                          ? index
-                            ? 'Other method · '
-                            : `${evaluation.profit ? 'Best of ' : ''}${methods} methods · `
-                          : null}
-                        {recipe.craftMethod.replaceAll('-', ' ')} · Patch{' '}
-                        {recipe.patch ?? 'unverified'}
-                      </small>
-                      <small className="craft-table__phone">
-                        {evaluation.profit ? (
-                          <ProfitBadge {...evaluation.profit} />
-                        ) : (
-                          'Profit —'
-                        )}
-                        {evaluation.marginPercent === null
-                          ? null
-                          : ` · ${formatMarginPercent(evaluation.marginPercent)} ROI`}
-                        {evaluation.grade ? ` · ${evaluation.grade}` : null}
-                      </small>
+              <Fragment key={recipe.id}>
+                {byReadiness && rows[rowIndex - 1]?.rank !== rank ? (
+                  <tr className="craft-table__readiness-group">
+                    <th colSpan={columns.length}>{evidenceGroups[rank]}</th>
+                  </tr>
+                ) : null}
+                <tr
+                  data-readiness-level={readiness?.level}
+                  className={index ? 'craft-table__alternative' : undefined}
+                >
+                  <th scope="row">
+                    <div className="craft-table__identity">
+                      {entry.itemPreview ? (
+                        <ItemTooltip item={entry.itemPreview} />
+                      ) : (
+                        <span
+                          className="craft-table__missing-art"
+                          aria-hidden="true"
+                        >
+                          {recipe.category.slice(0, 1).toUpperCase()}
+                        </span>
+                      )}
+                      <div>
+                        <Link to={`/recipes/${recipe.id}`}>{recipe.title}</Link>
+                        <small>
+                          {methods > 1
+                            ? index
+                              ? 'Other method · '
+                              : `${!byReadiness && evaluation.profit ? 'Best of ' : ''}${methods} methods · `
+                            : null}
+                          {recipe.craftMethod.replaceAll('-', ' ')} · Patch{' '}
+                          {recipe.patch ?? 'unverified'}
+                        </small>
+                        {readiness ? (
+                          <small>
+                            {readinessLabels[readiness.level]}
+                            {isSingleSellerHypothesis(readiness)
+                              ? ' · Single-seller price hypothesis'
+                              : ''}
+                          </small>
+                        ) : null}
+                        <small className="craft-table__phone">
+                          {evaluation.profit ? (
+                            <ProfitBadge {...evaluation.profit} />
+                          ) : (
+                            'Profit —'
+                          )}
+                          {evaluation.marginPercent === null
+                            ? null
+                            : ` · ${formatMarginPercent(evaluation.marginPercent)} ROI`}
+                          {evaluation.grade ? ` · ${evaluation.grade}` : null}
+                        </small>
+                      </div>
                     </div>
-                  </div>
-                </th>
-                <td className="craft-table__class">
-                  {recipe.category.replaceAll('-', ' ')}
-                </td>
-                <td>
-                  <Money price={evaluation.expectedCraftCost} />
-                  {evaluation.budget ? (
-                    <small>
-                      budget for one: p50{' '}
-                      <Money price={evaluation.budget.p50} /> · p90{' '}
-                      <Money price={evaluation.budget.p90} />
-                    </small>
-                  ) : null}
-                </td>
-                <td>
-                  <Money price={evaluation.estimatedSalePrice} />
-                </td>
-                <td>
-                  {evaluation.profit ? (
-                    <ProfitBadge {...evaluation.profit} />
-                  ) : (
-                    <span aria-label="Profit unavailable">—</span>
-                  )}
-                  {evaluation.grade ? (
-                    <small
-                      title={gradeReasons}
-                      aria-label={`Evidence grade ${evaluation.grade}`}
-                    >
-                      {evaluation.grade}
-                    </small>
-                  ) : null}
-                </td>
-                <td className={economicClass(evaluation.marginPercent)}>
-                  {evaluation.marginPercent === null ? (
-                    <span aria-label="ROI unavailable">—</span>
-                  ) : (
-                    formatMarginPercent(evaluation.marginPercent)
-                  )}
-                </td>
-                <td className="craft-table__evidence">
-                  <span>
-                    {evaluation.status === 'loading'
-                      ? 'No price collected yet'
-                      : getPriceStatus(evaluation.status)}
-                    {sellers !== null
-                      ? ` · ${sellers} ${sellers === 1 ? 'seller' : 'sellers'}`
-                      : ''}
-                  </span>
-                  {sellers === 1 &&
-                  !evaluation.grade &&
-                  !evaluation.profitBlockedReason &&
-                  showWithheld ? (
-                    <small className="recipe-warning">
-                      Single ask · ROI withheld
-                    </small>
-                  ) : null}
-                  {gradeReasons ? <small>{gradeReasons}</small> : null}
-                  {showWithheld && evaluation.profitBlockedReason ? (
-                    <small className="recipe-warning">
-                      ROI withheld: {evaluation.profitBlockedReason}
-                    </small>
-                  ) : null}
-                  {source ? (
-                    <>
+                  </th>
+                  <td className="craft-table__class">
+                    {recipe.category.replaceAll('-', ' ')}
+                  </td>
+                  <td>
+                    <Money price={evaluation.expectedCraftCost} />
+                    {evaluation.budget ? (
                       <small>
-                        {source.coverage} coverage ·{' '}
-                        {evaluation.confidence ?? 'unknown'} confidence
+                        budget for one: p50{' '}
+                        <Money price={evaluation.budget.p50} /> · p90{' '}
+                        <Money price={evaluation.budget.p90} />
                       </small>
-                      <time dateTime={source.capturedAt}>
-                        {observedAt.format(new Date(source.capturedAt))}
-                      </time>
-                    </>
-                  ) : evaluation.status !== 'loading' ? (
-                    <small>Source details unavailable</small>
-                  ) : null}
-                </td>
-              </tr>
+                    ) : null}
+                  </td>
+                  <td>
+                    <Money price={evaluation.estimatedSalePrice} />
+                  </td>
+                  <td>
+                    {evaluation.profit ? (
+                      <ProfitBadge {...evaluation.profit} />
+                    ) : (
+                      <span aria-label="Profit unavailable">—</span>
+                    )}
+                    {evaluation.grade ? (
+                      <small
+                        title={gradeReasons}
+                        aria-label={`Evidence grade ${evaluation.grade}`}
+                      >
+                        {evaluation.grade}
+                      </small>
+                    ) : null}
+                  </td>
+                  <td className={economicClass(evaluation.marginPercent)}>
+                    {evaluation.marginPercent === null ? (
+                      <span aria-label="ROI unavailable">—</span>
+                    ) : (
+                      formatMarginPercent(evaluation.marginPercent)
+                    )}
+                  </td>
+                  <td className="craft-table__evidence">
+                    <span>
+                      {evaluation.status === 'loading'
+                        ? 'No price collected yet'
+                        : getPriceStatus(evaluation.status)}
+                      {sellers !== null
+                        ? ` · ${sellers} ${sellers === 1 ? 'seller' : 'sellers'}`
+                        : ''}
+                    </span>
+                    {sellers === 1 &&
+                    !evaluation.grade &&
+                    !evaluation.profitBlockedReason &&
+                    showWithheld ? (
+                      <small className="recipe-warning">
+                        Single ask · ROI withheld
+                      </small>
+                    ) : null}
+                    {gradeReasons ? <small>{gradeReasons}</small> : null}
+                    {showWithheld && evaluation.profitBlockedReason ? (
+                      <small className="recipe-warning">
+                        ROI withheld: {evaluation.profitBlockedReason}
+                      </small>
+                    ) : null}
+                    {source ? (
+                      <>
+                        <small>
+                          {source.coverage} coverage ·{' '}
+                          {evaluation.confidence ?? 'unknown'} confidence
+                        </small>
+                        <time dateTime={source.capturedAt}>
+                          {observedAt.format(new Date(source.capturedAt))}
+                        </time>
+                      </>
+                    ) : evaluation.status !== 'loading' ? (
+                      <small>Source details unavailable</small>
+                    ) : null}
+                  </td>
+                </tr>
+              </Fragment>
             );
           })}
           {entries.length === 0 ? (

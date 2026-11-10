@@ -1348,9 +1348,9 @@ export const runRequests = pgTable(
     summary: jsonb('summary').$type<Record<string, unknown>>(),
   },
   (table) => [
-    uniqueIndex('run_requests_queued_scope_recipe_uq')
+    uniqueIndex('run_requests_active_scope_recipe_uq')
       .on(table.scope, sql`coalesce(${table.recipeId}, '')`)
-      .where(sql`${table.state} = 'queued'`),
+      .where(sql`${table.state} in ('queued', 'running')`),
     check(
       'run_requests_scope_recipe_check',
       sql`(${table.scope} = 'all' and ${table.recipeId} is null)
@@ -1375,8 +1375,38 @@ export const collectorState = pgTable(
     lastRunSummary: jsonb('last_run_summary').$type<Record<string, unknown>>(),
     blockedReason: text('blocked_reason'),
     sessionCheckedAt: timestamp('session_checked_at', { withTimezone: true }),
+    telemetryStartedAt: timestamp('telemetry_started_at', {
+      withTimezone: true,
+    }),
+    telemetryContactedAt: timestamp('telemetry_contacted_at', {
+      withTimezone: true,
+    }),
+    telemetryLeaderPid: integer('telemetry_leader_pid'),
+    telemetryCurrent: jsonb('telemetry_current'),
+    telemetryRateLimits: jsonb('telemetry_rate_limits').default({}).notNull(),
   },
   (table) => [check('collector_state_singleton_check', sql`${table.id} = 1`)],
+);
+
+export const collectorTelemetryRuns = pgTable(
+  'collector_telemetry_runs',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    scheduleId: uuid('schedule_id'),
+    kind: text('kind').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    outcome: text('outcome').notNull(),
+    partialReason: text('partial_reason'),
+    measurements: jsonb('measurements').default({}).notNull(),
+  },
+  (table) => [
+    index('collector_telemetry_runs_started_idx').on(table.startedAt),
+    check(
+      'collector_telemetry_runs_outcome_check',
+      sql`${table.outcome} in ('running', 'complete', 'partial', 'failed', 'interrupted', 'other')`,
+    ),
+  ],
 );
 
 export const captures = pgTable(
@@ -1391,13 +1421,26 @@ export const captures = pgTable(
     fetched: integer('fetched').notNull(),
     complete: boolean('complete').notNull(),
     sortedSampleIds: text('sorted_sample_ids').array(),
+    // The schedule key is the versioned provider/league/query hash at capture time.
+    queryVersion: text('query_version'),
+    floorChaos: numeric('floor_chaos', { precision: 20, scale: 8 }),
+    observedMinChaos: numeric('observed_min_chaos', {
+      precision: 20,
+      scale: 8,
+    }),
+    observedMaxChaos: numeric('observed_max_chaos', {
+      precision: 20,
+      scale: 8,
+    }),
     partialReason: text('partial_reason'),
     slices: integer('slices').notNull(),
     // Preserve the source ID after economy snapshot retention expires.
     fxSnapshotId: uuid('fx_snapshot_id'),
+    fxChaosPerDivine: numeric('fx_chaos_per_divine'),
     durationMs: integer('duration_ms').notNull(),
   },
   (table) => [
+    index('captures_time_idx').on(table.capturedAt, table.id),
     uniqueIndex('captures_schedule_time_uq').on(
       table.scheduleId,
       table.capturedAt,
@@ -1431,10 +1474,14 @@ export const listings = pgTable(
       .default(0)
       .notNull(),
     goneAt: timestamp('gone_at', { withTimezone: true }),
+    firstMissingAt: timestamp('first_missing_at', { withTimezone: true }),
+    unchangedAskSince: timestamp('unchanged_ask_since', { withTimezone: true }),
     item: jsonb('item').$type<MarketImportListing['item']>().notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.scheduleId, table.itemId] }),
+    index('listings_first_capture_idx').on(table.firstCaptureId),
+    index('listings_last_capture_idx').on(table.lastCaptureId),
     index('listings_schedule_status_idx').on(table.scheduleId, table.status),
     index('listings_schedule_seller_fingerprint_idx').on(
       table.scheduleId,
@@ -1470,6 +1517,8 @@ export const listingEvents = pgTable(
     relatedItemId: text('related_item_id'),
   },
   (table) => [
+    index('listing_events_capture_idx').on(table.captureId),
+    index('listing_events_time_idx').on(table.at, table.id),
     index('listing_events_schedule_item_time_idx').on(
       table.scheduleId,
       table.itemId,

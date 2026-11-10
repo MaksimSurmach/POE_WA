@@ -3,6 +3,7 @@ import { desc, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import type { Pool } from 'pg';
 
+import { readCollectorQueue } from './collectorQueue.js';
 import { collectorState, runRequests } from '../schema.js';
 
 export async function enqueueRunRequest(pool: Pool, recipeId: string | null) {
@@ -14,7 +15,7 @@ export async function enqueueRunRequest(pool: Pool, recipeId: string | null) {
       where $2 is null or exists (
         select 1 from recipes where id = $2 and active for share
       )
-      on conflict (scope, (coalesce(recipe_id, ''))) where state = 'queued'
+      on conflict (scope, (coalesce(recipe_id, ''))) where state in ('queued', 'running')
       do update set scope = excluded.scope
       returning id
     )
@@ -28,28 +29,30 @@ export async function enqueueRunRequest(pool: Pool, recipeId: string | null) {
 
 export async function readCollectorStatus(pool: Pool) {
   const db = drizzle({ client: pool });
-  const [[state], [latestRequest], { rows }] = await Promise.all([
-    db.select().from(collectorState).where(eq(collectorState.id, 1)),
+  const [[state], [latestRequest], queue] = await Promise.all([
+    db
+      .select({
+        id: collectorState.id,
+        lastRunStartedAt: collectorState.lastRunStartedAt,
+        lastRunFinishedAt: collectorState.lastRunFinishedAt,
+        lastRunStatus: collectorState.lastRunStatus,
+        lastRunSummary: collectorState.lastRunSummary,
+        blockedReason: collectorState.blockedReason,
+        sessionCheckedAt: collectorState.sessionCheckedAt,
+      })
+      .from(collectorState)
+      .where(eq(collectorState.id, 1)),
     db
       .select()
       .from(runRequests)
       .orderBy(desc(runRequests.requestedAt), desc(runRequests.id))
       .limit(1),
-    pool.query<{ lockHeld: boolean; nextDueAt: Date | null }>(
-      `select exists (
-        select 1 from pg_locks
-        where locktype = 'advisory' and granted and mode = 'ExclusiveLock'
-          and database = (select oid from pg_database where datname = current_database())
-          and objsubid = 1
-          and ((classid::bigint << 32) | objid::bigint) = hashtext('poe-worksmith:collector')::bigint
-      ) as "lockHeld",
-      (select min(greatest(next_due_at, retry_at, leased_until))
-       from collector_schedule where enabled) as "nextDueAt"`,
-    ),
+    readCollectorQueue(pool, new Date()),
   ]);
   return {
     collectorState: state ?? null,
     latestRequest: latestRequest ?? null,
-    ...rows[0]!,
+    lockHeld: queue.leaderPid !== null,
+    nextDueAt: queue.nextDueAt,
   };
 }

@@ -1,7 +1,7 @@
 {
   "patchVersion": "3.29.3.3",
   "source": "https://www.pathofexile.com/api/trade/data/items",
-  "sourceRevision": "mapping-identities-checked-2026-11-03.craft-profit.1+exiledata-mods-c2af0d896a3b",
+  "sourceRevision": "mapping-identities-checked-2026-11-03.craft-profit.1+exiledata-mods-c2af0d896a3b.flask-speed",
   "records": [
     {
       "kind": "base",
@@ -345,6 +345,33 @@
         "id": "mod-family:crafted-fire-resistance",
         "modIds": ["mod:crafted-fire-resistance"],
         "name": "Bench-crafted fire resistance"
+      }
+    },
+    {
+      "kind": "mod",
+      "payload": {
+        "id": "mod:flask-movement-speed",
+        "familyId": "mod-family:flask-movement-speed",
+        "name": "Utility flask movement speed (natural suffix tiers)",
+        "generationType": "suffix",
+        "requiredLevel": 5,
+        "tags": [],
+        "spawnWeights": [],
+        "stats": [
+          {
+            "id": "local_flask_movement_speed_+%_while_healing",
+            "minimum": 6,
+            "maximum": 14
+          }
+        ]
+      }
+    },
+    {
+      "kind": "modFamily",
+      "payload": {
+        "id": "mod-family:flask-movement-speed",
+        "modIds": ["mod:flask-movement-speed"],
+        "name": "Utility flask movement speed"
       }
     }
   ]

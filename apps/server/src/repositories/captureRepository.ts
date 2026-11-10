@@ -31,7 +31,10 @@ import {
   RepositoryNotFoundError,
 } from './errors.js';
 
-export type CaptureInput = Omit<typeof captures.$inferInsert, 'id'> & {
+export type CaptureInput = Omit<
+  typeof captures.$inferInsert,
+  'id' | 'queryVersion' | 'floorChaos' | 'observedMinChaos' | 'observedMaxChaos'
+> & {
   listings: Capture['listings'];
 };
 
@@ -44,17 +47,60 @@ function storagePrice(value: string) {
   return outcomeMoney(value);
 }
 
+// Compare stored 8-decimal amounts without losing precision at the top of numeric(20, 8).
+function compareStoragePrices(left: string, right: string) {
+  const units = (value: string) => {
+    const [whole, fraction = ''] = value.split('.');
+    return BigInt(whole + fraction.padEnd(8, '0'));
+  };
+  const a = units(left);
+  const b = units(right);
+  return a < b ? -1 : a === b ? 0 : 1;
+}
+
 /** The caller must hold an open read-committed transaction on this client. */
 export async function writeCaptureInTransaction(
   client: PoolClient,
   input: CaptureInput,
 ) {
   const { listings: sightings, ...metadata } = input;
+  const normalized = sightings.map((row) => ({
+    ...row,
+    price: row.price && {
+      ...row.price,
+      amount: storagePrice(row.price.amount),
+    },
+    priceChaos: row.priceChaos === null ? null : storagePrice(row.priceChaos),
+  }));
+  let observedMinChaos: string | null = null;
+  let observedMaxChaos: string | null = null;
+  for (const { priceChaos } of normalized) {
+    if (priceChaos === null) continue;
+    if (
+      observedMinChaos === null ||
+      compareStoragePrices(priceChaos, observedMinChaos) < 0
+    )
+      observedMinChaos = priceChaos;
+    if (
+      observedMaxChaos === null ||
+      compareStoragePrices(priceChaos, observedMaxChaos) > 0
+    )
+      observedMaxChaos = priceChaos;
+  }
+  const complete =
+    metadata.complete &&
+    metadata.reportedTotal === metadata.fetched &&
+    metadata.fetched === normalized.length &&
+    new Set(normalized.map(({ itemId }) => itemId)).size === normalized.length;
+  const fullCoverage = complete && metadata.sortedSampleIds == null;
   const { scheduleId, capturedAt } = metadata;
   const db = drizzle({ client });
   // Wait for the preceding capture before reading its listing state.
   const [schedule] = await db
-    .select({ id: collectorSchedule.id })
+    .select({
+      key: collectorSchedule.key,
+      intervalMinutes: collectorSchedule.intervalMinutes,
+    })
     .from(collectorSchedule)
     .where(eq(collectorSchedule.id, scheduleId))
     .for('update');
@@ -62,7 +108,29 @@ export async function writeCaptureInTransaction(
 
   const [capture] = await db
     .insert(captures)
-    .values(metadata)
+    .values({
+      ...metadata,
+      complete,
+      partialReason:
+        !complete && metadata.complete
+          ? 'CAPTURE_COVERAGE_MISMATCH'
+          : metadata.partialReason,
+      queryVersion: schedule.key,
+      floorChaos:
+        fullCoverage &&
+        normalized.every(
+          ({ priceChaos, price }) =>
+            priceChaos !== null &&
+            (price?.currency === 'chaos' ||
+              (price?.currency === 'divine' &&
+                metadata.fxSnapshotId != null &&
+                metadata.fxChaosPerDivine != null)),
+        )
+          ? observedMinChaos
+          : null,
+      observedMinChaos,
+      observedMaxChaos,
+    })
     .returning({ id: captures.id });
   if (!capture) throw new Error('Capture insert returned no ID');
   const [newer] = await db
@@ -109,15 +177,9 @@ export async function writeCaptureInTransaction(
     id: capture.id,
     scheduleId,
     capturedAt,
-    complete: metadata.complete,
-    listings: sightings.map((row) => ({
-      ...row,
-      price: row.price && {
-        ...row.price,
-        amount: storagePrice(row.price.amount),
-      },
-      priceChaos: row.priceChaos === null ? null : storagePrice(row.priceChaos),
-    })),
+    complete: fullCoverage,
+    maximumAskObservationGapMs: schedule.intervalMinutes * 2 * 60_000,
+    listings: normalized,
   });
   const changed = next.listings.filter(
     (row) => priorById.get(row.itemId) !== row,
@@ -145,6 +207,8 @@ export async function writeCaptureInTransaction(
           status: sql`excluded.status`,
           missedCompleteCaptures: sql`excluded.missed_complete_captures`,
           goneAt: sql`excluded.gone_at`,
+          firstMissingAt: sql`excluded.first_missing_at`,
+          unchangedAskSince: sql`excluded.unchanged_ask_since`,
         },
       });
   }

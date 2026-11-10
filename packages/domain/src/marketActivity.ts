@@ -1,12 +1,16 @@
 import { Decimal } from 'decimal.js';
 
-import type { Listing, ListingEvent } from './captureReducer.js';
+import {
+  captureRelistWindowMs,
+  exitMissSeparationMs,
+  type Listing,
+  type ListingEvent,
+} from './captureReducer.js';
 
 const hourMs = 60 * 60 * 1000;
 export const activityExitWindowMs = 72 * hourMs;
 /** Listings and events are read this far back; older facts count as missing. */
 export const activityLookbackMs = 96 * hourMs;
-export const exitMissSeparationMs = 2 * hourMs;
 export const exitFloorTolerance = '1.2';
 export const minimumExitAskObservations = 3;
 
@@ -20,15 +24,21 @@ export type ActivityListing = Pick<
   | 'lastCaptureId'
   | 'status'
   | 'goneAt'
->;
-export type ActivityEvent = Pick<ListingEvent, 'itemId' | 'at' | 'type'>;
+> &
+  Partial<Pick<Listing, 'fingerprint'>>;
+export type ActivityEvent = Pick<ListingEvent, 'itemId' | 'at' | 'type'> &
+  Partial<Pick<ListingEvent, 'relatedItemId'>>;
 
 export type MarketActivity = Readonly<{
   /** Null unless the latest capture covered the whole target. */
   active: number | null;
   distinctSellers: number | null;
   repriced72h: number;
+  repriced24h: number;
+  relisted24h: number;
   inferredExits24h: number;
+  inferredExitSellers24h: number;
+  uncertainExits24h: number;
   inferredExits72h: number;
   uncertainExits72h: number;
   /** Median last ask of inferred exits; null below the observation minimum. */
@@ -43,19 +53,20 @@ export function classifyExit(
   listing: ActivityListing,
   events: readonly ActivityEvent[],
   floorAtLastSeen: string | null,
-  sellerContext: { otherLastSeenAt: Date | null },
+  sellerContext: { otherLastSeenAt: Date | null; ambiguousRelist?: boolean },
 ): 'inferred' | 'uncertain' | null {
   const { goneAt } = listing;
   if (listing.status !== 'gone' || goneAt === null) return null;
   if (events.some((row) => row.type === 'possible_relist' && row.at >= goneAt))
     return null;
+  if (sellerContext.ambiguousRelist) return 'uncertain';
   const firstMissAt = events
     .filter(
       (row) =>
         row.type === 'missed' && row.at > listing.lastSeenAt && row.at < goneAt,
     )
     .map((row) => row.at.getTime())
-    .sort((left, right) => left - right)[0];
+    .sort((left, right) => right - left)[0];
   if (
     firstMissAt === undefined ||
     goneAt.getTime() - firstMissAt < exitMissSeparationMs
@@ -100,13 +111,27 @@ export function summarizeMarketActivity(input: {
   }
 
   const sellerLatest = new Map<string, Date>();
+  const newestMatchingFirstSeen = new Map<string, number>();
   for (const row of listings) {
     const seller = row.seller?.trim();
-    if (seller && row.lastSeenAt > (sellerLatest.get(seller) ?? new Date(0)))
+    if (!seller || row.lastSeenAt > now) continue;
+    if (row.lastSeenAt > (sellerLatest.get(seller) ?? new Date(0)))
       sellerLatest.set(seller, row.lastSeenAt);
+    if (row.fingerprint) {
+      const key = JSON.stringify([seller, row.fingerprint]);
+      newestMatchingFirstSeen.set(
+        key,
+        Math.max(
+          newestMatchingFirstSeen.get(key) ?? 0,
+          row.firstSeenAt.getTime(),
+        ),
+      );
+    }
   }
 
   let inferredExits24h = 0;
+  const inferredExitSellers24h = new Set<string>();
+  let uncertainExits24h = 0;
   let uncertainExits72h = 0;
   const exitAsks: Decimal[] = [];
   for (const row of listings) {
@@ -118,16 +143,34 @@ export function summarizeMarketActivity(input: {
       continue;
     const seller = row.seller?.trim();
     const otherLastSeenAt = seller ? (sellerLatest.get(seller) ?? null) : null;
+    const matchingFirstSeen =
+      seller && row.fingerprint
+        ? (newestMatchingFirstSeen.get(
+            JSON.stringify([seller, row.fingerprint]),
+          ) ?? 0)
+        : 0;
+    // A later indistinguishable listing prevents a confident exit even when
+    // there are too many matches to link a specific possible relist.
+    const ambiguousRelist =
+      matchingFirstSeen > row.lastSeenAt.getTime() &&
+      matchingFirstSeen >= row.goneAt.getTime() - captureRelistWindowMs;
     const kind = classifyExit(
       row,
       eventsByItem.get(row.itemId) ?? [],
       input.completeCaptureFloors?.get(row.lastCaptureId) ?? null,
-      { otherLastSeenAt },
+      { otherLastSeenAt, ambiguousRelist },
     );
-    if (kind === 'uncertain') uncertainExits72h += 1;
+    const inLastDay = row.goneAt.getTime() >= since24;
+    if (kind === 'uncertain') {
+      uncertainExits72h += 1;
+      if (inLastDay) uncertainExits24h += 1;
+    }
     if (kind !== 'inferred') continue;
     exitAsks.push(new Decimal(row.priceChaos!));
-    if (row.goneAt.getTime() >= since24) inferredExits24h += 1;
+    if (inLastDay) {
+      inferredExits24h += 1;
+      if (seller) inferredExitSellers24h.add(seller);
+    }
   }
 
   exitAsks.sort((left, right) => left.cmp(right));
@@ -160,7 +203,26 @@ export function summarizeMarketActivity(input: {
         )
         .map((row) => row.itemId),
     ).size,
+    repriced24h: new Set(
+      events
+        .filter(
+          (row) => row.type === 'price_changed' && row.at.getTime() >= since24,
+        )
+        .map((row) => row.itemId),
+    ).size,
+    relisted24h: new Set(
+      events
+        .filter(
+          (row) =>
+            row.type === 'possible_relist' &&
+            row.at.getTime() >= since24 &&
+            row.relatedItemId,
+        )
+        .map((row) => JSON.stringify([row.itemId, row.relatedItemId].sort())),
+    ).size,
     inferredExits24h,
+    inferredExitSellers24h: inferredExitSellers24h.size,
+    uncertainExits24h,
     inferredExits72h: exitAsks.length,
     uncertainExits72h,
     recentExitAskChaos,

@@ -1658,3 +1658,30 @@ progress::-webkit-progress-value {
 .recipe-warning {
   color: var(--warning-text);
 }
+
+.collector-details {
+  flex-basis: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.collector-details > summary {
+  width: fit-content;
+  cursor: pointer;
+}
+.collector-details[open] > summary {
+  margin-block-end: 12px;
+}
+.collector-details__state {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 12px;
+}
+.collector-details__state dt {
+  font-weight: 600;
+}
+.collector-details__state dd {
+  margin: 0;
+}
+.collector-details ul {
+  padding-inline-start: 1.35em;
+}

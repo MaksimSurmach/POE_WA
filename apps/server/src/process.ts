@@ -20,6 +20,7 @@ import {
   createCollectorResultReader,
 } from './collectorResults.js';
 import { configuredTradeCapture } from './collectorTrade.js';
+import { createCollectorReadinessReader } from './collectorReadiness.js';
 import { createMarketActivityReader } from './marketActivity.js';
 import { existsSync } from 'node:fs';
 import pino from 'pino';
@@ -41,11 +42,13 @@ import {
   RegisteredTradeQueryGenerator,
 } from '@poe-worksmith/domain';
 import { RetentionCleaner } from './retention.js';
+import { cleanupCollectorHistory } from './repositories/collectorHistoryRetention.js';
 import { createResourceReaders } from './resourceViews.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
 import { ApplicationRuntime, runCollectorRuntime } from './runtime.js';
 import { type ApplicationMode, loadRuntimeConfig } from './runtimeConfig.js';
 import { Metrics } from './observability/metrics.js';
+import { CollectorTelemetry } from './observability/collectorTelemetry.js';
 import { createRefreshFreshnessReader } from './freshness.js';
 import { createMarketResearchRepository } from './repositories/marketResearchRepository.js';
 import { createMarketEconomyRepository } from './repositories/marketEconomyRepository.js';
@@ -78,6 +81,10 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     },
   });
   const metrics = new Metrics();
+  const telemetry =
+    config.mode === 'collector'
+      ? new CollectorTelemetry({ metrics })
+      : undefined;
   const pool = createDatabasePool(config.database, logger);
   const repositories = createPostgresRepositories(pool);
   const gameData = createGameDataRepository(pool);
@@ -105,12 +112,28 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       timezone,
     };
   }
+  const ninjaEconomyFetch = telemetry?.fetch('poe.ninja', 'economy');
+  const ninjaLeaguesFetch = telemetry?.fetch('poe.ninja', 'leagues');
   const economyClient = new NinjaEconomyClient({
+    ...(ninjaEconomyFetch && ninjaLeaguesFetch
+      ? {
+          fetch: (input, init) =>
+            (new URL(input).pathname.endsWith('/leagues')
+              ? ninjaLeaguesFetch
+              : ninjaEconomyFetch)(input, init),
+        }
+      : {}),
     userAgent: process.env.NINJA_USER_AGENT ?? config.poeUserAgent,
     cooldowns: repositories.providerCircuits,
     readTimeoutMs: async () => (await admin.read()).effective.requestTimeoutMs,
   });
-  const createLeagueResolver = (client?: PoolClient) =>
+  const createLeagueResolver = (
+    client?: PoolClient,
+    collectorFetch?: (
+      input: string | URL,
+      init?: RequestInit,
+    ) => Promise<Response>,
+  ) =>
     new LeagueResolver({
       leagues: client
         ? createPostgresRepositories(pool, client).leagues
@@ -131,6 +154,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         },
       },
       trade: new HttpPoeTradeLeagueClient({
+        ...(collectorFetch ? { fetch: collectorFetch } : {}),
         requestTimeoutMs: config.poeRequestTimeoutMs,
         userAgent: config.poeUserAgent,
       }),
@@ -177,7 +201,32 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     try {
       const rateLimits = new GggRateLimitController({
         repository: repositories.rateLimits,
+        safetyFactor: 4 / 3,
+        missingHeadersDelayMs: 30_000,
+        onObservation: (endpoint, observed, state) =>
+          telemetry!.rateLimit(endpoint, observed, state),
       });
+      const sendLeagueRequest = telemetry!.fetch('ggg', 'trade-leagues');
+      const fetchTradeLeagues =
+        (jobSignal: AbortSignal) =>
+        async (input: string | URL, init?: RequestInit) => {
+          const signal = init?.signal
+            ? AbortSignal.any([init.signal, jobSignal])
+            : jobSignal;
+          await rateLimits.waitForPermit('trade-leagues', signal, {
+            collector: true,
+            deferProviderBlock: true,
+          });
+          const response = await sendLeagueRequest(input, {
+            ...init,
+            redirect: 'manual',
+            signal,
+          });
+          await rateLimits.observeResponse('trade-leagues', response, {
+            collector: true,
+          });
+          return response;
+        };
       const readEconomySnapshot = createCollectorEconomyCache();
       const trade = configuredTradeCapture(
         rateLimits,
@@ -186,6 +235,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           find: (id) => readEconomySnapshot(economy, id),
         },
         process.env,
+        telemetry,
       );
       const sessionKey = process.env.POE_TRADE_SESSION_KEY;
       await runCollectorRuntime(
@@ -193,6 +243,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           runCollector({
             pool: leaderPool,
             signal,
+            telemetry: telemetry!,
             publishResults: createCollectorResultPublisher(
               pool,
               async () => (await admin.read()).effective,
@@ -217,7 +268,10 @@ export async function runProcess(forcedMode?: ApplicationMode) {
               if (report.failed.length) throw new Error('RECIPE_SYNC_FAILED');
               jobSignal.throwIfAborted();
               if (!(await pinned.leagues.findCurrent()))
-                await createLeagueResolver(client).resolve();
+                await createLeagueResolver(
+                  client,
+                  fetchTradeLeagues(jobSignal),
+                ).resolve();
               jobSignal.throwIfAborted();
               const sync = await synchronizeCollectorSchedules(
                 pool,
@@ -265,7 +319,10 @@ export async function runProcess(forcedMode?: ApplicationMode) {
                   : { status: 'success' };
               },
               league: async (_, jobSignal, client) => {
-                await createLeagueResolver(client).resolve();
+                await createLeagueResolver(
+                  client,
+                  fetchTradeLeagues(jobSignal),
+                ).resolve();
                 jobSignal.throwIfAborted();
                 const sync = await synchronizeCollectorSchedules(
                   pool,
@@ -280,13 +337,22 @@ export async function runProcess(forcedMode?: ApplicationMode) {
                       reason: 'COLLECTOR_SCHEDULE_SYNC_UNAVAILABLE',
                     };
               },
-              retention: async (_, jobSignal) => {
+              retention: async (_, jobSignal, client) => {
                 if (!config.collectorRetentionEnabled)
                   return {
                     status: 'blocked',
                     reason: 'COLLECTOR_RETENTION_DISABLED',
                   };
                 await runCleanup(jobSignal);
+                const retention = await cleanupCollectorHistory(client, {
+                  batchSize: config.retentionBatchSize,
+                  signal: jobSignal,
+                });
+                if (retention.batchLimitReached)
+                  logger.warn(
+                    retention,
+                    'collector history reached the retention batch limit',
+                  );
                 return { status: 'success' };
               },
             },
@@ -317,6 +383,10 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       ),
     ),
   );
+  const activityReader =
+    config.pipeline === 'collector'
+      ? createMarketActivityReader(pool)
+      : undefined;
   const resourceReaders = createResourceReaders(
     repositories,
     presentationCatalog,
@@ -325,9 +395,8 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     config.pipeline === 'collector'
       ? createCollectorResultReader(pool)
       : undefined,
-    config.pipeline === 'collector'
-      ? createMarketActivityReader(pool)
-      : undefined,
+    activityReader,
+    activityReader ? createCollectorReadinessReader(pool) : undefined,
   );
   const research = createMarketResearchRepository(pool);
   const craftAnalysis = createCraftAnalysisService({
@@ -364,6 +433,9 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       marketAdmin: { store: admin },
       diagnosticsToken: config.operatorDiagnosticsToken,
       collectorPool: pool,
+      readCollectorReadiness: activityReader
+        ? resourceReaders.readCollectorReadiness
+        : undefined,
       metrics: metrics.registry,
       marketResearch: research,
       marketEconomy: {
