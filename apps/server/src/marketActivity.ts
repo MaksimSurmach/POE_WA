@@ -150,22 +150,37 @@ export function createMarketActivityReader(pool: Pool): MarketActivityReader {
       since.getTime(),
       now.getTime() - (maximumQuoteAgeMs ?? activityLookbackMs),
     );
-    const covered =
-      latest !== undefined &&
-      latest.complete &&
-      latest.sortedSampleIds === null &&
+    const freshCapture =
+      latest &&
       latest.capturedAt.getTime() >= oldestUsable &&
-      latest.capturedAt <= now;
+      latest.capturedAt <= now
+        ? latest
+        : undefined;
+    const covered =
+      freshCapture?.complete && freshCapture.sortedSampleIds === null;
     const { recentExitAskChaos, ...counts } = summarizeMarketActivity({
       listings: listingRows as ActivityListing[],
       events: eventRows as ActivityEvent[],
-      latestCompleteCaptureId: covered ? latest.id : null,
+      latestCompleteCaptureId: covered ? freshCapture.id : null,
       completeCaptureFloors,
       now,
     });
     return {
       ...counts,
       capturedAt: latest?.capturedAt.toISOString() ?? null,
+      observedAskSample: freshCapture
+        ? listingRows
+            .flatMap(({ lastCaptureId, priceChaos, status }) =>
+              lastCaptureId === freshCapture.id &&
+              status === 'active' &&
+              priceChaos !== null
+                ? [Number(priceChaos)]
+                : [],
+            )
+            .sort((a, b) => a - b)
+            .slice(0, 5)
+            .map((amount) => ({ amount, currency: 'chaos' }))
+        : [],
       recentExitAsk:
         recentExitAskChaos === null
           ? null

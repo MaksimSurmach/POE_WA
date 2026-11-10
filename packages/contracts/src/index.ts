@@ -268,6 +268,7 @@ export const marketActivitySchema = z.strictObject({
   uncertainExits72h: z.number().int().nonnegative(),
   /** Median last ask of inferred exits; null below three observations. */
   recentExitAsk: priceSchema.nullable(),
+  observedAskSample: z.array(priceSchema).max(5).optional(),
 });
 
 export const recipeDetailViewSchema = z
