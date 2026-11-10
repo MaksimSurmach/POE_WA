@@ -157,9 +157,6 @@ export function RecipePage() {
         ) : null}
       </header>
 
-      {detail.uncertainties.length ? (
-        <p className="recipe-warning">{detail.uncertainties.join(' ')}</p>
-      ) : null}
       <div className="recipe-economics" aria-label="Current economics">
         <span>
           Indicative expected cost{' '}
@@ -197,6 +194,12 @@ export function RecipePage() {
           Profit and ROI withheld: {evaluation.profitBlockedReason}
         </p>
       ) : null}
+      {evaluation.expectedCraftCost ? (
+        <p>
+          Break-even ask at mean cost{' '}
+          <Money price={evaluation.expectedCraftCost} />
+        </p>
+      ) : null}
       <p className="catalog-price-note">
         ROI = (asking price − expected cost) ÷ expected cost × 100%. A cost of
         10 div and an ask of 12 div gives a 2 div spread and 20% ROI at that
@@ -208,12 +211,6 @@ export function RecipePage() {
         entries={catalogEntries}
         targetSignature={detail.targetSignature}
       />
-
-      <RecipeIntelligencePanel
-        key={`intelligence:${recipe.id}`}
-        recipeId={recipe.id}
-      />
-      <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
 
       {method ? (
         <DetailSection title={method.name}>
@@ -359,9 +356,11 @@ export function RecipePage() {
         <p>
           {detail.snapshot
             ? `${detail.snapshot.listings.length} verified sellers · ${detail.snapshot.coverage ?? 'unknown'} search coverage${detail.snapshot.sortedPageComplete ? ' (complete lowest-price page)' : detail.snapshot.sortedSampleComplete ? ` (sorted price sample: 20/${detail.snapshot.totalResults} offers)` : ''}${detail.snapshot.listings.length > 0 && detail.snapshot.listings.length <= 2 ? ' · Thin market' : ''} · ${new Date(detail.snapshot.capturedAt).toLocaleString('en-US')}`
-            : method.marketStatus === 'empty'
-              ? 'No verified comparable asking prices found.'
-              : 'Comparable market data unavailable.'}
+            : detail.marketActivity?.observedAskSample?.length
+              ? 'See observed asking prices below.'
+              : method.marketStatus === 'empty'
+                ? 'No verified comparable asking prices found.'
+                : 'Comparable market data unavailable.'}
         </p>
         <p>
           Median verified ask (observed sample): <Money price={median} />
@@ -385,6 +384,18 @@ export function RecipePage() {
               ? 'Current supply unavailable: capture coverage or freshness is insufficient.'
               : `${detail.marketActivity.active} active listings · ${detail.marketActivity.distinctSellers} sellers`}
           </p>
+          {detail.marketActivity.observedAskSample?.length ? (
+            <div>
+              <p>Lowest observed asks in this capture</p>
+              <ul>
+                {detail.marketActivity.observedAskSample.map((price, index) => (
+                  <li key={index}>
+                    <Money price={price} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <p>
             Last 72 h: {detail.marketActivity.repriced72h} repriced ·{' '}
             {detail.marketActivity.inferredExits72h} inferred exits ·{' '}
@@ -414,6 +425,23 @@ export function RecipePage() {
           Compare in market trends ›
         </Link>
       </DetailSection>
+      <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
+      {!detail.marketActivity ? (
+        <RecipeIntelligencePanel
+          key={`intelligence:${recipe.id}`}
+          recipeId={recipe.id}
+        />
+      ) : null}
+      {detail.uncertainties.length ? (
+        <details className="detail-section">
+          <summary>Crafting and pricing caveats</summary>
+          <ul>
+            {detail.uncertainties.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
       <DetailSection title="Base and target">
         <ItemTooltip item={detail.presentation.base} />
         <p className="base-requirements">
