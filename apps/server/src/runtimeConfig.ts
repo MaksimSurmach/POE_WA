@@ -5,12 +5,38 @@ import { loadDatabaseConfig, type DatabaseConfig } from './config.js';
 
 export type ApplicationMode = 'all' | 'api' | 'worker';
 
+const collectorScheduleFields = {
+  CLEANUP_CRON: z.string().min(1).default('15 2 * * *'),
+  LEAGUE_RESOLVE_CRON: z.string().min(1).default('0 23 * * *'),
+  LEAGUE_RESOLVE_TIMEZONE: z.string().min(1).default('Europe/Warsaw'),
+};
+const collectorScheduleEnvironmentSchema = z
+  .object(collectorScheduleFields)
+  .superRefine((value, context) => {
+    for (const [key, tz] of [
+      ['CLEANUP_CRON', 'UTC'],
+      ['LEAGUE_RESOLVE_CRON', value.LEAGUE_RESOLVE_TIMEZONE],
+    ] as const) {
+      try {
+        const schedule = CronExpressionParser.parse(value[key], { tz });
+        schedule.next();
+        schedule.next();
+      } catch {
+        context.addIssue({
+          code: 'custom',
+          message: 'Invalid cron or timezone',
+          path: [key],
+        });
+      }
+    }
+  });
+
 const runtimeEnvironmentSchema = z
   .object({
     APP_HOST: z.string().min(1).default('127.0.0.1'),
     APP_MODE: z.enum(['all', 'api', 'worker']).default('all'),
     APP_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
-    CLEANUP_CRON: z.string().min(1).default('15 2 * * *'),
+    ...collectorScheduleFields,
     JOB_LEASE_TIMEOUT_MS: z.coerce
       .number()
       .int()
@@ -29,8 +55,6 @@ const runtimeEnvironmentSchema = z
       .string()
       .regex(/^[a-z_][a-z0-9_]*$/)
       .default('pgboss'),
-    LEAGUE_RESOLVE_CRON: z.string().min(1).default('0 23 * * *'),
-    LEAGUE_RESOLVE_TIMEZONE: z.string().min(1).default('Europe/Warsaw'),
     POE_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).default(15_000),
     POE_USER_AGENT: z
       .string()
@@ -104,6 +128,18 @@ export class RuntimeConfigurationError extends Error {
     super(`Invalid runtime configuration: ${details}`);
     this.name = 'RuntimeConfigurationError';
   }
+}
+
+export function loadCollectorScheduleConfig(
+  environment: Record<string, string | undefined> = process.env,
+) {
+  const result = collectorScheduleEnvironmentSchema.safeParse(environment);
+  if (!result.success) throw new RuntimeConfigurationError(result.error.issues);
+  return {
+    cleanupCron: result.data.CLEANUP_CRON,
+    leagueResolveCron: result.data.LEAGUE_RESOLVE_CRON,
+    leagueResolveTimezone: result.data.LEAGUE_RESOLVE_TIMEZONE,
+  };
 }
 
 export function loadRuntimeConfig(
