@@ -42,29 +42,15 @@ Automatic Trade website access is disabled by default. Configure only access you
 
 ## Backend runtime
 
-The server has dedicated API, worker, and combined entrypoints. After building,
-start one mode with `pnpm start:api`, `pnpm start:worker`, or `pnpm start`.
-The default combined mode exposes liveness at `/health/live` and database
-readiness at `/health/ready` on `127.0.0.1:3000`.
+Start the API with `pnpm start:api` after building. The API exposes liveness at
+`/health/live` and PostgreSQL readiness at `/health/ready` on `127.0.0.1:3000`.
+Start collection separately with `pnpm --filter @poe-worksmith/server start:collector`
+or install the dedicated Home Assistant add-on.
 
-The worker owns PostgreSQL-backed full-refresh and retention schedules. The
-refresh runs hourly by default, uses an exclusive pg-boss queue across
-all worker instances, and reuses the queue job ID as the refresh-cycle ID. Fresh
-installations reuse snapshots for up to 30 minutes, warn after one hour and
-withhold quotes older than two hours. This allows a bounded full-catalog refresh
-to complete before its earliest inputs expire; source timestamps remain visible.
-Existing saved operator settings are preserved on upgrade. The
-cleanup runs daily and removes raw snapshots after 72 hours, observations after
-14 days, and old completed jobs in bounded batches while preserving active and
-published cycles. It first compacts price-history points older than 30 days into
-daily summaries. `SIGINT` and `SIGTERM` stop HTTP intake, wait for active jobs
-up to `SHUTDOWN_TIMEOUT_MS`, then close the shared PostgreSQL pool.
-
-`GET /api/refresh` returns the current and published cycles with query/recipe
-totals, completed and failed counts, and all progress timestamps. Tests can run
-the production scheduling path deterministically through
-`CatalogRefreshScheduler.triggerRefresh()`; pg-boss applies the same singleton
-protection as cron delivery.
+The collector reads persisted schedules and waits for a PostgreSQL notification
+or the next due job. One PostgreSQL session holds leadership. Run now records a
+request before waking that session. The homepage shows its progress. Quote age,
+collection pause, and warning age use the saved operator settings.
 
 Every PoE Trade request passes through a shared PostgreSQL rate-limit
 controller. It parses GGG policy/rule windows and `Retry-After`, merges endpoints
@@ -78,9 +64,8 @@ Provider calls time out after `POE_REQUEST_TIMEOUT_MS` and retry transient
 timeouts, 429s, and 5xx responses with bounded exponential backoff and jitter.
 Repeated failures open a PostgreSQL-backed circuit per provider endpoint, so
 all workers stop outbound calls during cooldown and admit one half-open probe.
-Authentication and schema errors are terminal. A failed refresh never replaces
-the last published catalog; eligible recipes can use their prior evaluations as
-explicitly stale fallback data.
+Authentication and schema errors appear in the collector status. Quotes beyond
+the configured age or without sufficient evidence withhold profit and ROI.
 
 Build and run the backend and built frontend in Docker after applying forward
 migrations. For an existing database, back it up first; the migration command
@@ -98,16 +83,15 @@ automatic container startup operation.
 If `app` is recreated separately, run `docker compose --profile app restart web`
 to refresh nginx's upstream address.
 
-Docker networking does not satisfy direct-loopback operator access. Refresh
-writes and `/api/admin/market` remain rejected through container port mappings
-and the web proxy. Use the native API plus the local frontend workflow above
-for those controls. Proxy headers do not grant operator access.
+Through the web proxy, use the configured operator token for Run now,
+collector status, and the homepage collection settings. Direct loopback access
+also supports the local operator routes.
 Stop `app` and `web` with `docker compose --profile app stop app web` before
 starting the native API on the same port; PostgreSQL and its data remain in place.
 
-The server image defaults to combined mode. Override its command with
-`node dist/entrypoints/api.js` or `node dist/entrypoints/worker.js` for split
-deployments.
+The server image starts the API by default. Start a separate container with
+`node dist/entrypoints/collector.js` for collection. The three-service
+`compose.server.yaml` keeps the web/API, collector, and PostgreSQL separate.
 
 ## Local PostgreSQL
 

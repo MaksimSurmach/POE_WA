@@ -26,7 +26,7 @@ const operatorSettingsPatch = marketAdminPatchSchema.extend({
 export type MarketAdminApiOptions = {
   store: MarketAdminStore;
   queue?: AdminQueue | undefined;
-  status(): Promise<MarketAdminStatus>;
+  status?: () => Promise<MarketAdminStatus>;
 };
 export function registerMarketAdminRoutes(
   api: FastifyInstance<
@@ -38,7 +38,7 @@ export function registerMarketAdminRoutes(
   options?: MarketAdminApiOptions,
 ) {
   if (!options) return;
-  const { store, queue } = options;
+  const { store, queue, status } = options;
   api.get('/api/admin/market/settings', async (request) => ({
     correlationId: request.id,
     data: marketAdminSettingsResponseSchema.parse(await store.read()),
@@ -81,10 +81,11 @@ export function registerMarketAdminRoutes(
       },
     );
   if (!queue) return;
-  api.get('/api/admin/market/status', async (request) => ({
-    correlationId: request.id,
-    data: marketAdminStatusSchema.parse(await options.status()),
-  }));
+  if (status)
+    api.get('/api/admin/market/status', async (request) => ({
+      correlationId: request.id,
+      data: marketAdminStatusSchema.parse(await status()),
+    }));
   api.post(
     '/api/admin/market/refresh',
     { bodyLimit: 1024 },

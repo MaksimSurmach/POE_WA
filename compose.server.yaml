@@ -34,7 +34,7 @@ services:
       APP_HOST: 127.0.0.1
       COLLECTOR_DATABASE_URL: ${COLLECTOR_DATABASE_URL:-}
       OPERATOR_DIAGNOSTICS_TOKEN: ${OPERATOR_DIAGNOSTICS_TOKEN:-}
-      PIPELINE: ${PIPELINE:-legacy}
+      PIPELINE: ${PIPELINE:-collector}
     depends_on:
       postgres:
         condition: service_healthy

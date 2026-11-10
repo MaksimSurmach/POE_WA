@@ -36,9 +36,9 @@ const collectorScheduleEnvironmentSchema = z
 const runtimeEnvironmentSchema = z
   .object({
     APP_HOST: z.string().min(1).default('127.0.0.1'),
-    APP_MODE: z.enum(['all', 'api', 'worker', 'collector']).default('all'),
+    APP_MODE: z.enum(['all', 'api', 'worker', 'collector']).default('api'),
     APP_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
-    PIPELINE: z.enum(['legacy', 'collector']).default('legacy'),
+    PIPELINE: z.enum(['legacy', 'collector']).default('collector'),
     ...collectorScheduleFields,
     JOB_LEASE_TIMEOUT_MS: z.coerce
       .number()
@@ -160,6 +160,16 @@ export function loadRuntimeConfig(
   }
 
   const mode = forcedMode ?? result.data.APP_MODE;
+  // Checked on the resolved mode: api/collector entrypoints override a stale APP_MODE.
+  if (modeIncludesWorker(mode)) {
+    throw new RuntimeConfigurationError([
+      {
+        code: 'custom',
+        path: ['APP_MODE'],
+        message: `Mode '${mode}' was retired with the legacy pg-boss refresh worker. Run the API with APP_MODE=api (dist/entrypoints/api.js) and collection with the dedicated collector (dist/entrypoints/collector.js)`,
+      },
+    ]);
+  }
   const database = loadDatabaseConfig(environment);
   if (mode === 'collector') {
     const path = [

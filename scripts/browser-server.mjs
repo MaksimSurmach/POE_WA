@@ -9,6 +9,7 @@ import {
 import { runProcess } from '../apps/server/dist/process.js';
 
 assertLocalBrowserFixtureDatabase();
+process.env.PIPELINE ??= 'legacy';
 
 const pool = createDatabasePool(loadDatabaseConfig());
 const stop = new AbortController();

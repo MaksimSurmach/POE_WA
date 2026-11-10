@@ -12,7 +12,7 @@ import {
 const environment = {
   APP_ENV: 'test',
   APP_HOST: '0.0.0.0',
-  APP_MODE: 'worker',
+  APP_MODE: 'api',
   APP_PORT: '4100',
   DATABASE_SSL_MODE: 'disable',
   TEST_DATABASE_URL:
@@ -33,8 +33,8 @@ describe('runtime configuration', () => {
       logLevel: 'info',
       marketConcurrency: 4,
       marketRetryDelayMs: 60_000,
-      mode: 'worker',
-      pipeline: 'legacy',
+      mode: 'api',
+      pipeline: 'collector',
       poeUserAgent: 'OAuth poe-worksmith/0.0.0 (contact: local-development)',
       poeRequestTimeoutMs: 15_000,
       port: 4100,
@@ -73,7 +73,22 @@ describe('runtime configuration', () => {
   });
 
   it('allows a dedicated entrypoint to override APP_MODE', () => {
-    expect(loadRuntimeConfig(environment, 'api').mode).toBe('api');
+    const stale = { ...environment, APP_MODE: 'all' };
+    expect(loadRuntimeConfig(stale, 'api').mode).toBe('api');
+    expect(loadRuntimeConfig(stale, 'collector').mode).toBe('collector');
+  });
+
+  it('defaults to the API and rejects the retired worker modes', () => {
+    expect(
+      loadRuntimeConfig({ ...environment, APP_MODE: undefined }).mode,
+    ).toBe('api');
+    for (const mode of ['all', 'worker'] as const) {
+      const retired = `Mode '${mode}' was retired`;
+      expect(() =>
+        loadRuntimeConfig({ ...environment, APP_MODE: mode }),
+      ).toThrow(retired);
+      expect(() => loadRuntimeConfig(environment, mode)).toThrow(retired);
+    }
   });
 
   it('loads collector mode without enabling the API or legacy worker', () => {

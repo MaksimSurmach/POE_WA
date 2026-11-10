@@ -7,10 +7,7 @@ import {
   createMarketAdminStore,
   defaultAdminSettings,
   scheduledRefreshEnabled,
-  type AdminQueue,
 } from './marketAdmin.js';
-import { createMarketAdminStatusReader } from './marketAdminStatus.js';
-import { marketAdminRefreshSchema } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
 import {
   synchronizeCollectorSchedules,
@@ -30,31 +27,13 @@ import type { PoolClient } from 'pg';
 import { fileURLToPath } from 'node:url';
 
 import { buildApi } from './api.js';
-import { ProviderCircuitBreaker } from './circuitBreaker.js';
 import { createDatabasePool } from './database.js';
 import { createGameDataRepository } from './gameData.js';
-import {
-  ApplicationJobScheduler,
-  createJobBoss,
-  ManualRefreshProducer,
-} from './jobs.js';
 import { HttpPoeTradeLeagueClient, LeagueResolver } from './leagues.js';
-import { MarketJobProcessor } from './marketJobProcessor.js';
-import { PoeTradeClient } from './providers/poeTrade.js';
 import { GggRateLimitController } from './rateLimitController.js';
-import { FullRefreshOrchestrator } from './refreshOrchestrator.js';
-import { refreshLeagueContext } from './refreshLeagueContext.js';
-import {
-  refreshFailureCode,
-  watchRefreshCancellation,
-} from './refreshCancellation.js';
-import { createRecipeMarketDependencies } from './recipeMarket.js';
 import { createPostgresRepositories } from './repositories/index.js';
 import { createTradeSessionRepository } from './repositories/tradeSessionRepository.js';
-import {
-  createPostgresResourceResolver,
-  createPostgresTradeMappingCatalog,
-} from './tradeMappings.js';
+import { createPostgresTradeMappingCatalog } from './tradeMappings.js';
 import {
   clusterJewelVariantFilter,
   mappedTargetFilter,
@@ -65,32 +44,22 @@ import { RetentionCleaner } from './retention.js';
 import { createResourceReaders } from './resourceViews.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
 import { ApplicationRuntime, runCollectorRuntime } from './runtime.js';
-import {
-  type ApplicationMode,
-  loadRuntimeConfig,
-  modeIncludesApi,
-  modeIncludesWorker,
-} from './runtimeConfig.js';
+import { type ApplicationMode, loadRuntimeConfig } from './runtimeConfig.js';
 import { Metrics } from './observability/metrics.js';
 import { createRefreshFreshnessReader } from './freshness.js';
 import { createMarketResearchRepository } from './repositories/marketResearchRepository.js';
 import { createMarketEconomyRepository } from './repositories/marketEconomyRepository.js';
 import { createMarketCollectionRepository } from './repositories/marketCollectionRepository.js';
 import { createPriceHistoryRepository } from './repositories/priceHistoryRepository.js';
-import { marketCollectionRunner } from './config.js';
 import { createMarketTrendsReader } from './marketTrendsApi.js';
 import {
   NinjaEconomyClient,
   NinjaEconomyError,
 } from './providers/ninjaEconomy.js';
 import { MarketCollectionManager } from './marketCollection.js';
-import {
-  configuredCollectionSource,
-  managedCollectionSource,
-} from './marketCollectionSource.js';
+import { configuredCollectionSource } from './marketCollectionSource.js';
 
 export async function runProcess(forcedMode?: ApplicationMode) {
-  const collectionRunner = marketCollectionRunner(process.env);
   const config = loadRuntimeConfig(process.env, forcedMode);
   const logger = pino({
     level: config.logLevel,
@@ -343,10 +312,6 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     [noVariantFilter, clusterJewelVariantFilter],
     [mappedTargetFilter],
   );
-  const marketDependencies = createRecipeMarketDependencies({
-    resolveResource: createPostgresResourceResolver(pool),
-    trade,
-  });
   const presentationCatalog = await loadItemPresentationCatalog(
     fileURLToPath(
       new URL(
@@ -367,15 +332,6 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       ? createMarketActivityReader(pool)
       : undefined,
   );
-  let jobs: ApplicationJobScheduler | undefined;
-  let tradeClient: PoeTradeClient | undefined;
-  const workerShutdown = new AbortController();
-  const refreshProducer =
-    config.pipeline === 'legacy' &&
-    modeIncludesApi(config.mode) &&
-    !modeIncludesWorker(config.mode)
-      ? new ManualRefreshProducer(createJobBoss(pool, config.jobSchema, logger))
-      : undefined;
   const research = createMarketResearchRepository(pool);
   const collectionStore = createMarketCollectionRepository(pool);
   const collectionSource = configuredCollectionSource(
@@ -389,15 +345,6 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     store: collectionStore,
     readControls: async () => (await admin.read()).effective,
   });
-  function producer() {
-    const result = jobs ?? refreshProducer;
-    if (!result) throw new DomainError('PERSISTENCE_UNAVAILABLE');
-    return result;
-  }
-  const adminQueue: AdminQueue = {
-    enqueue: (data, id, db) => producer().enqueue(data, id, db),
-    cancel: (id) => producer().cancel(id),
-  };
   const craftAnalysis = createCraftAnalysisService({
     repository: createCraftAnalysisRepository(pool, config.pipeline),
     onWorkerError: (error) =>
@@ -410,280 +357,59 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     maximumQuoteAgeMs: async () =>
       (await admin.read()).effective.maximumQuoteAgeMs,
   });
-  const api = modeIncludesApi(config.mode)
-    ? buildApi(
-        logger,
-        async () => {
-          await pool.query('select 1');
-          if (
-            modeIncludesWorker(config.mode) &&
-            !(await admin.workerHealth()).healthy
-          )
-            throw new Error('WORKER_HEARTBEAT_MISSING');
-        },
-        repositories.catalog.getProgress,
-        repositories.rateLimits.list,
-        resourceReaders.readCatalog,
-        resourceReaders.readRecipe,
-        repositories.leagues.list,
-        repositories.leagues.findCurrent,
-        {
-          craftAnalysis,
-          factory: createFactoryService({
-            repository: createFactoryRepository(pool),
-            analysis: craftAnalysis,
-            leagues: repositories.leagues,
-          }),
-          marketAdmin: {
-            store: admin,
-            queue: config.pipeline === 'legacy' ? adminQueue : undefined,
-            status: createMarketAdminStatusReader({
-              store: admin,
-              repositories,
-              collection: collectionManager,
-              economy,
-              ninja: economyClient,
-              readCatalog: resourceReaders.readCatalog,
-              collectorStatus: async () => {
-                if (collectionRunner !== 'go') return null;
-                try {
-                  const result = await pool.query<{
-                    state: 'starting' | 'healthy' | 'draining' | 'unhealthy';
-                    heartbeat_at: Date | null;
-                    owner_epoch: string | null;
-                    owns_lease: boolean;
-                  }>(`select case when w.heartbeat_at > now()-interval '90 seconds'
-                                       and o.lease_expires_at > now() then w.state else 'unhealthy' end as state,
-                              w.heartbeat_at,o.owner_epoch::text,
-                              (o.owner_instance_id=w.instance_id and o.lease_expires_at>now()) as owns_lease
-                      from market_collection_workers w
-                      left join market_collection_ownership o on o.owner_instance_id=w.instance_id
-                      order by w.heartbeat_at desc limit 1`);
-                  const row = result.rows[0];
-                  const requests = await pool.query<{
-                    queued: string;
-                    claimed: string;
-                  }>(`select count(*) filter (where state='queued')::text as queued,
-                            count(*) filter (where state='claimed')::text as claimed
-                       from market_collection_requests`);
-                  return {
-                    runner: collectionRunner,
-                    enabled: row?.owns_lease ?? false,
-                    state: row?.state ?? null,
-                    heartbeatAt: row?.heartbeat_at?.toISOString() ?? null,
-                    ownerEpoch:
-                      row?.owner_epoch === null ||
-                      row?.owner_epoch === undefined
-                        ? null
-                        : Number(row.owner_epoch),
-                    queuedRequests: Number(requests.rows[0]?.queued ?? 0),
-                    claimedRequests: Number(requests.rows[0]?.claimed ?? 0),
-                  };
-                } catch {
-                  return null;
-                }
-              },
-            }),
-          },
-          diagnosticsToken: config.operatorDiagnosticsToken,
-          collectorPool: pool,
-          metrics: metrics.registry,
-          marketResearch: research,
-          marketCollection:
-            collectionStore && collectionManager
-              ? { manager: collectionManager, store: collectionStore }
-              : undefined,
-          marketEconomy: {
-            repository: economy,
-            client: economyClient,
-            readRetention: async () => (await admin.read()).effective,
-          },
-          marketTrends: createMarketTrendsReader({
-            history: priceHistory,
-            recipes: repositories.recipes,
-            findCurrentLeague: repositories.leagues.findCurrent,
-          }),
-          readCircuits: repositories.providerCircuits.list,
-          readOperationalDiagnostics: repositories.operationalDiagnostics.read,
-          readRefreshFreshness: createRefreshFreshnessReader({
-            readSchedule,
-            findLatestAttempt: repositories.cycles.findLatestAttempt,
-            getProgress: repositories.catalog.getProgress,
-          }),
-          triggerRefresh:
-            config.pipeline === 'legacy'
-              ? async () =>
-                  (
-                    await admin.enqueue(
-                      { scope: 'all' },
-                      'legacy-refresh',
-                      adminQueue,
-                    )
-                  ).id
-              : undefined,
-        },
-      )
-    : undefined;
-  if (modeIncludesWorker(config.mode)) {
-    const rateLimits = new GggRateLimitController({
-      repository: repositories.rateLimits,
-    });
-    const circuits = new ProviderCircuitBreaker({
-      provider: 'poe-trade',
-      repository: repositories.providerCircuits,
-    });
-    function createTradeClient(requestTimeoutMs: number) {
-      return new PoeTradeClient({
-        allowRequests:
-          collectionRunner !== 'go' &&
-          process.env.POE_TRADE_ACCESS === 'owner_permitted',
-        allowQueuedCollection: collectionRunner === 'go',
-        collectionTimeoutMs: Math.min(
-          15 * 60_000,
-          Math.max(1000, config.jobLeaseTimeoutMs - 1000),
-        ),
-        collectionSource: managedCollectionSource(collectionManager, research),
-        circuits,
-        logger,
-        metrics,
-        rateLimits,
-        requestTimeoutMs,
-        userAgent: config.poeUserAgent,
-      });
-    }
-    const resolver = createLeagueResolver();
-    jobs = new ApplicationJobScheduler({
-      boss: createJobBoss(pool, config.jobSchema, logger),
-      cleanupCron: config.cleanupCron,
-      logger,
-      refreshCron: config.refreshCron,
-      refreshTimezone: config.refreshTimezone,
-      control: {
+  // Legacy worker/all modes are rejected by loadRuntimeConfig, so this is the API.
+  const api = buildApi(
+    logger,
+    async () => {
+      await pool.query('select 1');
+    },
+    repositories.catalog.getProgress,
+    repositories.rateLimits.list,
+    resourceReaders.readCatalog,
+    resourceReaders.readRecipe,
+    repositories.leagues.list,
+    repositories.leagues.findCurrent,
+    {
+      craftAnalysis,
+      factory: createFactoryService({
+        repository: createFactoryRepository(pool),
+        analysis: craftAnalysis,
+        leagues: repositories.leagues,
+      }),
+      marketAdmin: { store: admin },
+      diagnosticsToken: config.operatorDiagnosticsToken,
+      collectorPool: pool,
+      metrics: metrics.registry,
+      marketResearch: research,
+      marketCollection:
+        collectionStore && collectionManager
+          ? { manager: collectionManager, store: collectionStore }
+          : undefined,
+      marketEconomy: {
+        repository: economy,
+        client: economyClient,
+        readRetention: async () => (await admin.read()).effective,
+      },
+      marketTrends: createMarketTrendsReader({
+        history: priceHistory,
+        recipes: repositories.recipes,
+        findCurrentLeague: repositories.leagues.findCurrent,
+      }),
+      readCircuits: repositories.providerCircuits.list,
+      readOperationalDiagnostics: repositories.operationalDiagnostics.read,
+      readRefreshFreshness: createRefreshFreshnessReader({
         readSchedule,
-        heartbeat: async () => {
-          const current = (await admin.read()).version;
-          await admin.reconcile({
-            state: (id) => producer().state(id),
-            cancel: adminQueue.cancel,
-          });
-          await admin.heartbeat(current);
-        },
-      },
-      runCleanup,
-      runRefresh: async (cycleId, rawData, jobSignal) => {
-        const scope = marketAdminRefreshSchema.parse(
-          rawData?.scope === 'recipe'
-            ? { scope: 'recipe', recipeId: rawData.recipeId }
-            : { scope: rawData?.scope ?? 'all' },
-        );
-        const data = { ...scope, source: rawData?.source ?? 'scheduler' };
-        const workerSignal = jobSignal
-          ? AbortSignal.any([jobSignal, workerShutdown.signal])
-          : workerShutdown.signal;
-        if (!(await admin.claim(cycleId, data, workerSignal)))
-          return { skipped: true };
-        const cancellation = watchRefreshCancellation(
-          () => admin.cancellationRequested(cycleId),
-          () =>
-            logger.warn(
-              { cycleId },
-              'refresh cancellation check failed; will retry',
-            ),
-        );
-        const signal = AbortSignal.any([workerSignal, cancellation.signal]);
-        let runClient: PoeTradeClient | undefined;
-        const abort = () => runClient?.stop();
-        signal.addEventListener('abort', abort, { once: true });
-        try {
-          const settings = (await admin.read()).effective;
-          const currentLeague = await repositories.leagues.findCurrent();
-          if (!currentLeague)
-            throw new DomainError('CURRENT_LEAGUE_UNRESOLVED');
-          const collectMaterialPrices = () =>
-            collectRecipeMaterialPrices(
-              currentLeague.gggId,
-              economyClient,
-              economy,
-              signal,
-              (report) => admin.progress(cycleId, report),
-            );
-          if (scope.scope === 'economy') {
-            const report = await collectMaterialPrices();
-            signal.throwIfAborted();
-            await admin.finish(
-              cycleId,
-              report.failed ? 'failed' : 'succeeded',
-              report.errorCode,
-            );
-            return report;
-          }
-          runClient = createTradeClient(settings.requestTimeoutMs);
-          tradeClient = runClient;
-          const marketJobs = new MarketJobProcessor({
-            concurrency: settings.collectionConcurrency,
-            leaseTimeoutMs: config.jobLeaseTimeoutMs,
-            logger,
-            metrics,
-            providers: [runClient],
-            repositories,
-            retryDelayMs: config.marketRetryDelayMs,
-            snapshotTtlMs: settings.maximumQuoteAgeMs,
-          });
-          const report = await new FullRefreshOrchestrator({
-            collectMaterialPrices: async () => {
-              await collectMaterialPrices();
-            },
-            league: refreshLeagueContext(currentLeague),
-            marketJobs,
-            marketDependencies,
-            economy,
-            repositories,
-            logger,
-            metrics,
-            snapshotTtlMs: settings.snapshotReuseTtlMs,
-            maximumQuoteAgeMs: settings.maximumQuoteAgeMs,
-            freshnessWarningMs: settings.freshnessWarningMs,
-            signal,
-            ...(scope.scope === 'recipe' ? { recipeId: scope.recipeId } : {}),
-            workerId: `worker-${process.pid}`,
-          }).run(cycleId);
-          await admin.finish(
-            cycleId,
-            report.publication.published ? 'succeeded' : 'failed',
-            report.publication.published ? null : 'REFRESH_PUBLICATION_FAILED',
-          );
-          return report;
-        } catch (error) {
-          const code = refreshFailureCode(
-            error,
-            cancellation.signal,
-            workerSignal,
-          );
-          const cancelled = code === 'MARKET_COLLECTION_CANCELLED';
-          await admin.failCycle(cycleId, code);
-          await admin.finish(cycleId, cancelled ? 'cancelled' : 'failed', code);
-          throw error;
-        } finally {
-          cancellation.stop();
-          signal.removeEventListener('abort', abort);
-          runClient?.stop();
-        }
-      },
-      leagueCron: config.leagueResolveCron,
-      leagueTimezone: config.leagueResolveTimezone,
-      runLeagueResolve: () => resolver.resolve(),
-    });
-  }
+        findLatestAttempt: repositories.cycles.findLatestAttempt,
+        getProgress: repositories.catalog.getProgress,
+      }),
+    },
+  );
   const runtime = new ApplicationRuntime({
-    ...(api ? { api } : {}),
-    ...(refreshProducer ? { apiJobs: refreshProducer } : {}),
+    api,
     afterApiClose: async () => {
-      workerShutdown.abort();
-      tradeClient?.stop();
       await Promise.all([collectionManager?.stop(), collectionSource.close()]);
     },
     host: config.host,
-    ...(jobs ? { jobs } : {}),
     logger,
     mode: config.mode,
     pool,
@@ -710,9 +436,6 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     await runtime.start();
     if (shuttingDown) return;
     await collectionSource.start();
-    if (shuttingDown) return;
-    if (modeIncludesWorker(config.mode) && collectionRunner !== 'go')
-      await collectionManager.start(5000);
   } catch (error) {
     logger.fatal({ err: error }, 'application startup failed');
     await collectionManager?.stop().catch((cleanupError: unknown) => {
