@@ -459,10 +459,9 @@ export function RecipePage() {
           ),
         )}
         <p>
-          Prices are asking prices, not confirmed sales. ROI requires a complete
-          output search and asks from at least two independent sellers.
-          Incomplete output coverage or a single seller cannot establish profit
-          or ROI.
+          Margin uses eligible asking prices. One independent matching seller
+          can qualify for grade C. A validated sorted sample earns at most grade
+          B. My Factory tracks confirmed sales.
         </p>
       </DetailSection>
     </article>

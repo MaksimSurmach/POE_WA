@@ -58,3 +58,12 @@ bounds. The source export records Enkindling increased effect as 60–70
 (`FireResistanceCrafted`). The validator applies these bounds to exact modifier
 conditions in the matching patch. The life threshold uses a broader Trade
 condition and remains outside this check. [Versioned data manifest](https://data.exiledata.dev/poe1/3.29.3.3/manifest.json).
+
+### Discovery pilot
+
+Allflame uses two six-hour Broadhead Arrow Quiver research queries. Both filter
+rare, uncorrupted bases at item level 76 or higher. Their thresholds are 70 life
+and 10% attack speed, then 100 life and 14% attack speed. These are overlapping
+research samples. The report keeps partial or absent coverage separate and uses
+inferred exits and observed asks. The guide identifies the base and modifiers.
+[Quiver guide](https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-jewels-flasks).

@@ -472,7 +472,7 @@ function CatalogRoute() {
           />
           <p className="catalog-price-note" id="catalog-price-note">
             Asking-price estimates, not completed sales. ROI = profit ÷ expected
-            cost. Requires two independent sellers. Currencies sorted
+            cost. One eligible seller can earn grade C. Currencies sorted
             separately. Methods for the same target are grouped, best valid
             profit first.
           </p>

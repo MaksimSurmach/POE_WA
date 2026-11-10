@@ -27,6 +27,7 @@ import {
   type RecipeMarketQuery,
 } from '../recipeMarket.js';
 import { createPostgresRepositories } from '../repositories/index.js';
+import { discoverySchedules } from '../marketDiscovery.js';
 import type { RuntimeConfig } from '../runtimeConfig.js';
 import { collectorSchedule, poeLeagues, recipes } from '../schema.js';
 import { createPostgresTradeMappingCatalog } from '../tradeMappings.js';
@@ -249,6 +250,7 @@ export async function synchronizeCollectorSchedules(
         nextDueAt: new Date(now.getTime() + index * 60_000),
       }),
     ),
+    ...(await discoverySchedules(league, now)),
     {
       kind: 'economy',
       key: league.gggId,
