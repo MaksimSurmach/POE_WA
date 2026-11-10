@@ -9,7 +9,7 @@ services:
     environment:
       APP_ENV: development
       APP_HOST: 0.0.0.0
-      APP_MODE: all
+      APP_MODE: api
       APP_PORT: 3000
       DATABASE_SSL_MODE: disable
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/poe_worksmith_dev

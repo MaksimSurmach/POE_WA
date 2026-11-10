@@ -40,7 +40,7 @@ RUN PLAYWRIGHT_BROWSERS_PATH=/ms-playwright ./node_modules/.bin/playwright insta
 
 ENV APP_ENV=development \
     APP_HOST=0.0.0.0 \
-    APP_MODE=all \
+    APP_MODE=api \
     APP_PORT=3000 \
     CLEANUP_CRON="15 2 * * *" \
     JOB_LEASE_TIMEOUT_MS=300000 \
@@ -66,7 +66,7 @@ RUN install -d -o node -g node -m 0700 /home/node/worksmith-trade
 
 USER node
 EXPOSE 3000
-CMD ["node", "dist/entrypoints/all.js"]
+CMD ["node", "dist/entrypoints/api.js"]
 
 FROM server AS app
 
