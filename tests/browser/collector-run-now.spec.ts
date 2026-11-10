@@ -25,6 +25,16 @@ test('run-now-updates-homepage', async ({ page }) => {
   await expect(
     page.getByRole('button', { name: 'Refresh Prices' }),
   ).toHaveCount(0);
+  await expect(
+    page.getByRole('heading', { name: 'Production signals and liquidity' }),
+  ).toHaveCount(0);
+  expect(
+    (
+      await page.request.get(
+        '/api/admin/intelligence/opportunities?league=Allflame',
+      )
+    ).status(),
+  ).toBe(404);
   await page.getByLabel('Operator token').fill('wrong-fixture-token');
   await page.getByRole('button', { name: 'Connect' }).click();
   await expect(

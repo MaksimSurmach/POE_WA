@@ -426,7 +426,7 @@ export function RecipePage() {
         </Link>
       </DetailSection>
       <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
-      {!detail.marketActivity ? (
+      {detail.marketActivity === undefined ? (
         <RecipeIntelligencePanel
           key={`intelligence:${recipe.id}`}
           recipeId={recipe.id}
