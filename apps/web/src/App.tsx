@@ -28,7 +28,6 @@ import { MarketTrendsPage } from './MarketTrendsPage.js';
 import { RecipeLibraryPage } from './RecipeLibraryPage.js';
 import { PohxRecipePage } from './PohxRecipePage.js';
 import { FactoryPage } from './FactoryPage.js';
-import { OpportunitiesIntelligence } from './IntelligencePanel.js';
 
 const apiClient = createApiClient();
 
@@ -487,7 +486,6 @@ function CatalogRoute() {
       {collectorMode && operatorToken !== null ? (
         <HomeSettings operatorToken={operatorToken} />
       ) : null}
-      {legacyMode ? <OpportunitiesIntelligence league={league?.name} /> : null}
     </>
   );
 }

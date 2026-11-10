@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { once } from 'node:events';
 import { DomainError } from '@poe-worksmith/domain';
-import { marketAdminSettingsSchema } from '@poe-worksmith/contracts';
+import { storedMarketAdminSettingsSchema } from '@poe-worksmith/contracts';
 import { z } from 'zod';
 import type { Pool, PoolClient } from 'pg';
 import { loadDatabaseConfig } from '../config.js';
@@ -102,7 +102,7 @@ async function runCommand(
     const result = await pool.query<{ settings: unknown }>(
       'select settings from market_admin_settings where id=1',
     );
-    return marketAdminSettingsSchema.parse(result.rows[0]?.settings);
+    return storedMarketAdminSettingsSchema.parse(result.rows[0]?.settings);
   }
 
   const rateLimits = new GggRateLimitController({

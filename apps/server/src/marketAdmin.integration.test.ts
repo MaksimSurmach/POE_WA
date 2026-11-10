@@ -511,37 +511,33 @@ describe('market admin PostgreSQL, queue and API integration', () => {
     expect(await store.runs()).toEqual([]);
   });
 
-  it('preserves configured intelligence thresholds when another setting is patched', async () => {
+  it('reads earlier stored settings and rejects patches for retired controls', async () => {
     const initial = await store.read();
-    await store.patch(
-      {
-        version: initial.version,
-        settings: {
-          intelligence: {
-            ...initial.configured.intelligence,
-            minIndependentSellers: 4,
-            enterProfitChaos: '75',
-          },
-        },
-      },
-      'operator',
+    await pool.query(
+      'update market_admin_settings set settings=settings || $1::jsonb where id=1',
+      [JSON.stringify({ intelligence: { minIndependentSellers: 4 } })],
     );
+    expect((await store.read()).configured).toEqual(initial.configured);
     const response = await api.inject({
       method: 'PATCH',
       url: '/api/admin/market/settings',
       headers: local,
       payload: {
-        version: initial.version + 1,
+        version: initial.version,
         settings: { requestTimeoutMs: 12000 },
       },
     });
     expect(response.statusCode).toBe(200);
     const saved = await store.read();
-    expect(saved.configured.intelligence).toMatchObject({
-      minIndependentSellers: 4,
-      enterProfitChaos: '75',
-    });
+    expect(saved.configured).not.toHaveProperty('intelligence');
     expect(saved.configured.requestTimeoutMs).toBe(12000);
+    const retired = await api.inject({
+      method: 'PATCH',
+      url: '/api/admin/market/settings',
+      headers: local,
+      payload: { version: saved.version, settings: { intelligence: {} } },
+    });
+    expect(retired.statusCode).toBe(400);
     const empty = await api.inject({
       method: 'PATCH',
       url: '/api/admin/market/settings',

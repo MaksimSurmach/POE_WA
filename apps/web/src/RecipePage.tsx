@@ -19,7 +19,6 @@ import { ApiClientError, createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
 import { RecipeTrendPanel } from './MarketTrendsPage.js';
 import { CraftRiskSection } from './CraftRiskSection.js';
-import { RecipeIntelligencePanel } from './IntelligencePanel.js';
 
 const apiClient = createApiClient('', (url, options) =>
   fetch(url, { ...options, signal: AbortSignal.timeout(15_000) }),
@@ -426,12 +425,6 @@ export function RecipePage() {
         </Link>
       </DetailSection>
       <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
-      {detail.marketActivity === undefined ? (
-        <RecipeIntelligencePanel
-          key={`intelligence:${recipe.id}`}
-          recipeId={recipe.id}
-        />
-      ) : null}
       {detail.uncertainties.length ? (
         <details className="detail-section">
           <summary>Crafting and pricing caveats</summary>

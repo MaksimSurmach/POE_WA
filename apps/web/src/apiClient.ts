@@ -40,12 +40,6 @@ import {
   factorySummaryResponseSchema,
   type FactoryCreateBatchInput,
   type FactoryAppendEventInput,
-  opportunitiesResponseSchema,
-  opportunityResponseSchema,
-  signalHistoryResponseSchema,
-  capitalPlanCreateInputSchema,
-  capitalPlanResponseSchema,
-  type CapitalPlanCreateInput,
 } from '@poe-worksmith/contracts';
 
 type Contract<T> = {
@@ -103,38 +97,6 @@ export function createApiClient(
   }
 
   return {
-    getOpportunities(league: string) {
-      return request(
-        `/api/admin/intelligence/opportunities?league=${encodeURIComponent(league)}`,
-        opportunitiesResponseSchema,
-      );
-    },
-    getOpportunity(recipeId: string, league: string) {
-      return request(
-        `/api/admin/intelligence/recipes/${encodeURIComponent(recipeId)}?league=${encodeURIComponent(league)}`,
-        opportunityResponseSchema,
-      );
-    },
-    getOpportunityHistory(recipeId: string, league: string) {
-      return request(
-        `/api/admin/intelligence/recipes/${encodeURIComponent(recipeId)}/history?league=${encodeURIComponent(league)}`,
-        signalHistoryResponseSchema,
-      );
-    },
-    createCapitalPlan(input: CapitalPlanCreateInput) {
-      return request(
-        '/api/admin/intelligence/allocations',
-        capitalPlanResponseSchema,
-        'POST',
-        capitalPlanCreateInputSchema.parse(input),
-      );
-    },
-    getCapitalPlan(id: string) {
-      return request(
-        `/api/admin/intelligence/allocations/${encodeURIComponent(id)}`,
-        capitalPlanResponseSchema,
-      );
-    },
     getFactoryBatches(league: string, offset = 0) {
       return request(
         `/api/admin/factory/batches?league=${encodeURIComponent(league)}&offset=${offset}&limit=20`,
