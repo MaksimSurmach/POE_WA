@@ -24,7 +24,6 @@ import { CollectorControls } from './CollectorControls.js';
 import { HomeSettings } from './HomeSettings.js';
 import { collectorRequestTimeoutMs, createApiClient } from './apiClient.js';
 import { RecipePage } from './RecipePage.js';
-import { AdminMarketPage } from './AdminMarketPage.js';
 import { MarketTrendsPage } from './MarketTrendsPage.js';
 import { RecipeLibraryPage } from './RecipeLibraryPage.js';
 import { PohxRecipePage } from './PohxRecipePage.js';
@@ -498,7 +497,10 @@ export function App() {
         <Route path="recipes/:recipeId" element={<RecipePage />} />
         <Route path="factory" element={<FactoryPage />} />
         <Route path="market" element={<MarketTrendsPage />} />
-        <Route path="admin/market" element={<AdminMarketPage />} />
+        <Route
+          path="*"
+          element={<StatusPanel tone="warning" title="Page not found" />}
+        />
       </Route>
     </Routes>
   );

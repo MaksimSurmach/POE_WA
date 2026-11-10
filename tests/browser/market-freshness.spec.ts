@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('admin status and public schedule follow settings changed by another client', async ({
+test('public schedule follows settings changed by another client', async ({
   page,
 }) => {
   const admin = '/api/admin/market';
@@ -18,26 +18,15 @@ test('admin status and public schedule follow settings changed by another client
     await patch({ refreshCron: '0 */4 * * *' });
     await page.goto('/admin/market');
     await expect(
-      page.getByRole('button', { name: 'Pause new collections' }),
-    ).toBeEnabled();
+      page.getByRole('heading', { name: 'Page not found' }),
+    ).toBeVisible();
     await patch({ collectionsPaused: true, refreshCron: '15 */4 * * *' });
     const refresh = await page.request.get('/api/refresh');
     expect((await refresh.json()).data.schedule).toMatchObject({
       cron: '15 */4 * * *',
       nextScheduledAt: null,
     });
-    await expect(
-      page.getByRole('button', { name: 'Resume collections' }),
-    ).toBeVisible();
-    await page.getByRole('heading', { name: 'Settings' }).click();
-    await expect(
-      page.getByText(/Collection interval exceeds maximum quote age/),
-    ).toBeVisible();
-
     await patch({ collectionsPaused: false });
-    await expect(
-      page.getByRole('button', { name: 'Pause new collections' }),
-    ).toBeVisible();
     const resumed = await page.request.get('/api/refresh');
     expect((await resumed.json()).data.schedule.nextScheduledAt).toMatch(
       /T\d{2}:15:00\.000Z$/,

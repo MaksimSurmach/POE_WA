@@ -1,0 +1,112 @@
+.market-admin {
+  display: grid;
+  gap: 24px;
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+  padding-block: 24px 48px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.market-admin h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+
+.market-admin__hint {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.market-admin button {
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface-raised);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.market-admin button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.market-admin button[type='submit'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--background);
+  font-weight: 600;
+}
+
+.market-admin button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.market-admin input:not([type='checkbox']) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 12px;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--background);
+  font-size: 1rem;
+  caret-color: var(--accent);
+}
+
+.market-admin__field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.market-admin summary {
+  min-height: 44px;
+  padding-block: 10px;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.market-admin__drawer > summary h2 {
+  display: inline;
+}
+
+.market-admin fieldset {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.market-admin__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.market-admin__save {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+  padding-top: 16px;
+}
+
+@media (max-width: 600px) {
+  .market-admin {
+    gap: 20px;
+    padding-top: 20px;
+  }
+
+  .market-admin__fields {
+    grid-template-columns: 1fr;
+  }
+}
