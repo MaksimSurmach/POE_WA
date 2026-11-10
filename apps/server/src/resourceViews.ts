@@ -34,6 +34,7 @@ import {
   createObservedItemPresentation,
   type ItemPresentationCatalog,
 } from './itemPresentation.js';
+import type { MarketActivityReader } from './marketActivity.js';
 import { marketTradeUrl } from './marketTradeQuery.js';
 import { recipeResultSchema } from './recipeResult.js';
 import type { recipeResults } from './schema.js';
@@ -69,6 +70,7 @@ export function createResourceReaders(
   trade?: TradeQueryGenerator,
   readMaximumQuoteAgeMs?: () => Promise<number>,
   readCollectorResults?: CollectorResultsReader,
+  readMarketActivity?: MarketActivityReader,
 ) {
   async function readMarket(recipeId?: string) {
     const [currentLeague, maximumQuoteAgeMs, published, progress] =
@@ -188,9 +190,28 @@ export function createResourceReaders(
             })
           : null;
       const evaluation = market.evaluationFor(recipe);
+      // The collector keys a target's schedule by this same query hash.
+      const target =
+        readMarketActivity && trade && currentLeague
+          ? await generateRecipeMarketQuery(
+              trade,
+              definition,
+              currentLeague.gggId,
+            ).catch(() => null)
+          : null;
+      const marketActivity =
+        readMarketActivity && target && currentLeague
+          ? await readMarketActivity(
+              currentLeague.id,
+              await hashMarketQuery({ ...target, league: currentLeague.gggId }),
+              new Date(),
+              maximumQuoteAgeMs,
+            )
+          : null;
 
       const detail = {
         ...toRecipeDetail(recipe, evaluation, presentationCatalog),
+        ...(readMarketActivity ? { marketActivity } : {}),
         baseTradeUrl,
         snapshot: readCollectorResults
           ? null

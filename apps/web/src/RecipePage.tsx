@@ -168,13 +168,13 @@ export function RecipePage() {
           </strong>
         </span>
         <span>
-          Cheapest confirmed ask{' '}
+          Comparable asking price{' '}
           <strong>
             <Money price={evaluation.estimatedSalePrice} />
           </strong>
         </span>
         <span>
-          Potential profit{' '}
+          Margin at ask{' '}
           <strong>
             {evaluation.profit ? (
               <ProfitBadge {...evaluation.profit} />
@@ -199,8 +199,9 @@ export function RecipePage() {
       ) : null}
       <p className="catalog-price-note">
         ROI = (asking price − expected cost) ÷ expected cost × 100%. A cost of
-        10 div and an ask of 12 div means 2 div profit and 20% ROI. Expected
-        cost is a mean across repeated crafts, not a guaranteed budget.
+        10 div and an ask of 12 div gives a 2 div spread and 20% ROI at that
+        ask. Expected cost is a mean across repeated crafts, not a guaranteed
+        budget.
       </p>
 
       <MethodsForTarget
@@ -376,6 +377,30 @@ export function RecipePage() {
           ))}
         </div>
       </DetailSection>
+      {detail.marketActivity ? (
+        <DetailSection title="Market activity">
+          <p>Inferred from listings, not sales.</p>
+          <p>
+            {detail.marketActivity.active === null
+              ? 'Current supply unavailable: capture coverage or freshness is insufficient.'
+              : `${detail.marketActivity.active} active listings · ${detail.marketActivity.distinctSellers} sellers`}
+          </p>
+          <p>
+            Last 72 h: {detail.marketActivity.repriced72h} repriced ·{' '}
+            {detail.marketActivity.inferredExits72h} inferred exits ·{' '}
+            {detail.marketActivity.uncertainExits72h} uncertain exits
+          </p>
+          {detail.marketActivity.recentExitAsk ? (
+            <p>
+              Median last ask of inferred exits:{' '}
+              <Money price={detail.marketActivity.recentExitAsk} />
+            </p>
+          ) : null}
+          <p>
+            <Link to="/factory">Your confirmed sales in My Factory</Link>
+          </p>
+        </DetailSection>
+      ) : null}
       <DetailSection title="Price history">
         <RecipeTrendPanel
           onRangeChange={setTrendRange}

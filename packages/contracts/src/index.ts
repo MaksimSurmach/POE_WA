@@ -256,8 +256,23 @@ export const recipeMethodViewSchema = z.strictObject({
   ),
 });
 
+/** Inferred from listings of one exact target; never confirmed sales. */
+export const marketActivitySchema = z.strictObject({
+  capturedAt: z.iso.datetime().nullable(),
+  /** Null unless the latest capture is fresh and covers the whole target. */
+  active: z.number().int().nonnegative().nullable(),
+  distinctSellers: z.number().int().nonnegative().nullable(),
+  repriced72h: z.number().int().nonnegative(),
+  inferredExits24h: z.number().int().nonnegative(),
+  inferredExits72h: z.number().int().nonnegative(),
+  uncertainExits72h: z.number().int().nonnegative(),
+  /** Median last ask of inferred exits; null below three observations. */
+  recentExitAsk: priceSchema.nullable(),
+});
+
 export const recipeDetailViewSchema = z
   .object({
+    marketActivity: marketActivitySchema.nullable().optional(),
     recipe: recipeSchema,
     gameVersion: z.string().min(1),
     baseTradeUrl: z.url().nullable(),
