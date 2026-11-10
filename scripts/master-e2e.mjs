@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { throws as assertThrows } from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { copyFile, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -152,53 +153,43 @@ async function capture(command, commandArgs, options = {}) {
   });
 }
 
-function assertWorkerHeartbeat(heartbeat, after) {
-  const timestamp = Date.parse(heartbeat);
-  assert(Number.isFinite(timestamp), 'catalog worker heartbeat is missing');
-  if (after) {
-    assert(
-      timestamp > Date.parse(after),
-      'catalog worker did not heartbeat after restart',
-    );
-  } else {
-    assert(
-      Date.now() - timestamp < 20_000,
-      'catalog worker heartbeat is stale',
-    );
-  }
+function collectorRunDone(result) {
+  if (result.startsWith('failed:'))
+    throw new Error(`Offline collector run failed: ${result}`);
+  return result === 'done:1:0';
 }
 
-async function waitForWorkerHeartbeat(compose, env, after) {
+async function runOfflineCollection(compose, env) {
+  const requestId = await capture(
+    'docker',
+    [
+      ...compose,
+      'exec',
+      '-T',
+      'app',
+      'node',
+      '--input-type=module',
+      '-e',
+      "const r = await fetch('http://127.0.0.1:3000/api/run', {method:'POST'}); if (r.status !== 202) throw Error('Run now returned '+r.status); console.log((await r.json()).requestId)",
+    ],
+    { env },
+  );
+  assert(
+    /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(requestId),
+    'Run now did not return a request ID',
+  );
   const deadline = Date.now() + 60_000;
   while (Date.now() < deadline) {
-    const heartbeat = await capture(
-      'docker',
-      [
-        ...compose,
-        'exec',
-        '-T',
-        'postgres',
-        'psql',
-        '-At',
-        '-U',
-        'e2e',
-        '-d',
-        'poe_worksmith_e2e',
-        '-c',
-        "select to_char(heartbeat_at at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"') from market_worker_health where id='catalog'",
-      ],
-      { env },
-    ).catch(() => '');
-    try {
-      assertWorkerHeartbeat(heartbeat, after);
-      return heartbeat;
-    } catch {
-      if (interrupted) throw new Error('E2E harness interrupted');
-      // Keep polling until the heartbeat is fresh.
-    }
+    if (interrupted) throw new Error('E2E harness interrupted');
+    const result = await readSql(
+      compose,
+      env,
+      `select state || ':' || coalesce(summary->>'succeeded','0') || ':' || coalesce(summary->>'failed','0') from run_requests where id='${requestId}'`,
+    );
+    if (collectorRunDone(result)) return;
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  assertWorkerHeartbeat('', after);
+  throw new Error('Dedicated collector did not complete the offline request');
 }
 
 async function readRecipeState(compose, env) {
@@ -247,13 +238,6 @@ const readMigrationState = (compose, env) =>
     compose,
     env,
     "select count(*)::text || ':' || md5(coalesce(string_agg(id || ':' || hash || ':' || created_at::text, ',' order by id), '')) from drizzle.__drizzle_migrations",
-  );
-
-const databaseNow = (compose, env) =>
-  readSql(
-    compose,
-    env,
-    'select to_char(now() at time zone \'UTC\',\'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"\')',
   );
 
 async function containerStartedAt(compose, env, service) {
@@ -332,9 +316,12 @@ async function loadManifest(file, verdictPath, metadata) {
 }
 
 async function selfCheck() {
-  const heartbeat = new Date().toISOString();
-  assertWorkerHeartbeat(heartbeat);
-  assertWorkerHeartbeat(new Date(Date.now() + 1_000).toISOString(), heartbeat);
+  assert(collectorRunDone('done:1:0'));
+  assert(!collectorRunDone('running:0:0'));
+  assertThrows(
+    () => collectorRunDone('failed:0:1'),
+    /Offline collector run failed/,
+  );
   assert(
     failureStatus({
       command: 'docker',
@@ -446,13 +433,6 @@ async function selfCheck() {
       error.stderr === 'close-marker',
       'run returned before stderr closed',
     );
-  }
-  try {
-    assertWorkerHeartbeat(new Date(Date.now() - 30_000).toISOString());
-    throw new Error('heartbeat check accepted a stale worker');
-  } catch (error) {
-    if (error.message === 'heartbeat check accepted a stale worker')
-      throw error;
   }
   const testIds = collectPassedTestIds({
     suites: [
@@ -924,9 +904,20 @@ else {
       recipeStateAfterRepeatMigration === recipeStateAfterSeed,
       'repeat migration changed the seeded recipe catalog',
     );
-    await run('docker', [...compose, 'up', '-d', '--wait', 'app', 'web'], {
+    // An explicit maintenance schedule exercises the worker without network access.
+    await readSql(
+      compose,
       env,
-    });
+      `insert into collector_schedule(kind,key,payload,interval_minutes,next_due_at)
+       values ('retention','retention','{"cron":"0 15 2 * * *","timezone":"UTC"}',1440,now()+interval '1 day')`,
+    );
+    await run(
+      'docker',
+      [...compose, 'up', '-d', '--wait', 'app', 'collector', 'web'],
+      {
+        env,
+      },
+    );
     await run(
       'docker',
       [
@@ -953,9 +944,9 @@ else {
       ],
       { env },
     );
-    await waitForWorkerHeartbeat(compose, env);
+    await runOfflineCollection(compose, env);
     const sideEffects =
-      "select (select count(*) from market_admin_runs)::text || ':' || (select count(*) from market_admin_audit)::text || ':' || (select count(*) from jobs)::text || ':' || coalesce((select version::text from market_admin_settings where id=1), 'missing')";
+      "select (select count(*) from market_admin_audit)::text || ':' || (select count(*) from run_requests)::text || ':' || coalesce((select version::text from market_admin_settings where id=1), 'missing')";
     const beforeDeniedMutation = await capture(
       'docker',
       [
@@ -1042,6 +1033,11 @@ else {
       env,
       'web',
     );
+    const collectorStartedAtBeforeRestart = await containerStartedAt(
+      compose,
+      env,
+      'collector',
+    );
     await run('docker', [...compose, 'restart', 'postgres'], { env });
     await run('docker', [...compose, 'up', '-d', '--wait', 'postgres'], {
       env,
@@ -1052,10 +1048,16 @@ else {
         migrationStateAfterRepeatMigration,
       'restart changed the applied migration journal',
     );
-    await run('docker', [...compose, 'restart', 'app', 'web'], { env });
-    await run('docker', [...compose, 'up', '-d', '--wait', 'app', 'web'], {
+    await run('docker', [...compose, 'restart', 'app', 'collector', 'web'], {
       env,
     });
+    await run(
+      'docker',
+      [...compose, 'up', '-d', '--wait', 'app', 'collector', 'web'],
+      {
+        env,
+      },
+    );
     assert(
       (await containerStartedAt(compose, env, 'app')) !==
         appStartedAtBeforeRestart,
@@ -1066,7 +1068,12 @@ else {
         webStartedAtBeforeRestart,
       'web container did not restart',
     );
-    await waitForWorkerHeartbeat(compose, env, await databaseNow(compose, env));
+    assert(
+      (await containerStartedAt(compose, env, 'collector')) !==
+        collectorStartedAtBeforeRestart,
+      'collector container did not restart',
+    );
+    await runOfflineCollection(compose, env);
     const recipeStateAfterRestart = await readRecipeState(compose, env);
     assert(
       recipeStateAfterRestart === recipeStateBeforeRestart,
@@ -1092,7 +1099,7 @@ else {
     passVerdict = receipt(
       'PASS',
       metadata,
-      'checks=migrations,catalog,api,worker,acl,boot,postgres-restart,app-restart,web-restart',
+      'checks=migrations,catalog,api,collector-run,acl,boot,postgres-restart,app-restart,collector-restart,web-restart',
     );
   } catch (error) {
     runError = error;
@@ -1112,7 +1119,7 @@ else {
         diagnostic(
           compose,
           env,
-          "select q.name,coalesce(j.state::text,'empty'),count(j.id) from pgboss.queue q left join pgboss.job j on j.name=q.name group by q.name,j.state order by q.name,j.state",
+          'select state,count(*) from run_requests group by state order by state',
         ),
         diagnostic(
           compose,
