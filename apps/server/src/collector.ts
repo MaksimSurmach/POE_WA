@@ -201,6 +201,7 @@ async function nextSchedule(
   pending: string[],
   now: Date,
   recoverTradeAuthentication: boolean,
+  paused: boolean,
 ) {
   const { rows } = await client.query<{ id: string; due: Date }>(
     `with trade_cooldown as (
@@ -215,7 +216,7 @@ async function nextSchedule(
               greatest(next_due_at, retry_at, leased_until,
                 case when kind = 'trade-target' then trade_cooldown.until end) as due
        from collector_schedule cross join trade_cooldown
-       where enabled and (
+       where enabled and (not $5::boolean or kind not in ('trade-target', 'economy')) and (
          kind <> 'trade-target' or not $1::boolean
            or ($4::boolean and id = any($2::uuid[]))
        )
@@ -224,7 +225,7 @@ async function nextSchedule(
      order by (id = any($2::uuid[]) and due <= $3::timestamptz) desc,
               due, case kind when 'league' then 0 when 'economy' then 1 else 2 end, id
      limit 1`,
-    [tradeBlocked, pending, now, recoverTradeAuthentication],
+    [tradeBlocked, pending, now, recoverTradeAuthentication, paused],
   );
   return rows[0];
 }
@@ -234,6 +235,7 @@ async function skipUnavailable(
   request: ActiveRequest,
   tradeBlocked: boolean,
   now: Date,
+  paused: boolean,
 ) {
   if (request.progress.pending.length === 0) return true;
   const enabled = await db
@@ -243,6 +245,9 @@ async function skipUnavailable(
       and(
         inArray(collectorSchedule.id, request.progress.pending),
         eq(collectorSchedule.enabled, true),
+        paused
+          ? sql`${collectorSchedule.kind} not in ('trade-target', 'economy')`
+          : undefined,
         tradeBlocked
           ? sql`${collectorSchedule.kind} <> 'trade-target'`
           : undefined,
@@ -511,11 +516,15 @@ async function collectSession({
       const timestamp = now();
       const request = await readRequest(client, db, timestamp);
       if (request === null) continue;
-      const [state] = await db
-        .select({ blocked: collectorState.blockedReason })
-        .from(collectorState)
-        .where(eq(collectorState.id, 1));
+      const {
+        rows: [state],
+      } = await client.query<{ blocked: string | null; paused: boolean }>(`
+        select (select blocked_reason from collector_state where id = 1) as blocked,
+               coalesce((select settings->>'collectionsPaused' = 'true'
+                         from market_admin_settings where id = 1), false) as paused
+      `);
       const tradeBlocked = Boolean(state?.blocked);
+      const paused = state?.paused === true;
       const recoverTradeAuthentication =
         tradeBlocked && request?.progress.recoverTradeAuthentication === true;
       if (
@@ -525,6 +534,7 @@ async function collectSession({
           request,
           tradeBlocked && !recoverTradeAuthentication,
           timestamp,
+          paused,
         ))
       )
         continue;
@@ -534,6 +544,7 @@ async function collectSession({
         request?.progress.pending ?? [],
         timestamp,
         recoverTradeAuthentication,
+        paused,
       );
       if (stop.aborted) break;
       if (!next || next.due > timestamp) {
