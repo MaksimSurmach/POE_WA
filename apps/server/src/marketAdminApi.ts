@@ -25,7 +25,7 @@ const operatorSettingsPatch = marketAdminPatchSchema.extend({
 
 export type MarketAdminApiOptions = {
   store: MarketAdminStore;
-  queue: AdminQueue;
+  queue?: AdminQueue | undefined;
   status(): Promise<MarketAdminStatus>;
 };
 export function registerMarketAdminRoutes(
@@ -39,10 +39,6 @@ export function registerMarketAdminRoutes(
 ) {
   if (!options) return;
   const { store, queue } = options;
-  api.get('/api/admin/market/status', async (request) => ({
-    correlationId: request.id,
-    data: marketAdminStatusSchema.parse(await options.status()),
-  }));
   api.get('/api/admin/market/settings', async (request) => ({
     correlationId: request.id,
     data: marketAdminSettingsResponseSchema.parse(await store.read()),
@@ -84,6 +80,11 @@ export function registerMarketAdminRoutes(
         };
       },
     );
+  if (!queue) return;
+  api.get('/api/admin/market/status', async (request) => ({
+    correlationId: request.id,
+    data: marketAdminStatusSchema.parse(await options.status()),
+  }));
   api.post(
     '/api/admin/market/refresh',
     { bodyLimit: 1024 },

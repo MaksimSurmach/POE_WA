@@ -373,7 +373,9 @@ export async function runProcess(forcedMode?: ApplicationMode) {
   let tradeClient: PoeTradeClient | undefined;
   const workerShutdown = new AbortController();
   const refreshProducer =
-    modeIncludesApi(config.mode) && !modeIncludesWorker(config.mode)
+    config.pipeline === 'legacy' &&
+    modeIncludesApi(config.mode) &&
+    !modeIncludesWorker(config.mode)
       ? new ManualRefreshProducer(createJobBoss(pool, config.jobSchema, logger))
       : undefined;
   const research = createMarketResearchRepository(pool);
@@ -453,7 +455,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           }),
           marketAdmin: {
             store: admin,
-            queue: adminQueue,
+            queue: config.pipeline === 'legacy' ? adminQueue : undefined,
             status: createMarketAdminStatusReader({
               store: admin,
               repositories,
@@ -527,14 +529,17 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             findLatestAttempt: repositories.cycles.findLatestAttempt,
             getProgress: repositories.catalog.getProgress,
           }),
-          triggerRefresh: async () =>
-            (
-              await admin.enqueue(
-                { scope: 'all' },
-                'legacy-refresh',
-                adminQueue,
-              )
-            ).id,
+          triggerRefresh:
+            config.pipeline === 'legacy'
+              ? async () =>
+                  (
+                    await admin.enqueue(
+                      { scope: 'all' },
+                      'legacy-refresh',
+                      adminQueue,
+                    )
+                  ).id
+              : undefined,
         },
       )
     : undefined;
