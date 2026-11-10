@@ -6,6 +6,7 @@ import {
   filterMarketTargets,
   formatMarginPercent,
   filterCatalog,
+  groupByTarget,
   readCatalogFilters,
   getPriceStatus,
   lowestAskInCurrency,
@@ -37,7 +38,7 @@ describe('catalog table ordering and numeric filters', () => {
         new URLSearchParams('sort=unknown&direction=up&profitCurrency=gold'),
       ),
     ).toMatchObject({
-      sort: 'title',
+      sort: 'profit',
       profitCurrency: 'chaos',
     });
     expect(
@@ -86,6 +87,22 @@ describe('catalog table ordering and numeric filters', () => {
       expect(entries[0]!.recipe.id).toBe('row-0');
     },
   );
+
+  it('groups methods by exact target signature with the best valid profit first', () => {
+    const withTarget = (index: number, targetSignature: string) => ({
+      ...entries[index]!,
+      recipe: { ...entries[index]!.recipe, targetSignature },
+    });
+    // Profits: row-0 = 20, row-1 = -5, row-2 = withheld, row-3 = 0.
+    expect(
+      groupByTarget([
+        withTarget(2, 'target-a'),
+        withTarget(1, 'target-b'),
+        withTarget(3, 'target-a'),
+        withTarget(0, 'target-a'),
+      ]).map(ids),
+    ).toEqual([['row-0', 'row-2', 'row-3'], ['row-1']]);
+  });
 
   it('combines name, class, tag and minimums, including zero', () => {
     expect(

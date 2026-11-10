@@ -56,7 +56,35 @@ const itemTypeBySlot: Record<string, string> = {
 export const defaultCatalogFilters: CatalogFilters = {
   category: 'all',
   search: '',
+  sort: 'profit',
 };
+
+/**
+ * Groups already-sorted entries by exact target signature. Groups keep the
+ * position of their first entry; inside a group the best valid profit leads.
+ */
+export function groupByTarget(entries: CatalogEntry[]) {
+  const groups = new Map<string, CatalogEntry[]>();
+  for (const entry of entries) {
+    const group = groups.get(entry.recipe.targetSignature);
+    if (group) group.push(entry);
+    else groups.set(entry.recipe.targetSignature, [entry]);
+  }
+  return [...groups.values()].map((group) => {
+    const best = group.reduce((lead, entry) => {
+      const current = lead.evaluation.profit;
+      const candidate = entry.evaluation.profit;
+      // Never compare nominal amounts in different currencies.
+      return candidate &&
+        (!current ||
+          (current.currency === candidate.currency &&
+            candidate.amount > current.amount))
+        ? entry
+        : lead;
+    });
+    return [best, ...group.filter((entry) => entry !== best)];
+  });
+}
 
 export function readCatalogFilters(params: URLSearchParams): CatalogFilters {
   const sort = params.get('sort');
@@ -77,7 +105,7 @@ export function readCatalogFilters(params: URLSearchParams): CatalogFilters {
         'freshness',
       ].includes(sort)
         ? (sort as NonNullable<CatalogFilters['sort']>)
-        : 'title',
+        : 'profit',
     ...(direction === 'asc' || direction === 'desc' ? { direction } : {}),
     minProfit: params.get('minProfit') ?? '',
     profitCurrency:
