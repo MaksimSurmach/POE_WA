@@ -4,6 +4,12 @@ import type { Pool } from 'pg';
 const tokenPattern = /^[A-Za-z0-9_-]{1,256}$/;
 const associatedData = Buffer.from('poe-worksmith:trade-session:v1');
 
+export class TradeSessionDecryptError extends Error {
+  constructor() {
+    super('TRADE_SESSION_DECRYPT_FAILED');
+  }
+}
+
 export function createTradeSessionRepository(
   pool: Pick<Pool, 'query'>,
   hexKey: string | undefined,
@@ -51,7 +57,7 @@ export function createTradeSessionRepository(
         if (!tokenPattern.test(session)) throw new Error();
         return session;
       } catch {
-        throw new Error('TRADE_SESSION_DECRYPT_FAILED');
+        throw new TradeSessionDecryptError();
       }
     },
   };

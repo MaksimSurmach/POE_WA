@@ -664,7 +664,10 @@ export function createInMemoryRepositories(): Repositories {
           lastStatus:
             [current, previous].find(
               ({ lastStatus }) => lastStatus === 401 || lastStatus === 403,
-            )?.lastStatus ?? input.status,
+            )?.lastStatus ??
+            (input.suppressAuthenticationDenial
+              ? (current.lastStatus ?? previous.lastStatus)
+              : input.status),
           minimumDelayMs,
           nextRequestAt: new Date(
             Math.max(

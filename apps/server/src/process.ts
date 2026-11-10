@@ -45,6 +45,7 @@ import {
 } from './refreshCancellation.js';
 import { createRecipeMarketDependencies } from './recipeMarket.js';
 import { createPostgresRepositories } from './repositories/index.js';
+import { createTradeSessionRepository } from './repositories/tradeSessionRepository.js';
 import {
   createPostgresResourceResolver,
   createPostgresTradeMappingCatalog,
@@ -206,6 +207,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         repository: repositories.rateLimits,
       });
       const trade = configuredTradeCapture(rateLimits, economy, process.env);
+      const sessionKey = process.env.POE_TRADE_SESSION_KEY;
       await runCollectorRuntime(
         (signal) =>
           runCollector({
@@ -234,7 +236,17 @@ export async function runProcess(forcedMode?: ApplicationMode) {
                 throw new Error('COLLECTOR_SCHEDULE_SYNC_UNAVAILABLE');
             },
             handlers: {
-              'trade-target': trade,
+              'trade-target': (
+                schedule,
+                jobSignal,
+                client,
+                recoverAuthentication,
+              ) =>
+                trade(schedule, jobSignal, {
+                  sessions: () =>
+                    createTradeSessionRepository(client, sessionKey),
+                  recoverAuthentication,
+                }),
               economy: async ({ payload }, jobSignal, client) => {
                 const { league } = payload;
                 if (typeof league !== 'string' || !league.trim())

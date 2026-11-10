@@ -1,9 +1,19 @@
 import { createInMemoryRepositories } from '@poe-worksmith/domain';
+import {
+  chromium,
+  type BrowserContext,
+  type Response as BrowserResponse,
+} from 'playwright';
+import type { Pool } from 'pg';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { configuredTradeCapture } from './collectorTrade.js';
 import type { StoredMarketEconomySnapshot } from './marketEconomy.js';
 import { GggRateLimitController } from './rateLimitController.js';
+import {
+  createTradeSessionRepository,
+  TradeSessionDecryptError,
+} from './repositories/tradeSessionRepository.js';
 
 const at = new Date('2026-11-01T12:00:00.000Z');
 const exchangeId = 'fcafcbbb-601d-491f-8b01-f0dd151a4b24';
@@ -159,7 +169,7 @@ afterEach(() => {
 describe('collector Trade captures', () => {
   it('captures every returned ID, including beyond the legacy 20, from fresh requests', async () => {
     const { rateLimits, economy, requests } = setup(listings(24));
-    const run = configuredTradeCapture(rateLimits, economy, environment);
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
     const signal = new AbortController().signal;
     for (let i = 0; i < 2; i++)
       expect(await run(target(), signal)).toMatchObject({
@@ -171,7 +181,7 @@ describe('collector Trade captures', () => {
 
   it('proves coverage across overlapping inclusive price slices', async () => {
     const { rateLimits, economy, requests } = setup(listings(180));
-    const run = configuredTradeCapture(rateLimits, economy, environment);
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
     const result = await run(target(), new AbortController().signal);
     expect(result).toMatchObject({
       status: 'success',
@@ -186,7 +196,7 @@ describe('collector Trade captures', () => {
     const { rateLimits, economy } = setup(listings(180), {
       moveBeforeRecheck: true,
     });
-    const run = configuredTradeCapture(rateLimits, economy, environment);
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
     expect(await run(target(), new AbortController().signal)).toMatchObject({
       status: 'success',
       capture: {
@@ -202,7 +212,7 @@ describe('collector Trade captures', () => {
     const { rateLimits, economy, repository } = setup(listings(24), {
       malformed: 'id-21',
     });
-    const run = configuredTradeCapture(rateLimits, economy, environment);
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
     const result = await run(target(), new AbortController().signal);
     expect(result).toMatchObject({
       status: 'success',
@@ -233,7 +243,7 @@ describe('collector Trade captures', () => {
     ['an inexact total', { inexact: true }, 24],
   ] as const)('keeps %s partial', async (_label, options, fetched) => {
     const { rateLimits, economy } = setup(listings(24), options);
-    const run = configuredTradeCapture(rateLimits, economy, environment);
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
     expect(await run(target(), new AbortController().signal)).toMatchObject({
       status: 'success',
       capture: {
@@ -248,7 +258,7 @@ describe('collector Trade captures', () => {
     'caps bounded requests and retains evidence when bounds cannot prove coverage (mixed=%s)',
     async (mixed) => {
       const { rateLimits, economy, requests } = setup(listings(601));
-      const run = configuredTradeCapture(rateLimits, economy, environment);
+      const run = fixtureTradeCapture(rateLimits, economy, environment);
       expect(
         await run(target(mixed), new AbortController().signal),
       ).toMatchObject({
@@ -300,7 +310,7 @@ describe('collector Trade captures', () => {
     if (!first) throw new Error('Test data is empty');
     first.listing.price.amount = 2.5;
     const { rateLimits, economy, find } = setup(data, { exchange });
-    const run = configuredTradeCapture(rateLimits, economy, environment);
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
     const result = await run(target(true), new AbortController().signal);
     expect(result).toMatchObject({
       status: 'success',
@@ -324,7 +334,7 @@ describe('collector Trade captures', () => {
 
   it('defers an observed and retained 429 without reissuing the request', async () => {
     const { rateLimits, economy, requests, now } = setup([], { status: 429 });
-    const run = configuredTradeCapture(rateLimits, economy, environment);
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
     const signal = new AbortController().signal;
     const first = await run(target(), signal);
     expect(first).toMatchObject({
@@ -339,7 +349,7 @@ describe('collector Trade captures', () => {
 
   it('preserves Retry-After from HTTP 503', async () => {
     const { rateLimits, economy, requests } = setup([], { status: 503 });
-    const run = configuredTradeCapture(rateLimits, economy, environment);
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
     expect(await run(target(), new AbortController().signal)).toEqual({
       status: 'retry',
       reason: 'PROVIDER_UNAVAILABLE',
@@ -362,7 +372,7 @@ describe('collector Trade captures', () => {
     Object.assign(second.item, { explicitMods: [modifier('stat_2')] });
     Object.assign(empty.item, { explicitMods: [], verified: true });
     const { rateLimits, economy } = setup(data);
-    const result = await configuredTradeCapture(
+    const result = await fixtureTradeCapture(
       rateLimits,
       economy,
       environment,
@@ -382,7 +392,7 @@ describe('collector Trade captures', () => {
 
   it('reports authentication denial after one request', async () => {
     const { rateLimits, economy, requests } = setup([], { status: 401 });
-    const run = configuredTradeCapture(rateLimits, economy, environment);
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
     expect(await run(target(), new AbortController().signal)).toEqual({
       status: 'blocked',
       reason: 'PROVIDER_AUTH_FAILED',
@@ -398,5 +408,346 @@ describe('collector Trade captures', () => {
       reason: 'MARKET_ACCESS_BLOCKED',
     });
     expect(requests.search).toBe(0);
+  });
+});
+
+function fixtureTradeCapture(
+  ...args: Parameters<typeof configuredTradeCapture>
+) {
+  const run = configuredTradeCapture(...args);
+  const { sessions } = sessionStorage();
+  return (schedule: Parameters<typeof run>[0], signal: AbortSignal) =>
+    run(schedule, signal, { sessions: () => sessions });
+}
+
+function loginBrowser(
+  options: {
+    throttle?: 'goto' | 'submit';
+    onNavigation?: () => void;
+  } = {},
+) {
+  let responseListener: ((response: BrowserResponse) => void) | undefined;
+  const throttle = () =>
+    responseListener?.({
+      status: () => 429,
+      url: () => 'https://www.pathofexile.com/login',
+      request: () => ({ isNavigationRequest: () => true }),
+      headers: () => ({ 'retry-after': '120' }),
+    } as unknown as BrowserResponse);
+  let loggedIn = false;
+  const locator = {
+    all: async () => [],
+    first: () => locator,
+    count: async () => 1,
+    fill: vi.fn(async () => undefined),
+    click: vi.fn(async () => {
+      if (options.throttle === 'submit') throttle();
+      else loggedIn = true;
+    }),
+    getByText: () => locator,
+    isVisible: async () => loggedIn,
+    innerText: async () => '',
+  };
+  const close = vi.fn(async () => undefined);
+  const launch = vi
+    .spyOn(chromium, 'launchPersistentContext')
+    .mockResolvedValue({
+      clearCookies: async () => undefined,
+      pages: () => [
+        {
+          goto: async () => {
+            if (options.throttle === 'goto') throttle();
+            options.onNavigation?.();
+          },
+          on: (_event: string, listener: typeof responseListener) => {
+            responseListener = listener;
+          },
+          off: () => {
+            responseListener = undefined;
+          },
+          url: () => 'https://www.pathofexile.com/login',
+          title: async () => 'Login',
+          locator: () => locator,
+        },
+      ],
+      cookies: async () =>
+        loggedIn ? [{ name: 'POESESSID', value: 'new-test-session' }] : [],
+      close,
+    } as unknown as BrowserContext);
+  return { launch, close, fill: locator.fill, click: locator.click };
+}
+
+function sessionStorage() {
+  let sealed: string | undefined;
+  const query = vi.fn(async (sql: string, values?: string[]) => {
+    if (sql.startsWith('insert')) sealed = values?.[0];
+    return { rows: sealed ? [{ sealed_session: sealed }] : [] };
+  });
+  const sessions = createTradeSessionRepository(
+    { query } as unknown as Pick<Pool, 'query'>,
+    '12'.repeat(32),
+  );
+  return { sessions, sealed: () => sealed };
+}
+
+const loginEnvironment = {
+  ...environment,
+  POE_TRADE_USERNAME: 'fake-user',
+  POE_TRADE_PASSWORD: 'fake-password',
+  POE_TRADE_BROWSER_PROFILE_DIR: 'fake-profile',
+};
+
+describe('collector Trade session recovery', () => {
+  it.each([
+    { credentials: 'complete', login: loginEnvironment },
+    {
+      credentials: 'incomplete',
+      login: { ...loginEnvironment, POE_TRADE_PASSWORD: undefined },
+    },
+  ])(
+    'reuses the sealed session with $credentials browser credentials',
+    async ({ login }) => {
+      const { rateLimits, economy } = setup([]);
+      const { launch } = loginBrowser();
+      const { sessions } = sessionStorage();
+      await sessions.save('stored-test-session');
+      const fetch = vi.mocked(globalThis.fetch);
+      const run = configuredTradeCapture(rateLimits, economy, login);
+      expect(
+        await run(target(), new AbortController().signal, {
+          sessions: () => sessions,
+        }),
+      ).toMatchObject({ status: 'success' });
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(new Headers(fetch.mock.calls[0]?.[1]?.headers).get('cookie')).toBe(
+        'POESESSID=stored-test-session',
+      );
+      expect(launch).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    { status: 401, headers: {} },
+    { status: 403, headers: {} },
+    { status: 503, headers: { 'cf-mitigated': 'challenge' } },
+  ])(
+    'refreshes once after $status and retries through the gate with the sealed replacement',
+    async ({ status, headers }) => {
+      const { rateLimits, economy } = setup([]);
+      const { launch, close } = loginBrowser();
+      const { sessions, sealed } = sessionStorage();
+      await sessions.save('old-test-session');
+      const oldSealed = sealed();
+      const gate = vi.spyOn(rateLimits, 'waitForPermit');
+      const fetch = vi.mocked(globalThis.fetch);
+      fetch.mockResolvedValueOnce(
+        new Response(null, {
+          status,
+          headers: new Headers(headers as Record<string, string>),
+        }),
+      );
+      fetch.mockImplementationOnce(async () => {
+        expect(await sessions.read()).toBe('new-test-session');
+        return Response.json({ id: 'retried', result: [], total: 0 });
+      });
+      const run = configuredTradeCapture(rateLimits, economy, loginEnvironment);
+      expect(
+        await run(target(), new AbortController().signal, {
+          sessions: () => sessions,
+        }),
+      ).toMatchObject({ status: 'success' });
+      expect(gate).toHaveBeenCalledTimes(3);
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(new Headers(fetch.mock.calls[0]?.[1]?.headers).get('cookie')).toBe(
+        'POESESSID=old-test-session',
+      );
+      expect(new Headers(fetch.mock.calls[1]?.[1]?.headers).get('cookie')).toBe(
+        'POESESSID=new-test-session',
+      );
+      expect(launch).toHaveBeenCalledOnce();
+      expect(close).toHaveBeenCalledOnce();
+      expect(sealed()).not.toEqual(oldSealed);
+      expect(sealed()).not.toContain('new-test-session');
+    },
+  );
+
+  it('blocks after the retried request is denied and leaves a legacy denial intact', async () => {
+    const { rateLimits, economy, repository } = setup([]);
+    const { launch } = loginBrowser();
+    const { sessions } = sessionStorage();
+    await rateLimits.observeResponse('trade-fetch', {
+      status: 403,
+      headers: new Headers(),
+    });
+    const fetch = vi.mocked(globalThis.fetch);
+    fetch.mockImplementation(async () => new Response(null, { status: 401 }));
+    const run = configuredTradeCapture(rateLimits, economy, loginEnvironment);
+    expect(
+      await run(target(), new AbortController().signal, {
+        sessions: () => sessions,
+      }),
+    ).toEqual({ status: 'blocked', reason: 'PROVIDER_AUTH_FAILED' });
+    expect(launch).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(await repository.list()).toMatchObject([{ lastStatus: 403 }]);
+    await expect(
+      rateLimits.waitForPermit('trade-search'),
+    ).rejects.toMatchObject({ code: 'MARKET_ACCESS_BLOCKED' });
+  });
+
+  it('stops after one request when sealing fails', async () => {
+    const { rateLimits, economy } = setup([]);
+    const { launch } = loginBrowser();
+    const { sessions } = sessionStorage();
+    vi.spyOn(sessions, 'save').mockRejectedValue(
+      new Error('session store unavailable'),
+    );
+    const fetch = vi.mocked(globalThis.fetch);
+    fetch.mockResolvedValueOnce(new Response(null, { status: 401 }));
+    const run = configuredTradeCapture(rateLimits, economy, loginEnvironment);
+    expect(
+      await run(target(), new AbortController().signal, {
+        sessions: () => sessions,
+      }),
+    ).toEqual({ status: 'blocked', reason: 'PROVIDER_AUTH_FAILED' });
+    expect(launch).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledOnce();
+  });
+
+  it('uses the newly sealed session on the first request of an explicit recovery', async () => {
+    const { rateLimits, economy } = setup([]);
+    const { launch } = loginBrowser();
+    const { sessions } = sessionStorage();
+    await sessions.save('denied-test-session');
+    const fetch = vi.mocked(globalThis.fetch);
+    const run = configuredTradeCapture(rateLimits, economy, loginEnvironment);
+    expect(
+      await run(target(), new AbortController().signal, {
+        sessions: () => sessions,
+        recoverAuthentication: true,
+      }),
+    ).toMatchObject({ status: 'success' });
+    expect(launch).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(new Headers(fetch.mock.calls[0]?.[1]?.headers).get('cookie')).toBe(
+      'POESESSID=new-test-session',
+    );
+    expect(await sessions.read()).toBe('new-test-session');
+  });
+
+  it('blocks when the sealing key is missing, without provider traffic', async () => {
+    const { rateLimits, economy, requests } = setup([]);
+    const { launch } = loginBrowser();
+    const run = configuredTradeCapture(rateLimits, economy, loginEnvironment);
+    expect(await run(target(), new AbortController().signal)).toEqual({
+      status: 'blocked',
+      reason: 'TRADE_SESSION_KEY_INVALID',
+    });
+    expect(launch).not.toHaveBeenCalled();
+    expect(requests.search).toBe(0);
+  });
+
+  it('distinguishes a transient read error from a corrupt session that Run now can replace', async () => {
+    const { rateLimits, economy, requests } = setup([]);
+    const { launch } = loginBrowser();
+    const { sessions } = sessionStorage();
+    vi.spyOn(sessions, 'read')
+      .mockRejectedValueOnce(new Error('query failed'))
+      .mockRejectedValueOnce(new TradeSessionDecryptError());
+    const run = configuredTradeCapture(rateLimits, economy, loginEnvironment);
+    const signal = new AbortController().signal;
+    const storage = { sessions: () => sessions };
+    expect(await run(target(), signal, storage)).toEqual({
+      status: 'retry',
+      reason: 'TRADE_SESSION_UNAVAILABLE',
+    });
+    expect(await run(target(), signal, storage)).toEqual({
+      status: 'blocked',
+      reason: 'TRADE_SESSION_DECRYPT_FAILED',
+    });
+    expect(launch).not.toHaveBeenCalled();
+    expect(requests.search).toBe(0);
+    expect(
+      await run(target(), signal, { ...storage, recoverAuthentication: true }),
+    ).toMatchObject({ status: 'success' });
+    expect(launch).toHaveBeenCalledOnce();
+    expect(await sessions.read()).toBe('new-test-session');
+  });
+
+  it('aborts browser recovery before submitting credentials after losing the lease', async () => {
+    const { rateLimits, economy } = setup([]);
+    const job = new AbortController();
+    const { fill, click, close } = loginBrowser({
+      onNavigation: () => job.abort(),
+    });
+    const { sessions } = sessionStorage();
+    const fetch = vi.mocked(globalThis.fetch);
+    fetch.mockResolvedValueOnce(new Response(null, { status: 401 }));
+    const run = configuredTradeCapture(rateLimits, economy, loginEnvironment);
+    await expect(
+      run(target(), job.signal, { sessions: () => sessions }),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+    expect(fill).not.toHaveBeenCalled();
+    expect(click).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(await sessions.read()).toBeNull();
+  });
+
+  it.each(['goto', 'submit'] as const)(
+    'retains Retry-After on a login %s response',
+    async (throttle) => {
+      const { rateLimits, economy, repository } = setup([]);
+      const { launch, close } = loginBrowser({ throttle });
+      const { sessions } = sessionStorage();
+      const fetch = vi.mocked(globalThis.fetch);
+      fetch.mockResolvedValueOnce(new Response(null, { status: 401 }));
+      const run = configuredTradeCapture(rateLimits, economy, loginEnvironment);
+      const result = await run(target(), new AbortController().signal, {
+        sessions: () => sessions,
+      });
+      expect(result).toEqual({
+        status: 'retry',
+        reason: 'PROVIDER_RATE_LIMITED',
+        retryAt: new Date(at.getTime() + 121_000),
+      });
+      expect(await repository.list()).toMatchObject([{ lastStatus: 429 }]);
+      expect(launch).toHaveBeenCalledOnce();
+      expect(close).toHaveBeenCalledOnce();
+      expect(fetch).toHaveBeenCalledOnce();
+      expect(await sessions.read()).toBeNull();
+    },
+  );
+
+  it('honors a raw 429 with a challenge header and blocks manual login during the cooldown', async () => {
+    const { rateLimits, economy, repository } = setup([]);
+    const { launch } = loginBrowser();
+    const { sessions } = sessionStorage();
+    const fetch = vi.mocked(globalThis.fetch);
+    fetch.mockResolvedValueOnce(
+      new Response(null, {
+        status: 429,
+        headers: { 'cf-mitigated': 'challenge', 'Retry-After': '120' },
+      }),
+    );
+    const run = configuredTradeCapture(rateLimits, economy, loginEnvironment);
+    const signal = new AbortController().signal;
+    const retry = {
+      status: 'retry',
+      reason: 'PROVIDER_RATE_LIMITED',
+      retryAt: new Date(at.getTime() + 120_000),
+    };
+    expect(await run(target(), signal, { sessions: () => sessions })).toEqual(
+      retry,
+    );
+    expect(
+      await run(target(), signal, {
+        sessions: () => sessions,
+        recoverAuthentication: true,
+      }),
+    ).toEqual(retry);
+    expect(await repository.list()).toMatchObject([{ lastStatus: 429 }]);
+    expect(launch).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledOnce();
   });
 });

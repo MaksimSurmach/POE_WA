@@ -21,6 +21,7 @@ export type CollectorHandler = (
   schedule: CollectorSchedule,
   signal: AbortSignal,
   client: PoolClient,
+  recoverTradeAuthentication: boolean,
 ) => Promise<CollectorResult>;
 
 type CollectorOptions = {
@@ -41,6 +42,7 @@ type CollectorDb = NodePgDatabase;
 type RunRequest = typeof runRequests.$inferSelect;
 const progressSchema = z.object({
   pending: z.array(z.uuid()),
+  recoverTradeAuthentication: z.literal(true).optional(),
   succeeded: z.number().int().nonnegative(),
   failed: z.number().int().nonnegative(),
 });
@@ -127,20 +129,25 @@ async function startRequest(
         ),
       )
       .returning({ id: collectorSchedule.id, kind: collectorSchedule.kind });
-    const active = {
+    const [state] = await db
+      .select({ blocked: collectorState.blockedReason })
+      .from(collectorState)
+      .where(eq(collectorState.id, 1));
+    const active: ActiveRequest = {
       id: request.id,
-      progress: { pending: rows.map(({ id }) => id), succeeded: 0, failed: 0 },
+      progress: {
+        pending: rows.map(({ id }) => id),
+        succeeded: 0,
+        failed: 0,
+        ...(state?.blocked && rows.some(({ kind }) => kind === 'trade-target')
+          ? { recoverTradeAuthentication: true }
+          : {}),
+      },
     };
     await db
       .update(runRequests)
       .set({ state: 'running', startedAt: now })
       .where(eq(runRequests.id, request.id));
-    if (rows.some(({ kind }) => kind === 'trade-target')) {
-      await db
-        .update(collectorState)
-        .set({ blockedReason: null })
-        .where(eq(collectorState.id, 1));
-    }
     await saveProgress(db, active, now);
     return active;
   });
@@ -178,6 +185,7 @@ async function nextSchedule(
   tradeBlocked: boolean,
   pending: string[],
   now: Date,
+  recoverTradeAuthentication: boolean,
 ) {
   const { rows } = await client.query<{ id: string; due: Date }>(
     `with trade_cooldown as (
@@ -192,13 +200,16 @@ async function nextSchedule(
               greatest(next_due_at, retry_at, leased_until,
                 case when kind = 'trade-target' then trade_cooldown.until end) as due
        from collector_schedule cross join trade_cooldown
-       where enabled and (kind <> 'trade-target' or not $1::boolean)
+       where enabled and (
+         kind <> 'trade-target' or not $1::boolean
+           or ($4::boolean and id = any($2::uuid[]))
+       )
      )
      select id, due from eligible
      order by (id = any($2::uuid[]) and due <= $3::timestamptz) desc,
               due, case kind when 'league' then 0 when 'economy' then 1 else 2 end, id
      limit 1`,
-    [tradeBlocked, pending, now],
+    [tradeBlocked, pending, now, recoverTradeAuthentication],
   );
   return rows[0];
 }
@@ -235,6 +246,7 @@ async function claimSchedule(
   db: CollectorDb,
   id: string,
   now: Date,
+  recoveryRequest: ActiveRequest | undefined,
 ) {
   return transaction(client, async () => {
     const [schedule] = await db
@@ -253,6 +265,11 @@ async function claimSchedule(
       )
       .returning();
     if (schedule) {
+      if (schedule.kind === 'trade-target' && recoveryRequest) {
+        // Consume recovery under the lease so a successor cannot repeat it.
+        delete recoveryRequest.progress.recoverTradeAuthentication;
+        await saveProgress(db, recoveryRequest, now);
+      }
       await saveState(db, { lastRunStartedAt: now, lastRunStatus: 'running' });
     }
     return schedule;
@@ -346,8 +363,18 @@ async function finishSchedule(
         ...(captureId ? { captureId } : {}),
         ...(result.status === 'success' ? {} : { error: result.reason }),
       },
-      ...(result.status === 'blocked' && schedule.kind === 'trade-target'
-        ? { blockedReason: result.reason }
+      ...(schedule.kind === 'trade-target' && result.status !== 'retry'
+        ? {
+            blockedReason: result.status === 'blocked' ? result.reason : null,
+            ...(result.status === 'success' ||
+            [
+              'PROVIDER_AUTH_FAILED',
+              'PROVIDER_ACCESS_DENIED',
+              'PROVIDER_CHALLENGE',
+            ].includes(result.reason)
+              ? { sessionCheckedAt: now }
+              : {}),
+          }
         : {}),
     });
 
@@ -360,6 +387,9 @@ async function finishSchedule(
             pending: request.progress.pending.filter(
               (id) => id !== schedule.id,
             ),
+            ...(request.progress.recoverTradeAuthentication
+              ? { recoverTradeAuthentication: true }
+              : {}),
             succeeded:
               request.progress.succeeded + Number(result.status === 'success'),
             failed:
@@ -458,9 +488,16 @@ async function collectSession({
         .from(collectorState)
         .where(eq(collectorState.id, 1));
       const tradeBlocked = Boolean(state?.blocked);
+      const recoverTradeAuthentication =
+        tradeBlocked && request?.progress.recoverTradeAuthentication === true;
       if (
         request &&
-        (await skipUnavailable(db, request, tradeBlocked, timestamp))
+        (await skipUnavailable(
+          db,
+          request,
+          tradeBlocked && !recoverTradeAuthentication,
+          timestamp,
+        ))
       )
         continue;
       const next = await nextSchedule(
@@ -468,6 +505,7 @@ async function collectSession({
         tradeBlocked,
         request?.progress.pending ?? [],
         timestamp,
+        recoverTradeAuthentication,
       );
       if (stop.aborted) break;
       if (!next || next.due > timestamp) {
@@ -488,7 +526,13 @@ async function collectSession({
         });
         continue;
       }
-      const schedule = await claimSchedule(client, db, next.id, timestamp);
+      const schedule = await claimSchedule(
+        client,
+        db,
+        next.id,
+        timestamp,
+        recoverTradeAuthentication ? request : undefined,
+      );
       if (!schedule) continue;
 
       const jobSignal = AbortSignal.any([
@@ -501,6 +545,7 @@ async function collectSession({
           schedule,
           jobSignal,
           client,
+          recoverTradeAuthentication,
         );
         jobSignal.throwIfAborted();
       } catch (error) {

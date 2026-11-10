@@ -522,9 +522,11 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
       // Redirects and challenges are access denial, never followed with credentials.
-      const status =
+      const denied =
         (response.status >= 300 && response.status < 400) ||
-        response.headers.get('cf-mitigated') === 'challenge'
+        response.headers.get('cf-mitigated') === 'challenge';
+      const status =
+        denied && !(this.#collector && response.status === 429)
           ? 403
           : response.status;
       this.connectionStatus =
