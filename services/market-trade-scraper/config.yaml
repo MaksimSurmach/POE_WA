@@ -1,6 +1,6 @@
 name: POE Trade Scraper
 description: Collect market listings for enabled Worksmith profiles
-version: '0.2.4'
+version: '0.2.5'
 slug: poe_trade_scraper
 arch:
   - aarch64
@@ -11,10 +11,8 @@ init: false
 options:
   database_url: ''
   session_key: ''
-  target_id: ''
 schema:
   database_url: password
   session_key: password
-  target_id: str
   trade_username: str?
   trade_password: password?
