@@ -81,17 +81,28 @@ JS
 test "$("${compose[@]}" exec -T postgres psql -U worksmith -d worksmith -XAtc "select enabled from collector_schedule where kind = 'retention' and key = 'retention'")" = f
 
 "${compose[@]}" exec -T collector node --input-type=module <<'JS'
+import { writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
-const profile = await chromium.launchPersistentContext(process.env.POE_TRADE_BROWSER_PROFILE_DIR, {
+const profileDirectory = process.env.POE_TRADE_BROWSER_PROFILE_DIR;
+const profile = await chromium.launchPersistentContext(profileDirectory, {
   chromiumSandbox: true,
   headless: true,
 });
 await (await profile.newPage()).goto('about:blank');
 await profile.close();
+await writeFile(profileDirectory + '/smoke-marker', 'sandboxed browser launched', { flag: 'wx' });
 JS
 "${compose[@]}" up -d --force-recreate --no-deps collector
-"${compose[@]}" exec -T collector node --input-type=module -e "import { access } from 'node:fs/promises'; await access(process.env.POE_TRADE_BROWSER_PROFILE_DIR + '/Default/Preferences');"
+"${compose[@]}" exec -T collector node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+assert.equal(
+  await readFile(process.env.POE_TRADE_BROWSER_PROFILE_DIR + '/smoke-marker', 'utf8'),
+  'sandboxed browser launched',
+);
+JS
 
 "${compose[@]}" stop postgres
 "${compose[@]}" exec -T app node --input-type=module -e "import assert from 'node:assert/strict'; const r = await fetch('http://127.0.0.1:8080/health/ready'); assert.equal(r.status, 503); assert.equal((await r.json()).error.code, 'PERSISTENCE_UNAVAILABLE');"
