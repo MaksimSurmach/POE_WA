@@ -448,15 +448,31 @@ export const collectorStatusSchema = z.object({
       lastRunStatus: z
         .enum(['running', 'succeeded', 'failed', 'blocked'])
         .nullable(),
+      sessionCheckedAt: z.iso.datetime().nullish(),
+      lastRunSummary: z
+        .object({ error: z.string().optional() })
+        .nullish()
+        .catch(null),
     })
     .nullable(),
   latestRequest: z
     .object({
       id: z.uuid(),
       state: z.enum(['queued', 'running', 'done', 'failed']),
+      // Progress is display-only: a malformed summary must not hide the status.
+      summary: z
+        .object({
+          pending: z.array(z.string()).optional(),
+          succeeded: z.number().optional(),
+          failed: z.number().optional(),
+          error: z.string().optional(),
+        })
+        .nullish()
+        .catch(null),
     })
     .nullable(),
   lockHeld: z.boolean(),
+  nextDueAt: z.iso.datetime().nullish(),
 });
 
 export type CollectorStatus = z.infer<typeof collectorStatusSchema>;

@@ -97,7 +97,6 @@ export function CollectorControls({
     }
   }
 
-  const finishedAt = status?.collectorState?.lastRunFinishedAt;
   const requestState = status?.latestRequest?.state;
   const busy =
     sending || requestState === 'queued' || requestState === 'running';
@@ -130,41 +129,97 @@ export function CollectorControls({
           >
             Run now
           </button>
-          <span role="status">
-            {statusUnavailable
-              ? 'Collector status unavailable'
-              : status
-                ? status.lockHeld
-                  ? 'Collector connected'
-                  : 'Collector disconnected'
-                : 'Checking collector'}
-            {' · Last run: '}
-            {finishedAt ? (
-              <time aria-label="Last run" dateTime={finishedAt}>
-                {new Intl.DateTimeFormat('en-US', {
-                  dateStyle: 'short',
-                  timeStyle: 'medium',
-                }).format(new Date(finishedAt))}
-              </time>
-            ) : (
-              'none yet'
-            )}
-            {requestState === 'queued'
-              ? ' · Queued'
-              : requestState === 'running'
-                ? ' · Running'
-                : null}
-            {runError
-              ? ' · Could not confirm the run'
-              : status?.collectorState?.blockedReason
-                ? ' · Trade access blocked'
-                : requestState === 'failed' ||
-                    status?.collectorState?.lastRunStatus === 'failed'
-                  ? ' · Run failed'
-                  : null}
-          </span>
+          <CollectorStatusLine
+            status={status}
+            statusUnavailable={statusUnavailable}
+            runError={runError}
+          />
         </>
       )}
     </div>
+  );
+}
+
+const runTime = new Intl.DateTimeFormat('en-US', {
+  dateStyle: 'short',
+  timeStyle: 'medium',
+});
+
+export function CollectorStatusLine({
+  status,
+  statusUnavailable = false,
+  runError = false,
+  now = Date.now(),
+}: {
+  status: CollectorStatus | null;
+  statusUnavailable?: boolean;
+  runError?: boolean;
+  now?: number;
+}) {
+  const state = status?.collectorState;
+  const request = status?.latestRequest;
+  const connected = Boolean(status?.lockHeld) && !statusUnavailable;
+  const active = request?.state === 'queued' || request?.state === 'running';
+  const progress = request?.summary;
+  const done = (progress?.succeeded ?? 0) + (progress?.failed ?? 0);
+  const total = done + (progress?.pending?.length ?? 0);
+  const failure =
+    (request?.state === 'failed' ? progress?.error : undefined) ??
+    state?.lastRunSummary?.error;
+  const finishedAt = state?.lastRunFinishedAt;
+  const nextDueAt = status?.nextDueAt;
+  return (
+    <span role="status">
+      <span className={status && !connected ? 'recipe-warning' : undefined}>
+        {statusUnavailable
+          ? 'Collector status unavailable'
+          : status
+            ? connected
+              ? 'Collector connected'
+              : 'Collector disconnected — runs will not start'
+            : 'Checking collector'}
+      </span>
+      {' · Last run: '}
+      {finishedAt ? (
+        <>
+          <time aria-label="Last run" dateTime={finishedAt}>
+            {runTime.format(new Date(finishedAt))}
+          </time>
+          {state?.lastRunStatus ? ` (${state.lastRunStatus})` : null}
+        </>
+      ) : (
+        'none yet'
+      )}
+      {connected && nextDueAt ? (
+        <>
+          {' · Next due '}
+          <time aria-label="Next due" dateTime={nextDueAt}>
+            {Date.parse(nextDueAt) <= now
+              ? 'now'
+              : runTime.format(new Date(nextDueAt))}
+          </time>
+        </>
+      ) : null}
+      {!active
+        ? null
+        : !connected
+          ? ' · Run waiting for collector'
+          : request?.state === 'queued'
+            ? ' · Queued'
+            : ` · Running${total ? ` ${done}/${total}` : ''}${progress?.failed ? `, ${progress.failed} failed` : ''}`}
+      {runError ? (
+        ' · Could not confirm the run'
+      ) : state?.blockedReason ? (
+        <span className="recipe-warning">
+          {` · Trade access blocked: ${state.blockedReason}`}
+        </span>
+      ) : request?.state === 'failed' || state?.lastRunStatus === 'failed' ? (
+        <span className="recipe-warning">
+          {` · Run failed${failure ? `: ${failure}` : ''}`}
+        </span>
+      ) : state?.sessionCheckedAt ? (
+        ' · Trade session OK'
+      ) : null}
+    </span>
   );
 }

@@ -50,6 +50,13 @@ test('ranks two priced methods and shows both profits on the homepage', async ({
     const row = page.getByRole('row').filter({
       has: page.locator(`a[href="${path}"]`),
     });
-    await expect(row.getByRole('cell').nth(3)).toContainText(profit);
+    // Still 390 px wide: profit sits under the method name, not in a column.
+    await expect(row.getByRole('rowheader')).toContainText(profit);
   }
+  await expect(
+    page.getByRole('columnheader', { name: 'Item class' }),
+  ).toBeHidden();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
 });

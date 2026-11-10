@@ -5,6 +5,7 @@ import {
   type CatalogFilters,
   formatMarginPercent,
   getPriceStatus,
+  groupByTarget,
 } from './catalog.js';
 import { Money, ProfitBadge, economicClass } from './components.js';
 import { ItemTooltip } from './ItemTooltip.js';
@@ -39,6 +40,9 @@ export function CatalogTable({
   const direction =
     filters.direction ??
     (['title', 'category', 'cost'].includes(sort) ? 'asc' : 'desc');
+  const rows = groupByTarget(entries).flatMap((group) =>
+    group.map((entry, index) => ({ entry, index, methods: group.length })),
+  );
   return (
     <div
       className="catalog-table-scroll"
@@ -87,7 +91,7 @@ export function CatalogTable({
           </tr>
         </thead>
         <tbody>
-          {entries.map((entry) => {
+          {rows.map(({ entry, index, methods }) => {
             const { recipe, evaluation, snapshot } = entry;
             const source = evaluation.source ?? snapshot;
             const gradeReasons = evaluation.gradeReasons?.join(' · ');
@@ -100,7 +104,10 @@ export function CatalogTable({
                     .size
                 : null);
             return (
-              <tr key={recipe.id}>
+              <tr
+                key={recipe.id}
+                className={index ? 'craft-table__alternative' : undefined}
+              >
                 <th scope="row">
                   <div className="craft-table__identity">
                     {entry.itemPreview ? (
@@ -115,7 +122,26 @@ export function CatalogTable({
                     )}
                     <div>
                       <Link to={`/recipes/${recipe.id}`}>{recipe.title}</Link>
-                      <small>Patch {recipe.patch ?? 'unverified'}</small>
+                      <small>
+                        {methods > 1
+                          ? index
+                            ? 'Other method · '
+                            : `${evaluation.profit ? 'Best of ' : ''}${methods} methods · `
+                          : null}
+                        {recipe.craftMethod.replaceAll('-', ' ')} · Patch{' '}
+                        {recipe.patch ?? 'unverified'}
+                      </small>
+                      <small className="craft-table__phone">
+                        {evaluation.profit ? (
+                          <ProfitBadge {...evaluation.profit} />
+                        ) : (
+                          'Profit —'
+                        )}
+                        {evaluation.marginPercent === null
+                          ? null
+                          : ` · ${formatMarginPercent(evaluation.marginPercent)} ROI`}
+                        {evaluation.grade ? ` · ${evaluation.grade}` : null}
+                      </small>
                     </div>
                   </div>
                 </th>

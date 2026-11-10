@@ -331,8 +331,6 @@ function CatalogRoute() {
         ) : null}
       </section>
 
-      <OpportunitiesIntelligence league={league?.name} />
-
       {loadError ? (
         <StatusPanel tone="danger" title="Recipes unavailable">
           The recipe list could not be loaded. Try again when the service is
@@ -447,14 +445,6 @@ function CatalogRoute() {
               Reset filters
             </button>
           </div>
-          <p className="catalog-price-note" id="catalog-price-note">
-            Asking-price estimates, not completed sales. ROI = profit ÷ expected
-            cost. Requires two independent sellers. Currencies sorted
-            separately.
-          </p>
-          <p className="catalog-scroll-hint">
-            Swipe the table to compare prices. Item names stay visible.
-          </p>
           <CatalogTable
             entries={filteredEntries}
             filters={filters}
@@ -476,8 +466,16 @@ function CatalogRoute() {
               }))
             }
           />
+          <p className="catalog-price-note" id="catalog-price-note">
+            Asking-price estimates, not completed sales. ROI = profit ÷ expected
+            cost. Requires two independent sellers. Currencies sorted
+            separately. Methods for the same target are grouped, best valid
+            profit first.
+          </p>
         </>
       )}
+
+      <OpportunitiesIntelligence league={league?.name} />
     </>
   );
 }
