@@ -27,11 +27,11 @@
 }
 .craft-risk__metrics dt {
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: var(--font-small);
 }
 .craft-risk__metrics dd {
   margin: 4px 0 0;
-  font-size: 0.95rem;
+  font-size: var(--font-label);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -54,7 +54,7 @@
   display: grid;
   gap: 6px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: var(--font-body);
   min-width: 0;
 }
 .craft-risk__body input:not([type='checkbox']),
@@ -74,7 +74,7 @@
 }
 .craft-risk__json {
   font-family: ui-monospace, monospace !important;
-  font-size: 0.75rem !important;
+  font-size: var(--font-small) !important;
 }
 .craft-risk__body button {
   justify-self: start;
@@ -109,7 +109,7 @@
 .craft-risk__editor legend {
   padding: 0 6px;
   color: var(--text);
-  font-size: 0.85rem;
+  font-size: var(--font-body);
 }
 .craft-risk__checks,
 .craft-risk__actions {
@@ -137,7 +137,7 @@
 .craft-risk__table-wrap table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: var(--font-body);
 }
 .craft-risk__table-wrap caption {
   text-align: left;
@@ -171,7 +171,7 @@
   color: var(--muted);
 }
 .craft-risk__distribution figcaption {
-  font-size: 0.76rem;
+  font-size: var(--font-small);
   color: var(--muted);
   margin-top: 8px;
 }
@@ -182,7 +182,7 @@
 .craft-risk__distribution text {
   fill: currentColor;
   font-family: inherit;
-  font-size: 11px;
+  font-size: var(--font-small);
 }
 .craft-risk__body progress {
   width: 100%;
@@ -202,7 +202,7 @@
 
 .craft-risk__body h3 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--font-label);
 }
 .craft-risk__simulation > fieldset {
   margin: 0;

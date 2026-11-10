@@ -36,7 +36,7 @@
 .guide-sale {
   display: grid;
   gap: 6px;
-  font-size: 0.875rem;
+  font-size: var(--font-body);
 }
 .guide-budget-inputs input,
 .guide-sale input {
@@ -48,7 +48,7 @@
   align-items: center;
   gap: 12px;
   margin: 18px 0;
-  font-size: 0.8rem;
+  font-size: var(--font-body);
   color: var(--muted);
 }
 .guide-material-scroll {
@@ -60,7 +60,7 @@
   width: 100%;
   min-width: 440px;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: var(--font-body);
 }
 .guide-materials caption {
   text-align: left;
@@ -82,7 +82,7 @@
 .guide-materials small {
   display: block;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: var(--font-small);
   margin-top: 4px;
 }
 .guide-materials input {
@@ -92,7 +92,7 @@
 }
 .guide-use-quote {
   padding: 4px;
-  font-size: 0.7rem;
+  font-size: var(--font-small);
   margin-top: 4px;
 }
 .guide-sale {
@@ -112,7 +112,7 @@
   border: 1px solid var(--border);
   border-radius: 5px;
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: var(--font-small);
 }
 @media (max-width: 900px) {
   .guide-layout {
