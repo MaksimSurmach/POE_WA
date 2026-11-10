@@ -1,5 +1,6 @@
 import {
   marketImportListingSchema,
+  marketCollectionSearchEvidenceSchema,
   type MarketImportListing,
   type MarketTarget,
 } from '@poe-worksmith/contracts';
@@ -12,7 +13,10 @@ import { convertChaosDivineQuote } from '@poe-worksmith/domain/economics';
 import { z } from 'zod';
 
 import type { MarketCollectionTransportResponse } from './marketCollection.js';
-import { completeOutputLimit } from './marketCollection.js';
+import {
+  completeOutputLimit,
+  isCompleteSortedPriceSample,
+} from './marketCollection.js';
 import { convertMarketQuote } from './marketCurrency.js';
 import type { MarketEconomyRepository } from './marketEconomy.js';
 import { marketDigest } from './marketResearch.js';
@@ -327,13 +331,59 @@ async function collectTradeCapture(
       target.tradeSearch?.includeOtherCurrencies || singleCurrency === 'divine'
         ? await captureFx(target, economy, capturedAt)
         : null;
-    await prove(root, {});
+    let sortedSampleIds: string[] | null = null;
+    const startingBase = target.slot === 'starting-base';
+    if (startingBase && root.reportedTotal > 20) {
+      if (
+        !root.queryId ||
+        root.reportedTotal > 2_147_483_647 ||
+        root.ids.length > completeOutputLimit
+      )
+        throw new DomainError('PROVIDER_RESPONSE_INVALID');
+      const sampleIds = root.ids.slice(0, 20);
+      await fetchRows(sampleIds, root.queryId);
+      if (new Set(root.ids).size !== root.ids.length || root.inexact)
+        partialReason ??= 'SEARCH_INEXACT';
+      const sortedSampleComplete =
+        !partialReason &&
+        isCompleteSortedPriceSample(
+          {
+            batchCount: Math.ceil(rows.size / detailBatchSize),
+            cached: false,
+            capturedAt: root.capturedAt,
+            coverage: 'partial',
+            currency: root.currency,
+            fetchedCount: rows.size,
+            listings: [...rows.values()],
+            reportedTotal: root.reportedTotal,
+            returnedCount: root.ids.length,
+            inexact: root.inexact ?? false,
+            searchEvidence: marketCollectionSearchEvidenceSchema.parse({
+              ids: root.ids,
+              queryId: root.queryId,
+              reportedTotal: root.reportedTotal,
+              ...(root.request ? { request: root.request } : {}),
+            }),
+          },
+          target,
+        );
+      if (sortedSampleComplete) sortedSampleIds = sampleIds;
+    }
     if (
-      covered.size !== root.reportedTotal ||
-      !root.ids.every((id) => covered.has(id)) ||
-      rows.size !== covered.size
-    )
-      partialReason ??= 'SEARCH_TOTAL_MISMATCH';
+      startingBase &&
+      !singleCurrency &&
+      root.reportedTotal > completeOutputLimit
+    ) {
+      partialReason ??= 'MIXED_CURRENCY_SLICE_UNPROVEN';
+    } else {
+      await prove(root, {});
+      if (
+        covered.size !== root.reportedTotal ||
+        !root.ids.every((id) => covered.has(id)) ||
+        rows.size !== covered.size
+      )
+        partialReason ??= 'SEARCH_TOTAL_MISMATCH';
+    }
     if (sliceCount > 0 && partialReason === null) {
       const recheck = await search();
       const confirmed = new Set(recheck.ids);
@@ -365,7 +415,9 @@ async function collectTradeCapture(
         price,
         priceChaos,
         indexedAt: row.listedAt ? new Date(row.listedAt) : null,
-        item: row.item,
+        item: row.rawListing?.item
+          ? { rawItem: row.rawListing.item }
+          : row.item,
       };
     });
     return {
@@ -375,6 +427,7 @@ async function collectTradeCapture(
         reportedTotal: root.reportedTotal,
         fetched: listings.length,
         complete: partialReason === null,
+        sortedSampleIds,
         partialReason,
         slices: sliceCount || 1,
         fxSnapshotId: fx?.snapshotId ?? null,

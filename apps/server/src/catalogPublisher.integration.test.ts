@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -15,6 +16,9 @@ import {
   evaluateAndPublishCatalog,
   type FreshRecipeEvaluator,
 } from './catalogPublisher.js';
+import { createCollectorResultPublisher } from './collectorResults.js';
+import { createCaptureRepository } from './repositories/captureRepository.js';
+import { createMarketEconomyRepository } from './repositories/marketEconomyRepository.js';
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
 import {
@@ -44,6 +48,7 @@ beforeEach(async () => {
   await pool.query(
     `truncate table jobs, recipe_evaluations, raw_snapshots,
        aggregated_observations, catalog_state, market_queries,
+       market_economy_snapshots, market_economy_attempts,
        refresh_cycles, recipes, poe_leagues, game_data_versions restart identity cascade`,
   );
   await pool.query(
@@ -89,7 +94,7 @@ function evaluator(failingIds: readonly string[] = []): FreshRecipeEvaluator {
 }
 
 describe('catalog publication with PostgreSQL', () => {
-  it('publishes two methods from one finished-item snapshot with distinct starting-base costs', async () => {
+  it('publishes two methods from legacy snapshots and collector captures with equal economics', async () => {
     const catalog = await loadRecipeCatalog(
       fileURLToPath(new URL('../../../recipes', import.meta.url)),
     );
@@ -120,14 +125,73 @@ describe('catalog publication with PostgreSQL', () => {
         sourceRevision: manifest.mappingVersion,
       });
     }
+    const trade = new RegisteredTradeQueryGenerator(
+      createPostgresTradeMappingCatalog(pool),
+      [clusterJewelVariantFilter],
+      [mappedTargetFilter],
+    );
     const marketDependencies = createRecipeMarketDependencies({
       resolveResource: createPostgresResourceResolver(pool),
-      trade: new RegisteredTradeQueryGenerator(
-        createPostgresTradeMappingCatalog(pool),
-        [clusterJewelVariantFilter],
-        [mappedTargetFilter],
-      ),
+      trade,
     });
+    const economy = createMarketEconomyRepository(pool);
+    const fxSnapshotId = randomUUID();
+    const appliedFxSnapshotId = randomUUID();
+    async function saveEconomy(
+      category: 'Currency' | 'Fossil' | 'Resonator',
+      id: string,
+      detailsId: string,
+      name: string,
+      amount: number,
+      at = now,
+    ) {
+      await economy.save({
+        id,
+        schemaVersion: 1,
+        kind: 'economy-overview',
+        source: 'poe.ninja',
+        game: 'poe1',
+        league: 'Standard',
+        category,
+        endpoint: 'https://poe.ninja/fixture',
+        payloadHash: 'a'.repeat(64),
+        capturedAt: at.toISOString(),
+        sourceUpdatedAt: null,
+        priceBasis:
+          category === 'Currency' ? 'currency-exchange' : 'stash-estimate',
+        raw: {},
+        lines: [
+          {
+            id: detailsId,
+            detailsId,
+            name,
+            baseType: null,
+            price: { amount, currency: 'chaos' },
+            listingCount: null,
+            observationCount: 10,
+            tradedVolume: null,
+          },
+        ],
+      });
+    }
+    await saveEconomy(
+      'Currency',
+      fxSnapshotId,
+      'divine-orb',
+      'Divine Orb',
+      170,
+      new Date(now.getTime() - 60_000),
+    );
+    await saveEconomy(
+      'Currency',
+      appliedFxSnapshotId,
+      'divine-orb',
+      'Divine Orb',
+      200,
+    );
+    const captureStore = createCaptureRepository(pool);
+    let outputScheduleId = '';
+    let outputCaptureId = '';
     const snapshotTtlMs = 30 * 60_000;
     const plan = await planCatalogRefresh(repositories, {
       league: { leagueId, leagueGggId: 'Standard', leagueName: 'Standard' },
@@ -150,17 +214,17 @@ describe('catalog publication with PostgreSQL', () => {
     expect(finishedQueries[0]?.recipeIds).toEqual(ids);
 
     const clusterMods = [
-      { id: 'enchant.stat_3086156145', value: 8 },
-      { id: 'enchant.stat_3948993189|12', value: 12 },
-      { id: 'enchant.stat_4079888060', value: 2 },
+      'Adds 8 Passive Skills',
+      'Added Small Passive Skills grant: 12% increased Physical Damage',
+      '2 Added Passive Skills are Jewel Sockets',
     ];
     const notableMods = [
-      { id: 'explicit.stat_4188581520', value: 1 },
-      { id: 'explicit.stat_3415827027', value: 1 },
-      { id: 'explicit.stat_3585232432', value: 1 },
+      '1 Added Passive Skill is Battle-Hardened',
+      '1 Added Passive Skill is Furious Assault',
+      '1 Added Passive Skill is Master the Fundamentals',
     ];
-    const sharedSnapshot = 'shared-physical-cluster-output';
-    for (const { marketQuery } of plan.queries) {
+    const sharedSnapshot = 'scheduled-trade:shared-physical-cluster-output';
+    for (const { marketQuery, recipeIds } of plan.queries) {
       const target = marketQuery.query.handbookTarget
         ? recipeQueryTarget(marketQuery.query.handbookTarget)
         : null;
@@ -175,49 +239,137 @@ describe('catalog publication with PostgreSQL', () => {
         : JSON.stringify(marketQuery.query.exchange).includes('jagged-fossil')
           ? '2'
           : '3';
-      const listings = Array.from({ length: finished ? 5 : 1 }, (_, index) => {
-        const account = `seller-${index}`;
-        return {
-          id: `${marketQuery.id}-${index}`,
-          account,
-          ageSeconds: 60,
-          fee: null,
-          indexedAt: now.toISOString(),
-          price: { amount, currency: 'chaos' },
-          item: target
-            ? {
-                baseType: 'Large Cluster Jewel',
-                rarity,
-                itemLevel: 83,
-                league: 'Standard',
-                patch: '3.29.3.3',
-                currency: 'chaos',
-                seller: account,
-                status: 'listed',
-                corrupted: false,
-                fractured: false,
-                synthesised: false,
-                influences: [],
-                modsComplete: true,
-                mods: finished ? [...clusterMods, ...notableMods] : clusterMods,
-              }
-            : { stock: 1000 },
-        };
-      });
+      const sortedSampleComplete =
+        target?.slot === 'starting-base' && rarity === 'rare';
+      const listings = Array.from(
+        { length: finished ? 5 : sortedSampleComplete ? 24 : 1 },
+        (_, index) => {
+          const account = `seller-${index}`;
+          const currency =
+            target?.slot === 'starting-base' && rarity === 'normal'
+              ? 'divine'
+              : 'chaos';
+          const id = `${marketQuery.id}-${index}`;
+          const ask =
+            sortedSampleComplete && index >= 20
+              ? '1'
+              : currency === 'divine'
+                ? '0.05'
+                : amount;
+          return {
+            id,
+            account,
+            ageSeconds: 60,
+            fee: null,
+            indexedAt: now.toISOString(),
+            price: { amount: ask, currency },
+            item: target
+              ? {
+                  baseType: 'Large Cluster Jewel',
+                  rarity,
+                  itemLevel: 83,
+                  league: 'Standard',
+                  patch: '3.29.3.3',
+                  currency,
+                  seller: account,
+                  status: 'listed',
+                  corrupted: false,
+                  fractured: false,
+                  synthesised: false,
+                  influences: [],
+                  // Raw modifiers, rather than the saved normalized view, prove the match.
+                  mods: [],
+                  rawListing: {
+                    id,
+                    listing: {
+                      account: { name: account },
+                      price: { amount: Number(ask), currency },
+                    },
+                    item: {
+                      baseType: 'Large Cluster Jewel',
+                      rarity,
+                      ilvl: 83,
+                      verified: true,
+                      league: 'Standard',
+                      enchantMods: clusterMods,
+                      explicitMods: finished ? notableMods : [],
+                    },
+                  },
+                }
+              : { stock: 1000 },
+          };
+        },
+      );
       await repositories.snapshots.save({
         capturedAt: now,
-        dedupeKey: finished ? sharedSnapshot : marketQuery.id,
+        dedupeKey: finished
+          ? sharedSnapshot
+          : target
+            ? `scheduled-trade:${marketQuery.id}`
+            : marketQuery.id,
         expiresAt: new Date(now.getTime() + snapshotTtlMs),
         leagueId,
         marketQueryId: marketQuery.id,
         payload: {
-          listings,
-          coverage: 'complete',
+          listings: sortedSampleComplete ? listings.slice(0, 20) : listings,
+          coverage: sortedSampleComplete ? 'partial' : 'complete',
+          sortedSampleComplete,
           totalResults: listings.length,
         },
         providerStatus: 200,
         refreshCycleId: plan.cycle.id,
       });
+      if (target) {
+        const scheduleId = randomUUID();
+        await pool.query(
+          `insert into collector_schedule (id, kind, key, league_id, payload, interval_minutes, next_due_at)
+           values ($1, 'trade-target', $2, $3, $4, 60, $5)`,
+          [scheduleId, marketQuery.canonicalHash, leagueId, { recipeIds }, now],
+        );
+        const capture = {
+          scheduleId,
+          capturedAt: now,
+          reportedTotal: listings.length,
+          fetched: listings.length,
+          complete: true,
+          sortedSampleIds: sortedSampleComplete
+            ? listings.slice(0, 20).map(({ id }) => id)
+            : null,
+          durationMs: 0,
+          fxSnapshotId,
+          slices: 1,
+          listings: listings.map(({ account, id, indexedAt, item, price }) => ({
+            itemId: id,
+            seller: account,
+            indexedAt: new Date(indexedAt),
+            fingerprint: null,
+            item: { rawItem: item.rawListing?.item ?? null },
+            price,
+            priceChaos: price.currency === 'divine' ? '8.5' : price.amount,
+          })),
+        };
+        if (finished) {
+          const [first] = capture.listings;
+          await captureStore.saveCapture({
+            ...capture,
+            capturedAt: new Date(now.getTime() - 60_000),
+            fetched: 1,
+            complete: false,
+            listings: [
+              {
+                ...first!,
+                price: { amount: '1', currency: 'chaos' },
+                priceChaos: '1',
+              },
+            ],
+          });
+        }
+        const captureId = await captureStore.saveCapture(capture);
+        if (finished) {
+          outputScheduleId = scheduleId;
+          outputCaptureId = captureId;
+        }
+      }
     }
     await repositories.cycles.save({
       ...plan.cycle,
@@ -228,6 +380,7 @@ describe('catalog publication with PostgreSQL', () => {
       cycleId: plan.cycle.id,
       league: 'Standard',
       marketDependencies,
+      economy,
       now,
     });
     expect(report).toMatchObject({
@@ -255,6 +408,158 @@ describe('catalog publication with PostgreSQL', () => {
       expect(Number(evaluation?.estimatedSalePrice)).toBe(15000);
       expect(Number(evaluation?.expectedCraftCost)).toBe(cost);
       expect(Number(evaluation?.profit)).toBe(profit);
+    }
+
+    // The old scheduled publisher uses poe.ninja instead of Trade exchange fallback.
+    await saveEconomy(
+      'Fossil',
+      randomUUID(),
+      'jagged-fossil',
+      'Jagged Fossil',
+      2,
+    );
+    await saveEconomy(
+      'Resonator',
+      randomUUID(),
+      'primitive-chaotic-resonator',
+      'Primitive Chaotic Resonator',
+      3,
+    );
+    const baselineCycle = { ...cycle(randomUUID()), totalRecipes: 2 };
+    await repositories.cycles.save(baselineCycle);
+    const baseline = await evaluateAndPublishCatalog(repositories, {
+      allowMissingOutput: true,
+      cycleId: baselineCycle.id,
+      league: 'Standard',
+      marketDependencies: createRecipeMarketDependencies({
+        trade,
+        resolveResource: async () => null,
+      }),
+      economy,
+      now,
+    });
+    const client = await pool.connect();
+    try {
+      const publishResults = createCollectorResultPublisher(pool, async () => ({
+        maximumQuoteAgeMs: snapshotTtlMs,
+        freshnessWarningMs: snapshotTtlMs,
+      }));
+      const publish = (
+        at: Date,
+        kind: 'trade-target' | 'economy' = 'trade-target',
+      ) =>
+        publishResults(
+          {
+            kind,
+            leagueId,
+            payload:
+              kind === 'trade-target'
+                ? { recipeIds: ids }
+                : { league: 'Standard' },
+          },
+          at,
+          client,
+        );
+      const readResults = () =>
+        client.query(
+          'select recipe_id, result from recipe_results order by recipe_id',
+        );
+      await client.query('begin');
+      await publish(now);
+      const { rows } = await readResults();
+      expect(rows).toHaveLength(2);
+      for (const { recipe_id: recipeId, result } of rows) {
+        const old = baseline.evaluations.find(
+          (entry) => entry.recipeId === recipeId,
+        )!;
+        expect(old.status).toBe('success');
+        expect(old.methodCost?.budget).toMatchObject({
+          p50: expect.any(String),
+          p90: expect.any(String),
+        });
+        expect(result).toMatchObject({
+          status: 'success',
+          methodCost: {
+            source: {
+              captureId: outputCaptureId,
+              captureFxSnapshotId: fxSnapshotId,
+              coverage: 'complete',
+              sampleSize: 5,
+            },
+            saleEvidence: { grade: 'A' },
+            budget: old.methodCost?.budget,
+          },
+        });
+        if (recipeId === jagged) {
+          expect(result.methodCost.materialEvidence.base).toMatchObject({
+            captureFxSnapshotId: fxSnapshotId,
+            marketExchange: {
+              snapshotId: appliedFxSnapshotId,
+              verifiedAt: now.toISOString(),
+              chaosPerDivine: 200,
+            },
+          });
+        }
+        expect(Number(result.estimatedSalePrice)).toBe(
+          Number(old.estimatedSalePrice),
+        );
+        expect(Number(result.expectedCraftCost)).toBe(
+          Number(old.expectedCraftCost),
+        );
+        expect(Number(result.profit)).toBe(Number(old.profit));
+      }
+      await client.query('commit');
+
+      // Old active asks still exist after a partial capture, but are not fresh sightings.
+      for (const [i, complete] of [false, true].entries()) {
+        const at = new Date(now.getTime() + (i + 1) * 60_000);
+        const latest = await captureStore.saveCapture({
+          scheduleId: outputScheduleId,
+          capturedAt: at,
+          reportedTotal: complete ? 0 : 5,
+          fetched: 0,
+          complete,
+          durationMs: 0,
+          slices: 1,
+          listings: [],
+        });
+        await client.query('begin');
+        await publish(at);
+        for (const { result } of (await readResults()).rows) {
+          expect(result).toMatchObject({
+            estimatedSalePrice: null,
+            profit: null,
+            methodCost: {
+              marketStatus: complete ? 'empty' : 'partial',
+              source: {
+                captureId: latest,
+                sampleSize: 0,
+                coverage: complete ? 'complete' : 'partial',
+                sortedSampleComplete: false,
+              },
+            },
+          });
+        }
+        await client.query('commit');
+      }
+      await client.query('begin');
+      await publish(
+        new Date(now.getTime() + snapshotTtlMs + 120_000),
+        'economy',
+      );
+      for (const { result } of (await readResults()).rows) {
+        expect(result).toMatchObject({
+          expectedCraftCost: null,
+          estimatedSalePrice: null,
+          profit: null,
+          methodCost: { marketStatus: 'unavailable' },
+        });
+        expect(result.methodCost.source).toBeUndefined();
+      }
+      await client.query('commit');
+    } finally {
+      await client.query('rollback');
+      client.release();
     }
   });
 

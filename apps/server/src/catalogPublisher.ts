@@ -23,6 +23,7 @@ import {
 import { z } from 'zod';
 import {
   type RecipeMarketDependencies,
+  type RecipeMarketQuery,
   comparableRecipeListings,
   requiresCompleteOutputCoverage,
 } from './recipeMarket.js';
@@ -31,6 +32,7 @@ import type { Metrics } from './observability/metrics.js';
 import {
   convertMarketQuote,
   revalueSavedTradeListings,
+  savedTradeExchangeSchema,
 } from './marketCurrency.js';
 import {
   verifyEconomySnapshot,
@@ -72,6 +74,26 @@ export const snapshotPayloadSchema = z.object({
   listings: z.array(listingSchema),
   totalResults: z.number().int().nonnegative(),
 });
+
+export type QuoteEvidence = {
+  capturedAt: Date;
+  expiresAt: Date;
+  payload: unknown;
+  revalue: boolean;
+  legacy?: {
+    dedupeKey: string;
+    readObservationId: () => Promise<number | null>;
+  };
+  capture?: { captureId: string; captureFxSnapshotId: string | null };
+  captureExchange?: z.infer<typeof savedTradeExchangeSchema>;
+};
+
+export type QuoteEvidenceSource = (
+  queryHash: string,
+) => Promise<QuoteEvidence | null>;
+
+type EvaluationEconomy = Pick<MarketEconomyRepository, 'find' | 'latest'> &
+  Partial<Pick<MarketEconomyRepository, 'listAttempts'>>;
 
 type FreshEvaluation = Readonly<{
   confidence: 'low' | 'medium' | 'high';
@@ -119,8 +141,7 @@ export async function evaluateAndPublishCatalog(
     leagueName?: string;
     now?: Date;
     marketDependencies?: RecipeMarketDependencies;
-    economy?: Pick<MarketEconomyRepository, 'find' | 'latest'> &
-      Partial<Pick<MarketEconomyRepository, 'listAttempts'>>;
+    economy?: EvaluationEconomy;
     logger?: Logger;
     metrics?: Metrics;
     maximumQuoteAgeMs?: number;
@@ -206,45 +227,27 @@ export async function evaluateAndPublishCatalog(
       await repositories.evaluations.save(carried);
     }
   }
-  const attempts = (await options.economy?.listAttempts?.()) ?? [];
-  const verified = (snapshot: StoredMarketEconomySnapshot | null) =>
-    verifyEconomySnapshot(snapshot, attempts, now);
-  const economySummary = await options.economy?.latest(league, 'Currency');
-  const currencyExchange = verified(
-    economySummary ? await options.economy!.find(economySummary.id) : null,
+  const { currencyExchange, materialEconomies } = await loadEvaluationEconomy(
+    options.economy,
+    league,
+    now,
+    options.maximumQuoteAgeMs,
   );
-  const materialEconomies = new Map<string, StoredMarketEconomySnapshot>();
-  for (const category of [
-    'Currency',
-    'Essence',
-    'Fossil',
-    'Resonator',
-  ] as const) {
-    const latest = await options.economy?.latest(league, category);
-    const snapshot = verified(
-      latest ? await options.economy!.find(latest.id) : null,
-    );
-    if (
-      snapshot &&
-      snapshot.league === league &&
-      now.getTime() >= Date.parse(snapshot.verifiedAt ?? snapshot.capturedAt) &&
-      now.getTime() - Date.parse(snapshot.verifiedAt ?? snapshot.capturedAt) <=
-        (options.maximumQuoteAgeMs ?? 30 * 60_000)
-    )
-      materialEconomies.set(category, snapshot);
-  }
   const evaluateRecipe =
     options.evaluateRecipe ??
     ((recipe, context) =>
       evaluateFreshRecipe(
         recipe,
-        context,
-        options.marketDependencies,
-        currencyExchange,
-        [...materialEconomies.values()],
-        options.maximumQuoteAgeMs,
-        options.allowMissingOutput,
-        options.freshnessWarningMs,
+        {
+          league: context.league,
+          now: context.now,
+          quotes: legacyQuoteEvidence(context.repositories, context.leagueId),
+        },
+        {
+          ...options,
+          currencyExchange,
+          materialEconomies,
+        },
       ));
   const evaluations: RecipeEvaluation[] = [];
   let completedRecipes = 0;
@@ -398,21 +401,88 @@ export async function evaluateAndPublishCatalog(
   };
 }
 
-async function evaluateFreshRecipe(
-  recipe: Recipe,
-  context: {
-    cycleId: string;
-    league: string;
-    leagueId: string;
-    now: Date;
-    repositories: Repositories;
-  },
-  marketDependencies?: RecipeMarketDependencies,
-  currencyExchange?: StoredMarketEconomySnapshot | null,
-  materialEconomies: readonly StoredMarketEconomySnapshot[] = [],
+export async function loadEvaluationEconomy(
+  economy: EvaluationEconomy | undefined,
+  league: string,
+  now: Date,
   maximumQuoteAgeMs = 30 * 60_000,
-  allowMissingOutput = false,
-  freshnessWarningMs = 60 * 60_000,
+) {
+  const attempts = (await economy?.listAttempts?.()) ?? [];
+  let currencyExchange: StoredMarketEconomySnapshot | null = null;
+  const materialEconomies: StoredMarketEconomySnapshot[] = [];
+  for (const category of [
+    'Currency',
+    'Essence',
+    'Fossil',
+    'Resonator',
+  ] as const) {
+    const latest = await economy?.latest(league, category);
+    const snapshot = verifyEconomySnapshot(
+      latest ? await economy!.find(latest.id) : null,
+      attempts,
+      now,
+    );
+    if (category === 'Currency') currencyExchange = snapshot;
+    if (!snapshot || snapshot.league !== league) continue;
+    const age =
+      now.getTime() - Date.parse(snapshot.verifiedAt ?? snapshot.capturedAt);
+    if (age >= 0 && age <= maximumQuoteAgeMs) materialEconomies.push(snapshot);
+  }
+  return { currencyExchange, materialEconomies, attempts };
+}
+
+function legacyQuoteEvidence(
+  repositories: Repositories,
+  leagueId: string,
+): QuoteEvidenceSource {
+  return async (canonicalHash) => {
+    const query =
+      await repositories.marketQueries.findByCanonicalHash(canonicalHash);
+    if (!query) return null;
+    const snapshot = await repositories.snapshots.findLatest(
+      query.id,
+      leagueId,
+    );
+    if (!snapshot) return null;
+    return {
+      ...snapshot,
+      revalue: snapshot.dedupeKey.startsWith('scheduled-trade:'),
+      legacy: {
+        dedupeKey: snapshot.dedupeKey,
+        readObservationId: async () =>
+          (
+            await repositories.observations.listRecent(
+              query.id,
+              leagueId,
+              snapshot.capturedAt,
+            )
+          ).find(
+            ({ observedAt }) =>
+              observedAt.getTime() === snapshot.capturedAt.getTime(),
+          )?.id ?? null,
+      },
+    };
+  };
+}
+
+export async function evaluateFreshRecipe(
+  recipe: Recipe,
+  context: { league: string; now: Date; quotes: QuoteEvidenceSource },
+  {
+    marketDependencies,
+    currencyExchange,
+    materialEconomies = [],
+    maximumQuoteAgeMs = 30 * 60_000,
+    allowMissingOutput = false,
+    freshnessWarningMs = 60 * 60_000,
+  }: {
+    marketDependencies?: RecipeMarketDependencies;
+    currencyExchange: StoredMarketEconomySnapshot | null;
+    materialEconomies?: readonly StoredMarketEconomySnapshot[];
+    maximumQuoteAgeMs?: number;
+    allowMissingOutput?: boolean;
+    freshnessWarningMs?: number;
+  },
 ): Promise<FreshEvaluation> {
   let definition;
   try {
@@ -434,7 +504,7 @@ async function evaluateFreshRecipe(
     currencyExchange: currencyExchange ?? null,
   };
   const readMarket = async (
-    query: import('./recipeMarket.js').RecipeMarketQuery,
+    query: RecipeMarketQuery,
     requiredStock?: number,
     allowMissing = true,
   ) => {
@@ -456,10 +526,7 @@ async function evaluateFreshRecipe(
       throw error;
     }
   };
-  const optionalMarket = async (
-    query: import('./recipeMarket.js').RecipeMarketQuery,
-    stock?: number,
-  ) => {
+  const optionalMarket = async (query: RecipeMarketQuery, stock?: number) => {
     const market = await readMarket(query, stock);
     return market?.currencyAvailable ? market : null;
   };
@@ -571,6 +638,10 @@ async function evaluateFreshRecipe(
       currency: basePrice.currency,
       capturedAt: base.snapshotCapturedAt.toISOString(),
       sortedSampleComplete: base.sortedSampleComplete,
+      ...base.capture,
+      ...(base.capture && base.marketExchange
+        ? { marketExchange: base.marketExchange }
+        : {}),
       totalResults: base.aggregation.totalListings,
     };
   for (const dependency of dependencies.filter((d) => d.kind === 'material')) {
@@ -746,6 +817,7 @@ async function evaluateFreshRecipe(
             sortedPageComplete: output.sortedPageComplete,
             sortedSampleComplete: output.sortedSampleComplete,
             currencyAvailable: output.currencyAvailable,
+            ...output.capture,
           },
         }
       : {}),
@@ -781,17 +853,6 @@ async function evaluateFreshRecipe(
         ? null
         : { amount: expectedCraftCost, currency },
   };
-  const observations = output
-    ? await context.repositories.observations.listRecent(
-        output.marketQueryId,
-        context.leagueId,
-        output.snapshotCapturedAt,
-      )
-    : [];
-  const observation = observations.find(
-    ({ observedAt }) =>
-      observedAt.getTime() === output?.snapshotCapturedAt.getTime(),
-  );
   return {
     confidence:
       gradedEvidence?.grade === 'A'
@@ -803,21 +864,20 @@ async function evaluateFreshRecipe(
     estimatedSalePrice: salePrice,
     expectedCraftCost,
     marginPercent: comparison.marginPercent,
-    observationId: observation?.id ?? null,
+    observationId: (await output?.legacy?.readObservationId()) ?? null,
     profit: comparison.profit,
-    sourceSnapshotDedupeKey: output?.snapshotDedupeKey ?? null,
+    sourceSnapshotDedupeKey: output?.legacy?.dedupeKey ?? null,
     status: comparison.profit === null ? 'partial' : 'success',
     methodCost,
   };
 }
 
 async function resolveMarket(
-  tradeQuery: import('./recipeMarket.js').RecipeMarketQuery,
+  tradeQuery: RecipeMarketQuery,
   context: {
-    leagueId: string;
     league: string;
     now: Date;
-    repositories: Repositories;
+    quotes: QuoteEvidenceSource;
     currencyExchange?: StoredMarketEconomySnapshot | null;
   },
   requiredStock?: number,
@@ -829,13 +889,7 @@ async function resolveMarket(
     query: tradeQuery.query,
     schemaVersion: tradeQuery.schemaVersion,
   });
-  const marketQuery =
-    await context.repositories.marketQueries.findByCanonicalHash(canonicalHash);
-  if (!marketQuery) throw new DomainError('SNAPSHOT_MISSING');
-  const snapshot = await context.repositories.snapshots.findLatest(
-    marketQuery.id,
-    context.leagueId,
-  );
+  const snapshot = await context.quotes(canonicalHash);
   if (!snapshot) throw new DomainError('SNAPSHOT_MISSING');
   if (
     snapshot.expiresAt <= context.now ||
@@ -855,9 +909,9 @@ async function resolveMarket(
   const rateAt = latestRate
     ? Date.parse(latestRate.verifiedAt ?? latestRate.capturedAt)
     : 0;
-  let marketExchange = null;
+  let exchange = snapshot.captureExchange;
   if (
-    snapshot.dedupeKey.startsWith('scheduled-trade:') &&
+    snapshot.revalue &&
     latestRate &&
     rateAt <= context.now.getTime() &&
     rateAt + maximumQuoteAgeMs > context.now.getTime()
@@ -872,12 +926,14 @@ async function resolveMarket(
       now: context.now.getTime(),
       dataKind: 'observed',
     });
-    if (rate?.exchange) {
-      const repriced = revalueSavedTradeListings(listings, rate.exchange);
-      if (repriced.some((row, index) => row !== listings[index])) {
-        listings = repriced;
-        marketExchange = rate.exchange;
-      }
+    if (rate?.exchange) exchange = rate.exchange;
+  }
+  let marketExchange = null;
+  if (exchange) {
+    const repriced = revalueSavedTradeListings(listings, exchange);
+    if (repriced.some((row, index) => row !== listings[index])) {
+      listings = repriced;
+      marketExchange = exchange;
     }
   }
   // An unconverted matching ask could be the true floor of this sorted sample.
@@ -968,9 +1024,9 @@ async function resolveMarket(
     conversionAt,
     marketExchange,
     snapshotExpiresAt: snapshot.expiresAt,
-    marketQueryId: marketQuery.id,
+    capture: snapshot.capture,
+    legacy: snapshot.legacy,
     snapshotCapturedAt: snapshot.capturedAt,
-    snapshotDedupeKey: snapshot.dedupeKey,
   };
 }
 

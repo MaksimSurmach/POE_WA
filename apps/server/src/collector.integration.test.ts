@@ -96,6 +96,7 @@ function start(
   handle: CollectorHandler,
   maxIdleMs?: number,
   bootstrap?: (client: PoolClient, signal: AbortSignal) => Promise<void>,
+  publishResults?: Parameters<typeof runCollector>[0]['publishResults'],
 ) {
   const stop = new AbortController();
   const done = runCollector({
@@ -111,6 +112,7 @@ function start(
     jitterMs: () => 0,
     maxIdleMs,
     ...(bootstrap ? { bootstrap } : {}),
+    ...(publishResults ? { publishResults } : {}),
   });
   const worker = { stop, done };
   workers.push(worker);
@@ -197,6 +199,63 @@ it('wakes within one second for NOTIFY and processes a manual run', async () => 
   );
   expect(performance.now() - requestedAt).toBeLessThan(1000);
   expect((await row(id)).lastStatus).toBe('succeeded');
+});
+
+it.each([false, true])(
+  'does not finish Run now before pinned result writes (reject=%s)',
+  async (reject) => {
+    const scheduleId = await schedule({ nextDueAt: new Date(time + minute) });
+    const requestId = await enqueueRunRequest(pool, null);
+    const evidence: unknown[] = [];
+    const publish = vi.fn<
+      NonNullable<Parameters<typeof runCollector>[0]['publishResults']>
+    >(async (_schedule, _at, client) => {
+      const transaction = drizzle({ client });
+      evidence.push({
+        pinned: (await transaction.select().from(captures)).length,
+        external: (await db.select().from(captures)).length,
+        state: (await request(requestId)).state,
+      });
+      if (reject) throw new Error('recipe result write rejected');
+    });
+    start(succeed, undefined, undefined, publish);
+    await vi.waitFor(async () => {
+      expect((await request(requestId)).state).toBe(reject ? 'failed' : 'done');
+    });
+    expect(publish).toHaveBeenCalledOnce();
+    expect(evidence).toEqual([{ pinned: 1, external: 0, state: 'running' }]);
+    expect((await row(scheduleId)).lastStatus).toBe(
+      reject ? 'failed' : 'succeeded',
+    );
+    expect(await db.select().from(captures)).toHaveLength(reject ? 0 : 1);
+  },
+);
+
+it('publishes updated economy evidence without turning a partial collection into success', async () => {
+  const id = await schedule({
+    kind: 'economy',
+    nextDueAt: new Date(time + minute),
+  });
+  const requestId = await enqueueRunRequest(pool, null);
+  const publish = vi.fn(async () => {});
+  start(
+    async () => ({
+      status: 'retry',
+      reason: 'ECONOMY_UNAVAILABLE',
+      economyUpdated: true,
+    }),
+    undefined,
+    undefined,
+    publish,
+  );
+  await vi.waitFor(async () =>
+    expect((await request(requestId)).state).toBe('failed'),
+  );
+  expect(publish).toHaveBeenCalledOnce();
+  expect(await row(id)).toMatchObject({
+    attempt: 1,
+    lastError: 'ECONOMY_UNAVAILABLE',
+  });
 });
 
 it('processes a request queued while offline and one with a lost notification', async () => {

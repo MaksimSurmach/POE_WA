@@ -15,7 +15,12 @@ import { collectorSchedule, collectorState, runRequests } from './schema.js';
 export type CollectorSchedule = typeof collectorSchedule.$inferSelect;
 export type CollectorResult =
   | { status: 'success'; capture?: Omit<CaptureInput, 'scheduleId'> }
-  | { status: 'retry'; reason: string; retryAt?: Date }
+  | {
+      status: 'retry';
+      reason: string;
+      retryAt?: Date;
+      economyUpdated?: boolean;
+    }
   | { status: 'blocked'; reason: string };
 export type CollectorHandler = (
   schedule: CollectorSchedule,
@@ -23,6 +28,14 @@ export type CollectorHandler = (
   client: PoolClient,
   recoverTradeAuthentication: boolean,
 ) => Promise<CollectorResult>;
+
+type PublishResults = (
+  schedule: CollectorSchedule,
+  now: Date,
+  client: PoolClient,
+) => Promise<void>;
+
+class RecipeResultWriteError extends Error {}
 
 type CollectorOptions = {
   pool: Pool;
@@ -36,6 +49,7 @@ type CollectorOptions = {
   maxIdleMs?: number | undefined;
   onError?: (code: string) => void;
   bootstrap?: (client: PoolClient, signal: AbortSignal) => Promise<void>;
+  publishResults?: PublishResults;
 };
 
 type CollectorDb = NodePgDatabase;
@@ -295,6 +309,7 @@ async function finishSchedule(
   request: ActiveRequest | undefined,
   now: Date,
   jitterMs: () => number,
+  publishResults?: PublishResults,
 ) {
   await transaction(client, async () => {
     const [current] = await db
@@ -322,6 +337,15 @@ async function finishSchedule(
             scheduleId: schedule.id,
           })
         : null;
+    if (publishResults) {
+      try {
+        await publishResults(current, now, client);
+      } catch (cause) {
+        throw new RecipeResultWriteError('RECIPE_RESULTS_PERSISTENCE_FAILED', {
+          cause,
+        });
+      }
+    }
     const backoff = () =>
       new Date(
         now.getTime() +
@@ -411,6 +435,7 @@ async function collectSession({
   maxIdleMs = 15 * minuteMs,
   bootstrap,
   onError,
+  publishResults,
 }: CollectorOptions) {
   const client = await pool.connect();
   const disconnected = new AbortController();
@@ -557,6 +582,15 @@ async function collectSession({
       }
 
       disconnected.signal.throwIfAborted();
+      const publish =
+        (schedule.kind === 'trade-target' &&
+          result.status === 'success' &&
+          result.capture) ||
+        (schedule.kind === 'economy' &&
+          (result.status === 'success' ||
+            (result.status === 'retry' && result.economyUpdated)))
+          ? publishResults
+          : undefined;
       try {
         await finishSchedule(
           client,
@@ -566,9 +600,14 @@ async function collectSession({
           request,
           now(),
           jitterMs,
+          publish,
         );
       } catch (error) {
-        if (result.status !== 'success' || !result.capture) throw error;
+        if (
+          !(error instanceof RecipeResultWriteError) &&
+          (result.status !== 'success' || !result.capture)
+        )
+          throw error;
         disconnected.signal.throwIfAborted();
         await finishSchedule(
           client,
@@ -576,7 +615,10 @@ async function collectSession({
           schedule,
           {
             status: 'retry',
-            reason: 'CAPTURE_PERSISTENCE_FAILED',
+            reason:
+              error instanceof RecipeResultWriteError
+                ? error.message
+                : 'CAPTURE_PERSISTENCE_FAILED',
           },
           request,
           now(),

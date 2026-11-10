@@ -19,6 +19,10 @@ import {
   synchronizeRecipeCatalog,
 } from './recipes/synchronizeRecipes.js';
 import { runCollector } from './collector.js';
+import {
+  createCollectorEconomyCache,
+  createCollectorResultPublisher,
+} from './collectorResults.js';
 import { configuredTradeCapture } from './collectorTrade.js';
 import { existsSync } from 'node:fs';
 import pino from 'pino';
@@ -206,13 +210,26 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       const rateLimits = new GggRateLimitController({
         repository: repositories.rateLimits,
       });
-      const trade = configuredTradeCapture(rateLimits, economy, process.env);
+      const readEconomySnapshot = createCollectorEconomyCache();
+      const trade = configuredTradeCapture(
+        rateLimits,
+        {
+          latest: economy.latest,
+          find: (id) => readEconomySnapshot(economy, id),
+        },
+        process.env,
+      );
       const sessionKey = process.env.POE_TRADE_SESSION_KEY;
       await runCollectorRuntime(
         (signal) =>
           runCollector({
             pool: leaderPool,
             signal,
+            publishResults: createCollectorResultPublisher(
+              pool,
+              async () => (await admin.read()).effective,
+              readEconomySnapshot,
+            ),
             onError: (code) =>
               logger.warn({ code }, 'collector operation will retry'),
             bootstrap: async (client, jobSignal) => {
@@ -263,6 +280,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
                 return report.failed
                   ? {
                       status: 'retry',
+                      economyUpdated: report.succeeded > 0,
                       reason: report.errorCode ?? 'ECONOMY_UNAVAILABLE',
                       ...(report.cooldownUntil
                         ? { retryAt: new Date(report.cooldownUntil) }
