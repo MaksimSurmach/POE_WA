@@ -40,6 +40,7 @@ export type TradeCompatibleConfig = {
   sessionId?: string;
   timeoutMs: number;
 };
+export type TradePriceRange = { min?: number; max?: number };
 
 export function loadTradeCompatibleConfig(
   environment: Record<string, string | undefined> = process.env,
@@ -190,6 +191,7 @@ const listingSchema = z
 const fetchSchema = z.object({
   result: z.array(listingSchema.nullable()).max(10),
 });
+const collectorFetchSchema = z.object({ result: z.array(z.unknown()).max(10) });
 const jsonRecord = z.record(z.string(), z.json());
 
 const origins = [
@@ -441,6 +443,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     }
   >();
   readonly #clock: () => Date;
+  readonly #collector: boolean;
   readonly #economy:
     | (Pick<MarketEconomyRepository, 'find'> &
         Partial<Pick<MarketEconomyRepository, 'latest'>>)
@@ -456,6 +459,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
       fetcher?: typeof fetch;
       sessionManager?: PoeTradeSessionManager;
       clock?: () => Date;
+      collector?: boolean;
       readTimeoutMs?: () => Promise<number>;
       economy?: Pick<MarketEconomyRepository, 'find'> &
         Partial<Pick<MarketEconomyRepository, 'latest'>>;
@@ -465,6 +469,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     this.#fetch = options.sessionManager?.fetch ?? options.fetcher ?? fetch;
     this.#sessionManager = options.sessionManager;
     this.#clock = options.clock ?? (() => new Date());
+    this.#collector = options.collector ?? false;
     this.#economy = options.economy;
     this.#readTimeoutMs = options.readTimeoutMs;
   }
@@ -490,13 +495,14 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     if (this.#denied) throw new DomainError('MARKET_ACCESS_BLOCKED');
     signal.throwIfAborted();
     const key = JSON.stringify([path, body]);
-    const cached = this.#cache.get(key);
+    const cached = this.#collector ? undefined : this.#cache.get(key);
     if (cached && cached.expires > this.#clock().getTime())
       return { ...cached.response, cached: true };
     try {
       const response = await this.#fetch(new URL(path, this.#config.baseURL), {
         method: body === undefined ? 'GET' : 'POST',
         redirect: 'manual',
+        ...(this.#collector ? { cache: 'no-store' } : {}),
         signal: AbortSignal.any([
           signal,
           AbortSignal.timeout(
@@ -531,7 +537,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
               : status >= 400
                 ? 'UNAVAILABLE'
                 : 'CONNECTED';
-      if (status === 401 || status === 403)
+      if (!this.#collector && (status === 401 || status === 403))
         this.#denied =
           status !== 401 ||
           response.headers.get('x-poe-session-stale') !== 'true';
@@ -574,6 +580,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
         capturedAt: this.#clock().toISOString(),
       };
       if (
+        !this.#collector &&
         !/no-store|no-cache/i.test(response.headers.get('cache-control') ?? '')
       ) {
         if (this.#cache.size >= 100) this.#cache.clear();
@@ -625,11 +632,15 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
   async search({
     target,
     signal,
+    priceRange,
   }: {
     target: MarketTarget;
     signal: AbortSignal;
-  }) {
+    priceRange?: TradePriceRange;
+  }): ReturnType<MarketCollectionTransport['search']> {
     const generated = generateMarketTradeQuery(target);
+    const price = generated.request.query.filters.trade_filters.filters.price;
+    if (this.#collector && priceRange) Object.assign(price, priceRange);
     const response = await this.#request(
       `/api/trade/search/${encodeURIComponent(target.league)}`,
       signal,
@@ -655,8 +666,10 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     const data = parsed.data;
     if (data.result.length > data.total)
       throw new DomainError('PROVIDER_RESPONSE_INVALID');
-    if (this.#targets.size >= 100) this.#targets.clear();
-    this.#targets.set(data.id, target);
+    if (!this.#collector) {
+      if (this.#targets.size >= 100) this.#targets.clear();
+      this.#targets.set(data.id, target);
+    }
     return {
       ...response,
       data: {
@@ -671,13 +684,17 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
         reportedTotal: data.total,
         inexact: data.inexact ?? false,
         sourceUrl: `${this.#config.baseURL}/trade/search/${encodeURIComponent(target.league)}/${encodeURIComponent(data.id)}`,
-        request: jsonRecord.parse({
-          version: generated.version,
-          hash: generated.hash,
-          scope: generated.scope,
-          ...generated.request,
-        }),
-        raw: jsonRecord.parse(response.data),
+        ...(this.#collector
+          ? {}
+          : {
+              request: jsonRecord.parse({
+                version: generated.version,
+                hash: generated.hash,
+                scope: generated.scope,
+                ...generated.request,
+              }),
+              raw: jsonRecord.parse(response.data),
+            }),
       },
     };
   }
@@ -709,6 +726,29 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
       signal,
     );
     if (response.status >= 400) return { ...response, data: [] };
+    if (this.#collector) {
+      const parsed = collectorFetchSchema.safeParse(response.data);
+      if (!parsed.success) {
+        this.connectionStatus = 'UNAVAILABLE';
+        throw new DomainError('PROVIDER_RESPONSE_INVALID');
+      }
+      return {
+        ...response,
+        data: parsed.data.result.map((entry) => {
+          if (entry === null) return null;
+          try {
+            return normalizeTradeCompatibleListing(entry, target);
+          } catch (error) {
+            if (
+              error instanceof DomainError &&
+              error.code === 'PROVIDER_RESPONSE_INVALID'
+            )
+              return null;
+            throw error;
+          }
+        }),
+      };
+    }
     const parsed = fetchSchema.safeParse(response.data);
     if (!parsed.success) {
       this.connectionStatus = 'UNAVAILABLE';

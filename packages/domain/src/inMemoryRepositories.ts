@@ -544,13 +544,14 @@ export function createInMemoryRepositories(): Repositories {
             endpoints: [input.endpoint],
           });
         }
+        const blockedUntil = new Date(
+          Math.max(...applicable.map((state) => state.blockedUntil.getTime())),
+        );
         const retryAt = new Date(
           Math.max(
             input.now.getTime(),
-            ...applicable.flatMap((state) => [
-              state.blockedUntil.getTime(),
-              state.nextRequestAt.getTime(),
-            ]),
+            blockedUntil.getTime(),
+            ...applicable.map((state) => state.nextRequestAt.getTime()),
           ),
         );
         const acquired = retryAt <= input.now;
@@ -572,6 +573,7 @@ export function createInMemoryRepositories(): Repositories {
           ) ?? applicable[0]!;
         return {
           acquired,
+          blockedUntil,
           retryAt,
           state: clone(rateLimitStates.get(governing.policy)!),
         };

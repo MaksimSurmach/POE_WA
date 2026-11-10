@@ -14,9 +14,15 @@ import {
 import { createMarketAdminStatusReader } from './marketAdminStatus.js';
 import { marketAdminRefreshSchema } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
-import { synchronizeRecipeCatalog } from './recipes/synchronizeRecipes.js';
+import {
+  synchronizeCollectorSchedules,
+  synchronizeRecipeCatalog,
+} from './recipes/synchronizeRecipes.js';
+import { runCollector } from './collector.js';
+import { configuredTradeCapture } from './collectorTrade.js';
 import { existsSync } from 'node:fs';
 import pino from 'pino';
+import type { PoolClient } from 'pg';
 import { fileURLToPath } from 'node:url';
 
 import { buildApi } from './api.js';
@@ -52,7 +58,7 @@ import {
 import { RetentionCleaner } from './retention.js';
 import { createResourceReaders } from './resourceViews.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
-import { ApplicationRuntime } from './runtime.js';
+import { ApplicationRuntime, runCollectorRuntime } from './runtime.js';
 import {
   type ApplicationMode,
   loadRuntimeConfig,
@@ -131,12 +137,156 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     cooldowns: repositories.providerCircuits,
     readTimeoutMs: async () => (await admin.read()).effective.requestTimeoutMs,
   });
+  const createLeagueResolver = (client?: PoolClient) =>
+    new LeagueResolver({
+      leagues: client
+        ? createPostgresRepositories(pool, client).leagues
+        : repositories.leagues,
+      poeNinja: {
+        async fetchEconomyLeagues() {
+          try {
+            return (await economyClient.discoverLeagues()).snapshot.leagues;
+          } catch (cause) {
+            throw new DomainError(
+              cause instanceof NinjaEconomyError &&
+                cause.code === 'SCHEMA_INVALID'
+                ? 'POE_NINJA_LEAGUES_INVALID'
+                : 'POE_NINJA_LEAGUES_UNAVAILABLE',
+              { cause },
+            );
+          }
+        },
+      },
+      trade: new HttpPoeTradeLeagueClient({
+        requestTimeoutMs: config.poeRequestTimeoutMs,
+        userAgent: config.poeUserAgent,
+      }),
+    });
+  const runCleanup = async (signal?: AbortSignal) => {
+    const settings = (await admin.read()).effective;
+    signal?.throwIfAborted();
+    await admin.cleanupObservations(settings);
+    signal?.throwIfAborted();
+    await economy.cleanup?.({
+      payloadBefore: new Date(
+        Date.now() - settings.rawRetentionHours * 3_600_000,
+      ),
+      snapshotsBefore: new Date(
+        Date.now() - settings.historyRetentionDays * 86_400_000,
+      ),
+    });
+    signal?.throwIfAborted();
+    // Rollup moves old observations into daily summaries before deleting them.
+    await priceHistory.compact({
+      batchSize: config.retentionBatchSize,
+      dailyRetentionDays: settings.historyRetentionDays,
+    });
+    signal?.throwIfAborted();
+    return new RetentionCleaner({
+      batchSize: config.retentionBatchSize,
+      repositories,
+      rawSnapshotsRetentionMs: settings.rawRetentionHours * 3_600_000,
+      observationsRetentionMs: settings.historyRetentionDays * 86_400_000,
+    }).run();
+  };
   const recipeRoot = fileURLToPath(
     new URL('../../../recipes/', import.meta.url),
   );
   const catalogPath = existsSync(recipeRoot)
     ? recipeRoot
     : fileURLToPath(new URL('../recipes/', import.meta.url));
+  if (config.mode === 'collector') {
+    // Reserve a session for leadership even when the provider pool allows one connection.
+    const leaderPool = createDatabasePool(
+      { ...config.database, maxConnections: 1 },
+      logger,
+    );
+    try {
+      const rateLimits = new GggRateLimitController({
+        repository: repositories.rateLimits,
+      });
+      const trade = configuredTradeCapture(rateLimits, economy, process.env);
+      await runCollectorRuntime(
+        (signal) =>
+          runCollector({
+            pool: leaderPool,
+            signal,
+            onError: (code) =>
+              logger.warn({ code }, 'collector operation will retry'),
+            bootstrap: async (client, jobSignal) => {
+              const pinned = createPostgresRepositories(pool, client);
+              const report = await synchronizeRecipeCatalog(
+                catalogPath,
+                pinned.recipes,
+              );
+              if (report.failed.length) throw new Error('RECIPE_SYNC_FAILED');
+              jobSignal.throwIfAborted();
+              if (!(await pinned.leagues.findCurrent()))
+                await createLeagueResolver(client).resolve();
+              jobSignal.throwIfAborted();
+              const sync = await synchronizeCollectorSchedules(
+                pool,
+                config,
+                new Date(),
+                client,
+              );
+              if (sync !== 'synchronized')
+                throw new Error('COLLECTOR_SCHEDULE_SYNC_UNAVAILABLE');
+            },
+            handlers: {
+              'trade-target': trade,
+              economy: async ({ payload }, jobSignal, client) => {
+                const { league } = payload;
+                if (typeof league !== 'string' || !league.trim())
+                  return {
+                    status: 'retry',
+                    reason: 'COLLECTOR_ECONOMY_LEAGUE_INVALID',
+                  };
+                const report = await collectRecipeMaterialPrices(
+                  league,
+                  economyClient,
+                  createMarketEconomyRepository(client),
+                  jobSignal,
+                );
+                return report.failed
+                  ? {
+                      status: 'retry',
+                      reason: report.errorCode ?? 'ECONOMY_UNAVAILABLE',
+                      ...(report.cooldownUntil
+                        ? { retryAt: new Date(report.cooldownUntil) }
+                        : {}),
+                    }
+                  : { status: 'success' };
+              },
+              league: async (_, jobSignal, client) => {
+                await createLeagueResolver(client).resolve();
+                jobSignal.throwIfAborted();
+                const sync = await synchronizeCollectorSchedules(
+                  pool,
+                  config,
+                  new Date(),
+                  client,
+                );
+                return sync === 'synchronized'
+                  ? { status: 'success' }
+                  : {
+                      status: 'retry',
+                      reason: 'COLLECTOR_SCHEDULE_SYNC_UNAVAILABLE',
+                    };
+              },
+              retention: async (_, jobSignal) => {
+                await runCleanup(jobSignal);
+                return { status: 'success' };
+              },
+            },
+          }),
+        logger,
+      );
+    } finally {
+      await Promise.all([leaderPool.end(), pool.end()]);
+    }
+    return;
+  }
   const sync = await synchronizeRecipeCatalog(
     catalogPath,
     repositories.recipes,
@@ -361,28 +511,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         userAgent: config.poeUserAgent,
       });
     }
-    const resolver = new LeagueResolver({
-      leagues: repositories.leagues,
-      poeNinja: {
-        async fetchEconomyLeagues() {
-          try {
-            return (await economyClient.discoverLeagues()).snapshot.leagues;
-          } catch (cause) {
-            throw new DomainError(
-              cause instanceof NinjaEconomyError &&
-                cause.code === 'SCHEMA_INVALID'
-                ? 'POE_NINJA_LEAGUES_INVALID'
-                : 'POE_NINJA_LEAGUES_UNAVAILABLE',
-              { cause },
-            );
-          }
-        },
-      },
-      trade: new HttpPoeTradeLeagueClient({
-        requestTimeoutMs: config.poeRequestTimeoutMs,
-        userAgent: config.poeUserAgent,
-      }),
-    });
+    const resolver = createLeagueResolver();
     jobs = new ApplicationJobScheduler({
       boss: createJobBoss(pool, config.jobSchema, logger),
       cleanupCron: config.cleanupCron,
@@ -400,29 +529,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
           await admin.heartbeat(current);
         },
       },
-      runCleanup: async () => {
-        const settings = (await admin.read()).effective;
-        await admin.cleanupObservations(settings);
-        await economy.cleanup?.({
-          payloadBefore: new Date(
-            Date.now() - settings.rawRetentionHours * 3_600_000,
-          ),
-          snapshotsBefore: new Date(
-            Date.now() - settings.historyRetentionDays * 86_400_000,
-          ),
-        });
-        // Rollup moves old observations into daily summaries before deleting them.
-        await priceHistory.compact({
-          batchSize: config.retentionBatchSize,
-          dailyRetentionDays: settings.historyRetentionDays,
-        });
-        return new RetentionCleaner({
-          batchSize: config.retentionBatchSize,
-          repositories,
-          rawSnapshotsRetentionMs: settings.rawRetentionHours * 3_600_000,
-          observationsRetentionMs: settings.historyRetentionDays * 86_400_000,
-        }).run();
-      },
+      runCleanup,
       runRefresh: async (cycleId, rawData, jobSignal) => {
         const scope = marketAdminRefreshSchema.parse(
           rawData?.scope === 'recipe'

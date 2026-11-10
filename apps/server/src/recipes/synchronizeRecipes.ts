@@ -19,7 +19,7 @@ import {
 import { CronExpressionParser } from 'cron-parser';
 import { and, eq, notInArray, or, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 
 import {
   generateRecipeMarketQuery,
@@ -169,6 +169,7 @@ export async function synchronizeCollectorSchedules(
     'cleanupCron' | 'leagueResolveCron' | 'leagueResolveTimezone'
   >,
   now = new Date(),
+  collectorClient?: PoolClient,
 ): Promise<
   'synchronized' | 'league-unavailable' | 'mapping-unavailable' | 'stale-input'
 > {
@@ -259,7 +260,8 @@ export async function synchronizeCollectorSchedules(
   const recipeHashes = new Map(
     activeRecipes.map(({ id, contentHash }) => [id, contentHash]),
   );
-  return drizzle({ client: pool }).transaction(async (transaction) => {
+  const db = drizzle({ client: collectorClient ?? pool });
+  return db.transaction(async (transaction) => {
     await transaction.execute(
       sql`select pg_advisory_xact_lock(hashtext('poe-worksmith:collector-schedule-sync'))`,
     );

@@ -21,7 +21,7 @@ import {
   RepositoryNotFoundError,
 } from './errors.js';
 
-type CaptureInput = Omit<typeof captures.$inferInsert, 'id'> & {
+export type CaptureInput = Omit<typeof captures.$inferInsert, 'id'> & {
   listings: Capture['listings'];
 };
 
@@ -34,7 +34,11 @@ function storagePrice(value: string) {
   return outcomeMoney(value);
 }
 
-async function writeCapture(client: PoolClient, input: CaptureInput) {
+/** The caller must hold an open read-committed transaction on this client. */
+export async function writeCaptureInTransaction(
+  client: PoolClient,
+  input: CaptureInput,
+) {
   const { listings: sightings, ...metadata } = input;
   const { scheduleId, capturedAt } = metadata;
   const db = drizzle({ client });
@@ -151,7 +155,7 @@ export function createCaptureRepository(connection: Pool | PoolClient) {
         client.on('error', markFailed);
         try {
           await client.query('begin isolation level read committed');
-          const id = await writeCapture(client, input);
+          const id = await writeCaptureInTransaction(client, input);
           await client.query('commit');
           return id;
         } catch (error) {

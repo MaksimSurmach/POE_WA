@@ -117,3 +117,22 @@ export class ApplicationRuntime {
     this.#logger.info({ mode: this.#mode }, 'application runtime stopped');
   }
 }
+
+export async function runCollectorRuntime(
+  run: (signal: AbortSignal) => Promise<void>,
+  logger: Pick<Logger, 'info'>,
+) {
+  const stop = new AbortController();
+  const shutdown = (signal: NodeJS.Signals) => {
+    logger.info({ signal }, 'collector shutdown requested');
+    stop.abort();
+  };
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
+  try {
+    await run(stop.signal);
+  } finally {
+    process.off('SIGINT', shutdown);
+    process.off('SIGTERM', shutdown);
+  }
+}

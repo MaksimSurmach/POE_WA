@@ -75,6 +75,16 @@ describe('runtime configuration', () => {
     expect(loadRuntimeConfig(environment, 'api').mode).toBe('api');
   });
 
+  it('loads collector mode without enabling the API or legacy worker', () => {
+    const { mode } = loadRuntimeConfig({
+      ...environment,
+      APP_MODE: 'collector',
+    });
+    expect(mode).toBe('collector');
+    expect(modeIncludesApi(mode)).toBe(false);
+    expect(modeIncludesWorker(mode)).toBe(false);
+  });
+
   it('rejects unsafe schema identifiers', () => {
     expect(() =>
       loadRuntimeConfig({ ...environment, PG_BOSS_SCHEMA: 'pgboss; drop' }),
