@@ -447,11 +447,12 @@ export function configuredTradeCapture(
     } catch {
       return { status: 'blocked', reason: 'TRADE_SESSION_KEY_INVALID' };
     }
-    let loginConfig;
+    let loginConfig: ReturnType<typeof loadTradeLoginConfig>;
     try {
       loginConfig = loadTradeLoginConfig(environment);
     } catch {
-      return { status: 'blocked', reason: 'TRADE_LOGIN_CONFIG_INVALID' };
+      // Incomplete browser credentials only disable recovery.
+      loginConfig = undefined;
     }
     const reauthenticate = loginConfig
       ? async () => {

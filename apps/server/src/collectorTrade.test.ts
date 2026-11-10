@@ -498,24 +498,33 @@ const loginEnvironment = {
 };
 
 describe('collector Trade session recovery', () => {
-  it('reuses the sealed session with plain HTTP and leaves Chromium idle', async () => {
-    const { rateLimits, economy } = setup([]);
-    const { launch } = loginBrowser();
-    const { sessions } = sessionStorage();
-    await sessions.save('stored-test-session');
-    const fetch = vi.mocked(globalThis.fetch);
-    const run = configuredTradeCapture(rateLimits, economy, loginEnvironment);
-    expect(
-      await run(target(), new AbortController().signal, {
-        sessions: () => sessions,
-      }),
-    ).toMatchObject({ status: 'success' });
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(new Headers(fetch.mock.calls[0]?.[1]?.headers).get('cookie')).toBe(
-      'POESESSID=stored-test-session',
-    );
-    expect(launch).not.toHaveBeenCalled();
-  });
+  it.each([
+    { credentials: 'complete', login: loginEnvironment },
+    {
+      credentials: 'incomplete',
+      login: { ...loginEnvironment, POE_TRADE_PASSWORD: undefined },
+    },
+  ])(
+    'reuses the sealed session with $credentials browser credentials',
+    async ({ login }) => {
+      const { rateLimits, economy } = setup([]);
+      const { launch } = loginBrowser();
+      const { sessions } = sessionStorage();
+      await sessions.save('stored-test-session');
+      const fetch = vi.mocked(globalThis.fetch);
+      const run = configuredTradeCapture(rateLimits, economy, login);
+      expect(
+        await run(target(), new AbortController().signal, {
+          sessions: () => sessions,
+        }),
+      ).toMatchObject({ status: 'success' });
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(new Headers(fetch.mock.calls[0]?.[1]?.headers).get('cookie')).toBe(
+        'POESESSID=stored-test-session',
+      );
+      expect(launch).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([
     { status: 401, headers: {} },
