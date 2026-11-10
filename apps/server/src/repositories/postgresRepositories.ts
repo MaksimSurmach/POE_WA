@@ -101,15 +101,21 @@ export async function clearTradeAuthenticationDenials(
   );
 }
 
-export function createPostgresRepositories(pool: Pool): Repositories {
+export function createPostgresRepositories(
+  pool: Pool,
+  collectorClient?: PoolClient,
+): Repositories {
   const database = drizzle({ client: pool });
+  const collectorDatabase = collectorClient
+    ? drizzle({ client: collectorClient })
+    : database;
 
   return {
     leagues: {
       list() {
         return mapRepositoryError('leagues', 'list', async () =>
           (
-            await database
+            await collectorDatabase
               .select()
               .from(poeLeagues)
               .orderBy(desc(poeLeagues.startAt), desc(poeLeagues.createdAt))
@@ -118,7 +124,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
       findCurrent() {
         return mapRepositoryError('leagues', 'findCurrent', async () => {
-          const [row] = await database
+          const [row] = await collectorDatabase
             .select()
             .from(poeLeagues)
             .where(eq(poeLeagues.isCurrent, true))
@@ -128,7 +134,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
       upsert(input: LeagueUpsert) {
         return mapRepositoryError('leagues', 'upsert', async () => {
-          const [row] = await database
+          const [row] = await collectorDatabase
             .insert(poeLeagues)
             .values({ ...input, metadata: { ...input.metadata } })
             .onConflictDoUpdate({
@@ -146,7 +152,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
       setCurrent(leagueId: string, switchedAt: Date) {
         return mapRepositoryError('leagues', 'setCurrent', async () => {
-          const client = await pool.connect();
+          const client = collectorClient ?? (await pool.connect());
           try {
             await client.query('begin');
             const selected = await client.query<LeagueRow>(
@@ -184,7 +190,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
             await client.query('rollback').catch(() => undefined);
             throw error;
           } finally {
-            client.release();
+            if (!collectorClient) client.release();
           }
         });
       },
@@ -574,13 +580,16 @@ export function createPostgresRepositories(pool: Pool): Repositories {
                where policy = any($1::text[]) order by policy for update`,
               [policies],
             );
+            const blockedUntil = new Date(
+              Math.max(
+                ...locked.rows.map((state) => state.blocked_until.getTime()),
+              ),
+            );
             const retryAt = new Date(
               Math.max(
                 input.now.getTime(),
-                ...locked.rows.flatMap((state) => [
-                  state.blocked_until.getTime(),
-                  state.next_request_at.getTime(),
-                ]),
+                blockedUntil.getTime(),
+                ...locked.rows.map((state) => state.next_request_at.getTime()),
               ),
             );
             const acquired = retryAt <= input.now;
@@ -601,7 +610,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
               throw new RepositoryNotFoundError('rateLimits', 'acquire');
             const state = await selectRateLimitState(client, governing.policy);
             await client.query('commit');
-            return { acquired, retryAt, state };
+            return { acquired, blockedUntil, retryAt, state };
           } catch (error) {
             await client.query('rollback').catch(() => undefined);
             throw error;
@@ -746,7 +755,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
     recipes: {
       findById(id) {
         return mapRepositoryError('recipes', 'findById', async () => {
-          const [row] = await database
+          const [row] = await collectorDatabase
             .select()
             .from(recipes)
             .where(eq(recipes.id, id))
@@ -756,7 +765,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
       listAll() {
         return mapRepositoryError('recipes', 'listAll', async () => {
-          const rows = await database
+          const rows = await collectorDatabase
             .select()
             .from(recipes)
             .orderBy(recipes.id);
@@ -765,7 +774,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
       listActive() {
         return mapRepositoryError('recipes', 'listActive', async () => {
-          const rows = await database
+          const rows = await collectorDatabase
             .select()
             .from(recipes)
             .where(eq(recipes.active, true))
@@ -775,7 +784,7 @@ export function createPostgresRepositories(pool: Pool): Repositories {
       },
       save(recipe) {
         return mapRepositoryError('recipes', 'save', async () => {
-          const [row] = await database
+          const [row] = await collectorDatabase
             .insert(recipes)
             .values(recipeValues(recipe))
             .onConflictDoUpdate({

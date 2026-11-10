@@ -18,6 +18,17 @@ export type RateLimitedResponse = {
   status: number;
 };
 
+export class ProviderRateLimitDeferred extends Error {
+  constructor(
+    readonly retryAt: Date,
+    readonly reason:
+      | 'PROVIDER_RATE_LIMITED'
+      | 'PROVIDER_UNAVAILABLE' = 'PROVIDER_RATE_LIMITED',
+  ) {
+    super(reason);
+  }
+}
+
 export interface RateLimitGate {
   clearAuthenticationDenials?(): Promise<void>;
   observeResponse(
@@ -27,6 +38,7 @@ export interface RateLimitGate {
   waitForPermit(
     endpoint: string,
     signal?: AbortSignal,
+    options?: { deferProviderBlock?: boolean },
   ): Promise<RateLimitState>;
 }
 
@@ -91,6 +103,7 @@ export class GggRateLimitController implements RateLimitGate {
   async waitForPermit(
     endpoint: string,
     signal?: AbortSignal,
+    options?: { deferProviderBlock?: boolean },
   ): Promise<RateLimitState> {
     const normalizedEndpoint = normalizeEndpoint(endpoint);
     // Reuse retained exchange restrictions before the new endpoint has a mapping.
@@ -151,6 +164,9 @@ export class GggRateLimitController implements RateLimitGate {
       )
         throw new DomainError('MARKET_ACCESS_BLOCKED');
       if (permit.acquired) return permit.state;
+      const blockedUntil = permit.blockedUntil ?? permit.state.blockedUntil;
+      if (options?.deferProviderBlock && blockedUntil > now)
+        throw new ProviderRateLimitDeferred(blockedUntil);
       await this.#sleep(
         Math.max(1, permit.retryAt.getTime() - now.getTime()),
         signal,

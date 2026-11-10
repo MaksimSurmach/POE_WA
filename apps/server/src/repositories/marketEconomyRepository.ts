@@ -11,7 +11,7 @@ import {
 } from '../marketEconomy.js';
 
 export function createMarketEconomyRepository(
-  pool: Pool,
+  pool: Pick<Pool, 'query'>,
 ): MarketEconomyRepository {
   return {
     async assertReady() {

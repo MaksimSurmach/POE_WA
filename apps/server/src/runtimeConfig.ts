@@ -3,7 +3,7 @@ import { CronExpressionParser } from 'cron-parser';
 
 import { loadDatabaseConfig, type DatabaseConfig } from './config.js';
 
-export type ApplicationMode = 'all' | 'api' | 'worker';
+export type ApplicationMode = 'all' | 'api' | 'worker' | 'collector';
 
 const collectorScheduleFields = {
   CLEANUP_CRON: z.string().min(1).default('15 2 * * *'),
@@ -34,7 +34,7 @@ const collectorScheduleEnvironmentSchema = z
 const runtimeEnvironmentSchema = z
   .object({
     APP_HOST: z.string().min(1).default('127.0.0.1'),
-    APP_MODE: z.enum(['all', 'api', 'worker']).default('all'),
+    APP_MODE: z.enum(['all', 'api', 'worker', 'collector']).default('all'),
     APP_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
     ...collectorScheduleFields,
     JOB_LEASE_TIMEOUT_MS: z.coerce

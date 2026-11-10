@@ -9,6 +9,53 @@ import {
 const start = new Date('2026-07-20T00:00:00.000Z');
 
 describe('GGG rate-limit controller', () => {
+  it('keeps ordinary pacing when a slow policy has no provider block', async () => {
+    const repository = createInMemoryRepositories().rateLimits;
+    let now = start;
+    const gate = new GggRateLimitController({
+      repository,
+      conservativeDelayMs: 10_000,
+      clock: () => now,
+      sleep: async (ms) => {
+        now = new Date(now.getTime() + ms);
+      },
+    });
+    await gate.waitForPermit('trade-search');
+    await gate.waitForPermit('trade-search', undefined, {
+      deferProviderBlock: true,
+    });
+    expect(now).toEqual(new Date(start.getTime() + 10_000));
+  });
+
+  it('defers the aggregate cooldown when a different policy governs the permit state', async () => {
+    const repository = createInMemoryRepositories().rateLimits;
+    let now = start;
+    const gate = new GggRateLimitController({
+      repository,
+      clock: () => now,
+      sleep: async (ms) => {
+        now = new Date(now.getTime() + ms);
+      },
+    });
+    await gate.observeResponse('trade-search', {
+      status: 200,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'trade-search-request-limit',
+      }),
+    });
+    await gate.observeResponse('trade-fetch', {
+      status: 429,
+      headers: new Headers({
+        'X-Rate-Limit-Policy': 'trade-fetch-request-limit',
+        'Retry-After': '120',
+      }),
+    });
+    await expect(
+      gate.waitForPermit('trade', undefined, { deferProviderBlock: true }),
+    ).rejects.toMatchObject({ retryAt: new Date(start.getTime() + 120_000) });
+    expect(now).toEqual(start);
+  });
+
   it('does not import ordinary generic pacing or a named search cooldown into exchange', async () => {
     const repository = createInMemoryRepositories().rateLimits;
     const old = new GggRateLimitController({ repository, clock: () => start });

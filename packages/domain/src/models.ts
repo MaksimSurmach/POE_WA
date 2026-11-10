@@ -179,6 +179,7 @@ export type RateLimitState = {
 
 export type RateLimitPermit = {
   acquired: boolean;
+  blockedUntil?: Date;
   retryAt: Date;
   state: RateLimitState;
 };
