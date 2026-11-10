@@ -168,6 +168,47 @@ describe('immutable models and durable risk runs', () => {
     await app.close();
   });
 
+  it('uses only the matching current collector valuation in collector mode', async () => {
+    const fixture = input();
+    const captureId = randomUUID();
+    const methodCost = {
+      recipeContentHash: fixture.recipeHash,
+      source: { captureId },
+    };
+    const result = {
+      status: 'success',
+      currency: 'chaos',
+      estimatedSalePrice: '150',
+      methodCost,
+    };
+    const collector = createCraftAnalysisRepository(pool, 'collector');
+    await pool.query(
+      'insert into recipe_results (recipe_id,league_id,recipe_content_hash,evaluated_at,result) values ($1,$2,$3,$4,$5)',
+      [fixture.recipeId, leagueId, fixture.recipeHash, craftFixtureAt, result],
+    );
+    try {
+      expect(await collector.readValuationCandidates(leagueId)).toMatchObject([
+        {
+          recipe_id: fixture.recipeId,
+          recipe_content_hash: fixture.recipeHash,
+          estimated_sale_price: '150',
+          method_cost: methodCost,
+          source_snapshot_dedupe_key: `collector:${captureId}`,
+        },
+      ]);
+      await pool.query(
+        "update recipe_results set recipe_content_hash='expired' where recipe_id=$1 and league_id=$2",
+        [fixture.recipeId, leagueId],
+      );
+      expect(await collector.readValuationCandidates(leagueId)).toEqual([]);
+    } finally {
+      await pool.query(
+        'delete from recipe_results where recipe_id=$1 and league_id=$2',
+        [fixture.recipeId, leagueId],
+      );
+    }
+  });
+
   it('runs the API through persisted inputs, repeatable simulation and cancellation', async () => {
     const app = service(true);
     const api = buildApi(

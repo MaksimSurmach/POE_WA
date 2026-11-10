@@ -399,7 +399,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     cancel: (id) => producer().cancel(id),
   };
   const craftAnalysis = createCraftAnalysisService({
-    repository: createCraftAnalysisRepository(pool),
+    repository: createCraftAnalysisRepository(pool, config.pipeline),
     onWorkerError: (error) =>
       logger.warn(
         { err: error },
