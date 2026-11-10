@@ -11,9 +11,14 @@ import {
 } from './collector.js';
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
+import {
+  CollectorTelemetry,
+  readCollectorDiagnostics,
+} from './observability/collectorTelemetry.js';
 import { GggRateLimitController } from './rateLimitController.js';
 import type { PoolClient } from 'pg';
 import { createPostgresRepositories } from './repositories/index.js';
+import { readCollectorQueue } from './repositories/collectorQueue.js';
 import { enqueueRunRequest } from './repositories/runRequestRepository.js';
 import {
   captures,
@@ -54,7 +59,7 @@ afterEach(async () => {
   for (const worker of workers) worker.stop.abort();
   await Promise.all(workers.splice(0).map(({ done }) => done));
   await pool.query(
-    'truncate listing_events, listings, captures, collector_schedule, run_requests, collector_state',
+    'truncate listing_events, listings, captures, collector_schedule, run_requests, collector_state, collector_telemetry_runs',
   );
 });
 
@@ -173,11 +178,11 @@ it('backs off failures and recovers a due row with an expired lease', async () =
     expect((await row(id)).lastStatus).toBe('failed'),
   );
   expect(await row(id)).toMatchObject({
-    attempt: 3,
+    attempt: 0,
     leasedUntil: null,
-    retryAt: new Date(initial + 4 * minute),
+    retryAt: new Date(initial + 60 * minute),
   });
-  time += 4 * minute;
+  time += 60 * minute;
   await wake();
   await vi.waitFor(async () =>
     expect((await row(id)).lastStatus).toBe('succeeded'),
@@ -556,18 +561,21 @@ it('keeps a Trade auth block through cooldown and allows one recovery per manual
     status: 'blocked',
     reason: 'PROVIDER_AUTH_FAILED',
   } as const;
+  const policy = 'trade-fetch-request-limit';
   const handler = vi
     .fn<CollectorHandler>()
     .mockResolvedValueOnce(blocked)
-    .mockResolvedValueOnce({
-      status: 'retry',
-      reason: 'PROVIDER_RATE_LIMITED',
-      retryAt: new Date(initial + 2 * minute),
+    .mockImplementationOnce(async () => {
+      const retryAt = new Date(initial + 2 * minute);
+      await pool.query(
+        'update rate_limit_states set blocked_until = $2, last_status = 429 where policy = $1',
+        [policy, retryAt],
+      );
+      return { status: 'retry', reason: 'PROVIDER_RATE_LIMITED', retryAt };
     })
     .mockImplementation(succeed);
   const readBlock = async () =>
     (await db.select().from(collectorState))[0]?.blockedReason;
-  const policy = 'trade-fetch-request-limit';
   const worker = start(handler);
   try {
     await vi.waitFor(async () =>
@@ -593,6 +601,12 @@ it('keeps a Trade auth block through cooldown and allows one recovery per manual
     expect(handler.mock.calls[1]?.[3]).toBe(true);
     expect(await readBlock()).toBe(blocked.reason);
     const second = await enqueueRunRequest(pool, null);
+    await vi.waitFor(async () =>
+      expect((await request(second)).state).toBe('running'),
+    );
+    expect(handler).toHaveBeenCalledTimes(2);
+    time += minute;
+    await wake();
     await vi.waitFor(async () =>
       expect((await request(second)).state).toBe('done'),
     );
@@ -653,6 +667,41 @@ it('stores collector rate windows without retaining a shared auth denial', async
       policy,
     ]);
   }
+});
+
+it('keeps a manual auth recovery pending until the login policy allows it', async () => {
+  await schedule();
+  await db
+    .insert(collectorState)
+    .values({ id: 1, blockedReason: 'PROVIDER_AUTH_FAILED' });
+  const gate = new GggRateLimitController({
+    repository: createPostgresRepositories(pool).rateLimits,
+    clock: now,
+  });
+  const { blockedUntil } = await gate.observeResponse(
+    'trade-login',
+    {
+      status: 429,
+      headers: new Headers({ 'retry-after': '120' }),
+    },
+    { collector: true },
+  );
+  const id = await enqueueRunRequest(pool, null);
+  const handler = vi.fn(succeed);
+  start(handler);
+  await vi.waitFor(async () => {
+    expect((await request(id)).summary).toMatchObject({
+      recoverTradeAuthentication: true,
+    });
+  });
+  expect((await readCollectorQueue(pool, now())).nextDueAt).toEqual(
+    blockedUntil,
+  );
+  expect(handler).not.toHaveBeenCalled();
+  time = blockedUntil.getTime() + 1000;
+  await wake();
+  await vi.waitFor(async () => expect((await request(id)).state).toBe('done'));
+  expect(handler.mock.calls).toHaveLength(1);
 });
 
 it('does not repeat a claimed manual recovery after losing leadership', async () => {
@@ -732,4 +781,87 @@ it('leaves discovery cadence untouched by a manual recipe refresh', async () => 
   expect((await row(normal)).lastStatus).toBe('succeeded');
   expect((await row(research)).lastStartedAt).toBeNull();
   expect((await row(research)).nextDueAt.getTime()).toBe(time + 30 * minute);
+});
+
+it('persists HA measurements, reuses the in-flight request, and reports incomplete coverage', async () => {
+  expect(
+    (await readCollectorDiagnostics(pool, now())).windows[0]?.trackedSince,
+  ).toBeNull();
+  const id = await schedule({ nextDueAt: new Date(time + minute) });
+  const telemetry = new CollectorTelemetry({ now });
+  let release!: () => void;
+  const waiting = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const handler = async () => {
+    const send = telemetry.fetch(
+      'ggg',
+      'trade-search',
+      async () =>
+        new Response('redacted', {
+          status: 429,
+          headers: { 'retry-after': '120', 'x-secret': 'sensitive-token' },
+        }),
+    );
+    await send('https://www.pathofexile.com/?private=sensitive-query');
+    telemetry.recordResponse('ggg', 'trade-fetch', 200);
+    await waiting;
+    return succeed();
+  };
+  const stop = new AbortController();
+  const done = runCollector({
+    pool,
+    signal: stop.signal,
+    now,
+    telemetry,
+    maxIdleMs: 50,
+    handlers: {
+      'trade-target': handler,
+      economy: handler,
+      league: handler,
+      retention: handler,
+    },
+  });
+  workers.push({ stop, done });
+  const requestId = await enqueueRunRequest(pool, null);
+  try {
+    await vi.waitFor(async () => {
+      expect(
+        (await readCollectorDiagnostics(pool, now())).current?.taskStartedAt,
+      ).not.toBeNull();
+    });
+    expect(await enqueueRunRequest(pool, null)).toBe(requestId);
+    release();
+    await vi.waitFor(async () =>
+      expect((await request(requestId)).state).toBe('done'),
+    );
+    const view = await readCollectorDiagnostics(pool, now());
+    expect(view).toMatchObject({ role: 'leader', stale: false });
+    expect(view.windows[0]).toMatchObject({
+      trackedSince: now().toISOString(),
+      requests: [
+        { provider: 'ggg', endpoint: 'trade-search', rateLimited: 1 },
+        { provider: 'ggg', endpoint: 'trade-fetch', success: 1 },
+      ],
+      last429: { at: now().toISOString(), retryAfterMs: 120_000 },
+      captures: {
+        planned: 1,
+        successful: 1,
+        complete: 1,
+        failed: 0,
+        searchRequests: { average: 1, max: 1 },
+      },
+    });
+    expect(JSON.stringify(view)).not.toMatch(/sensitive-(token|query)/);
+    expect((await row(id)).lastStatus).toBe('succeeded');
+  } finally {
+    release();
+    stop.abort();
+    await done;
+  }
+  expect(await readCollectorDiagnostics(pool, now())).toMatchObject({
+    role: 'offline',
+    current: null,
+    stale: true,
+  });
 });

@@ -28,7 +28,7 @@ Scope: 26 active recipes at `2d7e243` (drafts excluded). This is an inventory an
 | `rf-fire-trap-any-support`                                                  | rare, ilvl 83   | concentrated-support, crafted-aoe-gems ≥1, crafted-aoe ≥8, burning-support                                 | reforge-fire: wild-crystallised-lifeforce × 50; p=0.0107; craft-aoe: chaos-orb × 4; p=1                                                     | [calculator](https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&class=73&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiMjg0NSIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6InNwZWNpYWw6b3Blbi1wcmVmaXgiLCJ0IjoiMSIsImIiOnRydWUsInMiOm51bGx9XX1d)         | Unverified |
 | `rf-fire-trap-level-20`                                                     | rare, ilvl 83   | concentrated-support ≥20, crafted-aoe-gems ≥1, crafted-aoe ≥8, burning-support ≥20                         | reforge-fire: wild-crystallised-lifeforce × 50; p=0.0011; craft-aoe: chaos-orb × 4; p=1                                                     | [calculator](https://beta.craftofexile.com/?group=9&item=1080&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9IZWxtZXRzL0hlbG1ldFN0ckludFJpdHVhbDMiLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6ODMsInIiOiJyYXJlIiwiaWYiOlsxXSwiaXAiOltbMiwtMl1dLCJlIjpbXSwicCI6eyJhcm1vdXIiOjE5MCwiZW5lcmd5c2hpZWxkIjo0Mn0sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&method=5%2C3%2C9&flags=&influences=1&ilvl=83&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiIyODQwIiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyODQ1IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tcHJlZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D&class=73)     | Unverified |
 | `minion-fossilised-shield-greed`                                            | rare, ilvl 60   | life ≥130, minion-gems ≥1, crafted-fire-resistance ≥29, implicit-minion-damage ≥5                          | essence-greed: deafening-essence-of-greed × 1; p=0.00594; craft-fire-resistance: chaos-orb × 3; p=1                                         | [calculator](https://beta.craftofexile.com/?group=16&item=961&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvQXJtb3Vycy9TaGllbGRzL1NoaWVsZEludDEzIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjYwLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbNl1dLCJlIjpbXSwicCI6eyJlbmVyZ3lzaGllbGQiOjU0fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiaWQiOm51bGx9&method=3%2C2%2C20&flags=&ilvl=60&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tc3VmZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19LHsidCI6Im5vdCIsIm0iOm51bGwsImUiOlt7ImkiOiIxMDM4IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=117)                      | Unverified |
-| `minion-convoking-wand-fear-trigger`                                        | rare, ilvl 83   | minion-gems ≥1, minion-damage ≥83, fractured-minion-attack-cast-speed ≥20 ≤20, crafted-trigger-8s ≥100     | fear-roll: deafening-essence-of-fear × 1; p=0.00516; bench-trigger: chaos-orb × 3, orb-of-scouring × 1; p=1                                 | [calculator](https://beta.craftofexile.com/?group=17&class=123&item=411&game=poe1&method=3%2C7%2C51&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W3siayI6Ik1pbmlvbkF0dGFja0FuZENhc3RTcGVlZDZfXyIsInYiOlsyMF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjpudWxsLCJzIjpbXSwicSI6MCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbIjMwIl1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tc3VmZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D)                  | Unverified |
+| `minion-convoking-wand-fear-trigger`                                        | rare, ilvl 83   | minion-gems ≥1, minion-damage ≥83, fractured-minion-attack-cast-speed ≥20 ≤20, crafted-trigger-8s ≥100     | fear-roll: deafening-essence-of-fear × 1; p=0.00516; bench-trigger: chaos-orb × 3; p=1                                                      | [calculator](https://beta.craftofexile.com/?group=17&class=123&item=411&game=poe1&method=3%2C7%2C51&flags=&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W3siayI6Ik1pbmlvbkF0dGFja0FuZENhc3RTcGVlZDZfXyIsInYiOlsyMF0sImYiOlsiZiJdLCJwIjpudWxsfV0sIm5zIjpudWxsLCJzIjpbXSwicSI6MCwicXQiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbIjMwIl1dLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImlkIjpudWxsfQ%3D%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiJzcGVjaWFsOm9wZW4tc3VmZml4IiwidCI6IjEiLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D)                  | Unverified |
 | `minion-convoking-wand-four-fossil`                                         | rare, ilvl 84   | spell-gems ≥1, minion-gems ≥1                                                                              | four-fossil-roll: corroded-fossil × 1, jagged-fossil × 1, metallic-fossil × 1, shuddering-fossil × 1, prime-chaotic-resonator × 1; p=0.0834 | [calculator](https://beta.craftofexile.com/?group=17&item=411&class=123&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvV2VhcG9ucy9PbmVIYW5kV2VhcG9ucy9XYW5kcy9XYW5kQXRsYXMxIiwibSI6W10sIm5zIjowLCJzIjpbXSwicSI6bnVsbCwicXQiOm51bGwsImwiOjg0LCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltbMzBdXSwiZSI6W10sInAiOnt9LCJkaSI6W10sImlnIjowLCJtcyI6MCwiZiI6WyJhIl0sInB0IjpudWxsLCJpZCI6bnVsbH0%3D&method=4%2C4%7C13%7C15%7C22&flags=&ilvl=84&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI3NjkiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfSx7ImkiOiIyNjIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D)                                                                                                                        | Unverified |
 
 ## Priority findings and checks
@@ -67,3 +67,46 @@ and 10% attack speed, then 100 life and 14% attack speed. These are overlapping
 research samples. The report keeps partial or absent coverage separate and uses
 inferred exits and observed asks. The guide identifies the base and modifiers.
 [Quiver guide](https://www.poe-vault.com/guides/toxic-rain-pathfinder-gear-jewels-flasks).
+
+## Follow-up against master 4d1e891
+
+The active catalog contains 31 recipes. The 26-row table above records the earlier
+audit scope. Its “Unverified” column denotes the independent audit verdict at
+that point. Individual recipe files retain their own source-backed model status.
+
+- **Enkindling.** The [pinned 3.29.3.3 data](https://data.exiledata.dev/poe1/3.29.3.3/manifest.json)
+  confirms the five flask enchant weights (four at 100, effect at 250) and the
+  60–70 effect range. The [stored independent CoE implementation review](evidence/flasks-2026-11-04/integer-roll-implementation.json)
+  establishes the inclusive uniform integer roll in that emulator. Exact 70
+  uses probability 5/143 and mean 28.6 Enkindling. Exact Cheetah 14 has a
+  1-in-3 conditional roll in the same emulator. Both recipes keep those
+  calculator-derived rates. In-game roll frequencies remain unmeasured.
+- **Eight-passive Large Clusters.** The [previous exact-setup evidence](evidence/craft-profit-2026-11-03/cluster-models.md)
+  distinguishes the calculator's 8–12 family label from acquisition and sale
+  filters. The pinned base has the `expansion_jewel_large` tag. The pinned
+  affliction-jewel spawn and generation weights use size, small-passive family
+  and notable-presence tags, without a passive-count weight. This supports using
+  the calculator's family pool for an acquired eight-passive jewel. Output asks
+  must still match eight passives and the complete notable group.
+- **Jagged alternatives.** The five [November 10 calculator receipts](evidence/worksmith-2026-11-10/coe-jagged-alternates.json)
+  use an exact ilvl 68 normal starting base and require all three stated
+  notables. Each attempt uses one Jagged Fossil and one Primitive Chaotic
+  Resonator, on one reusable base, with no finish. Expected cost requires
+  a base ask and a fresh bulk estimate for both materials. The calculator's
+  rounded attempts describe material usage and do not establish stock or ask
+  comparability.
+- **Convoking Wand.** The Fear model uses the exact ilvl 83 speed fracture and
+  rerolls until +1 minion gems and an open suffix are present. The fresh bench
+  trigger costs three Chaos. One optional Orb of Scouring for replacing or
+  removing a crafted mod is recorded as a reserve outside the expected
+  expenditure. [Crafting bench costs](https://www.poewiki.net/wiki/Crafting_bench)
+- **Bounds.** The pinned export provides ordinary movement suffix ranges
+  6–8, 9–11 and 12–14 at item levels 5, 65 and 85. Catalog validation now checks
+  the resulting 6–14 bounds for the single-stat utility-flask movement mapping.
+  This range check excludes modifier generation, exact tier selection and the
+  coupled duration/effect lines. Broad pseudo thresholds, base-specific values
+  and additional affix families still require exact source mappings.
+- **Patch scope.** These checks apply to the retained 3.29.3.3 calculator/data
+  sources and authored target conditions. The official league listing did not
+  identify the production game patch. Market evidence grades describe observed
+  asks and cannot upgrade a recipe model's verification.

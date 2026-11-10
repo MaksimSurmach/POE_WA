@@ -131,7 +131,11 @@ describe('summarizeMarketActivity', () => {
       active: 2,
       distinctSellers: 2,
       repriced72h: 1,
+      repriced24h: 1,
+      relisted24h: 0,
       inferredExits24h: 3,
+      inferredExitSellers24h: 1,
+      uncertainExits24h: 0,
       inferredExits72h: 3,
       uncertainExits72h: 0,
       recentExitAskChaos: '110',
@@ -179,4 +183,20 @@ describe('summarizeMarketActivity', () => {
       recentExitAskChaos: null,
     });
   });
+});
+
+it('keeps an exit uncertain when several newer same-seller items could be a relist', () => {
+  const fingerprint = 'matching-mods';
+  const activity = summarizeMarketActivity({
+    listings: [
+      gone('item', { fingerprint }),
+      listing('replacement-one', { fingerprint, firstSeenAt: ago(7) }),
+      listing('replacement-two', { fingerprint, firstSeenAt: ago(5) }),
+    ],
+    events: missed,
+    latestCompleteCaptureId: 'latest',
+    completeCaptureFloors: new Map([['earlier', '100']]),
+    now,
+  });
+  expect(activity).toMatchObject({ inferredExits24h: 0, uncertainExits24h: 1 });
 });

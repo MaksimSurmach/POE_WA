@@ -1,3 +1,4 @@
+import { ProviderRateLimitDeferred } from '../rateLimitController.js';
 import {
   chromium,
   type BrowserContext,
@@ -43,6 +44,9 @@ export class PoeTradeSessionManager {
   readonly #baseURL: string;
   readonly #config: TradeLoginConfig;
   readonly #onLogin: (() => Promise<void>) | undefined;
+  readonly #beforeLoginRequest: (() => Promise<void>) | undefined;
+  readonly #onLoginResponse:
+    ((status: number | null, headers?: Headers) => void) | undefined;
   #context: BrowserContext | undefined;
   #login: Promise<void> | undefined;
   #loginFailed = false;
@@ -58,11 +62,15 @@ export class PoeTradeSessionManager {
     config: TradeLoginConfig,
     options: {
       onLogin?: () => Promise<void>;
+      beforeLoginRequest?: () => Promise<void>;
+      onLoginResponse?: (status: number | null, headers?: Headers) => void;
     } = {},
   ) {
     this.#baseURL = baseURL;
     this.#config = config;
     this.#onLogin = options.onLogin;
+    this.#beforeLoginRequest = options.beforeLoginRequest;
+    this.#onLoginResponse = options.onLoginResponse;
   }
 
   get redactionValues(): readonly string[] {
@@ -234,22 +242,27 @@ export class PoeTradeSessionManager {
   async #loginToWebsite(forceLogin: boolean, signal?: AbortSignal) {
     let page: Page | undefined;
     let throttle: TradeLoginRateLimited | undefined;
+    const isAuthenticationRequest = (
+      request: ReturnType<BrowserResponse['request']>,
+    ) =>
+      new URL(request.url()).origin === this.#baseURL &&
+      (request.isNavigationRequest() || request.method() === 'POST');
     const observeNavigation = (response: BrowserResponse) => {
-      if (
-        response.status() === 429 &&
-        new URL(response.url()).origin === this.#baseURL &&
-        (response.request().isNavigationRequest() ||
-          response.request().method() === 'POST')
-      ) {
-        throttle = new TradeLoginRateLimited(
-          new Headers(
-            Object.entries(response.headers()).filter(
-              ([name]) =>
-                name === 'retry-after' || name.startsWith('x-rate-limit-'),
-            ),
-          ),
-        );
-      }
+      if (!isAuthenticationRequest(response.request())) return;
+      const headers = new Headers(
+        Object.entries(response.headers()).filter(
+          ([name]) =>
+            name === 'retry-after' || name.startsWith('x-rate-limit-'),
+        ),
+      );
+      this.#onLoginResponse?.(response.status(), headers);
+      if (response.status() === 429)
+        throttle = new TradeLoginRateLimited(headers);
+    };
+    const observeFailure = (
+      request: ReturnType<BrowserResponse['request']>,
+    ) => {
+      if (isAuthenticationRequest(request)) this.#onLoginResponse?.(null);
     };
     const check = () => {
       signal?.throwIfAborted();
@@ -269,7 +282,12 @@ export class PoeTradeSessionManager {
       }
       if (forceLogin) await this.#context.clearCookies();
       page = this.#context.pages()[0] ?? (await this.#context.newPage());
-      if (signal) page.on('response', observeNavigation);
+      if (signal) {
+        page.on('response', observeNavigation);
+        if (this.#onLoginResponse) page.on('requestfailed', observeFailure);
+      }
+      check();
+      await this.#beforeLoginRequest?.();
       check();
       await page.goto(new URL('/login', this.#baseURL).toString(), {
         waitUntil: 'domcontentloaded',
@@ -320,6 +338,8 @@ export class PoeTradeSessionManager {
         throw new DomainError('MARKET_ACCESS_BLOCKED');
       }
       check();
+      await this.#beforeLoginRequest?.();
+      check();
       await submit.click({ timeout: 5_000 });
 
       for (let attempt = 0; attempt < 40; attempt += 1) {
@@ -345,12 +365,19 @@ export class PoeTradeSessionManager {
     } catch (error) {
       this.#loginFailed = true;
       if (throttle) throw throttle;
-      if (error instanceof DomainError) throw error;
+      if (
+        error instanceof DomainError ||
+        error instanceof ProviderRateLimitDeferred
+      )
+        throw error;
       this.connectionStatus = 'UNAVAILABLE';
       // Browser errors may contain page details or user input; discard their causes.
       throw new DomainError('PROVIDER_UNAVAILABLE');
     } finally {
-      if (signal) page?.off('response', observeNavigation);
+      if (signal) {
+        page?.off('response', observeNavigation);
+        if (this.#onLoginResponse) page?.off('requestfailed', observeFailure);
+      }
     }
   }
 

@@ -8,6 +8,7 @@ import type { Pool } from 'pg';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { configuredTradeCapture } from './collectorTrade.js';
+import { CollectorTelemetry } from './observability/collectorTelemetry.js';
 import type { StoredMarketEconomySnapshot } from './marketEconomy.js';
 import { GggRateLimitController } from './rateLimitController.js';
 import {
@@ -457,15 +458,19 @@ function loginBrowser(
   options: {
     throttle?: 'goto' | 'submit';
     onNavigation?: () => void;
+    status?: number;
   } = {},
 ) {
   let responseListener: ((response: BrowserResponse) => void) | undefined;
   const throttle = () =>
     responseListener?.({
-      status: () => 429,
+      status: () => options.status ?? 429,
       url: () => 'https://www.pathofexile.com/login',
-      request: () => ({ isNavigationRequest: () => true }),
-      headers: () => ({ 'retry-after': '120' }),
+      request: () => ({
+        url: () => 'https://www.pathofexile.com/login',
+        isNavigationRequest: () => true,
+      }),
+      headers: () => (options.status === 503 ? {} : { 'retry-after': '120' }),
     } as unknown as BrowserResponse);
   let loggedIn = false;
   const locator = {
@@ -492,11 +497,11 @@ function loginBrowser(
             if (options.throttle === 'goto') throttle();
             options.onNavigation?.();
           },
-          on: (_event: string, listener: typeof responseListener) => {
-            responseListener = listener;
+          on: (event: string, listener: typeof responseListener) => {
+            if (event === 'response') responseListener = listener;
           },
-          off: () => {
-            responseListener = undefined;
+          off: (event: string) => {
+            if (event === 'response') responseListener = undefined;
           },
           url: () => 'https://www.pathofexile.com/login',
           title: async () => 'Login',
@@ -783,4 +788,61 @@ describe('collector Trade session recovery', () => {
     expect(launch).not.toHaveBeenCalled();
     expect(fetch).toHaveBeenCalledOnce();
   });
+});
+
+it('observes restrictive Trade headers before rejecting a malformed successful body', async () => {
+  const { rateLimits, economy, repository } = setup([]);
+  vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+    new Response('invalid JSON', {
+      status: 200,
+      headers: {
+        'x-rate-limit-policy': 'trade-search-request-limit',
+        'x-rate-limit-rules': 'ip',
+        'x-rate-limit-ip': '3:60:120',
+        'x-rate-limit-ip-state': '3:60:90',
+      },
+    }),
+  );
+  const run = fixtureTradeCapture(rateLimits, economy, environment);
+  expect(await run(target(), new AbortController().signal)).toMatchObject({
+    status: 'retry',
+    reason: 'PROVIDER_RESPONSE_INVALID',
+  });
+  expect(await repository.list()).toMatchObject([
+    {
+      lastStatus: 200,
+      windows: [
+        {
+          rule: 'ip',
+          maximumHits: 3,
+          currentHits: 3,
+          activeRestrictionSeconds: 90,
+        },
+      ],
+    },
+  ]);
+});
+
+it('backs off a temporary login 503 instead of making it an auth block', async () => {
+  const { rateLimits, economy } = setup([]);
+  const { close } = loginBrowser({ throttle: 'goto', status: 503 });
+  const { sessions } = sessionStorage();
+  vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+    new Response(null, { status: 401 }),
+  );
+  const run = configuredTradeCapture(
+    rateLimits,
+    economy,
+    loginEnvironment,
+    new CollectorTelemetry(),
+  );
+  expect(
+    await run(target(), new AbortController().signal, {
+      sessions: () => sessions,
+    }),
+  ).toMatchObject({
+    status: 'retry',
+    reason: 'PROVIDER_UNAVAILABLE',
+  });
+  expect(close).toHaveBeenCalledOnce();
 });

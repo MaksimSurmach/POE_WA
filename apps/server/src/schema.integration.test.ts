@@ -32,6 +32,7 @@ describe('migration baseline', () => {
         'canonical_entities',
         'collector_schedule',
         'collector_state',
+        'collector_telemetry_runs',
         'game_data_versions',
         'jobs',
         'listing_events',
@@ -60,7 +61,8 @@ describe('migration baseline', () => {
         'provider_circuits_status_retry_at_idx',
         'collector_schedule_enabled_due_idx',
         'collector_schedule_kind_key_uq',
-        'run_requests_queued_scope_recipe_uq',
+        'run_requests_active_scope_recipe_uq',
+        'collector_telemetry_runs_started_idx',
         'captures_schedule_time_uq',
         'listings_schedule_status_idx',
         'listings_schedule_seller_fingerprint_idx',
@@ -70,7 +72,7 @@ describe('migration baseline', () => {
     );
   });
 
-  it('deduplicates queued run requests per scope and recipe', async () => {
+  it('deduplicates active run requests per scope and recipe', async () => {
     const client = await pool.connect();
     try {
       await client.query('begin');
@@ -98,11 +100,10 @@ describe('migration baseline', () => {
          on conflict do nothing
          returning scope, recipe_id, state`,
       );
-      expect(result.rows).toHaveLength(5);
+      expect(result.rows).toHaveLength(4);
       expect(result.rows).toEqual(
         expect.arrayContaining([
           { scope: 'all', recipe_id: null, state: 'queued' },
-          { scope: 'all', recipe_id: null, state: 'running' },
           { scope: 'recipe', recipe_id: 'schema-test-a', state: 'queued' },
           { scope: 'recipe', recipe_id: 'schema-test-a', state: 'done' },
           { scope: 'recipe', recipe_id: 'schema-test-b', state: 'queued' },

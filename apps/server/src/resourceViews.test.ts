@@ -140,6 +140,19 @@ describe('repository-backed resource views', () => {
         method: { baseCost: null },
       },
     });
+    row.result.methodCost!.craftInputAt = evaluatedAt.toISOString();
+    row.result.methodCost!.craftExpiresAt = new Date(
+      evaluatedAt.getTime() + 60_000,
+    ).toISOString();
+    expect(await readDetail()).toMatchObject({
+      evaluation: {
+        status: 'stale',
+        expectedCraftCost: { amount: 17 },
+        estimatedSalePrice: null,
+        profit: null,
+      },
+      method: { baseCost: { amount: 17 } },
+    });
     row.result = {
       ...result,
       errorCode: 'NO_LISTINGS',
@@ -996,6 +1009,7 @@ describe('legacy single-seller profit on the read boundary', () => {
     });
     expect(catalog?.source).toEqual({
       capturedAt,
+      comparable: false,
       comparableSellers: 3,
       coverage: 'partial',
     });

@@ -185,6 +185,7 @@ export type RateLimitPermit = {
 };
 
 export type RateLimitAcquireInput = {
+  tradeCapture?: true;
   conservativeDelayMs: number;
   endpoint: string;
   fallbackPolicy: string;

@@ -12,6 +12,7 @@ import { generateMarketTradeQuery } from '../marketTradeQuery.js';
 import { tradeStatMappings } from '../tradeStatMappings.js';
 import { convertMarketQuote } from '../marketCurrency.js';
 import type { MarketEconomyRepository } from '../marketEconomy.js';
+import type { RateLimitedResponse } from '../rateLimitController.js';
 import type { PoeTradeSessionManager } from './poeTradeSessionManager.js';
 
 const configSchema = z.object({
@@ -41,6 +42,9 @@ export type TradeCompatibleConfig = {
   timeoutMs: number;
 };
 export type TradePriceRange = { min?: number; max?: number };
+export type TradeResponseObserver = (
+  response: RateLimitedResponse,
+) => Promise<void>;
 
 export function loadTradeCompatibleConfig(
   environment: Record<string, string | undefined> = process.env,
@@ -489,6 +493,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     path: string,
     signal: AbortSignal,
     body?: unknown,
+    onResponse?: TradeResponseObserver,
   ): Promise<
     MarketCollectionTransportResponse<unknown> & { capturedAt: string }
   > {
@@ -529,6 +534,8 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
         denied && !(this.#collector && response.status === 429)
           ? 403
           : response.status;
+      // Dynamic limits apply even if the body cannot be read or decoded.
+      await onResponse?.({ status, headers: response.headers });
       this.connectionStatus =
         status === 401
           ? 'AUTH_REQUIRED'
@@ -635,10 +642,12 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     target,
     signal,
     priceRange,
+    onResponse,
   }: {
     target: MarketTarget;
     signal: AbortSignal;
     priceRange?: TradePriceRange;
+    onResponse?: TradeResponseObserver;
   }): ReturnType<MarketCollectionTransport['search']> {
     const generated = generateMarketTradeQuery(target);
     const price = generated.request.query.filters.trade_filters.filters.price;
@@ -647,6 +656,7 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
       `/api/trade/search/${encodeURIComponent(target.league)}`,
       signal,
       generated.request,
+      onResponse,
     );
     if (response.status >= 400)
       return {
@@ -708,11 +718,13 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     queryId,
     signal,
     target: requestedTarget,
+    onResponse,
   }: {
     ids: string[];
     queryId: string | null;
     signal: AbortSignal;
     target?: MarketTarget;
+    onResponse?: TradeResponseObserver;
   }) {
     const target =
       requestedTarget ?? (queryId ? this.#targets.get(queryId) : undefined);
@@ -728,6 +740,8 @@ export class TradeCompatibleTransport implements MarketCollectionTransport {
     const response = await this.#request(
       `/api/trade/fetch/${ids.join(',')}?query=${encodeURIComponent(queryId)}`,
       signal,
+      undefined,
+      onResponse,
     );
     if (response.status >= 400) return { ...response, data: [] };
     if (this.#collector) {

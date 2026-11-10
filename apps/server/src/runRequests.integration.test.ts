@@ -68,7 +68,7 @@ afterAll(async () => {
 });
 
 describe('collector run request API', () => {
-  it('commits one queued request for concurrent posts and wakes the collector', async () => {
+  it('deduplicates queued and running requests across concurrent posts', async () => {
     const listener = await pool.connect();
     try {
       const notified = vi.fn();
@@ -113,7 +113,18 @@ describe('collector run request API', () => {
         url: '/api/run',
       });
       expect(next.statusCode).toBe(202);
-      expect(next.json().requestId).not.toBe(requestId);
+      expect(next.json().requestId).toBe(requestId);
+
+      await pool.query("update run_requests set state = 'done' where id = $1", [
+        requestId,
+      ]);
+      const newRun = await api.inject({
+        ...local,
+        method: 'POST',
+        url: '/api/run',
+      });
+      expect(newRun.statusCode).toBe(202);
+      expect(newRun.json().requestId).not.toBe(requestId);
     } finally {
       listener.release(true);
     }

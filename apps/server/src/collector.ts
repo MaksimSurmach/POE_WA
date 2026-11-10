@@ -10,6 +10,11 @@ import {
   writeCaptureInTransaction,
   type CaptureInput,
 } from './repositories/captureRepository.js';
+import {
+  collectorHeartbeatMs,
+  type CollectorTelemetry,
+} from './observability/collectorTelemetry.js';
+import { readCollectorQueue } from './repositories/collectorQueue.js';
 import { collectorSchedule, collectorState, runRequests } from './schema.js';
 
 export type CollectorSchedule = typeof collectorSchedule.$inferSelect;
@@ -51,6 +56,7 @@ type CollectorOptions = {
   onLeaderAcquired?: (client: PoolClient) => Promise<void>;
   bootstrap?: (client: PoolClient, signal: AbortSignal) => Promise<void>;
   publishResults?: PublishResults;
+  telemetry?: CollectorTelemetry;
 };
 
 type CollectorDb = NodePgDatabase;
@@ -130,11 +136,12 @@ async function startRequest(
       .update(collectorSchedule)
       .set({
         nextDueAt: sql`least(${collectorSchedule.nextDueAt}, ${now.toISOString()}::timestamptz)`,
-        retryAt: null,
       })
       .where(
         and(
           eq(collectorSchedule.enabled, true),
+          sql`not (${collectorSchedule.kind} in ('trade-target', 'economy') and
+            coalesce((select settings->>'collectionsPaused' = 'true' from market_admin_settings where id = 1), false))`,
           sql`(${collectorSchedule.payload}->>'discovery') is distinct from 'true'`,
           request.scope === 'recipe'
             ? and(
@@ -194,41 +201,6 @@ async function readRequest(client: PoolClient, db: CollectorDb, now: Date) {
     })
     .where(eq(runRequests.id, request.id));
   return null;
-}
-
-async function nextSchedule(
-  client: PoolClient,
-  tradeBlocked: boolean,
-  pending: string[],
-  now: Date,
-  recoverTradeAuthentication: boolean,
-  paused: boolean,
-) {
-  const { rows } = await client.query<{ id: string; due: Date }>(
-    `with trade_cooldown as (
-       select max(blocked_until) as until from rate_limit_states r
-       where r.policy in ('poe-trade', 'trade-search-request-limit', 'trade-fetch-request-limit')
-          or exists (
-            select 1 from rate_limit_endpoint_policies p
-            where p.policy = r.policy and p.endpoint in ('trade', 'trade-search', 'trade-fetch')
-          )
-     ), eligible as (
-       select id, kind,
-              greatest(next_due_at, retry_at, leased_until,
-                case when kind = 'trade-target' then trade_cooldown.until end) as due
-       from collector_schedule cross join trade_cooldown
-       where enabled and (not $5::boolean or kind not in ('trade-target', 'economy')) and (
-         kind <> 'trade-target' or not $1::boolean
-           or ($4::boolean and id = any($2::uuid[]))
-       )
-     )
-     select id, due from eligible
-     order by (id = any($2::uuid[]) and due <= $3::timestamptz) desc,
-              due, case kind when 'league' then 0 when 'economy' then 1 else 2 end, id
-     limit 1`,
-    [tradeBlocked, pending, now, recoverTradeAuthentication, paused],
-  );
-  return rows[0];
 }
 
 async function skipUnavailable(
@@ -317,6 +289,7 @@ async function finishSchedule(
   now: Date,
   jitterMs: () => number,
   publishResults?: PublishResults,
+  telemetry?: CollectorTelemetry,
 ) {
   await transaction(client, async () => {
     const [current] = await db
@@ -359,6 +332,22 @@ async function finishSchedule(
           Math.min(current.intervalMinutes, 2 ** current.attempt) * minuteMs +
           jitterMs(),
       );
+    const explicitRetry =
+      result.status === 'retry' && result.retryAt && result.retryAt > now
+        ? new Date(result.retryAt.getTime() + jitterMs())
+        : undefined;
+    const attemptsExhausted = current.attempt >= 2;
+    const retryAt =
+      result.status === 'success'
+        ? undefined
+        : attemptsExhausted
+          ? new Date(
+              Math.max(
+                advanceSchedule(current, now).getTime(),
+                explicitRetry?.getTime() ?? 0,
+              ),
+            )
+          : (explicitRetry ?? backoff());
     await db
       .update(collectorSchedule)
       .set({
@@ -373,13 +362,8 @@ async function finishSchedule(
               lastError: null,
             }
           : {
-              attempt: current.attempt + 1,
-              retryAt:
-                result.status === 'retry' &&
-                result.retryAt &&
-                result.retryAt > now
-                  ? result.retryAt
-                  : backoff(),
+              attempt: attemptsExhausted ? 0 : current.attempt + 1,
+              retryAt,
               lastError: result.reason,
             }),
       })
@@ -408,6 +392,8 @@ async function finishSchedule(
           }
         : {}),
     });
+
+    await telemetry?.finish(schedule, result, now, retryAt, captureId);
 
     if (request?.progress.pending.includes(schedule.id)) {
       await saveProgress(
@@ -444,6 +430,7 @@ async function collectSession({
   onError,
   onLeaderAcquired,
   publishResults,
+  telemetry,
 }: CollectorOptions) {
   const client = await pool.connect();
   const disconnected = new AbortController();
@@ -481,6 +468,7 @@ async function collectSession({
     client.on('notification', onNotification);
     stop.addEventListener('abort', onStop);
     await client.query('listen worksmith_wake');
+    await telemetry?.lead(client);
     await onLeaderAcquired?.(client);
     await client.query(
       'update collector_schedule set leased_until = null where leased_until <= $1',
@@ -495,19 +483,34 @@ async function collectSession({
           )
         ).rows[0]?.ready;
       while (!stop.aborted && !(await hasSchedules())) {
+        const job = {
+          kind: 'league',
+          id: null,
+          payload: {},
+          lastStartedAt: now(),
+        };
+        await telemetry?.start(job);
         try {
           await bootstrap(
             client,
             AbortSignal.any([stop, AbortSignal.timeout(leaseMs)]),
           );
-          if (await hasSchedules()) break;
-          throw new Error('Collector bootstrap produced no enabled schedules');
+          if (!(await hasSchedules()))
+            throw new Error(
+              'Collector bootstrap produced no enabled schedules',
+            );
+          await telemetry?.finish(job, { status: 'success' }, now());
+          break;
         } catch (error) {
           stop.throwIfAborted();
-          onError?.(failureCode(error, 'COLLECTOR_BOOTSTRAP_UNAVAILABLE'));
+          const reason = failureCode(error, 'COLLECTOR_BOOTSTRAP_UNAVAILABLE');
+          await telemetry?.finish(job, { status: 'retry', reason }, now());
+          onError?.(reason);
           await delay(Math.min(maxIdleMs, minuteMs), undefined, {
             signal: stop,
           });
+        } finally {
+          telemetry?.settle();
         }
       }
     }
@@ -517,17 +520,13 @@ async function collectSession({
       const timestamp = now();
       const request = await readRequest(client, db, timestamp);
       if (request === null) continue;
-      const {
-        rows: [state],
-      } = await client.query<{ blocked: string | null; paused: boolean }>(`
-        select (select blocked_reason from collector_state where id = 1) as blocked,
-               coalesce((select settings->>'collectionsPaused' = 'true'
-                         from market_admin_settings where id = 1), false) as paused
-      `);
-      const tradeBlocked = Boolean(state?.blocked);
-      const paused = state?.paused === true;
-      const recoverTradeAuthentication =
-        tradeBlocked && request?.progress.recoverTradeAuthentication === true;
+      const queue = await readCollectorQueue(
+        client,
+        timestamp,
+        request?.progress ?? { pending: [] },
+      );
+      const tradeBlocked = Boolean(queue.blocked);
+      const recoverTradeAuthentication = tradeBlocked && queue.recovery;
       if (
         request &&
         (await skipUnavailable(
@@ -535,27 +534,47 @@ async function collectSession({
           request,
           tradeBlocked && !recoverTradeAuthentication,
           timestamp,
-          paused,
+          queue.paused,
         ))
       )
         continue;
-      const next = await nextSchedule(
-        client,
-        tradeBlocked,
-        request?.progress.pending ?? [],
-        timestamp,
-        recoverTradeAuthentication,
-        paused,
-      );
       if (stop.aborted) break;
-      if (!next || next.due > timestamp) {
+      if (!queue.id || !queue.nextDueAt || queue.nextDueAt > timestamp) {
+        if (telemetry) {
+          if (queue.paused)
+            await telemetry.operation('pause', 'COLLECTIONS_PAUSED');
+          else if (queue.cooldownUntil)
+            await telemetry.operation(
+              'cooldown',
+              queue.cooldownStatus === 429
+                ? 'RATE_LIMITED'
+                : (queue.cooldownStatus ?? 0) >= 500
+                  ? 'PROVIDER_UNAVAILABLE'
+                  : 'RESTRICTION',
+              queue.cooldownUntil,
+            );
+          else if (tradeBlocked && !recoverTradeAuthentication)
+            await telemetry.operation('auth-blocked', queue.blocked);
+          else if (queue.pacingUntil)
+            await telemetry.operation('permit', 'PACING', queue.pacingUntil);
+          else if (queue.retryUntil)
+            await telemetry.operation(
+              'cooldown',
+              queue.retryReason,
+              queue.retryUntil,
+            );
+          else await telemetry.operation('idle', null, queue.nextDueAt);
+        }
         if (revision !== seen) continue;
-        const waitMs = next
-          ? Math.min(
-              maxIdleMs,
-              Math.max(0, next.due.getTime() - now().getTime()),
-            )
+        const idleMs = telemetry
+          ? Math.min(maxIdleMs, collectorHeartbeatMs)
           : maxIdleMs;
+        const waitMs = queue.nextDueAt
+          ? Math.min(
+              idleMs,
+              Math.max(0, queue.nextDueAt.getTime() - now().getTime()),
+            )
+          : idleMs;
         await new Promise<void>((resolve) => {
           const timer = setTimeout(() => wake?.(), waitMs);
           wake = () => {
@@ -569,11 +588,12 @@ async function collectSession({
       const schedule = await claimSchedule(
         client,
         db,
-        next.id,
+        queue.id,
         timestamp,
         recoverTradeAuthentication ? request : undefined,
       );
       if (!schedule) continue;
+      await telemetry?.start(schedule);
 
       const jobSignal = AbortSignal.any([
         disconnected.signal,
@@ -606,6 +626,7 @@ async function collectSession({
             (result.status === 'retry' && result.economyUpdated)))
           ? publishResults
           : undefined;
+      if (publish) await telemetry?.operation('evaluation');
       try {
         await finishSchedule(
           client,
@@ -616,6 +637,7 @@ async function collectSession({
           now(),
           jitterMs,
           publish,
+          telemetry,
         );
       } catch (error) {
         if (
@@ -638,11 +660,15 @@ async function collectSession({
           request,
           now(),
           jitterMs,
+          undefined,
+          telemetry,
         );
       }
+      telemetry?.settle();
     }
     if (!signal.aborted) disconnected.signal.throwIfAborted();
   } finally {
+    telemetry?.stop();
     stop.removeEventListener('abort', onStop);
     client.off('notification', onNotification);
     release();

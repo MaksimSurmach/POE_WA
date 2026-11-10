@@ -70,6 +70,8 @@ describe('applyCapture', () => {
         status: 'active',
         missedCompleteCaptures: 0,
         goneAt: null,
+        firstMissingAt: null,
+        unchangedAskSince: batch.capturedAt,
       },
     ]);
     expect(events).toEqual([

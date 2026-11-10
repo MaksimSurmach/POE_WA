@@ -1,5 +1,6 @@
 import type { CollectorStatus } from '@poe-worksmith/contracts';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { CollectorDetails } from './CollectorDetails.js';
 import { ApiClientError, createApiClient } from './apiClient.js';
 
 const api = createApiClient();
@@ -144,6 +145,7 @@ export function CollectorControls({
           />
         </>
       )}
+      <CollectorDetails />
     </div>
   );
 }

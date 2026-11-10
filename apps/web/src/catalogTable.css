@@ -263,3 +263,9 @@
   margin-top: 24px;
   padding-block: 0;
 }
+
+.craft-table .craft-table__readiness-group th {
+  color: var(--text);
+  text-align: left;
+  white-space: normal;
+}

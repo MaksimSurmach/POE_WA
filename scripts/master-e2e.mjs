@@ -660,6 +660,8 @@ else {
           [
             'tests/e2e/fixtures.ts',
             'tests/e2e/boot.spec.ts',
+            'tests/e2e/collector.spec.ts',
+            'scripts/e2e-collector-fixture.mjs',
             'compose.e2e.yaml',
           ].map((file) => readFile(file)),
         ),
@@ -1001,22 +1003,6 @@ else {
       'public admin denial created side effects',
     );
     metadata.executedTestIds.push('ACL-PUBLIC-01');
-    await run(
-      'pnpm',
-      ['exec', 'playwright', 'test', '-c', 'playwright.master.config.ts'],
-      {
-        env: {
-          ...env,
-          MASTER_E2E_BASE_URL: `http://127.0.0.1:${e2ePort}`,
-        },
-      },
-    );
-    const playwrightReport = JSON.parse(
-      await readFile(path.join(output, 'report.json'), 'utf8'),
-    );
-    const passedTestIds = collectPassedTestIds(playwrightReport);
-    assert(passedTestIds.includes('BOOT-01'), 'BOOT-01 did not pass');
-    metadata.executedTestIds.push(...passedTestIds);
     const recipeStateBeforeRestart = await readRecipeState(compose, env);
     const sentinelId = await readSql(
       compose,
@@ -1096,10 +1082,38 @@ else {
         migrationStateAfterRepeatMigration,
       'migration journal changed after restart checks',
     );
+    await run(
+      'docker',
+      [...compose, 'up', '-d', '--no-deps', '--force-recreate', 'collector'],
+      {
+        env: {
+          ...env,
+          E2E_COLLECTOR_ENTRYPOINT: '/tmp/e2e-collector-fixture.mjs',
+        },
+      },
+    );
+    await run(
+      'pnpm',
+      ['exec', 'playwright', 'test', '-c', 'playwright.master.config.ts'],
+      {
+        env: {
+          ...env,
+          MASTER_E2E_BASE_URL: `http://127.0.0.1:${e2ePort}`,
+        },
+      },
+    );
+    const playwrightReport = JSON.parse(
+      await readFile(path.join(output, 'report.json'), 'utf8'),
+    );
+    const passedTestIds = collectPassedTestIds(playwrightReport);
+    assert(passedTestIds.includes('BOOT-01'), 'BOOT-01 did not pass');
+    assert(passedTestIds.includes('COLLECTOR-01'), 'COLLECTOR-01 did not pass');
+    assert(passedTestIds.includes('COLLECTOR-02'), 'COLLECTOR-02 did not pass');
+    metadata.executedTestIds.push(...passedTestIds);
     passVerdict = receipt(
       'PASS',
       metadata,
-      'checks=migrations,catalog,api,collector-run,acl,boot,postgres-restart,app-restart,collector-restart,web-restart',
+      'checks=migrations,catalog,api,collector-run,acl,boot,offline-capture-readiness-ui,postgres-restart,app-restart,collector-restart,web-restart',
     );
   } catch (error) {
     runError = error;

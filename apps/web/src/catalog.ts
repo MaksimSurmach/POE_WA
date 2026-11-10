@@ -59,6 +59,13 @@ export const defaultCatalogFilters: CatalogFilters = {
   sort: 'profit',
 };
 
+export function evidenceRank(entry: CatalogEntry) {
+  if (entry.readiness?.level === 'preliminary-candidate') return 0;
+  if (entry.readiness?.comparableAsks) return 1;
+  if (entry.readiness !== undefined) return 2;
+  return entry.evaluation.grade === 'C' ? 2 : 1;
+}
+
 /**
  * Groups already-sorted entries by exact target signature. Groups keep the
  * position of their first entry; inside a group the best valid profit leads.
@@ -72,6 +79,8 @@ export function groupByTarget(entries: CatalogEntry[]) {
   }
   return [...groups.values()].map((group) => {
     const best = group.reduce((lead, entry) => {
+      const evidence = evidenceRank(entry) - evidenceRank(lead);
+      if (evidence !== 0) return evidence < 0 ? entry : lead;
       const current = lead.evaluation.profit;
       const candidate = entry.evaluation.profit;
       // Never compare nominal amounts in different currencies.

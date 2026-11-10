@@ -12,6 +12,7 @@ import {
 import { evaluateAndPublishCatalog } from '../catalogPublisher.js';
 import { runCollector } from '../collector.js';
 import { createCollectorResultPublisher } from '../collectorResults.js';
+import { CollectorTelemetry } from '../observability/collectorTelemetry.js';
 import { loadCollectorScheduleConfig } from '../runtimeConfig.js';
 import {
   newEconomyAttempt,
@@ -169,9 +170,11 @@ export function assertLocalBrowserFixtureDatabase() {
     );
 }
 
-async function prepareTwoMethodsPriced(pool: Pool) {
+async function prepareTwoMethodsPriced(
+  pool: Pool,
+  root = fileURLToPath(new URL('../../../../recipes/', import.meta.url)),
+) {
   const repositories = createPostgresRepositories(pool);
-  const root = fileURLToPath(new URL('../../../../recipes/', import.meta.url));
   const recipes = (await loadRecipeCatalog(root)).filter(({ definition }) =>
     ['physical-large-cluster-jagged', 'physical-large-cluster-chaos'].includes(
       definition.id,
@@ -288,6 +291,7 @@ function pricedListings(
   key: string,
   at: Date,
   basePriceMultiplier = 1,
+  finishedSellerCount = 5,
 ) {
   const patch = '3.29.3.3';
   const league = 'Standard';
@@ -317,35 +321,38 @@ function pricedListings(
       ? '2'
       : '3';
   const amount = finished ? '75' : target ? baseAsk : materialAsk;
-  return Array.from({ length: finished ? 5 : 1 }, (_, index) => {
-    const account = `seller-${index}`;
-    return {
-      id: `${key}-${index}`,
-      account,
-      ageSeconds: 60,
-      fee: null,
-      indexedAt: at.toISOString(),
-      price: { amount, currency },
-      item: target
-        ? {
-            baseType: 'Large Cluster Jewel',
-            rarity,
-            itemLevel: 83,
-            league,
-            patch,
-            currency,
-            seller: account,
-            status: 'listed',
-            corrupted: false,
-            fractured: false,
-            synthesised: false,
-            influences: [],
-            modsComplete: true,
-            mods: finished ? finishedMods : clusterMods,
-          }
-        : { stock: 1000 },
-    };
-  });
+  return Array.from(
+    { length: finished ? finishedSellerCount : 1 },
+    (_, index) => {
+      const account = `seller-${index}`;
+      return {
+        id: `${key}-${index}`,
+        account,
+        ageSeconds: 60,
+        fee: null,
+        indexedAt: at.toISOString(),
+        price: { amount, currency },
+        item: target
+          ? {
+              baseType: 'Large Cluster Jewel',
+              rarity,
+              itemLevel: 83,
+              league,
+              patch,
+              currency,
+              seller: account,
+              status: 'listed',
+              corrupted: false,
+              fractured: false,
+              synthesised: false,
+              influences: [],
+              modsComplete: true,
+              mods: finished ? finishedMods : clusterMods,
+            }
+          : { stock: 1000 },
+      };
+    },
+  );
 }
 
 export async function seedTwoMethodsPriced(pool: Pool) {
@@ -404,9 +411,19 @@ export async function seedTwoMethodsPriced(pool: Pool) {
   };
 }
 
-/** Local browser fixture: provider data is synthetic; scheduling, writes and evaluation are real. */
-export async function prepareCollectorBrowserFixture(pool: Pool) {
-  const { exchange, now } = await prepareTwoMethodsPriced(pool);
+/** Provider data is synthetic; scheduling, writes and evaluation are real. */
+export async function prepareCollectorBrowserFixture(
+  pool: Pool,
+  options: {
+    recipeRoot?: string;
+    manualOnly?: boolean;
+    finishedSellerCount?: number;
+  } = {},
+) {
+  const { exchange, now } = await prepareTwoMethodsPriced(
+    pool,
+    options.recipeRoot,
+  );
   const schedules = await synchronizeCollectorSchedules(
     pool,
     loadCollectorScheduleConfig(),
@@ -416,12 +433,19 @@ export async function prepareCollectorBrowserFixture(pool: Pool) {
   await pool.query(
     "update collector_schedule set enabled = false where kind <> 'trade-target'",
   );
+  if (options.manualOnly) {
+    await pool.query(
+      "update collector_schedule set next_due_at = now() + interval '1 hour' where enabled",
+    );
+  }
   await pool.query('truncate collector_state');
+  const telemetry = new CollectorTelemetry();
   const success = async () => ({ status: 'success' as const });
   return (signal: AbortSignal) =>
     runCollector({
       pool,
       signal,
+      telemetry,
       publishResults: createCollectorResultPublisher(pool, async () => ({
         maximumQuoteAgeMs: 30 * 60_000,
         freshnessWarningMs: 15 * 60_000,
@@ -436,6 +460,7 @@ export async function prepareCollectorBrowserFixture(pool: Pool) {
             schedule.key,
             capturedAt,
             schedule.lastFinishedAt ? 2 : 1,
+            options.finishedSellerCount,
           ).map(({ id, account, item, price }) => ({
             itemId: id,
             seller: account,
@@ -457,6 +482,7 @@ export async function prepareCollectorBrowserFixture(pool: Pool) {
               complete: true,
               durationMs: 0,
               fxSnapshotId: exchange.id,
+              fxChaosPerDivine: '200',
               slices: 1,
               listings,
             },

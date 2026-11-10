@@ -6,6 +6,7 @@ import type {
 } from '@poe-worksmith/domain';
 import type { Pool, PoolClient } from 'pg';
 
+import { tradeCapturePolicyPredicate } from './collectorQueue.js';
 import { mapRepositoryError, RepositoryNotFoundError } from './errors.js';
 
 type RateLimitStateSqlRow = {
@@ -298,8 +299,17 @@ export function createPostgresProviderRepositories(
                where policy = any($1::text[]) order by policy for update`,
               [policies],
             );
+            const sharedBlock = input.tradeCapture
+              ? (
+                  await client.query<{ until: Date | null }>(
+                    `select max(blocked_until) as until from rate_limit_states r
+                   where ${tradeCapturePolicyPredicate}`,
+                  )
+                ).rows[0]?.until
+              : null;
             const blockedUntil = new Date(
               Math.max(
+                sharedBlock?.getTime() ?? 0,
                 ...locked.rows.map((state) => state.blocked_until.getTime()),
               ),
             );
@@ -415,7 +425,12 @@ export function createPostgresProviderRepositories(
             const current = locked.rows.find((row) => row.policy === policy);
             const minimumDelayMs =
               input.windows.length === 0
-                ? Math.max(input.minimumDelayMs, current?.minimum_delay_ms ?? 0)
+                ? Math.max(
+                    input.minimumDelayMs,
+                    ...locked.rows.map(
+                      ({ minimum_delay_ms }) => minimum_delay_ms,
+                    ),
+                  )
                 : input.minimumDelayMs;
             const nextRequestAt = new Date(
               Math.max(

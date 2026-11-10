@@ -40,11 +40,6 @@ const runtimeEnvironmentSchema = z
     APP_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
     PIPELINE: z.enum(['legacy', 'collector']).default('collector'),
     ...collectorScheduleFields,
-    JOB_LEASE_TIMEOUT_MS: z.coerce
-      .number()
-      .int()
-      .min(1000)
-      .default(20 * 60 * 1000),
     LOG_LEVEL: z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),
@@ -53,7 +48,6 @@ const runtimeEnvironmentSchema = z
       (value) => (value === '' ? undefined : value),
       z.string().trim().min(1).optional(),
     ),
-    MARKET_RETRY_DELAY_MS: z.coerce.number().int().min(1000).default(60_000),
     POE_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).default(15_000),
     POE_USER_AGENT: z
       .string()
@@ -98,13 +92,11 @@ export type RuntimeConfig = {
   collectorRetentionEnabled: boolean;
   database: DatabaseConfig;
   host: string;
-  jobLeaseTimeoutMs: number;
   leagueResolveCron: string;
   leagueResolveTimezone: string;
   logLevel: z.infer<typeof runtimeEnvironmentSchema>['LOG_LEVEL'];
   marketConcurrency: number;
   operatorDiagnosticsToken: string | undefined;
-  marketRetryDelayMs: number;
   mode: ApplicationMode;
   pipeline: z.infer<typeof runtimeEnvironmentSchema>['PIPELINE'];
   poeUserAgent: string;
@@ -210,13 +202,11 @@ export function loadRuntimeConfig(
       result.data.COLLECTOR_RETENTION_ENABLED === 'true',
     database,
     host: result.data.APP_HOST,
-    jobLeaseTimeoutMs: result.data.JOB_LEASE_TIMEOUT_MS,
     leagueResolveCron: result.data.LEAGUE_RESOLVE_CRON,
     leagueResolveTimezone: result.data.LEAGUE_RESOLVE_TIMEZONE,
     logLevel: result.data.LOG_LEVEL,
     marketConcurrency: result.data.MARKET_CONCURRENCY,
     operatorDiagnosticsToken: result.data.OPERATOR_DIAGNOSTICS_TOKEN,
-    marketRetryDelayMs: result.data.MARKET_RETRY_DELAY_MS,
     mode,
     pipeline: result.data.PIPELINE,
     poeUserAgent: result.data.POE_USER_AGENT,

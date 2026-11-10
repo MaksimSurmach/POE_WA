@@ -193,6 +193,7 @@ export async function synchronizeCollectorSchedules(
     {
       query: RecipeMarketQuery;
       recipeIds: Set<string>;
+      outputRecipeIds: Set<string>;
       intervalMinutes: number;
     }
   >();
@@ -224,6 +225,7 @@ export async function synchronizeCollectorSchedules(
       const target = targets.get(key);
       if (target) {
         target.recipeIds.add(recipe.id);
+        if (!starting) target.outputRecipeIds.add(recipe.id);
         target.intervalMinutes = Math.min(
           target.intervalMinutes,
           intervalMinutes,
@@ -232,6 +234,7 @@ export async function synchronizeCollectorSchedules(
         targets.set(key, {
           query,
           recipeIds: new Set([recipe.id]),
+          outputRecipeIds: new Set(starting ? [] : [recipe.id]),
           intervalMinutes,
         });
       }
@@ -241,11 +244,18 @@ export async function synchronizeCollectorSchedules(
   const rows: (typeof collectorSchedule.$inferInsert)[] = [
     ...Array.from(
       targets,
-      ([key, { query, recipeIds, intervalMinutes }], index) => ({
+      (
+        [key, { query, recipeIds, outputRecipeIds, intervalMinutes }],
+        index,
+      ) => ({
         kind: 'trade-target',
         key,
         leagueId: league.id,
-        payload: { ...query, recipeIds: [...recipeIds].sort() },
+        payload: {
+          ...query,
+          recipeIds: [...recipeIds].sort(),
+          outputRecipeIds: [...outputRecipeIds].sort(),
+        },
         intervalMinutes,
         nextDueAt: new Date(now.getTime() + index * 60_000),
       }),

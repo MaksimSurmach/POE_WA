@@ -23,6 +23,8 @@ import {
   apiErrorEnvelopeSchema,
   type CatalogResponse,
   catalogResponseSchema,
+  collectorReadinessResponseSchema,
+  type CollectorReadinessResponse,
   correlationIdSchema,
   rateLimitDiagnosticsResponseSchema,
   leaguesResponseSchema,
@@ -60,6 +62,7 @@ import {
   type MarketTrendsReader,
 } from './marketTrendsApi.js';
 import type { MarketEconomyOptions } from './marketEconomy.js';
+import { createCollectorDiagnosticsReader } from './observability/collectorTelemetry.js';
 import { readCraftingPrices } from './craftingPrices.js';
 export type ReadinessProbe = () => Promise<void>;
 export type RefreshProgressReader = () => Promise<CatalogProgress>;
@@ -103,6 +106,8 @@ export function buildApi(
     factory?: FactoryService | undefined;
     diagnosticsToken?: string | undefined;
     collectorPool?: Pool | undefined;
+    readCollectorReadiness?:
+      (() => Promise<CollectorReadinessResponse>) | undefined;
     readCircuits?: (() => Promise<ProviderCircuitState[]>) | undefined;
     readOperationalDiagnostics?: OperationalDiagnosticsReader | undefined;
     metrics?: { contentType: string; metrics(): Promise<string> } | undefined;
@@ -322,11 +327,28 @@ export function buildApi(
     );
   }
 
-  api.get('/api/diagnostics/rate-limits', async (request) => {
-    const policies = await readRateLimits();
+  if (options.readCollectorReadiness)
+    api.get('/api/collector/readiness', async () =>
+      collectorReadinessResponseSchema.parse(
+        await options.readCollectorReadiness!(),
+      ),
+    );
+
+  const readCollectorDiagnostics = collectorPool
+    ? createCollectorDiagnosticsReader(collectorPool)
+    : undefined;
+  api.get('/api/diagnostics/rate-limits', async (request, reply) => {
+    reply.header('cache-control', 'no-store');
+    const [policies, collector] = await Promise.all([
+      readRateLimits(),
+      readCollectorDiagnostics?.(),
+    ]);
     return rateLimitDiagnosticsResponseSchema.parse({
       correlationId: request.id,
-      data: { policies: policies.map(serializeRateLimitState) },
+      data: {
+        policies: policies.map(serializeRateLimitState),
+        ...(collector ? { collector } : {}),
+      },
     });
   });
   if (options.diagnosticsToken && options.readOperationalDiagnostics) {

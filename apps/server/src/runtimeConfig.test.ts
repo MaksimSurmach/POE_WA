@@ -26,12 +26,10 @@ describe('runtime configuration', () => {
     expect(config).toMatchObject({
       cleanupCron: '15 2 * * *',
       host: '0.0.0.0',
-      jobLeaseTimeoutMs: 1_200_000,
       leagueResolveCron: '0 23 * * *',
       leagueResolveTimezone: 'Europe/Warsaw',
       logLevel: 'info',
       marketConcurrency: 4,
-      marketRetryDelayMs: 60_000,
       mode: 'api',
       pipeline: 'collector',
       poeUserAgent: 'OAuth poe-worksmith/0.0.0 (contact: local-development)',
