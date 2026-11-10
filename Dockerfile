@@ -62,7 +62,23 @@ COPY --from=build --chown=node:node /workspace/apps/server/mappings ./mappings
 COPY --from=build --chown=node:node /workspace/apps/server/presentation ./presentation
 COPY --from=build --chown=node:node /workspace/recipes ./recipes
 COPY --from=build --chown=node:node /workspace/catalog ./catalog
+RUN install -d -o node -g node -m 0700 /home/node/worksmith-trade
 
 USER node
 EXPOSE 3000
 CMD ["node", "dist/entrypoints/all.js"]
+
+FROM server AS app
+
+USER root
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends nginx-light \
+  && rm -rf /var/lib/apt/lists/* \
+  && chown -R node:node /var/lib/nginx
+COPY --from=web /usr/share/nginx/html /srv/worksmith-web
+COPY deploy/nginx-server.conf /etc/nginx/worksmith.conf
+COPY deploy/start-server-app.sh /app/start-server-app.sh
+
+USER node
+EXPOSE 8080
+CMD ["bash", "/app/start-server-app.sh"]

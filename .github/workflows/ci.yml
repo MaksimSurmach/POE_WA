@@ -112,3 +112,10 @@ jobs:
           pnpm --filter @poe-worksmith/server recipes:sync --dry-run 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
       - run: docker build --target server --tag poe-worksmith:test .
       - run: docker build --target web --tag poe-worksmith-web:test .
+
+  server-compose:
+    # This runner allows unprivileged user namespaces for the Chromium sandbox.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/server-compose-smoke.sh

@@ -233,6 +233,13 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             ),
             onError: (code) =>
               logger.warn({ code }, 'collector operation will retry'),
+            onLeaderAcquired: async (client) => {
+              await client.query(
+                "update collector_schedule set enabled = $1 where kind = 'retention' and key = 'retention' and enabled <> $1",
+                [config.collectorRetentionEnabled],
+              );
+              logger.info('leader acquired');
+            },
             bootstrap: async (client, jobSignal) => {
               const pinned = createPostgresRepositories(pool, client);
               const report = await synchronizeRecipeCatalog(
@@ -306,6 +313,11 @@ export async function runProcess(forcedMode?: ApplicationMode) {
                     };
               },
               retention: async (_, jobSignal) => {
+                if (!config.collectorRetentionEnabled)
+                  return {
+                    status: 'blocked',
+                    reason: 'COLLECTOR_RETENTION_DISABLED',
+                  };
                 await runCleanup(jobSignal);
                 return { status: 'success' };
               },

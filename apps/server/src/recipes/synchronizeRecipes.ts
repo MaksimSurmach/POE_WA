@@ -166,7 +166,10 @@ export async function synchronizeCollectorSchedules(
   pool: Pool,
   config: Pick<
     RuntimeConfig,
-    'cleanupCron' | 'leagueResolveCron' | 'leagueResolveTimezone'
+    | 'cleanupCron'
+    | 'collectorRetentionEnabled'
+    | 'leagueResolveCron'
+    | 'leagueResolveTimezone'
   >,
   now = new Date(),
   collectorClient?: PoolClient,
@@ -255,7 +258,10 @@ export async function synchronizeCollectorSchedules(
       config.leagueResolveTimezone,
       now,
     ),
-    cronSchedule('retention', config.cleanupCron, 'UTC', now),
+    {
+      ...cronSchedule('retention', config.cleanupCron, 'UTC', now),
+      enabled: config.collectorRetentionEnabled,
+    },
   ];
   const recipeHashes = new Map(
     activeRecipes.map(({ id, contentHash }) => [id, contentHash]),
@@ -289,7 +295,7 @@ export async function synchronizeCollectorSchedules(
       .onConflictDoUpdate({
         target: [collectorSchedule.kind, collectorSchedule.key],
         set: {
-          enabled: true,
+          enabled: sql`excluded.enabled`,
           leagueId: sql`excluded.league_id`,
           payload: sql`excluded.payload`,
           intervalMinutes: sql`excluded.interval_minutes`,
