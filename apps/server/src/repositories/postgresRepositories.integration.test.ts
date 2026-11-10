@@ -69,7 +69,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await pool.query(
-    `truncate table craft_probability_results, jobs, recipe_evaluations, raw_snapshots,
+    `truncate table jobs, recipe_evaluations, raw_snapshots,
        aggregated_observations, catalog_state, market_queries,
        refresh_cycles, recipes, poe_leagues restart identity cascade`,
   );

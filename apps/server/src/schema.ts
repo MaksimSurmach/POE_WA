@@ -640,27 +640,6 @@ export const providerMappings = pgTable(
   ],
 );
 
-export const craftProbabilityResults = pgTable('craft_probability_results', {
-  cacheKey: text('cache_key').primaryKey(),
-  setupHash: text('setup_hash').notNull(),
-  gameDataVersion: text('game_data_version').notNull(),
-  rulesetId: text('ruleset_id').notNull(),
-  engineId: text('engine_id').notNull(),
-  engineVersion: text('engine_version').notNull(),
-  calculatorContractVersion: integer('calculator_contract_version').notNull(),
-  probabilityNumerator: text('probability_numerator').notNull(),
-  probabilityDenominator: text('probability_denominator').notNull(),
-  expectedAttemptsNumerator: text('expected_attempts_numerator').notNull(),
-  expectedAttemptsDenominator: text('expected_attempts_denominator').notNull(),
-  probabilityDecimal: text('probability_decimal').notNull(),
-  expectedAttemptsDecimal: text('expected_attempts_decimal').notNull(),
-  diagnostics: jsonb('diagnostics').$type<unknown[]>().notNull(),
-  calculatedAt: timestamp('calculated_at', { withTimezone: true }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-});
-
 export const marketTargets = pgTable(
   'market_targets',
   {
@@ -872,19 +851,6 @@ export const marketCollectionOwnership = pgTable(
       sql`${table.ownerEpoch} >= 0`,
     ),
   ],
-);
-
-export const marketCollectionCheckpoints = pgTable(
-  'market_collection_checkpoints',
-  {
-    provider: text('provider').notNull(),
-    realm: text('realm').notNull(),
-    cursor: text('cursor'),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [primaryKey({ columns: [table.provider, table.realm] })],
 );
 
 export const beltPriceUpdates = pgTable(
@@ -1314,66 +1280,6 @@ export const factoryMutations = pgTable(
   },
   (t) => [
     check('factory_mutations_version_check', sql`${t.resultVersion} >= 0`),
-  ],
-);
-
-export const craftSignalStates = pgTable(
-  'craft_signal_states',
-  {
-    contextKey: text('context_key').primaryKey(),
-    recipeId: text('recipe_id')
-      .notNull()
-      .references(() => recipes.id),
-    recipeContentHash: text('recipe_content_hash').notNull(),
-    leagueId: uuid('league_id')
-      .notNull()
-      .references(() => poeLeagues.id),
-    targetSignature: text('target_signature').notNull(),
-    document: jsonb('document').$type<Record<string, unknown>>().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (t) => [index('craft_signal_states_league_idx').on(t.leagueId, t.updatedAt)],
-);
-export const craftSignalHistory = pgTable(
-  'craft_signal_history',
-  {
-    id: uuid('id').primaryKey(),
-    contextKey: text('context_key')
-      .notNull()
-      .references(() => craftSignalStates.contextKey),
-    evidenceHash: text('evidence_hash').notNull(),
-    document: jsonb('document').$type<Record<string, unknown>>().notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (t) => [
-    uniqueIndex('craft_signal_history_evidence_uq').on(
-      t.contextKey,
-      t.evidenceHash,
-    ),
-    index('craft_signal_history_context_idx').on(t.contextKey, t.createdAt),
-  ],
-);
-export const craftAllocationPlans = pgTable(
-  'craft_allocation_plans',
-  {
-    id: uuid('id').primaryKey(),
-    leagueId: uuid('league_id')
-      .notNull()
-      .references(() => poeLeagues.id),
-    idempotencyKey: uuid('idempotency_key').notNull(),
-    requestHash: text('request_hash').notNull(),
-    document: jsonb('document').$type<Record<string, unknown>>().notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (t) => [
-    uniqueIndex('craft_allocation_plans_idempotency_uq').on(t.idempotencyKey),
-    index('craft_allocation_plans_league_idx').on(t.leagueId, t.createdAt),
   ],
 );
 
