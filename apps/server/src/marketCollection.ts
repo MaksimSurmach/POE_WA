@@ -618,7 +618,6 @@ export class MarketCollectionManager {
   readonly #requests = new Set<Promise<MarketCollectionRun>>();
   readonly #tasks = new Set<Promise<void>>();
   readonly #completions = new Map<string, Promise<void>>();
-  #timer: ReturnType<typeof setInterval> | undefined;
   #stopping = false;
   #accessBlocked = false;
   #starting = 0;
@@ -688,26 +687,8 @@ export class MarketCollectionManager {
       : this.#adapter.descriptor;
   }
 
-  async start(intervalMs = 30_000, onTickError?: (error: unknown) => void) {
-    if (this.#timer) return;
-    this.#accessBlocked = await this.#persistedSourceBlock();
-    await this.#recoverRunningRuns();
-    this.#timer = setInterval(
-      () =>
-        this.#track(
-          this.tick(onTickError).catch((error: unknown) =>
-            onTickError?.(error),
-          ),
-        ),
-      intervalMs,
-    );
-    await this.tick(onTickError);
-  }
-
   async stop() {
     this.#stopping = true;
-    if (this.#timer) clearInterval(this.#timer);
-    this.#timer = undefined;
     while (this.#requests.size > 0 || this.#tasks.size > 0) {
       for (const controller of this.#active.values()) controller.abort();
       await Promise.allSettled([...this.#requests, ...this.#tasks]);
@@ -874,53 +855,6 @@ export class MarketCollectionManager {
     return requested;
   }
 
-  async tick(onRunError?: (error: unknown) => void) {
-    await this.#recoverRunningRuns();
-    this.#accessBlocked ||= await this.#persistedSourceBlock();
-    if (this.source.access === 'blocked') return;
-    const controls = await this.#readControls?.();
-    if (
-      controls &&
-      (controls.collectionsPaused ||
-        !controls.scheduledCollectionEnabled ||
-        !controls.automaticRefreshEnabled)
-    )
-      return;
-    const now = this.#clock();
-    const settings = await this.#store.listSettings();
-    for (const setting of settings) {
-      if (
-        this.#requests.size + this.#active.size >=
-        (controls?.collectionConcurrency ?? 4)
-      )
-        break;
-      if (
-        !setting.enabled ||
-        setting.paused ||
-        !setting.nextRunAt ||
-        Date.parse(setting.nextRunAt) > now.getTime() ||
-        this.#active.has(setting.targetId)
-      )
-        continue;
-      const target = await this.#store.findTarget(setting.targetId);
-      if (!target) continue;
-      const claimed = await this.#store.claimScheduledSettings(
-        {
-          ...setting,
-          nextRunAt: new Date(
-            now.getTime() + setting.intervalMinutes * 60_000,
-          ).toISOString(),
-          updatedAt: now.toISOString(),
-        },
-        setting.nextRunAt,
-      );
-      if (!claimed) continue;
-      await this.runNow(target.id, 'scheduled').catch((error: unknown) =>
-        onRunError?.(error),
-      );
-    }
-  }
-
   #track(task: Promise<void>) {
     this.#tasks.add(task);
     void task.catch(() => undefined).finally(() => this.#tasks.delete(task));
@@ -930,18 +864,6 @@ export class MarketCollectionManager {
     return this.#store.isSourceBlocked(this.#adapter.descriptor.id, {
       ignoreAuthFailures: Boolean(this.#adapter.recoverableAuth),
     });
-  }
-
-  async #recoverRunningRuns() {
-    const activeRunIds = [...this.#activeRunIds.keys()];
-    const cancelledRunIds = await this.#store.recoverRunningRuns(
-      this.#clock().toISOString(),
-      activeRunIds,
-    );
-    for (const runId of cancelledRunIds) {
-      const targetId = this.#activeRunIds.get(runId);
-      if (targetId) this.#active.get(targetId)?.abort();
-    }
   }
 
   async #execute(

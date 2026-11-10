@@ -409,7 +409,6 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
       { marketResearch: research, marketCollection: { manager, store } },
     );
     try {
-      await manager.start();
       for (round = 0; round < 3; round++) {
         for (const target of targets) {
           const initial = await manager.runNow(target.id);
@@ -497,18 +496,16 @@ describe('working market beta with PostgreSQL and HTTP-format fixtures', () => {
         paused: true,
         intervalMinutes: 5,
       });
-      await expect(manager.runNow(targets[0]!.id)).rejects.toMatchObject({
-        code: 'MARKET_COLLECTION_PAUSED',
-      });
-      await manager.tick();
-      expect(fetcher).toHaveBeenCalledTimes(before);
       await manager.stop();
       manager = new MarketCollectionManager({
         adapter,
         store,
         clock: () => now,
       });
-      await manager.start();
+      await expect(manager.runNow(targets[0]!.id)).rejects.toMatchObject({
+        code: 'MARKET_COLLECTION_PAUSED',
+      });
+      expect(fetcher).toHaveBeenCalledTimes(before);
       expect(await store.listObservations(targets[0]!.id)).toHaveLength(3);
       expect(await research.listSnapshots()).toHaveLength(15);
     } finally {
