@@ -5,6 +5,7 @@ import type { Pool, PoolClient } from 'pg';
 import type { Db } from 'pg-boss';
 import {
   marketAdminSettingsSchema,
+  storedMarketAdminSettingsSchema,
   marketAdminPatchSchema,
   marketAdminRefreshSchema,
   marketAdminRunSchema,
@@ -133,7 +134,7 @@ export function createMarketAdminStore(options: {
     );
   }
   function response(row: { version: number; settings: unknown }) {
-    const configured = marketAdminSettingsSchema.parse(row.settings);
+    const configured = storedMarketAdminSettingsSchema.parse(row.settings);
     const effective = {
       ...configured,
       collectionConcurrency: Math.min(
@@ -188,7 +189,7 @@ export function createMarketAdminStore(options: {
       const row = result.rows[0];
       if (!row || row.version !== parsed.data.version)
         throw new DomainError('PERSISTENCE_CONFLICT');
-      const previous = marketAdminSettingsSchema.parse(row.settings);
+      const previous = storedMarketAdminSettingsSchema.parse(row.settings);
       const settings = validateAdminSettings(
         { ...previous, ...parsed.data.settings },
         options.timezone,
@@ -215,7 +216,7 @@ export function createMarketAdminStore(options: {
       const selected = await client.query<{ settings: unknown }>(
         'select settings from market_admin_settings where id=1 for update',
       );
-      const settings = marketAdminSettingsSchema.parse(
+      const settings = storedMarketAdminSettingsSchema.parse(
         selected.rows[0]?.settings,
       );
       if (settings.collectionsPaused)
@@ -267,7 +268,7 @@ export function createMarketAdminStore(options: {
         const selected = await client.query<{ settings: unknown }>(
           'select settings from market_admin_settings where id=1 for update',
         );
-        const settings = marketAdminSettingsSchema.parse(
+        const settings = storedMarketAdminSettingsSchema.parse(
           selected.rows[0]?.settings,
         );
         const allowed =

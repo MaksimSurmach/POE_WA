@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import {
-  marketAdminSettingsSchema,
+  storedMarketAdminSettingsSchema,
   marketCollectionRunSchema,
 } from '@poe-worksmith/contracts';
 import {
@@ -77,7 +77,7 @@ async function publish() {
     maximumQuoteAgeMs,
     rawRetentionHours,
     historyRetentionDays,
-  } = marketAdminSettingsSchema.parse(settings.rows[0]?.settings);
+  } = storedMarketAdminSettingsSchema.parse(settings.rows[0]?.settings);
   if (collectionsPaused) return;
   const league = await repositories.leagues.findCurrent();
   if (!league) throw new Error('CURRENT_LEAGUE_UNRESOLVED');
