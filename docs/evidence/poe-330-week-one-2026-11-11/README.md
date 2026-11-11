@@ -64,24 +64,52 @@ changed supply. These distinctions are recorded in individual recipe notes.
 
 The schedule integration test reconciles **55 recipes into 94 unique Trade
 targets** plus the existing economy/league/retention rows, preserves runtime state
-on repeated sync, and disables removed targets safely. No interval changed:
-49 hourly outputs + 45 two-hourly bases = **71.5 captures/hour**, versus 35.5 before
-expansion. Optional discovery targets, retries and other IP traffic are additional.
+on repeated sync, and disables removed targets safely. Established outputs remain
+hourly. The 24 new `week-one` output targets run every two hours, like the bases:
+**25 hourly + 69 two-hourly targets = 59.5 captures/hour**. Optional discovery
+targets, retries and other IP traffic are additional.
 
-At 09:42 UTC on 2026-11-11, the public diagnostic showed fresh successful Standard
-captures after the earlier provider incident, a live single collector and no
-tracked 429. Its successful-capture average was 1.023 search / 2.977 fetch requests.
-Keeping that mix projects **73.1 search / 212.9 fetch requests/hour**, compared with
-the currently paced 150 / 250. See [the measured projection](load-projection.json).
+The initial 71.5-capture/hour plan used the pre-expansion aggregate request mix.
+The live audit on 2026-11-11 at 12:28 UTC covered all **94 exact Standard targets**.
+Their latest completed request costs, weighted by the old hourly/two-hourly
+cadence, project **257 fetch requests/hour** against a safe budget of **250/hour**.
+Hourly outputs were more expensive than bases, so the earlier aggregate estimate
+of 212.9 fetches/hour was optimistic. The manual pass itself finished 97/97 tasks
+without failures; that does not mean its original cadence is sustainable.
 
-This is not a successful expanded-catalog load test. More than **3.50 fetches per
-capture on average** would exceed the projected fetch pacing capacity. Broad base
-searches, retries, price slices and league-launch volume can change the mix.
-The durable limiter and 25% reserve remain intact; check queue age, overdue
-intervals, request counts and complete-capture coverage after activation. Do not
-interpret a lack of 429 as proof the hourly cadence is being met.
+The reduced cadence projects **59.5 search / 200 fetch requests/hour** and about
+**3,074 paced service seconds/hour** from those same target samples. This leaves
+**50 fetches/hour (20% of safe fetch capacity)** and **526 service seconds/hour
+(14.6% of worker capacity)** before maintenance, in addition to the controller's
+existing 25% raw-window reserve. The [dated per-target budget](load-projection.json)
+checks every observed account/IP window and retains the initial projection as
+historical evidence.
 
-## Validation
+Handler wall time alone misses request-permit waits between jobs. The paced
+service estimate uses the greater of handler wall time and search-count × the
+observed 24-second search delay per target. It models the completed pass as
+4,812.0 seconds against 4,837.8 actual seconds (0.53% difference). The old cadence
+projects 3,954.7 paced seconds/hour (109.9% worker utilization), confirming that
+its nominal schedule cannot fit this observed cost mix. The reduced cadence uses
+85.4%; this approximation still needs post-change observation.
+
+The durable limiter and reserve remain unchanged. One completed capture per exact
+query is not steady-state throughput proof; target costs, slices, retries and
+other traffic can change. Check queue age, overdue intervals, request counts and
+complete-capture coverage after activation. A lack of 429 does not prove that
+cadence is being met. Standard samples also do not establish launch-league supply
+or profitability.
+
+## Cadence regression coverage
+
+The existing database schedule test checks the 24 week-one outputs at 120 minutes,
+25 established outputs at 60 minutes and 45 bases at 120 minutes. It also migrates
+the old week-one interval without resetting due times, retries, leases or previous
+results, then repeats synchronization. Database execution belongs to isolated
+`poe_worksmith_test` CI; no live database was changed for this source adjustment.
+Scoped Prettier, ESLint and Node 22 TypeScript checks pass locally.
+
+## Original catalog validation
 
 - Catalog: all 55 recipes validate, with resolvable identities and presentation.
 - Unit tests: 841 passed (187 domain, 18 contracts, 539 server, 97 web), plus the
