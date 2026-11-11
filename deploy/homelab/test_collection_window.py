@@ -33,7 +33,8 @@ class CollectionWindowTest(unittest.TestCase):
             self.assertEqual(window.in_window(datetime.fromisoformat(at)), active)
 
     def reconcile(self, at, running, guarded=True):
-        info = {"State": {"Running": running}, "Config": {"Env":
+        info = {"State": {"Running": running},
+            "HostConfig": {"RestartPolicy": {"Name": "no"}}, "Config": {"Env":
             ["COLLECTOR_SKIP_STANDARD=true"] if guarded else []}}
         docker = patch.object(window, "docker", side_effect=lambda *args:
             json.dumps([info]) if args[0] == "inspect" else "")
@@ -67,6 +68,15 @@ class CollectionWindowTest(unittest.TestCase):
         with docker as run, patch.object(window, "pause", side_effect=TimeoutError):
             with self.assertRaises(TimeoutError):
                 window.reconcile(at)
+            run.assert_any_call("stop", "--timeout", "60", "fixture-collector")
+
+    def test_refuses_unmanaged_boot_restarts(self):
+        info = {"State": {"Running": True},
+            "Config": {"Env": ["COLLECTOR_SKIP_STANDARD=true"]},
+            "HostConfig": {"RestartPolicy": {"Name": "unless-stopped"}}}
+        with patch.object(window, "docker", return_value=json.dumps([info])) as run, patch.object(window, "pause"):
+            with self.assertRaisesRegex(RuntimeError, "own collector restarts"):
+                window.reconcile(datetime.fromisoformat("2026-11-14T00:00:00+01:00"))
             run.assert_any_call("stop", "--timeout", "60", "fixture-collector")
 
     def test_does_not_rewrite_unchanged_pause(self):

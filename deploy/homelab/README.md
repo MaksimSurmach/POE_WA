@@ -7,6 +7,10 @@ Codex or a logged-in desktop.
 
 Within the window, only the dedicated collector container starts. Configure it:
 
+Set the collector service's Docker `restart: 'no'`. The host timer owns restarts,
+including recovery during the window. This prevents Docker from starting the
+collector before the timer after a reboot outside the window.
+
 ```yaml
 COLLECTOR_SKIP_STANDARD: 'true'
 COLLECTOR_RETENTION_ENABLED: 'false'
@@ -37,7 +41,8 @@ systemctl enable --now worksmith-collection-window.timer
 systemctl start worksmith-collection-window.service
 ```
 
-The controller refuses to resume a container without the Standard guard flag. An
+The controller refuses to resume a container without the Standard guard flag or
+with an autonomous Docker restart policy. An
 API/configuration failure stops the collector and leaves a failed systemd unit
 for inspection; the timer retries on the next minute. API settings are changed
 only when the pause value differs, so an idle timer does not grow the audit log.

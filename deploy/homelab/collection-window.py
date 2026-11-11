@@ -50,6 +50,8 @@ def reconcile(now):
         active = in_window(now)
         if active and "COLLECTOR_SKIP_STANDARD=true" not in info["Config"]["Env"]:
             raise RuntimeError("Refusing to resume without the Standard collection guard")
+        if active and info["HostConfig"]["RestartPolicy"]["Name"] != "no":
+            raise RuntimeError("The window controller must own collector restarts")
         pause(not active)
         if active and not running:
             docker("start", container)
