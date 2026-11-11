@@ -1,0 +1,328 @@
+@layer utilities {
+  .ui-native-select {
+    position: relative;
+    display: block;
+    min-width: 0;
+  }
+  .ui-native-select > select {
+    width: 100%;
+    min-width: 0;
+    appearance: none;
+    padding-inline-end: 32px;
+  }
+  .ui-native-select > svg {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .button,
+  .input,
+  .textarea,
+  .select__trigger {
+    font-family: var(--font-sans);
+  }
+  .button {
+    cursor: pointer;
+  }
+  .button:disabled {
+    cursor: not-allowed;
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: var(--accent);
+  }
+  .table__content .button {
+    min-height: 36px;
+  }
+  /* Existing named regions own keyboard scrolling and sticky headers. */
+  .ui-table-surface {
+    overflow: visible;
+  }
+  .craft-table thead .button,
+  .recipe-market__table .button {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    white-space: normal;
+    justify-content: flex-start;
+  }
+  .craft-table thead .button {
+    min-width: 0;
+  }
+  .craft-table thead .button .sort-icon {
+    margin: 0;
+  }
+  .table__cell,
+  .table__column {
+    font-size: var(--font-body);
+  }
+  .table__column {
+    color: var(--muted);
+    font-weight: 500;
+  }
+  @media (max-width: 600px) {
+    .button,
+    .input,
+    .textarea,
+    .select__trigger {
+      min-height: 44px;
+      font-size: 16px;
+    }
+    .craft-table .table__cell {
+      background: transparent;
+    }
+  }
+}
+
+@layer utilities {
+  .workspace-shell {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  .workspace-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 28px 16px;
+    border-right: 1px solid var(--border);
+  }
+  .workspace-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 12px;
+    color: var(--foreground);
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .workspace-brand > svg {
+    width: 30px;
+    height: 30px;
+    color: var(--accent);
+  }
+  .workspace-brand small {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .workspace-nav {
+    display: grid;
+    gap: 6px;
+  }
+  .workspace-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: var(--field-radius);
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .workspace-link svg {
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+  .workspace-link:hover,
+  .workspace-link.is-active {
+    background: var(--surface-secondary);
+    color: var(--foreground);
+  }
+  .workspace-context {
+    margin-top: auto;
+    padding: 12px;
+    color: var(--foreground);
+    font-size: 14px;
+  }
+  .workspace-context small {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+  }
+  .workspace-content {
+    min-width: 0;
+  }
+  .workspace-shell .app-main {
+    width: 100%;
+    max-width: 1560px;
+    margin: 0 auto;
+    padding: 32px 32px 64px;
+  }
+  .workspace-mobile-nav {
+    display: none;
+  }
+  .workspace-shell h1 {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+  }
+  .workspace-shell h2 {
+    font-weight: 600;
+  }
+  .catalog-overview {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-block: 24px;
+  }
+  .catalog-overview__metric {
+    gap: 12px;
+    padding: 20px;
+    border-radius: calc(var(--radius) * 2);
+  }
+  .catalog-overview__metric > p {
+    margin: 0;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+  .catalog-overview__metric > strong {
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .catalog-heading {
+    margin-bottom: 20px;
+  }
+  .handbook-controls,
+  .catalog-results {
+    border: 0;
+    background: transparent;
+  }
+  .handbook-controls {
+    padding: 0;
+    gap: 12px;
+  }
+  .catalog-filters {
+    border: 0;
+    background: var(--surface);
+    border-radius: calc(var(--radius) * 2);
+    padding: 16px;
+  }
+  .detail-section,
+  .factory-panel {
+    border-color: transparent;
+    border-radius: calc(var(--radius) * 2);
+  }
+  .trade-map {
+    padding: 20px;
+    border-radius: calc(var(--radius) * 2);
+    background: var(--surface);
+  }
+  .trade-map__count {
+    color: var(--accent-foreground);
+  }
+  .trade-map__point:not(:is(:hover, :focus-visible, [aria-pressed='true']))
+    .trade-map__label {
+    display: none;
+  }
+  .recipe-market__recipes > summary,
+  details > summary {
+    min-height: 44px;
+  }
+  @media (max-width: 1100px) {
+    .workspace-shell {
+      grid-template-columns: 208px minmax(0, 1fr);
+    }
+    .workspace-shell .app-main {
+      padding-inline: 24px;
+    }
+    .catalog-overview {
+      gap: 12px;
+    }
+    .catalog-overview__metric {
+      padding: 16px;
+    }
+  }
+  @media (max-width: 900px) {
+    .workspace-shell {
+      display: block;
+    }
+    .workspace-sidebar {
+      display: none;
+    }
+    .workspace-mobile-nav {
+      display: block;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: 8px 20px;
+    }
+    .workspace-mobile-nav .disclosure__trigger {
+      display: flex;
+      min-height: 44px;
+      width: 100%;
+      gap: 12px;
+      font-size: 16px;
+    }
+    .workspace-mobile-nav .disclosure__indicator {
+      margin-left: auto;
+    }
+    .workspace-mobile-nav .disclosure__trigger > svg:first-child {
+      width: 20px;
+      height: 20px;
+    }
+    .workspace-shell .app-main {
+      padding: 24px 20px 48px;
+    }
+    .catalog-overview {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .workspace-link {
+      font-size: 16px;
+    }
+  }
+  @media (max-width: 420px) {
+    .workspace-shell .app-main {
+      padding-inline: 16px;
+    }
+    .catalog-overview__metric {
+      padding: 14px;
+    }
+    .catalog-overview__metric > p {
+      white-space: normal;
+    }
+    .trade-map {
+      padding: 16px;
+    }
+  }
+}
+@layer utilities {
+  .preview-notice {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding: 10px 16px;
+    background: var(--accent-soft);
+    color: var(--foreground);
+    font-size: 14px;
+  }
+  .preview-notice span {
+    color: var(--muted);
+  }
+}
+@layer utilities {
+  .catalog-profit-filter {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 64px;
+  }
+  .catalog-profit-filter .ui-native-select,
+  .catalog-profit-filter select {
+    width: 100%;
+  }
+}

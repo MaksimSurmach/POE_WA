@@ -21,7 +21,7 @@ describe('failure-state matrix', () => {
       );
 
       expect(markup).toContain(`data-error-code="${errorCode}"`);
-      expect(markup).toContain('<h2>');
+      expect(markup).toMatch(/<h2\b/);
       expect(markup).not.toContain('<h2></h2>');
     }
   });

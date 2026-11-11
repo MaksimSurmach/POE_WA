@@ -1,3 +1,4 @@
+import { Button, TableSurface } from './ui.js';
 import type {
   CatalogEntry,
   CatalogResponse,
@@ -8,7 +9,6 @@ import { observedAsk } from './catalog.js';
 import { Money, StatusPanel, economicClass } from './components.js';
 import { formatUtc, formatPercent } from './PriceTrendChart.js';
 import { TurnoverMap } from './TurnoverMap.js';
-import './tradeDashboard.css';
 
 export function marketRecipePoint(entry: CatalogEntry) {
   const readiness = entry.readiness;
@@ -61,17 +61,17 @@ export function RecipeMarketOverview({
       </header>
       {failed || (response && !response.data) ? (
         <StatusPanel title="Market overview unavailable" tone="danger">
-          <button type="button" onClick={onRetry}>
+          <Button type="button" onClick={onRetry}>
             Retry market overview
-          </button>
+          </Button>
         </StatusPanel>
       ) : !response ? (
         <StatusPanel title="Loading all recipes" tone="info" />
       ) : !response.data?.league ? (
         <StatusPanel title="Current market league unresolved" tone="warning">
-          <button type="button" onClick={onRetry}>
+          <Button type="button" onClick={onRetry}>
             Reload current market
-          </button>
+          </Button>
         </StatusPanel>
       ) : (
         <>
@@ -118,7 +118,19 @@ export function RecipeMarketOverview({
                 'No fresh ask'
               )}
               {' · '}
-              <a href="#recipe-price-history">View recipe price history ↓</a>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  const heading = document.getElementById(
+                    'recipe-price-history',
+                  );
+                  heading?.scrollIntoView();
+                  heading?.focus({ preventScroll: true });
+                }}
+              >
+                View recipe price history ↓
+              </Button>
             </p>
           ) : (
             <p className="recipe-market__note">
@@ -137,93 +149,95 @@ export function RecipeMarketOverview({
               role="region"
               aria-label="All recipe market data"
             >
-              <table className="recipe-market__table">
-                <thead>
-                  <tr>
-                    <th>Recipe</th>
-                    <th>Observed ask</th>
-                    <th>Recorded ask change · {trends?.range ?? '7d'}</th>
-                    <th>Inferred exits · 24h window</th>
-                    <th>Collection evidence</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((entry, index) => {
-                    const point = points[index]!;
-                    const readiness = entry.readiness;
-                    const history = trends?.entries.find(
-                      (row) => row.recipeId === point.id,
-                    )?.summary;
-                    const change = history?.change?.percent;
-                    return (
-                      <tr key={point.id}>
-                        <td>
-                          <button
-                            type="button"
-                            aria-pressed={point.id === selectedId}
-                            onClick={() => onSelect(point.id)}
+              <TableSurface>
+                <table className="table__content recipe-market__table">
+                  <thead className="table__header">
+                    <tr className="table__row">
+                      <th className="table__column">Recipe</th>
+                      <th className="table__column">Observed ask</th>
+                      <th className="table__column">
+                        Recorded ask change · {trends?.range ?? '7d'}
+                      </th>
+                      <th className="table__column">
+                        Inferred exits · 24h window
+                      </th>
+                      <th className="table__column">Collection evidence</th>
+                    </tr>
+                  </thead>
+                  <tbody className="table__body">
+                    {entries.map((entry, index) => {
+                      const point = points[index]!;
+                      const readiness = entry.readiness;
+                      const history = trends?.entries.find(
+                        (row) => row.recipeId === point.id,
+                      )?.summary;
+                      const change = history?.change?.percent;
+                      return (
+                        <tr className="table__row" key={point.id}>
+                          <td className="table__cell">
+                            <Button
+                              type="button"
+                              aria-pressed={point.id === selectedId}
+                              onClick={() => onSelect(point.id)}
+                            >
+                              {point.name}
+                            </Button>
+                          </td>
+                          <td className="table__cell">
+                            {point.price ? (
+                              <Money price={point.price} />
+                            ) : (
+                              'No fresh ask'
+                            )}
+                          </td>
+                          <td
+                            className={`table__cell ${change == null ? 'economic-unknown' : economicClass(change)}`}
                           >
-                            {point.name}
-                          </button>
-                        </td>
-                        <td>
-                          {point.price ? (
-                            <Money price={point.price} />
-                          ) : (
-                            'No fresh ask'
-                          )}
-                        </td>
-                        <td
-                          className={
-                            change == null
-                              ? 'economic-unknown'
-                              : economicClass(change)
-                          }
-                        >
-                          {change == null
-                            ? history
-                              ? 'Insufficient history'
-                              : trends
-                                ? 'No history'
-                                : 'History unavailable'
-                            : formatPercent(change)}
-                        </td>
-                        <td>
-                          {point.exits ?? 'Not measurable'}
-                          {point.exits !== null && readiness ? (
-                            <small>
-                              {Math.round(
-                                (readiness.last24h.completeSpanMinutes / 60) *
-                                  10,
-                              ) / 10}
-                              h observed · {readiness.last24h.complete} complete
-                              captures
-                            </small>
-                          ) : null}
-                        </td>
-                        <td>
-                          {readiness ? (
-                            <>
-                              {readiness.currentListings} listings ·{' '}
-                              {readiness.currentSellers} sellers
+                            {change == null
+                              ? history
+                                ? 'Insufficient history'
+                                : trends
+                                  ? 'No history'
+                                  : 'History unavailable'
+                              : formatPercent(change)}
+                          </td>
+                          <td className="table__cell">
+                            {point.exits ?? 'Not measurable'}
+                            {point.exits !== null && readiness ? (
                               <small>
-                                {readiness.fresh
-                                  ? (readiness.coverage ?? 'No capture')
-                                  : 'Outdated or missing capture'}
-                                {readiness.capturedAt
-                                  ? ` · ${formatUtc(readiness.capturedAt)}`
-                                  : ''}
+                                {Math.round(
+                                  (readiness.last24h.completeSpanMinutes / 60) *
+                                    10,
+                                ) / 10}
+                                h observed · {readiness.last24h.complete}{' '}
+                                complete captures
                               </small>
-                            </>
-                          ) : (
-                            'Collection evidence unavailable'
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                            ) : null}
+                          </td>
+                          <td className="table__cell">
+                            {readiness ? (
+                              <>
+                                {readiness.currentListings} listings ·{' '}
+                                {readiness.currentSellers} sellers
+                                <small>
+                                  {readiness.fresh
+                                    ? (readiness.coverage ?? 'No capture')
+                                    : 'Outdated or missing capture'}
+                                  {readiness.capturedAt
+                                    ? ` · ${formatUtc(readiness.capturedAt)}`
+                                    : ''}
+                                </small>
+                              </>
+                            ) : (
+                              'Collection evidence unavailable'
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </TableSurface>
             </div>
           </details>
         </>

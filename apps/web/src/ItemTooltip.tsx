@@ -1,3 +1,4 @@
+import { Button } from './ui.js';
 import type { PresentedItem } from '@poe-worksmith/contracts';
 import { useEffect, useLayoutEffect, useId, useRef, useState } from 'react';
 
@@ -95,10 +96,12 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
         }, 150);
       }}
     >
-      <button
+      <Button
+        variant="ghost"
+        isIconOnly
         className={`item-preview__trigger item-preview__trigger--${item.rarity ?? 'unknown'}`}
         type="button"
-        aria-describedby={open && !dismissed ? id : undefined}
+        {...(open && !dismissed ? { 'aria-describedby': id } : {})}
         aria-controls={id}
         aria-expanded={open && !dismissed}
         aria-label={`Preview ${item.role} item: ${item.name}, ${item.itemClass}`}
@@ -124,7 +127,7 @@ export function ItemTooltip({ item }: { item: PresentedItem }) {
             {item.itemClass.slice(0, 2).toUpperCase()}
           </span>
         )}
-      </button>
+      </Button>
       <span
         className={`item-tooltip${open && !dismissed ? ' is-open' : ''}`}
         ref={tooltip}

@@ -1,3 +1,4 @@
+import { Button, Input } from './ui.js';
 import type {
   MarketAdminSettings,
   MarketAdminSettingsResponse,
@@ -8,7 +9,6 @@ import {
   createHomeSettingsClient,
   validateQuoteAges,
 } from './homeSettingsClient.js';
-import './homeSettings.css';
 
 const minuteMs = 60_000;
 const ageFields = [
@@ -111,7 +111,7 @@ export function HomeSettings({
                 {ageFields.map(([key, label]) => (
                   <label className="market-admin__field" key={key}>
                     {label}
-                    <input
+                    <Input
                       name={key}
                       type="number"
                       required
@@ -132,9 +132,9 @@ export function HomeSettings({
                 ))}
               </div>
               <div className="market-admin__save">
-                <button type="submit" disabled={!dirty}>
+                <Button type="submit" disabled={!dirty}>
                   Save settings
-                </button>
+                </Button>
               </div>
             </fieldset>
             <p className="market-admin__hint">

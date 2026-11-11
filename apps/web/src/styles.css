@@ -1,33 +1,16 @@
 :root {
   color-scheme: dark;
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font-family: var(--font-sans);
   color: var(--text);
   background: var(--background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --background: #141415;
-  --surface: #19191b;
-  --surface-raised: #232325;
-  --border: #303033;
-  --text: #ededed;
-  --muted: #ababb3;
-  --accent: #d4b26c;
-  --accent-soft: #343025;
-  --success: #86bd9b;
-  --warning: #d4b26c;
-  --danger: #e49490;
-  --radius: 8px;
+  --surface-raised: var(--surface-secondary);
+  --text: var(--foreground);
   --content-width: 1360px;
   --notice-border: #60461c;
-  --notice-background: #171208;
-  --highlight-background: #17150e;
+  --notice-background: var(--warning-soft);
+  --highlight-background: var(--accent-soft);
   --item-background: #080b0e;
   --item-normal: #b8c4cc;
   --item-magic: #62a7ff;
@@ -45,9 +28,9 @@
   --tooltip-muted: #a6a6a6;
   --tooltip-mod: #78a6d0;
   --warning-border: #555b66;
-  --warning-text: #dcc28c;
-  --positive: #9ac7ab;
-  --negative: #e8a5a5;
+  --warning-text: var(--warning-soft-foreground);
+  --positive: var(--success);
+  --negative: var(--danger);
   --trade-background: var(--background);
   --trade-surface: var(--surface);
   --trade-surface-raised: var(--surface-raised);
@@ -57,7 +40,7 @@
   --trade-accent: var(--accent);
   --trade-accent-soft: var(--accent-soft);
   --trade-stock: #91c4f1;
-  --trade-first: #8ad5bf;
+  --trade-first: var(--accent);
   --trade-exit: #f4ac86;
   --trade-control-border: var(--border);
   --trade-button-border: var(--border);

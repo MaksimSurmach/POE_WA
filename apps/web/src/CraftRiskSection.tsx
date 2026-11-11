@@ -1,3 +1,4 @@
+import { Button, Input, NativeSelect, TableSurface, TextArea } from './ui.js';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import type {
@@ -21,7 +22,6 @@ import {
   OutcomeModelSummary,
   OutcomePriceEvidence,
 } from './CraftRiskSummary.js';
-import './craftRisk.css';
 
 const api = createApiClient();
 const activeStatuses = new Set(['queued', 'running']);
@@ -298,12 +298,12 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
         {loadError ? (
           <div role="alert" className="recipe-warning">
             <p>Analysis could not be checked: {loadError}</p>
-            <button
+            <Button
               type="button"
               onClick={() => setRevision((value) => value + 1)}
             >
               Retry analysis
-            </button>
+            </Button>
           </div>
         ) : !data ? (
           <p role="status">Loading outcome analysis…</p>
@@ -390,7 +390,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                   <form onSubmit={saveAdvanced} className="craft-risk__editor">
                     <label>
                       Model and valuation JSON
-                      <textarea
+                      <TextArea
                         className="craft-risk__json"
                         rows={12}
                         value={advanced}
@@ -404,12 +404,12 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                         {modelError}
                       </p>
                     ) : null}
-                    <button
+                    <Button
                       type="submit"
                       disabled={saving || Boolean(loadError)}
                     >
                       {saving ? 'Saving…' : 'Validate and save new revision'}
-                    </button>
+                    </Button>
                   </form>
                 </details>
               </>
@@ -439,7 +439,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                 <legend className="visually-hidden">Simulation inputs</legend>
                 <label>
                   Objective
-                  <select
+                  <NativeSelect
                     value={objective}
                     onChange={(event) =>
                       setObjective(event.target.value as typeof objective)
@@ -448,11 +448,11 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                     <option value="single-target">One target item</option>
                     <option value="attempts">N method runs</option>
                     <option value="successes">N target items</option>
-                  </select>
+                  </NativeSelect>
                 </label>
                 <label>
                   {objective === 'attempts' ? 'Method runs' : 'Target items'}
-                  <input
+                  <Input
                     type="number"
                     min="1"
                     max="1000"
@@ -463,7 +463,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                 </label>
                 <label>
                   Available budget ({model?.currency ?? 'model currency'})
-                  <input
+                  <Input
                     inputMode="decimal"
                     maxLength={40}
                     value={budget}
@@ -473,7 +473,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                 </label>
                 <label>
                   Seed
-                  <input
+                  <Input
                     value={seed}
                     onChange={(event) => setSeed(event.target.value)}
                     maxLength={100}
@@ -481,18 +481,18 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                 </label>
                 <label>
                   Simulation trials
-                  <select
+                  <NativeSelect
                     value={trials}
                     onChange={(event) => setTrials(event.target.value)}
                   >
                     <option value="1000">1,000</option>
                     <option value="5000">5,000</option>
                     <option value="10000">10,000</option>
-                  </select>
+                  </NativeSelect>
                 </label>
                 <label>
                   Check first target within N method runs
-                  <input
+                  <Input
                     type="number"
                     min="1"
                     max="1000000"
@@ -502,7 +502,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                 </label>
                 <label>
                   Maximum stage steps per trial
-                  <input
+                  <Input
                     type="number"
                     min="1"
                     max="100000"
@@ -512,7 +512,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                 </label>
               </fieldset>
               <div className="craft-risk__actions">
-                <button
+                <Button
                   type="submit"
                   disabled={
                     !data.canEdit ||
@@ -523,15 +523,15 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                   }
                 >
                   {starting ? 'Starting simulation…' : 'Simulate objective'}
-                </button>
+                </Button>
                 {running ? (
-                  <button
+                  <Button
                     type="button"
                     onClick={() => void cancelRisk()}
                     disabled={job?.cancelRequested}
                   >
                     Cancel simulation
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </form>
@@ -559,9 +559,9 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
               <div role="alert" className="recipe-warning">
                 <p>{riskError}</p>
                 {job && running ? (
-                  <button type="button" onClick={() => setRiskError('')}>
+                  <Button type="button" onClick={() => setRiskError('')}>
                     Resume progress checks
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             ) : null}
@@ -643,46 +643,48 @@ export function OutcomeActionComparison({ currency }: { currency: string }) {
         stopping must be an explicit assumption, not a hidden default.
       </p>
       <div className="craft-risk__table-wrap">
-        <table>
-          <caption>Incremental net value ({currency})</caption>
-          <thead>
-            <tr>
-              <th>Action</th>
-              <th>Minimum</th>
-              <th>Maximum</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(actionNames).map(([key, label]) => (
-              <tr key={key}>
-                <th>{label}</th>
-                {(['min', 'max'] as const).map((bound) => (
-                  <td key={bound}>
-                    <input
-                      aria-label={`${label} ${bound === 'min' ? 'minimum' : 'maximum'} net value`}
-                      inputMode="decimal"
-                      maxLength={40}
-                      value={values[key]![bound]}
-                      onChange={(event) =>
-                        setValues((current) => ({
-                          ...current,
-                          [key]: {
-                            ...current[key]!,
-                            [bound]: event.target.value,
-                          },
-                        }))
-                      }
-                    />
-                  </td>
-                ))}
+        <TableSurface>
+          <table className="table__content">
+            <caption>Incremental net value ({currency})</caption>
+            <thead className="table__header">
+              <tr className="table__row">
+                <th className="table__column">Action</th>
+                <th className="table__column">Minimum</th>
+                <th className="table__column">Maximum</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="table__body">
+              {Object.entries(actionNames).map(([key, label]) => (
+                <tr className="table__row" key={key}>
+                  <th className="table__column">{label}</th>
+                  {(['min', 'max'] as const).map((bound) => (
+                    <td className="table__cell" key={bound}>
+                      <Input
+                        aria-label={`${label} ${bound === 'min' ? 'minimum' : 'maximum'} net value`}
+                        inputMode="decimal"
+                        maxLength={40}
+                        value={values[key]![bound]}
+                        onChange={(event) =>
+                          setValues((current) => ({
+                            ...current,
+                            [key]: {
+                              ...current[key]!,
+                              [bound]: event.target.value,
+                            },
+                          }))
+                        }
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </TableSurface>
       </div>
       <label>
         Evidence and assumptions for these action values
-        <textarea
+        <TextArea
           rows={2}
           value={source}
           onChange={(event) => setSource(event.target.value)}

@@ -1,3 +1,4 @@
+import { Button, Input, NativeSelect } from './ui.js';
 import type {
   CatalogResponse,
   RecipeTrendResponse,
@@ -17,7 +18,6 @@ import {
   describeTrend,
 } from './PriceTrendChart.js';
 import { RecipeMarketOverview } from './RecipeMarketOverview.js';
-import './marketTrends.css';
 
 const apiClient = createApiClient();
 
@@ -100,7 +100,7 @@ export function RangeControls({
       role="group"
     >
       {trendRanges.map((value) => (
-        <button
+        <Button
           aria-label={rangeLabels[value]}
           aria-pressed={range === value}
           key={value}
@@ -108,7 +108,7 @@ export function RangeControls({
           type="button"
         >
           {value}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -163,9 +163,9 @@ export function RecipeTrendPanel({
           tone="warning"
           title="League changed while loading history"
         >
-          <button type="button" onClick={onReload}>
+          <Button type="button" {...(onReload ? { onClick: onReload } : {})}>
             Reload current market
-          </button>
+          </Button>
         </StatusPanel>
       ) : failed ? (
         <StatusPanel tone="danger" title="Price history unavailable" />
@@ -280,7 +280,11 @@ export function MarketTrendsPage() {
         trends={overview}
         onSelect={(recipe) => update({ recipe })}
       />
-      <h2 id="recipe-price-history" className="recipe-trends-heading">
+      <h2
+        id="recipe-price-history"
+        tabIndex={-1}
+        className="recipe-trends-heading"
+      >
         Recipe price history
       </h2>
       <RangeControls
@@ -294,7 +298,7 @@ export function MarketTrendsPage() {
       >
         <label className="catalog-search">
           <span className="visually-hidden">Search recipes</span>
-          <input
+          <Input
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search recipes…"
             type="search"
@@ -303,7 +307,7 @@ export function MarketTrendsPage() {
         </label>
         <label>
           Sort{' '}
-          <select
+          <NativeSelect
             onChange={(event) => setSort(event.target.value as TrendSort)}
             value={sort}
           >
@@ -311,11 +315,11 @@ export function MarketTrendsPage() {
             <option value="ask">Latest ask (per currency)</option>
             <option value="recent">Last observed</option>
             <option value="title">Recipe</option>
-          </select>
+          </NativeSelect>
         </label>
         <label className="market-trends__picker">
           <span>Recipe</span>
-          <select
+          <NativeSelect
             aria-label="Choose recipe"
             disabled={!rows.length}
             value={selectedId ?? ''}
@@ -337,7 +341,7 @@ export function MarketTrendsPage() {
                 {entry.title}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           {search && !rows.length ? (
             <small role="status">No recipes match this search.</small>
           ) : null}
@@ -346,9 +350,9 @@ export function MarketTrendsPage() {
 
       {leagueMismatch ? (
         <StatusPanel tone="warning" title="League changed while loading">
-          <button type="button" onClick={reload}>
+          <Button type="button" onClick={reload}>
             Reload current market
-          </button>
+          </Button>
         </StatusPanel>
       ) : failed ? (
         <StatusPanel tone="danger" title="Market trends unavailable">

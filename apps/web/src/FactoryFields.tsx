@@ -1,3 +1,4 @@
+import { Input, NativeSelect } from './ui.js';
 import { useState, type ReactNode } from 'react';
 
 export function FactoryField({
@@ -20,7 +21,7 @@ export function FactoryField({
   return (
     <label>
       {label}
-      <input
+      <Input
         name={name}
         type={type}
         defaultValue={value}
@@ -45,9 +46,9 @@ export function FactorySelect({
   return (
     <label>
       {label}
-      <select name={name} defaultValue={value} required>
+      <NativeSelect name={name} defaultValue={value} required>
         {children}
-      </select>
+      </NativeSelect>
     </label>
   );
 }
@@ -89,14 +90,14 @@ export function TransactionFields({
       />
       <label>
         Transaction currency
-        <select
+        <NativeSelect
           name={`${prefix}currency`}
           value={currency}
           onChange={(event) => setCurrency(event.target.value)}
         >
           <option value="chaos">Chaos</option>
           <option value="divine">Divine</option>
-        </select>
+        </NativeSelect>
       </label>
       {currency === 'divine' ? (
         <>

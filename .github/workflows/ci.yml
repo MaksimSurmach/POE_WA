@@ -73,8 +73,14 @@ jobs:
       - run: pnpm test:integration
       - run: pnpm test:e2e:backend
       - run: pnpm build
+      - run: pnpm --filter @poe-worksmith/web preview:build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: worksmith-heroui-preview
+          path: apps/web/dist-preview/worksmith-heroui.html
       # shortcut: use hosted Chromium libraries; install-deps is needed if the runner image drops them.
       - run: pnpm exec playwright install chromium
+      - run: pnpm exec playwright test --config playwright.preview.config.ts
       - run: pnpm test:e2e:browser
       - run: pnpm test:e2e:browser tests/browser/factory.spec.ts tests/browser/market-freshness.spec.ts
         env:

@@ -1,0 +1,34 @@
+@layer theme, base, worksmith, components, utilities;
+@import 'tailwindcss';
+@import '@heroui/styles';
+@import '@fontsource-variable/inter';
+
+@import './styles.css' layer(worksmith);
+@import './catalogTable.css' layer(worksmith);
+@import './craftGuides.css' layer(worksmith);
+@import './craftRisk.css' layer(worksmith);
+@import './factory.css' layer(worksmith);
+@import './homeSettings.css' layer(worksmith);
+@import './marketTrends.css' layer(worksmith);
+@import './tradeDashboard.css' layer(worksmith);
+
+@theme {
+  --font-sans: 'Inter Variable', sans-serif;
+}
+
+/* Finances reference: HeroUI default blue accent, neutral dark surfaces, Inter. */
+@layer base {
+  :root.dark {
+    --background: oklch(12% 0.0015 253.83);
+    --foreground: oklch(99.11% 0.0015 253.83);
+    --surface: oklch(21.03% 0.003 253.83);
+    --surface-secondary: oklch(25.7% 0.0023 253.83);
+    --border: oklch(28% 0.0015 253.83);
+    --muted: oklch(70.5% 0.003 253.83);
+    --field-background: var(--surface-secondary);
+    --radius: 0.5rem;
+    --field-radius: 0.75rem;
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+}

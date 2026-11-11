@@ -1,3 +1,4 @@
+import { TableSurface } from './ui.js';
 import type {
   Price,
   RecipeTrend,
@@ -267,48 +268,74 @@ export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
       <details className="trend-chart__data">
         <summary>Data table</summary>
         <div className="trend-chart__table-wrap">
-          <table>
-            <caption className="visually-hidden">
-              {`${trend.title} ask history by ${trend.bucketSeconds >= 86400 ? 'UTC day' : 'UTC time bucket'}`}
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Bucket (UTC)</th>
-                <th scope="col">Open</th>
-                <th scope="col">High</th>
-                <th scope="col">Low</th>
-                <th scope="col">Close</th>
-                <th scope="col">Craft cost</th>
-                <th scope="col">Observations</th>
-                <th scope="col">Sellers (min/last)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {trend.buckets.map((bucket) => (
-                <tr key={bucket.start}>
-                  <th scope="row">
-                    <time dateTime={bucket.start}>
-                      {formatUtc(bucket.start)}
-                    </time>
+          <TableSurface>
+            <table className="table__content">
+              <caption className="visually-hidden">
+                {`${trend.title} ask history by ${trend.bucketSeconds >= 86400 ? 'UTC day' : 'UTC time bucket'}`}
+              </caption>
+              <thead className="table__header">
+                <tr className="table__row">
+                  <th className="table__column" scope="col">
+                    Bucket (UTC)
                   </th>
-                  <td>{formatAmount(bucket.open, currency)}</td>
-                  <td>{formatAmount(bucket.high, currency)}</td>
-                  <td>{formatAmount(bucket.low, currency)}</td>
-                  <td>{formatAmount(bucket.close, currency)}</td>
-                  <td>
-                    {bucket.craftCost === null
-                      ? '—'
-                      : formatAmount(bucket.craftCost, currency)}
-                  </td>
-                  <td>{bucket.observations}</td>
-                  <td>
-                    {bucket.minComparableSellers ?? '?'}/
-                    {bucket.lastComparableSellers ?? '?'}
-                  </td>
+                  <th className="table__column" scope="col">
+                    Open
+                  </th>
+                  <th className="table__column" scope="col">
+                    High
+                  </th>
+                  <th className="table__column" scope="col">
+                    Low
+                  </th>
+                  <th className="table__column" scope="col">
+                    Close
+                  </th>
+                  <th className="table__column" scope="col">
+                    Craft cost
+                  </th>
+                  <th className="table__column" scope="col">
+                    Observations
+                  </th>
+                  <th className="table__column" scope="col">
+                    Sellers (min/last)
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="table__body">
+                {trend.buckets.map((bucket) => (
+                  <tr className="table__row" key={bucket.start}>
+                    <th className="table__column" scope="row">
+                      <time dateTime={bucket.start}>
+                        {formatUtc(bucket.start)}
+                      </time>
+                    </th>
+                    <td className="table__cell">
+                      {formatAmount(bucket.open, currency)}
+                    </td>
+                    <td className="table__cell">
+                      {formatAmount(bucket.high, currency)}
+                    </td>
+                    <td className="table__cell">
+                      {formatAmount(bucket.low, currency)}
+                    </td>
+                    <td className="table__cell">
+                      {formatAmount(bucket.close, currency)}
+                    </td>
+                    <td className="table__cell">
+                      {bucket.craftCost === null
+                        ? '—'
+                        : formatAmount(bucket.craftCost, currency)}
+                    </td>
+                    <td className="table__cell">{bucket.observations}</td>
+                    <td className="table__cell">
+                      {bucket.minComparableSellers ?? '?'}/
+                      {bucket.lastComparableSellers ?? '?'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableSurface>
         </div>
       </details>
     </figure>

@@ -129,7 +129,7 @@ describe('catalog table', () => {
       </MemoryRouter>,
     );
     expect(html).toMatch(
-      /<td data-label="Expected cost">[^]*120 c[^]*budget for one[^]*p50[^]*110 c[^]*p90[^]*140 c[^]*<\/td>/,
+      /<td[^>]*data-label="Expected cost"[^>]*>[^]*120 c[^]*budget for one[^]*p50[^]*110 c[^]*p90[^]*140 c[^]*<\/td>/,
     );
   });
 
@@ -252,7 +252,7 @@ describe('catalog table', () => {
       </MemoryRouter>,
     );
     expect(html).toContain('<table');
-    expect(html).toContain('<thead>');
+    expect(html).toMatch(/<thead\b/);
     expect(html.match(/scope="col"/g)).toHaveLength(7);
     expect(html).toContain('aria-sort="descending"');
     expect(html).toContain('Item class');
@@ -267,7 +267,7 @@ describe('catalog table', () => {
         onSort={() => {}}
       />,
     );
-    expect(html).toContain('<thead>');
+    expect(html).toMatch(/<thead\b/);
     expect(html).toContain('No items match');
     expect(html).toContain('colSpan="7"');
   });

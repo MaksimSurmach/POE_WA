@@ -130,9 +130,11 @@ it('renders native buttons with Run now disabled until both states are known', (
   const html = renderToStaticMarkup(<CollectorControls />);
   expect(html).toContain('role="group"');
   expect(html).toMatch(
-    /<button type="button"[^>]*>Check collection state<\/button>/,
+    /<button[^>]*type="button"[^>]*>Check collection state<\/button>/,
   );
-  expect(html).toMatch(/<button type="button"[^>]*disabled=""[^>]*>Run now/);
+  expect(html).toMatch(
+    /<button(?=[^>]*type="button")(?=[^>]*disabled="")[^>]*>Run now/,
+  );
 });
 
 const adminSettings = {

@@ -1,3 +1,4 @@
+import { Button, Input, TableSurface } from './ui.js';
 import type { CraftingPrices } from '@poe-worksmith/contracts';
 import { calculateCostScenario } from '@poe-worksmith/domain/economics';
 import { useEffect, useState } from 'react';
@@ -5,7 +6,6 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { createApiClient } from './apiClient.js';
 import { Money, StatusPanel, economicClass } from './components.js';
 import { materialName, pohxGuides, type PohxGuide } from './pohxGuides.js';
-import './craftGuides.css';
 
 const api = createApiClient();
 
@@ -185,7 +185,7 @@ export function CraftScenarioCalculator({ guide }: { guide: PohxGuide }) {
       <div className="guide-budget-inputs">
         <label>
           All bases, donors and replacements (c)
-          <input
+          <Input
             type="number"
             min="0"
             step="any"
@@ -196,7 +196,7 @@ export function CraftScenarioCalculator({ guide }: { guide: PohxGuide }) {
         </label>
         <label>
           Other costs not listed below (c)
-          <input
+          <Input
             type="number"
             min="0"
             step="any"
@@ -211,13 +211,13 @@ export function CraftScenarioCalculator({ guide }: { guide: PohxGuide }) {
         only when they are not already counted in bases or materials below.
       </p>
       <div className="guide-price-status">
-        <button
+        <Button
           type="button"
           disabled={loading}
           onClick={() => setRevision((x) => x + 1)}
         >
           {loading ? 'Loading quotes…' : 'Reload saved quotes'}
-        </button>
+        </Button>
         <span>
           {prices?.league
             ? `${prices.league} · poe.ninja material estimates`
@@ -241,88 +241,100 @@ export function CraftScenarioCalculator({ guide }: { guide: PohxGuide }) {
         aria-label="Material budget, scroll for columns"
         tabIndex={0}
       >
-        <table className="guide-materials">
-          <caption>Total material consumption for this scenario</caption>
-          <thead>
-            <tr>
-              <th scope="col">Material</th>
-              <th scope="col">Used</th>
-              <th scope="col">Each (c)</th>
-              <th scope="col">Total (c)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {materials.map((m) => {
-              const line = calculateCostScenario({
-                bases: '0',
-                other: '0',
-                sale: '',
-                materials: [m],
-              });
-              return (
-                <tr key={m.id}>
-                  <th scope="row">
-                    {m.name}
-                    <small>
+        <TableSurface>
+          <table className="table__content guide-materials">
+            <caption>Total material consumption for this scenario</caption>
+            <thead className="table__header">
+              <tr className="table__row">
+                <th className="table__column" scope="col">
+                  Material
+                </th>
+                <th className="table__column" scope="col">
+                  Used
+                </th>
+                <th className="table__column" scope="col">
+                  Each (c)
+                </th>
+                <th className="table__column" scope="col">
+                  Total (c)
+                </th>
+              </tr>
+            </thead>
+            <tbody className="table__body">
+              {materials.map((m) => {
+                const line = calculateCostScenario({
+                  bases: '0',
+                  other: '0',
+                  sale: '',
+                  materials: [m],
+                });
+                return (
+                  <tr className="table__row" key={m.id}>
+                    <th className="table__column" scope="row">
+                      {m.name}
+                      <small>
+                        {m.manual ? (
+                          'Your quote'
+                        ) : m.quote ? (
+                          <>
+                            Verified{' '}
+                            <time dateTime={m.quote.verifiedAt}>
+                              {new Date(m.quote.verifiedAt).toLocaleString()}
+                            </time>
+                          </>
+                        ) : (
+                          'No fresh quote — enter a price'
+                        )}
+                      </small>
+                    </th>
+                    <td className="table__cell">
+                      <Input
+                        aria-label={`${m.name} total used`}
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={m.quantity}
+                        onChange={(e) => update(`qty-${m.id}`, e.target.value)}
+                        placeholder="?"
+                      />
+                    </td>
+                    <td className="table__cell">
+                      <Input
+                        aria-label={`${m.name} price in chaos`}
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={m.unitPrice}
+                        onChange={(e) =>
+                          update(`price-${m.id}`, e.target.value)
+                        }
+                        placeholder="?"
+                      />
                       {m.manual ? (
-                        'Your quote'
-                      ) : m.quote ? (
-                        <>
-                          Verified{' '}
-                          <time dateTime={m.quote.verifiedAt}>
-                            {new Date(m.quote.verifiedAt).toLocaleString()}
-                          </time>
-                        </>
-                      ) : (
-                        'No fresh quote — enter a price'
-                      )}
-                    </small>
-                  </th>
-                  <td>
-                    <input
-                      aria-label={`${m.name} total used`}
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={m.quantity}
-                      onChange={(e) => update(`qty-${m.id}`, e.target.value)}
-                      placeholder="?"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      aria-label={`${m.name} price in chaos`}
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={m.unitPrice}
-                      onChange={(e) => update(`price-${m.id}`, e.target.value)}
-                      placeholder="?"
-                    />
-                    {m.manual ? (
-                      <button
-                        className="guide-use-quote"
-                        type="button"
-                        onClick={() => {
-                          const next = new URLSearchParams(params);
-                          next.delete(`price-${m.id}`);
-                          setParams(next, { replace: true });
-                        }}
-                      >
-                        Use market
-                      </button>
-                    ) : null}
-                  </td>
-                  <td>{money(line?.cost)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                        <Button
+                          className="guide-use-quote"
+                          type="button"
+                          onClick={() => {
+                            const next = new URLSearchParams(params);
+                            next.delete(`price-${m.id}`);
+                            setParams(next, { replace: true });
+                          }}
+                        >
+                          Use market
+                        </Button>
+                      ) : null}
+                    </td>
+                    <td className="table__cell">{money(line?.cost)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </TableSurface>
       </div>
       <label className="guide-sale">
         Your assumed sale price (c, optional)
-        <input
+        <Input
           type="number"
           min="0"
           step="any"
@@ -366,9 +378,9 @@ export function CraftScenarioCalculator({ guide }: { guide: PohxGuide }) {
         profitability ranking. Include trade gold/time in your own
         additional-cost assumption if relevant.
       </p>
-      <button type="button" onClick={() => setParams({}, { replace: true })}>
+      <Button type="button" onClick={() => setParams({}, { replace: true })}>
         Reset scenario
-      </button>
+      </Button>
     </section>
   );
 }

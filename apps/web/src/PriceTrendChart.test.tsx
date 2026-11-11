@@ -130,8 +130,8 @@ describe('price trend chart', () => {
     expect(count(html, /class="trend-chart__point"/)).toBe(4);
     expect(count(html, /class="trend-chart__range"/)).toBe(1);
     expect(html).not.toContain('>0 c<');
-    expect(html).toContain('<table>');
-    expect(count(html, /<tr>/)).toBe(5);
+    expect(html).toMatch(/<table\b/);
+    expect(count(html, /<tr\b/)).toBe(5);
     expect(html).toContain('asks, not sales');
   });
 

@@ -1,3 +1,4 @@
+import { Button, NativeSelect, TableSurface } from './ui.js';
 import type {
   TradeDashboardPoint,
   TradeDashboardRange,
@@ -285,21 +286,21 @@ function CaptureOffers({ point }: { point: TradeDashboardPoint }) {
         role="group"
         aria-label="Offer state"
       >
-        <button
+        <Button
           type="button"
           aria-pressed={filter === 'present'}
           onClick={() => setFilter('present')}
         >
           In capture
-        </button>
+        </Button>
         {point.previousId ? (
-          <button
+          <Button
             type="button"
             aria-pressed={filter === 'missing'}
             onClick={() => setFilter('missing')}
           >
             Disappeared
-          </button>
+          </Button>
         ) : null}
       </div>
       {failed ? (
@@ -412,9 +413,9 @@ export function TradeItemHistory({
 
   return (
     <div className="trade-history">
-      <button className="trade-history__back" onClick={onBack} type="button">
+      <Button className="trade-history__back" onClick={onBack} type="button">
         ← Back to tracked items
-      </button>
+      </Button>
       {failed ? (
         <StatusPanel tone="warning" title="Item history unavailable" />
       ) : !data ? (
@@ -466,7 +467,7 @@ export function TradeItemHistory({
                   <ListingActivityChart points={points} selected={point.id} />
                   <label className="trade-history__capture">
                     Inspect capture
-                    <select
+                    <NativeSelect
                       value={point.id}
                       onChange={(event) => {
                         setSelected(event.target.value);
@@ -478,21 +479,21 @@ export function TradeItemHistory({
                           {formatUtc(capture.at)} · {capture.coverage}
                         </option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </label>
                   <p aria-live="polite" className="trade-history__reading">
                     {point.captured ?? '—'} captured · {point.firstSeen ?? '—'}{' '}
                     first seen · {point.missing ?? '—'} disappeared ·{' '}
                     {point.sustained ?? '—'} sustained
                   </p>
-                  <button
+                  <Button
                     className="trade-dashboard__primary"
                     type="button"
                     aria-expanded={showOffers}
                     onClick={() => setShowOffers((value) => !value)}
                   >
                     {showOffers ? 'Hide listings' : 'Inspect listings and mods'}
-                  </button>
+                  </Button>
                   <details className="trade-dashboard__method">
                     <summary>Asking-price history</summary>
                     <AskingPriceHistory points={points} />
@@ -505,36 +506,67 @@ export function TradeItemHistory({
                       role="region"
                       aria-label="Scrollable capture values"
                     >
-                      <table className="trade-dashboard__table">
-                        <thead>
-                          <tr>
-                            <th scope="col">Capture (UTC)</th>
-                            <th scope="col">Coverage</th>
-                            <th scope="col">In capture</th>
-                            <th scope="col">Median ask</th>
-                            <th scope="col">First seen</th>
-                            <th scope="col">Disappeared</th>
-                            <th scope="col">Sustained</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {[...points].reverse().map((capture) => (
-                            <tr key={capture.id}>
-                              <th scope="row">{formatUtc(capture.at)}</th>
-                              <td>{capture.coverage}</td>
-                              <td>{capture.captured ?? '—'}</td>
-                              <td>
-                                {capture.ask === null
-                                  ? '—'
-                                  : formatAmount(capture.ask, capture.currency)}
-                              </td>
-                              <td>{capture.firstSeen ?? '—'}</td>
-                              <td>{capture.missing ?? '—'}</td>
-                              <td>{capture.sustained ?? '—'}</td>
+                      <TableSurface>
+                        <table className="table__content trade-dashboard__table">
+                          <thead className="table__header">
+                            <tr className="table__row">
+                              <th className="table__column" scope="col">
+                                Capture (UTC)
+                              </th>
+                              <th className="table__column" scope="col">
+                                Coverage
+                              </th>
+                              <th className="table__column" scope="col">
+                                In capture
+                              </th>
+                              <th className="table__column" scope="col">
+                                Median ask
+                              </th>
+                              <th className="table__column" scope="col">
+                                First seen
+                              </th>
+                              <th className="table__column" scope="col">
+                                Disappeared
+                              </th>
+                              <th className="table__column" scope="col">
+                                Sustained
+                              </th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="table__body">
+                            {[...points].reverse().map((capture) => (
+                              <tr className="table__row" key={capture.id}>
+                                <th className="table__column" scope="row">
+                                  {formatUtc(capture.at)}
+                                </th>
+                                <td className="table__cell">
+                                  {capture.coverage}
+                                </td>
+                                <td className="table__cell">
+                                  {capture.captured ?? '—'}
+                                </td>
+                                <td className="table__cell">
+                                  {capture.ask === null
+                                    ? '—'
+                                    : formatAmount(
+                                        capture.ask,
+                                        capture.currency,
+                                      )}
+                                </td>
+                                <td className="table__cell">
+                                  {capture.firstSeen ?? '—'}
+                                </td>
+                                <td className="table__cell">
+                                  {capture.missing ?? '—'}
+                                </td>
+                                <td className="table__cell">
+                                  {capture.sustained ?? '—'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </TableSurface>
                     </div>
                   </details>
                 </>
