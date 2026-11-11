@@ -56,8 +56,7 @@
   line-height: 1.5;
 }
 .catalog-table-scroll {
-  overflow: auto;
-  max-height: 75vh;
+  overflow-x: auto;
   margin-block: 8px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -81,9 +80,6 @@
   text-align: right;
 }
 .craft-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
   padding: 0 10px;
   background: var(--surface-raised);
   color: var(--muted);

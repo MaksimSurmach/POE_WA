@@ -41,7 +41,12 @@ export type TradeCompatibleConfig = {
   sessionId?: string;
   timeoutMs: number;
 };
-export type TradePriceRange = { min?: number; max?: number };
+/** `option` names one denomination; Trade then matches only asks in it. */
+export type TradePriceRange = {
+  min?: number;
+  max?: number;
+  option?: 'chaos' | 'divine';
+};
 export type TradeResponseObserver = (
   response: RateLimitedResponse,
 ) => Promise<void>;

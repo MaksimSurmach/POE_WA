@@ -185,6 +185,57 @@ describe('summarizeMarketActivity', () => {
   });
 });
 
+describe('a seller seen on another target', () => {
+  const summarize = (
+    rows: ActivityListing[],
+    elsewhere: readonly (readonly [string, Date])[],
+    floor = '100',
+  ) =>
+    summarizeMarketActivity({
+      listings: rows,
+      events: rows.map(({ itemId }) => event(itemId, 'missed', 8)),
+      latestCompleteCaptureId: 'latest',
+      completeCaptureFloors: new Map([['earlier', floor]]),
+      sellerSeenElsewhereAt: new Map(elsewhere),
+      now,
+    });
+
+  it('infers a single-listing exit after the miss', () => {
+    expect(summarize([gone('item')], [['item', ago(1)]])).toMatchObject({
+      inferredExits24h: 1,
+      uncertainExits24h: 0,
+    });
+  });
+
+  it.each([
+    ['never seen again', [gone('item')], [], '100'],
+    ['last seen before the miss', [gone('item')], [['item', ago(9)]], '100'],
+    [
+      'priced over 20% above the floor',
+      [gone('item')],
+      [['item', ago(1)]],
+      '80',
+    ],
+    [
+      'whose listings on the target all left together',
+      [gone('a'), gone('b')],
+      [
+        ['a', ago(1)],
+        ['b', ago(1)],
+      ],
+      '100',
+    ],
+  ] as const)(
+    'keeps an exit uncertain when %s',
+    (_, rows, elsewhere, floor) => {
+      expect(summarize([...rows], elsewhere, floor)).toMatchObject({
+        inferredExits24h: 0,
+        uncertainExits24h: rows.length,
+      });
+    },
+  );
+});
+
 it('keeps an exit uncertain when several newer same-seller items could be a relist', () => {
   const fingerprint = 'matching-mods';
   const activity = summarizeMarketActivity({
@@ -199,4 +250,18 @@ it('keeps an exit uncertain when several newer same-seller items could be a reli
     now,
   });
   expect(activity).toMatchObject({ inferredExits24h: 0, uncertainExits24h: 1 });
+});
+
+it('does not infer an exit while the same item is observed on another target', () => {
+  expect(
+    summarizeMarketActivity({
+      listings: [gone('item'), listing('seller-other-item')],
+      events: missed,
+      latestCompleteCaptureId: 'latest',
+      completeCaptureFloors: new Map([['earlier', '100']]),
+      sellerSeenElsewhereAt: new Map([['item', ago(1)]]),
+      sameItemSeenElsewhereAt: new Map([['item', ago(0.5)]]),
+      now,
+    }),
+  ).toMatchObject({ inferredExits24h: 0, uncertainExits24h: 1 });
 });

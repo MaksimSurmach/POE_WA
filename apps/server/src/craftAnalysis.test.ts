@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { resolveCraftAnalysisEvidence } from './craftAnalysis.js';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  createCraftAnalysisService,
+  resolveCraftAnalysisEvidence,
+} from './craftAnalysis.js';
 import { craftModelFixture, craftFixtureAt } from './testkit/craftAnalysis.js';
 import type { CraftAnalysisRepository } from './repositories/craftAnalysisRepository.js';
 
@@ -113,3 +116,71 @@ describe('analysis evidence from existing market pipeline', () => {
     });
   });
 });
+
+describe('craft analysis worker wake', () => {
+  it('drains on startup and on a notification, not on a fast poll', async () => {
+    let wake = () => {};
+    const unlisten = vi.fn(async () => {});
+    const withWorker = vi.fn(async () => true);
+    const service = createCraftAnalysisService({
+      repository: {
+        withWorker,
+        listen: async (onWake: () => void) => {
+          wake = onWake;
+          return unlisten;
+        },
+      } as unknown as CraftAnalysisRepository,
+      recipes: {} as never,
+      leagues: {} as never,
+      maximumQuoteAgeMs: async () => 60_000,
+    });
+    service.start();
+    await vi.waitFor(() => expect(withWorker).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    expect(withWorker).toHaveBeenCalledTimes(1);
+    wake();
+    await vi.waitFor(() => expect(withWorker).toHaveBeenCalledTimes(2), {
+      timeout: 300,
+    });
+    await service.close();
+    expect(unlisten).toHaveBeenCalledOnce();
+  });
+});
+
+it.each([false, true])(
+  'keeps a bounded fallback when the listener is unavailable (initial failure=%s)',
+  async (initialFailure) => {
+    vi.useFakeTimers();
+    const withWorker = vi.fn(async () => true);
+    const onWorkerError = vi.fn();
+    const service = createCraftAnalysisService({
+      repository: {
+        withWorker,
+        listen: async () => {
+          if (initialFailure) throw new Error('listener unavailable');
+          return async () => {};
+        },
+      } as unknown as CraftAnalysisRepository,
+      recipes: {} as never,
+      leagues: {} as never,
+      maximumQuoteAgeMs: async () => 60_000,
+      onWorkerError,
+    });
+    try {
+      service.start();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(withWorker).toHaveBeenCalledTimes(1);
+      expect(onWorkerError).toHaveBeenCalledTimes(initialFailure ? 1 : 0);
+      await vi.advanceTimersByTimeAsync(4999);
+      expect(withWorker).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(withWorker).toHaveBeenCalledTimes(2);
+      await service.close();
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(withWorker).toHaveBeenCalledTimes(2);
+    } finally {
+      await service.close();
+      vi.useRealTimers();
+    }
+  },
+);

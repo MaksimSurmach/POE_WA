@@ -1820,7 +1820,6 @@ progress::-webkit-progress-value {
   }
   .app-header nav.app-nav {
     width: 100%;
-    overflow-x: auto;
   }
   .app-header nav.app-nav .nav-link {
     flex-shrink: 0;

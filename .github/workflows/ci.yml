@@ -75,12 +75,13 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e:browser
+      - run: pnpm test:e2e:browser tests/browser/factory.spec.ts tests/browser/market-freshness.spec.ts
+        env:
+          PIPELINE: legacy
       - run: pnpm test:e2e:browser tests/browser/two-methods.spec.ts
         env:
+          PIPELINE: legacy
           BROWSER_FIXTURE_SCENARIO: two-methods-priced
-      - run: pnpm test:e2e:browser tests/browser/collector-run-now.spec.ts
-        env:
-          PIPELINE: collector
       - name: Validate and preview recipe catalog
         run: |
           echo '## Recipe catalog' >> "$GITHUB_STEP_SUMMARY"

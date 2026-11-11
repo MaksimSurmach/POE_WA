@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test.skip(
-  process.env.PIPELINE !== 'collector',
+  (process.env.PIPELINE ?? 'collector') !== 'collector',
   'Requires the collector browser fixture',
 );
 
@@ -134,4 +134,21 @@ test('persists quote age changed from the homepage', async ({ page }) => {
       expect(restored.ok()).toBe(true);
     }
   }
+});
+
+test('catalog header labels stay inside their cells at 390px', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 840 });
+  await page.goto('/');
+  const headers = page.locator('.craft-table thead th:visible');
+  await expect(headers.first()).toBeVisible();
+  const overflowing = await headers.evaluateAll(
+    (cells) =>
+      cells.filter((cell) => {
+        const button = cell.querySelector('button')!;
+        return button.scrollWidth > button.clientWidth;
+      }).length,
+  );
+  expect(overflowing).toBe(0);
 });

@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
 
 test.skip(
-  process.env.BROWSER_FIXTURE_SCENARIO !== 'two-methods-priced',
-  'Requires the two-methods-priced market fixtures',
+  process.env.PIPELINE !== 'legacy' ||
+    process.env.BROWSER_FIXTURE_SCENARIO !== 'two-methods-priced',
+  'Requires the legacy pipeline and the two-methods-priced market fixtures',
 );
 
 test('ranks two priced methods and shows both profits on the homepage', async ({
