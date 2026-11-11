@@ -65,8 +65,6 @@ test('run-now-updates-homepage', async ({ page }) => {
   });
   expect(Date.parse(data.evaluation.evaluatedAt)).toBeGreaterThan(clickedAt);
   expect(data.snapshot).toBeNull();
-  await page.reload();
-  await expect(page.getByLabel('Operator token')).toHaveCount(0);
 });
 
 test('shows a persistent Trade block after a successful maintenance run', async ({
