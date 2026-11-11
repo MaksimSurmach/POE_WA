@@ -18,7 +18,7 @@ const alternate = {
 const entries = [...catalogFixtures, alternate];
 const window = {
   state: 'empty',
-  range: '7d',
+  range: '24h',
   bucketSeconds: 3600,
   windowStart: '2026-11-04T10:00:00.000Z',
   windowEnd: at,
@@ -90,6 +90,19 @@ test('current market includes every recipe and selection preserves the overview'
       exact: true,
     }),
   ).toBeVisible();
+  await overview
+    .getByText('Price vs. listing activity chart', { exact: true })
+    .click();
+  const search = page.getByRole('searchbox', {
+    name: 'Find a market recipe',
+    exact: true,
+  });
+  await search.fill('no-such-market-recipe');
+  await expect(
+    overview.getByText(/No recipes match this search/),
+  ).toBeVisible();
+  await expect(overview).not.toContainText('No recipes are available yet');
+  await search.fill('');
   await expect(overview.locator('.trade-map__point').first()).toBeVisible();
   expect(await overview.locator('.trade-map__point').count()).toBeGreaterThan(
     1,
@@ -105,12 +118,17 @@ test('current market includes every recipe and selection preserves the overview'
     page.getByRole('region', { name: 'Selected recipe price history' }),
   ).toContainText('Other crafting method');
   await expect(choices).toBeHidden();
-  await overview.locator('summary').click();
+
   await expect(overview.locator('tbody tr')).toHaveCount(entries.length);
   await expect(
     overview.getByText('No fresh ask', { exact: true }).first(),
   ).toBeVisible();
-  await overview.locator('tbody tr').first().getByRole('button').click();
+  await overview
+    .locator('tbody tr')
+    .filter({ hasText: entries[0]!.recipe.title })
+    .first()
+    .getByRole('button')
+    .click();
   await expect(
     page.getByRole('region', { name: 'Selected recipe price history' }),
   ).toContainText(entries[0]!.recipe.title);
@@ -121,6 +139,17 @@ test('current market includes every recipe and selection preserves the overview'
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBeLessThanOrEqual(width);
+    const overlap = await overview
+      .locator('tbody tr')
+      .first()
+      .locator('td')
+      .first()
+      .evaluate((cell) => {
+        const button = cell.querySelector('button')!.getBoundingClientRect();
+        const method = cell.querySelector('small')!.getBoundingClientRect();
+        return button.bottom > method.top + 1;
+      });
+    expect(overlap).toBe(false);
   }
 });
 
@@ -137,6 +166,7 @@ test('all main pages share typography, palette and content width', async ({
       '/recipes/pohx/gloves',
       '/market',
       '/factory',
+      '/settings',
     ]) {
       await page.goto(path);
       await expect(page.locator('main h1').first()).toBeVisible();
@@ -255,7 +285,7 @@ test('delayed old-league history cannot label or price the new-league catalog', 
   const overview = page.getByRole('region', {
     name: 'All recipes market overview',
   });
-  await overview.locator('summary').click();
+
   await expect(
     overview.getByText('History unavailable', { exact: true }).first(),
   ).toBeVisible();
@@ -264,12 +294,19 @@ test('delayed old-league history cannot label or price the new-league catalog', 
   await page
     .getByRole('button', { name: 'Reload current market', exact: true })
     .click();
-  await expect(overview.locator('summary')).toBeVisible();
-  await overview.locator('summary').click();
+  await expect(
+    overview.locator('.recipe-market__recipes > summary'),
+  ).toBeVisible();
+
   await expect(
     overview.getByText('+5%', { exact: true }).first(),
   ).toBeVisible();
-  await overview.locator('tbody tr').first().getByRole('button').click();
+  await overview
+    .locator('tbody tr')
+    .filter({ hasText: entries[0]!.recipe.title })
+    .first()
+    .getByRole('button')
+    .click();
   await expect(
     page.getByRole('heading', {
       name: 'League changed while loading history',
@@ -324,4 +361,19 @@ test('catalog labels its pinned observations when current-league discovery has a
   await expect(page.locator('.catalog-heading')).not.toContainText(
     'Next Fixture League',
   );
+});
+
+test('mobile opportunities expose a target price and action in the first screen', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto('/');
+  await expect(page.locator('.craft-table__identity').first()).toBeInViewport();
+  await expect(
+    page
+      .locator('.craft-table tbody tr:not(.craft-table__readiness-group)')
+      .first()
+      .locator('[data-label="Observed ask"]'),
+  ).toBeInViewport();
+  await expect(page.locator('.craft-table__steps').first()).toBeInViewport();
 });

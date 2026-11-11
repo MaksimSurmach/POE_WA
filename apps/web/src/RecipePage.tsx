@@ -1,3 +1,4 @@
+import { formatTimestamp } from './dateTime.js';
 import { TableSurface } from './ui.js';
 import {
   domainErrorDefinitions,
@@ -33,7 +34,7 @@ export function RecipePage() {
   const { recipeId } = useParams();
   const [response, setResponse] = useState<RecipeResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [trendRange, setTrendRange] = useState<TrendRange>('30d');
+  const [trendRange, setTrendRange] = useState<TrendRange>('24h');
   const [catalogEntries, setCatalogEntries] = useState<CatalogEntry[]>([]);
 
   useEffect(() => {
@@ -164,35 +165,53 @@ export function RecipePage() {
       </header>
 
       <div className="recipe-economics" aria-label="Current economics">
-        <span>
-          Indicative expected cost{' '}
-          <strong>
-            <Money price={evaluation.expectedCraftCost} />
-          </strong>
-        </span>
+        {evaluation.expectedCraftCost ? (
+          <span>
+            Indicative expected cost{' '}
+            <strong>
+              <Money price={evaluation.expectedCraftCost} />
+            </strong>
+          </span>
+        ) : null}
         <span>
           Comparable asking price{' '}
           <strong>
-            <Money price={evaluation.estimatedSalePrice} />
+            <Money
+              price={
+                evaluation.estimatedSalePrice ??
+                (detail.readiness?.fresh
+                  ? (detail.readiness.currentAskRange?.min ??
+                    detail.marketActivity?.observedAskSample?.[0])
+                  : null) ??
+                null
+              }
+            />
           </strong>
         </span>
+        {evaluation.profit ? (
+          <span>
+            Margin at ask{' '}
+            <strong>
+              {evaluation.profit ? (
+                <ProfitBadge {...evaluation.profit} />
+              ) : (
+                'Not estimated'
+              )}
+            </strong>
+          </span>
+        ) : null}
+        {evaluation.marginPercent !== null ? (
+          <span>
+            ROI{' '}
+            <strong className={economicClass(evaluation.marginPercent)}>
+              {evaluation.marginPercent === null
+                ? 'Not estimated'
+                : formatMarginPercent(evaluation.marginPercent)}
+            </strong>
+          </span>
+        ) : null}
         <span>
-          Margin at ask{' '}
-          <strong>
-            {evaluation.profit ? (
-              <ProfitBadge {...evaluation.profit} />
-            ) : (
-              'Not estimated'
-            )}
-          </strong>
-        </span>
-        <span>
-          ROI{' '}
-          <strong className={economicClass(evaluation.marginPercent)}>
-            {evaluation.marginPercent === null
-              ? 'Not estimated'
-              : formatMarginPercent(evaluation.marginPercent)}
-          </strong>
+          Craft method<strong>{method.name}</strong>
         </span>
       </div>
       {evaluation.profitBlockedReason ? (
@@ -206,18 +225,39 @@ export function RecipePage() {
           <Money price={evaluation.expectedCraftCost} />
         </p>
       ) : null}
-      <p className="catalog-price-note">
-        ROI = (asking price − expected cost) ÷ expected cost × 100%. A cost of
-        10 div and an ask of 12 div gives a 2 div spread and 20% ROI at that
-        ask. Expected cost is a mean across repeated crafts, not a guaranteed
-        budget.
-      </p>
+      <details className="economics-help">
+        <summary>How cost and profit estimates work</summary>
+        <p className="catalog-price-note">
+          ROI = (asking price − expected cost) ÷ expected cost × 100%. A cost of
+          10 div and an ask of 12 div gives a 2 div spread and 20% ROI at that
+          ask. Expected cost is a mean across repeated crafts, not a guaranteed
+          budget.
+        </p>
+      </details>
 
       <MethodsForTarget
         entries={catalogEntries}
         targetSignature={detail.targetSignature}
       />
 
+      <DetailSection title="Base and target">
+        <ItemTooltip item={detail.presentation.base} />
+        <p className="base-requirements">
+          {detail.base.name} · {detail.base.requirements.join(' · ')}
+        </p>
+        {(['prefix', 'suffix', 'implicit', 'enchant', 'other'] as const).map(
+          (group) =>
+            targetMods.some((m) => m.generationType === group) ? (
+              <p className="base-requirements" key={group}>
+                {group}:{' '}
+                {targetMods
+                  .filter((m) => m.generationType === group)
+                  .map((m) => m.label)
+                  .join(' · ') || 'None required'}
+              </p>
+            ) : null,
+        )}
+      </DetailSection>
       {method ? (
         <DetailSection title={method.name}>
           {evaluation.status === 'stale' ? (
@@ -227,9 +267,11 @@ export function RecipePage() {
             </p>
           ) : null}
           <p>
-            Starting base: <Money price={method.baseCost} /> ×{' '}
-            {method.expectedBases ?? '?'} expected bases. Add every material
-            cost below.
+            Starting base: <Money price={method.baseCost} />.
+            {method.expectedBases == null
+              ? ' Expected base consumption is not verified.'
+              : ` ${method.expectedBases} expected bases per finished item.`}{' '}
+            Material prices are shown per use below.
           </p>
           <ol className="craft-steps">
             {method.steps.map((step) => {
@@ -327,7 +369,7 @@ export function RecipePage() {
         </DetailSection>
       ) : null}
 
-      <DetailSection title="Price evidence">
+      <DetailSection title="Price evidence" collapsed>
         <p>
           Starting base: <Money price={method.baseCost} /> · Expected bases per
           finished item: {method.expectedBases ?? 'Not estimated'}
@@ -346,14 +388,14 @@ export function RecipePage() {
               ? `Available ask sample: 20/${source.totalResults ?? 'unknown'} offers · `
               : ''}
             <time dateTime={source.capturedAt}>
-              {new Date(source.capturedAt).toLocaleString('en-US')}
+              {formatTimestamp(source.capturedAt)}
             </time>
             {source.verifiedAt && source.verifiedAt !== source.capturedAt ? (
               <>
                 {' '}
                 · Rechecked{' '}
                 <time dateTime={source.verifiedAt}>
-                  {new Date(source.verifiedAt).toLocaleString('en-US')}
+                  {formatTimestamp(source.verifiedAt)}
                 </time>
               </>
             ) : null}
@@ -361,7 +403,7 @@ export function RecipePage() {
         ))}
         <p>
           {detail.snapshot
-            ? `${detail.snapshot.listings.length} verified sellers · ${detail.snapshot.coverage ?? 'unknown'} search coverage${detail.snapshot.sortedPageComplete ? ' (complete lowest-price page)' : detail.snapshot.sortedSampleComplete ? ` (sorted price sample: 20/${detail.snapshot.totalResults} offers)` : ''}${detail.snapshot.listings.length > 0 && detail.snapshot.listings.length <= 2 ? ' · Thin market' : ''} · ${new Date(detail.snapshot.capturedAt).toLocaleString('en-US')}`
+            ? `${detail.snapshot.listings.length} verified sellers · ${detail.snapshot.coverage ?? 'unknown'} search coverage${detail.snapshot.sortedPageComplete ? ' (complete lowest-price page)' : detail.snapshot.sortedSampleComplete ? ` (sorted price sample: 20/${detail.snapshot.totalResults} offers)` : ''}${detail.snapshot.listings.length > 0 && detail.snapshot.listings.length <= 2 ? ' · Thin market' : ''} · ${formatTimestamp(detail.snapshot.capturedAt)}`
             : detail.marketActivity?.observedAskSample?.length
               ? 'See observed asking prices below.'
               : method.marketStatus === 'empty'
@@ -383,7 +425,7 @@ export function RecipePage() {
         </div>
       </DetailSection>
       {detail.readiness ? (
-        <DetailSection title="Data readiness">
+        <DetailSection title="Data readiness" collapsed>
           <MarketReadiness readiness={detail.readiness} />
         </DetailSection>
       ) : null}
@@ -461,7 +503,10 @@ export function RecipePage() {
           Compare in market trends ›
         </Link>
       </DetailSection>
-      <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
+      <details className="detail-section">
+        <summary>Advanced: expected value and risk calculator</summary>
+        <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
+      </details>
       {detail.uncertainties.length ? (
         <details className="detail-section">
           <summary>Crafting and pricing caveats</summary>
@@ -472,28 +517,6 @@ export function RecipePage() {
           </ul>
         </details>
       ) : null}
-      <DetailSection title="Base and target">
-        <ItemTooltip item={detail.presentation.base} />
-        <p className="base-requirements">
-          {detail.base.name} · {detail.base.requirements.join(' · ')}
-        </p>
-        {(['prefix', 'suffix', 'implicit', 'enchant', 'other'] as const).map(
-          (group) => (
-            <p className="base-requirements" key={group}>
-              {group}:{' '}
-              {targetMods
-                .filter((m) => m.generationType === group)
-                .map((m) => m.label)
-                .join(' · ') || 'None required'}
-            </p>
-          ),
-        )}
-        <p>
-          Margin uses eligible asking prices. One independent matching seller
-          can qualify for grade C. A validated sorted sample earns at most grade
-          B. My Factory tracks confirmed sales.
-        </p>
-      </DetailSection>
     </article>
   );
 }
@@ -515,12 +538,23 @@ function RecipeMessage({ title }: { title: string }) {
 function DetailSection({
   children,
   title,
+  collapsed = false,
 }: {
   children: ReactNode;
   title: string;
+  collapsed?: boolean;
 }) {
+  if (collapsed)
+    return (
+      <details className="detail-section">
+        <summary>{title}</summary>
+        {children}
+      </details>
+    );
   return (
-    <section className="detail-section">
+    <section
+      className={`detail-section${title === 'Base and target' ? ' base-target' : ''}`}
+    >
       <h2>{title}</h2>
       {children}
     </section>

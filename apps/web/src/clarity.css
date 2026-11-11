@@ -1,0 +1,581 @@
+/* Operate mode: the decision leads, evidence expands in place. */
+@layer utilities {
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  html {
+    scrollbar-color: var(--border) var(--background);
+  }
+  .workspace-shell .app-main {
+    max-width: 1440px;
+  }
+  .skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 100;
+    padding: 12px;
+    background: var(--surface);
+    transform: translateY(-150%);
+  }
+  .skip-link:focus {
+    transform: none;
+  }
+  .catalog-heading p {
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .catalog-heading time,
+  time {
+    font-variant-numeric: tabular-nums;
+  }
+  .catalog-decision {
+    padding: 20px 0 24px;
+    border-block: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .catalog-decision h2 {
+    font-size: 20px;
+    margin: 0 0 8px;
+  }
+  .catalog-decision p {
+    max-width: 75ch;
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .catalog-decision .catalog-decision__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin-top: 12px;
+    font-size: 14px;
+  }
+  .handbook-controls {
+    grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+  }
+  .catalog-advanced-filters {
+    grid-column: 1 / -1;
+  }
+  .catalog-advanced-filters > .catalog-filter {
+    display: inline-grid;
+    width: min(240px, 100%);
+    margin: 8px 16px 0 0;
+    vertical-align: top;
+  }
+  .catalog-method-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    font-size: 14px;
+    color: var(--muted);
+    min-height: 44px;
+  }
+  .catalog-method-toggle input {
+    width: 18px;
+    height: 18px;
+  }
+  .craft-table {
+    min-width: 0;
+    table-layout: auto;
+  }
+  .craft-table th:first-child {
+    width: 42%;
+  }
+  .craft-table .craft-table__mobile-class {
+    display: inline;
+  }
+  .craft-table__identity {
+    align-items: start;
+  }
+  .craft-table__identity a {
+    font-size: 15px;
+  }
+  .craft-table td {
+    text-align: left;
+  }
+  .craft-table .craft-table__evidence {
+    width: 30%;
+    min-width: 180px;
+  }
+  .craft-table__steps {
+    display: inline-block;
+    padding-block: 8px;
+    font-size: 14px;
+  }
+  .evidence-details {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .evidence-details summary {
+    min-height: 36px;
+  }
+  .recipe-detail--compact .recipe-economics {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: start;
+    gap: 20px 40px;
+    padding: 20px;
+  }
+  .recipe-economics > span {
+    flex: 1 1 180px;
+  }
+  .recipe-economics strong {
+    display: block;
+    margin-top: 6px;
+  }
+  .recipe-economics strong .money {
+    font-size: 22px;
+  }
+  .recipe-detail--compact .detail-section {
+    margin-top: 24px;
+    padding: 20px;
+  }
+  .recipe-detail details.detail-section {
+    background: transparent;
+    border: 1px solid var(--border);
+  }
+  .detail-section > summary,
+  .guide-calculator > summary {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .detail-section > summary {
+    display: list-item;
+  }
+  .economics-help {
+    color: var(--muted);
+    margin-block: 12px;
+  }
+  .craft-steps li {
+    line-height: 1.6;
+  }
+  .craft-steps li > strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+  .craft-steps li > small {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .guide-layout {
+    display: block;
+    max-width: 900px;
+  }
+  .guide-layout > section {
+    max-width: 75ch;
+  }
+  .guide-steps {
+    list-style: decimal;
+  }
+  .guide-steps li {
+    padding-left: 8px;
+  }
+  .guide-calculator {
+    margin-block: 32px;
+    padding-block: 20px;
+    border-block: 1px solid var(--border);
+  }
+  .recipe-library {
+    gap: 0;
+  }
+  .recipe-library > li {
+    padding-block: 20px;
+  }
+  .recipe-library h2 {
+    font-size: 16px;
+  }
+  .recipe-library p {
+    max-width: 75ch;
+  }
+  .market-trends .catalog-heading {
+    margin-bottom: 24px;
+  }
+  .recipe-market__recipes {
+    margin-bottom: 20px;
+  }
+  .recipe-market__table {
+    min-width: 0;
+    table-layout: auto;
+  }
+  .recipe-market__table th,
+  .recipe-market__table td {
+    white-space: normal;
+  }
+  .recipe-market__table td:first-child {
+    min-width: 0;
+    width: 34%;
+  }
+  .recipe-market__table td {
+    vertical-align: top;
+  }
+  .recipe-market__table button {
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+  .recipe-market__table-scroll {
+    max-height: 540px;
+    overflow: auto;
+  }
+  .market-activity-note {
+    max-width: 75ch;
+    padding: 16px 0;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .market-map-disclosure {
+    margin-block: 16px;
+  }
+  .trade-map__graph {
+    height: 250px;
+  }
+  .trade-map--zero .trade-map__graph {
+    height: 80px;
+  }
+  .trade-map--zero.trade-map--unknown .trade-map__graph {
+    margin-bottom: 80px;
+  }
+  .trend-chart__svg {
+    height: 220px;
+  }
+  .trend-chart__axis text {
+    font-size: 12px;
+  }
+  .trend-facts {
+    border: 0;
+    background: transparent;
+    padding: 12px 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .factory-optional {
+    margin-block: 16px;
+  }
+  .factory-panel > summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .factory-panel {
+    padding: 20px;
+  }
+  .factory-fields {
+    margin-block: 16px;
+  }
+  .market-admin.home-settings {
+    margin-block: 24px;
+  }
+  @media (max-width: 1100px) and (min-width: 761px) {
+    .craft-table th:first-child {
+      width: 38%;
+    }
+    .craft-table th,
+    .craft-table td {
+      padding: 16px 10px;
+    }
+  }
+  @media (max-width: 760px) {
+    .handbook-controls {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .catalog-search {
+      grid-column: 1 / -1;
+    }
+    .catalog-decision h2 {
+      font-size: 18px;
+      line-height: 1.4;
+    }
+    .catalog-mobile-sort {
+      display: flex;
+    }
+    .recipe-market__table-scroll {
+      max-height: 550px;
+    }
+    .recipe-market__table,
+    .recipe-market__table tbody {
+      display: block;
+    }
+    .recipe-market__table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .recipe-market__table tbody tr {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .recipe-market__table tbody td {
+      display: block;
+      width: auto;
+      border: 0;
+      min-width: 0;
+      padding: 8px;
+    }
+    .recipe-market__table td:first-child,
+    .recipe-market__table td:last-child {
+      grid-column: 1 / -1;
+      width: auto;
+    }
+    .recipe-market__table td[data-label]::before {
+      content: attr(data-label);
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .recipe-market__table .button {
+      min-height: 44px;
+      font-size: 16px;
+    }
+    .recipe-market__table-scroll {
+      border-block: 1px solid var(--border);
+    }
+    .trend-controls {
+      grid-template-columns: 1fr;
+    }
+    .trend-facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .recipe-detail--compact .detail-section {
+      padding: 16px;
+    }
+    .guide-materials {
+      min-width: 420px;
+    }
+  }
+  @media (max-width: 620px) {
+    .craft-table .craft-table__evidence {
+      width: auto;
+      min-width: 0;
+    }
+    .craft-table th:first-child {
+      width: auto;
+    }
+    .catalog-table-scroll .ui-table-surface {
+      overflow: visible;
+    }
+    .catalog-table-scroll {
+      overflow: visible;
+    }
+  }
+}
+@layer utilities {
+  .recipe-library > li.recipe-library__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 20px;
+    padding-top: 28px;
+  }
+  .recipe-library__heading h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+  .recipe-library__heading > span {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .craft-table th:nth-child(2) {
+    width: auto;
+  }
+}
+@layer utilities {
+  .catalog-advanced-filters > label {
+    display: inline-grid;
+    width: min(240px, 100%);
+    margin: 8px 16px 0 0;
+  }
+  .catalog-display-options {
+    padding: 8px 12px;
+  }
+  .catalog-mobile-sort {
+    display: flex;
+  }
+  .catalog-display-options > summary {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .catalog-decision {
+    padding-block: 16px;
+    margin-bottom: 16px;
+  }
+  .market-price-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 12px;
+    margin-block: 16px;
+  }
+  .market-price-controls label {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .recipe-market__table td {
+    background: transparent;
+  }
+  .recipe-market__table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface-secondary);
+  }
+  .recipe-detail--compact .base-target {
+    background: transparent;
+    border-radius: 0;
+    padding: 12px 0;
+    margin-top: 12px;
+    border-block: 1px solid var(--border);
+  }
+  .recipe-detail--compact .base-target h2 {
+    margin: 0 0 8px;
+    padding: 0;
+    border: 0;
+  }
+  .recipe-detail--compact .base-target .item-preview {
+    display: none;
+  }
+  .recipe-detail--compact .base-target .base-requirements {
+    margin: 6px 0;
+    padding: 0;
+    font-size: 14px;
+  }
+  .recipe-detail--compact {
+    gap: 12px;
+  }
+  .recipe-detail--compact .economics-help {
+    margin: 0;
+  }
+  .factory-page details.factory-panel {
+    display: block;
+  }
+  .factory-page .factory-optional {
+    margin-block: 0;
+  }
+  .factory-page .factory-fields {
+    margin-block: 0;
+  }
+  .factory-page details[open] > summary {
+    margin-bottom: 16px;
+  }
+  .factory-page .factory-panel > form {
+    gap: 12px;
+  }
+  .factory-page .factory-panel > form > .button {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+  .factory-page .factory-note {
+    max-width: 75ch;
+  }
+  .recipe-library > li:not(.recipe-library__heading) {
+    padding-block: 16px;
+  }
+  .recipe-library__method {
+    margin-block: 6px;
+  }
+  .market-trends .catalog-heading > div > p {
+    max-width: 75ch;
+  }
+  @media (max-width: 760px) {
+    .market-price-controls {
+      grid-template-columns: 1fr;
+    }
+    .catalog-decision p {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .catalog-decision .catalog-decision__facts {
+      gap: 4px 16px;
+      margin-top: 8px;
+    }
+    .catalog-heading {
+      margin-bottom: 12px;
+    }
+    .recipe-market__table tbody td {
+      background: transparent;
+    }
+    .recipe-economics > span {
+      flex-basis: 100%;
+    }
+  }
+}
+
+@layer utilities {
+  .recipe-market__table .button {
+    display: block;
+    height: auto;
+    min-height: 44px;
+    width: 100%;
+    white-space: normal;
+    line-height: 1.5;
+  }
+  .catalog-results {
+    min-height: 28px;
+    padding-block: 8px;
+  }
+  @media (max-width: 760px) {
+    .handbook-controls > .catalog-filter {
+      grid-column: auto;
+    }
+    .handbook-controls > .catalog-search {
+      grid-column: 1 / -1;
+    }
+    .catalog-decision {
+      padding-block: 12px;
+      margin-bottom: 12px;
+    }
+    .catalog-decision h2 {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .catalog-decision .catalog-decision__facts {
+      font-size: 13px;
+    }
+    .catalog-results {
+      margin-block: 4px;
+    }
+  }
+}
+@layer utilities {
+  .craft-table__identity .craft-table__steps {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--accent);
+    padding-block: 8px 0;
+  }
+  @media (max-width: 620px) {
+    .craft-table tbody {
+      gap: 8px;
+    }
+    .craft-table tbody .craft-table__readiness-group {
+      display: block;
+      padding: 0;
+      background: transparent;
+    }
+    .craft-table .craft-table__readiness-group th {
+      display: block;
+      height: auto;
+      min-height: 0;
+      padding: 8px 0;
+      font-size: 13px;
+    }
+    .craft-table tbody tr:not(.craft-table__readiness-group) {
+      padding: 12px;
+    }
+    .craft-table tbody th[scope='row'] {
+      padding-bottom: 8px;
+    }
+  }
+}

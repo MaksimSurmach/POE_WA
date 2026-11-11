@@ -5,7 +5,7 @@ test.skip(
   'Requires the collector browser fixture',
 );
 
-test('run-now-updates-homepage', async ({ page }) => {
+test('settings-run-now-updates-homepage', async ({ page }) => {
   const recipe = '/recipes/physical-large-cluster-chaos';
   // Private reverse-proxy requests need no application credential.
   await page.route(/\/api\/(collector\/status|run)$/, (route) =>
@@ -20,7 +20,7 @@ test('run-now-updates-homepage', async ({ page }) => {
     if (leagueName) json.data.name = leagueName;
     await route.fulfill({ response, json });
   });
-  await page.goto('/');
+  await page.goto('/settings');
   await expect(page.getByLabel('Operator token')).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Refresh Prices' }),
@@ -35,17 +35,16 @@ test('run-now-updates-homepage', async ({ page }) => {
       )
     ).status(),
   ).toBe(404);
+  await page.goto('/');
+  const cost = page
+    .getByRole('row')
+    .filter({ has: page.locator(`a[href="${recipe}"]`) })
+    .locator('[data-label="Expected cost"]');
+  await expect(cost).toContainText('11,519 c');
+  await page.goto('/settings');
   const lastRun = page.getByLabel('Last run');
   await expect(lastRun).toHaveAttribute('datetime', /T/);
   const before = (await lastRun.getAttribute('datetime'))!;
-  const cost = page
-    .getByRole('row')
-    .filter({
-      has: page.locator(`a[href="${recipe}"]`),
-    })
-    .getByRole('cell')
-    .nth(1);
-  await expect(cost).toContainText('11,519 c');
   leagueName = 'Next Fixture League';
   const clickedAt = Date.now();
   await page.getByRole('button', { name: 'Run now' }).click();
@@ -54,6 +53,7 @@ test('run-now-updates-homepage', async ({ page }) => {
       timeout: 12_000,
     })
     .toBeGreaterThan(Date.parse(before));
+  await page.goto('/');
   await expect(cost).toContainText('11,536 c');
   await expect(page.getByText(/Next Fixture League/)).toBeVisible();
   const detail = await page.request.get(`/api${recipe}`);
@@ -83,7 +83,7 @@ test('shows a persistent Trade block after a successful maintenance run', async 
       },
     }),
   );
-  await page.goto('/');
+  await page.goto('/settings');
   await expect(page.getByText(/Trade access blocked/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Run now' })).toBeEnabled();
 });
@@ -92,7 +92,7 @@ test('Run now becomes available again when its request stalls', async ({
   page,
 }) => {
   await page.route('**/api/run', () => {});
-  await page.goto('/');
+  await page.goto('/settings');
   const button = page.getByRole('button', { name: 'Run now' });
   await button.click();
   await expect(button).toBeDisabled();
@@ -102,7 +102,7 @@ test('Run now becomes available again when its request stalls', async ({
   await expect(button).toBeEnabled();
 });
 
-test('persists quote age changed from the homepage', async ({ page }) => {
+test('persists quote age changed from settings', async ({ page }) => {
   const url = '/api/admin/market/settings';
   const response = await page.request.get(url);
   expect(response.ok()).toBe(true);
@@ -112,13 +112,11 @@ test('persists quote age changed from the homepage', async ({ page }) => {
   const nextMinutes = oldMinutes === 5 ? 6 : 5;
 
   try {
-    await page.goto('/');
-    await page.getByRole('heading', { name: 'Settings' }).click();
+    await page.goto('/settings');
     await page.getByLabel(field).fill(String(nextMinutes));
     await page.getByRole('button', { name: 'Save settings' }).click();
     await expect(page.getByText('Settings saved.')).toBeVisible();
     await page.reload();
-    await page.getByRole('heading', { name: 'Settings' }).click();
     await expect(page.getByLabel(field)).toHaveValue(String(nextMinutes));
   } finally {
     const current = (await (await page.request.get(url)).json()).data;
@@ -166,7 +164,7 @@ test('visible collection controls pause, recover from conflict and resume', asyn
         data: { version: before.version },
       });
     }
-    await page.goto('/');
+    await page.goto('/settings');
     const controls = page.getByRole('group', {
       name: 'Collector controls',
       exact: true,
@@ -235,8 +233,7 @@ test('quote-age edits keep the draft and require review before overwriting anoth
   const remoteMaximum =
     before.configured.maximumQuoteAgeMs === 7_200_000 ? 3_600_000 : 7_200_000;
   try {
-    await page.goto('/');
-    await page.getByRole('heading', { name: 'Settings', exact: true }).click();
+    await page.goto('/settings');
     const input = page.getByLabel('Warning age (minutes)', { exact: true });
     await input.fill(String(draft));
     const current = await read();

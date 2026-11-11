@@ -65,6 +65,9 @@ test('an open recipe revalidates when its window regains focus', async ({
   await page.goto(`/recipes/${id}`);
   await expect(page.getByRole('heading', { name: title })).toBeVisible();
 
+  await page
+    .getByText('Advanced: expected value and risk calculator', { exact: true })
+    .click();
   const risk = page.getByRole('region', { name: 'Expected value & risk' });
   await risk
     .getByText('Define outcome probabilities and values', { exact: true })

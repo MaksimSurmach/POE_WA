@@ -47,6 +47,10 @@ test('ranks two priced methods and shows both profits on the homepage', async ({
   ).toBeLessThanOrEqual(390);
 
   await page.goto('/');
+  await page.getByText('Sort and display options', { exact: true }).click();
+  await page
+    .getByRole('checkbox', { name: 'Show every crafting method' })
+    .check();
   for (const { path, profit } of rankedMethods) {
     const row = page.getByRole('row').filter({
       has: page.locator(`a[href="${path}"]`),
@@ -56,7 +60,7 @@ test('ranks two priced methods and shows both profits on the homepage', async ({
   }
   await expect(
     page.getByRole('button', { name: 'Item class', exact: true }),
-  ).toBeHidden();
+  ).toHaveCount(0);
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(390);

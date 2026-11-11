@@ -12,6 +12,7 @@ const percentFormatter = new Intl.NumberFormat('en-US', {
 export interface CatalogFilters {
   category: string;
   search: string;
+  view?: 'all' | 'priced' | 'activity' | 'estimated';
   tag?: string;
   sort?: 'title' | 'category' | 'cost' | 'ask' | 'profit' | 'roi' | 'freshness';
   direction?: 'asc' | 'desc';
@@ -102,6 +103,9 @@ export function readCatalogFilters(params: URLSearchParams): CatalogFilters {
     category: params.get('category') || 'all',
     search: params.get('search') ?? '',
     tag: params.get('tag') ?? 'all',
+    view: ['priced', 'activity', 'estimated'].includes(params.get('view') ?? '')
+      ? (params.get('view') as NonNullable<CatalogFilters['view']>)
+      : 'all',
     sort:
       sort &&
       [
@@ -137,10 +141,19 @@ export function filterCatalog(
     filters.direction ??
     (['title', 'category', 'cost'].includes(sort) ? 'asc' : 'desc');
   return entries
-    .filter(({ itemPreview, recipe, evaluation }) => {
+    .filter((entry) => {
+      const { itemPreview, recipe, evaluation, readiness } = entry;
       const text =
         `${recipe.title} ${recipe.summary} ${recipe.category} ${recipe.craftMethod} ${recipe.tags.join(' ')} ${itemPreview?.name ?? ''}`.toLocaleLowerCase();
       return (
+        (filters.view !== 'priced' || observedAsk(entry) !== null) &&
+        (filters.view !== 'activity' ||
+          Boolean(
+            readiness?.fresh &&
+            readiness.activityMeasurable &&
+            (readiness.last24h.inferredExits ?? 0) > 0,
+          )) &&
+        (filters.view !== 'estimated' || evaluation.profit !== null) &&
         (!search || text.includes(search)) &&
         (filters.category === 'all' || recipe.category === filters.category) &&
         (!filters.tag ||

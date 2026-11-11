@@ -4,6 +4,7 @@ import {
   BookOpenIcon,
   ChartBarIcon,
   CubeIcon,
+  Cog6ToothIcon,
   Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 import { Disclosure } from '@heroui/react';
@@ -15,6 +16,7 @@ const destinations = [
   { to: '/recipes', title: 'Recipes', icon: BookOpenIcon },
   { to: '/market', title: 'Market trends', icon: ChartBarIcon },
   { to: '/factory', title: 'My Factory', icon: ArchiveBoxIcon },
+  { to: '/settings', title: 'Settings', icon: Cog6ToothIcon },
 ];
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
@@ -42,6 +44,9 @@ export function WorkspaceShell() {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div className="workspace-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <aside className="workspace-sidebar">
         <Link
           className="workspace-brand"
@@ -77,7 +82,7 @@ export function WorkspaceShell() {
             </Disclosure.Body>
           </Disclosure.Content>
         </Disclosure>
-        <main className="app-main">
+        <main className="app-main" id="main-content" tabIndex={-1}>
           <Outlet />
         </main>
       </div>

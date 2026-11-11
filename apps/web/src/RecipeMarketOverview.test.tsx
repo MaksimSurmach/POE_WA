@@ -4,7 +4,12 @@ import { expect, it } from 'vitest';
 
 import { catalogFixtures } from './mocks/catalog.js';
 import { marketRecipePoint } from './RecipeMarketOverview.js';
-import { TurnoverMap } from './TurnoverMap.js';
+import {
+  filterCatalog,
+  readCatalogFilters,
+  defaultCatalogFilters,
+} from './catalog.js';
+import { TurnoverMap, activityScale } from './TurnoverMap.js';
 
 const readiness: MarketReadiness = {
   level: 'price-observed',
@@ -116,4 +121,68 @@ it('groups coincident recipes at their exact value without jittering measured ze
   expect(html).toContain('Recipe A');
   expect(html).toContain('Recipe B');
   expect(html).toContain('aria-pressed="true"');
+});
+
+it('fits fractional exit rates and handles empty or invalid plot data', () => {
+  expect(activityScale(0.12)).toEqual({ step: 0.05, max: 0.2 });
+  expect(activityScale(0)).toEqual({ step: 0, max: 1 });
+  const html = renderToStaticMarkup(
+    <TurnoverMap
+      items={[{ id: 'bad', name: 'Invalid', price: 0, activity: null }]}
+      selected={null}
+      onSelect={() => {}}
+    />,
+  );
+  expect(html).toContain('No fresh priced observations');
+  expect(html).not.toMatch(/NaN|Infinity/);
+});
+
+it('quick activity filter requires fresh measurable positive exits, not missing or zero', () => {
+  const rows = [
+    {
+      ...entry,
+      snapshot: null,
+      evaluation: { ...entry.evaluation, estimatedSalePrice: null },
+      recipe: { ...entry.recipe, id: 'active' },
+      readiness: {
+        ...readiness,
+        activityMeasurable: true,
+        last24h: { ...readiness.last24h, inferredExits: 2 },
+      },
+    },
+    {
+      ...entry,
+      snapshot: null,
+      evaluation: { ...entry.evaluation, estimatedSalePrice: null },
+      recipe: { ...entry.recipe, id: 'zero' },
+      readiness: { ...readiness, activityMeasurable: true },
+    },
+    { ...entry, recipe: { ...entry.recipe, id: 'unknown' } },
+    {
+      ...entry,
+      snapshot: null,
+      evaluation: { ...entry.evaluation, estimatedSalePrice: null },
+      recipe: { ...entry.recipe, id: 'stale' },
+      readiness: {
+        ...readiness,
+        fresh: false,
+        activityMeasurable: true,
+        last24h: { ...readiness.last24h, inferredExits: 2 },
+      },
+    },
+  ];
+  expect(
+    filterCatalog(rows, { ...defaultCatalogFilters, view: 'activity' }).map(
+      ({ recipe }) => recipe.id,
+    ),
+  ).toEqual(['active']);
+  expect(
+    filterCatalog(rows, { ...defaultCatalogFilters, view: 'priced' }),
+  ).toHaveLength(3);
+  expect(readCatalogFilters(new URLSearchParams('view=made-up')).view).toBe(
+    'all',
+  );
+  expect(readCatalogFilters(new URLSearchParams('view=activity')).view).toBe(
+    'activity',
+  );
 });

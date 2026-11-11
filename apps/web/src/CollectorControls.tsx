@@ -1,3 +1,4 @@
+import { formatTimestamp } from './dateTime.js';
 import { Button } from './ui.js';
 import type {
   CollectorStatus,
@@ -239,11 +240,6 @@ export function CollectorControls({
 
 const buttonStyle = { minHeight: 44, cursor: 'pointer' } as const;
 
-const runTime = new Intl.DateTimeFormat('en-US', {
-  dateStyle: 'short',
-  timeStyle: 'medium',
-});
-
 function CollectionState({
   paused,
   connected,
@@ -354,7 +350,7 @@ export function CollectorStatusLine({
       {finishedAt ? (
         <>
           <time aria-label="Last run" dateTime={finishedAt}>
-            {runTime.format(new Date(finishedAt))}
+            {formatTimestamp(finishedAt)}
           </time>
           {state?.lastRunStatus ? ` (${state.lastRunStatus})` : null}
         </>
@@ -365,9 +361,7 @@ export function CollectorStatusLine({
         <>
           {' · Next due '}
           <time aria-label="Next due" dateTime={nextDueAt}>
-            {Date.parse(nextDueAt) <= now
-              ? 'now'
-              : runTime.format(new Date(nextDueAt))}
+            {Date.parse(nextDueAt) <= now ? 'now' : formatTimestamp(nextDueAt)}
           </time>
         </>
       ) : null}

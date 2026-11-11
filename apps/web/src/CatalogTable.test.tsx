@@ -71,9 +71,9 @@ describe('catalog table', () => {
         </MemoryRouter>,
       );
       expect(html.includes('12,345 c')).toBe(fresh);
-      expect(html.includes('Priced sample · ROI withheld')).toBe(fresh);
-      expect(html).toContain('Profit unavailable');
-      expect(html).toContain('ROI unavailable');
+      expect(html.includes('Sample ask · not a sale')).toBe(fresh);
+      expect(html).not.toContain('data-label="Profit"');
+      expect(html).not.toContain('data-label="ROI"');
     },
   );
 
@@ -218,7 +218,11 @@ describe('catalog table', () => {
             },
             {
               ...entry,
-              recipe: { ...entry.recipe, id: 'loading' },
+              recipe: {
+                ...entry.recipe,
+                id: 'loading',
+                targetSignature: 'loading-target',
+              },
               snapshot: null,
               evaluation: {
                 ...entry.evaluation,
@@ -253,9 +257,9 @@ describe('catalog table', () => {
     );
     expect(html).toContain('<table');
     expect(html).toMatch(/<thead\b/);
-    expect(html.match(/scope="col"/g)).toHaveLength(7);
+    expect(html.match(/scope="col"/g)).toHaveLength(6);
     expect(html).toContain('aria-sort="descending"');
-    expect(html).toContain('Item class');
+    expect(html).toContain('cluster jewel');
     expect(html).toContain('Market evidence');
     expect(html).toContain(catalogFixtures[0]!.recipe.title);
   });
@@ -269,6 +273,6 @@ describe('catalog table', () => {
     );
     expect(html).toMatch(/<thead\b/);
     expect(html).toContain('No items match');
-    expect(html).toContain('colSpan="7"');
+    expect(html).toContain('colSpan="3"');
   });
 });

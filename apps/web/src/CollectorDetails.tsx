@@ -1,12 +1,9 @@
+import { formatTimestamp } from './dateTime.js';
 import type { RateLimitDiagnosticsResponse } from '@poe-worksmith/contracts';
 import { useEffect, useState } from 'react';
 import { createApiClient } from './apiClient.js';
 
 const api = createApiClient();
-const dateTime = new Intl.DateTimeFormat('en', {
-  dateStyle: 'short',
-  timeStyle: 'medium',
-});
 const count = new Intl.NumberFormat('en', { maximumFractionDigits: 1 });
 
 type Diagnostics = RateLimitDiagnosticsResponse['data'];
@@ -49,7 +46,7 @@ function reasonLabel(reason: string) {
 
 function time(value: string | null) {
   return value ? (
-    <time dateTime={value}>{dateTime.format(new Date(value))}</time>
+    <time dateTime={value}>{formatTimestamp(value)}</time>
   ) : (
     'unknown'
   );

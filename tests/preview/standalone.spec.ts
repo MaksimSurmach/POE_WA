@@ -18,12 +18,6 @@ test('standalone file supports navigation without network or live writes', async
   await expect(
     page.getByRole('heading', { name: 'Craft opportunities', exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Run now', exact: true }),
-  ).toBeDisabled();
-  await expect(
-    page.getByRole('button', { name: 'Pause collection', exact: true }),
-  ).toBeDisabled();
   await page
     .getByRole('searchbox', { name: 'Item name', exact: true })
     .fill('Physical');
@@ -37,12 +31,19 @@ test('standalone file supports navigation without network or live writes', async
         .click();
     await page.getByRole('link', { name, exact: true }).click();
   };
+  await navigate('Settings');
+  await expect(
+    page.getByRole('button', { name: 'Run now', exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole('button', { name: 'Pause collection', exact: true }),
+  ).toBeDisabled();
   await navigate('Market trends');
   const overview = page.getByRole('region', {
     name: 'All recipes market overview',
     exact: true,
   });
-  await expect(overview).toContainText('7 recipes');
+  await expect(overview).toContainText('7 targets');
   await page
     .getByLabel('Choose recipe')
     .selectOption({ label: 'Physical Large Cluster Jewel' });

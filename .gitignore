@@ -150,3 +150,6 @@ output/master-e2e/
 
 # Offline UI preview build
 apps/web/dist-preview/
+
+# Local visual review evidence
+.impeccable/review/

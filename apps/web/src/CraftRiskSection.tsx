@@ -1,3 +1,4 @@
+import { formatTimestamp } from './dateTime.js';
 import { Button, Input, NativeSelect, TableSurface, TextArea } from './ui.js';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
@@ -315,7 +316,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
               {data.recipeHash.slice(0, 10)}
               {model ? ` · Model revision ${model.revision}` : ''} · Checked{' '}
               <time dateTime={data.evaluatedAt}>
-                {new Date(data.evaluatedAt).toLocaleString('en-US')}
+                {formatTimestamp(data.evaluatedAt)}
               </time>
             </p>
             {!loadError && data.analysis ? (
@@ -574,8 +575,8 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                     : `${job.request.objective.count} ${job.request.objective.kind === 'attempts' ? 'method runs' : 'target items'}`}{' '}
                   · Budget: {job.request.budget} {job.request.analysis.currency}{' '}
                   · Evidence captured{' '}
-                  {new Date(job.request.analysis.now).toLocaleString('en-US')}.
-                  Results are fixed to this saved input, not live prices.
+                  {formatTimestamp(job.request.analysis.now)}. Results are fixed
+                  to this saved input, not live prices.
                 </p>
                 <CraftRiskResult result={job.result} />
                 {job.result.status === 'complete' && data.league ? (
