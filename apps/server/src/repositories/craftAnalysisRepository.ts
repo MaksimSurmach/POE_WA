@@ -220,6 +220,7 @@ export function createCraftAnalysisRepository(
             input.request,
           ],
         );
+        await client.query("select pg_notify('worksmith_craft_wake', '')");
         await client.query('commit');
         return runRecord(result.rows[0]!);
       } catch (error) {
@@ -230,6 +231,29 @@ export function createCraftAnalysisRepository(
       }
     },
     findRun,
+    // Wakes the worker when createRun commits; returns the unsubscribe.
+    async listen(onWake: () => void) {
+      const client = await pool.connect();
+      const notify = () => onWake();
+      // A lost connection only loses wakes; the service's slow timer covers it.
+      client.on('error', () => undefined);
+      client.on('notification', notify);
+      try {
+        await client.query('listen worksmith_craft_wake');
+      } catch (error) {
+        client.release(true);
+        throw error;
+      }
+      return async () => {
+        client.off('notification', notify);
+        try {
+          await client.query('unlisten worksmith_craft_wake');
+          client.release();
+        } catch {
+          client.release(true);
+        }
+      };
+    },
     async cancelRun(id: string) {
       await pool.query(
         `update craft_risk_runs set cancel_requested=true,

@@ -200,6 +200,7 @@ export function createCraftAnalysisService(options: CraftAnalysisOptions) {
   const shutdown = new AbortController();
   let running: Promise<void> | null = null;
   let timer: ReturnType<typeof setInterval> | undefined;
+  let unlisten: Promise<() => Promise<void>> | undefined;
   async function context(recipeId: string, leagueName?: string) {
     const recipe = await options.recipes.findById(recipeId);
     if (!recipe || !recipe.active)
@@ -291,25 +292,38 @@ export function createCraftAnalysisService(options: CraftAnalysisOptions) {
       }
     });
   }
+  let again = false;
   function kick() {
-    if (shutdown.signal.aborted || running || options.runWorker === false)
+    if (shutdown.signal.aborted || options.runWorker === false) return;
+    if (running) {
+      // A job may be enqueued after drain's last empty claim.
+      again = true;
       return;
+    }
     running = drain()
       .catch((error: unknown) => options.onWorkerError?.(error))
       .finally(() => {
         running = null;
+        if (again) {
+          again = false;
+          kick();
+        }
       });
   }
   return {
     start() {
       if (timer || options.runWorker === false) return;
-      timer = setInterval(kick, 500);
+      // Wake on enqueue; the slow timer only covers a missed notification.
+      timer = setInterval(kick, 60_000);
       timer.unref();
+      unlisten = options.repository.listen(kick);
+      unlisten.catch((error: unknown) => options.onWorkerError?.(error));
       kick();
     },
     async close() {
       shutdown.abort();
       if (timer) clearInterval(timer);
+      await (await unlisten?.catch(() => undefined))?.();
       await running;
     },
     async readAnalysis(
