@@ -48,27 +48,27 @@
   --warning-text: #dcc28c;
   --positive: #9ac7ab;
   --negative: #e8a5a5;
-  --trade-background: #101619;
-  --trade-surface: #172024;
-  --trade-surface-raised: #202b2f;
-  --trade-border: #334148;
-  --trade-text: #edf2ef;
-  --trade-muted: #b0bebb;
-  --trade-accent: #eac07e;
-  --trade-accent-soft: #54462f;
+  --trade-background: var(--background);
+  --trade-surface: var(--surface);
+  --trade-surface-raised: var(--surface-raised);
+  --trade-border: var(--border);
+  --trade-text: var(--text);
+  --trade-muted: var(--muted);
+  --trade-accent: var(--accent);
+  --trade-accent-soft: var(--accent-soft);
   --trade-stock: #91c4f1;
   --trade-first: #8ad5bf;
   --trade-exit: #f4ac86;
-  --trade-control-border: #46555a;
-  --trade-button-border: #536267;
-  --trade-button-background: #101719;
+  --trade-control-border: var(--border);
+  --trade-button-border: var(--border);
+  --trade-button-background: var(--surface-raised);
   --trade-selected: #cde5db;
   --trade-selected-text: #142420;
   --trade-chart-axis: #728782;
   --trade-accent-text: #171309;
   --trade-accent-hover: #f4cc82;
-  --trade-panel-background: #1d282c;
-  --trade-divider: #39464b;
+  --trade-panel-background: var(--surface);
+  --trade-divider: var(--border);
   --trade-notice-border: #5b5140;
   --trade-notice-background: #211f1b;
   --font-small: 0.875rem;
@@ -1842,5 +1842,28 @@ progress::-webkit-progress-value {
   }
   .handbook-controls.recipe-library-filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.collector-controls__actions {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+@media (max-width: 640px) {
+  .handbook-refresh {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .collector-controls__actions {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+  .handbook-refresh > .collector-details {
+    grid-row: 3;
   }
 }

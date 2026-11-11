@@ -1,22 +1,3 @@
-body:has(.market-trends) {
-  background: var(--trade-background);
-}
-
-.app-main:has(> .market-trends) {
-  width: min(1320px, calc(100% - 72px));
-  padding-top: 31px;
-}
-
-.market-trends {
-  --surface: var(--trade-surface);
-  --surface-raised: var(--trade-surface-raised);
-  --border: var(--trade-border);
-  --text: var(--trade-text);
-  --muted: var(--trade-muted);
-  --accent: var(--trade-accent);
-  --accent-soft: var(--trade-accent-soft);
-}
-
 .market-trends .catalog-heading {
   display: flex;
   align-items: end;
@@ -239,8 +220,8 @@ body:has(.market-trends) {
   position: absolute;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -278,7 +259,7 @@ body:has(.market-trends) {
   overflow: hidden;
   color: var(--text);
   font:
-    650 0.75rem/1.2 system-ui,
+    650 var(--font-small)/1.3 system-ui,
     sans-serif;
   text-overflow: ellipsis;
   text-shadow:
@@ -307,7 +288,7 @@ body:has(.market-trends) {
 
 .trade-map__point:is(:hover, :focus-visible, [aria-pressed='true'])
   .trade-map__label {
-  max-width: min(30ch, 48vw);
+  max-width: min(30ch, 35vw);
   padding: 2px 3px;
   background: var(--surface);
 }
@@ -608,11 +589,6 @@ body:has(.market-trends) {
 }
 
 @media (max-width: 760px) {
-  .app-main:has(> .market-trends) {
-    width: calc(100% - 28px);
-    padding-top: 22px;
-  }
-
   .market-trends .catalog-heading {
     display: block;
     margin-bottom: 16px;
@@ -801,4 +777,144 @@ body:has(.market-trends) {
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
+}
+
+/* Keep unknown activity outside the numerical axis, on the same price scale. */
+.trade-map--unknown .trade-map__graph {
+  margin-bottom: 135px;
+}
+.trade-map__unknown-label {
+  position: absolute;
+  top: 116%;
+  color: var(--muted);
+  font-size: var(--font-small);
+}
+.recipe-market {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  margin-block: 28px;
+  min-width: 0;
+}
+.recipe-market h2,
+.recipe-market p {
+  margin: 0;
+}
+.recipe-market__note {
+  color: var(--muted);
+}
+.recipe-market__selection {
+  padding: 12px 0;
+  border-block: 1px solid var(--border);
+}
+.recipe-market a {
+  color: var(--accent);
+}
+.recipe-market__recipes > summary {
+  padding-block: 12px;
+  cursor: pointer;
+  min-height: 44px;
+}
+.recipe-market__table-scroll {
+  overflow-x: auto;
+}
+.recipe-market__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-body);
+}
+.recipe-market__table th {
+  text-align: left;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: var(--font-small);
+}
+.recipe-market__table td,
+.recipe-market__table th {
+  padding: 12px 16px 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.recipe-market__table td {
+  min-width: 140px;
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+}
+.recipe-market__table td:first-child {
+  min-width: 230px;
+}
+.recipe-market__table button {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 0;
+  min-height: 44px;
+  cursor: pointer;
+  font: inherit;
+}
+.recipe-market__table button[aria-pressed='true'] {
+  color: var(--accent);
+}
+.recipe-market__table small {
+  display: block;
+  color: var(--muted);
+  font-size: var(--font-small);
+}
+
+.trade-map__count {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding-inline: 4px;
+  border-radius: 12px;
+  background: var(--trade-first);
+  color: var(--background);
+  font-size: var(--font-small);
+  font-weight: 700;
+}
+.trade-map__choices {
+  width: min(420px, calc(100vw - 32px));
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--text);
+}
+.trade-map__choices p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+.trade-map__choices button {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trade-map__point[aria-pressed='true'] .trade-map__count {
+  background: var(--accent);
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.recipe-market__recipes {
+  min-width: 0;
+}
+
+.trade-map__point:has(.trade-map__count) {
+  z-index: 1;
+}
+.trade-map__point:is(:hover, :focus-visible, [aria-pressed='true']) {
+  z-index: 2;
 }

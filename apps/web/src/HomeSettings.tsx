@@ -22,7 +22,7 @@ export function HomeSettings({
 }: {
   client?: Pick<
     ReturnType<typeof createHomeSettingsClient>,
-    'settings' | 'save' | 'pause'
+    'settings' | 'save'
   >;
 }) {
   const api = useMemo(() => client ?? createHomeSettingsClient(), [client]);
@@ -62,7 +62,6 @@ export function HomeSettings({
         )
       : {};
   const dirty = Object.keys(changes).length > 0;
-  const paused = settings?.configured.collectionsPaused;
 
   return (
     <section className="market-admin home-settings" aria-label="Settings">
@@ -84,8 +83,10 @@ export function HomeSettings({
               const error = validateQuoteAges(draft);
               if (error) setMessage(error);
               else
+                // Pause/resume elsewhere bumps the version; only the edited
+                // ages are sent, so the current pause state is left untouched.
                 void apply(
-                  () => api.save(settings.version, changes),
+                  async () => api.save((await api.settings()).version, changes),
                   'Settings saved.',
                 );
             }}
@@ -120,23 +121,13 @@ export function HomeSettings({
                 <button type="submit" disabled={!dirty}>
                   Save settings
                 </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    void apply(
-                      () => api.pause(!paused, settings.version),
-                      paused ? 'Collections resumed.' : 'Collections paused.',
-                    )
-                  }
-                >
-                  {paused ? 'Resume collections' : 'Pause collections'}
-                </button>
               </div>
             </fieldset>
             <p className="market-admin__hint">
-              Trade targets refresh hourly, bases every two hours, and material
-              prices every 30 minutes. A running job finishes before pause takes
-              effect.
+              These ages decide when a stored quote is flagged or hidden; they
+              do not change how often collection runs. Refresh intervals differ
+              by target and data source — Collector details shows what is due
+              next. Pause or resume collection from the collector controls.
             </p>
           </form>
         ) : null}

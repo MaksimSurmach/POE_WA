@@ -37,6 +37,27 @@ describe('LeagueResolver', () => {
     expect((await repositories.leagues.findCurrent())?.gggId).toBe('Challenge');
   });
 
+  it('selects the trade challenge league even when special modes are listed first', async () => {
+    const repositories = createInMemoryRepositories();
+    const ids = [
+      'Hardcore Challenge',
+      'Ruthless Challenge',
+      'HC Ruthless Challenge',
+      'SSF Challenge',
+      'Standard',
+      'Challenge',
+    ];
+    const resolver = new LeagueResolver({
+      leagues: repositories.leagues,
+      trade: { fetchLeagueIds: async () => ids },
+      poeNinja: {
+        fetchEconomyLeagues: async () => ids.map((id) => ({ id, name: id })),
+      },
+    });
+    await resolver.resolve();
+    expect((await repositories.leagues.findCurrent())?.gggId).toBe('Challenge');
+  });
+
   it('keeps the persisted league on disagreement and treats IDs as case-sensitive', async () => {
     const repositories = createInMemoryRepositories();
     await repositories.leagues.upsert({

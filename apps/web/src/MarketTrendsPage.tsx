@@ -9,15 +9,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { createApiClient } from './apiClient.js';
-import { Money, StatusPanel, economicClass } from './components.js';
+import { StatusPanel } from './components.js';
 import {
   PriceTrendChart,
   TrendFacts,
   describeTrend,
-  formatPercent,
-  formatUtc,
 } from './PriceTrendChart.js';
-import { TradeDashboard } from './TradeDashboard.js';
+import { RecipeMarketOverview } from './RecipeMarketOverview.js';
 import './marketTrends.css';
 
 const apiClient = createApiClient();
@@ -175,54 +173,6 @@ export function RecipeTrendPanel({
   );
 }
 
-function TrendRow({
-  entry,
-  selected,
-  onSelect,
-}: {
-  entry: TrendOverviewEntry;
-  selected: boolean;
-  onSelect(): void;
-}) {
-  const summary = entry.summary;
-  const change = summary?.change ?? null;
-  return (
-    <li>
-      <button
-        aria-pressed={selected}
-        className="trend-row"
-        onClick={onSelect}
-        type="button"
-      >
-        <span className="trend-row__title">{entry.title}</span>
-        <span className="trend-row__ask">
-          {summary ? (
-            <Money
-              price={{ amount: summary.latestAsk, currency: summary.currency }}
-            />
-          ) : (
-            'No history'
-          )}
-        </span>
-        <span
-          className={`trend-row__change ${change ? economicClass(change.absolute) : 'economic-unknown'}`}
-        >
-          {change && change.percent !== null
-            ? formatPercent(change.percent)
-            : summary
-              ? 'Insufficient history'
-              : '—'}
-        </span>
-        <small className="trend-row__meta">
-          {summary
-            ? `${summary.windowObservations} obs · ${summary.latestComparableSellers ?? '?'} sellers · ${formatUtc(summary.latestObservedAt)}`
-            : entry.category.replaceAll('-', ' ')}
-        </small>
-      </button>
-    </li>
-  );
-}
-
 export function MarketTrendsPage() {
   const [params, setParams] = useSearchParams();
   const range = parseRange(params.get('range'));
@@ -256,27 +206,13 @@ export function MarketTrendsPage() {
       ),
     [overview, search, sort],
   );
-  const selectedId =
-    params.get('recipe') ??
-    rows.find((entry) => entry.summary)?.recipeId ??
-    null;
+  const selectedId = params.get('recipe');
   const update = (next: { range?: TrendRange; recipe?: string }) => {
     const value = new URLSearchParams(params);
     if (next.range) value.set('range', next.range);
     if (next.recipe) value.set('recipe', next.recipe);
     setParams(value, { replace: true });
   };
-  const groups =
-    sort === 'ask'
-      ? (['chaos', 'divine', null] as const)
-          .map((currency) => ({
-            currency,
-            rows: rows.filter(
-              (row) => (row.summary?.currency ?? null) === currency,
-            ),
-          }))
-          .filter((group) => group.rows.length)
-      : [{ currency: undefined, rows }];
 
   return (
     <section className="market-trends" aria-labelledby="market-trends-heading">
@@ -293,8 +229,15 @@ export function MarketTrendsPage() {
         </div>
       </header>
 
-      <TradeDashboard league={overview?.league?.name} />
-      <h2 className="recipe-trends-heading">Recipe price history</h2>
+      <RecipeMarketOverview
+        league={overview?.league?.name}
+        selectedId={selectedId}
+        trends={overview}
+        onSelect={(recipe) => update({ recipe })}
+      />
+      <h2 id="recipe-price-history" className="recipe-trends-heading">
+        Recipe price history
+      </h2>
       <RangeControls
         range={range}
         onChange={(value) => update({ range: value })}
@@ -374,43 +317,7 @@ export function MarketTrendsPage() {
               No price history yet. Observations are saved when prices refresh.
             </p>
           ) : null}
-          <div className="market-trends__layout">
-            <div className="market-trends__list">
-              {rows.length === 0 ? (
-                <p className="handbook-empty">No recipes match this search.</p>
-              ) : (
-                groups.map((group) => (
-                  <section
-                    aria-label={
-                      group.currency === undefined
-                        ? 'Recipes'
-                        : group.currency === null
-                          ? 'Recipes without history'
-                          : `Asks in ${group.currency}`
-                    }
-                    key={String(group.currency)}
-                  >
-                    {group.currency !== undefined ? (
-                      <h2 className="market-trends__group">
-                        {group.currency === null
-                          ? 'No history'
-                          : `${group.currency} asks`}
-                      </h2>
-                    ) : null}
-                    <ul>
-                      {group.rows.map((entry) => (
-                        <TrendRow
-                          entry={entry}
-                          key={entry.recipeId}
-                          onSelect={() => update({ recipe: entry.recipeId })}
-                          selected={entry.recipeId === selectedId}
-                        />
-                      ))}
-                    </ul>
-                  </section>
-                ))
-              )}
-            </div>
+          <div className="market-trends__history">
             <section
               aria-label="Selected recipe price history"
               className="market-trends__detail detail-section"

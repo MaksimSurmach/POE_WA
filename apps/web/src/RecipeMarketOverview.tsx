@@ -1,0 +1,247 @@
+import type {
+  CatalogEntry,
+  CatalogResponse,
+  TrendOverview,
+} from '@poe-worksmith/contracts';
+import { useEffect, useState } from 'react';
+
+import { createApiClient } from './apiClient.js';
+import { observedAsk } from './catalog.js';
+import { Money, StatusPanel, economicClass } from './components.js';
+import { formatUtc, formatPercent } from './PriceTrendChart.js';
+import { TurnoverMap } from './TurnoverMap.js';
+import './tradeDashboard.css';
+
+const api = createApiClient();
+
+export function marketRecipePoint(entry: CatalogEntry) {
+  const readiness = entry.readiness;
+  // Collector asks remain useful before craft costs or profit are verified.
+  const price = readiness
+    ? readiness.fresh
+      ? (readiness.currentAskRange?.min ?? null)
+      : null
+    : observedAsk(entry);
+  return {
+    id: entry.recipe.id,
+    name: entry.recipe.title,
+    price: price && price.amount > 0 ? price : null,
+    exits:
+      readiness?.fresh && readiness.activityMeasurable
+        ? readiness.last24h.inferredExits
+        : null,
+  };
+}
+
+export function RecipeMarketOverview({
+  league,
+  selectedId,
+  trends,
+  onSelect,
+}: {
+  league: string | undefined;
+  selectedId: string | null;
+  trends: TrendOverview | undefined;
+  onSelect(id: string): void;
+}) {
+  const [response, setResponse] = useState<CatalogResponse | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setResponse(null);
+    setFailed(false);
+    api
+      .getCatalog(
+        AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
+      )
+      .then((value) => {
+        if (!controller.signal.aborted) setResponse(value);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setFailed(true);
+      });
+    return () => controller.abort();
+  }, [league, revision]);
+  const entries = response?.data?.entries ?? [];
+  const points = entries.map(marketRecipePoint);
+  const priced = points.filter((point) => point.price !== null);
+  const selected = points.find((point) => point.id === selectedId);
+  return (
+    <section className="recipe-market" aria-label="All recipes market overview">
+      <header>
+        <h2>All recipes · current market</h2>
+        <p className="recipe-market__note">
+          {entries.length} recipes · {priced.length} with observed asks ·{' '}
+          {points.filter((point) => point.exits !== null).length} with
+          measurable activity. Asking prices and inferred listing exits, not
+          confirmed sales or profit.
+        </p>
+      </header>
+      {failed || (response && !response.data) ? (
+        <StatusPanel title="Market overview unavailable" tone="danger">
+          <button
+            type="button"
+            onClick={() => setRevision((value) => value + 1)}
+          >
+            Retry market overview
+          </button>
+        </StatusPanel>
+      ) : !response ? (
+        <StatusPanel title="Loading all recipes" tone="info" />
+      ) : (
+        <>
+          {response.isStale ? (
+            <p className="recipe-warning">
+              Stored catalog is outdated. Check collection on Craft
+              opportunities.
+            </p>
+          ) : null}
+          {entries.length === 0 ? (
+            <p>
+              No recipes are available yet. Check collection on Craft
+              opportunities.
+            </p>
+          ) : null}
+          {(['chaos', 'divine'] as const).map((currency) => {
+            const items = priced
+              .filter((point) => point.price?.currency === currency)
+              .map((point) => ({
+                id: point.id,
+                name: point.name,
+                price: point.price!.amount,
+                activity: point.exits,
+              }));
+            return items.length ? (
+              <TurnoverMap
+                key={currency}
+                items={items}
+                currency={currency}
+                activityLabel="Inferred exits · observed window within 24h"
+                activityDescription="inferred exits in the observed window"
+                selected={selectedId}
+                onSelect={onSelect}
+              />
+            ) : null;
+          })}
+          {selected ? (
+            <p className="recipe-market__selection" role="status">
+              <strong>{selected.name}</strong>
+              {' · '}
+              {selected.price ? (
+                <Money price={selected.price} />
+              ) : (
+                'No fresh ask'
+              )}
+              {' · '}
+              <a href="#recipe-price-history">View recipe price history ↓</a>
+            </p>
+          ) : (
+            <p className="recipe-market__note">
+              Select a point or recipe to inspect its history. The overview
+              stays visible.
+            </p>
+          )}
+          <details className="recipe-market__recipes">
+            <summary>
+              All {entries.length} recipes · prices, activity and collection
+              status
+            </summary>
+            <div
+              className="recipe-market__table-scroll"
+              tabIndex={0}
+              role="region"
+              aria-label="All recipe market data"
+            >
+              <table className="recipe-market__table">
+                <thead>
+                  <tr>
+                    <th>Recipe</th>
+                    <th>Observed ask</th>
+                    <th>Recorded ask change · {trends?.range ?? '7d'}</th>
+                    <th>Inferred exits · 24h window</th>
+                    <th>Collection evidence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entries.map((entry, index) => {
+                    const point = points[index]!;
+                    const readiness = entry.readiness;
+                    const history = trends?.entries.find(
+                      (row) => row.recipeId === point.id,
+                    )?.summary;
+                    const change = history?.change?.percent;
+                    return (
+                      <tr key={point.id}>
+                        <td>
+                          <button
+                            type="button"
+                            aria-pressed={point.id === selectedId}
+                            onClick={() => onSelect(point.id)}
+                          >
+                            {point.name}
+                          </button>
+                        </td>
+                        <td>
+                          {point.price ? (
+                            <Money price={point.price} />
+                          ) : (
+                            'No fresh ask'
+                          )}
+                        </td>
+                        <td
+                          className={
+                            change == null
+                              ? 'economic-unknown'
+                              : economicClass(change)
+                          }
+                        >
+                          {change == null
+                            ? history
+                              ? 'Insufficient history'
+                              : 'No history'
+                            : formatPercent(change)}
+                        </td>
+                        <td>
+                          {point.exits ?? 'Not measurable'}
+                          {point.exits !== null && readiness ? (
+                            <small>
+                              {Math.round(
+                                (readiness.last24h.completeSpanMinutes / 60) *
+                                  10,
+                              ) / 10}
+                              h observed · {readiness.last24h.complete} complete
+                              captures
+                            </small>
+                          ) : null}
+                        </td>
+                        <td>
+                          {readiness ? (
+                            <>
+                              {readiness.currentListings} listings ·{' '}
+                              {readiness.currentSellers} sellers
+                              <small>
+                                {readiness.fresh
+                                  ? (readiness.coverage ?? 'No capture')
+                                  : 'Outdated or missing capture'}
+                                {readiness.capturedAt
+                                  ? ` · ${formatUtc(readiness.capturedAt)}`
+                                  : ''}
+                              </small>
+                            </>
+                          ) : (
+                            'Collection evidence unavailable'
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </>
+      )}
+    </section>
+  );
+}

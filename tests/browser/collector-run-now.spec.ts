@@ -152,3 +152,73 @@ test('catalog header labels stay inside their cells at 390px', async ({
   );
   expect(overflowing).toBe(0);
 });
+
+test('visible collection controls pause, recover from conflict and resume', async ({
+  page,
+}) => {
+  const settingsUrl = '/api/admin/market/settings';
+  const read = async () =>
+    (await (await page.request.get(settingsUrl)).json()).data;
+  const before = await read();
+  try {
+    if (before.configured.collectionsPaused) {
+      await page.request.post('/api/admin/market/resume', {
+        data: { version: before.version },
+      });
+    }
+    await page.goto('/');
+    const controls = page.getByRole('group', {
+      name: 'Collector controls',
+      exact: true,
+    });
+    await controls
+      .getByRole('button', { name: 'Pause collection', exact: true })
+      .click();
+    await expect(
+      controls.getByText('Collection paused', { exact: true }),
+    ).toBeVisible();
+    await expect(
+      controls.getByRole('button', { name: 'Run now', exact: true }),
+    ).toBeDisabled();
+    expect((await read()).configured.collectionsPaused).toBe(true);
+    await page.reload();
+    await expect(
+      controls.getByRole('button', { name: 'Resume collection', exact: true }),
+    ).toBeVisible();
+    let rejected = false;
+    await page.route('**/api/admin/market/resume', async (route) => {
+      if (!rejected) {
+        rejected = true;
+        await route.fulfill({ status: 409, json: {} });
+      } else await route.continue();
+    });
+    await controls
+      .getByRole('button', { name: 'Resume collection', exact: true })
+      .click();
+    await expect(
+      controls.getByText(/Could not resume collection/),
+    ).toBeVisible();
+    await expect(
+      controls.getByRole('button', { name: 'Run now', exact: true }),
+    ).toBeDisabled();
+    expect((await read()).configured.collectionsPaused).toBe(true);
+    await controls
+      .getByRole('button', { name: 'Resume collection', exact: true })
+      .click();
+    await expect(
+      controls.getByText('Collection active', { exact: true }),
+    ).toBeVisible();
+    expect((await read()).configured.collectionsPaused).toBe(false);
+  } finally {
+    const current = await read();
+    if (
+      current.configured.collectionsPaused !==
+      before.configured.collectionsPaused
+    ) {
+      await page.request.post(
+        `/api/admin/market/${before.configured.collectionsPaused ? 'pause' : 'resume'}`,
+        { data: { version: current.version } },
+      );
+    }
+  }
+});
