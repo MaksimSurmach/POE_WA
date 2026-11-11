@@ -63,20 +63,16 @@ describe('typed API client', () => {
     const fetchMock = vi.fn().mockResolvedValue(response(payload));
     const client = createApiClient('', fetchMock);
 
-    await expect(client.runCollector('fixture-token')).resolves.toEqual(
-      payload,
-    );
+    await expect(client.runCollector()).resolves.toEqual(payload);
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/run',
       expect.objectContaining({
         headers: {
           accept: 'application/json',
-          authorization: 'Bearer fixture-token',
           'content-type': 'application/json',
         },
         method: 'POST',
         body: JSON.stringify({ scope: 'all' }),
-        redirect: 'error',
       }),
     );
   });

@@ -44,10 +44,6 @@ const runtimeEnvironmentSchema = z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),
     MARKET_CONCURRENCY: z.coerce.number().int().min(1).max(20).default(4),
-    OPERATOR_DIAGNOSTICS_TOKEN: z.preprocess(
-      (value) => (value === '' ? undefined : value),
-      z.string().trim().min(1).optional(),
-    ),
     POE_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).default(15_000),
     POE_USER_AGENT: z
       .string()
@@ -96,7 +92,6 @@ export type RuntimeConfig = {
   leagueResolveTimezone: string;
   logLevel: z.infer<typeof runtimeEnvironmentSchema>['LOG_LEVEL'];
   marketConcurrency: number;
-  operatorDiagnosticsToken: string | undefined;
   mode: ApplicationMode;
   pipeline: z.infer<typeof runtimeEnvironmentSchema>['PIPELINE'];
   poeUserAgent: string;
@@ -206,7 +201,6 @@ export function loadRuntimeConfig(
     leagueResolveTimezone: result.data.LEAGUE_RESOLVE_TIMEZONE,
     logLevel: result.data.LOG_LEVEL,
     marketConcurrency: result.data.MARKET_CONCURRENCY,
-    operatorDiagnosticsToken: result.data.OPERATOR_DIAGNOSTICS_TOKEN,
     mode,
     pipeline: result.data.PIPELINE,
     poeUserAgent: result.data.POE_USER_AGENT,

@@ -6,7 +6,6 @@ import {
 } from '@poe-worksmith/contracts';
 
 export function createHomeSettingsClient(
-  token = '',
   fetchImplementation = globalThis.fetch,
 ) {
   async function request(path: string, method = 'GET', body?: unknown) {
@@ -16,7 +15,6 @@ export function createHomeSettingsClient(
       signal: AbortSignal.timeout(15_000),
       headers: {
         accept: 'application/json',
-        ...(token ? { authorization: `Bearer ${token}` } : {}),
         ...(body === undefined ? {} : { 'content-type': 'application/json' }),
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),

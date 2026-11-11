@@ -1,13 +1,8 @@
 import { registerFactoryRoutes } from './factoryApi.js';
 import type { FactoryService } from './factory.js';
-import { randomUUID, timingSafeEqual } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { registerCraftAnalysisRoutes } from './craftAnalysisApi.js';
 import type { CraftAnalysisService } from './craftAnalysis.js';
-import {
-  isCollectorOperatorRoute,
-  isLocalAdmin,
-  needsAdminAccess,
-} from './adminAccess.js';
 import type { Pool } from 'pg';
 import { z } from 'zod';
 import {
@@ -104,7 +99,6 @@ export function buildApi(
     marketAdmin?: MarketAdminApiOptions | undefined;
     craftAnalysis?: CraftAnalysisService | undefined;
     factory?: FactoryService | undefined;
-    diagnosticsToken?: string | undefined;
     collectorPool?: Pool | undefined;
     readCollectorReadiness?:
       (() => Promise<CollectorReadinessResponse>) | undefined;
@@ -131,21 +125,11 @@ export function buildApi(
   api.addHook('onRequest', async (request, reply) => {
     reply.header('x-request-id', request.id);
     const path = request.routeOptions.url ?? request.url.split('?')[0] ?? '';
-    const collectorRoute = isCollectorOperatorRoute(request.method, path);
     if (
-      needsAdminAccess(request.method, path) &&
-      !isLocalAdmin(request) &&
-      !(
-        collectorRoute &&
-        options.diagnosticsToken &&
-        isOperatorAuthorized(
-          request.headers.authorization,
-          options.diagnosticsToken,
-        )
-      )
+      path.startsWith('/api/admin/') ||
+      path === '/api/run' ||
+      path === '/api/collector/status'
     )
-      throw new DomainError('OPERATOR_AUTH_REQUIRED');
-    if (collectorRoute || path.startsWith('/api/admin/'))
       reply.header('cache-control', 'no-store');
     if (
       options.marketAdmin &&
@@ -351,11 +335,8 @@ export function buildApi(
       },
     });
   });
-  if (options.diagnosticsToken && options.readOperationalDiagnostics) {
+  if (options.readOperationalDiagnostics) {
     api.get('/api/diagnostics/refresh', async (request) => {
-      const authorization = request.headers.authorization;
-      if (!isOperatorAuthorized(authorization, options.diagnosticsToken!))
-        throw new DomainError('OPERATOR_AUTH_REQUIRED');
       const query = request.query as { cycles?: string; failures?: string };
       const cycles = boundedQueryValue(query.cycles, 10, 1, 50);
       const failures = boundedQueryValue(query.failures, 50, 1, 200);
@@ -485,7 +466,6 @@ function httpStatus(error: AnyDomainError) {
     error.code === 'MARKET_SNAPSHOT_NOT_FOUND'
   )
     return 404;
-  if (error.code === 'OPERATOR_AUTH_REQUIRED') return 401;
   if (
     error.code === 'JOB_CONFLICT' ||
     error.code === 'PERSISTENCE_CONFLICT' ||
@@ -500,15 +480,6 @@ function httpStatus(error: AnyDomainError) {
   return error.disposition === 'retryable' ? 503 : 400;
 }
 
-function isOperatorAuthorized(header: string | undefined, token: string) {
-  const supplied = Buffer.from(
-    header?.startsWith('Bearer ') ? header.slice(7) : '',
-  );
-  const expected = Buffer.from(token);
-  return (
-    supplied.length === expected.length && timingSafeEqual(supplied, expected)
-  );
-}
 function boundedQueryValue(
   value: string | undefined,
   fallback: number,

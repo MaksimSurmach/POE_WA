@@ -282,7 +282,7 @@ describe('private factory API and immutable forecast context', () => {
     }
   });
 
-  it('protects reads, exports and writes from non-local requests', async () => {
+  it('serves private proxy reads and validates writes without authentication', async () => {
     const { api, record, repository } = await setup();
     try {
       for (const url of [
@@ -298,7 +298,7 @@ describe('private factory API and immutable forecast context', () => {
           headers: { host: 'example.com' },
           remoteAddress: '203.0.113.10',
         });
-        expect(response.statusCode).toBe(401);
+        expect(response.statusCode).toBe(200);
       }
       expect(
         (
@@ -310,8 +310,8 @@ describe('private factory API and immutable forecast context', () => {
             payload: {},
           })
         ).statusCode,
-      ).toBe(401);
-      expect(repository.get).not.toHaveBeenCalled();
+      ).toBe(400);
+      expect(repository.get).toHaveBeenCalled();
     } finally {
       await api.close();
     }

@@ -12,7 +12,6 @@ import {
 } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
 import { z } from 'zod';
-import { isLocalAdmin } from './adminAccess.js';
 import type { CraftAnalysisService } from './craftAnalysis.js';
 
 export function registerCraftAnalysisRoutes(
@@ -48,7 +47,7 @@ export function registerCraftAnalysisRoutes(
         data: await service.readAnalysis(
           request.params.recipeId,
           league.data,
-          isLocalAdmin(request),
+          true,
         ),
       });
     },

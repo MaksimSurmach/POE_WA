@@ -169,7 +169,7 @@ export function filterCatalog(
         sort === 'cost'
           ? e.evaluation.expectedCraftCost
           : sort === 'ask'
-            ? e.evaluation.estimatedSalePrice
+            ? observedAsk(e)
             : e.evaluation.profit;
       const value = (e: CatalogEntry) =>
         sort === 'roi'
@@ -248,4 +248,12 @@ export function getPriceStatus(status: CatalogEntry['evaluation']['status']) {
 export function formatMarginPercent(value: number) {
   const rounded = Number(value.toFixed(1));
   return `${percentFormatter.format(Object.is(rounded, -0) ? 0 : rounded)}%`;
+}
+
+export function observedAsk(entry: CatalogEntry) {
+  return (
+    entry.evaluation.estimatedSalePrice ??
+    (entry.readiness?.fresh ? entry.readiness.currentAskRange?.min : null) ??
+    null
+  );
 }

@@ -7,6 +7,7 @@ import {
   evidenceRank,
   formatMarginPercent,
   getPriceStatus,
+  observedAsk,
   groupByTarget,
 } from './catalog.js';
 import { Money, ProfitBadge, economicClass } from './components.js';
@@ -20,7 +21,7 @@ const columns = [
   ['title', 'Item name'],
   ['category', 'Item class'],
   ['cost', 'Expected cost'],
-  ['ask', 'Cheapest ask'],
+  ['ask', 'Observed ask'],
   ['profit', 'Profit'],
   ['roi', 'ROI'],
   ['freshness', 'Market evidence'],
@@ -115,7 +116,17 @@ export function CatalogTable({
         <tbody>
           {rows.map(({ entry, index, methods, rank }, rowIndex) => {
             const { recipe, evaluation, snapshot, readiness } = entry;
-            const source = evaluation.source ?? snapshot;
+            const sampleAsk =
+              !evaluation.estimatedSalePrice && observedAsk(entry);
+            const source =
+              evaluation.source ??
+              snapshot ??
+              (readiness?.capturedAt
+                ? {
+                    capturedAt: readiness.capturedAt,
+                    coverage: readiness.coverage,
+                  }
+                : null);
             const gradeReasons = evaluation.gradeReasons?.join(' · ');
             const showWithheld =
               evaluation.profit === null && evaluation.marginPercent === null;
@@ -124,7 +135,7 @@ export function CatalogTable({
               (snapshot
                 ? new Set(snapshot.listings.map((listing) => listing.seller))
                     .size
-                : null);
+                : (readiness?.currentSellers ?? null));
             return (
               <Fragment key={recipe.id}>
                 {byReadiness && rows[rowIndex - 1]?.rank !== rank ? (
@@ -195,7 +206,10 @@ export function CatalogTable({
                     ) : null}
                   </td>
                   <td>
-                    <Money price={evaluation.estimatedSalePrice} />
+                    <Money price={observedAsk(entry)} />
+                    {sampleAsk ? (
+                      <small>Priced sample · ROI withheld</small>
+                    ) : null}
                   </td>
                   <td>
                     {evaluation.profit ? (
@@ -222,7 +236,9 @@ export function CatalogTable({
                   <td className="craft-table__evidence">
                     <span>
                       {evaluation.status === 'loading'
-                        ? 'No price collected yet'
+                        ? sampleAsk
+                          ? 'Price observed · evaluation pending'
+                          : 'Awaiting output observation'
                         : getPriceStatus(evaluation.status)}
                       {sellers !== null
                         ? ` · ${sellers} ${sellers === 1 ? 'seller' : 'sellers'}`

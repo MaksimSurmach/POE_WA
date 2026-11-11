@@ -208,7 +208,7 @@ describe('health API', () => {
     await api.close();
   });
 
-  it('hides refresh diagnostics without a token and protects it when configured', async () => {
+  it('serves configured diagnostics on the private network without authentication', async () => {
     const diagnostics = async () => ({ cycles: [], evaluations: [], jobs: [] });
     const hidden = buildApi(pino({ level: 'silent' }), vi.fn(), async () => ({
       active: null,
@@ -223,25 +223,16 @@ describe('health API', () => {
       undefined,
       undefined,
       undefined,
-      { diagnosticsToken: 'secret', readOperationalDiagnostics: diagnostics },
+      { readOperationalDiagnostics: diagnostics },
     );
     expect(
       (await hidden.inject({ method: 'GET', url: '/api/diagnostics/refresh' }))
         .statusCode,
     ).toBe(404);
-    expect(
-      (
-        await secured.inject({
-          method: 'GET',
-          url: '/api/diagnostics/refresh',
-          headers: { authorization: 'Bearer wrong' },
-        })
-      ).statusCode,
-    ).toBe(401);
     const response = await secured.inject({
       method: 'GET',
       url: '/api/diagnostics/refresh?cycles=1&failures=1',
-      headers: { authorization: 'Bearer secret' },
+      remoteAddress: '100.64.0.2',
     });
     expect(response.statusCode).toBe(200);
     expect(response.json().data).toMatchObject({

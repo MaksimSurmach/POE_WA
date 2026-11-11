@@ -443,7 +443,7 @@ async function selfCheck() {
             tests: [{ results: [{ status: 'passed' }] }],
           },
           {
-            title: 'ACL-PUBLIC-01 denied mutation',
+            title: 'INPUT-INVALID-01 invalid mutation',
             tests: [{ results: [{ status: 'passed' }] }],
           },
         ],
@@ -451,7 +451,7 @@ async function selfCheck() {
     ],
   });
   assert(
-    testIds.join(',') === 'ACL-PUBLIC-01,BOOT-01',
+    testIds.join(',') === 'BOOT-01,INPUT-INVALID-01',
     'test receipt included an invalid ID',
   );
   assertCleanSource(
@@ -949,7 +949,7 @@ else {
     await runOfflineCollection(compose, env);
     const sideEffects =
       "select (select count(*) from market_admin_audit)::text || ':' || (select count(*) from run_requests)::text || ':' || coalesce((select version::text from market_admin_settings where id=1), 'missing')";
-    const beforeDeniedMutation = await capture(
+    const beforeInvalidMutation = await capture(
       'docker',
       [
         ...compose,
@@ -976,11 +976,11 @@ else {
         'migrate',
         'node',
         '-e',
-        "fetch('http://web:8080/api/admin/market/pause',{method:'POST',headers:{host:'web:8080',origin:'http://web:8080','content-type':'application/json'},body:'{}'}).then(async r=>{const body=await r.json();if(r.status!==401||body.error?.code!=='OPERATOR_AUTH_REQUIRED'){console.error(JSON.stringify({status:r.status,body}));process.exit(1)}})",
+        "fetch('http://web:8080/api/admin/market/pause',{method:'POST',headers:{host:'web:8080',origin:'http://web:8080','content-type':'application/json'},body:'{}'}).then(async r=>{const body=await r.json();if(r.status!==400||body.error?.code!=='MARKET_QUERY_INVALID'){console.error(JSON.stringify({status:r.status,body}));process.exit(1)}})",
       ],
       { env },
     );
-    const afterDeniedMutation = await capture(
+    const afterInvalidMutation = await capture(
       'docker',
       [
         ...compose,
@@ -999,10 +999,10 @@ else {
       { env },
     );
     assert(
-      beforeDeniedMutation === afterDeniedMutation,
-      'public admin denial created side effects',
+      beforeInvalidMutation === afterInvalidMutation,
+      'invalid settings mutation created side effects',
     );
-    metadata.executedTestIds.push('ACL-PUBLIC-01');
+    metadata.executedTestIds.push('INPUT-INVALID-01');
     const recipeStateBeforeRestart = await readRecipeState(compose, env);
     const sentinelId = await readSql(
       compose,
@@ -1113,7 +1113,7 @@ else {
     passVerdict = receipt(
       'PASS',
       metadata,
-      'checks=migrations,catalog,api,collector-run,acl,boot,offline-capture-readiness-ui,postgres-restart,app-restart,collector-restart,web-restart',
+      'checks=migrations,catalog,api,collector-run,input-validation,boot,offline-capture-readiness-ui,postgres-restart,app-restart,collector-restart,web-restart',
     );
   } catch (error) {
     runError = error;
