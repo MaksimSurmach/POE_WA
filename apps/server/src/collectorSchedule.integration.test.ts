@@ -101,6 +101,40 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
   expect(tradeDue.map((due) => due - tradeDue[0]!)).toEqual(
     Array.from({ length: 94 }, (_, index) => index * 60_000),
   );
+  const recipes = await loadRecipeCatalog(catalog);
+  const weekOneIds = new Set(
+    recipes
+      .filter(({ definition }) => definition.tags.includes('week-one'))
+      .map(({ definition }) => definition.id),
+  );
+  const tradeRows = first.filter(({ kind }) => kind === 'trade-target');
+  const weekOneOutputs = tradeRows.filter(({ payload }) =>
+    (payload.outputRecipeIds as string[]).some((id) => weekOneIds.has(id)),
+  );
+  const establishedOutputs = tradeRows.filter(({ payload }) =>
+    (payload.outputRecipeIds as string[]).some((id) => !weekOneIds.has(id)),
+  );
+  const bases = tradeRows.filter(
+    ({ payload }) => (payload.outputRecipeIds as string[]).length === 0,
+  );
+  expect(weekOneOutputs).toHaveLength(24);
+  expect(establishedOutputs).toHaveLength(25);
+  expect(bases).toHaveLength(45);
+  expect(
+    weekOneOutputs.every(({ intervalMinutes }) => intervalMinutes === 120),
+  ).toBe(true);
+  expect(
+    establishedOutputs.every(({ intervalMinutes }) => intervalMinutes === 60),
+  ).toBe(true);
+  expect(bases.every(({ intervalMinutes }) => intervalMinutes === 120)).toBe(
+    true,
+  );
+  expect(
+    tradeRows.filter(({ intervalMinutes }) => intervalMinutes === 120),
+  ).toHaveLength(69);
+  expect(
+    tradeRows.reduce((total, row) => total + 60 / row.intervalMinutes, 0),
+  ).toBe(59.5);
   expect(first.find(({ kind }) => kind === 'economy')).toMatchObject({
     leagueId: league.id,
     intervalMinutes: 30,
@@ -133,6 +167,12 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
      where kind = 'trade-target'`,
   );
   const withRuntimeState = await scheduleRows();
+  await pool.query(
+    'update collector_schedule set interval_minutes = 60 where id = any($1::uuid[])',
+    [weekOneOutputs.map(({ id }) => id)],
+  );
+  await syncCli();
+  expect(await scheduleRows()).toEqual(withRuntimeState);
   await syncCli();
   expect(await scheduleRows()).toEqual(withRuntimeState);
 
@@ -162,7 +202,6 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
       payload.recipeIds.includes(chaos),
   )!;
   expect(unique.payload.recipeIds).toEqual([chaos]);
-  const recipes = await loadRecipeCatalog(catalog);
   const report = await synchronizeRecipes(
     repositories.recipes,
     recipes.filter(({ definition }) => definition.id !== chaos),

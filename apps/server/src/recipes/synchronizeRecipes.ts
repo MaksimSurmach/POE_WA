@@ -221,7 +221,9 @@ export async function synchronizeCollectorSchedules(
         throw error;
       }
       const key = await hashMarketQuery({ ...query, league: league.gggId });
-      const intervalMinutes = starting ? 120 : 60;
+      // New week-one outputs need room for their measured fetch cost and retries.
+      const intervalMinutes =
+        starting || definition.tags.includes('week-one') ? 120 : 60;
       const target = targets.get(key);
       if (target) {
         target.recipeIds.add(recipe.id);
