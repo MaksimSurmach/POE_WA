@@ -9,7 +9,8 @@ import {
 import { runProcess } from '../apps/server/dist/process.js';
 
 assertLocalBrowserFixtureDatabase();
-process.env.PIPELINE ??= 'legacy';
+// Match production; PIPELINE=legacy is the opt-in mode for the legacy-only fixtures.
+process.env.PIPELINE ??= 'collector';
 
 const pool = createDatabasePool(loadDatabaseConfig());
 const stop = new AbortController();
