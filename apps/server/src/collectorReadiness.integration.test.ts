@@ -206,7 +206,7 @@ it('reports each active query and upgrades one observed ask through timed eviden
   expect(await createCollectorReadinessReader(pool)(now)).toHaveLength(1);
 });
 
-it('infers a single-listing exit only once the seller lists on another target of the league', async () => {
+it('uses cross-target seller sightings but vetoes an item still observed elsewhere', async () => {
   const id = await createSchedule('solo-target');
   const {
     rows: [other],
@@ -239,15 +239,17 @@ it('infers a single-listing exit only once the seller lists on another target of
       reader: [view?.inferredExits24h, view?.uncertainExits24h],
     };
   };
-  // The same item on another target proves nothing about the seller.
-  await capture(other!.id, 0.5, true, [
-    { itemId: 's1', seller: 's', amount: '10' },
-  ]);
   expect(await exits()).toEqual({ readiness: [0, 1], reader: [0, 1] });
-  await capture(other!.id, 0.25, true, [
+  await capture(other!.id, 0.5, true, [
     { itemId: 's2', seller: 's', amount: '50' },
   ]);
   expect(await exits()).toEqual({ readiness: [1, 0], reader: [1, 0] });
+  // Seeing the original item contradicts the exit, even with another seller item.
+  await capture(other!.id, 0.25, true, [
+    { itemId: 's1', seller: 's', amount: '10' },
+    { itemId: 's2', seller: 's', amount: '50' },
+  ]);
+  expect(await exits()).toEqual({ readiness: [0, 1], reader: [0, 1] });
 });
 
 it('keeps missing interval counts within the report window and abstains without a baseline', async () => {

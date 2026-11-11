@@ -313,17 +313,19 @@ export function createCraftAnalysisService(options: CraftAnalysisOptions) {
   return {
     start() {
       if (timer || options.runWorker === false) return;
-      // Wake on enqueue; the slow timer only covers a missed notification.
-      timer = setInterval(kick, 60_000);
+      // shortcut: listener loss uses a 5s fallback; reconnect if lower recovery latency is needed.
+      timer = setInterval(kick, 5_000);
       timer.unref();
-      unlisten = options.repository.listen(kick);
+      unlisten = options.repository.listen(kick, options.onWorkerError);
       unlisten.catch((error: unknown) => options.onWorkerError?.(error));
       kick();
     },
     async close() {
       shutdown.abort();
       if (timer) clearInterval(timer);
-      await (await unlisten?.catch(() => undefined))?.();
+      await (
+        await unlisten?.catch(() => undefined)
+      )?.();
       await running;
     },
     async readAnalysis(

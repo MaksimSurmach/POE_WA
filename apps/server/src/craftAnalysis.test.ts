@@ -146,3 +146,41 @@ describe('craft analysis worker wake', () => {
     expect(unlisten).toHaveBeenCalledOnce();
   });
 });
+
+it.each([false, true])(
+  'keeps a bounded fallback when the listener is unavailable (initial failure=%s)',
+  async (initialFailure) => {
+    vi.useFakeTimers();
+    const withWorker = vi.fn(async () => true);
+    const onWorkerError = vi.fn();
+    const service = createCraftAnalysisService({
+      repository: {
+        withWorker,
+        listen: async () => {
+          if (initialFailure) throw new Error('listener unavailable');
+          return async () => {};
+        },
+      } as unknown as CraftAnalysisRepository,
+      recipes: {} as never,
+      leagues: {} as never,
+      maximumQuoteAgeMs: async () => 60_000,
+      onWorkerError,
+    });
+    try {
+      service.start();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(withWorker).toHaveBeenCalledTimes(1);
+      expect(onWorkerError).toHaveBeenCalledTimes(initialFailure ? 1 : 0);
+      await vi.advanceTimersByTimeAsync(4999);
+      expect(withWorker).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(withWorker).toHaveBeenCalledTimes(2);
+      await service.close();
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(withWorker).toHaveBeenCalledTimes(2);
+    } finally {
+      await service.close();
+      vi.useRealTimers();
+    }
+  },
+);

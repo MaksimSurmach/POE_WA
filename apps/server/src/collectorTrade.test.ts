@@ -271,12 +271,12 @@ describe('collector Trade captures', () => {
         capture: {
           complete: false,
           reportedTotal: 601,
-          fetched: 298,
+          fetched: mixed ? 199 : 298,
           partialReason: 'PRICE_SLICE_LIMIT',
         },
       });
-      // Mixed spends one of the five bounded searches on the chaos denomination.
-      expect(requests.ranged).toBe(mixed ? 4 : 5);
+      // Mixed reserves two of the five bounded searches for denomination totals.
+      expect(requests.ranged).toBe(mixed ? 3 : 5);
       expect(requests.search).toBe(6);
     },
   );
@@ -317,7 +317,7 @@ describe('collector Trade captures', () => {
     ],
     ['totals that do not reconcile', mixedListings(), { unsliced: 'id-150' }],
   ])('keeps mixed coverage partial with %s', async (_label, data, options) => {
-    const { rateLimits, economy } = setup(data, options);
+    const { rateLimits, economy, requests } = setup(data, options);
     const run = fixtureTradeCapture(rateLimits, economy, environment);
     expect(await run(target(true), new AbortController().signal)).toMatchObject(
       {
@@ -328,6 +328,8 @@ describe('collector Trade captures', () => {
         },
       },
     );
+    expect(requests.search).toBe(3);
+    expect(requests.ranged).toBe(0);
   });
 
   it.each([

@@ -335,41 +335,44 @@ async function collectTradeCapture(
       partialReason ??= 'SEARCH_TRUNCATED';
       return;
     }
-    // Mixed-currency bounds use Trade's own exchange rate, so split by denomination first and slice each in its own currency.
-    let children: TradePriceRange[] = [
-      { option: 'chaos' },
-      { option: 'divine' },
-    ];
-    if (currency) {
-      // Both bounds are inclusive. Dedupe the overlap rather than guessing the next valid fractional ask.
-      const pivot = Math.max(
-        ...asks.filter(
-          (ask) => ask > (range.min ?? 0) && ask < (range.max ?? Infinity),
-        ),
-      );
-      if (!Number.isFinite(pivot)) {
-        partialReason ??= 'PRICE_SLICE_UNRESOLVED';
+    // Reconcile denominations before spending the bounded price-slice budget.
+    if (!currency) {
+      const chaos = await search({ option: 'chaos' });
+      const divine = await search({ option: 'divine' });
+      sliceCount += 2;
+      if (
+        chaos.reportedTotal === null ||
+        divine.reportedTotal === null ||
+        chaos.reportedTotal + divine.reportedTotal !== total
+      ) {
+        partialReason ??= 'MIXED_CURRENCY_TOTAL_MISMATCH';
         return;
       }
-      children = [
-        { ...range, max: pivot },
-        { ...range, min: pivot },
-      ];
+      await prove(chaos, { option: 'chaos' });
+      await prove(divine, { option: 'divine' });
+      return;
     }
-    let childTotal = 0;
-    for (const child of children) {
+    // Both bounds are inclusive. Dedupe the overlap rather than guessing the next valid fractional ask.
+    const pivot = Math.max(
+      ...asks.filter(
+        (ask) => ask > (range.min ?? 0) && ask < (range.max ?? Infinity),
+      ),
+    );
+    if (!Number.isFinite(pivot)) {
+      partialReason ??= 'PRICE_SLICE_UNRESOLVED';
+      return;
+    }
+    for (const child of [
+      { ...range, max: pivot },
+      { ...range, min: pivot },
+    ]) {
       if (sliceCount === maxPriceSlices) {
         partialReason ??= 'PRICE_SLICE_LIMIT';
         return;
       }
       sliceCount++;
-      const page = await search(child);
-      await prove(page, child);
-      childTotal += page.reportedTotal ?? NaN;
+      await prove(await search(child), child);
     }
-    // Asks in other currencies, unpriced listings, or churn leave the denominations short of the whole.
-    if (!currency && childTotal !== total)
-      partialReason ??= 'MIXED_CURRENCY_TOTAL_MISMATCH';
   }
 
   try {

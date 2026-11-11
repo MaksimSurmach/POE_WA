@@ -53,13 +53,18 @@ export function classifyExit(
   listing: ActivityListing,
   events: readonly ActivityEvent[],
   floorAtLastSeen: string | null,
-  sellerContext: { otherLastSeenAt: Date | null; ambiguousRelist?: boolean },
+  sellerContext: {
+    otherLastSeenAt: Date | null;
+    ambiguousRelist?: boolean;
+    stillListedElsewhere?: boolean;
+  },
 ): 'inferred' | 'uncertain' | null {
   const { goneAt } = listing;
   if (listing.status !== 'gone' || goneAt === null) return null;
   if (events.some((row) => row.type === 'possible_relist' && row.at >= goneAt))
     return null;
-  if (sellerContext.ambiguousRelist) return 'uncertain';
+  if (sellerContext.ambiguousRelist || sellerContext.stillListedElsewhere)
+    return 'uncertain';
   const firstMissAt = events
     .filter(
       (row) =>
@@ -98,6 +103,7 @@ export function summarizeMarketActivity(input: {
   completeCaptureFloors?: ReadonlyMap<string, string>;
   /** Per gone item id: its seller's latest sighting of another item on any target in the league. */
   sellerSeenElsewhereAt?: ReadonlyMap<string, Date>;
+  sameItemSeenElsewhereAt?: ReadonlyMap<string, Date>;
   now: Date;
 }): MarketActivity {
   const { listings, now } = input;
@@ -173,11 +179,18 @@ export function summarizeMarketActivity(input: {
     const ambiguousRelist =
       matchingFirstSeen > row.lastSeenAt.getTime() &&
       matchingFirstSeen >= row.goneAt.getTime() - captureRelistWindowMs;
+    const sameItemSeen = input.sameItemSeenElsewhereAt?.get(row.itemId);
     const kind = classifyExit(
       row,
       eventsByItem.get(row.itemId) ?? [],
       input.completeCaptureFloors?.get(row.lastCaptureId) ?? null,
-      { otherLastSeenAt, ambiguousRelist },
+      {
+        otherLastSeenAt,
+        ambiguousRelist,
+        stillListedElsewhere: Boolean(
+          sameItemSeen && sameItemSeen >= row.goneAt && sameItemSeen <= now,
+        ),
+      },
     );
     const inLastDay = row.goneAt.getTime() >= since24;
     if (kind === 'uncertain') {

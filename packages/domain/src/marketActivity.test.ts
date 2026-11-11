@@ -251,3 +251,17 @@ it('keeps an exit uncertain when several newer same-seller items could be a reli
   });
   expect(activity).toMatchObject({ inferredExits24h: 0, uncertainExits24h: 1 });
 });
+
+it('does not infer an exit while the same item is observed on another target', () => {
+  expect(
+    summarizeMarketActivity({
+      listings: [gone('item'), listing('seller-other-item')],
+      events: missed,
+      latestCompleteCaptureId: 'latest',
+      completeCaptureFloors: new Map([['earlier', '100']]),
+      sellerSeenElsewhereAt: new Map([['item', ago(1)]]),
+      sameItemSeenElsewhereAt: new Map([['item', ago(0.5)]]),
+      now,
+    }),
+  ).toMatchObject({ inferredExits24h: 0, uncertainExits24h: 1 });
+});

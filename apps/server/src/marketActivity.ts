@@ -6,18 +6,7 @@ import {
   type ActivityEvent,
   type ActivityListing,
 } from '@poe-worksmith/domain';
-import {
-  and,
-  desc,
-  eq,
-  gte,
-  inArray,
-  isNull,
-  lte,
-  max,
-  ne,
-  or,
-} from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, sql, or } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { alias } from 'drizzle-orm/pg-core';
 import type { Pool, PoolClient } from 'pg';
@@ -139,7 +128,17 @@ export function createMarketActivityReader(
         const otherSchedule = alias(collectorSchedule, 'other_schedule');
         const other = alias(listings, 'other');
         const sightingRows = await transaction
-          .select({ itemId: listings.itemId, seenAt: max(other.lastSeenAt) })
+          .select({
+            itemId: listings.itemId,
+            seenAt:
+              sql`max(${other.lastSeenAt}) filter (where ${other.itemId} <> ${listings.itemId})`.mapWith(
+                other.lastSeenAt,
+              ),
+            sameItemSeenAt:
+              sql`max(${other.lastSeenAt}) filter (where ${other.itemId} = ${listings.itemId})`.mapWith(
+                other.lastSeenAt,
+              ),
+          })
           .from(listings)
           .innerJoin(otherSchedule, eq(otherSchedule.leagueId, leagueId))
           .innerJoin(
@@ -147,7 +146,6 @@ export function createMarketActivityReader(
             and(
               eq(other.scheduleId, otherSchedule.id),
               eq(other.seller, listings.seller),
-              ne(other.itemId, listings.itemId),
               gte(other.lastSeenAt, since),
               lte(other.lastSeenAt, now),
             ),
@@ -177,7 +175,11 @@ export function createMarketActivityReader(
 type CaptureActivityListing = ActivityListing & {
   unchangedAskSince: Date | null;
 };
-type SellerSighting = { itemId: string; seenAt: Date };
+type SellerSighting = {
+  itemId: string;
+  seenAt: Date | null;
+  sameItemSeenAt: Date | null;
+};
 
 /**
  * Per gone listing of targets `$1` (gone in `$2..$3`): the latest sighting of
@@ -186,12 +188,13 @@ type SellerSighting = { itemId: string; seenAt: Date };
  * (schedule_id, seller) on every target of the league; no new index needed.
  */
 export const sellerSightingsSql = `select g.schedule_id as "scheduleId", g.item_id as "itemId",
-    max(o.last_seen_at) as "seenAt"
+    max(o.last_seen_at) filter (where o.item_id <> g.item_id) as "seenAt",
+    max(o.last_seen_at) filter (where o.item_id = g.item_id) as "sameItemSeenAt"
   from listings g
   join collector_schedule s on s.id = g.schedule_id
   join collector_schedule os on os.league_id = s.league_id
   join listings o on o.schedule_id = os.id and o.seller = g.seller
-    and o.item_id <> g.item_id and o.last_seen_at between $2 and $3
+    and o.last_seen_at between $2 and $3
   where g.schedule_id = any($1) and g.gone_at between $2 and $3
   group by g.schedule_id, g.item_id`;
 
@@ -254,7 +257,14 @@ export function summarizeCaptureActivity(input: {
     latestCompleteCaptureId: covered ? freshCapture.id : null,
     completeCaptureFloors,
     sellerSeenElsewhereAt: new Map(
-      input.sellerSightings?.map(({ itemId, seenAt }) => [itemId, seenAt]),
+      input.sellerSightings?.flatMap(({ itemId, seenAt }) =>
+        seenAt ? [[itemId, seenAt] as const] : [],
+      ),
+    ),
+    sameItemSeenElsewhereAt: new Map(
+      input.sellerSightings?.flatMap(({ itemId, sameItemSeenAt }) =>
+        sameItemSeenAt ? [[itemId, sameItemSeenAt] as const] : [],
+      ),
     ),
     now,
   });
