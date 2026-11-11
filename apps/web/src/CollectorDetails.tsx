@@ -133,13 +133,14 @@ export function CollectorTelemetry({
   now?: number;
 }) {
   const collector = data.collector;
-  if (!collector) return <p>HA worker telemetry has not been recorded yet.</p>;
+  if (!collector)
+    return <p>Collector worker telemetry has not been recorded yet.</p>;
 
   const { current, queue } = collector;
   return (
     <>
       <dl className="collector-details__state">
-        <dt>HA worker</dt>
+        <dt>Collector worker</dt>
         <dd>
           {collector.role} · last contact {time(collector.contactedAt)}
           {collector.stale ? ' · stale telemetry' : ''}
