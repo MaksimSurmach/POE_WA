@@ -83,9 +83,9 @@ automatic container startup operation.
 If `app` is recreated separately, run `docker compose --profile app restart web`
 to refresh nginx's upstream address.
 
-Through the web proxy, use the configured operator token for Run now,
-collector status, and the homepage collection settings. Direct loopback access
-also supports the local operator routes.
+Run now, collector status, settings, Factory and craft-model editing require no
+application token. Bind the web/API to loopback or restrict the reverse proxy to
+the private LAN/VPN. Do not expose this deployment on a public ingress.
 Stop `app` and `web` with `docker compose --profile app stop app web` before
 starting the native API on the same port; PostgreSQL and its data remain in place.
 

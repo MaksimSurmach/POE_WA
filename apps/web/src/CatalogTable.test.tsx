@@ -6,6 +6,77 @@ import { catalogFixtures } from './mocks/catalog.js';
 import { defaultCatalogFilters } from './catalog.js';
 
 describe('catalog table', () => {
+  it.each([true, false])(
+    'shows only fresh observed sample asks without inventing profit (fresh=%s)',
+    (fresh) => {
+      const entry = catalogFixtures[0]!;
+      const readiness = {
+        level: 'price-observed' as const,
+        capturedAt: '2026-11-11T10:00:00.000Z',
+        fresh,
+        coverage: 'partial' as const,
+        currentListings: 8,
+        currentSellers: 6,
+        comparableSellers: null,
+        currentAskRange: {
+          min: { amount: 12345, currency: 'chaos' as const },
+          max: { amount: 54321, currency: 'chaos' as const },
+        },
+        staleFloorCount: 0,
+        comparableAsks: false,
+        costVerified: false,
+        saleEligible: false,
+        activityMeasurable: false,
+        last24h: {
+          complete: 0,
+          partial: 1,
+          failed: 0,
+          failuresTrackedSince: null,
+          spanMinutes: 0,
+          completeSpanMinutes: 0,
+          largestGapMinutes: null,
+          overdueIntervals: null,
+          sellers: 6,
+          listings: 8,
+          repriced: 0,
+          inferredExits: null,
+          exitSellers: null,
+          uncertainExits: 0,
+          relisted: 0,
+          askRange: null,
+        },
+      };
+      const html = renderToStaticMarkup(
+        <MemoryRouter>
+          <CatalogTable
+            entries={[
+              {
+                ...entry,
+                snapshot: null,
+                readiness,
+                evaluation: {
+                  ...entry.evaluation,
+                  status: 'loading',
+                  source: undefined,
+                  expectedCraftCost: null,
+                  estimatedSalePrice: null,
+                  profit: null,
+                  marginPercent: null,
+                },
+              },
+            ]}
+            filters={defaultCatalogFilters}
+            onSort={() => {}}
+          />
+        </MemoryRouter>,
+      );
+      expect(html.includes('12,345 c')).toBe(fresh);
+      expect(html.includes('Priced sample · ROI withheld')).toBe(fresh);
+      expect(html).toContain('Profit unavailable');
+      expect(html).toContain('ROI unavailable');
+    },
+  );
+
   it('shows the price source when raw listings are unavailable', () => {
     const entry = {
       ...catalogFixtures[0]!,
@@ -166,7 +237,7 @@ describe('catalog table', () => {
       'ROI withheld: Paid finish is outside the cost model.',
     );
     expect(html).not.toContain('Single ask · ROI withheld');
-    expect(html).toContain('No price collected yet');
+    expect(html).toContain('Awaiting output observation');
     expect(html).not.toContain('Updating');
   });
 

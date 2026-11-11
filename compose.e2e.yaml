@@ -34,7 +34,6 @@ services:
       POE_TRADE_ACCESS: disabled
       POE_USER_AGENT: 'OAuth poe-worksmith-e2e/1.0 (offline fixture)'
       LOG_LEVEL: info
-      OPERATOR_DIAGNOSTICS_TOKEN: worksmith-e2e-operator-only
     depends_on:
       postgres: { condition: service_healthy }
     labels:

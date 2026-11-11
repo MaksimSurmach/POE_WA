@@ -8,21 +8,15 @@ import { assertLocalBrowserFixtureDatabase } from './testkit/integrationScenario
 
 assertLocalBrowserFixtureDatabase();
 const pool = createDatabasePool({ ...loadDatabaseConfig(), maxConnections: 4 });
-const token = 'ééa';
 const local = { headers: { host: 'localhost' }, remoteAddress: '127.0.0.1' };
 const remote = {
-  headers: { host: 'worksmith.example' },
-  remoteAddress: '192.0.2.1',
-};
-const authorized = {
-  ...remote,
-  headers: { ...remote.headers, authorization: `Bearer ${token}` },
+  headers: { host: 'worksmith.example', 'x-forwarded-for': '100.64.0.2' },
+  remoteAddress: '172.30.183.3',
 };
 
-function createApi(diagnosticsToken?: string) {
+function createApi() {
   const options = {
     collectorPool: pool,
-    diagnosticsToken,
   };
   return buildApi(
     pino({ level: 'silent' }),
@@ -37,7 +31,7 @@ function createApi(diagnosticsToken?: string) {
   );
 }
 
-const api = createApi(token);
+const api = createApi();
 const unconfigured = createApi();
 
 beforeEach(async () => {
@@ -181,56 +175,34 @@ describe('collector run request API', () => {
     ]);
   });
 
-  it('guards both routes and keeps the bearer out of legacy writes', async () => {
-    for (const [method, url] of [
-      ['POST', '/api/run'],
-      ['GET', '/api/collector/status'],
-      ['HEAD', '/api/collector/status'],
-    ] as const) {
-      expect((await api.inject({ ...remote, method, url })).statusCode).toBe(
-        401,
-      );
-      expect(
-        (
-          await api.inject({
-            ...remote,
-            method,
-            url,
-            headers: { ...remote.headers, authorization: 'Bearer ééb' },
-          })
-        ).statusCode,
-      ).toBe(401);
-      expect(
-        (await unconfigured.inject({ ...authorized, method, url })).statusCode,
-      ).toBe(401);
-    }
-    expect((await pool.query('select id from run_requests')).rows).toEqual([]);
+  it('accepts private proxy requests without a token and still rejects invalid input', async () => {
     expect(
-      (await api.inject({ ...authorized, method: 'POST', url: '/api/run' }))
+      (await api.inject({ ...remote, method: 'POST', url: '/api/run' }))
         .statusCode,
     ).toBe(202);
+    for (const method of ['GET', 'HEAD'] as const) {
+      const response = await api.inject({
+        ...remote,
+        method,
+        url: '/api/collector/status',
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.headers['cache-control']).toBe('no-store');
+    }
     expect(
       (
         await api.inject({
-          ...authorized,
-          method: 'GET',
-          url: '/api/collector/status',
+          ...remote,
+          method: 'POST',
+          url: '/api/run',
+          payload: { scope: 'invalid' },
         })
       ).statusCode,
-    ).toBe(200);
+    ).toBe(400);
     expect(
-      (await api.inject({ ...authorized, method: 'POST', url: '/api/refresh' }))
+      (await api.inject({ ...remote, method: 'POST', url: '/api/refresh' }))
         .statusCode,
     ).toBe(404);
-    expect(
-      (
-        await api.inject({
-          ...authorized,
-          method: 'POST',
-          url: '/api/market/economy/collect',
-        })
-      ).statusCode,
-    ).toBe(401);
   });
 
   it('reports state, newest request, next runnable time and the collector advisory lock', async () => {

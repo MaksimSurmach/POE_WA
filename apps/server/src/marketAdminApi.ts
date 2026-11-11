@@ -1,8 +1,4 @@
-import {
-  marketAdminSettingsResponseSchema,
-  marketAdminPatchSchema,
-  marketAdminSettingsSchema,
-} from '@poe-worksmith/contracts';
+import { marketAdminSettingsResponseSchema } from '@poe-worksmith/contracts';
 import { DomainError } from '@poe-worksmith/domain';
 import type {
   FastifyInstance,
@@ -12,14 +8,7 @@ import type {
 } from 'fastify';
 import type { Logger } from 'pino';
 import { z } from 'zod';
-import { isLocalAdmin } from './adminAccess.js';
 import type { MarketAdminStore } from './marketAdmin.js';
-
-const operatorSettingsPatch = marketAdminPatchSchema.extend({
-  settings: marketAdminSettingsSchema
-    .pick({ maximumQuoteAgeMs: true, freshnessWarningMs: true })
-    .partial(),
-});
 
 export type MarketAdminApiOptions = {
   store: MarketAdminStore;
@@ -43,11 +32,6 @@ export function registerMarketAdminRoutes(
     '/api/admin/market/settings',
     { bodyLimit: 4096 },
     async (request) => {
-      if (
-        !isLocalAdmin(request) &&
-        !operatorSettingsPatch.safeParse(request.body).success
-      )
-        throw new DomainError('MARKET_QUERY_INVALID');
       return {
         correlationId: request.id,
         data: await store.patch(request.body, request.id),

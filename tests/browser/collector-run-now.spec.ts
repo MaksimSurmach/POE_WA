@@ -7,7 +7,7 @@ test.skip(
 
 test('run-now-updates-homepage', async ({ page }) => {
   const recipe = '/recipes/physical-large-cluster-chaos';
-  // A forwarded request exercises the real remote authorization guard.
+  // Private reverse-proxy requests need no application credential.
   await page.route(/\/api\/(collector\/status|run)$/, (route) =>
     route.continue({
       headers: { ...route.request().headers(), 'x-forwarded-for': '192.0.2.1' },
@@ -21,7 +21,7 @@ test('run-now-updates-homepage', async ({ page }) => {
     await route.fulfill({ response, json });
   });
   await page.goto('/');
-  await expect(page.getByLabel('Operator token')).toBeVisible();
+  await expect(page.getByLabel('Operator token')).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Refresh Prices' }),
   ).toHaveCount(0);
@@ -35,15 +35,6 @@ test('run-now-updates-homepage', async ({ page }) => {
       )
     ).status(),
   ).toBe(404);
-  await page.getByLabel('Operator token').fill('wrong-fixture-token');
-  await page.getByRole('button', { name: 'Connect' }).click();
-  await expect(
-    page.getByText('The operator token was rejected.'),
-  ).toBeVisible();
-  await page
-    .getByLabel('Operator token')
-    .fill(process.env.OPERATOR_DIAGNOSTICS_TOKEN!);
-  await page.getByRole('button', { name: 'Connect' }).click();
   const lastRun = page.getByLabel('Last run');
   await expect(lastRun).toHaveAttribute('datetime', /T/);
   const before = (await lastRun.getAttribute('datetime'))!;
@@ -74,8 +65,6 @@ test('run-now-updates-homepage', async ({ page }) => {
   });
   expect(Date.parse(data.evaluation.evaluatedAt)).toBeGreaterThan(clickedAt);
   expect(data.snapshot).toBeNull();
-  await page.reload();
-  await expect(page.getByLabel('Operator token')).toHaveValue('');
 });
 
 test('shows a persistent Trade block after a successful maintenance run', async ({
