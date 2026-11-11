@@ -1,9 +1,9 @@
 // Stat IDs from Awakened PoE Trade, MIT; revision 3188208957422b21b69b12083a03edf3d1bac187.
 // https://github.com/SnosMe/awakened-poe-trade/blob/3188208957422b21b69b12083a03edf3d1bac187/renderer/public/data/en/stats.ndjson
-export const tradeMappingVersion = 'awakened-318820895742';
+export const tradeMappingVersion = 'awakened-318820895742+week-one-2026-11-11';
 export const tradeStatMappings: Record<
   string,
-  { key: string; text: string; negativeText?: string }
+  { key: string; text: string; negativeText?: string; valueMode?: 'average' }
 > = {
   'explicit.stat_3182498570': {
     key: 'flask_movement_speed',
@@ -462,5 +462,39 @@ Object.assign(tradeStatMappings, {
   'explicit.stat_4052037485': {
     key: 'flat-energy-shield',
     text: '+# to maximum Energy Shield',
+  },
+  // Public Trade identities checked 2026-11-11; Local is only a dropdown qualifier.
+  'explicit.stat_2027269580': {
+    key: 'bow_gem_level',
+    text: '+# to Level of Socketed Bow Gems',
+  },
+  'explicit.stat_210067635': {
+    key: 'local_attack_speed',
+    text: '#% increased Attack Speed',
+  },
+  'explicit.stat_1509134228': {
+    key: 'local_physical_damage',
+    text: '#% increased Physical Damage',
+  },
+  'explicit.stat_1940865751': {
+    key: 'local_added_physical_damage',
+    text: 'Adds # to # Physical Damage',
+    valueMode: 'average',
+  },
+  'implicit.stat_2974417149': {
+    key: 'spell_damage',
+    text: '#% increased Spell Damage',
+  },
+  'implicit.stat_2162876159': {
+    key: 'projectile_attack_damage',
+    text: '#% increased Projectile Attack Damage',
+  },
+  'implicit.stat_1002362373': {
+    key: 'melee_damage',
+    text: '#% increased Melee Damage',
+  },
+  'implicit.stat_3988349707': {
+    key: 'damage_over_time_multiplier',
+    text: '+#% to Damage over Time Multiplier',
   },
 });

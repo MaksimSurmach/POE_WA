@@ -1,4 +1,4 @@
-import { expect, operatorToken, test, waitForCollector } from './fixtures';
+import { expect, test, waitForCollector } from './fixtures';
 
 const recipe = 'physical-large-cluster-chaos';
 
@@ -8,8 +8,7 @@ test('COLLECTOR-01 Run now publishes capture readiness in the packaged app', asy
   await waitForCollector(page.request);
 
   await page.goto('/');
-  await page.getByLabel('Operator token').fill(operatorToken);
-  await page.getByRole('button', { name: 'Connect' }).click();
+  await expect(page.getByLabel('Operator token')).toHaveCount(0);
   await expect(page.getByText('Collector connected')).toBeVisible();
   const row = page.getByRole('row').filter({
     has: page.locator(`a[href="/recipes/${recipe}"]`),

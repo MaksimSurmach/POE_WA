@@ -85,7 +85,6 @@ function AppShell() {
 }
 
 function CatalogRoute() {
-  const [operatorToken, setOperatorToken] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const filters = useMemo(
     () => readCatalogFilters(searchParams),
@@ -211,6 +210,12 @@ function CatalogRoute() {
               ? `${league.discovery === 'confirmed' ? '' : 'Last known league: '}${league.name} · Last checked ${new Date(league.syncedAt).toLocaleString('en-US')}`
               : 'League unavailable'}
           </p>
+          {league?.name === 'Standard' ? (
+            <p>
+              Standard is the permanent market. The collector switches to a
+              temporary PC league once both GGG and poe.ninja list it.
+            </p>
+          ) : null}
           {marketUpdatedAt ? (
             <p>
               Market updated{' '}
@@ -224,10 +229,7 @@ function CatalogRoute() {
           ) : null}
         </div>
         {collectorMode ? (
-          <CollectorControls
-            onResultsChanged={reloadCatalog}
-            onOperatorConnected={setOperatorToken}
-          />
+          <CollectorControls onResultsChanged={reloadCatalog} />
         ) : null}
       </section>
 
@@ -377,9 +379,7 @@ function CatalogRoute() {
         </>
       )}
 
-      {collectorMode && operatorToken !== null ? (
-        <HomeSettings operatorToken={operatorToken} />
-      ) : null}
+      {collectorMode ? <HomeSettings /> : null}
     </>
   );
 }

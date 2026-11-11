@@ -1,0 +1,133 @@
+{
+  "checkedAt": "2026-11-11",
+  "patch": "3.30.0",
+  "identityDataVersion": "3.29.3.3",
+  "sources": [
+    "https://www.pathofexile.com/api/trade/data/items",
+    "https://www.pathofexile.com/api/trade/data/stats",
+    "https://www.pathofexile.com/forum/view-thread/4013680"
+  ],
+  "scope": "Public Trade identity check only; no 3.30 affix weights, calculator probability, demand, price or profitability certification.",
+  "bases": [
+    {
+      "type": "Leather Belt"
+    },
+    {
+      "type": "Heavy Belt"
+    },
+    {
+      "type": "Crystal Belt"
+    },
+    {
+      "type": "Lich's Circlet"
+    },
+    {
+      "type": "Hubris Circlet"
+    },
+    {
+      "type": "Royal Burgonet"
+    },
+    {
+      "type": "Fingerless Silk Gloves"
+    },
+    {
+      "type": "Warlock Gloves"
+    },
+    {
+      "type": "Gripped Gloves"
+    },
+    {
+      "type": "Spiked Gloves"
+    },
+    {
+      "type": "Apothecary's Gloves"
+    },
+    {
+      "type": "Slink Gloves"
+    },
+    {
+      "type": "Two-Toned Boots"
+    },
+    {
+      "type": "Fugitive Boots"
+    },
+    {
+      "type": "Warlock Boots"
+    },
+    {
+      "type": "Thicket Bow"
+    },
+    {
+      "type": "Spine Bow"
+    },
+    {
+      "type": "Broadhead Arrow Quiver"
+    },
+    {
+      "type": "Vaal Regalia"
+    },
+    {
+      "type": "Twilight Regalia"
+    },
+    {
+      "type": "Titanium Spirit Shield"
+    }
+  ],
+  "stats": [
+    {
+      "id": "explicit.stat_2027269580",
+      "text": "+# to Level of Socketed Bow Gems",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_210067635",
+      "text": "#% increased Attack Speed (Local)",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1509134228",
+      "text": "#% increased Physical Damage",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1940865751",
+      "text": "Adds # to # Physical Damage (Local)",
+      "type": "explicit"
+    },
+    {
+      "id": "implicit.stat_2974417149",
+      "text": "#% increased Spell Damage",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_2162876159",
+      "text": "#% increased Projectile Attack Damage",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_1002362373",
+      "text": "#% increased Melee Damage",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_3988349707",
+      "text": "+#% to Damage over Time Multiplier",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_2923486259",
+      "text": "+#% to Chaos Resistance",
+      "type": "implicit"
+    }
+  ],
+  "resources": [
+    {
+      "id": "shrieking-essence-of-dread",
+      "name": "Shrieking Essence of Dread"
+    },
+    {
+      "id": "deafening-essence-of-contempt",
+      "name": "Deafening Essence of Contempt"
+    }
+  ]
+}

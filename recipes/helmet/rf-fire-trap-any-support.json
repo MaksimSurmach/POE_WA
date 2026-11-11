@@ -14,7 +14,7 @@
     }
   },
   "category": "helmet",
-  "notes": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation. No life/resistance floor, sockets/links/quality minimum, sale or optimality included. Related Sheet C011 requires Horror/Burning/life and remains a distinct unverified lead. This recipe follows the separately accepted scoped MAX-1288 FireTrap support-pair/AoE procedure; it does not satisfy the full C011 target.",
+  "notes": "Socketed Fire Trap / Searing Bond of Detonation Elder support helmet; any support tier and 20/20 are distinct targets. Not socketed RF or elevated25. Conditional outcome generation proves reachability, not empirical spending. Old82 tier20 numbers833/41650 are not the actual83 expectation. No life/resistance floor, sockets/links/quality minimum, sale or optimality included. Related Sheet C011 requires Horror/Burning/life and remains a distinct unverified lead. This recipe follows the separately accepted scoped MAX-1288 FireTrap support-pair/AoE procedure; it does not satisfy the full C011 target. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified.",
   "craft": {
     "id": "rf-fire-trap-any-support",
     "name": "Elder Fire Trap Helmet · Any Support Tier",

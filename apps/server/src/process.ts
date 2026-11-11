@@ -431,7 +431,6 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         leagues: repositories.leagues,
       }),
       marketAdmin: { store: admin },
-      diagnosticsToken: config.operatorDiagnosticsToken,
       collectorPool: pool,
       readCollectorReadiness: activityReader
         ? resourceReaders.readCollectorReadiness

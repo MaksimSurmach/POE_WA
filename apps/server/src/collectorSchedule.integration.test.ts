@@ -88,18 +88,18 @@ beforeEach(async () => {
 
 afterAll(() => pool.end());
 
-it('reconciles the 31-recipe catalog without resetting existing schedule rows', async () => {
+it('reconciles the 55-recipe catalog without resetting existing schedule rows', async () => {
   const league = await seedPrerequisites();
   await syncCli();
   const first = await scheduleRows();
-  expect(first).toHaveLength(49);
+  expect(first).toHaveLength(97);
   const tradeDue = first
     .filter(({ kind }) => kind === 'trade-target')
     .map(({ nextDueAt }) => nextDueAt.getTime())
     .sort((a, b) => a - b);
-  expect(tradeDue).toHaveLength(46);
+  expect(tradeDue).toHaveLength(94);
   expect(tradeDue.map((due) => due - tradeDue[0]!)).toEqual(
-    Array.from({ length: 46 }, (_, index) => index * 60_000),
+    Array.from({ length: 94 }, (_, index) => index * 60_000),
   );
   expect(first.find(({ kind }) => kind === 'economy')).toMatchObject({
     leagueId: league.id,
@@ -192,7 +192,7 @@ it('reconciles the 31-recipe catalog without resetting existing schedule rows', 
 
 it('keeps recipe sync and dry-run safe without league or mapping data', async () => {
   await syncCli();
-  expect(await repositories.recipes.listActive()).toHaveLength(31);
+  expect(await repositories.recipes.listActive()).toHaveLength(55);
   expect(await scheduleRows()).toEqual([]);
 
   await seedPrerequisites();
@@ -200,7 +200,7 @@ it('keeps recipe sync and dry-run safe without league or mapping data', async ()
   expect(await scheduleRows()).toEqual([]);
   await syncCli();
   const existing = await scheduleRows();
-  expect(existing).toHaveLength(49);
+  expect(existing).toHaveLength(97);
   await pool.query("update game_data_versions set status = 'archived'");
   await syncCli();
   expect(await scheduleRows()).toEqual(existing);
@@ -212,8 +212,8 @@ it('validates only schedule configuration before writing recipes', async () => {
   expect(await repositories.recipes.listActive()).toHaveLength(0);
 
   await syncCli([], { APP_PORT: 'invalid' });
-  expect(await repositories.recipes.listActive()).toHaveLength(31);
-  expect(await scheduleRows()).toHaveLength(49);
+  expect(await repositories.recipes.listActive()).toHaveLength(55);
+  expect(await scheduleRows()).toHaveLength(97);
 });
 
 it('disables only retention during shadow collection and can re-enable it', async () => {

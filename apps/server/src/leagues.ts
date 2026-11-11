@@ -125,14 +125,11 @@ export class LeagueResolver {
       this.options.trade.fetchLeagueIds(),
       this.options.poeNinja.fetchEconomyLeagues(),
     ]);
+    if (tradeIds.length === 0)
+      throw new DomainError('POE_TRADE_LEAGUES_UNAVAILABLE');
     const trade = new Set(tradeIds);
     const previous = await this.options.leagues.findCurrent();
-    const agreed = [
-      { id: 'Standard', name: 'Standard' },
-      ...ninja.filter(
-        (league) => league.id !== 'Standard' && trade.has(league.id),
-      ),
-    ];
+    const agreed = ninja.filter((league) => trade.has(league.id));
     const saved = [];
     for (const league of agreed) {
       saved.push(
@@ -153,9 +150,16 @@ export class LeagueResolver {
         }),
       );
     }
-    const selected = ninja.find(
-      (league) => league.id !== 'Standard' && trade.has(league.id),
-    );
+    const selected =
+      agreed.find(
+        (league) =>
+          !['Standard', 'Hardcore', 'Ruthless', 'Hardcore Ruthless'].includes(
+            league.id,
+          ),
+      ) ??
+      (!previous || !trade.has(previous.gggId)
+        ? agreed.find((league) => league.id === 'Standard')
+        : undefined);
     const next = selected
       ? saved.find((league) => league.gggId === selected.id)!
       : previous;

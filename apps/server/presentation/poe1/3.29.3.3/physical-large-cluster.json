@@ -463,6 +463,157 @@
       "name": "Enkindling Orb",
       "itemClass": "Currency",
       "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRXhwZWRpdGlvbi9GbGFza1BsYXRlIiwic2NhbGUiOjF9XQ/7c1a584a8d/FlaskPlate.png"
+    },
+    "base:leather-belt": {
+      "name": "Leather Belt",
+      "itemClass": "Belt",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Belts/Belt3.png"
+    },
+    "base:heavy-belt": {
+      "name": "Heavy Belt",
+      "itemClass": "Belt",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Belts/Belt5.png"
+    },
+    "base:crystal-belt": {
+      "name": "Crystal Belt",
+      "itemClass": "Belt",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Belts/CrystalBelt.png"
+    },
+    "base:lichs-circlet": {
+      "name": "Lich's Circlet",
+      "itemClass": "Helmet",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Helmets/HelmetInt8.png"
+    },
+    "base:hubris-circlet": {
+      "name": "Hubris Circlet",
+      "itemClass": "Helmet",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Helmets/HelmetInt11.png"
+    },
+    "base:royal-burgonet": {
+      "name": "Royal Burgonet",
+      "itemClass": "Helmet",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Helmets/HelmetStr10.png"
+    },
+    "base:fingerless-silk-gloves": {
+      "name": "Fingerless Silk Gloves",
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/FingerlessSilkGloves.png"
+    },
+    "base:warlock-gloves": {
+      "name": "Warlock Gloves",
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/GlovesInt4.png"
+    },
+    "base:gripped-gloves": {
+      "name": "Gripped Gloves",
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/GripGlovesBaseType.png"
+    },
+    "base:spiked-gloves": {
+      "name": "Spiked Gloves",
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/SpikedGloves.png"
+    },
+    "base:apothecarys-gloves": {
+      "name": "Apothecary's Gloves",
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/ChemistGloves.png"
+    },
+    "base:slink-gloves": {
+      "name": "Slink Gloves",
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/GlovesDex4.png"
+    },
+    "base:two-toned-boots": {
+      "name": "Two-Toned Boots",
+      "itemClass": "Boots",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Boots/TwoTonedBoots3B.png"
+    },
+    "base:fugitive-boots": {
+      "name": "Fugitive Boots",
+      "itemClass": "Boots",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Boots/HalfTonedBoots.png"
+    },
+    "base:warlock-boots": {
+      "name": "Warlock Boots",
+      "itemClass": "Boots",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Boots/BootsInt4.png"
+    },
+    "base:thicket-bow-six-link": {
+      "name": "Thicket Bow",
+      "itemClass": "Bow",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Weapons/TwoHandWeapons/Bows/Bow2.png"
+    },
+    "base:spine-bow": {
+      "name": "Spine Bow",
+      "itemClass": "Bow",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Weapons/TwoHandWeapons/Bows/Bow6.png"
+    },
+    "base:broadhead-arrow-quiver": {
+      "name": "Broadhead Arrow Quiver",
+      "itemClass": "Quiver",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Quivers/QuiverBroadhead.png"
+    },
+    "base:vaal-regalia-six-link": {
+      "name": "Vaal Regalia",
+      "itemClass": "Body Armour",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/BodyArmours/BodyStrDexInt1C.png"
+    },
+    "base:twilight-regalia-week-one-six-link": {
+      "name": "Twilight Regalia",
+      "itemClass": "Body Armour",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/BodyArmours/BodyStrDexInt1C.png"
+    },
+    "base:titanium-spirit-shield": {
+      "name": "Titanium Spirit Shield",
+      "itemClass": "Shield",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Shields/ShieldInt6.png"
+    },
+    "mod:bow-gems": {
+      "name": "Socketed Bow Gem Levels",
+      "generationType": "prefix"
+    },
+    "mod:bow-local-attack-speed": {
+      "name": "Local Attack Speed",
+      "generationType": "suffix"
+    },
+    "mod:local-physical-damage": {
+      "name": "Local Increased Physical Damage",
+      "generationType": "prefix"
+    },
+    "mod:local-added-physical-damage": {
+      "name": "Local Added Physical Damage (average)",
+      "generationType": "prefix"
+    },
+    "mod:implicit-spell-damage": {
+      "name": "Spell Damage",
+      "generationType": "implicit"
+    },
+    "mod:implicit-projectile-attack-damage": {
+      "name": "Projectile Attack Damage",
+      "generationType": "implicit"
+    },
+    "mod:implicit-melee-damage": {
+      "name": "Melee Damage",
+      "generationType": "implicit"
+    },
+    "mod:implicit-dot-multiplier": {
+      "name": "Damage over Time Multiplier",
+      "generationType": "implicit"
+    },
+    "mod:implicit-chaos-resistance": {
+      "name": "Chaos Resistance",
+      "generationType": "implicit"
+    },
+    "shrieking-essence-of-dread": {
+      "name": "Shrieking Essence of Dread",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Currency/Essence/Dread6.png"
+    },
+    "deafening-essence-of-contempt": {
+      "name": "Deafening Essence of Contempt",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Currency/Essence/Contempt7.png"
     }
   }
 }

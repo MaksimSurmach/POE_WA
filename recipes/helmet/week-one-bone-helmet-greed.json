@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 3,
+  "id": "week-one-bone-helmet-greed",
+  "title": "Week 1 · Bone Helmet · +1 minions / life / fire",
+  "category": "helmet",
+  "summary": "Maximum Life >= 91; Level of all Minion Skill Gems >= 1; Fire Resistance >= 30; Implicit Increased Minion Damage >= 20. First-week candidate; profitability unverified.",
+  "patch": "3.30.0",
+  "gameDataVersion": "3.29.3.3",
+  "tags": ["week-one", "league-start", "minion", "life", "resistances"],
+  "base": {
+    "baseId": "base:bone-helmet",
+    "influences": [],
+    "itemLevel": 75,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "startingBase": {
+    "baseId": "base:bone-helmet",
+    "influences": [],
+    "itemLevel": 75,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:life",
+        "minimumValue": 91
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:minion-gems",
+        "minimumValue": 1
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:fire-resistance",
+        "minimumValue": 30
+      }
+    ],
+    "implicits": [
+      {
+        "excluded": false,
+        "kind": "implicit",
+        "modId": "mod:implicit-minion-damage",
+        "minimumValue": 20
+      }
+    ],
+    "other": []
+  },
+  "targetSignature": "3.30.0:0014df0073bd96fc42bc19ea0b6278c1",
+  "notes": "3.30 native implicit is 20–30% increased minion damage; buy it already at least 20. Target +1 minion gems instead of the expensive legacy +2 benchmark. Greed guarantees life; gem level and Fire Resistance are random. Tier-gated base.",
+  "verification": {
+    "status": "unverified",
+    "leagues": [],
+    "checkedAt": "2026-11-11",
+    "sources": [
+      "https://www.pathofexile.com/forum/view-thread/4013680",
+      "https://poedb.tw/us/Deafening_Essence_of_Greed",
+      "https://beta.craftofexile.com/changelog"
+    ],
+    "notes": "3.30 patch and Trade identities reviewed before league launch. CoE currently reports 3.29.3.3; the complete joint target has no checked 3.30 probability or expected consumption. New league demand, acquisition and profitability are unverified."
+  },
+  "craft": {
+    "id": "bone-helmet-greed",
+    "name": "Deafening Essence of Greed",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-greed"
+    },
+    "startingMods": [],
+    "uncertainties": [
+      "Starting-base acquisition must use exactly item level 75. Higher item levels can change the affix pool and require a separate cost model.",
+      "3.30 affix weights and the full joint stopping condition must be checked in the updated calculator before entering probability, expected executions or base consumption.",
+      "Compare the exact same base, implicit thresholds, state, quality and links. Asking prices are not completed sales; no profit is established."
+    ],
+    "steps": [
+      {
+        "id": "essence-roll",
+        "title": "Roll the complete item",
+        "action": "Buy the specified uninfluenced, uncorrupted rare base; use Deafening Essence of Greed. Preserve any required existing links, quality and native implicits. No fracture, metacraft or bench finish is assumed.",
+        "continueWhen": "All requirements together: Maximum Life >= 91; Level of all Minion Skill Gems >= 1; Fire Resistance >= 30; Implicit Increased Minion Damage >= 20. Stop on this complete result.",
+        "failureAction": "If any required random modifier is missing, repeat the paid essence on the same base. Each repeat removes all previous non-fractured explicit and crafted modifiers. Stop spending when your budget is exhausted; do not use a safety Annul trick.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-greed",
+            "quantity": 1
+          }
+        ]
+      }
+    ]
+  }
+}

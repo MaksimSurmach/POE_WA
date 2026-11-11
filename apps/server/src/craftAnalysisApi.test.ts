@@ -40,6 +40,7 @@ async function apiFixture() {
   const repository = {
     latestModel: vi.fn().mockResolvedValue(null),
     saveModel: vi.fn(),
+    findRun: vi.fn().mockResolvedValue(null),
   } as unknown as CraftAnalysisRepository;
   const service = createCraftAnalysisService({
     repository,
@@ -135,9 +136,10 @@ describe('craft analysis access and missing-evidence contracts', () => {
       headers: { host: 'localhost', 'x-forwarded-for': '127.0.0.1' },
     },
   ])(
-    'protects model writes and private run reads from $remoteAddress / $headers',
+    'allows private model writes and run reads from $remoteAddress / $headers',
     async (connection) => {
       const { api, input, repository } = await apiFixture();
+      vi.mocked(repository.saveModel).mockResolvedValue(craftModelFixture());
       try {
         for (const request of [
           {
@@ -152,8 +154,8 @@ describe('craft analysis access and missing-evidence contracts', () => {
         ])
           expect(
             (await api.inject({ ...request, ...connection })).statusCode,
-          ).toBe(401);
-        expect(repository.saveModel).not.toHaveBeenCalled();
+          ).toBe(request.method === 'POST' ? 200 : 404);
+        expect(repository.saveModel).toHaveBeenCalled();
       } finally {
         await api.close();
       }

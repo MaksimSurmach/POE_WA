@@ -202,16 +202,20 @@ export function createResourceReaders(
       const now = new Date();
       const readiness = await readReadiness?.(now, market.maximumQuoteAgeMs);
       const byRecipe = new Map(
-        readiness?.flatMap((row) =>
-          row.schedule.outputRecipeIds.map((id) => [id, row] as const),
-        ),
+        readiness
+          ?.filter((row) => row.schedule.role === 'output')
+          .flatMap((row) =>
+            row.schedule.outputRecipeIds.map((id) => [id, row] as const),
+          ),
       );
       const byCapture = new Map(
-        readiness?.flatMap((row) =>
-          row.schedule.captureId
-            ? [[row.schedule.captureId, row] as const]
-            : [],
-        ),
+        readiness
+          ?.filter((row) => row.schedule.role === 'output')
+          .flatMap((row) =>
+            row.schedule.captureId
+              ? [[row.schedule.captureId, row] as const]
+              : [],
+          ),
       );
       const entries = await Promise.all(
         recipes

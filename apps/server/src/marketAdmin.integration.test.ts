@@ -49,7 +49,6 @@ const api = buildApi(
   {
     marketAdmin: { store },
     collectorPool: pool,
-    diagnosticsToken: 'fixture-operator-token',
   },
 );
 
@@ -320,40 +319,10 @@ describe('market admin settings and collector API', () => {
     });
   });
 
-  it.each([
-    { remoteAddress: '203.0.113.8', headers: local },
-    {
-      remoteAddress: '127.0.0.1',
-      headers: { ...local, host: 'rebind.example' },
-    },
-    {
-      remoteAddress: '127.0.0.1',
-      headers: { ...local, origin: 'https://evil.example' },
-    },
-    {
-      remoteAddress: '127.0.0.1',
-      headers: { ...local, 'x-forwarded-for': '127.0.0.1' },
-    },
-  ])(
-    'protects collector and settings routes at one boundary: %j',
-    async (access) => {
-      for (const [method, url] of [
-        ['GET', '/api/collector/status'],
-        ['PATCH', '/api/admin/market/settings'],
-        ['POST', '/api/run'],
-        ['POST', '/api/market/economy/collect'],
-      ] as const) {
-        const response = await api.inject({ method, url, ...access });
-        expect(response.statusCode, `${method} ${url}`).toBe(401);
-      }
-      expect((await store.read()).version).toBe(0);
-    },
-  );
-
-  it('limits the remote operator to quote ages and pause controls', async () => {
+  it('allows private proxy settings without a token while preserving validation and optimistic locking', async () => {
     const remote = {
-      remoteAddress: '203.0.113.8',
-      headers: { authorization: 'Bearer fixture-operator-token' },
+      remoteAddress: '172.30.183.3',
+      headers: { host: 'worksmith.example', 'x-forwarded-for': '100.64.0.2' },
     };
     expect(
       (
@@ -364,13 +333,21 @@ describe('market admin settings and collector API', () => {
         })
       ).statusCode,
     ).toBe(200);
+    const update = await api.inject({
+      ...remote,
+      method: 'PATCH',
+      url: '/api/admin/market/settings',
+      payload: { version: 0, settings: { refreshCron: '0 * * * *' } },
+    });
+    expect(update.statusCode).toBe(200);
+    expect((await store.read()).version).toBe(1);
     expect(
       (
         await api.inject({
           ...remote,
           method: 'PATCH',
           url: '/api/admin/market/settings',
-          payload: { version: 0, settings: { refreshCron: '0 * * * *' } },
+          payload: { version: 0, settings: { refreshCron: 'invalid' } },
         })
       ).statusCode,
     ).toBe(400);
@@ -380,19 +357,11 @@ describe('market admin settings and collector API', () => {
           ...remote,
           method: 'PATCH',
           url: '/api/admin/market/settings',
-          payload: { version: 0, settings: { freshnessWarningMs: 600_000 } },
+          payload: { version: 0, settings: { refreshCron: '0 * * * *' } },
         })
       ).statusCode,
-    ).toBe(200);
-    expect(
-      (
-        await api.inject({
-          ...remote,
-          method: 'GET',
-          url: '/api/admin/market/runs',
-        })
-      ).statusCode,
-    ).toBe(401);
+    ).toBe(409);
+    expect((await store.read()).version).toBe(1);
   });
 
   it('preserves settings while retiring the old refresh routes', async () => {

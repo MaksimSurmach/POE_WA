@@ -14,7 +14,7 @@
     }
   },
   "category": "gloves",
-  "notes": "A concrete, selected catalog target derived from the source Sheet. Exact numeric thresholds/base selection are explicit authoring choices, not measured demand or verified calculator results. Sheet C004 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices. Current CoE evidence independently checked2026-11-03; this selected single-stage core requires no optional implicit or bench finish.",
+  "notes": "A concrete, selected catalog target derived from the source Sheet. Exact numeric thresholds/base selection are explicit authoring choices, not measured demand or verified calculator results. Sheet C004 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices. Current CoE evidence independently checked2026-11-03; this selected single-stage core requires no optional implicit or bench finish. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified. Buy the specified already-rare fractured base; upgrading new magic fractures is not priced.",
   "craft": {
     "id": "suppression-gloves-fear",
     "name": "Suppression Gloves · Minion Damage",

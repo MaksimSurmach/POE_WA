@@ -284,7 +284,9 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
             ? 100
             : match?.[1] === undefined
               ? 1
-              : Number(match[1]) * (negativeMatch ? -1 : 1),
+              : (mapping.valueMode === 'average'
+                  ? (Number(match[1]) + Number(match[2])) / 2
+                  : Number(match[1])) * (negativeMatch ? -1 : 1),
           ...(tier !== undefined ? { tier } : {}),
         });
       }

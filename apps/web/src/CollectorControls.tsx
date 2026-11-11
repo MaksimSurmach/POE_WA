@@ -1,24 +1,15 @@
 import type { CollectorStatus } from '@poe-worksmith/contracts';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CollectorDetails } from './CollectorDetails.js';
-import { ApiClientError, createApiClient } from './apiClient.js';
+import { createApiClient } from './apiClient.js';
 
 const api = createApiClient();
 
-function authRequired(error: unknown) {
-  return error instanceof ApiClientError && error.status === 401;
-}
-
 export function CollectorControls({
   onResultsChanged,
-  onOperatorConnected,
 }: {
   onResultsChanged: () => void;
-  onOperatorConnected?: (token: string | null) => void;
 }) {
-  // undefined: try loopback access; null: the server requires a bearer.
-  const [token, setToken] = useState<string | null>();
-  const [tokenRejected, setTokenRejected] = useState(false);
   const [status, setStatus] = useState<CollectorStatus | null>(null);
   const [statusUnavailable, setStatusUnavailable] = useState(false);
   const [sending, setSending] = useState(false);
@@ -27,7 +18,6 @@ export function CollectorControls({
   const lastFinish = useRef<string | null>(null);
 
   useEffect(() => {
-    if (token === null) return;
     let active = true;
     let timer: ReturnType<typeof setTimeout>;
     async function poll() {
@@ -37,10 +27,9 @@ export function CollectorControls({
         return;
       }
       try {
-        const next = await api.getCollectorStatus(token ?? undefined);
+        const next = await api.getCollectorStatus();
         if (!active) return;
         setStatus(next);
-        onOperatorConnected?.(token ?? '');
         setStatusUnavailable(false);
         const finishedAt = next.collectorState?.lastRunFinishedAt ?? null;
         if (finishedAt !== lastFinish.current) {
@@ -53,15 +42,7 @@ export function CollectorControls({
             next.latestRequest?.state === 'running')
         )
           delay = 5_000;
-      } catch (error) {
-        if (!active) return;
-        if (authRequired(error)) {
-          setStatus(null);
-          setTokenRejected(Boolean(token));
-          setToken(null);
-          onOperatorConnected?.(null);
-          return;
-        }
+      } catch {
         setStatusUnavailable(true);
       }
       if (active) timer = setTimeout(() => void poll(), delay);
@@ -71,35 +52,20 @@ export function CollectorControls({
       active = false;
       clearTimeout(timer);
     };
-  }, [token, pollRevision, onResultsChanged, onOperatorConnected]);
-
-  function connect(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const value = String(new FormData(form).get('token') ?? '').trim();
-    form.reset();
-    if (value) setToken(value);
-  }
+  }, [pollRevision, onResultsChanged]);
 
   async function runNow() {
-    if (token === null) return;
     setSending(true);
     setRunError(false);
     try {
-      const { requestId } = await api.runCollector(token);
+      const { requestId } = await api.runCollector();
       setStatus((value) =>
         value
           ? { ...value, latestRequest: { id: requestId, state: 'queued' } }
           : value,
       );
-    } catch (error) {
-      if (authRequired(error)) {
-        setStatus(null);
-        setTokenRejected(Boolean(token));
-        setToken(null);
-      } else {
-        setRunError(true);
-      }
+    } catch {
+      setRunError(true);
     } finally {
       setSending(false);
       setPollRevision((value) => value + 1);
@@ -115,36 +81,18 @@ export function CollectorControls({
       role="group"
       aria-label="Collector controls"
     >
-      {token === null ? (
-        <form
-          className="handbook-refresh"
-          onSubmit={connect}
-          autoComplete="off"
-        >
-          <label>
-            Operator token <input name="token" type="password" required />
-          </label>
-          <button type="submit">Connect</button>
-          {tokenRejected ? (
-            <span role="status">The operator token was rejected.</span>
-          ) : null}
-        </form>
-      ) : (
-        <>
-          <button
-            type="button"
-            disabled={!status || busy}
-            onClick={() => void runNow()}
-          >
-            Run now
-          </button>
-          <CollectorStatusLine
-            status={status}
-            statusUnavailable={statusUnavailable}
-            runError={runError}
-          />
-        </>
-      )}
+      <button
+        type="button"
+        disabled={!status || busy}
+        onClick={() => void runNow()}
+      >
+        Run now
+      </button>
+      <CollectorStatusLine
+        status={status}
+        statusUnavailable={statusUnavailable}
+        runError={runError}
+      />
       <CollectorDetails />
     </div>
   );

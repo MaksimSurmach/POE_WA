@@ -16,6 +16,7 @@ import {
 } from './recipeMarket.js';
 import { normalizeTradeCompatibleListing } from './providers/tradeCompatible.js';
 import { createImportedMarketSnapshot } from './marketResearch.js';
+import { generateMarketTradeQuery } from './marketTradeQuery.js';
 import { analyzeListingComparability } from './listingComparability.js';
 import {
   createRecipeItemPresentation,
@@ -40,6 +41,17 @@ async function mappedTrade() {
   );
   for (const kind of ['stats', 'bases', 'resources'])
     identities[kind].push(...flasks[kind]);
+  const weekOne = JSON.parse(
+    await readFile(
+      new URL(
+        'docs/evidence/poe-330-week-one-2026-11-11/trade-identities.json',
+        root,
+      ),
+      'utf8',
+    ),
+  );
+  for (const kind of ['stats', 'bases', 'resources'])
+    identities[kind].push(...weekOne[kind]);
   const manifests = await Promise.all(
     ['physical-large-cluster', 'recipe-catalog'].map(async (name) => {
       const file = fileURLToPath(
@@ -231,6 +243,15 @@ describe('authored source catalog integrity', () => {
         definition,
         'Fixture League',
       );
+      for (const query of [baseQuery, targetQuery]) {
+        expect(
+          () =>
+            generateMarketTradeQuery(
+              recipeQueryTarget(query.query.handbookTarget),
+            ),
+          definition.id,
+        ).not.toThrow();
+      }
       expect(recipeQueryTarget(baseQuery.query.handbookTarget)).toMatchObject({
         minItemLevel: definition.startingBase.itemLevel,
         maxItemLevel: definition.startingBase.itemLevel,

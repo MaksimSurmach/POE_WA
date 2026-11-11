@@ -19,18 +19,13 @@ const ageFields = [
 /** Collapsed homepage settings; nothing is requested until it is opened. */
 export function HomeSettings({
   client,
-  operatorToken,
 }: {
-  operatorToken?: string;
   client?: Pick<
     ReturnType<typeof createHomeSettingsClient>,
     'settings' | 'save' | 'pause'
   >;
 }) {
-  const api = useMemo(
-    () => client ?? createHomeSettingsClient(operatorToken),
-    [client, operatorToken],
-  );
+  const api = useMemo(() => client ?? createHomeSettingsClient(), [client]);
   const [settings, setSettings] = useState<MarketAdminSettingsResponse | null>(
     null,
   );

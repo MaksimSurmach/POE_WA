@@ -193,7 +193,7 @@ describe('repository-backed resource views', () => {
       await readers.readCatalog(correlationId),
     );
     expect(catalog.state).toBe('loading');
-    expect(catalog.data?.entries).toHaveLength(31);
+    expect(catalog.data?.entries).toHaveLength(55);
     expect(
       catalog.data?.entries
         .filter(({ recipe }) =>
@@ -1183,3 +1183,61 @@ describe('legacy single-seller profit on the read boundary', () => {
       });
   });
 });
+
+it.each(['base', 'output'] as const)(
+  'attaches only crafted-output prices to catalog readiness (role=%s)',
+  async (role) => {
+    const repositories = createInMemoryRepositories();
+    await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+    const recipeId = 'physical-large-cluster-jagged';
+    const now = new Date();
+    const readers = createResourceReaders(
+      repositories,
+      await loadItemPresentationCatalog(presentationPath),
+      undefined,
+      undefined,
+      async () => [],
+      undefined,
+      async () => [
+        {
+          activity: null,
+          schedule: {
+            id: 'fixture',
+            key: 'fixture',
+            leagueId: 'fixture',
+            league: 'Fixture',
+            name: 'Fixture',
+            role,
+            intervalMinutes: 60,
+            outputRecipeIds: [recipeId],
+            captureId: 'fixture',
+            capturedAt: now,
+            coverage: 'complete',
+            currentListings: 2,
+            currentSellers: 2,
+            currentMin: 42,
+            currentMax: 50,
+            historyMin: 42,
+            historyMax: 50,
+            observations: [now],
+            complete: [now],
+            proofBaseline: null,
+            proofComplete: [],
+            failed: 0,
+            failuresTrackedSince: null,
+            listings: 2,
+            sellers: 2,
+          },
+        },
+      ],
+    );
+    const entry = (await readers.readCatalog(correlationId)).data?.entries.find(
+      ({ recipe }) => recipe.id === recipeId,
+    );
+    expect(entry?.readiness?.currentAskRange?.min.amount ?? null).toBe(
+      role === 'output' ? 42 : null,
+    );
+    expect(entry?.evaluation.estimatedSalePrice).toBeNull();
+    expect(entry?.evaluation.profit).toBeNull();
+  },
+);

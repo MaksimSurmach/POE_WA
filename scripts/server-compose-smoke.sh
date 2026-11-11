@@ -6,7 +6,6 @@ unset DATABASE_URL COLLECTOR_DATABASE_URL
 unset POE_TRADE_USERNAME POE_TRADE_PASSWORD POE_TRADE_SESSION_ID POE_TRADE_SESSION_KEY
 export APP_ENV=development DATABASE_SSL_MODE=disable
 export POSTGRES_PASSWORD="$(openssl rand -hex 16)"
-export OPERATOR_DIAGNOSTICS_TOKEN="$(openssl rand -hex 32)"
 export MARKET_COLLECTION_SOURCE=disabled POE_TRADE_ACCESS=disabled
 export PIPELINE=collector COLLECTOR_RETENTION_ENABLED=false
 
@@ -63,12 +62,10 @@ assert.equal(ready.status, 200);
 assert.equal((await ready.json()).status, 'ready');
 assert.match((await fetch(base + '/')).headers.get('content-type'), /text\/html/);
 const statusUrl = base + '/api/collector/status';
-assert.equal((await fetch(statusUrl)).status, 401);
+assert.equal((await fetch(statusUrl)).status, 200);
 let status;
 for (let attempt = 0; attempt < 60; attempt++) {
-  const response = await fetch(statusUrl, {
-    headers: { authorization: 'Bearer ' + process.env.OPERATOR_DIAGNOSTICS_TOKEN },
-  });
+  const response = await fetch(statusUrl);
   assert.equal(response.status, 200);
   status = await response.json();
   if (status.lockHeld && status.nextDueAt) break;

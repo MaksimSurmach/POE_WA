@@ -71,20 +71,15 @@ export function createApiClient(
     contract: Contract<T>,
     method: 'GET' | 'POST' = 'GET',
     body?: unknown,
-    {
-      token,
-      signal,
-    }: { token?: string | undefined; signal?: AbortSignal | undefined } = {},
+    { signal }: { signal?: AbortSignal | undefined } = {},
   ): Promise<T> {
     const response = await fetchImplementation(`${root}${path}`, {
       headers: {
         accept: 'application/json',
-        ...(token ? { authorization: `Bearer ${token}` } : {}),
         ...(body === undefined ? {} : { 'content-type': 'application/json' }),
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       ...(method === 'POST' ? { method } : {}),
-      ...(token ? { redirect: 'error' } : {}),
       ...(signal ? { signal } : {}),
     });
     const payload: unknown = await response.json();
@@ -222,13 +217,13 @@ export function createApiClient(
         recipeResponseSchema,
       );
     },
-    getCollectorStatus(token?: string) {
+    getCollectorStatus() {
       return request(
         '/api/collector/status',
         collectorStatusSchema,
         'GET',
         undefined,
-        { token, signal: AbortSignal.timeout(collectorRequestTimeoutMs) },
+        { signal: AbortSignal.timeout(collectorRequestTimeoutMs) },
       );
     },
     getRateLimitDiagnostics(signal: AbortSignal) {
@@ -240,13 +235,13 @@ export function createApiClient(
         { signal },
       );
     },
-    runCollector(token?: string) {
+    runCollector() {
       return request(
         '/api/run',
         collectorRunResponseSchema,
         'POST',
         { scope: 'all' },
-        { token, signal: AbortSignal.timeout(collectorRequestTimeoutMs) },
+        { signal: AbortSignal.timeout(collectorRequestTimeoutMs) },
       );
     },
     getRefreshFreshness(): Promise<RefreshProgressResponse> {
