@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test.skip(
-  process.env.PIPELINE !== 'collector',
+  (process.env.PIPELINE ?? 'collector') !== 'collector',
   'Requires the collector browser fixture',
 );
 

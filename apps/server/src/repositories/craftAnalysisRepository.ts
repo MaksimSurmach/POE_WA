@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import type { Pool } from 'pg';
+import pg, { type Pool } from 'pg';
 import { DomainError, type RiskSimulationRequest } from '@poe-worksmith/domain';
 import {
   craftModelRecordSchema,
@@ -232,27 +232,21 @@ export function createCraftAnalysisRepository(
     },
     findRun,
     // Wakes the worker when createRun commits; returns the unsubscribe.
+    // Uses its own connection so the listener never takes a slot from the
+    // request pool (DATABASE_POOL_MAX may be 1).
     async listen(onWake: () => void) {
-      const client = await pool.connect();
-      const notify = () => onWake();
+      const client = new pg.Client(pool.options);
       // A lost connection only loses wakes; the service's slow timer covers it.
       client.on('error', () => undefined);
-      client.on('notification', notify);
+      client.on('notification', () => onWake());
       try {
+        await client.connect();
         await client.query('listen worksmith_craft_wake');
       } catch (error) {
-        client.release(true);
+        await client.end().catch(() => undefined);
         throw error;
       }
-      return async () => {
-        client.off('notification', notify);
-        try {
-          await client.query('unlisten worksmith_craft_wake');
-          client.release();
-        } catch {
-          client.release(true);
-        }
-      };
+      return () => client.end().catch(() => undefined);
     },
     async cancelRun(id: string) {
       await pool.query(
