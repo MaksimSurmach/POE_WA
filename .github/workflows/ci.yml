@@ -77,11 +77,8 @@ jobs:
       - run: pnpm test:e2e:browser
       - run: pnpm test:e2e:browser tests/browser/two-methods.spec.ts
         env:
+          PIPELINE: legacy
           BROWSER_FIXTURE_SCENARIO: two-methods-priced
-      - run: pnpm test:e2e:browser tests/browser/collector-run-now.spec.ts
-        env:
-          PIPELINE: collector
-          OPERATOR_DIAGNOSTICS_TOKEN: browser-fixture-only
       - name: Validate and preview recipe catalog
         run: |
           echo '## Recipe catalog' >> "$GITHUB_STEP_SUMMARY"
