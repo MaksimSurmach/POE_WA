@@ -918,3 +918,9 @@
 .trade-map__point:is(:hover, :focus-visible, [aria-pressed='true']) {
   z-index: 2;
 }
+
+.trade-map__choices small {
+  display: block;
+  color: var(--muted);
+  font-size: var(--font-small);
+}

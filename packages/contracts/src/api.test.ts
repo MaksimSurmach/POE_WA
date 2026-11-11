@@ -75,6 +75,37 @@ describe('HTTP API contracts', () => {
     expect(catalogResponseSchema.parse(response)).toEqual(response);
   });
 
+  it('preserves optional catalog league identity and validates supplied identities', () => {
+    const response = {
+      correlationId,
+      data: {
+        entries: [],
+        league: { id: correlationId, name: 'Current league' },
+      },
+      errorCode: null,
+      isStale: false,
+      lastSuccessfulAt: null,
+      publishedAt: null,
+      refreshStatus: 'idle',
+      state: 'loading',
+    };
+    expect(catalogResponseSchema.parse(response).data?.league).toEqual(
+      response.data.league,
+    );
+    expect(
+      catalogResponseSchema.parse({
+        ...response,
+        data: { entries: [], league: null },
+      }).data?.league,
+    ).toBeNull();
+    expect(
+      catalogResponseSchema.safeParse({
+        ...response,
+        data: { entries: [], league: { id: '', name: 'Current league' } },
+      }).success,
+    ).toBe(false);
+  });
+
   it('distinguishes partial data from a complete absence of data', () => {
     const partial = {
       correlationId,

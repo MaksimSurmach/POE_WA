@@ -1,4 +1,5 @@
 import type {
+  CatalogResponse,
   RecipeTrendResponse,
   TrendOverviewEntry,
   TrendOverviewResponse,
@@ -118,30 +119,36 @@ export function RecipeTrendPanel({
   recipeId,
   range,
   onRangeChange,
+  expectedLeagueId,
+  onReload,
 }: {
   recipeId: string;
   range: TrendRange;
+  expectedLeagueId?: string;
+  onReload?: () => void;
   /** Shows range buttons when the panel owns its range (recipe page). */
   onRangeChange?: (range: TrendRange) => void;
 }) {
   const [response, setResponse] = useState<RecipeTrendResponse | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
     setResponse(null);
     setFailed(false);
     apiClient
-      .getRecipeTrend(recipeId, range)
+      .getRecipeTrend(
+        recipeId,
+        range,
+        AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
+      )
       .then((value) => {
-        if (active) setResponse(value);
+        if (!controller.signal.aborted) setResponse(value);
       })
       .catch(() => {
-        if (active) setFailed(true);
+        if (!controller.signal.aborted) setFailed(true);
       });
-    return () => {
-      active = false;
-    };
-  }, [recipeId, range]);
+    return () => controller.abort();
+  }, [recipeId, range, expectedLeagueId]);
   const trend =
     response?.data.recipeId === recipeId && response.data.range === range
       ? response.data
@@ -151,7 +158,16 @@ export function RecipeTrendPanel({
       {onRangeChange ? (
         <RangeControls range={range} onChange={onRangeChange} />
       ) : null}
-      {failed ? (
+      {trend && expectedLeagueId && trend.league?.id !== expectedLeagueId ? (
+        <StatusPanel
+          tone="warning"
+          title="League changed while loading history"
+        >
+          <button type="button" onClick={onReload}>
+            Reload current market
+          </button>
+        </StatusPanel>
+      ) : failed ? (
         <StatusPanel tone="danger" title="Price history unavailable" />
       ) : !trend ? (
         <StatusPanel tone="info" title="Loading price history" />
@@ -177,27 +193,54 @@ export function MarketTrendsPage() {
   const [params, setParams] = useSearchParams();
   const range = parseRange(params.get('range'));
   const [response, setResponse] = useState<TrendOverviewResponse | null>(null);
+  const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
+  const [catalogFailed, setCatalogFailed] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [revision, setRevision] = useState(0);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<TrendSort>('change');
+  const reload = () => setRevision((value) => value + 1);
 
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
+    setResponse(null);
+    setCatalog(null);
+    setCatalogFailed(false);
     setFailed(false);
     apiClient
-      .getTrendOverview(range)
+      .getTrendOverview(
+        range,
+        AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
+      )
       .then((value) => {
-        if (active) setResponse(value);
+        if (!controller.signal.aborted) setResponse(value);
       })
       .catch(() => {
-        if (active) setFailed(true);
+        if (!controller.signal.aborted) setFailed(true);
       });
-    return () => {
-      active = false;
-    };
-  }, [range]);
+    apiClient
+      .getCatalog(
+        AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
+      )
+      .then((value) => {
+        if (!controller.signal.aborted) setCatalog(value);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setCatalogFailed(true);
+      });
+    return () => controller.abort();
+  }, [range, revision]);
 
-  const overview = response?.data.range === range ? response.data : undefined;
+  const loadedOverview =
+    response?.data.range === range ? response.data : undefined;
+  const league = catalog?.data?.league;
+  const leagueMismatch = Boolean(
+    catalog?.data && loadedOverview && league?.id !== loadedOverview.league?.id,
+  );
+  const overview =
+    league && loadedOverview?.league?.id === league.id
+      ? loadedOverview
+      : undefined;
   const rows = useMemo(
     () =>
       sortTrendEntries(
@@ -225,12 +268,14 @@ export function MarketTrendsPage() {
         </div>
         <div className="trade-dashboard__league">
           <small>PATH OF EXILE 1</small>
-          {overview?.league ? `${overview.league.name} · PC` : 'PC'}
+          {league ? `${league.name} · PC` : 'League unresolved · PC'}
         </div>
       </header>
 
       <RecipeMarketOverview
-        league={overview?.league?.name}
+        response={catalog}
+        failed={catalogFailed}
+        onRetry={reload}
         selectedId={selectedId}
         trends={overview}
         onSelect={(recipe) => update({ recipe })}
@@ -299,7 +344,13 @@ export function MarketTrendsPage() {
         </label>
       </section>
 
-      {failed ? (
+      {leagueMismatch ? (
+        <StatusPanel tone="warning" title="League changed while loading">
+          <button type="button" onClick={reload}>
+            Reload current market
+          </button>
+        </StatusPanel>
+      ) : failed ? (
         <StatusPanel tone="danger" title="Market trends unavailable">
           Price history could not be loaded. Try again when the service is
           available.
@@ -334,7 +385,12 @@ export function MarketTrendsPage() {
                   >
                     Open recipe ›
                   </Link>
-                  <RecipeTrendPanel range={range} recipeId={selectedId} />
+                  <RecipeTrendPanel
+                    range={range}
+                    recipeId={selectedId}
+                    expectedLeagueId={league!.id}
+                    onReload={reload}
+                  />
                 </>
               ) : (
                 <p>Select a recipe to see its price history.</p>

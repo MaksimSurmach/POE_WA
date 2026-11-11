@@ -222,3 +222,64 @@ test('visible collection controls pause, recover from conflict and resume', asyn
     }
   }
 });
+
+test('quote-age edits keep the draft and require review before overwriting another tab', async ({
+  page,
+}) => {
+  const url = '/api/admin/market/settings';
+  const read = async () => (await (await page.request.get(url)).json()).data;
+  const before = await read();
+  const oldMinutes = before.configured.freshnessWarningMs / 60_000;
+  const draft = oldMinutes === 1 ? 2 : 1;
+  const remote = oldMinutes === 3 ? 4 : 3;
+  const remoteMaximum =
+    before.configured.maximumQuoteAgeMs === 7_200_000 ? 3_600_000 : 7_200_000;
+  try {
+    await page.goto('/');
+    await page.getByRole('heading', { name: 'Settings', exact: true }).click();
+    const input = page.getByLabel('Warning age (minutes)', { exact: true });
+    await input.fill(String(draft));
+    const current = await read();
+    expect(
+      (
+        await page.request.patch(url, {
+          data: {
+            version: current.version,
+            settings: {
+              freshnessWarningMs: remote * 60_000,
+              maximumQuoteAgeMs: remoteMaximum,
+            },
+          },
+        })
+      ).ok(),
+    ).toBe(true);
+    await page
+      .getByRole('button', { name: 'Save settings', exact: true })
+      .click();
+    await expect(page.getByText(/Quote ages changed elsewhere/)).toBeVisible();
+    await expect(input).toHaveValue(String(draft));
+    await expect(
+      page.getByLabel('Maximum quote age (minutes)', { exact: true }),
+    ).toHaveValue(String(remoteMaximum / 60_000));
+    expect((await read()).configured.freshnessWarningMs).toBe(remote * 60_000);
+    await page
+      .getByRole('button', { name: 'Save settings', exact: true })
+      .click();
+    await expect(
+      page.getByText('Settings saved.', { exact: true }),
+    ).toBeVisible();
+    expect((await read()).configured.freshnessWarningMs).toBe(draft * 60_000);
+    expect((await read()).configured.maximumQuoteAgeMs).toBe(remoteMaximum);
+  } finally {
+    const current = await read();
+    await page.request.patch(url, {
+      data: {
+        version: current.version,
+        settings: {
+          freshnessWarningMs: before.configured.freshnessWarningMs,
+          maximumQuoteAgeMs: before.configured.maximumQuoteAgeMs,
+        },
+      },
+    });
+  }
+});

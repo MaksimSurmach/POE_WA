@@ -39,7 +39,7 @@ test('current market includes every recipe and selection preserves the overview'
     route.fulfill({
       json: {
         correlationId: id,
-        data: { entries, pipeline: 'collector' },
+        data: { entries, pipeline: 'collector', league: window.league },
         state: 'success',
         errorCode: null,
         isStale: false,
@@ -65,7 +65,7 @@ test('current market includes every recipe and selection preserves the overview'
       },
     }),
   );
-  await page.route('**/api/recipes/*/trends?*', (route) =>
+  await page.route('**/api/trends/*?*', (route) =>
     route.fulfill({
       json: {
         correlationId: id,
@@ -100,9 +100,7 @@ test('current market includes every recipe and selection preserves the overview'
   await overview.getByRole('button', { name: /^2 recipes,/ }).click();
   const choices = page.getByRole('group', { name: 'Recipes at this point' });
   await expect(choices).toBeVisible();
-  await choices
-    .getByRole('button', { name: 'Other crafting method', exact: true })
-    .click();
+  await choices.getByRole('button', { name: /^Other crafting method/ }).click();
   await expect(
     page.getByRole('region', { name: 'Selected recipe price history' }),
   ).toContainText('Other crafting method');
@@ -160,4 +158,170 @@ test('all main pages share typography, palette and content width', async ({
       ).toBeLessThanOrEqual(width);
     }
   }
+});
+
+test('delayed old-league history cannot label or price the new-league catalog', async ({
+  page,
+}) => {
+  const next = {
+    id: '00000000-0000-4000-8000-000000000002',
+    name: 'Next Fixture League',
+  };
+  let current = false;
+  let release!: () => void;
+  const oldResponse = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const summary = (percent: number) => ({
+    currency: 'divine',
+    latestAsk: 8.2,
+    latestObservedAt: at,
+    latestComparableSellers: 4,
+    latestCoverage: 'complete',
+    latestCraftCost: null,
+    latestCraftCostObservedAt: null,
+    windowObservations: 2,
+    windowFirstObservedAt: window.windowStart,
+    windowLastObservedAt: at,
+    excludedCurrencies: [],
+    change: {
+      from: 1,
+      to: 8.2,
+      fromObservedAt: window.windowStart,
+      toObservedAt: at,
+      absolute: 7.2,
+      percent,
+    },
+  });
+  await page.route('**/api/catalog', (route) =>
+    route.fulfill({
+      json: {
+        correlationId: id,
+        state: 'success',
+        data: { entries, pipeline: 'collector', league: next },
+        errorCode: null,
+        isStale: false,
+        lastSuccessfulAt: at,
+        publishedAt: at,
+        refreshStatus: 'published',
+      },
+    }),
+  );
+  await page.route('**/api/trends?*', async (route) => {
+    const latest = current;
+    if (!latest) await oldResponse;
+    await route.fulfill({
+      json: {
+        correlationId: id,
+        data: {
+          ...window,
+          state: 'available',
+          league: latest ? next : window.league,
+          entries: entries.map(({ recipe }) => ({
+            recipeId: recipe.id,
+            title: recipe.title,
+            category: recipe.category,
+            summary: summary(latest ? 5 : 99),
+          })),
+        },
+      },
+    });
+  });
+  await page.route('**/api/trends/*?*', (route) =>
+    route.fulfill({
+      json: {
+        correlationId: id,
+        data: {
+          ...window,
+          recipeId: entries[0]!.recipe.id,
+          title: entries[0]!.recipe.title,
+          summary: summary(99),
+          buckets: [],
+        },
+      },
+    }),
+  );
+  await page.goto('/market');
+  await expect(page.locator('.trade-dashboard__league')).toContainText(
+    next.name,
+  );
+  release();
+  await expect(
+    page.getByRole('heading', {
+      name: 'League changed while loading',
+      exact: true,
+    }),
+  ).toBeVisible();
+  const overview = page.getByRole('region', {
+    name: 'All recipes market overview',
+  });
+  await overview.locator('summary').click();
+  await expect(
+    overview.getByText('History unavailable', { exact: true }).first(),
+  ).toBeVisible();
+  await expect(overview).not.toContainText('+99%');
+  current = true;
+  await page
+    .getByRole('button', { name: 'Reload current market', exact: true })
+    .click();
+  await expect(overview.locator('summary')).toBeVisible();
+  await overview.locator('summary').click();
+  await expect(
+    overview.getByText('+5%', { exact: true }).first(),
+  ).toBeVisible();
+  await overview.locator('tbody tr').first().getByRole('button').click();
+  await expect(
+    page.getByRole('heading', {
+      name: 'League changed while loading history',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.locator('.trend-chart__svg')).toHaveCount(0);
+});
+
+test('catalog labels its pinned observations when current-league discovery has advanced', async ({
+  page,
+}) => {
+  await page.route('**/api/catalog', (route) =>
+    route.fulfill({
+      json: {
+        correlationId: id,
+        state: 'success',
+        data: { entries, pipeline: 'collector', league: window.league },
+        errorCode: null,
+        isStale: false,
+        lastSuccessfulAt: at,
+        publishedAt: at,
+        refreshStatus: 'published',
+      },
+    }),
+  );
+  await page.route('**/api/leagues/current', (route) =>
+    route.fulfill({
+      json: {
+        correlationId: id,
+        data: {
+          id: '00000000-0000-4000-8000-000000000002',
+          name: 'Next Fixture League',
+          gggId: 'Next Fixture League',
+          game: 'poe1',
+          realm: 'pc',
+          startAt: null,
+          endAt: null,
+          isCurrent: true,
+          discovery: 'confirmed',
+          syncedAt: at,
+          createdAt: at,
+          updatedAt: at,
+        },
+      },
+    }),
+  );
+  await page.goto('/');
+  await expect(page.locator('.catalog-heading')).toContainText(
+    'Current Fixture League · Market observations',
+  );
+  await expect(page.locator('.catalog-heading')).not.toContainText(
+    'Next Fixture League',
+  );
 });

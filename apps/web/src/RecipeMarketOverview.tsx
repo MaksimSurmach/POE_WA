@@ -3,16 +3,12 @@ import type {
   CatalogResponse,
   TrendOverview,
 } from '@poe-worksmith/contracts';
-import { useEffect, useState } from 'react';
 
-import { createApiClient } from './apiClient.js';
 import { observedAsk } from './catalog.js';
 import { Money, StatusPanel, economicClass } from './components.js';
 import { formatUtc, formatPercent } from './PriceTrendChart.js';
 import { TurnoverMap } from './TurnoverMap.js';
 import './tradeDashboard.css';
-
-const api = createApiClient();
 
 export function marketRecipePoint(entry: CatalogEntry) {
   const readiness = entry.readiness;
@@ -34,35 +30,20 @@ export function marketRecipePoint(entry: CatalogEntry) {
 }
 
 export function RecipeMarketOverview({
-  league,
+  response,
+  failed,
+  onRetry,
   selectedId,
   trends,
   onSelect,
 }: {
-  league: string | undefined;
+  response: CatalogResponse | null;
+  failed: boolean;
+  onRetry(): void;
   selectedId: string | null;
   trends: TrendOverview | undefined;
   onSelect(id: string): void;
 }) {
-  const [response, setResponse] = useState<CatalogResponse | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [revision, setRevision] = useState(0);
-  useEffect(() => {
-    const controller = new AbortController();
-    setResponse(null);
-    setFailed(false);
-    api
-      .getCatalog(
-        AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
-      )
-      .then((value) => {
-        if (!controller.signal.aborted) setResponse(value);
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setFailed(true);
-      });
-    return () => controller.abort();
-  }, [league, revision]);
   const entries = response?.data?.entries ?? [];
   const points = entries.map(marketRecipePoint);
   const priced = points.filter((point) => point.price !== null);
@@ -80,15 +61,18 @@ export function RecipeMarketOverview({
       </header>
       {failed || (response && !response.data) ? (
         <StatusPanel title="Market overview unavailable" tone="danger">
-          <button
-            type="button"
-            onClick={() => setRevision((value) => value + 1)}
-          >
+          <button type="button" onClick={onRetry}>
             Retry market overview
           </button>
         </StatusPanel>
       ) : !response ? (
         <StatusPanel title="Loading all recipes" tone="info" />
+      ) : !response.data?.league ? (
+        <StatusPanel title="Current market league unresolved" tone="warning">
+          <button type="button" onClick={onRetry}>
+            Reload current market
+          </button>
+        </StatusPanel>
       ) : (
         <>
           {response.isStale ? (
@@ -199,7 +183,9 @@ export function RecipeMarketOverview({
                           {change == null
                             ? history
                               ? 'Insufficient history'
-                              : 'No history'
+                              : trends
+                                ? 'No history'
+                                : 'History unavailable'
                             : formatPercent(change)}
                         </td>
                         <td>

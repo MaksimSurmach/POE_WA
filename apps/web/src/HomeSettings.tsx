@@ -85,10 +85,24 @@ export function HomeSettings({
               else
                 // Pause/resume elsewhere bumps the version; only the edited
                 // ages are sent, so the current pause state is left untouched.
-                void apply(
-                  async () => api.save((await api.settings()).version, changes),
-                  'Settings saved.',
-                );
+                void apply(async () => {
+                  const latest = await api.settings();
+                  if (
+                    ageFields.some(
+                      ([key]) =>
+                        key in changes &&
+                        latest.configured[key] !== settings.configured[key] &&
+                        latest.configured[key] !== draft[key],
+                    )
+                  ) {
+                    setSettings(latest);
+                    setDraft({ ...latest.configured, ...changes });
+                    throw new Error(
+                      `Quote ages changed elsewhere: maximum ${latest.configured.maximumQuoteAgeMs / minuteMs} min, warning ${latest.configured.freshnessWarningMs / minuteMs} min. Your draft is kept. Review it and save again.`,
+                    );
+                  }
+                  return api.save(latest.version, changes);
+                }, 'Settings saved.');
             }}
           >
             <fieldset disabled={busy}>
