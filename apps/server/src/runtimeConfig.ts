@@ -39,6 +39,7 @@ const runtimeEnvironmentSchema = z
     APP_MODE: z.enum(['all', 'api', 'worker', 'collector']).default('api'),
     APP_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
     PIPELINE: z.enum(['legacy', 'collector']).default('collector'),
+    COLLECTOR_SKIP_STANDARD: z.enum(['true', 'false']).default('false'),
     ...collectorScheduleFields,
     LOG_LEVEL: z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
@@ -86,6 +87,7 @@ const runtimeEnvironmentSchema = z
 export type RuntimeConfig = {
   cleanupCron: string;
   collectorRetentionEnabled: boolean;
+  collectorSkipStandard: boolean;
   database: DatabaseConfig;
   host: string;
   leagueResolveCron: string;
@@ -196,6 +198,7 @@ export function loadRuntimeConfig(
     collectorRetentionEnabled:
       result.data.COLLECTOR_RETENTION_ENABLED === 'true',
     database,
+    collectorSkipStandard: result.data.COLLECTOR_SKIP_STANDARD === 'true',
     host: result.data.APP_HOST,
     leagueResolveCron: result.data.LEAGUE_RESOLVE_CRON,
     leagueResolveTimezone: result.data.LEAGUE_RESOLVE_TIMEZONE,

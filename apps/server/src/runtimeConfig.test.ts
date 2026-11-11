@@ -25,6 +25,7 @@ describe('runtime configuration', () => {
 
     expect(config).toMatchObject({
       cleanupCron: '15 2 * * *',
+      collectorSkipStandard: false,
       host: '0.0.0.0',
       leagueResolveCron: '0 23 * * *',
       leagueResolveTimezone: 'Europe/Warsaw',
@@ -40,6 +41,16 @@ describe('runtime configuration', () => {
       retentionBatchSize: 500,
       snapshotTtlMs: 1_800_000,
     });
+  });
+
+  it('validates the Standard collection opt-out', () => {
+    expect(
+      loadRuntimeConfig({ ...environment, COLLECTOR_SKIP_STANDARD: 'true' })
+        .collectorSkipStandard,
+    ).toBe(true);
+    expect(() =>
+      loadRuntimeConfig({ ...environment, COLLECTOR_SKIP_STANDARD: 'yes' }),
+    ).toThrow(RuntimeConfigurationError);
   });
 
   it('keeps a 45-minute catalog refresh usable through the next hourly interval without extending reuse', () => {

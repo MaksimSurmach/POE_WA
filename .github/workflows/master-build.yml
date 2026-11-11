@@ -45,6 +45,7 @@ jobs:
       - run: pnpm test:contracts
       - run: pnpm db:check:migrations
       - run: pnpm test:e2e:master:self-check
+      - run: python3 -B -m unittest discover -s deploy/homelab -p 'test_*.py'
       - run: pnpm build
       - name: Build and archive exact images
         env:

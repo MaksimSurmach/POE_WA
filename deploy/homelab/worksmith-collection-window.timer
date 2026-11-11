@@ -1,0 +1,12 @@
+[Unit]
+Description=Check Worksmith collection window every minute
+
+[Timer]
+OnBootSec=30s
+OnCalendar=*-*-* *:*:00
+AccuracySec=1s
+Persistent=true
+Unit=worksmith-collection-window.service
+
+[Install]
+WantedBy=timers.target
