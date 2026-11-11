@@ -50,11 +50,11 @@ test('ranks two priced methods and shows both profits on the homepage', async ({
     const row = page.getByRole('row').filter({
       has: page.locator(`a[href="${path}"]`),
     });
-    // Still 390 px wide: profit sits under the method name, not in a column.
-    await expect(row.getByRole('rowheader')).toContainText(profit);
+    await expect(row.locator('[data-label="Profit"]')).toContainText(profit);
+    await expect(row.locator('.craft-table__evidence')).toBeVisible();
   }
   await expect(
-    page.getByRole('columnheader', { name: 'Item class' }),
+    page.getByRole('button', { name: 'Item class', exact: true }),
   ).toBeHidden();
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),

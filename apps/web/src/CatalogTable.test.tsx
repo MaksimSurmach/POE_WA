@@ -129,7 +129,7 @@ describe('catalog table', () => {
       </MemoryRouter>,
     );
     expect(html).toMatch(
-      /<td>[^]*120 c[^]*budget for one[^]*p50[^]*110 c[^]*p90[^]*140 c[^]*<\/td>/,
+      /<td data-label="Expected cost">[^]*120 c[^]*budget for one[^]*p50[^]*110 c[^]*p90[^]*140 c[^]*<\/td>/,
     );
   });
 
