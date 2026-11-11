@@ -53,13 +53,18 @@ export function classifyExit(
   listing: ActivityListing,
   events: readonly ActivityEvent[],
   floorAtLastSeen: string | null,
-  sellerContext: { otherLastSeenAt: Date | null; ambiguousRelist?: boolean },
+  sellerContext: {
+    otherLastSeenAt: Date | null;
+    ambiguousRelist?: boolean;
+    stillListedElsewhere?: boolean;
+  },
 ): 'inferred' | 'uncertain' | null {
   const { goneAt } = listing;
   if (listing.status !== 'gone' || goneAt === null) return null;
   if (events.some((row) => row.type === 'possible_relist' && row.at >= goneAt))
     return null;
-  if (sellerContext.ambiguousRelist) return 'uncertain';
+  if (sellerContext.ambiguousRelist || sellerContext.stillListedElsewhere)
+    return 'uncertain';
   const firstMissAt = events
     .filter(
       (row) =>
@@ -80,7 +85,8 @@ export function classifyExit(
     )
   )
     return 'uncertain';
-  // The seller must have been seen on this target after the listing went missing.
+  // The seller must have been seen listing something else after the miss;
+  // an offline seller's listings all leave Trade at once.
   const seenAt = sellerContext.otherLastSeenAt;
   if (seenAt === null || seenAt.getTime() < firstMissAt) return 'uncertain';
   return 'inferred';
@@ -95,6 +101,9 @@ export function summarizeMarketActivity(input: {
   events: readonly ActivityEvent[];
   latestCompleteCaptureId: string | null;
   completeCaptureFloors?: ReadonlyMap<string, string>;
+  /** Per gone item id: its seller's latest sighting of another item on any target in the league. */
+  sellerSeenElsewhereAt?: ReadonlyMap<string, Date>;
+  sameItemSeenElsewhereAt?: ReadonlyMap<string, Date>;
   now: Date;
 }): MarketActivity {
   const { listings, now } = input;
@@ -112,9 +121,16 @@ export function summarizeMarketActivity(input: {
 
   const sellerLatest = new Map<string, Date>();
   const newestMatchingFirstSeen = new Map<string, number>();
+  // Several of one seller's listings leaving after the same capture look like a
+  // hidden tab, so only a sighting on this target counts for them.
+  const withdrawnTogether = new Map<string, number>();
   for (const row of listings) {
     const seller = row.seller?.trim();
     if (!seller || row.lastSeenAt > now) continue;
+    if (row.goneAt !== null) {
+      const key = JSON.stringify([seller, row.lastCaptureId]);
+      withdrawnTogether.set(key, (withdrawnTogether.get(key) ?? 0) + 1);
+    }
     if (row.lastSeenAt > (sellerLatest.get(seller) ?? new Date(0)))
       sellerLatest.set(seller, row.lastSeenAt);
     if (row.fingerprint) {
@@ -142,7 +158,16 @@ export function summarizeMarketActivity(input: {
     )
       continue;
     const seller = row.seller?.trim();
-    const otherLastSeenAt = seller ? (sellerLatest.get(seller) ?? null) : null;
+    const onTarget = seller ? (sellerLatest.get(seller) ?? null) : null;
+    const elsewhere =
+      seller &&
+      withdrawnTogether.get(JSON.stringify([seller, row.lastCaptureId])) === 1
+        ? input.sellerSeenElsewhereAt?.get(row.itemId)
+        : undefined;
+    const otherLastSeenAt =
+      elsewhere && (onTarget === null || elsewhere > onTarget)
+        ? elsewhere
+        : onTarget;
     const matchingFirstSeen =
       seller && row.fingerprint
         ? (newestMatchingFirstSeen.get(
@@ -154,11 +179,18 @@ export function summarizeMarketActivity(input: {
     const ambiguousRelist =
       matchingFirstSeen > row.lastSeenAt.getTime() &&
       matchingFirstSeen >= row.goneAt.getTime() - captureRelistWindowMs;
+    const sameItemSeen = input.sameItemSeenElsewhereAt?.get(row.itemId);
     const kind = classifyExit(
       row,
       eventsByItem.get(row.itemId) ?? [],
       input.completeCaptureFloors?.get(row.lastCaptureId) ?? null,
-      { otherLastSeenAt, ambiguousRelist },
+      {
+        otherLastSeenAt,
+        ambiguousRelist,
+        stillListedElsewhere: Boolean(
+          sameItemSeen && sameItemSeen >= row.goneAt && sameItemSeen <= now,
+        ),
+      },
     );
     const inLastDay = row.goneAt.getTime() >= since24;
     if (kind === 'uncertain') {

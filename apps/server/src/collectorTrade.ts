@@ -298,6 +298,7 @@ async function collectTradeCapture(
     range: TradePriceRange,
   ): Promise<void> {
     const total = page.reportedTotal;
+    const currency = range.option ?? singleCurrency;
     if (
       !page.queryId ||
       total === null ||
@@ -313,8 +314,7 @@ async function collectTradeCapture(
     }
     const asks = ids.flatMap((id) => {
       const row = rows.get(id);
-      if (!row || row.price === null || row.currency !== singleCurrency)
-        return [];
+      if (!row || row.price === null || row.currency !== currency) return [];
       return row.price >= (range.min ?? 0) &&
         row.price <= (range.max ?? Infinity)
         ? [row.price]
@@ -322,7 +322,7 @@ async function collectTradeCapture(
     });
     if (
       ids.some((id) => !rows.has(id)) ||
-      (singleCurrency && asks.length !== ids.length)
+      (currency && asks.length !== ids.length)
     ) {
       partialReason ??= 'DETAILS_INCOMPLETE';
       return;
@@ -335,9 +335,21 @@ async function collectTradeCapture(
       partialReason ??= 'SEARCH_TRUNCATED';
       return;
     }
-    // shortcut: mixed-currency ranges remain partial until Trade's bounds can be reconciled across denominations.
-    if (!singleCurrency) {
-      partialReason ??= 'MIXED_CURRENCY_SLICE_UNPROVEN';
+    // Reconcile denominations before spending the bounded price-slice budget.
+    if (!currency) {
+      const chaos = await search({ option: 'chaos' });
+      const divine = await search({ option: 'divine' });
+      sliceCount += 2;
+      if (
+        chaos.reportedTotal === null ||
+        divine.reportedTotal === null ||
+        chaos.reportedTotal + divine.reportedTotal !== total
+      ) {
+        partialReason ??= 'MIXED_CURRENCY_TOTAL_MISMATCH';
+        return;
+      }
+      await prove(chaos, { option: 'chaos' });
+      await prove(divine, { option: 'divine' });
       return;
     }
     // Both bounds are inclusive. Dedupe the overlap rather than guessing the next valid fractional ask.

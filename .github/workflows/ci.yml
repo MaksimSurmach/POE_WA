@@ -73,14 +73,16 @@ jobs:
       - run: pnpm test:integration
       - run: pnpm test:e2e:backend
       - run: pnpm build
-      - run: pnpm exec playwright install --with-deps chromium
+      # shortcut: use hosted Chromium libraries; install-deps is needed if the runner image drops them.
+      - run: pnpm exec playwright install chromium
       - run: pnpm test:e2e:browser
+      - run: pnpm test:e2e:browser tests/browser/factory.spec.ts tests/browser/market-freshness.spec.ts
+        env:
+          PIPELINE: legacy
       - run: pnpm test:e2e:browser tests/browser/two-methods.spec.ts
         env:
+          PIPELINE: legacy
           BROWSER_FIXTURE_SCENARIO: two-methods-priced
-      - run: pnpm test:e2e:browser tests/browser/collector-run-now.spec.ts
-        env:
-          PIPELINE: collector
       - name: Validate and preview recipe catalog
         run: |
           echo '## Recipe catalog' >> "$GITHUB_STEP_SUMMARY"

@@ -85,6 +85,7 @@ function setup(
     moveBeforeRecheck?: boolean;
     exchange?: StoredMarketEconomySnapshot;
     status?: number;
+    unsliced?: string;
   } = {},
 ) {
   vi.useFakeTimers({ toFake: ['Date'] });
@@ -99,12 +100,15 @@ function setup(
           status: options.status,
           headers: { 'Retry-After': '120' },
         });
-      const { min, max } = JSON.parse(String(init?.body)).query.filters
+      const { min, max, option } = JSON.parse(String(init?.body)).query.filters
         .trade_filters.filters.price;
       if (min !== undefined || max !== undefined) requests.ranged++;
+      // Models Trade's named-currency option as an exact denomination match.
       const result = data.filter(
-        ({ listing: { price } }) =>
-          price.amount >= (min ?? 0) && price.amount <= (max ?? Infinity),
+        ({ id, listing: { price } }) =>
+          (!option || (price.currency === option && id !== options.unsliced)) &&
+          price.amount >= (min ?? 0) &&
+          price.amount <= (max ?? Infinity),
       );
       if (
         options.moveBeforeRecheck &&
@@ -267,16 +271,66 @@ describe('collector Trade captures', () => {
         capture: {
           complete: false,
           reportedTotal: 601,
-          fetched: mixed ? 100 : 298,
-          partialReason: mixed
-            ? 'MIXED_CURRENCY_SLICE_UNPROVEN'
-            : 'PRICE_SLICE_LIMIT',
+          fetched: mixed ? 199 : 298,
+          partialReason: 'PRICE_SLICE_LIMIT',
         },
       });
-      expect(requests.ranged).toBe(mixed ? 0 : 5);
-      expect(requests.search).toBe(requests.ranged + 1);
+      // Mixed reserves two of the five bounded searches for denomination totals.
+      expect(requests.ranged).toBe(mixed ? 3 : 5);
+      expect(requests.search).toBe(6);
     },
   );
+
+  const mixedListings = (extra: ReturnType<typeof listings> = []) => [
+    ...listings(150),
+    ...listings(60, 'divine').map((row) => ({ ...row, id: `div-${row.id}` })),
+    ...extra,
+  ];
+
+  it('proves mixed chaos and divine coverage above 100 by denomination', async () => {
+    const { rateLimits, economy, requests } = setup(mixedListings());
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
+    expect(await run(target(true), new AbortController().signal)).toMatchObject(
+      {
+        status: 'success',
+        capture: {
+          complete: true,
+          partialReason: null,
+          fetched: 210,
+          reportedTotal: 210,
+          slices: 4,
+        },
+      },
+    );
+    // Root, chaos, two chaos price slices, divine, and the root recheck.
+    expect(requests.search).toBe(6);
+    expect(requests.ranged).toBe(2);
+  });
+
+  it.each([
+    [
+      'a third currency',
+      mixedListings(
+        listings(5, 'exalted').map((row) => ({ ...row, id: `ex-${row.id}` })),
+      ),
+      {},
+    ],
+    ['totals that do not reconcile', mixedListings(), { unsliced: 'id-150' }],
+  ])('keeps mixed coverage partial with %s', async (_label, data, options) => {
+    const { rateLimits, economy, requests } = setup(data, options);
+    const run = fixtureTradeCapture(rateLimits, economy, environment);
+    expect(await run(target(true), new AbortController().signal)).toMatchObject(
+      {
+        status: 'success',
+        capture: {
+          complete: false,
+          partialReason: 'MIXED_CURRENCY_TOTAL_MISMATCH',
+        },
+      },
+    );
+    expect(requests.search).toBe(3);
+    expect(requests.ranged).toBe(0);
+  });
 
   it.each([
     [180, true],

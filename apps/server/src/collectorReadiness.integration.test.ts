@@ -10,6 +10,7 @@ import {
 } from './collectorReadiness.js';
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
+import { createMarketActivityReader } from './marketActivity.js';
 import { createCaptureRepository } from './repositories/captureRepository.js';
 import { assertLocalBrowserFixtureDatabase } from './testkit/integrationScenarios.js';
 
@@ -203,6 +204,52 @@ it('reports each active query and upgrades one observed ask through timed eviden
     last24h: { complete: 6, inferredExits: null, askRange: null },
   });
   expect(await createCollectorReadinessReader(pool)(now)).toHaveLength(1);
+});
+
+it('uses cross-target seller sightings but vetoes an item still observed elsewhere', async () => {
+  const id = await createSchedule('solo-target');
+  const {
+    rows: [other],
+  } = await pool.query<{ id: string; leagueId: string }>(
+    `insert into collector_schedule(kind,key,league_id,payload,interval_minutes,next_due_at)
+     select kind,'other-target',league_id,payload,60,next_due_at from collector_schedule
+     where id = $1 returning id, league_id as "leagueId"`,
+    [id],
+  );
+  const rest = [listings[3]!];
+  await capture(id, 4, true, [
+    { itemId: 's1', seller: 's', amount: '10' },
+    ...rest,
+  ]);
+  await capture(id, 3, true, rest);
+  await capture(id, 1, true, rest);
+  const exits = async () => {
+    const evidence = await createCollectorReadinessReader(pool)(now);
+    const { last24h } = targetReadiness(
+      evidence.find(({ schedule }) => schedule.id === id)!,
+      now,
+    );
+    const view = await createMarketActivityReader(pool)(
+      other!.leagueId,
+      'solo-target',
+      now,
+    );
+    return {
+      readiness: [last24h.inferredExits ?? 0, last24h.uncertainExits],
+      reader: [view?.inferredExits24h, view?.uncertainExits24h],
+    };
+  };
+  expect(await exits()).toEqual({ readiness: [0, 1], reader: [0, 1] });
+  await capture(other!.id, 0.5, true, [
+    { itemId: 's2', seller: 's', amount: '50' },
+  ]);
+  expect(await exits()).toEqual({ readiness: [1, 0], reader: [1, 0] });
+  // Seeing the original item contradicts the exit, even with another seller item.
+  await capture(other!.id, 0.25, true, [
+    { itemId: 's1', seller: 's', amount: '10' },
+    { itemId: 's2', seller: 's', amount: '50' },
+  ]);
+  expect(await exits()).toEqual({ readiness: [0, 1], reader: [0, 1] });
 });
 
 it('keeps missing interval counts within the report window and abstains without a baseline', async () => {

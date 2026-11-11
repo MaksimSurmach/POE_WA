@@ -13,6 +13,7 @@ import {
   captureLimit,
   eventLimit,
   listingLimit,
+  sellerSightingsSql,
   summarizeCaptureActivity,
   type MarketActivityView,
 } from './marketActivity.js';
@@ -321,16 +322,23 @@ export function createCollectorReadinessReader(pool: Pool) {
         ) e`,
         [scheduleIds, historySince, now, eventLimit + 1],
       );
+      const { rows: sightings } = await client.query<
+        NonNullable<ActivityInput['sellerSightings']>[number] & {
+          scheduleId: string;
+        }
+      >(sellerSightingsSql, [scheduleIds, historySince, now]);
       await client.query('commit');
       const captureGroups = bySchedule(captures);
       const listingGroups = bySchedule(listings);
       const eventGroups = bySchedule(events);
+      const sightingGroups = bySchedule(sightings);
       return rows.map((schedule) => ({
         schedule,
         activity: summarizeCaptureActivity({
           captureRows: captureGroups.get(schedule.id) ?? [],
           listingRows: listingGroups.get(schedule.id) ?? [],
           eventRows: eventGroups.get(schedule.id) ?? [],
+          sellerSightings: sightingGroups.get(schedule.id) ?? [],
           scheduleKey: schedule.key,
           now,
           maximumQuoteAgeMs:

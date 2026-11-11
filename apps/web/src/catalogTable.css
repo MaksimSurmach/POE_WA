@@ -56,8 +56,7 @@
   line-height: 1.5;
 }
 .catalog-table-scroll {
-  overflow: auto;
-  max-height: 75vh;
+  overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   scrollbar-color: var(--border) var(--surface);
@@ -80,9 +79,6 @@
   text-align: right;
 }
 .craft-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
   padding: 0 10px;
   background: var(--surface-raised);
   color: var(--muted);
@@ -212,9 +208,6 @@
   .catalog-search {
     grid-column: 1 / -1;
   }
-  .catalog-table-scroll {
-    max-height: 70vh;
-  }
   /* Phone: name (with profit and ROI under it), cost and ask only. */
   .craft-table {
     min-width: 0;
@@ -239,6 +232,15 @@
   .craft-table th,
   .craft-table td {
     padding: 10px 6px;
+  }
+  /* Header cells keep the 6px gutter and wrap labels instead of colliding. */
+  .craft-table thead th {
+    padding: 0 6px;
+  }
+  .craft-table thead button {
+    gap: 3px;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .craft-table__identity {
     gap: 8px;

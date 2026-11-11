@@ -28,6 +28,7 @@ export default defineConfig({
         APP_PORT: '4317',
         MARKET_COLLECTION_SOURCE: 'disabled',
         POE_TRADE_ACCESS: 'disabled',
+        OPERATOR_DIAGNOSTICS_TOKEN: 'browser-fixture-only',
       },
     },
     {

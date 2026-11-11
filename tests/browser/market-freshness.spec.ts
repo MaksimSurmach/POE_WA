@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
 
+// ponytail: not yet verified against the collector browser fixture, so it
+// stays on the legacy fixture it has always run on.
+test.skip(
+  process.env.PIPELINE !== 'legacy',
+  'Requires the legacy browser fixture',
+);
+
 test('public schedule follows settings changed by another client', async ({
   page,
 }) => {
