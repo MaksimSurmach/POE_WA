@@ -213,7 +213,15 @@
     min-width: 0;
   }
   .craft-table th:first-child {
-    width: 52%;
+    width: 48%;
+  }
+  .craft-table thead th:nth-child(3),
+  .craft-table thead th:nth-child(4) {
+    width: 26%;
+    padding-inline: 6px;
+  }
+  .craft-table thead button {
+    flex-wrap: wrap;
   }
   .craft-table thead th:nth-child(2),
   .craft-table thead th:nth-child(n + 5),

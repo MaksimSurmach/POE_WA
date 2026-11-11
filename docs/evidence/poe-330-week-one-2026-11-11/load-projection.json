@@ -1,57 +1,194 @@
 {
-  "observedAt": "2026-11-11T09:42:21.003Z",
-  "source": "https://worksmith.ranus.site/api/diagnostics/rate-limits",
-  "scope": "Pre-expansion observation; not a post-expansion load test. Earlier samples include provider incidents and migration.",
-  "existing": {
-    "recipes": 31,
-    "tradeTargets": 46,
-    "capturesPerHour": 35.5
+  "scope": "Completed captures per exact active Standard query, weighted by schedule cadence. Counterfactual reduced-cadence budget, not post-change or steady-state throughput proof.",
+  "policy": {
+    "establishedOutputIntervalMinutes": 60,
+    "weekOneOutputIntervalMinutes": 120,
+    "baseIntervalMinutes": 120,
+    "reserveFraction": 0.25
   },
   "candidate": {
     "recipes": 55,
     "tradeTargets": 94,
-    "hourlyTargets": 49,
-    "twoHourlyTargets": 45,
-    "capturesPerHour": 71.5
+    "hourlyTargets": 25,
+    "twoHourlyTargets": 69,
+    "capturesPerHour": 59.5
   },
-  "observedSuccessfulCaptureAverage": {
-    "searchRequests": 1.023041474654378,
-    "fetchRequests": 2.9769585253456223
+  "capacityAudit": {
+    "observedAt": "2026-11-11T13:28:33.050353+01:00",
+    "sampling": "Latest completed capture per enabled exact schedule key since Standard recovery; request totals include all response classes; wall duration includes handler overhead; not steady-state proof",
+    "observedTargets": 94,
+    "totalTargets": 94,
+    "previousCadence": {
+      "capturesPerHour": 71.5,
+      "searchRequestsPerHour": 71.5,
+      "fetchRequestsPerHour": 257,
+      "handlerWallSecondsPerHour": 3536.6775,
+      "pacedServiceSecondsPerHour": 3954.667,
+      "pacedServiceUtilizationFraction": 1.0985186111111114
+    },
+    "candidateCadence": {
+      "capturesPerHour": 59.5,
+      "searchRequestsPerHour": 59.5,
+      "fetchRequestsPerHour": 200.0,
+      "safeFetchResidualPerHour": 50.0,
+      "safeFetchResidualFraction": 0.2,
+      "handlerWallSecondsPerHour": 2740.732,
+      "pacedServiceSecondsPerHour": 3073.891,
+      "pacedServiceUtilizationFraction": 0.8538586111111115,
+      "pacedServiceHeadroomSecondsPerHour": 526.109
+    },
+    "manualRequest": {
+      "state": "done",
+      "succeeded": 97,
+      "failed": 0,
+      "finishedAt": "2026-11-11T13:28:22.689+01:00"
+    },
+    "pacedServiceMethod": "max(finished-start wall seconds, actual search count * observed search minimum delay24s) per target; accounts for between-job scheduler permit waits, approximate latest sample",
+    "fullPassValidation": {
+      "actualSeconds": 4837.778,
+      "modeledSeconds": 4812.03,
+      "relativeError": 0.005322278120244563,
+      "searchRequests": 94,
+      "fetchRequests": 316
+    }
   },
-  "projectionAssumingSameMix": {
-    "searchRequestsPerHour": 73.14746543778801,
-    "fetchRequestsPerHour": 212.85253456221199,
-    "searchPacedCapacityPerHour": 150,
-    "fetchPacedCapacityPerHour": 250,
-    "maximumSustainableMeanFetchRequestsPerCapture": 3.4965034965034967
+  "observedRateLimitWindows": [
+    {
+      "endpoint": "trade-fetch",
+      "observedAt": "2026-11-11T12:09:28.979Z",
+      "windows": [
+        {
+          "rule": "account",
+          "maximumHits": 6,
+          "periodSeconds": 4,
+          "safeRequestsPerHour": 4050.0
+        },
+        {
+          "rule": "ip",
+          "maximumHits": 12,
+          "periodSeconds": 4,
+          "safeRequestsPerHour": 8100.0
+        },
+        {
+          "rule": "ip",
+          "maximumHits": 16,
+          "periodSeconds": 12,
+          "safeRequestsPerHour": 3600.0
+        },
+        {
+          "rule": "ip",
+          "maximumHits": 100,
+          "periodSeconds": 300,
+          "safeRequestsPerHour": 900.0
+        },
+        {
+          "rule": "ip",
+          "maximumHits": 1000,
+          "periodSeconds": 10800,
+          "safeRequestsPerHour": 250.0
+        }
+      ]
+    },
+    {
+      "endpoint": "trade-search",
+      "observedAt": "2026-11-11T12:09:28.656Z",
+      "windows": [
+        {
+          "rule": "account",
+          "maximumHits": 3,
+          "periodSeconds": 5,
+          "safeRequestsPerHour": 1620.0
+        },
+        {
+          "rule": "ip",
+          "maximumHits": 8,
+          "periodSeconds": 10,
+          "safeRequestsPerHour": 2160.0
+        },
+        {
+          "rule": "ip",
+          "maximumHits": 15,
+          "periodSeconds": 60,
+          "safeRequestsPerHour": 675.0
+        },
+        {
+          "rule": "ip",
+          "maximumHits": 60,
+          "periodSeconds": 300,
+          "safeRequestsPerHour": 540.0
+        },
+        {
+          "rule": "ip",
+          "maximumHits": 600,
+          "periodSeconds": 10800,
+          "safeRequestsPerHour": 150.0
+        }
+      ]
+    }
+  ],
+  "initialProjection": {
+    "observedAt": "2026-11-11T09:42:21.003Z",
+    "source": "https://worksmith.ranus.site/api/diagnostics/rate-limits",
+    "scope": "Pre-expansion observation; not a post-expansion load test. Earlier samples include provider incidents and migration.",
+    "existing": {
+      "recipes": 31,
+      "tradeTargets": 46,
+      "capturesPerHour": 35.5
+    },
+    "candidate": {
+      "recipes": 55,
+      "tradeTargets": 94,
+      "hourlyTargets": 49,
+      "twoHourlyTargets": 45,
+      "capturesPerHour": 71.5
+    },
+    "observedSuccessfulCaptureAverage": {
+      "searchRequests": 1.023041474654378,
+      "fetchRequests": 2.9769585253456223
+    },
+    "projectionAssumingSameMix": {
+      "searchRequestsPerHour": 73.14746543778801,
+      "fetchRequestsPerHour": 212.85253456221199,
+      "searchPacedCapacityPerHour": 150,
+      "fetchPacedCapacityPerHour": 250,
+      "maximumSustainableMeanFetchRequestsPerCapture": 3.4965034965034967
+    },
+    "currentLongWindows": {
+      "trade-fetch": [
+        {
+          "activeRestrictionSeconds": 0,
+          "currentHits": 7,
+          "maximumHits": 1000,
+          "periodSeconds": 10800,
+          "restrictionSeconds": 1800,
+          "rule": "ip"
+        }
+      ],
+      "trade-search": [
+        {
+          "activeRestrictionSeconds": 0,
+          "currentHits": 237,
+          "maximumHits": 600,
+          "periodSeconds": 10800,
+          "restrictionSeconds": 3600,
+          "rule": "ip"
+        }
+      ],
+      "trade-leagues": []
+    },
+    "trackedLast429": null,
+    "limitations": [
+      "No representative 3.30 market observations or crafts.",
+      "Projection excludes retries, other same-IP traffic and changing listing/fetch volumes.",
+      "Existing rate controller and 25% reserve are unchanged; queue may fall behind instead of exceeding safe request pacing."
+    ]
   },
-  "currentLongWindows": {
-    "trade-fetch": [
-      {
-        "activeRestrictionSeconds": 0,
-        "currentHits": 7,
-        "maximumHits": 1000,
-        "periodSeconds": 10800,
-        "restrictionSeconds": 1800,
-        "rule": "ip"
-      }
-    ],
-    "trade-search": [
-      {
-        "activeRestrictionSeconds": 0,
-        "currentHits": 237,
-        "maximumHits": 600,
-        "periodSeconds": 10800,
-        "restrictionSeconds": 3600,
-        "rule": "ip"
-      }
-    ],
-    "trade-leagues": []
-  },
-  "trackedLast429": null,
   "limitations": [
-    "No representative 3.30 market observations or crafts.",
-    "Projection excludes retries, other same-IP traffic and changing listing/fetch volumes.",
-    "Existing rate controller and 25% reserve are unchanged; queue may fall behind instead of exceeding safe request pacing."
+    "One completed capture per exact target is a cost sample, not a steady-state guarantee.",
+    "The pre-expansion aggregate average underestimated hourly output costs; use cadence-weighted per-target requests.",
+    "Retries, slices, changing markets, maintenance and other same-IP traffic can consume residual capacity.",
+    "The controller dynamically enforces all actual windows with its existing 25% reserve; lack of 429 alone does not prove cadence compliance.",
+    "Standard observations do not establish new-league 3.30 supply or profit.",
+    "Handler wall time omits between-job permit waits. Paced service uses the observed search-delay floor and is approximate; per-target inter-job waits are not persisted."
   ]
 }
