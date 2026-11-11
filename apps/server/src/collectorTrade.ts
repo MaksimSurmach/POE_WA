@@ -298,6 +298,7 @@ async function collectTradeCapture(
     range: TradePriceRange,
   ): Promise<void> {
     const total = page.reportedTotal;
+    const currency = range.option ?? singleCurrency;
     if (
       !page.queryId ||
       total === null ||
@@ -313,8 +314,7 @@ async function collectTradeCapture(
     }
     const asks = ids.flatMap((id) => {
       const row = rows.get(id);
-      if (!row || row.price === null || row.currency !== singleCurrency)
-        return [];
+      if (!row || row.price === null || row.currency !== currency) return [];
       return row.price >= (range.min ?? 0) &&
         row.price <= (range.max ?? Infinity)
         ? [row.price]
@@ -322,7 +322,7 @@ async function collectTradeCapture(
     });
     if (
       ids.some((id) => !rows.has(id)) ||
-      (singleCurrency && asks.length !== ids.length)
+      (currency && asks.length !== ids.length)
     ) {
       partialReason ??= 'DETAILS_INCOMPLETE';
       return;
@@ -335,32 +335,41 @@ async function collectTradeCapture(
       partialReason ??= 'SEARCH_TRUNCATED';
       return;
     }
-    // shortcut: mixed-currency ranges remain partial until Trade's bounds can be reconciled across denominations.
-    if (!singleCurrency) {
-      partialReason ??= 'MIXED_CURRENCY_SLICE_UNPROVEN';
-      return;
+    // Mixed-currency bounds use Trade's own exchange rate, so split by denomination first and slice each in its own currency.
+    let children: TradePriceRange[] = [
+      { option: 'chaos' },
+      { option: 'divine' },
+    ];
+    if (currency) {
+      // Both bounds are inclusive. Dedupe the overlap rather than guessing the next valid fractional ask.
+      const pivot = Math.max(
+        ...asks.filter(
+          (ask) => ask > (range.min ?? 0) && ask < (range.max ?? Infinity),
+        ),
+      );
+      if (!Number.isFinite(pivot)) {
+        partialReason ??= 'PRICE_SLICE_UNRESOLVED';
+        return;
+      }
+      children = [
+        { ...range, max: pivot },
+        { ...range, min: pivot },
+      ];
     }
-    // Both bounds are inclusive. Dedupe the overlap rather than guessing the next valid fractional ask.
-    const pivot = Math.max(
-      ...asks.filter(
-        (ask) => ask > (range.min ?? 0) && ask < (range.max ?? Infinity),
-      ),
-    );
-    if (!Number.isFinite(pivot)) {
-      partialReason ??= 'PRICE_SLICE_UNRESOLVED';
-      return;
-    }
-    for (const child of [
-      { ...range, max: pivot },
-      { ...range, min: pivot },
-    ]) {
+    let childTotal = 0;
+    for (const child of children) {
       if (sliceCount === maxPriceSlices) {
         partialReason ??= 'PRICE_SLICE_LIMIT';
         return;
       }
       sliceCount++;
-      await prove(await search(child), child);
+      const page = await search(child);
+      await prove(page, child);
+      childTotal += page.reportedTotal ?? NaN;
     }
+    // Asks in other currencies, unpriced listings, or churn leave the denominations short of the whole.
+    if (!currency && childTotal !== total)
+      partialReason ??= 'MIXED_CURRENCY_TOTAL_MISMATCH';
   }
 
   try {
