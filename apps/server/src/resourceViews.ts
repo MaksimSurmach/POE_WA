@@ -93,10 +93,9 @@ export function createResourceReaders(
   }
 
   async function readMarket(recipeId?: string) {
-    const catalogUsesCollector = readCollectorResults && recipeId === undefined;
     const [currentLeague, maximumQuoteAgeMs, published, progress] =
       await Promise.all([
-        catalogUsesCollector ? null : repositories.leagues.findCurrent(),
+        repositories.leagues.findCurrent(),
         readMaximumQuoteAgeMs?.(),
         readCollectorResults ? null : repositories.catalog.getPublished(),
         readCollectorResults ? null : repositories.catalog.getProgress(),
@@ -107,14 +106,12 @@ export function createResourceReaders(
       legacy?.evaluations.map((row) => [row.recipeId, row]),
     );
     const collectorRows =
-      readCollectorResults && (catalogUsesCollector || currentLeague)
-        ? await readCollectorResults(currentLeague?.id, recipeId)
+      readCollectorResults && currentLeague
+        ? await readCollectorResults(currentLeague.id, recipeId)
         : [];
     const collectorEvaluations = new Map(
       collectorRows
-        .filter(
-          (row) => catalogUsesCollector || row.leagueId === currentLeague?.id,
-        )
+        .filter((row) => row.leagueId === currentLeague?.id)
         .map((row) => [row.recipeId, row]),
     );
     return {
@@ -153,8 +150,9 @@ export function createResourceReaders(
         repositories.recipes.listActive(),
         readMarket(),
       ]);
-      const evidence =
-        (await readReadiness?.(now, market.maximumQuoteAgeMs)) ?? [];
+      const evidence = (
+        (await readReadiness?.(now, market.maximumQuoteAgeMs)) ?? []
+      ).filter((row) => row.schedule.leagueId === market.currentLeague?.id);
       const byRecipe = new Map(recipes.map((recipe) => [recipe.id, recipe]));
       return {
         evaluatedAt: now.toISOString(),
@@ -200,17 +198,22 @@ export function createResourceReaders(
         readMarket(),
       ]);
       const now = new Date();
-      const readiness = await readReadiness?.(now, market.maximumQuoteAgeMs);
+      const readiness = (
+        (await readReadiness?.(now, market.maximumQuoteAgeMs)) ?? []
+      ).filter((row) => row.schedule.leagueId === market.currentLeague?.id);
+      const league = market.currentLeague
+        ? { id: market.currentLeague.id, name: market.currentLeague.name }
+        : null;
       const byRecipe = new Map(
         readiness
-          ?.filter((row) => row.schedule.role === 'output')
+          .filter((row) => row.schedule.role === 'output')
           .flatMap((row) =>
             row.schedule.outputRecipeIds.map((id) => [id, row] as const),
           ),
       );
       const byCapture = new Map(
         readiness
-          ?.filter((row) => row.schedule.role === 'output')
+          .filter((row) => row.schedule.role === 'output')
           .flatMap((row) =>
             row.schedule.captureId
               ? [[row.schedule.captureId, row] as const]
@@ -260,12 +263,12 @@ export function createResourceReaders(
       if (readCollectorResults)
         return collectorResourceResponse(
           correlationId,
-          { entries, pipeline: 'collector' as const },
+          { entries, league, pipeline: 'collector' as const },
           entries.map(({ evaluation }) => evaluation),
         );
       return resourceResponse(
         correlationId,
-        { entries },
+        { entries, league },
         market.publishedAt,
         market.status,
       );
@@ -318,7 +321,9 @@ export function createResourceReaders(
       const readiness =
         key && readReadiness
           ? (await readReadiness(now, maximumQuoteAgeMs)).find(
-              (row) => row.schedule.key === key,
+              (row) =>
+                row.schedule.key === key &&
+                row.schedule.leagueId === currentLeague?.id,
             )
           : null;
       const marketActivity = readiness

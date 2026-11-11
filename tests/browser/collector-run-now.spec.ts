@@ -152,3 +152,134 @@ test('catalog header labels stay inside their cells at 390px', async ({
   );
   expect(overflowing).toBe(0);
 });
+
+test('visible collection controls pause, recover from conflict and resume', async ({
+  page,
+}) => {
+  const settingsUrl = '/api/admin/market/settings';
+  const read = async () =>
+    (await (await page.request.get(settingsUrl)).json()).data;
+  const before = await read();
+  try {
+    if (before.configured.collectionsPaused) {
+      await page.request.post('/api/admin/market/resume', {
+        data: { version: before.version },
+      });
+    }
+    await page.goto('/');
+    const controls = page.getByRole('group', {
+      name: 'Collector controls',
+      exact: true,
+    });
+    await controls
+      .getByRole('button', { name: 'Pause collection', exact: true })
+      .click();
+    await expect(
+      controls.getByText('Collection paused', { exact: true }),
+    ).toBeVisible();
+    await expect(
+      controls.getByRole('button', { name: 'Run now', exact: true }),
+    ).toBeDisabled();
+    expect((await read()).configured.collectionsPaused).toBe(true);
+    await page.reload();
+    await expect(
+      controls.getByRole('button', { name: 'Resume collection', exact: true }),
+    ).toBeVisible();
+    let rejected = false;
+    await page.route('**/api/admin/market/resume', async (route) => {
+      if (!rejected) {
+        rejected = true;
+        await route.fulfill({ status: 409, json: {} });
+      } else await route.continue();
+    });
+    await controls
+      .getByRole('button', { name: 'Resume collection', exact: true })
+      .click();
+    await expect(
+      controls.getByText(/Could not resume collection/),
+    ).toBeVisible();
+    await expect(
+      controls.getByRole('button', { name: 'Run now', exact: true }),
+    ).toBeDisabled();
+    expect((await read()).configured.collectionsPaused).toBe(true);
+    await controls
+      .getByRole('button', { name: 'Resume collection', exact: true })
+      .click();
+    await expect(
+      controls.getByText('Collection active', { exact: true }),
+    ).toBeVisible();
+    expect((await read()).configured.collectionsPaused).toBe(false);
+  } finally {
+    const current = await read();
+    if (
+      current.configured.collectionsPaused !==
+      before.configured.collectionsPaused
+    ) {
+      await page.request.post(
+        `/api/admin/market/${before.configured.collectionsPaused ? 'pause' : 'resume'}`,
+        { data: { version: current.version } },
+      );
+    }
+  }
+});
+
+test('quote-age edits keep the draft and require review before overwriting another tab', async ({
+  page,
+}) => {
+  const url = '/api/admin/market/settings';
+  const read = async () => (await (await page.request.get(url)).json()).data;
+  const before = await read();
+  const oldMinutes = before.configured.freshnessWarningMs / 60_000;
+  const draft = oldMinutes === 1 ? 2 : 1;
+  const remote = oldMinutes === 3 ? 4 : 3;
+  const remoteMaximum =
+    before.configured.maximumQuoteAgeMs === 7_200_000 ? 3_600_000 : 7_200_000;
+  try {
+    await page.goto('/');
+    await page.getByRole('heading', { name: 'Settings', exact: true }).click();
+    const input = page.getByLabel('Warning age (minutes)', { exact: true });
+    await input.fill(String(draft));
+    const current = await read();
+    expect(
+      (
+        await page.request.patch(url, {
+          data: {
+            version: current.version,
+            settings: {
+              freshnessWarningMs: remote * 60_000,
+              maximumQuoteAgeMs: remoteMaximum,
+            },
+          },
+        })
+      ).ok(),
+    ).toBe(true);
+    await page
+      .getByRole('button', { name: 'Save settings', exact: true })
+      .click();
+    await expect(page.getByText(/Quote ages changed elsewhere/)).toBeVisible();
+    await expect(input).toHaveValue(String(draft));
+    await expect(
+      page.getByLabel('Maximum quote age (minutes)', { exact: true }),
+    ).toHaveValue(String(remoteMaximum / 60_000));
+    expect((await read()).configured.freshnessWarningMs).toBe(remote * 60_000);
+    await page
+      .getByRole('button', { name: 'Save settings', exact: true })
+      .click();
+    await expect(
+      page.getByText('Settings saved.', { exact: true }),
+    ).toBeVisible();
+    expect((await read()).configured.freshnessWarningMs).toBe(draft * 60_000);
+    expect((await read()).configured.maximumQuoteAgeMs).toBe(remoteMaximum);
+  } finally {
+    const current = await read();
+    await page.request.patch(url, {
+      data: {
+        version: current.version,
+        settings: {
+          freshnessWarningMs: before.configured.freshnessWarningMs,
+          maximumQuoteAgeMs: before.configured.maximumQuoteAgeMs,
+        },
+      },
+    });
+  }
+});

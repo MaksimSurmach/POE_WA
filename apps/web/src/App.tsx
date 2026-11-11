@@ -113,6 +113,7 @@ function CatalogRoute() {
     null,
   );
   const collectorMode = response?.data?.pipeline === 'collector';
+  const catalogLeague = response?.data?.league;
   const [catalogRevision, setCatalogRevision] = useState(0);
   const reloadCatalog = useCallback(
     () => setCatalogRevision((value) => value + 1),
@@ -206,9 +207,13 @@ function CatalogRoute() {
         <div>
           <h1 id="catalog-heading">Craft opportunities</h1>
           <p>
-            {league
-              ? `${league.discovery === 'confirmed' ? '' : 'Last known league: '}${league.name} · Last checked ${new Date(league.syncedAt).toLocaleString('en-US')}`
-              : 'League unavailable'}
+            {catalogLeague === null
+              ? 'League unavailable'
+              : catalogLeague && catalogLeague.id !== league?.id
+                ? `${catalogLeague.name} · Market observations`
+                : league
+                  ? `${league.discovery === 'confirmed' ? '' : 'Last known league: '}${league.name} · Last checked ${new Date(league.syncedAt).toLocaleString('en-US')}`
+                  : 'League unavailable'}
           </p>
           {marketUpdatedAt ? (
             <p>
@@ -375,7 +380,7 @@ function CatalogRoute() {
         </>
       )}
 
-      {league?.name === 'Standard' ? (
+      {(catalogLeague ?? league)?.name === 'Standard' ? (
         <p className="catalog-price-note">
           Standard is the permanent market. The collector switches to a
           temporary PC league once both GGG and poe.ninja list it.

@@ -1,4 +1,5 @@
 import type {
+  CatalogResponse,
   RecipeTrendResponse,
   TrendOverviewEntry,
   TrendOverviewResponse,
@@ -9,15 +10,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { createApiClient } from './apiClient.js';
-import { Money, StatusPanel, economicClass } from './components.js';
+import { StatusPanel } from './components.js';
 import {
   PriceTrendChart,
   TrendFacts,
   describeTrend,
-  formatPercent,
-  formatUtc,
 } from './PriceTrendChart.js';
-import { TradeDashboard } from './TradeDashboard.js';
+import { RecipeMarketOverview } from './RecipeMarketOverview.js';
 import './marketTrends.css';
 
 const apiClient = createApiClient();
@@ -120,30 +119,36 @@ export function RecipeTrendPanel({
   recipeId,
   range,
   onRangeChange,
+  expectedLeagueId,
+  onReload,
 }: {
   recipeId: string;
   range: TrendRange;
+  expectedLeagueId?: string;
+  onReload?: () => void;
   /** Shows range buttons when the panel owns its range (recipe page). */
   onRangeChange?: (range: TrendRange) => void;
 }) {
   const [response, setResponse] = useState<RecipeTrendResponse | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
     setResponse(null);
     setFailed(false);
     apiClient
-      .getRecipeTrend(recipeId, range)
+      .getRecipeTrend(
+        recipeId,
+        range,
+        AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
+      )
       .then((value) => {
-        if (active) setResponse(value);
+        if (!controller.signal.aborted) setResponse(value);
       })
       .catch(() => {
-        if (active) setFailed(true);
+        if (!controller.signal.aborted) setFailed(true);
       });
-    return () => {
-      active = false;
-    };
-  }, [recipeId, range]);
+    return () => controller.abort();
+  }, [recipeId, range, expectedLeagueId]);
   const trend =
     response?.data.recipeId === recipeId && response.data.range === range
       ? response.data
@@ -153,7 +158,16 @@ export function RecipeTrendPanel({
       {onRangeChange ? (
         <RangeControls range={range} onChange={onRangeChange} />
       ) : null}
-      {failed ? (
+      {trend && expectedLeagueId && trend.league?.id !== expectedLeagueId ? (
+        <StatusPanel
+          tone="warning"
+          title="League changed while loading history"
+        >
+          <button type="button" onClick={onReload}>
+            Reload current market
+          </button>
+        </StatusPanel>
+      ) : failed ? (
         <StatusPanel tone="danger" title="Price history unavailable" />
       ) : !trend ? (
         <StatusPanel tone="info" title="Loading price history" />
@@ -175,79 +189,58 @@ export function RecipeTrendPanel({
   );
 }
 
-function TrendRow({
-  entry,
-  selected,
-  onSelect,
-}: {
-  entry: TrendOverviewEntry;
-  selected: boolean;
-  onSelect(): void;
-}) {
-  const summary = entry.summary;
-  const change = summary?.change ?? null;
-  return (
-    <li>
-      <button
-        aria-pressed={selected}
-        className="trend-row"
-        onClick={onSelect}
-        type="button"
-      >
-        <span className="trend-row__title">{entry.title}</span>
-        <span className="trend-row__ask">
-          {summary ? (
-            <Money
-              price={{ amount: summary.latestAsk, currency: summary.currency }}
-            />
-          ) : (
-            'No history'
-          )}
-        </span>
-        <span
-          className={`trend-row__change ${change ? economicClass(change.absolute) : 'economic-unknown'}`}
-        >
-          {change && change.percent !== null
-            ? formatPercent(change.percent)
-            : summary
-              ? 'Insufficient history'
-              : '—'}
-        </span>
-        <small className="trend-row__meta">
-          {summary
-            ? `${summary.windowObservations} obs · ${summary.latestComparableSellers ?? '?'} sellers · ${formatUtc(summary.latestObservedAt)}`
-            : entry.category.replaceAll('-', ' ')}
-        </small>
-      </button>
-    </li>
-  );
-}
-
 export function MarketTrendsPage() {
   const [params, setParams] = useSearchParams();
   const range = parseRange(params.get('range'));
   const [response, setResponse] = useState<TrendOverviewResponse | null>(null);
+  const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
+  const [catalogFailed, setCatalogFailed] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [revision, setRevision] = useState(0);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<TrendSort>('change');
+  const reload = () => setRevision((value) => value + 1);
 
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
+    setResponse(null);
+    setCatalog(null);
+    setCatalogFailed(false);
     setFailed(false);
     apiClient
-      .getTrendOverview(range)
+      .getTrendOverview(
+        range,
+        AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
+      )
       .then((value) => {
-        if (active) setResponse(value);
+        if (!controller.signal.aborted) setResponse(value);
       })
       .catch(() => {
-        if (active) setFailed(true);
+        if (!controller.signal.aborted) setFailed(true);
       });
-    return () => {
-      active = false;
-    };
-  }, [range]);
+    apiClient
+      .getCatalog(
+        AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
+      )
+      .then((value) => {
+        if (!controller.signal.aborted) setCatalog(value);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setCatalogFailed(true);
+      });
+    return () => controller.abort();
+  }, [range, revision]);
 
-  const overview = response?.data.range === range ? response.data : undefined;
+  const loadedOverview =
+    response?.data.range === range ? response.data : undefined;
+  const league = catalog?.data?.league;
+  const leagueMismatch = Boolean(
+    catalog?.data && loadedOverview && league?.id !== loadedOverview.league?.id,
+  );
+  const overview =
+    league && loadedOverview?.league?.id === league.id
+      ? loadedOverview
+      : undefined;
   const rows = useMemo(
     () =>
       sortTrendEntries(
@@ -256,27 +249,13 @@ export function MarketTrendsPage() {
       ),
     [overview, search, sort],
   );
-  const selectedId =
-    params.get('recipe') ??
-    rows.find((entry) => entry.summary)?.recipeId ??
-    null;
+  const selectedId = params.get('recipe');
   const update = (next: { range?: TrendRange; recipe?: string }) => {
     const value = new URLSearchParams(params);
     if (next.range) value.set('range', next.range);
     if (next.recipe) value.set('recipe', next.recipe);
     setParams(value, { replace: true });
   };
-  const groups =
-    sort === 'ask'
-      ? (['chaos', 'divine', null] as const)
-          .map((currency) => ({
-            currency,
-            rows: rows.filter(
-              (row) => (row.summary?.currency ?? null) === currency,
-            ),
-          }))
-          .filter((group) => group.rows.length)
-      : [{ currency: undefined, rows }];
 
   return (
     <section className="market-trends" aria-labelledby="market-trends-heading">
@@ -289,12 +268,21 @@ export function MarketTrendsPage() {
         </div>
         <div className="trade-dashboard__league">
           <small>PATH OF EXILE 1</small>
-          {overview?.league ? `${overview.league.name} · PC` : 'PC'}
+          {league ? `${league.name} · PC` : 'League unresolved · PC'}
         </div>
       </header>
 
-      <TradeDashboard league={overview?.league?.name} />
-      <h2 className="recipe-trends-heading">Recipe price history</h2>
+      <RecipeMarketOverview
+        response={catalog}
+        failed={catalogFailed}
+        onRetry={reload}
+        selectedId={selectedId}
+        trends={overview}
+        onSelect={(recipe) => update({ recipe })}
+      />
+      <h2 id="recipe-price-history" className="recipe-trends-heading">
+        Recipe price history
+      </h2>
       <RangeControls
         range={range}
         onChange={(value) => update({ range: value })}
@@ -356,7 +344,13 @@ export function MarketTrendsPage() {
         </label>
       </section>
 
-      {failed ? (
+      {leagueMismatch ? (
+        <StatusPanel tone="warning" title="League changed while loading">
+          <button type="button" onClick={reload}>
+            Reload current market
+          </button>
+        </StatusPanel>
+      ) : failed ? (
         <StatusPanel tone="danger" title="Market trends unavailable">
           Price history could not be loaded. Try again when the service is
           available.
@@ -374,43 +368,7 @@ export function MarketTrendsPage() {
               No price history yet. Observations are saved when prices refresh.
             </p>
           ) : null}
-          <div className="market-trends__layout">
-            <div className="market-trends__list">
-              {rows.length === 0 ? (
-                <p className="handbook-empty">No recipes match this search.</p>
-              ) : (
-                groups.map((group) => (
-                  <section
-                    aria-label={
-                      group.currency === undefined
-                        ? 'Recipes'
-                        : group.currency === null
-                          ? 'Recipes without history'
-                          : `Asks in ${group.currency}`
-                    }
-                    key={String(group.currency)}
-                  >
-                    {group.currency !== undefined ? (
-                      <h2 className="market-trends__group">
-                        {group.currency === null
-                          ? 'No history'
-                          : `${group.currency} asks`}
-                      </h2>
-                    ) : null}
-                    <ul>
-                      {group.rows.map((entry) => (
-                        <TrendRow
-                          entry={entry}
-                          key={entry.recipeId}
-                          onSelect={() => update({ recipe: entry.recipeId })}
-                          selected={entry.recipeId === selectedId}
-                        />
-                      ))}
-                    </ul>
-                  </section>
-                ))
-              )}
-            </div>
+          <div className="market-trends__history">
             <section
               aria-label="Selected recipe price history"
               className="market-trends__detail detail-section"
@@ -427,7 +385,12 @@ export function MarketTrendsPage() {
                   >
                     Open recipe ›
                   </Link>
-                  <RecipeTrendPanel range={range} recipeId={selectedId} />
+                  <RecipeTrendPanel
+                    range={range}
+                    recipeId={selectedId}
+                    expectedLeagueId={league!.id}
+                    onReload={reload}
+                  />
                 </>
               ) : (
                 <p>Select a recipe to see its price history.</p>

@@ -229,6 +229,44 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
   );
 });
 
+it('rolls all recipe targets to a new league while retaining disabled old history', async () => {
+  const previous = await seedPrerequisites('Standard');
+  await syncCli();
+  const before = await scheduleRows();
+  const next = await repositories.leagues.upsert({
+    endAt: null,
+    game: 'poe1',
+    gggId: 'Next Challenge',
+    isCurrent: false,
+    metadata: {},
+    name: 'Next Challenge',
+    realm: 'pc',
+    startAt: null,
+    syncedAt: new Date(),
+  });
+  await repositories.leagues.setCurrent(next.id, new Date());
+  await syncCli();
+  const after = await scheduleRows();
+  const oldTargets = after.filter(
+    (row) => row.kind === 'trade-target' && row.leagueId === previous.id,
+  );
+  const newTargets = after.filter(
+    (row) => row.kind === 'trade-target' && row.leagueId === next.id,
+  );
+  expect(oldTargets).toHaveLength(94);
+  expect(oldTargets.every((row) => !row.enabled)).toBe(true);
+  expect(newTargets).toHaveLength(94);
+  expect(newTargets.every((row) => row.enabled)).toBe(true);
+  expect(
+    after.find((row) => row.kind === 'economy' && row.enabled),
+  ).toMatchObject({ leagueId: next.id, payload: { league: 'Next Challenge' } });
+  expect(
+    newTargets.every((row) => !before.some((old) => old.id === row.id)),
+  ).toBe(true);
+  await syncCli();
+  expect(await scheduleRows()).toEqual(after);
+});
+
 it('keeps recipe sync and dry-run safe without league or mapping data', async () => {
   await syncCli();
   expect(await repositories.recipes.listActive()).toHaveLength(55);

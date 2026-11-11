@@ -153,7 +153,8 @@ export class LeagueResolver {
     const selected =
       agreed.find(
         (league) =>
-          !['Standard', 'Hardcore', 'Ruthless', 'Hardcore Ruthless'].includes(
+          league.id !== 'Standard' &&
+          !/^(?:Hardcore|HC|SSF)(?:\s|$)|(?:^|\s)Ruthless(?:\s|$)/i.test(
             league.id,
           ),
       ) ??

@@ -87,7 +87,7 @@ describe('repository-backed resource views', () => {
       undefined,
       undefined,
       async (leagueId, id) => {
-        expect(leagueId).toBe(id === undefined ? undefined : league.id);
+        expect(leagueId).toBe(league.id);
         expect(id === undefined || id === recipeId).toBe(true);
         return [row];
       },
@@ -96,7 +96,10 @@ describe('repository-backed resource views', () => {
       await readers.readCatalog(correlationId),
     );
     expect(catalog).toMatchObject({
-      data: { pipeline: 'collector' },
+      data: {
+        pipeline: 'collector',
+        league: { id: league.id, name: 'Standard' },
+      },
       state: 'partial',
       isStale: false,
       lastSuccessfulAt: null,
@@ -171,6 +174,127 @@ describe('repository-backed resource views', () => {
       lastSuccessfulAt: null,
     });
   });
+
+  it.each(['rollover', 'unresolved'] as const)(
+    'pins catalog evaluation and readiness to one league (%s)',
+    async (scenario) => {
+      const repositories = createInMemoryRepositories();
+      await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+      const recipeId = 'physical-large-cluster-chaos';
+      const recipe = (await repositories.recipes.findById(recipeId))!;
+      const now = new Date();
+      const saveLeague = (name: string, isCurrent: boolean) =>
+        repositories.leagues.upsert({
+          endAt: null,
+          game: 'poe1',
+          gggId: name,
+          isCurrent,
+          metadata: {},
+          name,
+          realm: 'pc',
+          startAt: null,
+          syncedAt: now,
+        });
+      const old = await saveLeague('Old', scenario === 'rollover');
+      const next = await saveLeague('Next', false);
+      const row = (leagueId: string, amount: string) => ({
+        leagueId,
+        recipeId,
+        recipeContentHash: recipe.contentHash,
+        evaluatedAt: now,
+        result: recipeResultSchema.parse({
+          confidence: 'low',
+          currency: 'chaos',
+          errorCode: null,
+          estimatedSalePrice: null,
+          expectedCraftCost: amount,
+          marginPercent: null,
+          profit: null,
+          status: 'partial',
+          methodCost: {
+            oldestInputAt: now.toISOString(),
+            expiresAt: new Date(now.getTime() + 60_000).toISOString(),
+            baseCost: { amount, currency: 'chaos' },
+            marketStatus: 'priced',
+            saleEvidence: { comparableSellers: 0 },
+            budget: null,
+          },
+        }),
+      });
+      const evidence = (leagueId: string, min: number) => ({
+        activity: null,
+        schedule: {
+          id: leagueId,
+          key: leagueId,
+          leagueId,
+          league: leagueId,
+          name: 'Fixture',
+          role: 'output' as const,
+          intervalMinutes: 60,
+          outputRecipeIds: [recipeId],
+          captureId: leagueId,
+          capturedAt: now,
+          coverage: 'complete' as const,
+          currentListings: 2,
+          currentSellers: 2,
+          currentMin: min,
+          currentMax: min + 8,
+          historyMin: min,
+          historyMax: min + 8,
+          observations: [now],
+          complete: [now],
+          proofBaseline: null,
+          proofComplete: [],
+          failed: 0,
+          failuresTrackedSince: null,
+          listings: 2,
+          sellers: 2,
+        },
+      });
+      const requested: (string | undefined)[] = [];
+      const readers = createResourceReaders(
+        repositories,
+        await loadItemPresentationCatalog(presentationPath),
+        undefined,
+        undefined,
+        async (leagueId) => {
+          requested.push(leagueId);
+          await repositories.leagues.setCurrent(next.id, now);
+          // Even an incorrect source returning both leagues cannot cross the boundary.
+          return [row(old.id, '17'), row(next.id, '999')];
+        },
+        undefined,
+        async () => [evidence(old.id, 42), evidence(next.id, 99)],
+      );
+      const catalog = catalogResponseSchema.parse(
+        await readers.readCatalog(correlationId),
+      );
+      const entry = catalog.data?.entries.find(
+        ({ recipe }) => recipe.id === recipeId,
+      );
+      if (scenario === 'unresolved') {
+        expect(requested).toEqual([]);
+        expect(catalog.data?.league).toBeNull();
+        expect(entry?.readiness).toBeNull();
+        expect(entry?.evaluation.expectedCraftCost).toBeNull();
+      } else {
+        expect(requested).toEqual([old.id]);
+        expect(catalog.data?.league).toEqual({ id: old.id, name: 'Old' });
+        expect(entry?.evaluation.expectedCraftCost?.amount).toBe(17);
+        expect(entry?.readiness?.currentAskRange?.min.amount).toBe(42);
+        const after = catalogResponseSchema.parse(
+          await readers.readCatalog(correlationId),
+        );
+        const afterEntry = after.data?.entries.find(
+          ({ recipe }) => recipe.id === recipeId,
+        );
+        expect(requested).toEqual([old.id, next.id]);
+        expect(after.data?.league).toEqual({ id: next.id, name: 'Next' });
+        expect(afterEntry?.evaluation.expectedCraftCost?.amount).toBe(999);
+        expect(afterEntry?.readiness?.currentAskRange?.min.amount).toBe(99);
+      }
+    },
+  );
 
   it('serves only active recipes synchronized from the Git catalog', async () => {
     const repositories = createInMemoryRepositories();
@@ -713,6 +837,7 @@ describe('repository-backed resource views', () => {
     ).toMatchObject({
       publishedAt: null,
       state: 'loading',
+      data: { league: { id: nextLeague.id, name: 'Next' } },
     });
   });
 });
@@ -1191,6 +1316,17 @@ it.each(['base', 'output'] as const)(
     await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
     const recipeId = 'physical-large-cluster-jagged';
     const now = new Date();
+    const league = await repositories.leagues.upsert({
+      endAt: null,
+      game: 'poe1',
+      gggId: 'Fixture',
+      isCurrent: true,
+      metadata: {},
+      name: 'Fixture',
+      realm: 'pc',
+      startAt: null,
+      syncedAt: now,
+    });
     const readers = createResourceReaders(
       repositories,
       await loadItemPresentationCatalog(presentationPath),
@@ -1204,7 +1340,7 @@ it.each(['base', 'output'] as const)(
           schedule: {
             id: 'fixture',
             key: 'fixture',
-            leagueId: 'fixture',
+            leagueId: league.id,
             league: 'Fixture',
             name: 'Fixture',
             role,

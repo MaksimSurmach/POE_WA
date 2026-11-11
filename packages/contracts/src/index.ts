@@ -516,6 +516,10 @@ function resourceResponseSchema<T extends z.ZodType>(dataSchema: T) {
 export const catalogResponseSchema = resourceResponseSchema(
   z.strictObject({
     entries: z.array(catalogEntrySchema),
+    league: z
+      .strictObject({ id: z.string().min(1), name: z.string().min(1) })
+      .nullable()
+      .optional(),
     pipeline: z.literal('collector').optional(),
   }),
 );

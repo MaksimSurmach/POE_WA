@@ -278,19 +278,29 @@ export function createApiClient(
         marketResearchSnapshotResponseSchema,
       );
     },
-    getTrendOverview(range: TrendRange): Promise<TrendOverviewResponse> {
+    getTrendOverview(
+      range: TrendRange,
+      signal?: AbortSignal,
+    ): Promise<TrendOverviewResponse> {
       return request(
         `/api/trends?range=${encodeURIComponent(range)}`,
         trendOverviewResponseSchema,
+        'GET',
+        undefined,
+        { signal },
       );
     },
     getRecipeTrend(
       id: string,
       range: TrendRange,
+      signal?: AbortSignal,
     ): Promise<RecipeTrendResponse> {
       return request(
         `/api/trends/${encodeURIComponent(id)}?range=${encodeURIComponent(range)}`,
         recipeTrendResponseSchema,
+        'GET',
+        undefined,
+        { signal },
       );
     },
   };

@@ -8,6 +8,7 @@ import { useSearchParams } from 'react-router-dom';
 import { createApiClient } from './apiClient.js';
 import { StatusPanel } from './components.js';
 import { formatUtc } from './PriceTrendChart.js';
+import { TurnoverMap } from './TurnoverMap.js';
 import { TradeItemHistory } from './TradeItemHistory.js';
 import './tradeDashboard.css';
 
@@ -58,164 +59,6 @@ function metric(item: RankedItem, sort: Sort) {
     case 'age':
       return item.visible48h;
   }
-}
-
-function TurnoverMap({
-  items,
-  selected,
-  onSelect,
-}: {
-  items: RankedItem[];
-  selected: RankedItem;
-  onSelect(id: string): void;
-}) {
-  const min = Math.min(...items.map(({ priceDivine }) => priceDivine));
-  const max = Math.max(...items.map(({ priceDivine }) => priceDivine));
-  const ticks = Array.from(
-    {
-      length:
-        Math.ceil(Math.log10(max * 1.35)) -
-        Math.floor(Math.log10(min / 1.35)) +
-        1,
-    },
-    (_, index) => 10 ** (Math.floor(Math.log10(min / 1.35)) + index),
-  ).flatMap((value) => [value, value * 2, value * 5]);
-  const floor =
-    ticks.filter((value) => value > 0 && value <= min / 1.25).at(-1) ?? min;
-  const ceiling = ticks.find((value) => value >= max * 1.25) ?? max * 1.25;
-  const logSpan = Math.log(ceiling) - Math.log(floor);
-  const x = (value: number) =>
-    ((Math.log(value) - Math.log(floor)) / logSpan) * 100;
-  const priceTicks = ticks.filter(
-    (value) => value >= floor && value <= ceiling,
-  );
-  const stride = Math.max(1, Math.ceil(priceTicks.length / 9));
-  const peak = Math.max(1, ...items.map((item) => item.exitsPerDay));
-  const magnitude = 10 ** Math.floor(Math.log10(peak / 4));
-  const step = Math.ceil((peak * 1.1) / 4 / magnitude) * magnitude;
-  const yMax = step * 4;
-  const leading = new Set(
-    items
-      .filter((item) => item.exitsPerDay > 0)
-      .sort((left, right) => right.exitsPerDay - left.exitsPerDay)
-      .slice(0, 6)
-      .map((item) => item.id),
-  );
-  // Leave the price coordinate fixed; a short stem shows the true rate when marks overlap.
-  const gap = 5.5;
-  const marks: {
-    item: RankedItem;
-    left: number;
-    anchor: number;
-    bottom: number;
-  }[] = [];
-  const offsets = [
-    0,
-    ...Array.from({ length: Math.ceil(100 / gap) }, (_, index) => [
-      (index + 1) * gap,
-      -(index + 1) * gap,
-    ]).flat(),
-  ];
-  for (const item of items) {
-    const left = x(item.priceDivine);
-    const anchor = (item.exitsPerDay / yMax) * 100;
-    const offset =
-      offsets.find((offset) => {
-        const bottom = anchor + offset;
-        return (
-          bottom >= 0 &&
-          bottom <= 100 &&
-          marks.every(
-            (mark) =>
-              Math.abs(mark.left - left) >= gap ||
-              Math.abs(mark.bottom - bottom) >= gap - 0.001,
-          )
-        );
-      }) ?? 0;
-    marks.push({ item, left, anchor, bottom: anchor + offset });
-  }
-  return (
-    <div className={`trade-map${items.length > 12 ? ' trade-map--dense' : ''}`}>
-      <p className="trade-map__axis">Sustained disappearances / 24h</p>
-      <div
-        className="trade-map__graph"
-        role="group"
-        aria-label="Price and turnover plot"
-      >
-        {[0, 1, 2, 3, 4].map((tick) => (
-          <span
-            className="trade-map__guide trade-map__guide--y"
-            aria-hidden="true"
-            key={tick}
-            style={{ bottom: `${tick * 25}%` }}
-          >
-            <span>{axisLabel.format(tick * step)}</span>
-          </span>
-        ))}
-        {priceTicks.map((value, index) =>
-          index % stride === 0 ? (
-            <span
-              className="trade-map__guide trade-map__guide--x"
-              aria-hidden="true"
-              key={value}
-              style={{ left: `${x(value)}%` }}
-            >
-              <span>{axisLabel.format(value)}</span>
-            </span>
-          ) : null,
-        )}
-        {marks.map(({ item, left, anchor, bottom }) =>
-          anchor === bottom ? null : (
-            <span
-              aria-hidden="true"
-              className="trade-map__anchor"
-              key={item.id}
-              style={{
-                left: `${left}%`,
-                bottom: `${Math.min(anchor, bottom)}%`,
-                height: `${Math.abs(anchor - bottom)}%`,
-              }}
-            />
-          ),
-        )}
-        {marks.map(({ item, left, bottom }) => {
-          const crowdedOnRight =
-            left > 16 &&
-            marks.some(
-              (other) =>
-                other.left > left &&
-                other.left - left < 16 &&
-                Math.abs(other.bottom - bottom) < 5 &&
-                leading.has(other.item.id),
-            );
-          return (
-            <button
-              aria-label={`${item.name}, ${divineAsk(item)}, ${rate.format(item.exitsPerDay)} sustained exits per day`}
-              aria-pressed={item.id === selected.id}
-              className={`trade-map__point${left > 78 || crowdedOnRight ? ' trade-map__point--label-left' : ''}${leading.has(item.id) ? ' trade-map__point--leading' : ''}`}
-              key={item.id}
-              onClick={() => onSelect(item.id)}
-              style={{ left: `${left}%`, bottom: `${bottom}%` }}
-              title={item.name}
-              type="button"
-            >
-              <span className="trade-map__label" aria-hidden="true">
-                {item.name.split(' · ')[0] ?? item.name}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <p className="trade-map__axis trade-map__axis--price">
-        Latest median ask · divines (log scale)
-      </p>
-      {marks.some((mark) => mark.anchor !== mark.bottom) ? (
-        <p className="trade-map__axis trade-map__overlap">
-          Short stems mark the exact rate of overlapping points.
-        </p>
-      ) : null}
-    </div>
-  );
 }
 
 export function TradeDashboard({ league }: { league: string | undefined }) {
@@ -383,8 +226,12 @@ export function TradeDashboard({ league }: { league: string | undefined }) {
             {selected ? (
               <div className="trade-dashboard__map-layout">
                 <TurnoverMap
-                  items={items}
-                  selected={selected}
+                  items={items.map((item) => ({
+                    ...item,
+                    price: item.priceDivine,
+                    activity: item.exitsPerDay,
+                  }))}
+                  selected={selected.id}
                   onSelect={(id) => {
                     setSelectedId(id);
                     openHistory.current?.focus();
