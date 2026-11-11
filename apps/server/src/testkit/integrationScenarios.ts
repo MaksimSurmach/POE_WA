@@ -226,7 +226,7 @@ async function prepareTwoMethodsPriced(
 
   const now = new Date();
   const timestamp = now.toISOString();
-  const league = 'Standard';
+  const league = 'Allflame';
   const { id: leagueId } = await repositories.leagues.upsert({
     endAt: null,
     game: 'poe1',
@@ -294,7 +294,7 @@ function pricedListings(
   finishedSellerCount = 5,
 ) {
   const patch = '3.29.3.3';
-  const league = 'Standard';
+  const league = 'Allflame';
   const clusterMods = [
     { id: 'enchant.stat_3086156145', value: 8 },
     { id: 'enchant.stat_3948993189|12', value: 12 },

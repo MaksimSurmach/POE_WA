@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 3,
+  "id": "week-one-fingerless-silk-gloves-woe",
+  "title": "Week 1 · Fingerless Silk Gloves · ES / fire",
+  "category": "gloves",
+  "summary": "Fire Resistance >= 30; Spell Damage >= 20; Item Energy Shield >= 140. First-week candidate; profitability unverified.",
+  "patch": "3.30.0",
+  "gameDataVersion": "3.29.3.3",
+  "tags": ["week-one", "league-start", "energy-shield", "ci", "caster"],
+  "base": {
+    "baseId": "base:fingerless-silk-gloves",
+    "influences": [],
+    "itemLevel": 82,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "startingBase": {
+    "baseId": "base:fingerless-silk-gloves",
+    "influences": [],
+    "itemLevel": 82,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "target": {
+    "prefixes": [],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:fire-resistance",
+        "minimumValue": 30
+      }
+    ],
+    "implicits": [
+      {
+        "excluded": false,
+        "kind": "implicit",
+        "modId": "mod:implicit-spell-damage",
+        "minimumValue": 20
+      }
+    ],
+    "other": [
+      {
+        "excluded": false,
+        "kind": "pseudo",
+        "modId": "mod:item-energy-shield",
+        "minimumValue": 140
+      }
+    ]
+  },
+  "targetSignature": "3.30.0:134c31ca08b9b007ec907d0bb6df0034",
+  "notes": "Warlock is the top pure-ES base; Fingerless trades base ES for the buffed 20–26% spell-damage implicit and is tier-gated. No Eldritch operation replaces the required native implicit. Woe guarantees flat ES only.",
+  "verification": {
+    "status": "unverified",
+    "leagues": [],
+    "checkedAt": "2026-11-11",
+    "sources": [
+      "https://www.pathofexile.com/forum/view-thread/4013680",
+      "https://poedb.tw/us/Deafening_Essence_of_Woe",
+      "https://beta.craftofexile.com/changelog"
+    ],
+    "notes": "3.30 patch and Trade identities reviewed before league launch. CoE currently reports 3.29.3.3; the complete joint target has no checked 3.30 probability or expected consumption. New league demand, acquisition and profitability are unverified."
+  },
+  "craft": {
+    "id": "fingerless-silk-gloves-woe",
+    "name": "Deafening Essence of Woe",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-woe"
+    },
+    "startingMods": [],
+    "uncertainties": [
+      "Starting-base acquisition must use exactly item level 82. Higher item levels can change the affix pool and require a separate cost model.",
+      "3.30 affix weights and the full joint stopping condition must be checked in the updated calculator before entering probability, expected executions or base consumption.",
+      "Compare the exact same base, implicit thresholds, state, quality and links. Asking prices are not completed sales; no profit is established."
+    ],
+    "steps": [
+      {
+        "id": "essence-roll",
+        "title": "Roll the complete item",
+        "action": "Buy the specified uninfluenced, uncorrupted rare base; use Deafening Essence of Woe. Preserve any required existing links, quality and native implicits. No fracture, metacraft or bench finish is assumed.",
+        "continueWhen": "All requirements together: Fire Resistance >= 30; Spell Damage >= 20; Item Energy Shield >= 140. Stop on this complete result.",
+        "failureAction": "If any required random modifier is missing, repeat the paid essence on the same base. Each repeat removes all previous non-fractured explicit and crafted modifiers. Stop spending when your budget is exhausted; do not use a safety Annul trick.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-woe",
+            "quantity": 1
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -284,6 +284,29 @@ async function evaluate(
 }
 
 describe('catalog input evidence', () => {
+  it.each(['unverified', 'different-league'])(
+    'withholds expected cost and ROI for %s crafting evidence despite fresh prices',
+    async (reason) => {
+      const source = fixtureRecipe();
+      const recipe = fixtureRecipe({
+        ...source,
+        verification: {
+          ...source.verification,
+          ...(reason === 'unverified'
+            ? { status: 'unverified' }
+            : { leagues: ['Allflame'] }),
+        },
+      });
+      const { evaluation } = await evaluate({ recipe, sellers: 5 });
+      expect(evaluation).toMatchObject({
+        status: 'partial',
+        expectedCraftCost: null,
+        profit: null,
+        marginPercent: null,
+      });
+    },
+  );
+
   it.each([9, 10])(
     'requires total stock across steps before pricing the craft (stock %i)',
     async (stock) => {

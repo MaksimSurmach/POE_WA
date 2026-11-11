@@ -16,7 +16,7 @@
     }
   },
   "category": "cluster-jewel",
-  "notes": "Use an 8-passive physical Large Cluster Jewel with 2 jewel sockets. Notable placement and extra affixes are unrestricted.",
+  "notes": "Use an 8-passive physical Large Cluster Jewel with 2 jewel sockets. Notable placement and extra affixes are unrestricted. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified.",
   "craft": {
     "evidence": {
       "method": "Craft of Exile calculator, displayed rounded probability and expected consumption",
@@ -112,12 +112,12 @@
   "patch": "3.29.3.3",
   "verification": {
     "status": "verified",
-    "leagues": ["Allflame", "Hardcore Allflame", "Standard", "Hardcore"],
+    "leagues": ["Allflame", "Hardcore Allflame"],
     "checkedAt": "2026-11-09",
     "sources": [
       "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsImwiOjgzLCJyIjoicmFyZSIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=0%2C5%2C0&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6W10sInAiOm51bGx9LHsiaSI6IjU3NDQiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpbXSwicCI6bnVsbH0seyJpIjoiNTc0MiIsInQiOm51bGwsImIiOnRydWUsInMiOltdLCJwIjpudWxsfV19XQ%3D%3D&class=158"
     ],
-    "notes": "Craft of Exile models the generic 8–12 passive mod pool; Trade acquisition and finished item searches use exactly 8 passives."
+    "notes": "Craft of Exile models the generic 8–12 passive mod pool; Trade acquisition and finished item searches use exactly 8 passives. Permanent-league cost certification withdrawn on 2026-11-11 pending 3.30 validation; the 3.29 calculator receipt is preserved."
   },
   "gameDataVersion": "3.29.3.3",
   "id": "physical-large-cluster-chaos",

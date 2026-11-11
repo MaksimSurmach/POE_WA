@@ -52,6 +52,18 @@ const flaskIdentities = JSON.parse(
 identities.stats.push(...flaskIdentities.stats);
 identities.bases.push(...flaskIdentities.bases);
 identities.resources.push(...flaskIdentities.resources);
+const weekOneIdentities = JSON.parse(
+  await readFile(
+    new URL(
+      'docs/evidence/poe-330-week-one-2026-11-11/trade-identities.json',
+      root,
+    ),
+    'utf8',
+  ),
+);
+identities.stats.push(...weekOneIdentities.stats);
+identities.bases.push(...weekOneIdentities.bases);
+identities.resources.push(...weekOneIdentities.resources);
 const manifest = await loadAndValidateTradeMappingManifest(
   fileURLToPath(
     new URL(

@@ -14,7 +14,7 @@
     }
   },
   "category": "helmet",
-  "notes": "Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. 92life is accepted only where current author does not require100. No100 guarantee, exact Praetor defence/gem/bench replication, Wraithlord/Dark Monarch replacement or current character-cap claim.",
+  "notes": "Optional +2 minion/life rare helmet upgrade for life-based Spectre low-budget stage. Bone variant, not exact Praetor PoB reproduction. 92life is accepted only where current author does not require100. No100 guarantee, exact Praetor defence/gem/bench replication, Wraithlord/Dark Monarch replacement or current character-cap claim. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified. For 3.30 use the separate Week 1 target with the new 20–30% native implicit.",
   "craft": {
     "id": "minion-bone-helmet-greed",
     "name": "Bone Helmet · +2 Minion Gems",

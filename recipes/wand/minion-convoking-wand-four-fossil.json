@@ -14,7 +14,7 @@
     }
   },
   "category": "wand",
-  "notes": "A concrete, selected catalog target derived from the source Sheet. Exact numeric thresholds/base selection are explicit authoring choices, not measured demand or verified calculator results. Sheet C007 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices.",
+  "notes": "A concrete, selected catalog target derived from the source Sheet. Exact numeric thresholds/base selection are explicit authoring choices, not measured demand or verified calculator results. Sheet C007 is retained in docs/evidence/recipe-catalog-2026-11-03/source-sheet.json; source price ranges are unverified assumptions and are not used as market prices. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified.",
   "craft": {
     "id": "minion-convoking-wand-four-fossil",
     "name": "Convoking Wand · +2 Minion Spells",

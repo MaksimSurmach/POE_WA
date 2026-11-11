@@ -1,6 +1,6 @@
 {
   "gameDataVersion": "3.29.3.3",
-  "mappingVersion": "poe-trade-2026-11-04.flasks.1",
+  "mappingVersion": "poe-trade-2026-11-11.week-one.1",
   "mappings": [
     {
       "entityKind": "base",
@@ -581,6 +581,189 @@
       "externalId": "Enkindling Orb",
       "payload": {
         "exchangeId": "enkindling-orb"
+      }
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:leather-belt",
+      "externalId": "Leather Belt"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:heavy-belt",
+      "externalId": "Heavy Belt"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:crystal-belt",
+      "externalId": "Crystal Belt"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:lichs-circlet",
+      "externalId": "Lich's Circlet"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:hubris-circlet",
+      "externalId": "Hubris Circlet"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:royal-burgonet",
+      "externalId": "Royal Burgonet"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:fingerless-silk-gloves",
+      "externalId": "Fingerless Silk Gloves"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:warlock-gloves",
+      "externalId": "Warlock Gloves"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:gripped-gloves",
+      "externalId": "Gripped Gloves"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:spiked-gloves",
+      "externalId": "Spiked Gloves"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:apothecarys-gloves",
+      "externalId": "Apothecary's Gloves"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:slink-gloves",
+      "externalId": "Slink Gloves"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:two-toned-boots",
+      "externalId": "Two-Toned Boots"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:fugitive-boots",
+      "externalId": "Fugitive Boots"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:warlock-boots",
+      "externalId": "Warlock Boots"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:thicket-bow-six-link",
+      "externalId": "Thicket Bow",
+      "payload": {
+        "filters": {
+          "socket.links": 6
+        }
+      }
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:spine-bow",
+      "externalId": "Spine Bow"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:broadhead-arrow-quiver",
+      "externalId": "Broadhead Arrow Quiver"
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:vaal-regalia-six-link",
+      "externalId": "Vaal Regalia",
+      "payload": {
+        "filters": {
+          "socket.links": 6,
+          "misc.quality": 20
+        }
+      }
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:twilight-regalia-week-one-six-link",
+      "externalId": "Twilight Regalia",
+      "payload": {
+        "filters": {
+          "socket.links": 6,
+          "misc.quality": 20
+        }
+      }
+    },
+    {
+      "entityKind": "base",
+      "canonicalId": "base:titanium-spirit-shield",
+      "externalId": "Titanium Spirit Shield"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:bow-gems",
+      "externalId": "explicit.stat_2027269580"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:bow-local-attack-speed",
+      "externalId": "explicit.stat_210067635"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:local-physical-damage",
+      "externalId": "explicit.stat_1509134228"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:local-added-physical-damage",
+      "externalId": "explicit.stat_1940865751"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:implicit-spell-damage",
+      "externalId": "implicit.stat_2974417149"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:implicit-projectile-attack-damage",
+      "externalId": "implicit.stat_2162876159"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:implicit-melee-damage",
+      "externalId": "implicit.stat_1002362373"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:implicit-dot-multiplier",
+      "externalId": "implicit.stat_3988349707"
+    },
+    {
+      "entityKind": "mod",
+      "canonicalId": "mod:implicit-chaos-resistance",
+      "externalId": "implicit.stat_2923486259"
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "shrieking-essence-of-dread",
+      "externalId": "Shrieking Essence of Dread",
+      "payload": {
+        "exchangeId": "shrieking-essence-of-dread"
+      }
+    },
+    {
+      "entityKind": "resource",
+      "canonicalId": "deafening-essence-of-contempt",
+      "externalId": "Deafening Essence of Contempt",
+      "payload": {
+        "exchangeId": "deafening-essence-of-contempt"
       }
     }
   ]

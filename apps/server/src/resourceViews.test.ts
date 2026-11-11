@@ -193,7 +193,7 @@ describe('repository-backed resource views', () => {
       await readers.readCatalog(correlationId),
     );
     expect(catalog.state).toBe('loading');
-    expect(catalog.data?.entries).toHaveLength(31);
+    expect(catalog.data?.entries).toHaveLength(55);
     expect(
       catalog.data?.entries
         .filter(({ recipe }) =>
