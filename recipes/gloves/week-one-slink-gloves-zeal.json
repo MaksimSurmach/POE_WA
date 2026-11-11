@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 3,
+  "id": "week-one-slink-gloves-zeal",
+  "title": "Week 1 · Slink Gloves · speed / life / suppression",
+  "category": "gloves",
+  "summary": "Maximum Life >= 70; Increased Attack Speed >= 17; Chance to Suppress Spell Damage >= 8. First-week candidate; profitability unverified.",
+  "patch": "3.30.0",
+  "gameDataVersion": "3.29.3.3",
+  "tags": [
+    "week-one",
+    "league-start",
+    "life",
+    "attack-speed",
+    "spell-suppression"
+  ],
+  "base": {
+    "baseId": "base:slink-gloves",
+    "influences": [],
+    "itemLevel": 82,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "startingBase": {
+    "baseId": "base:slink-gloves",
+    "influences": [],
+    "itemLevel": 82,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:life",
+        "minimumValue": 70
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:attack-speed",
+        "minimumValue": 17
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:suppression",
+        "minimumValue": 8
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "targetSignature": "3.30.0:73feb6730426e88f5f05f6eb94e37752",
+  "notes": "Accessible evasion fallback without an expensive suppression fracture. Suppression and life must roll together; no guaranteed suppression claim.",
+  "verification": {
+    "status": "unverified",
+    "leagues": [],
+    "checkedAt": "2026-11-11",
+    "sources": [
+      "https://www.pathofexile.com/forum/view-thread/4013680",
+      "https://poedb.tw/us/Deafening_Essence_of_Zeal",
+      "https://beta.craftofexile.com/changelog"
+    ],
+    "notes": "3.30 patch and Trade identities reviewed before league launch. CoE currently reports 3.29.3.3; the complete joint target has no checked 3.30 probability or expected consumption. New league demand, acquisition and profitability are unverified."
+  },
+  "craft": {
+    "id": "slink-gloves-zeal",
+    "name": "Deafening Essence of Zeal",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-zeal"
+    },
+    "startingMods": [],
+    "uncertainties": [
+      "Starting-base acquisition must use exactly item level 82. Higher item levels can change the affix pool and require a separate cost model.",
+      "3.30 affix weights and the full joint stopping condition must be checked in the updated calculator before entering probability, expected executions or base consumption.",
+      "Compare the exact same base, implicit thresholds, state, quality and links. Asking prices are not completed sales; no profit is established."
+    ],
+    "steps": [
+      {
+        "id": "essence-roll",
+        "title": "Roll the complete item",
+        "action": "Buy the specified uninfluenced, uncorrupted rare base; use Deafening Essence of Zeal. Preserve any required existing links, quality and native implicits. No fracture, metacraft or bench finish is assumed.",
+        "continueWhen": "All requirements together: Maximum Life >= 70; Increased Attack Speed >= 17; Chance to Suppress Spell Damage >= 8. Stop on this complete result.",
+        "failureAction": "If any required random modifier is missing, repeat the paid essence on the same base. Each repeat removes all previous non-fractured explicit and crafted modifiers. Stop spending when your budget is exhausted; do not use a safety Annul trick.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-zeal",
+            "quantity": 1
+          }
+        ]
+      }
+    ]
+  }
+}

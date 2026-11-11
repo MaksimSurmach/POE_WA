@@ -16,7 +16,7 @@
     }
   },
   "category": "cluster-jewel",
-  "notes": "Only the named three-notable core is required. Acquire an 8-passive, 2-socket base of the exact damage variant and authored item level. Notable positioning and extra affixes are outside this target. The selected cost model is ordinary Chaos rerolling. Serrated uses fewer attempts but its bulk material cost is unconfirmed; it is retained only as an comparison without a confirmed bulk cost.",
+  "notes": "Only the named three-notable core is required. Acquire an 8-passive, 2-socket base of the exact damage variant and authored item level. Notable positioning and extra affixes are outside this target. The selected cost model is ordinary Chaos rerolling. Serrated uses fewer attempts but its bulk material cost is unconfirmed; it is retained only as an comparison without a confirmed bulk cost. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified.",
   "craft": {
     "evidence": {
       "method": "Current Craft of Exile UI permutation calculator for one complete AND triple, with an ordinary paid failed Chaos Orb reroll observed",

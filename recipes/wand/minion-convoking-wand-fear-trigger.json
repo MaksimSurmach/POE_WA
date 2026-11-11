@@ -192,7 +192,7 @@
     "other": []
   },
   "summary": "Acquire the speed fracture, roll Deafening Fear for +1 minion and an open suffix, then bench Trigger8s.",
-  "notes": "Current scoped CoE model, not a historical price/profit claim. Ordinary paid failure preserves the acquired base. No self-fracturing, Annul or Vesper recovery is assumed.",
+  "notes": "Current scoped CoE model, not a historical price/profit claim. Ordinary paid failure preserves the acquired base. No self-fracturing, Annul or Vesper recovery is assumed. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified. Buy the specified already-rare fractured base; upgrading new magic fractures is not priced.",
   "tags": ["minion", "fractured", "essence", "trigger"],
   "verification": {
     "status": "verified",

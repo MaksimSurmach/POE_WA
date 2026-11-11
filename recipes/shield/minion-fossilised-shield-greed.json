@@ -14,7 +14,7 @@
     }
   },
   "category": "shield",
-  "notes": "Life-based Spectre low-budget +1 minion/life rare shield; ordinary minion implicit preserved. No Shaper recovery, suppression, Bitterbind equivalence or resistance-cap claim. Natural summoner shield family selected; generic INT shield pool not substituted.",
+  "notes": "Life-based Spectre low-budget +1 minion/life rare shield; ordinary minion implicit preserved. No Shaper recovery, suppression, Bitterbind equivalence or resistance-cap claim. Natural summoner shield family selected; generic INT shield pool not substituted. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified.",
   "craft": {
     "id": "minion-fossilised-shield-greed",
     "name": "Fossilised Shield · +1 Minion Gems",

@@ -1,0 +1,57 @@
+{
+  "observedAt": "2026-11-11T09:42:21.003Z",
+  "source": "https://worksmith.ranus.site/api/diagnostics/rate-limits",
+  "scope": "Pre-expansion observation; not a post-expansion load test. Earlier samples include provider incidents and migration.",
+  "existing": {
+    "recipes": 31,
+    "tradeTargets": 46,
+    "capturesPerHour": 35.5
+  },
+  "candidate": {
+    "recipes": 55,
+    "tradeTargets": 94,
+    "hourlyTargets": 49,
+    "twoHourlyTargets": 45,
+    "capturesPerHour": 71.5
+  },
+  "observedSuccessfulCaptureAverage": {
+    "searchRequests": 1.023041474654378,
+    "fetchRequests": 2.9769585253456223
+  },
+  "projectionAssumingSameMix": {
+    "searchRequestsPerHour": 73.14746543778801,
+    "fetchRequestsPerHour": 212.85253456221199,
+    "searchPacedCapacityPerHour": 150,
+    "fetchPacedCapacityPerHour": 250,
+    "maximumSustainableMeanFetchRequestsPerCapture": 3.4965034965034967
+  },
+  "currentLongWindows": {
+    "trade-fetch": [
+      {
+        "activeRestrictionSeconds": 0,
+        "currentHits": 7,
+        "maximumHits": 1000,
+        "periodSeconds": 10800,
+        "restrictionSeconds": 1800,
+        "rule": "ip"
+      }
+    ],
+    "trade-search": [
+      {
+        "activeRestrictionSeconds": 0,
+        "currentHits": 237,
+        "maximumHits": 600,
+        "periodSeconds": 10800,
+        "restrictionSeconds": 3600,
+        "rule": "ip"
+      }
+    ],
+    "trade-leagues": []
+  },
+  "trackedLast429": null,
+  "limitations": [
+    "No representative 3.30 market observations or crafts.",
+    "Projection excludes retries, other same-IP traffic and changing listing/fetch volumes.",
+    "Existing rate controller and 25% reserve are unchanged; queue may fall behind instead of exceeding safe request pacing."
+  ]
+}

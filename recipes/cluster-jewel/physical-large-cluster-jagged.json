@@ -16,7 +16,7 @@
     }
   },
   "category": "cluster-jewel",
-  "notes": "The 3-notable fossil craft is a separate output target from the two-notable Alteration craft.",
+  "notes": "The 3-notable fossil craft is a separate output target from the two-notable Alteration craft. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified.",
   "craft": {
     "evidence": {
       "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
@@ -50,7 +50,7 @@
       "Starting-base acquisition must use exactly item level 83. Higher item levels can change the affix pool and require a separate cost model."
     ],
     "id": "jagged-fossil",
-    "name": "Jagged Fossil \u00b7 3 Notables",
+    "name": "Jagged Fossil · 3 Notables",
     "steps": [
       {
         "action": "Use one Jagged Fossil in a one-socket resonator on a base of exactly item level 83.",
@@ -117,14 +117,14 @@
   "patch": "3.29.3.3",
   "verification": {
     "status": "verified",
-    "leagues": ["Allflame", "Hardcore Allflame", "Standard", "Hardcore"],
+    "leagues": ["Allflame", "Hardcore Allflame"],
     "checkedAt": "2026-11-02",
     "sources": [
       "https://beta.craftofexile.com/?game=poe1&ct=calculator&group=4&item=2476.11&class=158&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25MYXJnZSIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im5vcm1hbCIsImlmIjpbXSwiaXAiOltdLCJlIjpbXSwicCI6e30sImRpIjpbXSwiaWciOjAsIm1zIjowLCJmIjpbImEiXSwicHQiOm51bGwsImF0IjoiYWZmbGljdGlvbl9waHlzaWNhbF9kYW1hZ2UiLCJpZCI6bnVsbH0%3D&method=4%2C13&flags=&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1NzQ2IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTc0NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9LHsiaSI6IjU3NDIiLCJ0IjpudWxsLCJiIjp0cnVlLCJzIjpudWxsfV19XQ%3D%3D",
       "https://beta.craftofexile.com/changelog",
       "https://www.pathofexile.com/api/trade/data/stats"
     ],
-    "notes": "Current CoE 3.29.3.3 affix assignments and calculator configurations checked on 2026-11-02. Trade IDs revalidated against the public current stats catalogue. The mapping-only game-data manifest contains base identity, no affix weights; probability comes solely from the archived CoE evidence."
+    "notes": "Current CoE 3.29.3.3 affix assignments and calculator configurations checked on 2026-11-02. Trade IDs revalidated against the public current stats catalogue. The mapping-only game-data manifest contains base identity, no affix weights; probability comes solely from the archived CoE evidence. Permanent-league cost certification withdrawn on 2026-11-11 pending 3.30 validation; the 3.29 calculator receipt is preserved."
   },
   "gameDataVersion": "3.29.3.3",
   "id": "physical-large-cluster-jagged",
@@ -155,5 +155,5 @@
     "implicits": [],
     "other": []
   },
-  "title": "Physical Cluster Jewel \u00b7 3 Notables"
+  "title": "Physical Cluster Jewel · 3 Notables"
 }

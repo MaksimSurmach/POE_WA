@@ -1,7 +1,7 @@
 {
   "patchVersion": "3.29.3.3",
   "source": "https://www.pathofexile.com/api/trade/data/items",
-  "sourceRevision": "mapping-identities-checked-2026-11-03.craft-profit.1+exiledata-mods-c2af0d896a3b.flask-speed",
+  "sourceRevision": "mapping-identities-checked-2026-11-03.craft-profit.1+exiledata-mods-c2af0d896a3b.flask-speed + week-one-identities-2026-11-11",
   "records": [
     {
       "kind": "base",
@@ -372,6 +372,300 @@
         "id": "mod-family:flask-movement-speed",
         "modIds": ["mod:flask-movement-speed"],
         "name": "Utility flask movement speed"
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:leather-belt",
+        "name": "Leather Belt",
+        "itemClass": "Belt",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:heavy-belt",
+        "name": "Heavy Belt",
+        "itemClass": "Belt",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:crystal-belt",
+        "name": "Crystal Belt",
+        "itemClass": "Belt",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:lichs-circlet",
+        "name": "Lich's Circlet",
+        "itemClass": "Helmet",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:hubris-circlet",
+        "name": "Hubris Circlet",
+        "itemClass": "Helmet",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:royal-burgonet",
+        "name": "Royal Burgonet",
+        "itemClass": "Helmet",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:fingerless-silk-gloves",
+        "name": "Fingerless Silk Gloves",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:warlock-gloves",
+        "name": "Warlock Gloves",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:gripped-gloves",
+        "name": "Gripped Gloves",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:spiked-gloves",
+        "name": "Spiked Gloves",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:apothecarys-gloves",
+        "name": "Apothecary's Gloves",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:slink-gloves",
+        "name": "Slink Gloves",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:two-toned-boots",
+        "name": "Two-Toned Boots",
+        "itemClass": "Boots",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:fugitive-boots",
+        "name": "Fugitive Boots",
+        "itemClass": "Boots",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:warlock-boots",
+        "name": "Warlock Boots",
+        "itemClass": "Boots",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:thicket-bow-six-link",
+        "name": "Thicket Bow",
+        "itemClass": "Bow",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:spine-bow",
+        "name": "Spine Bow",
+        "itemClass": "Bow",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:broadhead-arrow-quiver",
+        "name": "Broadhead Arrow Quiver",
+        "itemClass": "Quiver",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:vaal-regalia-six-link",
+        "name": "Vaal Regalia",
+        "itemClass": "Body Armour",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:twilight-regalia-week-one-six-link",
+        "name": "Twilight Regalia",
+        "itemClass": "Body Armour",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:titanium-spirit-shield",
+        "name": "Titanium Spirit Shield",
+        "itemClass": "Shield",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
+          "checkedAt": "2026-11-11"
+        }
       }
     }
   ]

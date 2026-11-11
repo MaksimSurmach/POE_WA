@@ -53,7 +53,7 @@ beforeEach(async () => {
   );
   await pool.query(
     `insert into poe_leagues (id, ggg_id, name, is_current, synced_at)
-     values ($1, 'Standard', 'Standard', true, now())`,
+     values ($1, 'Allflame', 'Allflame', true, now())`,
     [leagueId],
   );
 });
@@ -151,7 +151,7 @@ describe('catalog publication with PostgreSQL', () => {
         kind: 'economy-overview',
         source: 'poe.ninja',
         game: 'poe1',
-        league: 'Standard',
+        league: 'Allflame',
         category,
         endpoint: 'https://poe.ninja/fixture',
         payloadHash: 'a'.repeat(64),
@@ -194,7 +194,7 @@ describe('catalog publication with PostgreSQL', () => {
     let outputCaptureId = '';
     const snapshotTtlMs = 30 * 60_000;
     const plan = await planCatalogRefresh(repositories, {
-      league: { leagueId, leagueGggId: 'Standard', leagueName: 'Standard' },
+      league: { leagueId, leagueGggId: 'Allflame', leagueName: 'Allflame' },
       marketDependencies,
       now,
       snapshotTtlMs,
@@ -268,7 +268,7 @@ describe('catalog publication with PostgreSQL', () => {
                   baseType: 'Large Cluster Jewel',
                   rarity,
                   itemLevel: 83,
-                  league: 'Standard',
+                  league: 'Allflame',
                   patch: '3.29.3.3',
                   currency,
                   seller: account,
@@ -290,7 +290,7 @@ describe('catalog publication with PostgreSQL', () => {
                       rarity,
                       ilvl: 83,
                       verified: true,
-                      league: 'Standard',
+                      league: 'Allflame',
                       enchantMods: clusterMods,
                       explicitMods: finished ? notableMods : [],
                     },
@@ -378,7 +378,7 @@ describe('catalog publication with PostgreSQL', () => {
 
     const report = await evaluateAndPublishCatalog(repositories, {
       cycleId: plan.cycle.id,
-      league: 'Standard',
+      league: 'Allflame',
       marketDependencies,
       economy,
       now,
@@ -430,7 +430,7 @@ describe('catalog publication with PostgreSQL', () => {
     const baseline = await evaluateAndPublishCatalog(repositories, {
       allowMissingOutput: true,
       cycleId: baselineCycle.id,
-      league: 'Standard',
+      league: 'Allflame',
       marketDependencies: createRecipeMarketDependencies({
         trade,
         resolveResource: async () => null,
@@ -455,7 +455,7 @@ describe('catalog publication with PostgreSQL', () => {
             payload:
               kind === 'trade-target'
                 ? { recipeIds: ids }
-                : { league: 'Standard' },
+                : { league: 'Allflame' },
           },
           at,
           client,
