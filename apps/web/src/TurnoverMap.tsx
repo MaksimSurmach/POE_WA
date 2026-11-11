@@ -25,8 +25,14 @@ export function TurnoverMap({
   activityDescription?: string;
   onSelect(id: string): void;
 }) {
-  const min = Math.min(...items.map(({ price }) => price));
-  const max = Math.max(...items.map(({ price }) => price));
+  items = items.filter(
+    ({ price, activity }) =>
+      Number.isFinite(price) &&
+      price > 0 &&
+      (activity === null || (Number.isFinite(activity) && activity >= 0)),
+  );
+  const min = items.length ? Math.min(...items.map(({ price }) => price)) : 1;
+  const max = items.length ? Math.max(...items.map(({ price }) => price)) : 1;
   const ticks = Array.from(
     {
       length:
@@ -46,10 +52,8 @@ export function TurnoverMap({
     (value) => value >= floor && value <= ceiling,
   );
   const stride = Math.max(1, Math.ceil(priceTicks.length / 5));
-  const peak = Math.max(1, ...items.map((item) => item.activity ?? 0));
-  const magnitude = 10 ** Math.floor(Math.log10(peak / 4));
-  const step = Math.max(1, Math.ceil((peak * 1.1) / 4 / magnitude) * magnitude);
-  const yMax = step * 4;
+  const peak = Math.max(0, ...items.map((item) => item.activity ?? 0));
+  const { step, max: yMax } = activityScale(peak);
   const mapId = useId();
   const [choices, setChoices] = useState<TurnoverPoint[]>([]);
   const groups = new Map<string, TurnoverPoint[]>();
@@ -61,17 +65,30 @@ export function TurnoverMap({
   }
   const describe = (item: TurnoverPoint) =>
     `${axisLabel.format(item.price)} ${currency}, ${item.activity === null ? 'activity not measurable' : `${rate.format(item.activity)} ${activityDescription}`}`;
+  if (!items.length)
+    return (
+      <p>
+        No fresh priced observations to plot. Check the price table or
+        collection status.
+      </p>
+    );
   return (
     <div
-      className={`trade-map${items.length > 12 ? ' trade-map--dense' : ''}${items.some((item) => item.activity === null) ? ' trade-map--unknown' : ''}`}
+      className={`trade-map${peak === 0 ? ' trade-map--zero' : ''}${items.length > 12 ? ' trade-map--dense' : ''}${items.some((item) => item.activity === null) ? ' trade-map--unknown' : ''}`}
     >
       <p className="trade-map__axis">{activityLabel}</p>
+      {peak === 0 ? (
+        <p className="trade-map__axis">
+          No positive listing activity recorded. Prices below remain observable;
+          demand is unconfirmed.
+        </p>
+      ) : null}
       <div
         className="trade-map__graph"
         role="group"
         aria-label="All recipes price and activity plot"
       >
-        {[0, 1, 2, 3, 4].map((tick) => (
+        {(peak === 0 ? [0] : [0, 1, 2, 3, 4]).map((tick) => (
           <span
             className="trade-map__guide trade-map__guide--y"
             aria-hidden="true"
@@ -183,4 +200,14 @@ export function TurnoverMap({
       </p>
     </div>
   );
+}
+
+/** Nice tick steps also work for rates below one exit per day. */
+export function activityScale(peak: number) {
+  if (peak <= 0) return { step: 0, max: 1 };
+  const target = (peak * 1.1) / 4;
+  const magnitude = 10 ** Math.floor(Math.log10(target));
+  const factor = [1, 2, 5, 10].find((value) => value * magnitude >= target)!;
+  const step = factor * magnitude;
+  return { step, max: step * 4 };
 }

@@ -1,3 +1,4 @@
+import { formatTimestamp } from './dateTime.js';
 import { WorkspaceShell as AppShell } from './WorkspaceShell.js';
 import { CatalogOverview } from './CatalogOverview.js';
 import { Button, Input, NativeSelect } from './ui.js';
@@ -6,7 +7,7 @@ import type {
   CurrentLeagueResponse,
 } from '@poe-worksmith/contracts';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Route, Routes, useSearchParams } from 'react-router-dom';
+import { Link, Route, Routes, useSearchParams } from 'react-router-dom';
 
 import {
   defaultCatalogFilters,
@@ -76,9 +77,15 @@ function CatalogRoute() {
       [...new Set([...entries.map(({ recipe }) => recipe.category)])].sort(),
     [entries],
   );
+  const effectiveFilters =
+    filters.sort === 'profit' &&
+    !searchParams.has('sort') &&
+    entries.every(({ evaluation }) => evaluation.profit === null)
+      ? { ...filters, sort: 'freshness' as const }
+      : filters;
   const filteredEntries = useMemo(
-    () => filterCatalog(entries, filters),
-    [entries, filters],
+    () => filterCatalog(entries, effectiveFilters),
+    [entries, effectiveFilters],
   );
   useEffect(() => {
     let active = true;
@@ -156,26 +163,19 @@ function CatalogRoute() {
               : catalogLeague && catalogLeague.id !== league?.id
                 ? `${catalogLeague.name} · Market observations`
                 : league
-                  ? `${league.discovery === 'confirmed' ? '' : 'Last known league: '}${league.name} · Last checked ${new Date(league.syncedAt).toLocaleString('en-US')}`
+                  ? `${league.discovery === 'confirmed' ? '' : 'Last known league: '}${league.name} · PC market`
                   : 'League unavailable'}
           </p>
           {marketUpdatedAt ? (
             <p>
               Market updated{' '}
               <time dateTime={marketUpdatedAt}>
-                {new Intl.DateTimeFormat('en-US', {
-                  dateStyle: 'medium',
-                  timeStyle: 'short',
-                }).format(new Date(marketUpdatedAt))}
+                {formatTimestamp(marketUpdatedAt)}
               </time>
             </p>
           ) : null}
         </div>
       </section>
-
-      {collectorMode ? (
-        <CollectorControls onResultsChanged={reloadCatalog} />
-      ) : null}
 
       {loadError ? (
         <StatusPanel tone="danger" title="Recipes unavailable">
@@ -212,99 +212,135 @@ function CatalogRoute() {
                 onChange={(event) => updateFilter('search', event.target.value)}
               />
             </label>
-            <label className="catalog-filter">
-              <span>Tag</span>
-              <NativeSelect
-                value={filters.tag ?? 'all'}
-                onChange={(e) => updateFilter('tag', e.target.value)}
-              >
-                <option value="all">All tags</option>
-                {[...new Set(entries.flatMap((e) => e.recipe.tags))]
-                  .sort()
-                  .map((tag) => (
-                    <option key={tag}>{tag}</option>
-                  ))}
-              </NativeSelect>
-            </label>
-            <label className="catalog-filter">
-              <span>Item class</span>
-              <NativeSelect
-                value={filters.category}
-                onChange={(event) =>
-                  updateFilter('category', event.target.value)
-                }
-              >
-                <option value="all">All classes</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category.replaceAll('-', ' ')}
-                  </option>
-                ))}
-              </NativeSelect>
-            </label>
-            <div className="catalog-filter">
-              <label htmlFor="minimum-profit">
-                Min profit ({filters.profitCurrency === 'divine' ? 'div' : 'c'})
-              </label>
-              <div className="catalog-profit-filter">
-                <Input
-                  id="minimum-profit"
-                  type="number"
-                  step="any"
-                  placeholder="Any"
-                  value={filters.minProfit ?? ''}
-                  onChange={(event) =>
-                    updateFilter('minProfit', event.target.value)
-                  }
-                />
+            <details
+              className="catalog-advanced-filters"
+              open={Boolean(
+                filters.category !== 'all' ||
+                (filters.view && filters.view !== 'all') ||
+                filters.minProfit ||
+                filters.minRoi ||
+                (filters.tag && filters.tag !== 'all'),
+              )}
+            >
+              <summary>Filter targets</summary>
+              <label className="catalog-filter">
+                <span>Item class</span>
                 <NativeSelect
-                  aria-label="Profit currency"
-                  value={filters.profitCurrency ?? 'chaos'}
+                  value={filters.category}
+                  onChange={(event) =>
+                    updateFilter('category', event.target.value)
+                  }
+                >
+                  <option value="all">All classes</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category.replaceAll('-', ' ')}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </label>
+              <label className="catalog-filter">
+                <span>Show targets</span>
+                <NativeSelect
+                  value={filters.view ?? 'all'}
                   onChange={(event) =>
                     updateFilter(
-                      'profitCurrency',
-                      event.target.value as 'chaos' | 'divine',
+                      'view',
+                      event.target.value as NonNullable<CatalogFilters['view']>,
                     )
                   }
                 >
-                  <option value="chaos">c</option>
-                  <option value="divine">div</option>
+                  <option value="all">All targets</option>
+                  <option value="priced">With prices</option>
+                  <option value="activity">Observed exits</option>
+                  <option value="estimated">Profit estimates</option>
                 </NativeSelect>
+              </label>
+
+              <label className="catalog-filter">
+                <span>Tag</span>
+                <NativeSelect
+                  value={filters.tag ?? 'all'}
+                  onChange={(e) => updateFilter('tag', e.target.value)}
+                >
+                  <option value="all">All tags</option>
+                  {[...new Set(entries.flatMap((e) => e.recipe.tags))]
+                    .sort()
+                    .map((tag) => (
+                      <option key={tag}>{tag}</option>
+                    ))}
+                </NativeSelect>
+              </label>
+
+              <div className="catalog-filter">
+                <label htmlFor="minimum-profit">
+                  Min profit (
+                  {filters.profitCurrency === 'divine' ? 'div' : 'c'})
+                </label>
+                <div className="catalog-profit-filter">
+                  <Input
+                    id="minimum-profit"
+                    type="number"
+                    step="any"
+                    placeholder="Any"
+                    value={filters.minProfit ?? ''}
+                    onChange={(event) =>
+                      updateFilter('minProfit', event.target.value)
+                    }
+                  />
+                  <NativeSelect
+                    aria-label="Profit currency"
+                    value={filters.profitCurrency ?? 'chaos'}
+                    onChange={(event) =>
+                      updateFilter(
+                        'profitCurrency',
+                        event.target.value as 'chaos' | 'divine',
+                      )
+                    }
+                  >
+                    <option value="chaos">c</option>
+                    <option value="divine">div</option>
+                  </NativeSelect>
+                </div>
               </div>
-            </div>
-            <label className="catalog-filter">
-              <span>Min ROI (%)</span>
-              <Input
-                type="number"
-                step="any"
-                placeholder="Any"
-                value={filters.minRoi ?? ''}
-                onChange={(event) => updateFilter('minRoi', event.target.value)}
-              />
-            </label>
+              <label className="catalog-filter">
+                <span>Min ROI (%)</span>
+                <Input
+                  type="number"
+                  step="any"
+                  placeholder="Any"
+                  value={filters.minRoi ?? ''}
+                  onChange={(event) =>
+                    updateFilter('minRoi', event.target.value)
+                  }
+                />
+              </label>
+            </details>
           </section>
 
           <div className="catalog-results">
             <span role="status">
               {filteredEntries.length} of {entries.length} recipes
             </span>
-            <Button
-              type="button"
-              onClick={() => setFilters(defaultCatalogFilters)}
-            >
-              Reset filters
-            </Button>
+            {searchParams.size > 0 ? (
+              <Button
+                type="button"
+                onClick={() => setFilters(defaultCatalogFilters)}
+              >
+                Reset filters
+              </Button>
+            ) : null}
           </div>
           <CatalogTable
             entries={filteredEntries}
-            filters={filters}
+            filters={effectiveFilters}
             onSort={(sort) =>
               setFilters((current) => ({
                 ...current,
                 sort,
                 direction:
-                  (current.sort ?? 'title') === sort
-                    ? (current.direction ??
+                  (effectiveFilters.sort ?? 'title') === sort
+                    ? (effectiveFilters.direction ??
                         (['title', 'category', 'cost'].includes(sort)
                           ? 'asc'
                           : 'desc')) === 'asc'
@@ -317,10 +353,9 @@ function CatalogRoute() {
             }
           />
           <p className="catalog-price-note" id="catalog-price-note">
-            Asking-price estimates, not completed sales. ROI = profit ÷ expected
-            cost. One eligible seller can earn grade C. Currencies sorted
-            separately. Methods for the same target are grouped by readiness,
-            then by comparable profit.
+            Asking prices and listing exits are observations, not confirmed
+            sales. Open a target for materials, steps and evidence.{' '}
+            <Link to="/market">Compare market prices</Link>.
           </p>
         </>
       )}
@@ -331,8 +366,11 @@ function CatalogRoute() {
           temporary PC league once both GGG and poe.ninja list it.
         </p>
       ) : null}
-      {collectorMode ? <CollectorReadinessReport /> : null}
-      {collectorMode ? <HomeSettings /> : null}
+      {collectorMode ? (
+        <p className="catalog-price-note">
+          <Link to="/settings">Collection status and settings</Link>
+        </p>
+      ) : null}
     </>
   );
 }
@@ -347,11 +385,31 @@ export function App() {
         <Route path="recipes/:recipeId" element={<RecipePage />} />
         <Route path="factory" element={<FactoryPage />} />
         <Route path="market" element={<MarketTrendsPage />} />
+        <Route path="settings" element={<CollectionSettingsPage />} />
         <Route
           path="*"
           element={<StatusPanel tone="warning" title="Page not found" />}
         />
       </Route>
     </Routes>
+  );
+}
+
+function CollectionSettingsPage() {
+  return (
+    <>
+      <header className="catalog-heading">
+        <div>
+          <h1>Collection and settings</h1>
+          <p>
+            Check collection health and control when saved prices become
+            outdated.
+          </p>
+        </div>
+      </header>
+      <CollectorControls />
+      <HomeSettings initiallyOpen />
+      <CollectorReadinessReport />
+    </>
   );
 }

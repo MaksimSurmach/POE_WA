@@ -124,7 +124,43 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
           Reset filters
         </Button>
       </div>
+      <p className="catalog-price-note">
+        Market targets include collected prices. Pohx / Convay guides include
+        manual spending calculators; they do not carry verified profit
+        estimates.
+      </p>
       <ul className="recipe-library">
+        {filtered.length ? (
+          <li className="recipe-library__heading">
+            <h2>Market recipes</h2>
+            <span>Materials, steps and collected asks</span>
+          </li>
+        ) : null}
+        {filtered.map(({ recipe, itemPreview }) => (
+          <li key={recipe.id}>
+            {itemPreview ? <ItemTooltip item={itemPreview} /> : null}
+            <div>
+              <h2>
+                <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
+                  {recipe.title}
+                </Link>
+              </h2>
+              <p className="recipe-library__method">
+                {recipe.category.replaceAll('-', ' ')} · {recipe.craftMethod}
+              </p>
+              <p>{recipe.summary}</p>
+              <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
+                Materials and steps ›
+              </Link>
+            </div>
+          </li>
+        ))}
+        {guides.length ? (
+          <li className="recipe-library__heading">
+            <h2>Pohx / Convay guides</h2>
+            <span>Procedures and manual budget calculators</span>
+          </li>
+        ) : null}
         {guides.map((guide) => (
           <li key={`pohx-${guide.id}`}>
             <span className="recipe-library__guide-mark" aria-hidden="true">
@@ -146,25 +182,6 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
                   ? 'View source status'
                   : 'Steps and cost calculator'}{' '}
                 ›
-              </Link>
-            </div>
-          </li>
-        ))}
-        {filtered.map(({ recipe, itemPreview }) => (
-          <li key={recipe.id}>
-            {itemPreview ? <ItemTooltip item={itemPreview} /> : null}
-            <div>
-              <h2>
-                <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
-                  {recipe.title}
-                </Link>
-              </h2>
-              <p className="recipe-library__method">
-                {recipe.category.replaceAll('-', ' ')} · {recipe.craftMethod}
-              </p>
-              <p>{recipe.summary}</p>
-              <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
-                Materials and steps ›
               </Link>
             </div>
           </li>

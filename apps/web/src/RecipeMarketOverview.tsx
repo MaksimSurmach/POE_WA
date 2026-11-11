@@ -1,4 +1,6 @@
-import { Button, TableSurface } from './ui.js';
+import { useState } from 'react';
+import { formatTimestamp } from './dateTime.js';
+import { Button, Input, NativeSelect, TableSurface } from './ui.js';
 import type {
   CatalogEntry,
   CatalogResponse,
@@ -7,7 +9,7 @@ import type {
 
 import { observedAsk } from './catalog.js';
 import { Money, StatusPanel, economicClass } from './components.js';
-import { formatUtc, formatPercent } from './PriceTrendChart.js';
+import { formatPercent } from './PriceTrendChart.js';
 import { TurnoverMap } from './TurnoverMap.js';
 
 export function marketRecipePoint(entry: CatalogEntry) {
@@ -44,7 +46,35 @@ export function RecipeMarketOverview({
   trends: TrendOverview | undefined;
   onSelect(id: string): void;
 }) {
-  const entries = response?.data?.entries ?? [];
+  const [query, setQuery] = useState('');
+  const [order, setOrder] = useState('activity');
+  const entries = [...(response?.data?.entries ?? [])]
+    .filter(({ recipe }) =>
+      `${recipe.title} ${recipe.craftMethod} ${recipe.category}`
+        .toLowerCase()
+        .includes(query.trim().toLowerCase()),
+    )
+    .sort((left, right) => {
+      const a = marketRecipePoint(left),
+        b = marketRecipePoint(right);
+      if (order === 'activity')
+        return (
+          (b.exits ?? -1) - (a.exits ?? -1) ||
+          left.recipe.title.localeCompare(right.recipe.title)
+        );
+      if (order === 'price') {
+        if (!a.price || !b.price)
+          return (
+            Number(!a.price) - Number(!b.price) || a.name.localeCompare(b.name)
+          );
+        return (
+          a.price.currency.localeCompare(b.price.currency) ||
+          a.price.amount - b.price.amount ||
+          a.name.localeCompare(b.name)
+        );
+      }
+      return a.name.localeCompare(b.name);
+    });
   const points = entries.map(marketRecipePoint);
   const priced = points.filter((point) => point.price !== null);
   const selected = points.find((point) => point.id === selectedId);
@@ -52,12 +82,14 @@ export function RecipeMarketOverview({
     <section className="recipe-market" aria-label="All recipes market overview">
       <header>
         <h2>All recipes · current market</h2>
-        <p className="recipe-market__note">
-          {entries.length} recipes · {priced.length} with observed asks ·{' '}
-          {points.filter((point) => point.exits !== null).length} with
-          measurable activity. Asking prices and inferred listing exits, not
-          confirmed sales or profit.
-        </p>
+        {response?.data ? (
+          <p className="recipe-market__note">
+            {entries.length} targets · {priced.length} with observed asks ·{' '}
+            {points.filter((point) => point.exits !== null).length} with
+            measurable activity. Asking prices and inferred listing exits, not
+            confirmed sales or profit.
+          </p>
+        ) : null}
       </header>
       {failed || (response && !response.data) ? (
         <StatusPanel title="Market overview unavailable" tone="danger">
@@ -77,37 +109,19 @@ export function RecipeMarketOverview({
         <>
           {response.isStale ? (
             <p className="recipe-warning">
-              Stored catalog is outdated. Check collection on Craft
-              opportunities.
+              Stored catalog is outdated. Check collection in Settings.
             </p>
           ) : null}
-          {entries.length === 0 ? (
-            <p>
-              No recipes are available yet. Check collection on Craft
-              opportunities.
+          {response.data.entries.length === 0 ? (
+            <p>No recipes are available yet. Check collection in Settings.</p>
+          ) : null}
+          {priced.length > 0 &&
+          !points.some((point) => (point.exits ?? 0) > 0) ? (
+            <p className="market-activity-note" role="status">
+              No listing exits recorded in the observed 24h window. Demand is
+              unconfirmed; “Not measurable” needs more fresh captures.
             </p>
           ) : null}
-          {(['chaos', 'divine'] as const).map((currency) => {
-            const items = priced
-              .filter((point) => point.price?.currency === currency)
-              .map((point) => ({
-                id: point.id,
-                name: point.name,
-                price: point.price!.amount,
-                activity: point.exits,
-              }));
-            return items.length ? (
-              <TurnoverMap
-                key={currency}
-                items={items}
-                currency={currency}
-                activityLabel="Inferred exits · observed window within 24h"
-                activityDescription="inferred exits in the observed window"
-                selected={selectedId}
-                onSelect={onSelect}
-              />
-            ) : null;
-          })}
           {selected ? (
             <p className="recipe-market__selection" role="status">
               <strong>{selected.name}</strong>
@@ -134,14 +148,34 @@ export function RecipeMarketOverview({
             </p>
           ) : (
             <p className="recipe-market__note">
-              Select a point or recipe to inspect its history. The overview
-              stays visible.
+              Select a recipe to see its price history.
             </p>
           )}
-          <details className="recipe-market__recipes">
+          <div className="market-price-controls">
+            <label>
+              <span>Find a market recipe</span>
+              <Input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Item, method or class"
+              />
+            </label>
+            <label>
+              <span>Order current prices</span>
+              <NativeSelect
+                value={order}
+                onChange={(event) => setOrder(event.target.value)}
+              >
+                <option value="activity">Most observed exits</option>
+                <option value="price">Lowest ask · per currency</option>
+                <option value="title">Recipe name</option>
+              </NativeSelect>
+            </label>
+          </div>
+          <details className="recipe-market__recipes" open>
             <summary>
-              All {entries.length} recipes · prices, activity and collection
-              status
+              {entries.length} targets · current prices and activity
             </summary>
             <div
               className="recipe-market__table-scroll"
@@ -165,6 +199,14 @@ export function RecipeMarketOverview({
                     </tr>
                   </thead>
                   <tbody className="table__body">
+                    {entries.length === 0 ? (
+                      <tr>
+                        <td colSpan={5}>
+                          No recipes match this search. Clear the search to see
+                          current prices.
+                        </td>
+                      </tr>
+                    ) : null}
                     {entries.map((entry, index) => {
                       const point = points[index]!;
                       const readiness = entry.readiness;
@@ -178,12 +220,20 @@ export function RecipeMarketOverview({
                             <Button
                               type="button"
                               aria-pressed={point.id === selectedId}
-                              onClick={() => onSelect(point.id)}
+                              onClick={() => {
+                                onSelect(point.id);
+                                document
+                                  .getElementById('recipe-price-history')
+                                  ?.scrollIntoView({ block: 'start' });
+                              }}
                             >
                               {point.name}
                             </Button>
+                            <small>
+                              {entry.recipe.craftMethod.replaceAll('-', ' ')}
+                            </small>
                           </td>
-                          <td className="table__cell">
+                          <td className="table__cell" data-label="Observed ask">
                             {point.price ? (
                               <Money price={point.price} />
                             ) : (
@@ -191,6 +241,7 @@ export function RecipeMarketOverview({
                             )}
                           </td>
                           <td
+                            data-label="Ask change"
                             className={`table__cell ${change == null ? 'economic-unknown' : economicClass(change)}`}
                           >
                             {change == null
@@ -201,7 +252,10 @@ export function RecipeMarketOverview({
                                   : 'History unavailable'
                               : formatPercent(change)}
                           </td>
-                          <td className="table__cell">
+                          <td
+                            className="table__cell"
+                            data-label="Listing exits · 24h window"
+                          >
                             {point.exits ?? 'Not measurable'}
                             {point.exits !== null && readiness ? (
                               <small>
@@ -214,7 +268,7 @@ export function RecipeMarketOverview({
                               </small>
                             ) : null}
                           </td>
-                          <td className="table__cell">
+                          <td className="table__cell" data-label="Capture">
                             {readiness ? (
                               <>
                                 {readiness.currentListings} listings ·{' '}
@@ -224,7 +278,7 @@ export function RecipeMarketOverview({
                                     ? (readiness.coverage ?? 'No capture')
                                     : 'Outdated or missing capture'}
                                   {readiness.capturedAt
-                                    ? ` · ${formatUtc(readiness.capturedAt)}`
+                                    ? ` · ${formatTimestamp(readiness.capturedAt)}`
                                     : ''}
                                 </small>
                               </>
@@ -239,6 +293,30 @@ export function RecipeMarketOverview({
                 </table>
               </TableSurface>
             </div>
+          </details>
+          <details className="market-map-disclosure">
+            <summary>Price vs. listing activity chart</summary>
+            {(['chaos', 'divine'] as const).map((currency) => {
+              const items = priced
+                .filter((point) => point.price?.currency === currency)
+                .map((point) => ({
+                  id: point.id,
+                  name: point.name,
+                  price: point.price!.amount,
+                  activity: point.exits,
+                }));
+              return items.length ? (
+                <TurnoverMap
+                  key={currency}
+                  items={items}
+                  currency={currency}
+                  activityLabel="Inferred exits · observed window within 24h"
+                  activityDescription="inferred exits in the observed window"
+                  selected={selectedId}
+                  onSelect={onSelect}
+                />
+              ) : null;
+            })}
           </details>
         </>
       )}

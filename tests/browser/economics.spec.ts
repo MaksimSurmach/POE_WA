@@ -2,6 +2,9 @@ import { expect, test, type Page } from '@playwright/test';
 
 async function enterSyntheticModel(page: Page, recipeId: string) {
   await page.goto(`/recipes/${recipeId}`);
+  await page
+    .getByText('Advanced: expected value and risk calculator', { exact: true })
+    .click();
   const risk = page.getByRole('region', { name: 'Expected value & risk' });
   await expect(risk.getByText('EV unavailable', { exact: true })).toBeVisible();
   await risk
@@ -100,6 +103,11 @@ for (const width of [1440, 390]) {
     ).toBeVisible({ timeout: 30_000 });
     await expect(risk.getByText('P90 budget', { exact: true })).toBeVisible();
     await page.reload();
+    await page
+      .getByText('Advanced: expected value and risk calculator', {
+        exact: true,
+      })
+      .click();
     await expect(
       page.getByText('Simulation completed', { exact: true }),
     ).toBeVisible({ timeout: 15_000 });
@@ -224,6 +232,9 @@ test('owner cancels an expensive conditional simulation without publishing parti
   });
   expect(saved.ok(), await saved.text()).toBe(true);
   await page.goto(`/recipes/${recipeId}`);
+  await page
+    .getByText('Advanced: expected value and risk calculator', { exact: true })
+    .click();
   const risk = page.getByRole('region', { name: 'Expected value & risk' });
   await expect(
     risk.getByRole('button', { name: 'Simulate objective' }),

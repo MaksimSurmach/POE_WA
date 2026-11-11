@@ -1,3 +1,4 @@
+import { formatTimestamp } from './dateTime.js';
 import { TableSurface } from './ui.js';
 import type { FactoryBatchRecord } from '@poe-worksmith/contracts';
 import type {
@@ -140,12 +141,10 @@ export function FactoryMetrics({
       </dl>
       {metrics.turnoverWindowStart && metrics.turnoverWindowEnd ? (
         <p className="factory-note">
-          Turnover window:{' '}
-          {new Date(metrics.turnoverWindowStart).toLocaleString('en-US')} –{' '}
-          {new Date(metrics.turnoverWindowEnd).toLocaleString('en-US')}.
-          Confirmed units sold ÷ time-weighted held units (
-          {ratio(metrics.averageHeldUnits)}). Listing asks are indicative, not
-          inventory fair value or confirmed revenue.
+          Turnover window: {formatTimestamp(metrics.turnoverWindowStart)} –{' '}
+          {formatTimestamp(metrics.turnoverWindowEnd)}. Confirmed units sold ÷
+          time-weighted held units ({ratio(metrics.averageHeldUnits)}). Listing
+          asks are indicative, not inventory fair value or confirmed revenue.
         </p>
       ) : null}
       <p className="factory-note">
@@ -224,9 +223,9 @@ export function FactoryBatchSummary({
       <p className="factory-note">
         {batch.league} · {projection.status} · Revision{' '}
         {batch.recipeHash.slice(0, 10)} · Started{' '}
-        {new Date(batch.startedAt).toLocaleString('en-US')}
+        {formatTimestamp(batch.startedAt)}
         {projection.completedAt
-          ? ` · Production ended ${new Date(projection.completedAt).toLocaleString('en-US')}`
+          ? ` · Production ended ${formatTimestamp(projection.completedAt)}`
           : ''}{' '}
         · Planned budget {factoryOriginalPrice(batch.plannedBudget)}
       </p>
@@ -321,18 +320,14 @@ export function FactoryBatchSummary({
                     <td className="table__cell">
                       {factoryOriginalPrice(item.listingPrice)}
                       {item.listedAt ? (
-                        <small>
-                          {new Date(item.listedAt).toLocaleString('en-US')}
-                        </small>
+                        <small>{formatTimestamp(item.listedAt)}</small>
                       ) : null}
                     </td>
                     <td className="table__cell">
                       {item.soldAt ? (
                         <>
                           {factoryMoney(item.saleRevenue)}
-                          <small>
-                            {new Date(item.soldAt).toLocaleString('en-US')}
-                          </small>
+                          <small>{formatTimestamp(item.soldAt)}</small>
                         </>
                       ) : (
                         'No completed sale'
@@ -435,7 +430,7 @@ export function FactoryBatchSummary({
                       </small>
                     </td>
                     <td className="table__cell">
-                      {new Date(event.occurredAt).toLocaleString('en-US')}
+                      {formatTimestamp(event.occurredAt)}
                       <small>{event.source}</small>
                     </td>
                     <td className="table__cell">

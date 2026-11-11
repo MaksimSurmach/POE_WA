@@ -19,7 +19,9 @@ const ageFields = [
 /** Collapsed homepage settings; nothing is requested until it is opened. */
 export function HomeSettings({
   client,
+  initiallyOpen = false,
 }: {
+  initiallyOpen?: boolean;
   client?: Pick<
     ReturnType<typeof createHomeSettingsClient>,
     'settings' | 'save'
@@ -67,6 +69,7 @@ export function HomeSettings({
     <section className="market-admin home-settings" aria-label="Settings">
       <details
         className="market-admin__drawer"
+        open={initiallyOpen || undefined}
         onToggle={(event) => {
           if (event.currentTarget.open && !settings && !busy)
             void apply(() => api.settings(), '');

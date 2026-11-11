@@ -1,3 +1,4 @@
+import { formatTimestamp } from './dateTime.js';
 import type {
   CollectorReadinessResponse,
   MarketReadiness as Readiness,
@@ -36,11 +37,7 @@ function AskRange({ range }: { range: Readiness['currentAskRange'] }) {
 }
 
 function time(at: string | null) {
-  return at ? (
-    <time dateTime={at}>{new Date(at).toLocaleString('en-US')}</time>
-  ) : (
-    'Unknown'
-  );
+  return at ? <time dateTime={at}>{formatTimestamp(at)}</time> : 'Unknown';
 }
 
 export function MarketReadiness({

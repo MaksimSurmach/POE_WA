@@ -1,6 +1,7 @@
+import { formatTimestamp } from './dateTime.js';
 import { Button, NativeSelect, TableSurface } from './ui.js';
 import type { CatalogEntry } from '@poe-worksmith/contracts';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -13,12 +14,9 @@ import {
 } from './catalog.js';
 import { Money, ProfitBadge, economicClass } from './components.js';
 import { ItemTooltip } from './ItemTooltip.js';
-import {
-  isSingleSellerHypothesis,
-  readinessLabels,
-} from './MarketReadiness.js';
+import { isSingleSellerHypothesis } from './MarketReadiness.js';
 
-const columns = [
+const allColumns = [
   ['title', 'Item name'],
   ['category', 'Item class'],
   ['cost', 'Expected cost'],
@@ -29,17 +27,10 @@ const columns = [
 ] as const;
 
 const evidenceGroups = [
-  'Preliminary candidates',
-  'Comparable asks · activity or cost gates pending',
-  'Price hypotheses and targets with insufficient observations',
+  'Candidates with cost and market evidence',
+  'Comparable asks · check cost before crafting',
+  'Research targets · price or activity evidence incomplete',
 ];
-
-const observedAt = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-});
 
 export function CatalogTable({
   entries,
@@ -50,6 +41,23 @@ export function CatalogTable({
   filters: CatalogFilters;
   onSort: (sort: NonNullable<CatalogFilters['sort']>) => void;
 }) {
+  const [allMethods, setAllMethods] = useState(false);
+  const hasCost = entries.some(
+    ({ evaluation }) => evaluation.expectedCraftCost !== null,
+  );
+  const hasProfit = entries.some(
+    ({ evaluation }) => evaluation.profit !== null,
+  );
+  const hasRoi = entries.some(
+    ({ evaluation }) => evaluation.marginPercent !== null,
+  );
+  const columns = allColumns.filter(
+    ([key]) =>
+      key !== 'category' &&
+      (key !== 'cost' || hasCost) &&
+      (key !== 'profit' || hasProfit) &&
+      (key !== 'roi' || hasRoi),
+  );
   const sort = filters.sort ?? 'title';
   const direction =
     filters.direction ??
@@ -73,33 +81,44 @@ export function CatalogTable({
       role="region"
       aria-label="Crafting targets"
     >
-      <div className="catalog-mobile-sort">
-        <label>
-          <span>Sort by</span>
-          <NativeSelect
-            value={sort}
-            onChange={(event) => {
-              const column = columns.find(
-                ([key]) => key === event.target.value,
-              );
-              if (column) onSort(column[0]);
-            }}
-          >
-            {columns.map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </NativeSelect>
+      <details className="catalog-display-options">
+        <summary>Sort and display options</summary>
+        <label className="catalog-method-toggle">
+          <input
+            type="checkbox"
+            checked={allMethods}
+            onChange={(event) => setAllMethods(event.target.checked)}
+          />{' '}
+          Show every crafting method
         </label>
-        <Button
-          type="button"
-          aria-label={`Sort direction: ${direction === 'asc' ? 'ascending' : 'descending'}. Activate to reverse.`}
-          onClick={() => onSort(sort)}
-        >
-          {direction === 'asc' ? 'Ascending ↑' : 'Descending ↓'}
-        </Button>
-      </div>
+        <div className="catalog-mobile-sort">
+          <label>
+            <span>Sort by</span>
+            <NativeSelect
+              value={sort}
+              onChange={(event) => {
+                const column = columns.find(
+                  ([key]) => key === event.target.value,
+                );
+                if (column) onSort(column[0]);
+              }}
+            >
+              {columns.map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </NativeSelect>
+          </label>
+          <Button
+            type="button"
+            aria-label={`Sort direction: ${direction === 'asc' ? 'ascending' : 'descending'}. Activate to reverse.`}
+            onClick={() => onSort(sort)}
+          >
+            {direction === 'asc' ? 'Ascending ↑' : 'Descending ↓'}
+          </Button>
+        </div>
+      </details>
       <TableSurface>
         <table
           className="table__content craft-table"
@@ -147,170 +166,191 @@ export function CatalogTable({
             </tr>
           </thead>
           <tbody className="table__body">
-            {rows.map(({ entry, index, methods, rank }, rowIndex) => {
-              const { recipe, evaluation, snapshot, readiness } = entry;
-              const sampleAsk =
-                !evaluation.estimatedSalePrice && observedAsk(entry);
-              const source =
-                evaluation.source ??
-                snapshot ??
-                (readiness?.capturedAt
-                  ? {
-                      capturedAt: readiness.capturedAt,
-                      coverage: readiness.coverage,
-                    }
-                  : null);
-              const gradeReasons = evaluation.gradeReasons?.join(' · ');
-              const showWithheld =
-                evaluation.profit === null && evaluation.marginPercent === null;
-              const sellers =
-                evaluation.source?.comparableSellers ??
-                (snapshot
-                  ? new Set(snapshot.listings.map((listing) => listing.seller))
-                      .size
-                  : (readiness?.currentSellers ?? null));
-              return (
-                <Fragment key={recipe.id}>
-                  {byReadiness && rows[rowIndex - 1]?.rank !== rank ? (
-                    <tr className="table__row craft-table__readiness-group">
-                      <th className="table__column" colSpan={columns.length}>
-                        {evidenceGroups[rank]}
-                      </th>
-                    </tr>
-                  ) : null}
-                  <tr
-                    data-readiness-level={readiness?.level}
-                    className={`table__row ${index ? 'craft-table__alternative' : ''}`}
-                  >
-                    <th className="table__column" scope="row">
-                      <div className="craft-table__identity">
-                        {entry.itemPreview ? (
-                          <ItemTooltip item={entry.itemPreview} />
-                        ) : (
-                          <span
-                            className="craft-table__missing-art"
-                            aria-hidden="true"
-                          >
-                            {recipe.category.slice(0, 1).toUpperCase()}
-                          </span>
-                        )}
-                        <div>
-                          <Link to={`/recipes/${recipe.id}`}>
-                            {recipe.title}
-                          </Link>
-                          <small>
-                            <span className="craft-table__mobile-class">
-                              {recipe.category.replaceAll('-', ' ')} ·{' '}
+            {rows
+              .filter(({ index }) => allMethods || index === 0)
+              .map(({ entry, index, methods, rank }, rowIndex, visibleRows) => {
+                const { recipe, evaluation, snapshot, readiness } = entry;
+                const sampleAsk =
+                  !evaluation.estimatedSalePrice && observedAsk(entry);
+                const source =
+                  evaluation.source ??
+                  snapshot ??
+                  (readiness?.capturedAt
+                    ? {
+                        capturedAt: readiness.capturedAt,
+                        coverage: readiness.coverage,
+                      }
+                    : null);
+                const gradeReasons = evaluation.gradeReasons?.join(' · ');
+                const showWithheld =
+                  evaluation.profit === null &&
+                  evaluation.marginPercent === null;
+                const sellers =
+                  evaluation.source?.comparableSellers ??
+                  (snapshot
+                    ? new Set(
+                        snapshot.listings.map((listing) => listing.seller),
+                      ).size
+                    : (readiness?.currentSellers ?? null));
+                return (
+                  <Fragment key={recipe.id}>
+                    {byReadiness && visibleRows[rowIndex - 1]?.rank !== rank ? (
+                      <tr className="table__row craft-table__readiness-group">
+                        <th className="table__column" colSpan={columns.length}>
+                          {evidenceGroups[rank]}
+                        </th>
+                      </tr>
+                    ) : null}
+                    <tr
+                      data-readiness-level={readiness?.level}
+                      className={`table__row ${index ? 'craft-table__alternative' : ''}`}
+                    >
+                      <th className="table__column" scope="row">
+                        <div className="craft-table__identity">
+                          {entry.itemPreview ? (
+                            <ItemTooltip item={entry.itemPreview} />
+                          ) : (
+                            <span
+                              className="craft-table__missing-art"
+                              aria-hidden="true"
+                            >
+                              {recipe.category.slice(0, 1).toUpperCase()}
                             </span>
-                            {methods > 1
-                              ? index
-                                ? 'Other method · '
-                                : `${!byReadiness && evaluation.profit ? 'Best of ' : ''}${methods} methods · `
-                              : null}
-                            {recipe.craftMethod.replaceAll('-', ' ')} · Patch{' '}
-                            {recipe.patch ?? 'unverified'}
-                          </small>
-                          {readiness ? (
+                          )}
+                          <div>
+                            <Link to={`/recipes/${recipe.id}`}>
+                              {recipe.title}
+                            </Link>
                             <small>
-                              {readinessLabels[readiness.level]}
-                              {isSingleSellerHypothesis(readiness)
-                                ? ' · Single-seller price hypothesis'
-                                : ''}
+                              <span className="craft-table__mobile-class">
+                                {recipe.category.replaceAll('-', ' ')} ·{' '}
+                              </span>
+                              {methods > 1
+                                ? index
+                                  ? 'Other method · '
+                                  : `${!byReadiness && evaluation.profit ? 'Best of ' : ''}${methods} methods · `
+                                : null}
+                              {recipe.craftMethod.replaceAll('-', ' ')}
+                            </small>
+                            <Link
+                              className="craft-table__steps"
+                              to={`/recipes/${recipe.id}`}
+                            >
+                              Materials and steps →
+                            </Link>
+                            {readiness &&
+                            isSingleSellerHypothesis(readiness) ? (
+                              <small>Single-seller price hypothesis</small>
+                            ) : null}
+                          </div>
+                        </div>
+                      </th>
+                      {hasCost ? (
+                        <td className="table__cell" data-label="Expected cost">
+                          <Money price={evaluation.expectedCraftCost} />
+                          {evaluation.budget ? (
+                            <small>
+                              budget for one: p50{' '}
+                              <Money price={evaluation.budget.p50} /> · p90{' '}
+                              <Money price={evaluation.budget.p90} />
                             </small>
                           ) : null}
-                        </div>
-                      </div>
-                    </th>
-                    <td className="table__cell craft-table__class">
-                      {recipe.category.replaceAll('-', ' ')}
-                    </td>
-                    <td className="table__cell" data-label="Expected cost">
-                      <Money price={evaluation.expectedCraftCost} />
-                      {evaluation.budget ? (
-                        <small>
-                          budget for one: p50{' '}
-                          <Money price={evaluation.budget.p50} /> · p90{' '}
-                          <Money price={evaluation.budget.p90} />
-                        </small>
+                        </td>
                       ) : null}
-                    </td>
-                    <td className="table__cell" data-label="Observed ask">
-                      <Money price={observedAsk(entry)} />
-                      {sampleAsk ? (
-                        <small>Priced sample · ROI withheld</small>
+                      <td className="table__cell" data-label="Observed ask">
+                        <Money price={observedAsk(entry)} />
+                        {sampleAsk ? (
+                          <small>Sample ask · not a sale</small>
+                        ) : null}
+                      </td>
+                      {hasProfit ? (
+                        <td className="table__cell" data-label="Profit">
+                          {evaluation.profit ? (
+                            <ProfitBadge {...evaluation.profit} />
+                          ) : (
+                            <span aria-label="Profit unavailable">—</span>
+                          )}
+                          {evaluation.grade ? (
+                            <small
+                              title={gradeReasons}
+                              aria-label={`Evidence grade ${evaluation.grade}`}
+                            >
+                              {evaluation.grade}
+                            </small>
+                          ) : null}
+                        </td>
                       ) : null}
-                    </td>
-                    <td className="table__cell" data-label="Profit">
-                      {evaluation.profit ? (
-                        <ProfitBadge {...evaluation.profit} />
-                      ) : (
-                        <span aria-label="Profit unavailable">—</span>
-                      )}
-                      {evaluation.grade ? (
-                        <small
-                          title={gradeReasons}
-                          aria-label={`Evidence grade ${evaluation.grade}`}
+                      {hasRoi ? (
+                        <td
+                          data-label="ROI"
+                          className={`table__cell ${economicClass(evaluation.marginPercent)}`}
                         >
-                          {evaluation.grade}
-                        </small>
+                          {evaluation.marginPercent === null ? (
+                            <span aria-label="ROI unavailable">—</span>
+                          ) : (
+                            formatMarginPercent(evaluation.marginPercent)
+                          )}
+                        </td>
                       ) : null}
-                    </td>
-                    <td
-                      data-label="ROI"
-                      className={`table__cell ${economicClass(evaluation.marginPercent)}`}
-                    >
-                      {evaluation.marginPercent === null ? (
-                        <span aria-label="ROI unavailable">—</span>
-                      ) : (
-                        formatMarginPercent(evaluation.marginPercent)
-                      )}
-                    </td>
-                    <td
-                      data-label="Market evidence"
-                      className="table__cell craft-table__evidence"
-                    >
-                      <span>
-                        {evaluation.status === 'loading'
-                          ? sampleAsk
-                            ? 'Price observed · evaluation pending'
-                            : 'Awaiting output observation'
-                          : getPriceStatus(evaluation.status)}
-                        {sellers !== null
-                          ? ` · ${sellers} ${sellers === 1 ? 'seller' : 'sellers'}`
-                          : ''}
-                      </span>
-                      {sellers === 1 &&
-                      !evaluation.grade &&
-                      !evaluation.profitBlockedReason &&
-                      showWithheld ? (
-                        <small className="recipe-warning">
-                          Single ask · ROI withheld
-                        </small>
-                      ) : null}
-                      {gradeReasons ? <small>{gradeReasons}</small> : null}
-                      {showWithheld && evaluation.profitBlockedReason ? (
-                        <small className="recipe-warning">
-                          ROI withheld: {evaluation.profitBlockedReason}
-                        </small>
-                      ) : null}
-                      {source ? (
-                        <>
+                      <td
+                        data-label="Market evidence"
+                        className="table__cell craft-table__evidence"
+                      >
+                        <span>
+                          {evaluation.status === 'loading'
+                            ? sampleAsk
+                              ? 'Price observed · evaluation pending'
+                              : 'Awaiting output observation'
+                            : observedAsk(entry) && !evaluation.profit
+                              ? 'Price observed'
+                              : getPriceStatus(evaluation.status)}
+                          {sellers !== null
+                            ? ` · ${sellers} ${sellers === 1 ? 'seller' : 'sellers'}`
+                            : ''}
+                        </span>
+                        {readiness ? (
                           <small>
-                            {source.coverage} coverage ·{' '}
-                            {evaluation.confidence ?? 'unknown'} confidence
+                            {!readiness.fresh || !readiness.activityMeasurable
+                              ? 'Activity not measurable'
+                              : `${readiness.last24h.inferredExits ?? 'Unknown'} listing exits · 24h window`}
                           </small>
-                          <time dateTime={source.capturedAt}>
-                            {observedAt.format(new Date(source.capturedAt))}
-                          </time>
-                        </>
-                      ) : evaluation.status !== 'loading' ? (
-                        <small>Source details unavailable</small>
-                      ) : null}
-                    </td>
-                  </tr>
-                </Fragment>
-              );
-            })}
+                        ) : null}
+
+                        <details className="evidence-details">
+                          <summary>Price evidence</summary>
+                          {sellers === 1 &&
+                          !evaluation.grade &&
+                          !evaluation.profitBlockedReason &&
+                          showWithheld ? (
+                            <small className="recipe-warning">
+                              Single ask · ROI withheld
+                            </small>
+                          ) : null}
+                          {gradeReasons ? <small>{gradeReasons}</small> : null}
+                          {showWithheld && evaluation.profitBlockedReason ? (
+                            <small className="recipe-warning">
+                              ROI withheld: {evaluation.profitBlockedReason}
+                            </small>
+                          ) : null}
+                          {source ? (
+                            <>
+                              <small>
+                                {source.coverage} coverage ·{' '}
+                                {evaluation.confidence ?? 'unknown'} confidence
+                              </small>
+                              <time dateTime={source.capturedAt}>
+                                {formatTimestamp(source.capturedAt)}
+                              </time>
+                            </>
+                          ) : evaluation.status !== 'loading' ? (
+                            <small>Source details unavailable</small>
+                          ) : null}
+                        </details>
+                      </td>
+                    </tr>
+                  </Fragment>
+                );
+              })}
             {entries.length === 0 ? (
               <tr className="table__row">
                 <td

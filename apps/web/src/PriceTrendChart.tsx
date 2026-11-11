@@ -5,7 +5,7 @@ import type {
   TrendBucket,
   TrendSummary,
 } from '@poe-worksmith/contracts';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { Money, economicClass } from './components.js';
 
@@ -16,9 +16,10 @@ const plotHeight = height - pad.top - pad.bottom;
 const amountFormat = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 });
-const dateTime = new Intl.DateTimeFormat('en-US', {
+const dateTime = new Intl.DateTimeFormat('en-GB', {
   dateStyle: 'medium',
   timeStyle: 'short',
+  hourCycle: 'h23',
   timeZone: 'UTC',
 });
 const shortDate = new Intl.DateTimeFormat('en-US', {
@@ -82,10 +83,28 @@ export function describeTrend(trend: RecipeTrend) {
   return `${observed} Ask moved from ${formatAmount(change.from, summary.currency)} to ${formatAmount(change.to, summary.currency)}${change.percent === null ? '' : ` (${formatPercent(change.percent)})`} between ${formatUtc(change.fromObservedAt)} and ${formatUtc(change.toObservedAt)}. ${latest}`;
 }
 
+/** Fit the recorded span; never invent points in the unobserved part of a range. */
+export function observedWindow(trend: RecipeTrend) {
+  const starts = trend.buckets.map((bucket) => Date.parse(bucket.start));
+  const start = Math.max(
+    Date.parse(trend.windowStart),
+    starts.length ? Math.min(...starts) : Date.parse(trend.windowStart),
+  );
+  const end = Math.max(
+    start + 1,
+    Math.min(
+      Date.parse(trend.windowEnd),
+      starts.length
+        ? Math.max(...starts) + trend.bucketSeconds * 1000
+        : Date.parse(trend.windowEnd),
+    ),
+  );
+  return { start, end };
+}
+
 function scale(trend: RecipeTrend, width: number) {
   const plotWidth = width - pad.left - pad.right;
-  const start = Date.parse(trend.windowStart);
-  const end = Math.max(Date.parse(trend.windowEnd), start + 1);
+  const { start, end } = observedWindow(trend);
   const values = trend.buckets.flatMap((bucket) => [
     bucket.low,
     bucket.high,
@@ -122,19 +141,16 @@ function path(points: { x: number; y: number }[]) {
 }
 
 export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
-  const [compact, setCompact] = useState(
-    () =>
-      typeof window !== 'undefined' &&
-      window.matchMedia('(max-width: 820px)').matches,
-  );
+  const container = useRef<HTMLElement>(null);
+  const [width, setWidth] = useState(640);
   useEffect(() => {
-    const media = window.matchMedia('(max-width: 820px)');
-    const update = () => setCompact(media.matches);
-    media.addEventListener('change', update);
-    update();
-    return () => media.removeEventListener('change', update);
-  }, []);
-  const width = compact ? 320 : 640;
+    if (!container.current || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setWidth(Math.max(280, Math.round(entry.contentRect.width)));
+    });
+    observer.observe(container.current);
+    return () => observer.disconnect();
+  }, [trend.recipeId, trend.buckets.length]);
   const id = useId();
   const titleId = `${id}-title`;
   const descId = `${id}-desc`;
@@ -148,6 +164,18 @@ export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
     );
   const currency = summary.currency;
   const s = scale(trend, width);
+  const window = observedWindow(trend);
+  const axisDate =
+    window.end - window.start <= 48 * 3600_000
+      ? new Intl.DateTimeFormat('en-GB', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23',
+          timeZone: 'UTC',
+        })
+      : shortDate;
   const runs = contiguousRuns(trend.buckets, trend.bucketSeconds);
   const costRuns = runs.flatMap((run) =>
     contiguousRuns(
@@ -156,7 +184,7 @@ export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
     ),
   );
   return (
-    <figure className="trend-chart">
+    <figure className="trend-chart" ref={container}>
       <svg
         aria-labelledby={`${titleId} ${descId}`}
         className="trend-chart__svg"
@@ -185,15 +213,19 @@ export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
                 y2={s.y(value)}
               />
               <text x={pad.left - 8} y={s.y(value) + 4} textAnchor="end">
-                {formatAmount(value, currency)}
+                {new Intl.NumberFormat('en-GB', {
+                  maximumSignificantDigits: 3,
+                  notation: Math.abs(value) >= 10000 ? 'compact' : 'standard',
+                }).format(value)}{' '}
+                {unit[currency]}
               </text>
             </g>
           ))}
           <text x={pad.left} y={height - 8}>
-            {shortDate.format(new Date(trend.windowStart))}
+            {axisDate.format(new Date(window.start))}
           </text>
           <text x={width - pad.right} y={height - 8} textAnchor="end">
-            {shortDate.format(new Date(trend.windowEnd))}
+            {axisDate.format(new Date(window.end))}
           </text>
         </g>
         <g aria-hidden="true">
@@ -254,12 +286,15 @@ export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
         </g>
       </svg>
       <figcaption className="trend-chart__legend">
+        <span>Recorded span within {trend.range} · UTC</span>
         <span className="trend-chart__key trend-chart__key--ask">
           Cheapest ask (close)
         </span>
-        <span className="trend-chart__key trend-chart__key--cost">
-          Recorded craft cost
-        </span>
+        {trend.buckets.some((bucket) => bucket.craftCost !== null) ? (
+          <span className="trend-chart__key trend-chart__key--cost">
+            Recorded craft cost
+          </span>
+        ) : null}
         <span className="trend-chart__key trend-chart__key--thin">
           Thin / unknown seller depth
         </span>

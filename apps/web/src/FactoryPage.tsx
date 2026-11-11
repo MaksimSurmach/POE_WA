@@ -1,3 +1,4 @@
+import { formatTimestamp } from './dateTime.js';
 import { Button, NativeSelect, TableSurface } from './ui.js';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -422,7 +423,7 @@ export function FactoryPage() {
         </p>
       ) : null}
       {notice ? <p role="status">{notice}</p> : null}
-      {summary ? (
+      {summary && summary.coverage.totalBatches > 0 ? (
         <details className="factory-panel">
           <summary>
             League totals · {summary.coverage.includedBatches} of{' '}
@@ -440,7 +441,7 @@ export function FactoryPage() {
         <>
           <details
             className="factory-panel"
-            open={Boolean(recipeId && !selectedId)}
+            open={Boolean((recipeId || batches.total === 0) && !selectedId)}
           >
             <summary>Start a batch</summary>
             <form onSubmit={submitBatch} aria-label="Start production batch">
@@ -471,33 +472,45 @@ export function FactoryPage() {
                   maxLength={2000}
                 />
               </fieldset>
-              <FactoryField
-                name="startedAt"
-                label="Production started at (local; blank means now)"
-                type="datetime-local"
-                step="0.001"
-                required={false}
-              />
-              <p className="factory-note">
-                For historical transactions, set production start no later than
-                the first recorded purchase. Future start times are not
-                accepted.
-              </p>
+              <details
+                className="factory-optional"
+                open={Boolean(params.get('forecast'))}
+              >
+                <summary>Historical production start (optional)</summary>
+                <FactoryField
+                  name="startedAt"
+                  label="Production started at (local; blank means now)"
+                  type="datetime-local"
+                  step="0.001"
+                  required={false}
+                />
+                <p className="factory-note">
+                  For historical transactions, set production start no later
+                  than the first recorded purchase. Future start times are not
+                  accepted.
+                </p>
+              </details>
               <TransactionFields
                 quantity={false}
                 label="Planned budget (not actual spending)"
               />
-              <FactoryField
-                name="forecastRunId"
-                label="Saved risk simulation ID (optional)"
-                value={params.get('forecast') ?? ''}
-                required={false}
-              />
-              <p className="factory-note">
-                A linked forecast is frozen at creation. An incomplete EV model
-                does not prevent tracking real spending. All accounting totals
-                are chaos at recorded transaction rates.
-              </p>
+              <details
+                className="factory-optional"
+                open={Boolean(params.get('forecast'))}
+              >
+                <summary>Link a saved risk forecast (optional)</summary>
+                <FactoryField
+                  name="forecastRunId"
+                  label="Saved risk simulation ID (optional)"
+                  value={params.get('forecast') ?? ''}
+                  required={false}
+                />
+                <p className="factory-note">
+                  A linked forecast is frozen at creation. An incomplete EV
+                  model does not prevent tracking real spending. All accounting
+                  totals are chaos at recorded transaction rates.
+                </p>
+              </details>
               {analysisError ? <p role="alert">{analysisError}</p> : null}
               <Button type="submit" disabled={busy || !analysis || !recipeId}>
                 {busy ? 'Saving…' : 'Start batch'}
@@ -550,9 +563,7 @@ export function FactoryPage() {
                               )?.recipe.title ?? batch.batch.recipeId}
                             </Button>
                             <small>
-                              {new Date(batch.batch.startedAt).toLocaleString(
-                                'en-US',
-                              )}
+                              {formatTimestamp(batch.batch.startedAt)}
                             </small>
                           </td>
                           <td className="table__cell">
@@ -578,29 +589,34 @@ export function FactoryPage() {
                 </TableSurface>
               </div>
             ) : (
-              <p className="factory-note">No batches in this league yet.</p>
+              <p className="factory-note">
+                No batches in this league yet. Choose a recipe above and start a
+                batch, then record purchases, crafted items and confirmed sales.
+              </p>
             )}
-            <div className="factory-actions">
-              <Button
-                type="button"
-                disabled={busy || offset === 0}
-                onClick={() => setOffset(Math.max(0, offset - 20))}
-              >
-                Previous batches
-              </Button>
-              <span className="factory-note">
-                {batches.total ? offset + 1 : 0}–
-                {Math.min(offset + batches.batches.length, batches.total)} of{' '}
-                {batches.total}
-              </span>
-              <Button
-                type="button"
-                disabled={busy || offset + batches.limit >= batches.total}
-                onClick={() => setOffset(offset + 20)}
-              >
-                Next batches
-              </Button>
-            </div>
+            {batches.total > batches.limit ? (
+              <div className="factory-actions">
+                <Button
+                  type="button"
+                  disabled={busy || offset === 0}
+                  onClick={() => setOffset(Math.max(0, offset - 20))}
+                >
+                  Previous batches
+                </Button>
+                <span className="factory-note">
+                  {batches.total ? offset + 1 : 0}–
+                  {Math.min(offset + batches.batches.length, batches.total)} of{' '}
+                  {batches.total}
+                </span>
+                <Button
+                  type="button"
+                  disabled={busy || offset + batches.limit >= batches.total}
+                  onClick={() => setOffset(offset + 20)}
+                >
+                  Next batches
+                </Button>
+              </div>
+            ) : null}
           </section>
         </>
       ) : !error && league ? (

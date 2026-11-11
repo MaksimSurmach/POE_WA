@@ -12,11 +12,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 
 import { createApiClient } from './apiClient.js';
 import { StatusPanel } from './components.js';
-import {
-  PriceTrendChart,
-  TrendFacts,
-  describeTrend,
-} from './PriceTrendChart.js';
+import { PriceTrendChart, TrendFacts } from './PriceTrendChart.js';
 import { RecipeMarketOverview } from './RecipeMarketOverview.js';
 
 const apiClient = createApiClient();
@@ -83,7 +79,7 @@ export function filterTrendEntries(
 function parseRange(value: string | null): TrendRange {
   return trendRanges.includes(value as TrendRange)
     ? (value as TrendRange)
-    : '7d';
+    : '24h';
 }
 
 export function RangeControls({
@@ -175,9 +171,7 @@ export function RecipeTrendPanel({
         <>
           <PriceTrendChart trend={trend} />
           <TrendFacts summary={trend.summary} />
-          {trend.summary && trend.buckets.length > 0 ? (
-            <p className="trend-panel__summary">{describeTrend(trend)}</p>
-          ) : null}
+
           <p className="trend-panel__note">
             Cheapest comparable asking prices from saved observations, not
             confirmed sales. Converted prices also move with exchange rates.
@@ -267,7 +261,6 @@ export function MarketTrendsPage() {
           </p>
         </div>
         <div className="trade-dashboard__league">
-          <small>PATH OF EXILE 1</small>
           {league ? `${league.name} · PC` : 'League unresolved · PC'}
         </div>
       </header>
@@ -297,7 +290,7 @@ export function MarketTrendsPage() {
         className="handbook-controls trend-controls"
       >
         <label className="catalog-search">
-          <span className="visually-hidden">Search recipes</span>
+          <span>Search recipes</span>
           <Input
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search recipes…"

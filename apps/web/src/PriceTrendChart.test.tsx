@@ -7,6 +7,7 @@ import {
   TrendFacts,
   contiguousRuns,
   describeTrend,
+  observedWindow,
 } from './PriceTrendChart.js';
 
 const hour = 3_600_000;
@@ -191,4 +192,19 @@ describe('price trend chart', () => {
       ),
     ).toContain('Old observation');
   });
+});
+
+it('fits sparse recent observations instead of compressing them into an empty month', () => {
+  const sparse = {
+    ...trend([bucket(20, 20), bucket(22, 25)]),
+    windowStart: iso(-720),
+  };
+  expect(observedWindow(sparse)).toEqual({
+    start: Date.parse(iso(20)),
+    end: Date.parse(iso(23)),
+  });
+  const html = renderToStaticMarkup(<PriceTrendChart trend={sparse} />);
+  expect(html).toContain('Recorded span within');
+  expect(html).toContain('20:00');
+  expect(html).not.toContain('trend-chart__key--cost');
 });

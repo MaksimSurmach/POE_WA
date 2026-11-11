@@ -1,3 +1,4 @@
+import { formatTimestamp, formatDate } from './dateTime.js';
 import { Button, Input, TableSurface } from './ui.js';
 import type { CraftingPrices } from '@poe-worksmith/contracts';
 import { calculateCostScenario } from '@poe-worksmith/domain/economics';
@@ -23,6 +24,13 @@ export function PohxRecipePage() {
 }
 
 function PohxCraft({ guide }: { guide: PohxGuide }) {
+  const [params] = useSearchParams();
+  const hasScenario = [...params.keys()].some(
+    (key) =>
+      ['bases', 'other', 'sale'].includes(key) ||
+      key.startsWith('qty-') ||
+      key.startsWith('price-'),
+  );
   return (
     <article className="guide-page">
       <Link className="back-link" to="/recipes?source=pohx">
@@ -38,7 +46,7 @@ function PohxCraft({ guide }: { guide: PohxGuide }) {
         </div>
       </header>
       <p className="catalog-price-note">
-        Source reviewed {guide.reviewedAt} in {guide.sourceLeague}.
+        Source reviewed {formatDate(guide.reviewedAt)} in {guide.sourceLeague}.
         League-specific crafting steps need rechecking for a new league. These
         are independent summaries; the source does not guarantee profitability.
       </p>
@@ -91,7 +99,13 @@ function PohxCraft({ guide }: { guide: PohxGuide }) {
                 </p>
               )}
             </section>
-            <CraftScenarioCalculator guide={guide} />
+            <details
+              className="guide-calculator"
+              open={hasScenario || undefined}
+            >
+              <summary>Calculate your material budget</summary>
+              <CraftScenarioCalculator guide={guide} />
+            </details>
           </div>
         </>
       )}
@@ -279,7 +293,7 @@ export function CraftScenarioCalculator({ guide }: { guide: PohxGuide }) {
                           <>
                             Verified{' '}
                             <time dateTime={m.quote.verifiedAt}>
-                              {new Date(m.quote.verifiedAt).toLocaleString()}
+                              {formatTimestamp(m.quote.verifiedAt)}
                             </time>
                           </>
                         ) : (
