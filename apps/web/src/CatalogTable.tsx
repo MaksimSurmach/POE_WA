@@ -70,13 +70,39 @@ export function CatalogTable({
     <div
       className="catalog-table-scroll"
       role="region"
-      aria-label="Crafting targets table, scroll for more columns"
-      tabIndex={0}
+      aria-label="Crafting targets"
     >
+      <div className="catalog-mobile-sort">
+        <label>
+          <span>Sort by</span>
+          <select
+            value={sort}
+            onChange={(event) => {
+              const column = columns.find(
+                ([key]) => key === event.target.value,
+              );
+              if (column) onSort(column[0]);
+            }}
+          >
+            {columns.map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          aria-label={`Sort direction: ${direction === 'asc' ? 'ascending' : 'descending'}. Activate to reverse.`}
+          onClick={() => onSort(sort)}
+        >
+          {direction === 'asc' ? 'Ascending ↑' : 'Descending ↓'}
+        </button>
+      </div>
       <table className="craft-table" aria-describedby="catalog-price-note">
         <caption className="visually-hidden">
-          Crafting targets. Click a column header to sort; click again to
-          reverse.
+          Crafting targets with costs, observed asks, profit, ROI and market
+          evidence.
         </caption>
         <thead>
           <tr>
@@ -84,6 +110,7 @@ export function CatalogTable({
               <th
                 key={key}
                 scope="col"
+                aria-label={label}
                 aria-sort={
                   sort === key
                     ? direction === 'asc'
@@ -162,6 +189,9 @@ export function CatalogTable({
                       <div>
                         <Link to={`/recipes/${recipe.id}`}>{recipe.title}</Link>
                         <small>
+                          <span className="craft-table__mobile-class">
+                            {recipe.category.replaceAll('-', ' ')} ·{' '}
+                          </span>
                           {methods > 1
                             ? index
                               ? 'Other method · '
@@ -178,24 +208,13 @@ export function CatalogTable({
                               : ''}
                           </small>
                         ) : null}
-                        <small className="craft-table__phone">
-                          {evaluation.profit ? (
-                            <ProfitBadge {...evaluation.profit} />
-                          ) : (
-                            'Profit —'
-                          )}
-                          {evaluation.marginPercent === null
-                            ? null
-                            : ` · ${formatMarginPercent(evaluation.marginPercent)} ROI`}
-                          {evaluation.grade ? ` · ${evaluation.grade}` : null}
-                        </small>
                       </div>
                     </div>
                   </th>
                   <td className="craft-table__class">
                     {recipe.category.replaceAll('-', ' ')}
                   </td>
-                  <td>
+                  <td data-label="Expected cost">
                     <Money price={evaluation.expectedCraftCost} />
                     {evaluation.budget ? (
                       <small>
@@ -205,13 +224,13 @@ export function CatalogTable({
                       </small>
                     ) : null}
                   </td>
-                  <td>
+                  <td data-label="Observed ask">
                     <Money price={observedAsk(entry)} />
                     {sampleAsk ? (
                       <small>Priced sample · ROI withheld</small>
                     ) : null}
                   </td>
-                  <td>
+                  <td data-label="Profit">
                     {evaluation.profit ? (
                       <ProfitBadge {...evaluation.profit} />
                     ) : (
@@ -226,14 +245,20 @@ export function CatalogTable({
                       </small>
                     ) : null}
                   </td>
-                  <td className={economicClass(evaluation.marginPercent)}>
+                  <td
+                    data-label="ROI"
+                    className={economicClass(evaluation.marginPercent)}
+                  >
                     {evaluation.marginPercent === null ? (
                       <span aria-label="ROI unavailable">—</span>
                     ) : (
                       formatMarginPercent(evaluation.marginPercent)
                     )}
                   </td>
-                  <td className="craft-table__evidence">
+                  <td
+                    data-label="Market evidence"
+                    className="craft-table__evidence"
+                  >
                     <span>
                       {evaluation.status === 'loading'
                         ? sampleAsk

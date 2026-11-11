@@ -122,15 +122,17 @@ export function RecipePage() {
 
   return (
     <article className="recipe-detail recipe-detail--compact">
-      <Link className="back-link" to="/recipes">
-        ‹ Recipes
-      </Link>
-      <Link
-        className="back-link"
-        to={`/factory?recipe=${encodeURIComponent(recipe.id)}`}
-      >
-        Start a production batch →
-      </Link>
+      <div className="recipe-detail__actions">
+        <Link className="back-link" to="/recipes">
+          ‹ Recipes
+        </Link>
+        <Link
+          className="back-link"
+          to={`/factory?recipe=${encodeURIComponent(recipe.id)}`}
+        >
+          Start a production batch →
+        </Link>
+      </div>
       {loadError ? (
         <p role="status" className="recipe-warning">
           Price update unavailable. Displayed prices are from the last

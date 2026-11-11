@@ -204,18 +204,12 @@ function CatalogRoute() {
     <>
       <section className="catalog-heading" aria-labelledby="catalog-heading">
         <div>
-          <h1 id="catalog-heading">Worksmith Handbook</h1>
+          <h1 id="catalog-heading">Craft opportunities</h1>
           <p>
             {league
               ? `${league.discovery === 'confirmed' ? '' : 'Last known league: '}${league.name} · Last checked ${new Date(league.syncedAt).toLocaleString('en-US')}`
               : 'League unavailable'}
           </p>
-          {league?.name === 'Standard' ? (
-            <p>
-              Standard is the permanent market. The collector switches to a
-              temporary PC league once both GGG and poe.ninja list it.
-            </p>
-          ) : null}
           {marketUpdatedAt ? (
             <p>
               Market updated{' '}
@@ -228,17 +222,19 @@ function CatalogRoute() {
             </p>
           ) : null}
         </div>
-        {collectorMode ? (
-          <CollectorControls onResultsChanged={reloadCatalog} />
-        ) : null}
       </section>
 
-      {collectorMode ? <CollectorReadinessReport /> : null}
+      {collectorMode ? (
+        <CollectorControls onResultsChanged={reloadCatalog} />
+      ) : null}
 
       {loadError ? (
         <StatusPanel tone="danger" title="Recipes unavailable">
           The recipe list could not be loaded. Try again when the service is
           available.
+          <button type="button" onClick={reloadCatalog}>
+            Retry loading recipes
+          </button>
         </StatusPanel>
       ) : null}
 
@@ -379,6 +375,13 @@ function CatalogRoute() {
         </>
       )}
 
+      {league?.name === 'Standard' ? (
+        <p className="catalog-price-note">
+          Standard is the permanent market. The collector switches to a
+          temporary PC league once both GGG and poe.ninja list it.
+        </p>
+      ) : null}
+      {collectorMode ? <CollectorReadinessReport /> : null}
       {collectorMode ? <HomeSettings /> : null}
     </>
   );
