@@ -1,3 +1,4 @@
+import { Alert, Chip } from '@heroui/react';
 import type { Price, Profit, RecipeEvaluation } from '@poe-worksmith/contracts';
 import type { ReactNode } from 'react';
 
@@ -83,10 +84,22 @@ export function EvaluationStatus({
   status: RecipeEvaluation['status'];
 }) {
   return (
-    <span className={`evaluation-status evaluation-status--${status}`}>
-      <span aria-hidden="true" />
-      {evaluationLabel[status]}
-    </span>
+    <Chip
+      className={`evaluation-status evaluation-status--${status}`}
+      color={
+        status === 'success'
+          ? 'success'
+          : status === 'error'
+            ? 'danger'
+            : status === 'loading'
+              ? 'accent'
+              : 'warning'
+      }
+      size="sm"
+      variant="soft"
+    >
+      <Chip.Label>{evaluationLabel[status]}</Chip.Label>
+    </Chip>
   );
 }
 
@@ -104,36 +117,16 @@ export function StatusPanel({
   const alert = tone === 'danger';
 
   return (
-    <section
+    <Alert
       className={`status-panel status-panel--${tone}`}
+      status={tone === 'info' ? 'accent' : tone}
       role={alert ? 'alert' : 'status'}
     >
-      <StatusIcon tone={tone} />
-      <div>
-        <h2>{title}</h2>
-        {children ? <p>{children}</p> : null}
-      </div>
-    </section>
-  );
-}
-
-function StatusIcon({ tone }: { tone: StatusTone }) {
-  if (tone === 'warning' || tone === 'danger') {
-    return (
-      <svg
-        aria-hidden="true"
-        className="status-panel__icon"
-        viewBox="0 0 24 24"
-      >
-        <path d="M12 3 2.8 20h18.4L12 3Z" />
-        <path d="M12 9v5m0 3v.1" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg aria-hidden="true" className="status-panel__icon" viewBox="0 0 24 24">
-      <path d="M20 12a8 8 0 1 1-2.35-5.65M20 4v5h-5" />
-    </svg>
+      <Alert.Indicator />
+      <Alert.Content>
+        <h2 className="alert__title">{title}</h2>
+        {children ? <div className="alert__description">{children}</div> : null}
+      </Alert.Content>
+    </Alert>
   );
 }

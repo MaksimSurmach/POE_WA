@@ -1,3 +1,4 @@
+import { Button, Input, NativeSelect, TextArea } from './ui.js';
 import { useState, type FormEvent } from 'react';
 import {
   methodRunDefinition,
@@ -51,7 +52,7 @@ export function AllocationFields({
         <div className="factory-allocation" key={row}>
           <label>
             Cost source
-            <select name="allocationCost">
+            <NativeSelect name="allocationCost">
               <option value="">Select cost or leave unallocated</option>
               {costs.map((cost) => (
                 <option key={cost.eventId} value={cost.eventId}>
@@ -59,7 +60,7 @@ export function AllocationFields({
                   {cost.remaining} c available · {cost.eventId.slice(0, 8)}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <FactoryField
             name="allocationAmount"
@@ -69,21 +70,21 @@ export function AllocationFields({
             min="0"
             required={false}
           />
-          <button
+          <Button
             type="button"
             onClick={() => setRows(rows.filter((id) => id !== row))}
           >
             Remove
-          </button>
+          </Button>
         </div>
       ))}
-      <button
+      <Button
         type="button"
         disabled={rows.length >= 200}
         onClick={() => setRows([...rows, Math.max(-1, ...rows) + 1])}
       >
         Add cost allocation
-      </button>
+      </Button>
     </fieldset>
   );
 }
@@ -133,7 +134,7 @@ export function FactoryEventForm({
     <form onSubmit={submit} aria-label="Record factory event">
       <label>
         Event type
-        <select
+        <NativeSelect
           disabled={busy}
           value={type}
           onChange={(event) => {
@@ -149,7 +150,7 @@ export function FactoryEventForm({
               {label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </label>
       <fieldset key={type} disabled={busy} className="factory-panel">
         <input type="hidden" name="type" value={type} />
@@ -213,7 +214,7 @@ export function FactoryEventForm({
             />
             <label>
               Outcome ID or classification label
-              <input
+              <Input
                 name="outcome"
                 value={outcomeId}
                 onChange={(event) => {
@@ -236,7 +237,7 @@ export function FactoryEventForm({
             </datalist>
             <label>
               Outcome category
-              <select
+              <NativeSelect
                 name="classification"
                 value={classification}
                 onChange={(event) => {
@@ -255,7 +256,7 @@ export function FactoryEventForm({
                 ].map((value) => (
                   <option key={value}>{value}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             {targetSignature ? (
               <label className="factory-check">
@@ -306,7 +307,7 @@ export function FactoryEventForm({
             )}
             <label>
               Modifiers (one per line)
-              <textarea name="modifiers" rows={3} />
+              <TextArea name="modifiers" rows={3} />
             </label>
             <p className="factory-note">
               Use the model's outcome ID when known. Register each physical
@@ -411,7 +412,7 @@ export function FactoryEventForm({
         {type === 'note' ? (
           <label>
             New batch notes
-            <textarea name="text" rows={3} maxLength={2000} />
+            <TextArea name="text" rows={3} maxLength={2000} />
           </label>
         ) : null}
         {type === 'void' ? (
@@ -457,9 +458,9 @@ export function FactoryEventForm({
             required={false}
           />
         </div>
-        <button type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy}>
           {busy ? 'Recording…' : 'Record event'}
-        </button>
+        </Button>
       </fieldset>
     </form>
   );

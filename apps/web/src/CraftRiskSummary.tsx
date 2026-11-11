@@ -1,3 +1,4 @@
+import { TableSurface } from './ui.js';
 import type {
   OutcomeAnalysis,
   OutcomeModel,
@@ -157,27 +158,35 @@ export function CraftEconomicsSummary({
         </dl>
         {analysis.sensitivity.length ? (
           <div className="craft-risk__table-wrap">
-            <table>
-              <caption>Price sensitivity per method run</caption>
-              <thead>
-                <tr>
-                  <th>Scenario</th>
-                  <th>Material multiplier</th>
-                  <th>Resale multiplier</th>
-                  <th>Net cash EV</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analysis.sensitivity.map((row) => (
-                  <tr key={row.label}>
-                    <td>{row.label}</td>
-                    <td>{row.materialPriceMultiplier}×</td>
-                    <td>{row.sellingPriceMultiplier}×</td>
-                    <td>{formatRiskRange(row.netProfit, currency)}</td>
+            <TableSurface>
+              <table className="table__content">
+                <caption>Price sensitivity per method run</caption>
+                <thead className="table__header">
+                  <tr className="table__row">
+                    <th className="table__column">Scenario</th>
+                    <th className="table__column">Material multiplier</th>
+                    <th className="table__column">Resale multiplier</th>
+                    <th className="table__column">Net cash EV</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="table__body">
+                  {analysis.sensitivity.map((row) => (
+                    <tr className="table__row" key={row.label}>
+                      <td className="table__cell">{row.label}</td>
+                      <td className="table__cell">
+                        {row.materialPriceMultiplier}×
+                      </td>
+                      <td className="table__cell">
+                        {row.sellingPriceMultiplier}×
+                      </td>
+                      <td className="table__cell">
+                        {formatRiskRange(row.netProfit, currency)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableSurface>
           </div>
         ) : null}
       </details>
@@ -188,52 +197,59 @@ export function CraftEconomicsSummary({
 export function OutcomeModelSummary({ model }: { model: OutcomeModel }) {
   return (
     <div className="craft-risk__table-wrap">
-      <table>
-        <caption>
-          Outcomes of this crafting method. Probabilities are conditional on
-          entering their stage.
-        </caption>
-        <thead>
-          <tr>
-            <th>Stage</th>
-            <th>Outcome</th>
-            <th>Probability</th>
-            <th>Disposition</th>
-            <th>Source</th>
-          </tr>
-        </thead>
-        <tbody>
-          {model.stages.flatMap((stage) =>
-            stage.outcomes.map((outcome) => (
-              <tr key={outcome.id}>
-                <td>{stage.name}</td>
-                <td>
-                  {outcome.name}
-                  <small>
-                    {outcome.classification}
-                    {outcome.targetSuccess ? ' · Exact target' : ''}
-                  </small>
-                </td>
-                <td>{formatRiskPercent(outcome.probability.value)}</td>
-                <td>
-                  {outcome.nextStageId
-                    ? `Continue → ${outcome.nextStageId}`
-                    : outcome.sellable
-                      ? 'Terminal · Sellable'
-                      : 'Terminal · No resale'}
-                </td>
-                <td>
-                  {outcome.probability.provenance?.reference ??
-                    'Missing probability evidence'}
-                  <small>
-                    {outcome.probability.provenance?.kind.replaceAll('-', ' ')}
-                  </small>
-                </td>
-              </tr>
-            )),
-          )}
-        </tbody>
-      </table>
+      <TableSurface>
+        <table className="table__content">
+          <caption>
+            Outcomes of this crafting method. Probabilities are conditional on
+            entering their stage.
+          </caption>
+          <thead className="table__header">
+            <tr className="table__row">
+              <th className="table__column">Stage</th>
+              <th className="table__column">Outcome</th>
+              <th className="table__column">Probability</th>
+              <th className="table__column">Disposition</th>
+              <th className="table__column">Source</th>
+            </tr>
+          </thead>
+          <tbody className="table__body">
+            {model.stages.flatMap((stage) =>
+              stage.outcomes.map((outcome) => (
+                <tr className="table__row" key={outcome.id}>
+                  <td className="table__cell">{stage.name}</td>
+                  <td className="table__cell">
+                    {outcome.name}
+                    <small>
+                      {outcome.classification}
+                      {outcome.targetSuccess ? ' · Exact target' : ''}
+                    </small>
+                  </td>
+                  <td className="table__cell">
+                    {formatRiskPercent(outcome.probability.value)}
+                  </td>
+                  <td className="table__cell">
+                    {outcome.nextStageId
+                      ? `Continue → ${outcome.nextStageId}`
+                      : outcome.sellable
+                        ? 'Terminal · Sellable'
+                        : 'Terminal · No resale'}
+                  </td>
+                  <td className="table__cell">
+                    {outcome.probability.provenance?.reference ??
+                      'Missing probability evidence'}
+                    <small>
+                      {outcome.probability.provenance?.kind.replaceAll(
+                        '-',
+                        ' ',
+                      )}
+                    </small>
+                  </td>
+                </tr>
+              )),
+            )}
+          </tbody>
+        </table>
+      </TableSurface>
     </div>
   );
 }
@@ -309,29 +325,31 @@ export function CraftRiskResult({
       <details>
         <summary>Quantiles, tail risk and confidence</summary>
         <div className="craft-risk__table-wrap">
-          <table>
-            <caption>Selected-objective distribution</caption>
-            <thead>
-              <tr>
-                <th>Percentile</th>
-                <th>Cost</th>
-                <th>Cash result</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(['p50', 'p75', 'p90', 'p95', 'p99'] as const).map((key) => (
-                <tr key={key}>
-                  <th>{key.toUpperCase()}</th>
-                  <td>
-                    {formatRiskMoney(result.costQuantiles?.[key], currency)}
-                  </td>
-                  <td>
-                    {formatRiskMoney(result.profitQuantiles?.[key], currency)}
-                  </td>
+          <TableSurface>
+            <table className="table__content">
+              <caption>Selected-objective distribution</caption>
+              <thead className="table__header">
+                <tr className="table__row">
+                  <th className="table__column">Percentile</th>
+                  <th className="table__column">Cost</th>
+                  <th className="table__column">Cash result</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="table__body">
+                {(['p50', 'p75', 'p90', 'p95', 'p99'] as const).map((key) => (
+                  <tr className="table__row" key={key}>
+                    <th className="table__column">{key.toUpperCase()}</th>
+                    <td className="table__cell">
+                      {formatRiskMoney(result.costQuantiles?.[key], currency)}
+                    </td>
+                    <td className="table__cell">
+                      {formatRiskMoney(result.profitQuantiles?.[key], currency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableSurface>
         </div>
         <dl className="craft-risk__metrics">
           <div>
@@ -524,51 +542,53 @@ export function OutcomePriceEvidence({
   ];
   return (
     <div className="craft-risk__table-wrap">
-      <table>
-        <caption>Model purchase and resale evidence</caption>
-        <thead>
-          <tr>
-            <th>Input or outcome</th>
-            <th>Value</th>
-            <th>Basis</th>
-            <th>Source and time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(({ id, value, quote, resale }) => (
-            <tr key={id}>
-              <th>{id}</th>
-              <td>{value}</td>
-              <td>
-                {quote.provenance.kind === 'market-observation'
-                  ? 'Market observation — not a sale'
-                  : quote.provenance.kind.replaceAll('-', ' ')}
-              </td>
-              <td>
-                {quote.provenance.reference}
-                <small>
-                  {new Date(
-                    quote.market?.observedAt ?? quote.provenance.recordedAt,
-                  ).toLocaleString('en-US')}
-                </small>
-                {quote.market ? (
-                  <small>
-                    {quote.market.league} · {quote.market.coverage} coverage ·{' '}
-                    {resale
-                      ? quote.market.independentSellers === null
-                        ? 'Seller count unknown · '
-                        : `${quote.market.independentSellers} sellers · `
-                      : ''}
-                    expires{' '}
-                    {new Date(quote.market.expiresAt).toLocaleString('en-US')}
-                  </small>
-                ) : null}
-                <small>{quote.provenance.notes}</small>
-              </td>
+      <TableSurface>
+        <table className="table__content">
+          <caption>Model purchase and resale evidence</caption>
+          <thead className="table__header">
+            <tr className="table__row">
+              <th className="table__column">Input or outcome</th>
+              <th className="table__column">Value</th>
+              <th className="table__column">Basis</th>
+              <th className="table__column">Source and time</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="table__body">
+            {rows.map(({ id, value, quote, resale }) => (
+              <tr className="table__row" key={id}>
+                <th className="table__column">{id}</th>
+                <td className="table__cell">{value}</td>
+                <td className="table__cell">
+                  {quote.provenance.kind === 'market-observation'
+                    ? 'Market observation — not a sale'
+                    : quote.provenance.kind.replaceAll('-', ' ')}
+                </td>
+                <td className="table__cell">
+                  {quote.provenance.reference}
+                  <small>
+                    {new Date(
+                      quote.market?.observedAt ?? quote.provenance.recordedAt,
+                    ).toLocaleString('en-US')}
+                  </small>
+                  {quote.market ? (
+                    <small>
+                      {quote.market.league} · {quote.market.coverage} coverage ·{' '}
+                      {resale
+                        ? quote.market.independentSellers === null
+                          ? 'Seller count unknown · '
+                          : `${quote.market.independentSellers} sellers · `
+                        : ''}
+                      expires{' '}
+                      {new Date(quote.market.expiresAt).toLocaleString('en-US')}
+                    </small>
+                  ) : null}
+                  <small>{quote.provenance.notes}</small>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </TableSurface>
     </div>
   );
 }

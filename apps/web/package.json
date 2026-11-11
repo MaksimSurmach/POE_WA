@@ -8,19 +8,27 @@
     "dev": "vite",
     "preview": "vite preview",
     "test": "vitest run --passWithNoTests",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "preview:build": "node scripts/export-preview.mjs",
+    "preview:serve": "vite preview --outDir dist-preview --port 4180 --strictPort"
   },
   "dependencies": {
-    "@poe-worksmith/domain": "workspace:*",
+    "@fontsource-variable/inter": "5.3.0",
+    "@heroicons/react": "2.2.0",
+    "@heroui/react": "3.2.7",
+    "@heroui/styles": "3.2.7",
     "@poe-worksmith/contracts": "workspace:*",
+    "@poe-worksmith/domain": "workspace:*",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-router-dom": "7.18.1"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "4.3.5",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.3",
+    "tailwindcss": "4.3.5",
     "typescript": "6.0.3",
     "vite": "8.1.5",
     "vitest": "4.1.10"

@@ -1,3 +1,4 @@
+import { Button, NativeSelect, TableSurface } from './ui.js';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -30,7 +31,6 @@ import {
   reconcileFactoryPending,
   type PendingFactoryRequest,
 } from './factoryForm.js';
-import './factory.css';
 
 const api = createApiClient();
 function cachePending<T>(
@@ -383,7 +383,7 @@ export function FactoryPage() {
         <div className="factory-actions">
           <label>
             Factory league
-            <select
+            <NativeSelect
               value={league}
               disabled={busy}
               onChange={(event) => changeLeague(event.target.value)}
@@ -394,9 +394,9 @@ export function FactoryPage() {
                   {item.name}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
-          <button
+          <Button
             type="button"
             disabled={busy}
             onClick={() => {
@@ -405,7 +405,7 @@ export function FactoryPage() {
             }}
           >
             Refresh factory
-          </button>
+          </Button>
         </div>
       </header>
       {error ? (
@@ -447,7 +447,7 @@ export function FactoryPage() {
               <fieldset disabled={busy} className="factory-fields">
                 <label>
                   Crafting recipe
-                  <select
+                  <NativeSelect
                     value={recipeId}
                     onChange={(event) => setRecipeId(event.target.value)}
                     required
@@ -462,7 +462,7 @@ export function FactoryPage() {
                     !recipes.some(({ recipe }) => recipe.id === recipeId) ? (
                       <option value={recipeId}>{recipeId}</option>
                     ) : null}
-                  </select>
+                  </NativeSelect>
                 </label>
                 <FactoryField
                   name="batchNotes"
@@ -499,19 +499,19 @@ export function FactoryPage() {
                 are chaos at recorded transaction rates.
               </p>
               {analysisError ? <p role="alert">{analysisError}</p> : null}
-              <button type="submit" disabled={busy || !analysis || !recipeId}>
+              <Button type="submit" disabled={busy || !analysis || !recipeId}>
                 {busy ? 'Saving…' : 'Start batch'}
-              </button>
+              </Button>
             </form>
             {pendingCreate ? (
               <div className="factory-actions">
-                <button
+                <Button
                   type="button"
                   disabled={busy}
                   onClick={() => void createBatch()}
                 >
                   Retry exact pending batch
-                </button>
+                </Button>
                 <span className="factory-note">
                   {pendingCreate.request.recipeId} ·{' '}
                   {pendingCreate.request.league}
@@ -523,77 +523,83 @@ export function FactoryPage() {
             <h2>Production batches</h2>
             {batches.batches.length ? (
               <div className="factory-scroll">
-                <table className="factory-table">
-                  <thead>
-                    <tr>
-                      <th>Batch / recipe</th>
-                      <th>Status</th>
-                      <th>Realized profit</th>
-                      <th>Cash flow</th>
-                      <th>Unsold inventory</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {batches.batches.map((batch) => (
-                      <tr key={batch.batch.id}>
-                        <td>
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => selectBatch(batch.batch.id)}
-                          >
-                            {batch.batch.id.slice(0, 8)} ·{' '}
-                            {recipes.find(
-                              (entry) =>
-                                entry.recipe.id === batch.batch.recipeId,
-                            )?.recipe.title ?? batch.batch.recipeId}
-                          </button>
-                          <small>
-                            {new Date(batch.batch.startedAt).toLocaleString(
-                              'en-US',
-                            )}
-                          </small>
-                        </td>
-                        <td>{batch.projection.status}</td>
-                        <td>
-                          {factoryMoney(
-                            batch.projection.metrics.realizedProfit,
-                          )}
-                        </td>
-                        <td>
-                          {factoryMoney(batch.projection.metrics.cashFlow)}
-                        </td>
-                        <td>
-                          {factoryMoney(batch.projection.metrics.inventoryCost)}
-                        </td>
+                <TableSurface>
+                  <table className="table__content factory-table">
+                    <thead className="table__header">
+                      <tr className="table__row">
+                        <th className="table__column">Batch / recipe</th>
+                        <th className="table__column">Status</th>
+                        <th className="table__column">Realized profit</th>
+                        <th className="table__column">Cash flow</th>
+                        <th className="table__column">Unsold inventory</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="table__body">
+                      {batches.batches.map((batch) => (
+                        <tr className="table__row" key={batch.batch.id}>
+                          <td className="table__cell">
+                            <Button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => selectBatch(batch.batch.id)}
+                            >
+                              {batch.batch.id.slice(0, 8)} ·{' '}
+                              {recipes.find(
+                                (entry) =>
+                                  entry.recipe.id === batch.batch.recipeId,
+                              )?.recipe.title ?? batch.batch.recipeId}
+                            </Button>
+                            <small>
+                              {new Date(batch.batch.startedAt).toLocaleString(
+                                'en-US',
+                              )}
+                            </small>
+                          </td>
+                          <td className="table__cell">
+                            {batch.projection.status}
+                          </td>
+                          <td className="table__cell">
+                            {factoryMoney(
+                              batch.projection.metrics.realizedProfit,
+                            )}
+                          </td>
+                          <td className="table__cell">
+                            {factoryMoney(batch.projection.metrics.cashFlow)}
+                          </td>
+                          <td className="table__cell">
+                            {factoryMoney(
+                              batch.projection.metrics.inventoryCost,
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </TableSurface>
               </div>
             ) : (
               <p className="factory-note">No batches in this league yet.</p>
             )}
             <div className="factory-actions">
-              <button
+              <Button
                 type="button"
                 disabled={busy || offset === 0}
                 onClick={() => setOffset(Math.max(0, offset - 20))}
               >
                 Previous batches
-              </button>
+              </Button>
               <span className="factory-note">
                 {batches.total ? offset + 1 : 0}–
                 {Math.min(offset + batches.batches.length, batches.total)} of{' '}
                 {batches.total}
               </span>
-              <button
+              <Button
                 type="button"
                 disabled={busy || offset + batches.limit >= batches.total}
                 onClick={() => setOffset(offset + 20)}
               >
                 Next batches
-              </button>
+              </Button>
             </div>
           </section>
         </>
@@ -604,23 +610,23 @@ export function FactoryPage() {
         <section className="factory-panel">
           <FactoryBatchSummary record={record} />
           <div className="factory-actions">
-            <button type="button" onClick={() => void download('csv')}>
+            <Button type="button" onClick={() => void download('csv')}>
               Export CSV
-            </button>
-            <button type="button" onClick={() => void download('json')}>
+            </Button>
+            <Button type="button" onClick={() => void download('json')}>
               Export JSON
-            </button>
+            </Button>
           </div>
           <h2>Record production and sales</h2>
           {pendingEvent ? (
             <div>
-              <button
+              <Button
                 type="button"
                 disabled={busy}
                 onClick={() => void appendEvent()}
               >
                 Retry exact pending event
-              </button>
+              </Button>
               <p className="factory-note">
                 {pendingEvent.request.event.payload.type} ·{' '}
                 {pendingEvent.request.event.occurredAt}. The saved request keeps

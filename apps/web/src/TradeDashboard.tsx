@@ -1,3 +1,4 @@
+import { Button, Input, TableSurface } from './ui.js';
 import type {
   TradeDashboardItem,
   TradeDashboardRange,
@@ -10,7 +11,6 @@ import { StatusPanel } from './components.js';
 import { formatUtc } from './PriceTrendChart.js';
 import { TurnoverMap } from './TurnoverMap.js';
 import { TradeItemHistory } from './TradeItemHistory.js';
-import './tradeDashboard.css';
 
 const api = createApiClient();
 const rate = new Intl.NumberFormat('en', { maximumFractionDigits: 1 });
@@ -155,7 +155,7 @@ export function TradeDashboard({ league }: { league: string | undefined }) {
         ) : (
           <label className="trade-dashboard__search">
             <span>Find an item</span>
-            <input
+            <Input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -176,14 +176,14 @@ export function TradeDashboard({ league }: { league: string | undefined }) {
             aria-label="Trade observation window"
           >
             {(['24h', '7d'] as const).map((value) => (
-              <button
+              <Button
                 key={value}
                 aria-pressed={value === range}
                 onClick={() => changeRange(value)}
                 type="button"
               >
                 {value}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -257,14 +257,14 @@ export function TradeDashboard({ league }: { league: string | undefined }) {
                       <dd>{rate.format(selected.settledHours)}h</dd>
                     </div>
                   </dl>
-                  <button
+                  <Button
                     className="trade-dashboard__primary"
                     onClick={() => openItem(selected.id)}
                     ref={openHistory}
                     type="button"
                   >
                     Open item history <span aria-hidden="true">→</span>
-                  </button>
+                  </Button>
                 </aside>
               </div>
             ) : (
@@ -294,64 +294,72 @@ export function TradeDashboard({ league }: { league: string | undefined }) {
               role="region"
               aria-label="Scrollable Trade ranking"
             >
-              <table className="trade-dashboard__table">
-                <thead>
-                  <tr>
-                    <th scope="col">Item cohort</th>
-                    {columns.map(([key, label]) => (
-                      <th
-                        scope="col"
-                        key={key}
-                        aria-sort={
-                          sort === key
-                            ? ascending
-                              ? 'ascending'
-                              : 'descending'
-                            : undefined
-                        }
-                      >
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAscending(sort === key && !ascending);
-                            setSort(key);
-                          }}
+              <TableSurface>
+                <table className="table__content trade-dashboard__table">
+                  <thead className="table__header">
+                    <tr className="table__row">
+                      <th className="table__column" scope="col">
+                        Item cohort
+                      </th>
+                      {columns.map(([key, label]) => (
+                        <th
+                          className="table__column"
+                          scope="col"
+                          key={key}
+                          aria-sort={
+                            sort === key
+                              ? ascending
+                                ? 'ascending'
+                                : 'descending'
+                              : undefined
+                          }
                         >
-                          {label}
-                        </button>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((item) => (
-                    <tr key={item.id}>
-                      <th scope="row">
-                        <button onClick={() => openItem(item.id)} type="button">
-                          {item.name}
-                        </button>
-                        <small>
-                          {formatUtc(item.latest.at)} · {item.latest.coverage}{' '}
-                          coverage
-                        </small>
-                      </th>
-                      {columns.map(([key]) => {
-                        const value = metric(item, key);
-                        return (
-                          <td key={key}>
-                            {key === 'ask'
-                              ? divineAsk(item)
-                              : value === null
-                                ? '—'
-                                : (key === 'change' && value > 0 ? '+' : '') +
-                                  rate.format(value)}
-                          </td>
-                        );
-                      })}
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              setAscending(sort === key && !ascending);
+                              setSort(key);
+                            }}
+                          >
+                            {label}
+                          </Button>
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="table__body">
+                    {rows.map((item) => (
+                      <tr className="table__row" key={item.id}>
+                        <th className="table__column" scope="row">
+                          <Button
+                            onClick={() => openItem(item.id)}
+                            type="button"
+                          >
+                            {item.name}
+                          </Button>
+                          <small>
+                            {formatUtc(item.latest.at)} · {item.latest.coverage}{' '}
+                            coverage
+                          </small>
+                        </th>
+                        {columns.map(([key]) => {
+                          const value = metric(item, key);
+                          return (
+                            <td className="table__cell" key={key}>
+                              {key === 'ask'
+                                ? divineAsk(item)
+                                : value === null
+                                  ? '—'
+                                  : (key === 'change' && value > 0 ? '+' : '') +
+                                    rate.format(value)}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </TableSurface>
             </div>
             <p className="trade-dashboard__message">
               Rate change compares with the previous equal window. First seen

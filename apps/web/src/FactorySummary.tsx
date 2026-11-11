@@ -1,3 +1,4 @@
+import { TableSurface } from './ui.js';
 import type { FactoryBatchRecord } from '@poe-worksmith/contracts';
 import type {
   FactoryProjection,
@@ -284,60 +285,64 @@ export function FactoryBatchSummary({
       <h2>Produced inventory</h2>
       {projection.inventory.length ? (
         <div className="factory-scroll">
-          <table className="factory-table">
-            <thead>
-              <tr>
-                <th>Item / outcome</th>
-                <th>Status</th>
-                <th>Allocated cost</th>
-                <th>Advertised price</th>
-                <th>Confirmed sale</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projection.inventory.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    {item.description}
-                    <small>
-                      {item.outcome} ({item.outcomeClassification}) ·{' '}
-                      {item.id.slice(0, 8)}
-                    </small>
-                    {item.modifiers.length ? (
-                      <details>
-                        <summary>Modifiers</summary>
-                        {item.modifiers.map((modifier) => (
-                          <p key={modifier}>{modifier}</p>
-                        ))}
-                      </details>
-                    ) : null}
-                  </td>
-                  <td>{item.status}</td>
-                  <td>{factoryMoney(item.allocatedCost)}</td>
-                  <td>
-                    {factoryOriginalPrice(item.listingPrice)}
-                    {item.listedAt ? (
-                      <small>
-                        {new Date(item.listedAt).toLocaleString('en-US')}
-                      </small>
-                    ) : null}
-                  </td>
-                  <td>
-                    {item.soldAt ? (
-                      <>
-                        {factoryMoney(item.saleRevenue)}
-                        <small>
-                          {new Date(item.soldAt).toLocaleString('en-US')}
-                        </small>
-                      </>
-                    ) : (
-                      'No completed sale'
-                    )}
-                  </td>
+          <TableSurface>
+            <table className="table__content factory-table">
+              <thead className="table__header">
+                <tr className="table__row">
+                  <th className="table__column">Item / outcome</th>
+                  <th className="table__column">Status</th>
+                  <th className="table__column">Allocated cost</th>
+                  <th className="table__column">Advertised price</th>
+                  <th className="table__column">Confirmed sale</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="table__body">
+                {projection.inventory.map((item) => (
+                  <tr className="table__row" key={item.id}>
+                    <td className="table__cell">
+                      {item.description}
+                      <small>
+                        {item.outcome} ({item.outcomeClassification}) ·{' '}
+                        {item.id.slice(0, 8)}
+                      </small>
+                      {item.modifiers.length ? (
+                        <details>
+                          <summary>Modifiers</summary>
+                          {item.modifiers.map((modifier) => (
+                            <p key={modifier}>{modifier}</p>
+                          ))}
+                        </details>
+                      ) : null}
+                    </td>
+                    <td className="table__cell">{item.status}</td>
+                    <td className="table__cell">
+                      {factoryMoney(item.allocatedCost)}
+                    </td>
+                    <td className="table__cell">
+                      {factoryOriginalPrice(item.listingPrice)}
+                      {item.listedAt ? (
+                        <small>
+                          {new Date(item.listedAt).toLocaleString('en-US')}
+                        </small>
+                      ) : null}
+                    </td>
+                    <td className="table__cell">
+                      {item.soldAt ? (
+                        <>
+                          {factoryMoney(item.saleRevenue)}
+                          <small>
+                            {new Date(item.soldAt).toLocaleString('en-US')}
+                          </small>
+                        </>
+                      ) : (
+                        'No completed sale'
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableSurface>
         </div>
       ) : (
         <p className="factory-note">No crafted items registered yet.</p>
@@ -345,89 +350,105 @@ export function FactoryBatchSummary({
       <details>
         <summary>Material stock and cost allocations</summary>
         <div className="factory-scroll">
-          <table className="factory-table">
-            <thead>
-              <tr>
-                <th>Purchase lot</th>
-                <th>Available quantity</th>
-                <th>Unused cost</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projection.stock.map((lot) => (
-                <tr key={lot.purchaseEventId}>
-                  <td>
-                    {lot.resourceId}
-                    <small>{lot.purchaseEventId.slice(0, 8)}</small>
-                  </td>
-                  <td>{lot.quantityAvailable}</td>
-                  <td>{factoryMoney(lot.costBasis)}</td>
+          <TableSurface>
+            <table className="table__content factory-table">
+              <thead className="table__header">
+                <tr className="table__row">
+                  <th className="table__column">Purchase lot</th>
+                  <th className="table__column">Available quantity</th>
+                  <th className="table__column">Unused cost</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <table className="factory-table">
-            <thead>
-              <tr>
-                <th>Cost source</th>
-                <th>Production cost</th>
-                <th>Allocated</th>
-                <th>Remaining</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projection.costs.map((cost) => (
-                <tr key={cost.eventId}>
-                  <td>
-                    {factoryCostLabel(cost.eventId, record.events, projection)}
-                    <small>{cost.eventId.slice(0, 8)}</small>
-                  </td>
-                  <td>{factoryMoney(cost.amount)}</td>
-                  <td>{factoryMoney(cost.allocated)}</td>
-                  <td>{factoryMoney(cost.remaining)}</td>
+              </thead>
+              <tbody className="table__body">
+                {projection.stock.map((lot) => (
+                  <tr className="table__row" key={lot.purchaseEventId}>
+                    <td className="table__cell">
+                      {lot.resourceId}
+                      <small>{lot.purchaseEventId.slice(0, 8)}</small>
+                    </td>
+                    <td className="table__cell">{lot.quantityAvailable}</td>
+                    <td className="table__cell">
+                      {factoryMoney(lot.costBasis)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableSurface>
+          <TableSurface>
+            <table className="table__content factory-table">
+              <thead className="table__header">
+                <tr className="table__row">
+                  <th className="table__column">Cost source</th>
+                  <th className="table__column">Production cost</th>
+                  <th className="table__column">Allocated</th>
+                  <th className="table__column">Remaining</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="table__body">
+                {projection.costs.map((cost) => (
+                  <tr className="table__row" key={cost.eventId}>
+                    <td className="table__cell">
+                      {factoryCostLabel(
+                        cost.eventId,
+                        record.events,
+                        projection,
+                      )}
+                      <small>{cost.eventId.slice(0, 8)}</small>
+                    </td>
+                    <td className="table__cell">{factoryMoney(cost.amount)}</td>
+                    <td className="table__cell">
+                      {factoryMoney(cost.allocated)}
+                    </td>
+                    <td className="table__cell">
+                      {factoryMoney(cost.remaining)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableSurface>
         </div>
       </details>
       <details>
         <summary>Audit log ({record.events.length} events)</summary>
         <div className="factory-scroll">
-          <table className="factory-table">
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th>Time / source</th>
-                <th>Recorded details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {record.events.map((event) => (
-                <tr key={event.id}>
-                  <td>
-                    {event.payload.type}
-                    <small>
-                      {event.id.slice(0, 8)}
-                      {projection.voidedEventIds.includes(event.id)
-                        ? ' · corrected'
-                        : ''}
-                    </small>
-                  </td>
-                  <td>
-                    {new Date(event.occurredAt).toLocaleString('en-US')}
-                    <small>{event.source}</small>
-                  </td>
-                  <td>
-                    <pre className="factory-event-summary">
-                      {JSON.stringify(event.payload, null, 2)}
-                    </pre>
-                    {event.notes}
-                  </td>
+          <TableSurface>
+            <table className="table__content factory-table">
+              <thead className="table__header">
+                <tr className="table__row">
+                  <th className="table__column">Event</th>
+                  <th className="table__column">Time / source</th>
+                  <th className="table__column">Recorded details</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="table__body">
+                {record.events.map((event) => (
+                  <tr className="table__row" key={event.id}>
+                    <td className="table__cell">
+                      {event.payload.type}
+                      <small>
+                        {event.id.slice(0, 8)}
+                        {projection.voidedEventIds.includes(event.id)
+                          ? ' · corrected'
+                          : ''}
+                      </small>
+                    </td>
+                    <td className="table__cell">
+                      {new Date(event.occurredAt).toLocaleString('en-US')}
+                      <small>{event.source}</small>
+                    </td>
+                    <td className="table__cell">
+                      <pre className="factory-event-summary">
+                        {JSON.stringify(event.payload, null, 2)}
+                      </pre>
+                      {event.notes}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableSurface>
         </div>
       </details>
     </>

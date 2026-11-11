@@ -1,3 +1,4 @@
+import { Button, Input, NativeSelect, TextArea } from './ui.js';
 import { useState, type FormEvent } from 'react';
 import type { OutcomeAnalysisInput } from '@poe-worksmith/domain';
 import {
@@ -95,7 +96,7 @@ export function GuidedOutcomeEditor({
         <div className="craft-risk__fields">
           <label>
             Currency
-            <select
+            <NativeSelect
               value={draft.currency}
               onChange={(event) =>
                 change('currency', event.target.value as 'chaos' | 'divine')
@@ -103,11 +104,11 @@ export function GuidedOutcomeEditor({
             >
               <option value="chaos">Chaos</option>
               <option value="divine">Divine</option>
-            </select>
+            </NativeSelect>
           </label>
           <label>
             One base
-            <input
+            <Input
               inputMode="decimal"
               maxLength={40}
               value={draft.base}
@@ -117,7 +118,7 @@ export function GuidedOutcomeEditor({
           </label>
           <label>
             Materials per attempt
-            <input
+            <Input
               inputMode="decimal"
               maxLength={40}
               value={draft.materials}
@@ -127,7 +128,7 @@ export function GuidedOutcomeEditor({
           </label>
           <label>
             Cost source
-            <input
+            <Input
               value={draft.costSource}
               onChange={(event) => change('costSource', event.target.value)}
               placeholder="Transaction reference or assumption"
@@ -137,7 +138,7 @@ export function GuidedOutcomeEditor({
         </div>
         <label>
           Assumptions and outcome boundaries
-          <textarea
+          <TextArea
             rows={2}
             value={draft.assumptions}
             onChange={(event) => change('assumptions', event.target.value)}
@@ -152,7 +153,7 @@ export function GuidedOutcomeEditor({
           <div className="craft-risk__fields">
             <label>
               Name / modifier requirements
-              <input
+              <Input
                 value={outcome.name}
                 onChange={(event) =>
                   changeOutcome(outcome.id, 'name', event.target.value)
@@ -162,7 +163,7 @@ export function GuidedOutcomeEditor({
             </label>
             <label>
               Classification
-              <select
+              <NativeSelect
                 value={outcome.classification}
                 onChange={(event) =>
                   changeOutcome(
@@ -177,11 +178,11 @@ export function GuidedOutcomeEditor({
                 <option value="imperfect">Good but imperfect</option>
                 <option value="salvage">Salvage</option>
                 <option value="unusable">Unusable</option>
-              </select>
+              </NativeSelect>
             </label>
             <label>
               Probability (0–1)
-              <input
+              <Input
                 inputMode="decimal"
                 maxLength={40}
                 value={outcome.probability}
@@ -193,7 +194,7 @@ export function GuidedOutcomeEditor({
             </label>
             <label>
               Probability source
-              <input
+              <Input
                 value={outcome.probabilitySource}
                 onChange={(event) =>
                   changeOutcome(
@@ -208,7 +209,7 @@ export function GuidedOutcomeEditor({
             </label>
             <label>
               Finishing cost for this outcome
-              <input
+              <Input
                 inputMode="decimal"
                 maxLength={40}
                 value={outcome.finishing}
@@ -220,7 +221,7 @@ export function GuidedOutcomeEditor({
             </label>
             <label>
               Recovery expense for this outcome
-              <input
+              <Input
                 inputMode="decimal"
                 maxLength={40}
                 value={outcome.recovery}
@@ -262,7 +263,7 @@ export function GuidedOutcomeEditor({
               <div className="craft-risk__fields">
                 <label>
                   Resale range: minimum
-                  <input
+                  <Input
                     inputMode="decimal"
                     maxLength={40}
                     value={outcome.resaleMin}
@@ -273,7 +274,7 @@ export function GuidedOutcomeEditor({
                 </label>
                 <label>
                   Resale range: maximum
-                  <input
+                  <Input
                     inputMode="decimal"
                     maxLength={40}
                     value={outcome.resaleMax}
@@ -284,7 +285,7 @@ export function GuidedOutcomeEditor({
                 </label>
                 <label>
                   Resale source
-                  <input
+                  <Input
                     value={outcome.resaleSource}
                     onChange={(event) =>
                       changeOutcome(
@@ -320,7 +321,7 @@ export function GuidedOutcomeEditor({
               credits through the advanced editor.
             </p>
           )}
-          <button
+          <Button
             type="button"
             disabled={draft.outcomes.length === 1}
             onClick={() =>
@@ -331,10 +332,10 @@ export function GuidedOutcomeEditor({
             }
           >
             Remove outcome
-          </button>
+          </Button>
         </fieldset>
       ))}
-      <button
+      <Button
         type="button"
         disabled={disabled || saving || draft.outcomes.length >= 16}
         onClick={() => {
@@ -346,7 +347,7 @@ export function GuidedOutcomeEditor({
         }}
       >
         Add outcome
-      </button>
+      </Button>
       <label className="craft-risk__checkbox">
         <input
           type="checkbox"
@@ -363,9 +364,9 @@ export function GuidedOutcomeEditor({
           {error}
         </p>
       ) : null}
-      <button type="submit" disabled={disabled || saving}>
+      <Button type="submit" disabled={disabled || saving}>
         {saving ? 'Saving model…' : 'Save new model revision'}
-      </button>
+      </Button>
     </form>
   );
 }

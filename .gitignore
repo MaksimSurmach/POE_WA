@@ -147,3 +147,6 @@ vite.config.ts.timestamp-*
 playwright-report/
 output/playwright/test-results/
 output/master-e2e/
+
+# Offline UI preview build
+apps/web/dist-preview/

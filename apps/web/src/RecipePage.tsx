@@ -1,3 +1,4 @@
+import { TableSurface } from './ui.js';
 import {
   domainErrorDefinitions,
   type CatalogEntry,
@@ -570,80 +571,103 @@ export function MethodsForTarget({
         aria-label="Method comparison, scroll for more columns"
         tabIndex={0}
       >
-        <table aria-label="Methods for this target">
-          <caption>
-            Expected profit uses mean cost. For one finished item, at least half
-            of runs cost at or below p50, and at least nine in ten cost at or
-            below p90.
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Method</th>
-              <th scope="col">Mean cost</th>
-              <th scope="col">Sale ask</th>
-              <th scope="col">Expected profit</th>
-              <th scope="col">ROI</th>
-              <th scope="col">Budget p50</th>
-              <th scope="col">Budget p90</th>
-              <th scope="col">Grade or block reason</th>
-            </tr>
-          </thead>
-          <tbody>
-            {methods.map(({ recipe, evaluation, readiness }, index) => (
-              <tr key={recipe.id}>
-                <th scope="row">
-                  <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
-                    {recipe.craftMethod}
-                  </Link>
-                  {readiness && isSingleSellerHypothesis(readiness) ? (
-                    <small>Single-seller price hypothesis</small>
-                  ) : index === 0 &&
-                    evaluation.profit &&
-                    readiness === undefined ? (
-                    <small>Best by expected profit</small>
-                  ) : null}
+        <TableSurface>
+          <table
+            className="table__content"
+            aria-label="Methods for this target"
+          >
+            <caption>
+              Expected profit uses mean cost. For one finished item, at least
+              half of runs cost at or below p50, and at least nine in ten cost
+              at or below p90.
+            </caption>
+            <thead className="table__header">
+              <tr className="table__row">
+                <th className="table__column" scope="col">
+                  Method
                 </th>
-                <td>
-                  <Money price={evaluation.expectedCraftCost} />
-                </td>
-                <td>
-                  <Money price={evaluation.estimatedSalePrice} />
-                </td>
-                <td>
-                  {evaluation.profit ? (
-                    <ProfitBadge {...evaluation.profit} />
-                  ) : (
-                    <span aria-label="Profit unavailable">—</span>
-                  )}
-                </td>
-                <td className={economicClass(evaluation.marginPercent)}>
-                  {evaluation.marginPercent === null ? (
-                    <span aria-label="ROI unavailable">—</span>
-                  ) : (
-                    formatMarginPercent(evaluation.marginPercent)
-                  )}
-                </td>
-                <td>
-                  <Money price={evaluation.budget?.p50 ?? null} />
-                </td>
-                <td>
-                  <Money price={evaluation.budget?.p90 ?? null} />
-                </td>
-                <td>
-                  {evaluation.grade ? (
-                    <span aria-label={`Evidence grade ${evaluation.grade}`}>
-                      {evaluation.grade}
-                    </span>
-                  ) : evaluation.profit ? (
-                    '—'
-                  ) : (
-                    unpricedMethodReason(evaluation)
-                  )}
-                </td>
+                <th className="table__column" scope="col">
+                  Mean cost
+                </th>
+                <th className="table__column" scope="col">
+                  Sale ask
+                </th>
+                <th className="table__column" scope="col">
+                  Expected profit
+                </th>
+                <th className="table__column" scope="col">
+                  ROI
+                </th>
+                <th className="table__column" scope="col">
+                  Budget p50
+                </th>
+                <th className="table__column" scope="col">
+                  Budget p90
+                </th>
+                <th className="table__column" scope="col">
+                  Grade or block reason
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="table__body">
+              {methods.map(({ recipe, evaluation, readiness }, index) => (
+                <tr className="table__row" key={recipe.id}>
+                  <th className="table__column" scope="row">
+                    <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
+                      {recipe.craftMethod}
+                    </Link>
+                    {readiness && isSingleSellerHypothesis(readiness) ? (
+                      <small>Single-seller price hypothesis</small>
+                    ) : index === 0 &&
+                      evaluation.profit &&
+                      readiness === undefined ? (
+                      <small>Best by expected profit</small>
+                    ) : null}
+                  </th>
+                  <td className="table__cell">
+                    <Money price={evaluation.expectedCraftCost} />
+                  </td>
+                  <td className="table__cell">
+                    <Money price={evaluation.estimatedSalePrice} />
+                  </td>
+                  <td className="table__cell">
+                    {evaluation.profit ? (
+                      <ProfitBadge {...evaluation.profit} />
+                    ) : (
+                      <span aria-label="Profit unavailable">—</span>
+                    )}
+                  </td>
+                  <td
+                    className={`table__cell ${economicClass(evaluation.marginPercent)}`}
+                  >
+                    {evaluation.marginPercent === null ? (
+                      <span aria-label="ROI unavailable">—</span>
+                    ) : (
+                      formatMarginPercent(evaluation.marginPercent)
+                    )}
+                  </td>
+                  <td className="table__cell">
+                    <Money price={evaluation.budget?.p50 ?? null} />
+                  </td>
+                  <td className="table__cell">
+                    <Money price={evaluation.budget?.p90 ?? null} />
+                  </td>
+                  <td className="table__cell">
+                    {evaluation.grade ? (
+                      <span aria-label={`Evidence grade ${evaluation.grade}`}>
+                        {evaluation.grade}
+                      </span>
+                    ) : evaluation.profit ? (
+                      '—'
+                    ) : (
+                      unpricedMethodReason(evaluation)
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </TableSurface>
       </div>
     </DetailSection>
   );

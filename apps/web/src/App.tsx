@@ -1,16 +1,12 @@
+import { WorkspaceShell as AppShell } from './WorkspaceShell.js';
+import { CatalogOverview } from './CatalogOverview.js';
+import { Button, Input, NativeSelect } from './ui.js';
 import type {
   CatalogResponse,
   CurrentLeagueResponse,
 } from '@poe-worksmith/contracts';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Link,
-  NavLink,
-  Outlet,
-  Route,
-  Routes,
-  useSearchParams,
-} from 'react-router-dom';
+import { Route, Routes, useSearchParams } from 'react-router-dom';
 
 import {
   defaultCatalogFilters,
@@ -31,58 +27,6 @@ import { FactoryPage } from './FactoryPage.js';
 import { CollectorReadinessReport } from './MarketReadiness.js';
 
 const apiClient = createApiClient();
-
-function AppShell() {
-  return (
-    <>
-      <header className="app-header">
-        <div className="app-header__inner">
-          <Link className="brand" to="/" aria-label="Worksmith Handbook home">
-            <span>Worksmith</span> Handbook
-          </Link>
-          <nav aria-label="Primary" className="app-nav">
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? 'nav-link is-active' : 'nav-link'
-              }
-              end
-              to="/"
-            >
-              Craft Opportunities
-            </NavLink>
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? 'nav-link is-active' : 'nav-link'
-              }
-              to="/recipes"
-            >
-              Recipes
-            </NavLink>
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? 'nav-link is-active' : 'nav-link'
-              }
-              to="/market"
-            >
-              Market trends
-            </NavLink>
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? 'nav-link is-active' : 'nav-link'
-              }
-              to="/factory"
-            >
-              My Factory
-            </NavLink>
-          </nav>
-        </div>
-      </header>
-      <main className="app-main">
-        <Outlet />
-      </main>
-    </>
-  );
-}
 
 function CatalogRoute() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -237,9 +181,9 @@ function CatalogRoute() {
         <StatusPanel tone="danger" title="Recipes unavailable">
           The recipe list could not be loaded. Try again when the service is
           available.
-          <button type="button" onClick={reloadCatalog}>
+          <Button type="button" onClick={reloadCatalog}>
             Retry loading recipes
-          </button>
+          </Button>
         </StatusPanel>
       ) : null}
 
@@ -254,13 +198,14 @@ function CatalogRoute() {
         </section>
       ) : (
         <>
+          <CatalogOverview entries={entries} />
           <section
             className="handbook-controls"
             aria-label="Crafting target search and item types"
           >
             <label className="catalog-search catalog-filter">
               <span>Item name</span>
-              <input
+              <Input
                 type="search"
                 placeholder="Search items or targets…"
                 value={filters.search}
@@ -269,7 +214,7 @@ function CatalogRoute() {
             </label>
             <label className="catalog-filter">
               <span>Tag</span>
-              <select
+              <NativeSelect
                 value={filters.tag ?? 'all'}
                 onChange={(e) => updateFilter('tag', e.target.value)}
               >
@@ -279,11 +224,11 @@ function CatalogRoute() {
                   .map((tag) => (
                     <option key={tag}>{tag}</option>
                   ))}
-              </select>
+              </NativeSelect>
             </label>
             <label className="catalog-filter">
               <span>Item class</span>
-              <select
+              <NativeSelect
                 value={filters.category}
                 onChange={(event) =>
                   updateFilter('category', event.target.value)
@@ -295,14 +240,14 @@ function CatalogRoute() {
                     {category.replaceAll('-', ' ')}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <div className="catalog-filter">
               <label htmlFor="minimum-profit">
                 Min profit ({filters.profitCurrency === 'divine' ? 'div' : 'c'})
               </label>
               <div className="catalog-profit-filter">
-                <input
+                <Input
                   id="minimum-profit"
                   type="number"
                   step="any"
@@ -312,7 +257,7 @@ function CatalogRoute() {
                     updateFilter('minProfit', event.target.value)
                   }
                 />
-                <select
+                <NativeSelect
                   aria-label="Profit currency"
                   value={filters.profitCurrency ?? 'chaos'}
                   onChange={(event) =>
@@ -324,12 +269,12 @@ function CatalogRoute() {
                 >
                   <option value="chaos">c</option>
                   <option value="divine">div</option>
-                </select>
+                </NativeSelect>
               </div>
             </div>
             <label className="catalog-filter">
               <span>Min ROI (%)</span>
-              <input
+              <Input
                 type="number"
                 step="any"
                 placeholder="Any"
@@ -343,12 +288,12 @@ function CatalogRoute() {
             <span role="status">
               {filteredEntries.length} of {entries.length} recipes
             </span>
-            <button
+            <Button
               type="button"
               onClick={() => setFilters(defaultCatalogFilters)}
             >
               Reset filters
-            </button>
+            </Button>
           </div>
           <CatalogTable
             entries={filteredEntries}

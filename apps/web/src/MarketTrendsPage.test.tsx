@@ -95,6 +95,8 @@ describe('market trend dashboard', () => {
     );
     expect(market).toContain('Market trends');
     expect(market).toContain('Loading market trends');
-    expect(market).toMatch(/aria-current="page"[^>]*>Market trends</);
+    expect(market).toMatch(
+      /aria-current="page"[^>]*>[^]*?<span>Market trends<\/span>[^]*?<\/a>/,
+    );
   });
 });

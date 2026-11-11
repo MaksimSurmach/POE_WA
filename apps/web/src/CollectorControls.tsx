@@ -1,3 +1,4 @@
+import { Button } from './ui.js';
 import type {
   CollectorStatus,
   MarketAdminSettingsResponse,
@@ -185,26 +186,28 @@ export function CollectorControls({
     >
       <div className="collector-controls__actions">
         {paused === null ? (
-          <button
+          <Button
             type="button"
             style={buttonStyle}
             disabled={changing !== null}
             onClick={() => setPollRevision((value) => value + 1)}
           >
             Check collection state
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             type="button"
             style={buttonStyle}
             // Resuming only clears the pause flag; it cannot start a collector process.
             disabled={changing !== null || (paused && !connected)}
+            liveAction
             onClick={() => void changePause(!paused)}
           >
             {paused ? 'Resume collection' : 'Pause collection'}
-          </button>
+          </Button>
         )}
-        <button
+        <Button
+          variant="primary"
           type="button"
           style={buttonStyle}
           disabled={
@@ -214,10 +217,11 @@ export function CollectorControls({
             changing !== null ||
             busy
           }
+          liveAction
           onClick={() => void runNow()}
         >
           Run now
-        </button>
+        </Button>
       </div>
       <CollectorStatusLine
         status={status}

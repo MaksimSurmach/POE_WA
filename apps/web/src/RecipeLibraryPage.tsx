@@ -1,3 +1,4 @@
+import { Button, Input, NativeSelect } from './ui.js';
 import type { CatalogEntry } from '@poe-worksmith/contracts';
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -81,7 +82,7 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
       >
         <label className="catalog-search catalog-filter">
           <span>Recipe name or target</span>
-          <input
+          <Input
             type="search"
             value={search}
             placeholder="Search recipes…"
@@ -90,7 +91,7 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
         </label>
         <label className="catalog-filter">
           <span>Item class</span>
-          <select
+          <NativeSelect
             value={category}
             onChange={(event) => update('category', event.target.value)}
           >
@@ -100,18 +101,18 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
                 {name.replaceAll('-', ' ')}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="catalog-filter">
           <span>Source</span>
-          <select
+          <NativeSelect
             value={source}
             onChange={(e) => update('source', e.target.value)}
           >
             <option value="all">All recipes</option>
             <option value="market">Market targets</option>
             <option value="pohx">Pohx / Convay</option>
-          </select>
+          </NativeSelect>
         </label>
       </section>
       <div className="catalog-results">
@@ -119,9 +120,9 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
           {filtered.length + guides.length} of{' '}
           {entries.length + pohxGuides.length} recipes and guides
         </span>
-        <button type="button" onClick={() => setParams({}, { replace: true })}>
+        <Button type="button" onClick={() => setParams({}, { replace: true })}>
           Reset filters
-        </button>
+        </Button>
       </div>
       <ul className="recipe-library">
         {guides.map((guide) => (
