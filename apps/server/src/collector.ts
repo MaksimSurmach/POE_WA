@@ -14,7 +14,10 @@ import {
   collectorHeartbeatMs,
   type CollectorTelemetry,
 } from './observability/collectorTelemetry.js';
-import { readCollectorQueue } from './repositories/collectorQueue.js';
+import {
+  nonStandardSchedulePredicate,
+  readCollectorQueue,
+} from './repositories/collectorQueue.js';
 import { collectorSchedule, collectorState, runRequests } from './schema.js';
 
 export type CollectorSchedule = typeof collectorSchedule.$inferSelect;
@@ -57,6 +60,7 @@ type CollectorOptions = {
   bootstrap?: (client: PoolClient, signal: AbortSignal) => Promise<void>;
   publishResults?: PublishResults;
   telemetry?: CollectorTelemetry;
+  skipStandard?: boolean;
 };
 
 type CollectorDb = NodePgDatabase;
@@ -130,6 +134,7 @@ async function startRequest(
   db: CollectorDb,
   request: RunRequest,
   now: Date,
+  skipStandard: boolean,
 ) {
   return transaction(client, async () => {
     const rows = await db
@@ -140,6 +145,7 @@ async function startRequest(
       .where(
         and(
           eq(collectorSchedule.enabled, true),
+          skipStandard ? sql.raw(nonStandardSchedulePredicate) : undefined,
           sql`not (${collectorSchedule.kind} in ('trade-target', 'economy') and
             coalesce((select settings->>'collectionsPaused' = 'true' from market_admin_settings where id = 1), false))`,
           sql`(${collectorSchedule.payload}->>'discovery') is distinct from 'true'`,
@@ -176,7 +182,12 @@ async function startRequest(
   });
 }
 
-async function readRequest(client: PoolClient, db: CollectorDb, now: Date) {
+async function readRequest(
+  client: PoolClient,
+  db: CollectorDb,
+  now: Date,
+  skipStandard: boolean,
+) {
   const [request] = await db
     .select()
     .from(runRequests)
@@ -188,7 +199,8 @@ async function readRequest(client: PoolClient, db: CollectorDb, now: Date) {
     )
     .limit(1);
   if (!request) return;
-  if (request.state === 'queued') return startRequest(client, db, request, now);
+  if (request.state === 'queued')
+    return startRequest(client, db, request, now, skipStandard);
 
   const progress = progressSchema.safeParse(request.summary);
   if (progress.success) return { id: request.id, progress: progress.data };
@@ -209,6 +221,7 @@ async function skipUnavailable(
   tradeBlocked: boolean,
   now: Date,
   paused: boolean,
+  skipStandard: boolean,
 ) {
   if (request.progress.pending.length === 0) return true;
   const enabled = await db
@@ -218,6 +231,7 @@ async function skipUnavailable(
       and(
         inArray(collectorSchedule.id, request.progress.pending),
         eq(collectorSchedule.enabled, true),
+        skipStandard ? sql.raw(nonStandardSchedulePredicate) : undefined,
         paused
           ? sql`${collectorSchedule.kind} not in ('trade-target', 'economy')`
           : undefined,
@@ -240,6 +254,7 @@ async function claimSchedule(
   id: string,
   now: Date,
   recoveryRequest: ActiveRequest | undefined,
+  skipStandard: boolean,
 ) {
   return transaction(client, async () => {
     const [schedule] = await db
@@ -253,6 +268,7 @@ async function claimSchedule(
         and(
           eq(collectorSchedule.id, id),
           eq(collectorSchedule.enabled, true),
+          skipStandard ? sql.raw(nonStandardSchedulePredicate) : undefined,
           sql`greatest(${collectorSchedule.nextDueAt}, ${collectorSchedule.retryAt}, ${collectorSchedule.leasedUntil}) <= ${now.toISOString()}::timestamptz`,
         ),
       )
@@ -431,6 +447,7 @@ async function collectSession({
   onLeaderAcquired,
   publishResults,
   telemetry,
+  skipStandard = false,
 }: CollectorOptions) {
   const client = await pool.connect();
   const disconnected = new AbortController();
@@ -518,12 +535,13 @@ async function collectSession({
       // A notification during the database scan must also interrupt the next sleep.
       const seen = revision;
       const timestamp = now();
-      const request = await readRequest(client, db, timestamp);
+      const request = await readRequest(client, db, timestamp, skipStandard);
       if (request === null) continue;
       const queue = await readCollectorQueue(
         client,
         timestamp,
         request?.progress ?? { pending: [] },
+        skipStandard,
       );
       const tradeBlocked = Boolean(queue.blocked);
       const recoverTradeAuthentication = tradeBlocked && queue.recovery;
@@ -535,6 +553,7 @@ async function collectSession({
           tradeBlocked && !recoverTradeAuthentication,
           timestamp,
           queue.paused,
+          skipStandard,
         ))
       )
         continue;
@@ -591,6 +610,7 @@ async function collectSession({
         queue.id,
         timestamp,
         recoverTradeAuthentication ? request : undefined,
+        skipStandard,
       );
       if (!schedule) continue;
       await telemetry?.start(schedule);

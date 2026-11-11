@@ -2,6 +2,10 @@ import type { Pool, PoolClient } from 'pg';
 
 type Query = Pick<Pool | PoolClient, 'query'>;
 
+// Missing league evidence also fails closed for market jobs.
+export const nonStandardSchedulePredicate = `(kind not in ('trade-target', 'economy')
+  or league_id in (select id from poe_leagues where ggg_id <> 'Standard'))`;
+
 export const tradeCapturePolicyPredicate = `r.policy in ('poe-trade', 'trade-search-request-limit', 'trade-fetch-request-limit')
   or exists (select 1 from rate_limit_endpoint_policies p
              where p.policy = r.policy and p.endpoint in ('trade', 'trade-search', 'trade-fetch'))`;
@@ -33,6 +37,7 @@ export async function readCollectorQueue(
     pending: string[];
     recoverTradeAuthentication?: true | undefined;
   },
+  skipStandard = false,
 ) {
   const { rows } = await connection.query<Queue>(
     `with controls as (
@@ -67,6 +72,7 @@ export async function readCollectorQueue(
                 case when s.kind = 'trade-target' then (select blocked_until from cooldown) end,
                 case when s.kind = 'trade-target' then (select until from pacing) end) as due,
               coalesce((controls.request->'pending') ? s.id::text, false) as pending,
+              (not $3::boolean or ${nonStandardSchedulePredicate}) and
               (not controls.paused or s.kind not in ('trade-target','economy')) and
               (s.kind <> 'trade-target' or controls.blocked is null
                 or (controls.request->>'recoverTradeAuthentication' = 'true'
@@ -103,7 +109,7 @@ export async function readCollectorQueue(
             (select pid from locks where granted limit 1) as "leaderPid",
             exists (select 1 from locks where not granted) as standby
      from controls left join next on true`,
-    [now, request ?? null],
+    [now, request ?? null, skipStandard],
   );
   return rows[0]!;
 }

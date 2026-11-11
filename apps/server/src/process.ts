@@ -244,6 +244,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             pool: leaderPool,
             signal,
             telemetry: telemetry!,
+            skipStandard: config.collectorSkipStandard,
             publishResults: createCollectorResultPublisher(
               pool,
               async () => (await admin.read()).effective,
@@ -252,6 +253,10 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             onError: (code) =>
               logger.warn({ code }, 'collector operation will retry'),
             onLeaderAcquired: async (client) => {
+              if (config.collectorSkipStandard)
+                await client.query(
+                  "update collector_schedule set next_due_at = least(next_due_at, now()) where kind = 'league' and enabled",
+                );
               await client.query(
                 "update collector_schedule set enabled = $1 where kind = 'retention' and key = 'retention' and enabled <> $1",
                 [config.collectorRetentionEnabled],

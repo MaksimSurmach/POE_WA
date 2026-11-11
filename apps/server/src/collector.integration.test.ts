@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { afterAll, afterEach, beforeEach, expect, it, vi } from 'vitest';
 
@@ -102,6 +102,7 @@ function start(
   maxIdleMs?: number,
   bootstrap?: (client: PoolClient, signal: AbortSignal) => Promise<void>,
   publishResults?: Parameters<typeof runCollector>[0]['publishResults'],
+  skipStandard = false,
 ) {
   const stop = new AbortController();
   const done = runCollector({
@@ -116,6 +117,7 @@ function start(
     now,
     jitterMs: () => 0,
     maxIdleMs,
+    skipStandard,
     ...(bootstrap ? { bootstrap } : {}),
     ...(publishResults ? { publishResults } : {}),
   });
@@ -135,6 +137,88 @@ const succeed = async (): Promise<CollectorResult> => ({
     durationMs: 0,
     listings: [],
   },
+});
+
+it('excludes Standard and unknown market jobs from scheduled and manual collection', async () => {
+  const repositories = createPostgresRepositories(pool);
+  const league = (gggId: string) =>
+    repositories.leagues.upsert({
+      game: 'poe1',
+      realm: 'pc',
+      gggId,
+      name: gggId,
+      startAt: null,
+      endAt: null,
+      isCurrent: false,
+      syncedAt: now(),
+      metadata: {},
+    });
+  const standard = await league('Standard');
+  const seasonal = await league('Seasonal guard fixture');
+  const blocked = [
+    await schedule({ leagueId: standard.id }),
+    await schedule({ kind: 'economy', leagueId: standard.id }),
+    await schedule({ leagueId: null }),
+  ];
+  const allowed = await schedule({ leagueId: seasonal.id });
+  const discovery = await schedule({ kind: 'league' });
+  const manual = await enqueueRunRequest(pool, null);
+  const handler = vi
+    .fn<CollectorHandler>()
+    .mockResolvedValue({ status: 'success' });
+  start(handler, undefined, undefined, undefined, true);
+  await vi.waitFor(async () =>
+    expect((await request(manual)).state).toBe('done'),
+  );
+  expect(handler.mock.calls.map(([job]) => job.id).sort()).toEqual(
+    [allowed, discovery].sort(),
+  );
+  for (const id of blocked) expect((await row(id)).lastStartedAt).toBeNull();
+
+  await db
+    .update(collectorSchedule)
+    .set({ enabled: false })
+    .where(inArray(collectorSchedule.id, [allowed, discovery]));
+  const empty = await enqueueRunRequest(pool, null);
+  await vi.waitFor(async () =>
+    expect((await request(empty)).state).toBe('failed'),
+  );
+  expect((await request(empty)).summary).toMatchObject({
+    error: 'COLLECTOR_NO_ELIGIBLE_TARGETS',
+  });
+  expect(handler).toHaveBeenCalledTimes(2);
+});
+
+it('finishes a resumed Standard-only request without dispatching it', async () => {
+  const standard = await createPostgresRepositories(pool).leagues.upsert({
+    game: 'poe1',
+    realm: 'pc',
+    gggId: 'Standard',
+    name: 'Standard',
+    startAt: null,
+    endAt: null,
+    isCurrent: false,
+    syncedAt: now(),
+    metadata: {},
+  });
+  const id = await schedule({ leagueId: standard.id });
+  const manual = await enqueueRunRequest(pool, null);
+  await db
+    .update(runRequests)
+    .set({
+      state: 'running',
+      startedAt: now(),
+      summary: { pending: [id], succeeded: 0, failed: 0 },
+    })
+    .where(eq(runRequests.id, manual));
+  const handler = vi
+    .fn<CollectorHandler>()
+    .mockResolvedValue({ status: 'success' });
+  start(handler, undefined, undefined, undefined, true);
+  await vi.waitFor(async () =>
+    expect((await request(manual)).state).toBe('failed'),
+  );
+  expect(handler).not.toHaveBeenCalled();
 });
 
 async function leaderPid() {
