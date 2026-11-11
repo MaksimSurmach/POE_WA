@@ -2,6 +2,13 @@ import { readFile } from 'node:fs/promises';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import type { FactoryBatchRecord } from '@poe-worksmith/contracts';
 
+// ponytail: the collector browser fixture lacks this spec's catalog data, so it
+// stays on the legacy fixture; port the fixture to drop the legacy run.
+test.skip(
+  process.env.PIPELINE !== 'legacy',
+  'Requires the legacy browser fixture',
+);
+
 async function currentBatch(page: Page, id: string) {
   const response = await page.request.get(`/api/admin/factory/batches/${id}`);
   expect(response.ok()).toBe(true);
