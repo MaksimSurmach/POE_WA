@@ -18,11 +18,11 @@ describe('application shell', () => {
       </MemoryRouter>,
     );
 
-    expect(catalog).toContain('Worksmith — главная');
+    expect(catalog).toContain('Worksmith — Home');
     expect(catalog).toContain('Загрузка рецептов');
-    expect(catalog).toContain('Рынок');
+    expect(catalog).toContain('href="/recipes"');
     expect(recipe).toContain('Загрузка рецепта');
-    expect(recipe).toContain('Рецепты');
+    expect(recipe).toContain('Recipes');
   });
 });
 

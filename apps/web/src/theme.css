@@ -13,6 +13,7 @@
 @import './tradeDashboard.css' layer(worksmith);
 @import './clarity.css';
 @import './workspace.css';
+@import './recipeLibrary.css';
 
 @theme {
   --font-sans: 'Inter Variable', sans-serif;

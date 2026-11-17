@@ -87,6 +87,17 @@ const count = (html: string, pattern: RegExp) =>
   html.match(new RegExp(pattern, 'g'))?.length ?? 0;
 
 describe('price trend chart', () => {
+  it('renders real OHLC candle bodies and scales dense series without fabricating observations', () => {
+    const data = trend(
+      Array.from({ length: 100 }, (_, index) => bucket(index, 100 + index)),
+    );
+    const html = renderToStaticMarkup(
+      <PriceTrendChart trend={data} mode="candles" />,
+    );
+    expect(html).toContain('Asking price OHLC');
+    expect(count(html, /<rect /)).toBe(100);
+    expect(html).not.toContain('class="trend-chart__ask"');
+  });
   it('labels a historical craft estimate with its own observation time', () => {
     const summary = trend([bucket(10, 100)]).summary!;
     const html = renderToStaticMarkup(

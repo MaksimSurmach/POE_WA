@@ -444,9 +444,10 @@ function CraftRoute() {
 }
 function RecipeCollectionRoute() {
   const [params] = useSearchParams();
-  return ['recipe', 'steps', 'methods', 'materials'].includes(
-    params.get('view') ?? '',
-  ) ? (
+  return !params.has('target') &&
+    ['recipe', 'steps', 'methods', 'materials'].includes(
+      params.get('view') ?? '',
+    ) ? (
     <SelectedTarget />
   ) : (
     <RecipeLibraryPage />

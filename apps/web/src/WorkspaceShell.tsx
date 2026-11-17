@@ -1,134 +1,156 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { CatalogEntry, CatalogResponse } from '@poe-worksmith/contracts';
 import { createApiClient } from './apiClient.js';
 import { CubeIcon } from '@heroicons/react/24/outline';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
-  selectedRecipe,
-  WorkspaceLink,
-  workspaceHref,
-  workspaceSections,
-} from './workspaceNavigation.js';
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useSearchParams,
+} from 'react-router-dom';
+import { workspaceHref } from './workspaceNavigation.js';
+import { useFavorites } from './Watchlist.js';
+import { favoriteTargetIds } from './recipeLibraryModel.js';
 
 export function WorkspaceShell() {
   const { pathname, search } = useLocation();
+  const href = (path: string) => workspaceHref(path, pathname, search);
+  const [params, setParams] = useSearchParams();
   const [league, setLeague] = useState<string | null>(null);
+  const [catalogLeague, setCatalogLeague] = useState<string | null | undefined>(
+    undefined,
+  );
+  const [entries, setEntries] = useState<CatalogEntry[]>([]);
+  const favorites = useFavorites();
+  const acceptCatalog = useCallback(
+    (data: NonNullable<CatalogResponse['data']>) => {
+      setEntries(data.entries);
+      setCatalogLeague(data.league === null ? null : data.league?.name);
+    },
+    [],
+  );
+  const [density, setDensity] = useState(() => {
+    try {
+      return localStorage.getItem('worksmith:density') === 'compact'
+        ? 'compact'
+        : 'comfortable';
+    } catch {
+      return 'comfortable';
+    }
+  });
   useEffect(() => {
-    let active = true;
-    void createApiClient()
-      .getCurrentLeague()
-      .then((response) => {
-        if (active) setLeague(response.data.name);
+    const controller = new AbortController();
+    const api = createApiClient();
+    void api
+      .getCurrentLeague(controller.signal)
+      .then((r) => {
+        if (!controller.signal.aborted) setLeague(r.data.name);
       })
-      .catch(() => {
-        if (active) setLeague(null);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-  const params = new URLSearchParams(search);
-  const section =
-    workspaceSections.find(
-      (entry) => entry.path !== '/' && pathname.startsWith(entry.path),
-    ) ?? workspaceSections[0];
-  const recipe = selectedRecipe(pathname, search);
-  const rawView = params.get('view');
-  const defaultView = pathname.startsWith('/recipes/pohx/')
-    ? 'guides'
-    : pathname.startsWith('/recipes/')
-      ? 'recipe'
-      : pathname === '/factory' && params.has('batch')
-        ? 'batch'
-        : section.tabs[0][0];
-  const view = section.tabs.some(([id]) => id === rawView)
-    ? rawView
-    : defaultView;
-  useEffect(() => {
-    document
-      .querySelector('.workspace-tabs [aria-current="page"]')
-      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  }, [pathname, view]);
-  function tabHref(id: string) {
-    let path: string = section.path;
-    if (
-      section.path === '/recipes' &&
-      !['catalog', 'guides'].includes(id) &&
-      recipe
-    )
-      path += `/${encodeURIComponent(recipe)}`;
-    const target = new URLSearchParams(
-      section.path === '/' && id === 'screener' ? search : '',
-    );
-    target.set('view', id);
-    return workspaceHref(`${path}?${target}`, pathname, search);
+      .catch(() => {});
+    if (pathname !== '/recipes')
+      void api
+        .getCatalog(controller.signal)
+        .then((r) => {
+          if (!controller.signal.aborted) {
+            if (r.data) acceptCatalog(r.data);
+          }
+        })
+        .catch(() => {});
+    return () => controller.abort();
+  }, [pathname, acceptCatalog]);
+  const favoritesOnly = params.get('favorites') === '1';
+  const savedCount = favoriteTargetIds(favorites.ids, entries).length;
+  function favoriteView() {
+    const next = new URLSearchParams(params);
+    if (favoritesOnly) next.delete('favorites');
+    else next.set('favorites', '1');
+    setParams(next, { replace: true });
   }
   return (
-    <div className="workspace-shell">
+    <div className={`workspace-shell product-shell density-${density}`}>
       <a
         className="skip-link"
         href="#main-content"
-        onClick={(event) => {
-          event.preventDefault();
-          const main = document.getElementById('main-content');
-          main?.focus();
-          main?.scrollIntoView();
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById('main-content')?.focus();
         }}
       >
-        К содержимому
+        Skip to content
       </a>
       <header className="workspace-header">
-        <WorkspaceLink
+        <Link
           className="workspace-brand"
-          to="/"
-          aria-label="Worksmith — главная"
+          to={href('/')}
+          aria-label="Worksmith — Home"
         >
           <CubeIcon aria-hidden="true" />
           <span>Worksmith</span>
-        </WorkspaceLink>
-        <nav aria-label="Основные разделы" className="workspace-nav">
-          {workspaceSections.map(({ path, title }) => (
-            <NavLink
-              key={path}
-              to={workspaceHref(path, pathname, search)}
-              end={path === '/'}
-              className={({ isActive }) =>
-                `workspace-link${isActive ? ' is-active' : ''}`
-              }
-            >
-              {title}
-            </NavLink>
-          ))}
+        </Link>
+        <nav aria-label="Main navigation" className="workspace-nav">
+          <NavLink
+            to={href('/')}
+            end
+            className={({ isActive }) =>
+              `workspace-link${isActive ? ' is-active' : ''}`
+            }
+          >
+            Home
+          </NavLink>
+          <NavLink
+            to={href('/recipes')}
+            className={({ isActive }) =>
+              `workspace-link${isActive ? ' is-active' : ''}`
+            }
+          >
+            Recipes
+          </NavLink>
         </nav>
         <span className="workspace-context">
-          {league ?? 'Лига неизвестна'}
-          {params.get('league') && params.get('league') !== league
-            ? ` · Выбрана: ${params.get('league')}`
-            : ''}{' '}
-          <span>
-            {(params.get('profitCurrency') ?? params.get('currency')) ===
-            'divine'
-              ? 'divine'
-              : 'chaos'}{' '}
-            · порог прибыли
-          </span>
+          {(catalogLeague === undefined ? league : catalogLeague) ??
+            'League unavailable'}{' '}
+          · PC ·{' '}
+          {(params.get('currency') ?? params.get('profitCurrency')) === 'divine'
+            ? 'divine'
+            : 'chaos'}
         </span>
+        <div className="product-utilities">
+          {pathname === '/recipes' ? (
+            <button aria-pressed={favoritesOnly} onClick={favoriteView}>
+              Favorites{' '}
+              <span aria-label={`${savedCount} saved targets`}>
+                {savedCount}
+              </span>
+            </button>
+          ) : (
+            <Link to={href('/recipes?favorites=1')}>
+              Favorites <span>{savedCount}</span>
+            </Link>
+          )}
+          <Link to="/settings">Settings</Link>
+          <label>
+            <span className="sr-only">Display density</span>
+            <select
+              aria-label="Display density"
+              value={density}
+              onChange={(e) => {
+                setDensity(e.target.value);
+                try {
+                  localStorage.setItem('worksmith:density', e.target.value);
+                } catch {
+                  /* Spacing remains available for this session. */
+                }
+              }}
+            >
+              <option value="comfortable">Comfortable</option>
+              <option value="compact">Compact</option>
+            </select>
+          </label>
+        </div>
       </header>
-      <nav
-        className="workspace-tabs"
-        aria-label={`${section.title}: представления`}
-      >
-        {section.tabs.map(([id, label]) => (
-          <WorkspaceLink
-            key={id}
-            to={tabHref(id)}
-            aria-current={view === id ? 'page' : undefined}
-          >
-            {label}
-          </WorkspaceLink>
-        ))}
-      </nav>
       <main className="app-main" id="main-content" tabIndex={-1}>
-        <Outlet />
+        <Outlet context={acceptCatalog} />
       </main>
     </div>
   );

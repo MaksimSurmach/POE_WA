@@ -198,7 +198,13 @@ export function RecipePage({
             Открыть рецепт
           </Link>
         ) : null}
-        <FavoriteButton recipeId={recipe.id} />
+        <FavoriteButton
+          recipeId={recipe.id}
+          targetId={recipe.targetSignature}
+          aliases={catalogEntries
+            .filter((e) => e.recipe.targetSignature === recipe.targetSignature)
+            .map((e) => e.recipe.id)}
+        />
         <Link
           to={`/market?recipe=${encodeURIComponent(recipe.id)}&view=history`}
         >

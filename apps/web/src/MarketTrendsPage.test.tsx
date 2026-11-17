@@ -80,14 +80,14 @@ describe('market trend dashboard', () => {
     expect(filterTrendEntries(entries, '  ')).toHaveLength(5);
   });
 
-  it('is reachable from the catalog through primary navigation', () => {
+  it('keeps the legacy market route without restoring removed product navigation', () => {
     const catalog = renderToStaticMarkup(
       <MemoryRouter initialEntries={['/']}>
         <App />
       </MemoryRouter>,
     );
-    expect(catalog).toMatch(/<nav aria-label="Основные разделы"/);
-    expect(catalog).toContain('href="/market"');
+    expect(catalog).toMatch(/<nav aria-label="Main navigation"/);
+    expect(catalog).toContain('href="/recipes"');
     const market = renderToStaticMarkup(
       <MemoryRouter initialEntries={['/market?range=30d']}>
         <App />
@@ -95,6 +95,6 @@ describe('market trend dashboard', () => {
     );
     expect(market).toContain('Рынок');
     expect(market).toContain('Загрузка истории цен');
-    expect(market).toMatch(/aria-current="page"[^>]*>Рынок<\/a>/);
+    expect(market).not.toContain('class="workspace-tabs"');
   });
 });
