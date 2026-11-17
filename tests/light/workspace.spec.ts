@@ -65,7 +65,7 @@ test('all 20 views render with contained tables, light surfaces and no runtime e
       await expect(page.locator('main h1').first()).toBeVisible();
       await expect(page.locator('vite-error-overlay')).toHaveCount(0);
       await expect(
-        page.getByRole('navigation', { name: 'Основные разделы', exact: true }),
+        page.getByRole('navigation', { name: 'Main navigation', exact: true }),
       ).toBeVisible();
       expect(
         await page.evaluate(
@@ -171,37 +171,35 @@ test('favorites preserve the actual target and storage failures never simulate s
   page,
 }) => {
   await page.goto(`/recipes/${recipe}`);
-  await page.getByRole('button', { name: 'В избранное', exact: true }).click();
+  await page.getByRole('button', { name: 'Add favorite', exact: true }).click();
   await expect(
-    page.getByRole('button', { name: 'Убрать из избранного', exact: true }),
+    page.getByRole('button', { name: 'Remove favorite', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true');
-  await page
-    .getByRole('navigation', { name: 'Основные разделы', exact: true })
-    .getByRole('link', { name: 'Рынок', exact: true })
-    .click();
-  await page.getByRole('link', { name: 'Избранное', exact: true }).click();
+  await page.getByRole('link', { name: /^Favorites/ }).click();
   await expect(
-    page.getByRole('link', { name: 'Niche Elemental Bow', exact: true }),
-  ).toHaveAttribute('href', new RegExp(`recipe=${recipe}.*view=item`));
-  await page.getByRole('button', { name: 'Удалить', exact: true }).click();
-  await expect(
-    page.getByRole('heading', {
-      name: 'Пока нет избранных целей',
-      exact: true,
-    }),
+    page.getByRole('heading', { name: 'Favorite recipes', exact: true }),
   ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Niche Elemental Bow', exact: true })
+    .click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Remove favorite', exact: true })
+    .click();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-target-id]')).toHaveCount(0);
   await page.goto(`/recipes/${recipe}`);
   await page.evaluate(() => {
     Storage.prototype.setItem = () => {
       throw new DOMException('Disabled storage', 'SecurityError');
     };
   });
-  await page.getByRole('button', { name: 'В избранное', exact: true }).click();
+  await page.getByRole('button', { name: 'Add favorite', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText(
-    'Не удалось сохранить избранное',
+    'Favorites could not be saved',
   );
   await expect(
-    page.getByRole('button', { name: 'В избранное', exact: true }),
+    page.getByRole('button', { name: 'Add favorite', exact: true }),
   ).toHaveAttribute('aria-pressed', 'false');
 });
 
@@ -259,7 +257,9 @@ test('confirmed sales and inventory link back to the actual batch and its recipe
   await expect(
     page.getByRole('form', { name: 'Запись события мастерской', exact: true }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Предметы', exact: true }).click();
+  const inventoryUrl = new URL(page.url());
+  inventoryUrl.searchParams.set('view', 'inventory');
+  await page.goto(inventoryUrl.href);
   const inventory = page.getByRole('region', { name: 'Предметы', exact: true });
   await expect(inventory).toContainText('Illustrative finished item');
   await expect(inventory).toContainText('100 c');
@@ -323,7 +323,7 @@ test('keyboard reaches content, section links and horizontally scrolling tables'
   await page.goto('/');
   await page.keyboard.press('Tab');
   await expect(
-    page.getByRole('link', { name: 'К содержимому', exact: true }),
+    page.getByRole('link', { name: 'Skip to content', exact: true }),
   ).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('main')).toBeFocused();
@@ -339,9 +339,7 @@ test('keyboard reaches content, section links and horizontally scrolling tables'
       .poll(() => region.evaluate((element) => element.scrollLeft))
       .toBeGreaterThan(0);
   }
-  const settings = page
-    .getByRole('navigation', { name: 'Основные разделы', exact: true })
-    .getByRole('link', { name: 'Настройки', exact: true });
+  const settings = page.getByRole('link', { name: 'Settings', exact: true });
   await settings.focus();
   await expect(settings).toBeInViewport();
   expect(

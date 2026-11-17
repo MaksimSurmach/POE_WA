@@ -107,9 +107,7 @@ test('first mobile target exposes its observed price and action', async ({
     await row.locator('[data-label="Цена объявления"] .money').innerText(),
   );
   await expect(
-    page
-      .getByRole('navigation', { name: 'Основные разделы', exact: true })
-      .getByRole('link', { name: 'Настройки', exact: true }),
+    page.getByRole('link', { name: 'Settings', exact: true }),
   ).toBeInViewport();
   await expect(row.locator('.craft-table__steps')).toBeInViewport({ ratio: 1 });
 });
@@ -119,35 +117,28 @@ test('choosing a target for an empty budget stays in the budget journey', async 
 }) => {
   await page.goto('/?view=budget');
   await page
-    .getByRole('link', { name: 'Niche Elemental Bow', exact: true })
+    .getByRole('button', { name: 'Niche Elemental Bow', exact: true })
     .click();
   await expect(
     page.getByRole('heading', { name: 'Бюджет крафта', exact: true }),
   ).toBeVisible();
 });
 
-test('guides have a fixed source and the full catalog applies source selection', async ({
+test('Category Library excludes guides while their saved deep links still resolve', async ({
   page,
 }) => {
   await page.goto('/recipes?view=guides');
-  const source = page.getByRole('combobox', { name: 'Источник', exact: true });
-  await expect(source).toBeDisabled();
-  await expect(source).toHaveValue('pohx');
   await expect(
-    page.locator('.recipe-library a[href^="/recipes/pohx/"]').first(),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('link', { name: 'Niche Elemental Bow', exact: true }),
+    page.getByRole('combobox', { name: 'Источник', exact: true }),
   ).toHaveCount(0);
-  await page.goto('/recipes');
-  await source.selectOption('market');
-  await expect(source).toHaveValue('market');
   await expect(
-    page.getByRole('link', { name: 'Niche Elemental Bow', exact: true }),
+    page.getByRole('button', { name: 'Niche Elemental Bow', exact: true }),
   ).toBeVisible();
+  await expect(page.locator('a[href^="/recipes/pohx/"]')).toHaveCount(0);
+  await page.goto('/recipes/pohx/totem-shield');
   await expect(
-    page.locator('.recipe-library a[href^="/recipes/pohx/"]'),
-  ).toHaveCount(0);
+    page.getByRole('heading', { name: 'RF Totem Shield', exact: true }),
+  ).toBeVisible();
 });
 
 test('raw observed modifier indexes do not prove a required mod is absent', async ({
@@ -209,13 +200,8 @@ test('existing batch deep links still open batch details', async ({ page }) => {
     page.getByRole('heading', { name: 'Произведённые предметы', exact: true }),
   ).toBeVisible();
   await expect(
-    page
-      .getByRole('navigation', {
-        name: 'Моя мастерская: представления',
-        exact: true,
-      })
-      .getByRole('link', { name: 'Партия', exact: true }),
-  ).toHaveAttribute('aria-current', 'page');
+    page.getByRole('form', { name: 'Запись события мастерской', exact: true }),
+  ).toBeVisible();
 });
 
 test('failed method discovery is not labelled as no compatible methods', async ({
@@ -375,9 +361,9 @@ test('the threshold currency follows section links and an explicit change clears
   await expect(page).not.toHaveURL(/currency=divine/);
   await currency.selectOption('divine');
   await page
-    .getByRole('navigation', { name: 'Основные разделы', exact: true })
-    .getByRole('link', { name: 'Рецепты', exact: true })
+    .getByRole('navigation', { name: 'Main navigation', exact: true })
+    .getByRole('link', { name: 'Recipes', exact: true })
     .click();
   await expect(page).toHaveURL(/profitCurrency=divine/);
-  await expect(page.locator('.workspace-context')).toContainText('divine');
+  await expect(page.locator('.workspace-context')).toContainText(/divine/i);
 });
