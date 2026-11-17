@@ -93,7 +93,7 @@ export function initialPlan(materials: PlanMaterial[]): PlanDraft {
           owned: '0',
           price: textNumber(row.price),
           currency: row.currency,
-          origin: row.price === null ? 'manual' : 'market',
+          origin: 'market',
           capturedAt: row.capturedAt,
         },
       ]),

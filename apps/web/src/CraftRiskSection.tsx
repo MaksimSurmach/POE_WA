@@ -423,10 +423,10 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
             )}
             <h3>Бюджет выбранной цели</h3>
             <p className="catalog-price-note">
-              Один целевой предмет, a fixed number of method runs, and a number
-              of successful target items have different bankroll distributions.
-              A method run ends in a terminal outcome and includes its declared
-              retries; it is not one currency roll.
+              Один целевой предмет, фиксированное число запусков метода и
+              несколько готовых предметов требуют разного бюджета. Запуск метода
+              включает предусмотренные повторы и заканчивается итоговым исходом;
+              это не одно применение валюты.
             </p>
             <form onSubmit={startRisk} className="craft-risk__simulation">
               <fieldset

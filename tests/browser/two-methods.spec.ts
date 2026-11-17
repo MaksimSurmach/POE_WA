@@ -23,9 +23,15 @@ test('ranks two priced methods and shows both profits on the homepage', async ({
   ];
   for (const [index, { path, profit }] of rankedMethods.entries()) {
     const row = rows.nth(index);
-    await expect(row.getByRole('link')).toHaveAttribute(
+    await expect(row.getByRole('rowheader').getByRole('link')).toHaveAttribute(
       'href',
       `${path}?recipe=${path.split('/').at(-1)}`,
+    );
+    await expect(
+      row.getByRole('link', { name: 'План материалов', exact: true }),
+    ).toHaveAttribute(
+      'href',
+      `${path}?view=materials&recipe=${path.split('/').at(-1)}`,
     );
     const cells = row.getByRole('cell');
     await expect(cells.nth(2)).toHaveText(profit);

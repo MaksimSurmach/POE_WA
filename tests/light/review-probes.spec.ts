@@ -60,7 +60,7 @@ test('first mobile target exposes its observed price and action', async ({
       .getByRole('navigation', { name: 'Основные разделы', exact: true })
       .getByRole('link', { name: 'Настройки', exact: true }),
   ).toBeInViewport();
-  await expect(row.locator('.craft-table__steps')).toBeInViewport();
+  await expect(row.locator('.craft-table__steps')).toBeInViewport({ ratio: 1 });
 });
 
 test('choosing a target for an empty budget stays in the budget journey', async ({
@@ -309,4 +309,24 @@ test('mobile market rows expose the same observed price beside their identity', 
   await expect(inline.locator('.money')).toHaveText(
     await first.locator('[data-label="Цена объявления"] .money').innerText(),
   );
+});
+
+test('the threshold currency follows section links and an explicit change clears the legacy unit', async ({
+  page,
+}) => {
+  await page.goto('/?currency=divine');
+  const currency = page.getByRole('combobox', {
+    name: 'Валюта оценки',
+    exact: true,
+  });
+  await page.getByText('Фильтры', { exact: true }).click();
+  await currency.selectOption('chaos');
+  await expect(page).not.toHaveURL(/currency=divine/);
+  await currency.selectOption('divine');
+  await page
+    .getByRole('navigation', { name: 'Основные разделы', exact: true })
+    .getByRole('link', { name: 'Рецепты', exact: true })
+    .click();
+  await expect(page).toHaveURL(/profitCurrency=divine/);
+  await expect(page.locator('.workspace-context')).toContainText('divine');
 });

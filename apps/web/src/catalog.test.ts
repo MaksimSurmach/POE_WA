@@ -318,3 +318,18 @@ describe('recipe catalog search and item type filters', () => {
     ).toEqual([targets[1]]);
   });
 });
+
+it('reads the actual threshold currency from current or legacy context without losing an explicit chaos selection', () => {
+  expect(
+    readCatalogFilters(new URLSearchParams('currency=divine')).profitCurrency,
+  ).toBe('divine');
+  expect(
+    readCatalogFilters(
+      new URLSearchParams('currency=divine&profitCurrency=chaos'),
+    ).profitCurrency,
+  ).toBe('chaos');
+  expect(
+    readCatalogFilters(new URLSearchParams('view=screener&catalogView=priced'))
+      .view,
+  ).toBe('priced');
+});

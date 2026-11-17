@@ -177,7 +177,7 @@ export function TurnoverMap({
         role="group"
         aria-label="Recipes at this point"
       >
-        <p>Выберите рецепт · exact observations</p>
+        <p>Выберите рецепт · сохранённые наблюдения</p>
         {choices.map((recipe) => (
           <button
             type="button"

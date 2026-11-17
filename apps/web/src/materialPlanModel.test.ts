@@ -167,3 +167,34 @@ it('exports plain TSV cells without spreadsheet formulas or extra rows', () => {
     planTsv([['=cmd', '+item', '-item', '@item', 'Имя\tматериала\n', '1.25']]),
   ).toBe("'=cmd\t'+item\t'-item\t'@item\tИмя материала \t1.25");
 });
+
+it('fills an untouched unknown price when a quote becomes available', () => {
+  const missing = [
+    {
+      id: 'x',
+      name: 'x',
+      quantity: 1,
+      price: null,
+      currency: null,
+      capturedAt: null,
+    },
+  ];
+  const draft = initialPlan(missing);
+  expect(draft.rows.x!.origin).toBe('market');
+  const next = refreshPlanPrices(draft, [
+    {
+      ...missing[0]!,
+      price: 5,
+      currency: 'divine',
+      capturedAt: '2026-11-17T10:00:00Z',
+    },
+  ]);
+  expect(next.rows.x).toEqual({
+    needed: '1',
+    owned: '0',
+    price: '5',
+    currency: 'divine',
+    origin: 'market',
+    capturedAt: '2026-11-17T10:00:00Z',
+  });
+});

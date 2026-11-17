@@ -375,7 +375,9 @@ test('mobile opportunities expose a target price and action in the first screen'
       .first()
       .locator('.craft-table__mobile-ask'),
   ).toBeInViewport();
-  await expect(page.locator('.craft-table__steps').first()).toBeInViewport();
+  await expect(page.locator('.craft-table__steps').first()).toBeInViewport({
+    ratio: 1,
+  });
   const row = page
     .locator('.craft-table tbody tr:not(.craft-table__readiness-group)')
     .first();

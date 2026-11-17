@@ -232,7 +232,9 @@ export function MaterialPlan({
                       {row.currency ?? 'Валюта неизвестна'} ·{' '}
                       {row.origin === 'manual'
                         ? 'Ручная цена'
-                        : 'Рыночная цена'}
+                        : row.price
+                          ? 'Рыночная цена'
+                          : 'Цена источника неизвестна'}
                     </small>
                     <small>
                       {row.capturedAt

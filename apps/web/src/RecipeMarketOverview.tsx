@@ -178,7 +178,7 @@ export function RecipeMarketOverview({
           </div>
           <details className="recipe-market__recipes" open>
             <summary>
-              {entries.length} целей · current prices and activity
+              {entries.length} целей · текущие цены и активность
             </summary>
             <div
               className="recipe-market__table-scroll"

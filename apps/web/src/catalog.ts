@@ -128,7 +128,9 @@ export function readCatalogFilters(params: URLSearchParams): CatalogFilters {
     ...(direction === 'asc' || direction === 'desc' ? { direction } : {}),
     minProfit: params.get('minProfit') ?? '',
     profitCurrency:
-      params.get('profitCurrency') === 'divine' ? 'divine' : 'chaos',
+      (params.get('profitCurrency') ?? params.get('currency')) === 'divine'
+        ? 'divine'
+        : 'chaos',
     minRoi: params.get('minRoi') ?? '',
   };
 }

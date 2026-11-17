@@ -1,6 +1,6 @@
 # Worksmith light preview
 
-The preview uses the production light theme, five top navigation sections and the 20 workspace views. The implementation follows the supplied specification; the private reference site required login and visual parity is unverified. The views use with the existing React, HeroUI and Vite stack.
+The preview uses the production light theme, five top navigation sections and the 20 workspace views. The implementation follows the supplied specification; the private reference site required login and visual parity is unverified. The views use the existing React, HeroUI and Vite stack.
 
 From the repository root:
 

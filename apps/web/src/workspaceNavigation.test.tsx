@@ -13,7 +13,7 @@ describe('workspace navigation context', () => {
     const href = workspaceHref(
       '/market?view=history',
       '/recipes/stale-boots',
-      '?recipe=old&league=Covens&currency=divine&method=essence&range=7d&search=boots&batch=old',
+      '?recipe=old&league=Covens&currency=divine&profitCurrency=divine&method=essence&range=7d&search=boots&batch=old',
     );
     const params = new URL(href, 'https://test.invalid').searchParams;
     expect(Object.fromEntries(params)).toEqual({
@@ -21,6 +21,7 @@ describe('workspace navigation context', () => {
       recipe: 'stale-boots',
       league: 'Covens',
       currency: 'divine',
+      profitCurrency: 'divine',
       range: '7d',
     });
     expect(workspaceHref('/recipes/new', '/recipes/old', '?recipe=old')).toBe(

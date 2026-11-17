@@ -242,18 +242,18 @@ export function CatalogTable({
                               Цена объявления:{' '}
                               <Money price={observedAsk(entry)} />
                             </span>
-                            <small
-                              className="mobile-price-note"
-                              aria-hidden="true"
-                            >
-                              Цена объявления, не продажа
-                            </small>
                             <Link
                               className="craft-table__steps"
                               to={`/recipes/${recipe.id}`}
                             >
                               Материалы и шаги →
                             </Link>
+                            <small
+                              className="mobile-price-note"
+                              aria-hidden="true"
+                            >
+                              Цена объявления, не продажа
+                            </small>
                             {readiness &&
                             isSingleSellerHypothesis(readiness) ? (
                               <small>Гипотеза цены одного продавца</small>

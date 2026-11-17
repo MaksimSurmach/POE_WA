@@ -23,13 +23,16 @@ export function CatalogOverview({ entries }: { entries: CatalogEntry[] }) {
             ? 'Цены доступны. Оценка прибыли пока не подтверждена.'
             : 'Актуальных цен объявлений пока нет.'}
       </h2>
-      <p className="catalog-decision__facts">
-        <span>
-          {priced} из {entries.length} целей с наблюдаемыми ценами
-        </span>
-        <span>{active} целей с наблюдаемыми исчезновениями объявлений</span>
-        <Link to="/recipes">Открыть рецепты</Link>
-      </p>
+      <details>
+        <summary>Данные о ценах и активности</summary>
+        <p className="catalog-decision__facts">
+          <span>
+            {priced} из {entries.length} целей с наблюдаемыми ценами
+          </span>
+          <span>{active} целей с наблюдаемыми исчезновениями объявлений</span>
+          <Link to="/recipes">Открыть рецепты</Link>
+        </p>
+      </details>
     </section>
   );
 }

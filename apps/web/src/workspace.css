@@ -1,4 +1,11 @@
 @layer utilities {
+  .craft-table td[data-label='Средние затраты'],
+  .factory-table :is(th, td):nth-child(n + 3),
+  .recipe-market__table :is(th, td):nth-child(2),
+  .recipe-market__table td[data-label='Ask change'],
+  .recipe-market__table td[data-label='Listing exits · 24h window'] {
+    text-align: right;
+  }
   .craft-table thead .button {
     width: 100%;
     gap: 4px;
@@ -317,6 +324,10 @@
     }
   }
   @media (max-width: 800px) {
+    .workspace-context {
+      display: block;
+      margin: 0 0 8px auto;
+    }
     .workspace-header {
       flex-wrap: wrap;
       gap: 0;
@@ -358,6 +369,11 @@
       display: block;
       margin: 0 0 8px auto;
     }
+    .craft-table__steps {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+    }
     .catalog-heading {
       margin-bottom: 12px;
     }
@@ -372,6 +388,9 @@
       padding-inline: 16px;
     }
     .workspace-tabs {
+      flex-wrap: wrap;
+      gap: 0 20px;
+      overflow: visible;
       padding-inline: 16px;
     }
     .workspace-shell .app-main {

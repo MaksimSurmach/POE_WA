@@ -148,7 +148,7 @@ export function FactoryPage() {
       .catch((failure) => {
         if (active)
           setError(
-            `Owner access required for Моя мастерская. ${factoryErrorMessage(failure)}`,
+            `Для мастерской нужен доступ владельца. ${factoryErrorMessage(failure)}`,
           );
       });
     return () => {
@@ -733,7 +733,7 @@ export function FactoryPage() {
       ) : null}
       {view === 'batch' && !selectedId ? (
         <StatusPanel tone="info" title="Выберите партию">
-          Откройте партию из списка ниже, чтобы увидеть материалы, события и
+          Откройте партию из списка выше, чтобы увидеть материалы, события и
           результат.
         </StatusPanel>
       ) : null}

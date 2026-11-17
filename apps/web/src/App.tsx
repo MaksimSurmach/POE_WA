@@ -51,6 +51,7 @@ function CatalogRoute() {
       'direction',
       'minProfit',
       'profitCurrency',
+      'currency',
       'minRoi',
     ])
       nextParams.delete(key);
