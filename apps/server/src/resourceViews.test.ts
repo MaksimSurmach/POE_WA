@@ -22,6 +22,7 @@ import { generateRecipeMarketQuery } from './recipeMarket.js';
 import { createResourceReaders } from './resourceViews.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
 import { recipeResultSchema } from './recipeResult.js';
+import { recipeStageFamilies } from './recipes/craftFamilyMetadata.js';
 
 const correlationId = '44444444-4444-4444-8444-444444444444';
 const recipesPath = fileURLToPath(new URL('../../../recipes', import.meta.url));
@@ -318,6 +319,21 @@ describe('repository-backed resource views', () => {
     );
     expect(catalog.state).toBe('loading');
     expect(catalog.data?.entries).toHaveLength(55);
+    for (const id of Object.keys(recipeStageFamilies))
+      expect(catalog.data?.entries.some((e) => e.recipe.id === id)).toBe(true);
+    expect(
+      catalog.data?.entries.find(
+        (e) => e.recipe.id === 'physical-large-cluster-jagged',
+      )?.recipe,
+    ).toMatchObject({
+      craftFamilies: ['fossil'],
+      methodName: 'Jagged Fossil · 3 Notables',
+    });
+    expect(
+      catalog.data?.entries.find(
+        (e) => e.recipe.id === 'minion-convoking-wand-fear-trigger',
+      )?.recipe.craftFamilies,
+    ).toEqual(['essence', 'bench']);
     expect(
       catalog.data?.entries
         .filter(({ recipe }) =>

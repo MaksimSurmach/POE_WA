@@ -1,3 +1,4 @@
+import { recipeStageFamilies } from './recipes/craftFamilyMetadata.js';
 import {
   generateRecipeMarketQuery,
   comparableRecipeListings,
@@ -22,6 +23,7 @@ import {
 } from '@poe-worksmith/contracts';
 import {
   DomainError,
+  recipeCraftFamilies,
   type CanonicalJsonObject,
   type Recipe as StoredRecipe,
   type RecipeEvaluation,
@@ -532,7 +534,10 @@ function toCatalogEntry(
   return {
     evaluation: toEvaluation(recipe.id, evaluation),
     ...(itemPreview ? { itemPreview } : {}),
-    recipe: toRecipeSummary(recipe, definition, evaluation),
+    recipe: {
+      ...toRecipeSummary(recipe, definition, evaluation),
+      ...(itemPreview ? { baseName: itemPreview.name } : {}),
+    },
     snapshot: snapshot ?? null,
   };
 }
@@ -654,6 +659,11 @@ function toRecipeSummary(
   return {
     category: recipe.category,
     craftMethod: recipe.craftMethod,
+    craftFamilies: recipeCraftFamilies(
+      definition.craft,
+      recipeStageFamilies[definition.id],
+    ),
+    methodName: definition.craft.name,
     patch: definition.patch,
     id: recipe.id,
     minimumCapital: price(evaluation?.expectedCraftCost, evaluation?.currency),

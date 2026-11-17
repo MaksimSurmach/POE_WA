@@ -325,8 +325,24 @@ export function compareCraftWithAsk(input: {
           .mul(input.expectedBases ?? 1)
           .add(input.materialCost.amount)
       : null;
+  return compareExpectedCostWithAsk({
+    expectedCost: cost
+      ? { amount: cost.toFixed(), currency: input.currency }
+      : null,
+    ask: input.ask,
+  });
+}
+
+/** Compare an already totalled estimate; never charge its base a second time. */
+export function compareExpectedCostWithAsk(input: {
+  expectedCost: DecimalMoney | null;
+  ask: DecimalMoney | null;
+}) {
+  const cost = input.expectedCost
+    ? new Decimal(input.expectedCost.amount)
+    : null;
   const spread =
-    cost && input.ask?.currency === input.currency
+    cost && input.ask && input.ask.currency === input.expectedCost?.currency
       ? new Decimal(input.ask.amount).sub(cost)
       : null;
   return {
