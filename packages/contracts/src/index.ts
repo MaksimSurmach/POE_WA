@@ -196,6 +196,8 @@ export const marketReadinessSchema = z.strictObject({
   fresh: z.boolean(),
   coverage: z.enum(['complete', 'partial']).nullable(),
   currentListings: count,
+  currentTotalListings: count.nullable().optional(),
+  currentAverageAsk: priceSchema.nullable().optional(),
   currentSellers: count,
   comparableSellers: count.nullable(),
   currentAskRange: z
@@ -345,6 +347,7 @@ export const recipeDetailViewSchema = z
     recipe: recipeSchema,
     gameVersion: z.string().min(1),
     baseTradeUrl: z.url().nullable(),
+    targetTradeUrl: z.url().nullable().optional(),
     confidence: z.enum(['low', 'medium', 'high']).nullable(),
     presentation: itemPresentationContractV1Schema,
     base: z
