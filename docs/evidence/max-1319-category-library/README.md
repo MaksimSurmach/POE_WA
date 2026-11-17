@@ -6,7 +6,7 @@ Design contract: [MAX-1319](https://linear.app/maxsurm/issue/MAX-1319/worksmith-
 
 ## Evidence and provenance
 
-Screenshots use the production entrypoint with intercepted API responses from `tests/fixtures/category-library-archive.json`. They show the historical 17 November archive, **not live production**. The fixture was normalized from the approved private prototype's `data.js` and its exact `MosaicModel` method metadata. Original item artwork URLs are retained. No credentials or access tokens are included.
+Screenshots use the production entrypoint with intercepted API responses from `apps/web/src/mocks/category-library-archive.json`. They show the historical 17 November archive, **not live production**. The fixture was normalized from the approved private prototype's `data.js` and its exact `MosaicModel` method metadata. Original item artwork URLs are retained. No credentials or access tokens are included.
 
 The fixture contains 66 exact outputs, 72 recipes, six two-method outputs, ten estimated outputs and the two supplied exact procedures. Physical's Jagged history contains 11 four-hour buckets / 38 observations. Fettle's history is empty. Chaos has no supplied archived procedure or history; the test returns an error for that exact ID rather than copying Jagged's response.
 
@@ -21,7 +21,7 @@ Executed with Node 22.23.5 and pnpm 11.8.0:
 - Prettier over every changed source/document file — passed. Repository-wide `prettier --check .` still reports 59 unchanged pre-existing files; none belongs to this PR.
 - `pnpm test` — 910 Vitest tests plus the native service-control self-check passed.
 - `pnpm test:contracts` — seven provider contract tests passed.
-- `pnpm test:e2e:browser --config playwright.recipes.config.ts` — 17 passed, four viewport duplicates of desktop-only failure/deadline checks skipped.
+- `pnpm test:e2e:browser --config playwright.recipes.config.ts` — 20 passed, four viewport duplicates of desktop-only failure/deadline checks skipped.
 - `pnpm exec playwright test --config playwright.light.config.ts` — 60 existing browser regression checks passed after adapting removed navigation controls to retained deep-link flows.
 
 The isolated browser configuration starts Vite and intercepts APIs. It does not start, reset or migrate a database. Browser plugin was unavailable; local Playwright supplied screenshots and interaction checks. No browser runtime errors were observed in the catalogue flow.
@@ -38,7 +38,7 @@ Checked 1440×1000, 768×1024 and 390×844; 200% zoom; category/family AND filte
 
 ## Review and dependency boundary
 
-Four incremental Claude Sonnet passes challenged method classification, quote provenance, favorite alias scope, history lookup, currency/rounding, ARIA, timeouts and content-hash compatibility. Retained findings were fixed and checked. A separate code review found no remaining actionable findings after its follow-up validation. Simplification reused the existing snapshot-minimum helper, removed unused metadata/branches and coalesced refreshes; Recipes shares catalogue metadata with the shell through Outlet context, avoiding its duplicate initial fetch and keeping the header league current; unrelated Home loading lifecycles were retained.
+Four incremental Claude Sonnet passes challenged method classification, quote provenance, favorite alias scope, history lookup, currency/rounding, ARIA, timeouts and content-hash compatibility. Retained findings were fixed and checked. A separate code review also caught a legacy query-view header regression; direct-link browser checks verify the fix. Simplification reused the existing snapshot-minimum helper, removed unused metadata/branches and coalesced refreshes; Recipes shares catalogue metadata with the shell through Outlet context, avoiding its duplicate initial fetch and keeping the header league current; unrelated Home loading lifecycles were retained.
 
 This is a compatible target-first **read adapter**, not a new target identity or a migration. Canonical recipe files, signatures, content hashes, existing URLs and stored history are unchanged. Five confirmed Bench finishes are typed read metadata outside hashed recipe definitions. Existing browser favorites are normalized to signatures when read; unknown saved IDs are preserved.
 

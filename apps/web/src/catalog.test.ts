@@ -17,7 +17,7 @@ import {
 import { catalogFixtures } from './mocks/catalog.js';
 import { selectRecipeLibrary, libraryQuote } from './recipeLibraryModel.js';
 import { catalogEntrySchema } from '@poe-worksmith/contracts';
-import archive from '../../../tests/fixtures/category-library-archive.json';
+import archive from './mocks/category-library-archive.json';
 
 describe('approved 17 November archive (historical, never live product data)', () => {
   const entries = archive.entries.map((e) => catalogEntrySchema.parse(e));

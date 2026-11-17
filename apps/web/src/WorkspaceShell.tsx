@@ -17,6 +17,12 @@ export function WorkspaceShell() {
   const { pathname, search } = useLocation();
   const href = (path: string) => workspaceHref(path, pathname, search);
   const [params, setParams] = useSearchParams();
+  const libraryRoute =
+    pathname === '/recipes' &&
+    (params.has('target') ||
+      !['recipe', 'steps', 'methods', 'materials'].includes(
+        params.get('view') ?? '',
+      ));
   const [league, setLeague] = useState<string | null>(null);
   const [catalogLeague, setCatalogLeague] = useState<string | null | undefined>(
     undefined,
@@ -48,7 +54,7 @@ export function WorkspaceShell() {
         if (!controller.signal.aborted) setLeague(r.data.name);
       })
       .catch(() => {});
-    if (pathname !== '/recipes')
+    if (!libraryRoute)
       void api
         .getCatalog(controller.signal)
         .then((r) => {
@@ -58,7 +64,7 @@ export function WorkspaceShell() {
         })
         .catch(() => {});
     return () => controller.abort();
-  }, [pathname, acceptCatalog]);
+  }, [pathname, libraryRoute, acceptCatalog]);
   const favoritesOnly = params.get('favorites') === '1';
   const savedCount = favoriteTargetIds(favorites.ids, entries).length;
   function favoriteView() {
@@ -116,7 +122,7 @@ export function WorkspaceShell() {
             : 'chaos'}
         </span>
         <div className="product-utilities">
-          {pathname === '/recipes' ? (
+          {libraryRoute ? (
             <button aria-pressed={favoritesOnly} onClick={favoriteView}>
               Favorites{' '}
               <span aria-label={`${savedCount} saved targets`}>

@@ -5,7 +5,7 @@ import {
   recipeDetailViewSchema,
   recipeTrendSchema,
 } from '../../packages/contracts/dist/index.js';
-import archive from '../fixtures/category-library-archive.json' with { type: 'json' };
+import archive from '../../apps/web/src/mocks/category-library-archive.json' with { type: 'json' };
 import { createPreviewFetch } from '../../apps/web/src/preview/previewApi.js';
 
 const entries = archive.entries.map((e) => catalogEntrySchema.parse(e));
@@ -399,4 +399,22 @@ test('a hanging sibling history cannot indefinitely block the available source',
       .filter({ hasText: /38 independent observations in this window/ }),
   ).toBeVisible({ timeout: 15_000 });
   await expect(dialog.getByText(/target coverage is incomplete/)).toBeVisible();
+});
+
+test('legacy recipe query deep links retain canonical favorite counts and catalogue context', async ({
+  page,
+}) => {
+  await page.goto('/recipes');
+  await expect(page.locator('[data-target-id]')).toHaveCount(66);
+  await page.evaluate(
+    (ids) => localStorage.setItem('worksmith:favorites', JSON.stringify(ids)),
+    [chaosId, jaggedId],
+  );
+  await page.goto(`/recipes?view=recipe&recipe=${jaggedId}`);
+  await expect(
+    page
+      .locator('.product-utilities')
+      .getByRole('link', { name: 'Favorites 1', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('.workspace-context')).toContainText('Covens');
 });
