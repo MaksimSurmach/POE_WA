@@ -189,6 +189,8 @@ export function RecipeTrendPanel({
 export function MarketTrendsPage() {
   const [params, setParams] = useSearchParams();
   const range = parseRange(params.get('range'));
+  const view = params.get('view') ?? 'overview';
+  const analysisView = ['mods', 'compare', 'favorites'].includes(view);
   const [response, setResponse] = useState<TrendOverviewResponse | null>(null);
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
   const [catalogFailed, setCatalogFailed] = useState(false);
@@ -199,6 +201,7 @@ export function MarketTrendsPage() {
   const reload = () => setRevision((value) => value + 1);
 
   useEffect(() => {
+    if (analysisView) return;
     const controller = new AbortController();
     setResponse(null);
     setCatalog(null);
@@ -226,7 +229,7 @@ export function MarketTrendsPage() {
         if (!controller.signal.aborted) setCatalogFailed(true);
       });
     return () => controller.abort();
-  }, [range, revision]);
+  }, [range, revision, analysisView]);
 
   const loadedOverview =
     response?.data.range === range ? response.data : undefined;
@@ -247,7 +250,6 @@ export function MarketTrendsPage() {
     [overview, search, sort],
   );
   const selectedId = params.get('recipe');
-  const view = params.get('view') ?? 'overview';
   const update = (next: { range?: TrendRange; recipe?: string }) => {
     const value = new URLSearchParams(params);
     if (next.range) value.set('range', next.range);

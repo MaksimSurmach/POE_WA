@@ -58,6 +58,11 @@ export const defaultCatalogFilters: CatalogFilters = {
   category: 'all',
   search: '',
   sort: 'profit',
+  tag: 'all',
+  view: 'all',
+  minProfit: '',
+  profitCurrency: 'chaos',
+  minRoi: '',
 };
 
 export function evidenceRank(entry: CatalogEntry) {
@@ -99,12 +104,13 @@ export function groupByTarget(entries: CatalogEntry[]) {
 export function readCatalogFilters(params: URLSearchParams): CatalogFilters {
   const sort = params.get('sort');
   const direction = params.get('direction');
+  const view = params.get('catalogView') ?? params.get('view');
   return {
     category: params.get('category') || 'all',
     search: params.get('search') ?? '',
     tag: params.get('tag') ?? 'all',
-    view: ['priced', 'activity', 'estimated'].includes(params.get('view') ?? '')
-      ? (params.get('view') as NonNullable<CatalogFilters['view']>)
+    view: ['priced', 'activity', 'estimated'].includes(view ?? '')
+      ? (view as NonNullable<CatalogFilters['view']>)
       : 'all',
     sort:
       sort &&

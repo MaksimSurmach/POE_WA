@@ -150,7 +150,7 @@ export function MarketReadiness({
 }
 
 export function CollectorReadinessReport() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [report, setReport] = useState<CollectorReadinessResponse | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -179,9 +179,10 @@ export function CollectorReadinessReport() {
   return (
     <details
       className="detail-section"
+      open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}
     >
-      <summary>All Trade targets · 24-hour readiness</summary>
+      <summary>Все цели Trade · готовность за 24 часа</summary>
       {open && failed ? (
         <p role="status">Readiness report unavailable.</p>
       ) : null}

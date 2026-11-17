@@ -373,7 +373,13 @@ test('mobile opportunities expose a target price and action in the first screen'
     page
       .locator('.craft-table tbody tr:not(.craft-table__readiness-group)')
       .first()
-      .locator('[data-label="Цена объявления"]'),
+      .locator('.craft-table__mobile-ask'),
   ).toBeInViewport();
   await expect(page.locator('.craft-table__steps').first()).toBeInViewport();
+  const row = page
+    .locator('.craft-table tbody tr:not(.craft-table__readiness-group)')
+    .first();
+  await expect(row.locator('.craft-table__mobile-ask .money')).toHaveText(
+    await row.locator('[data-label="Цена объявления"] .money').innerText(),
+  );
 });

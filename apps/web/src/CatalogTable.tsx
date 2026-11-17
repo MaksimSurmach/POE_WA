@@ -219,7 +219,9 @@ export function CatalogTable({
                             </span>
                           )}
                           <div>
-                            <Link to={`/recipes/${recipe.id}`}>
+                            <Link
+                              to={`/?view=item&recipe=${encodeURIComponent(recipe.id)}`}
+                            >
                               {recipe.title}
                             </Link>
                             <small>
@@ -232,6 +234,19 @@ export function CatalogTable({
                                   : `${!byReadiness && evaluation.profit ? 'Best of ' : ''}${methods} methods · `
                                 : null}
                               {recipe.craftMethod.replaceAll('-', ' ')}
+                            </small>
+                            <span
+                              className="craft-table__mobile-ask"
+                              aria-hidden="true"
+                            >
+                              Цена объявления:{' '}
+                              <Money price={observedAsk(entry)} />
+                            </span>
+                            <small
+                              className="mobile-price-note"
+                              aria-hidden="true"
+                            >
+                              Цена объявления, не продажа
                             </small>
                             <Link
                               className="craft-table__steps"

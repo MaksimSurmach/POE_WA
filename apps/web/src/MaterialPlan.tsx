@@ -1,10 +1,12 @@
 import { useContext, useState } from 'react';
 import { calculateCostScenario } from '@poe-worksmith/domain/economics';
 import type { RecipeDetailView } from '@poe-worksmith/contracts';
-import { Button, Input, TableSurface } from './ui.js';
+import { Button, Input, NativeSelect, TableSurface } from './ui.js';
 import { WorkspaceLink as Link } from './workspaceNavigation.js';
 import { CraftRiskSection } from './CraftRiskSection.js';
 import { useSearchParams } from 'react-router-dom';
+import { formatTimestamp } from './dateTime.js';
+import { Money } from './components.js';
 import { PreviewMode } from './previewMode.js';
 import {
   initialPlan,
@@ -12,6 +14,8 @@ import {
   planMaterials,
   planScope,
   readPlan,
+  refreshPlanPrices,
+  planTsv,
   type PlanDraft,
 } from './materialPlanModel.js';
 
@@ -56,7 +60,11 @@ export function MaterialPlan({
     ...draft.rows[row.id]!,
     result: planLine(draft.rows[row.id]!, draft.count),
   }));
-  const currencies = [...new Set(materials.map((row) => row.currency))];
+  const currencies = [
+    ...new Set(
+      lines.map((row) => row.currency).filter((currency) => currency !== null),
+    ),
+  ];
   const totals = currencies.map((currency) => {
     const rows = lines.filter((row) => row.currency === currency);
     // The shared decimal calculator also rejects incomplete and invalid inputs.
@@ -79,25 +87,74 @@ export function MaterialPlan({
     recipe: detail.recipe.id,
     planCount: draft.count,
   });
-  if (singleTotal) {
+  const complete = lines.every(
+    (row) => row.currency && row.result?.cost !== null && row.result,
+  );
+  const capturedDates = [
+    ...new Set(lines.map((row) => row.capturedAt).filter(Boolean)),
+  ];
+  batchParams.set(
+    'planNote',
+    `Среднее ожидаемой закупки, ${draft.count} предметов, патч ${detail.gameVersion}, лига ${league}. Даты цен: ${capturedDates.join(', ') || 'неизвестны'}. Ручные цены: ${lines.some((row) => row.origin === 'manual') ? 'да' : 'нет'}. Не фактические расходы.`,
+  );
+  if (singleTotal && complete) {
     batchParams.set('plannedBudget', singleTotal.cost);
     batchParams.set('plannedCurrency', totals[0]!.currency);
   }
+  function planText() {
+    return planTsv([
+      [
+        detail.recipe.title,
+        league,
+        detail.gameVersion,
+        `${draft.count} предметов`,
+      ],
+      [
+        'Оценка средних расходов; не гарантированный бюджет и не фактические расходы',
+      ],
+      [
+        'Материал',
+        'Нужно (ожидаемое)',
+        'Есть',
+        'Докупить (ожидаемое)',
+        'Цена',
+        'Валюта',
+        'Источник цены',
+        'Дата цены',
+      ],
+      ...lines.map((row) => [
+        row.name,
+        String(row.result?.needed ?? ''),
+        row.owned,
+        String(row.result?.buy ?? ''),
+        row.price,
+        row.currency ?? '',
+        row.origin === 'manual' ? 'Ручной ввод' : 'Рыночный источник',
+        row.capturedAt ?? '',
+      ]),
+    ]);
+  }
   async function copy() {
-    const text = [
-      `${detail.recipe.title} · ${league} · ${draft.count} предметов`,
-      'Материал\tНужно\tЕсть\tДокупить\tЦена\tВалюта',
-      ...lines.map(
-        (row) =>
-          `${row.name}\t${row.result?.needed ?? '?'}\t${row.owned}\t${row.result?.buy ?? '?'}\t${row.price || '?'}\t${row.currency}`,
-      ),
-    ].join('\n');
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(planText());
       setNotice('План скопирован.');
     } catch {
-      setNotice('Не удалось скопировать. Разрешите доступ к буферу обмена.');
+      setNotice(
+        'Буфер обмена недоступен. Скачайте план в TSV; копирование требует HTTPS и разрешения браузера.',
+      );
     }
+  }
+  function download() {
+    const url = URL.createObjectURL(
+      new Blob(['\uFEFF', planText()], {
+        type: 'text/tab-separated-values;charset=utf-8',
+      }),
+    );
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `worksmith-${detail.recipe.id}-materials.tsv`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return (
     <section className="material-plan">
@@ -110,10 +167,13 @@ export function MaterialPlan({
         </div>
       </header>
       <p className="catalog-price-note">
-        План сохраняется только в этой вкладке браузера. Ручные правки не
-        обновляются вместе с рынком. Это оценка расхода; покупки и списания
-        регистрируются отдельно в мастерской. Пустое поле означает неизвестное
-        значение.
+        План сохраняется только в этой вкладке браузера. Все цены плана
+        зафиксированы: обновление рынка их не меняет. Кнопка «Обновить цены»
+        заменяет рыночные цены и валюты последними загруженными котировками,
+        сохраняя ручные цены, количество и остатки. Неизвестная цена требует
+        ручного ввода с выбором валюты. Это оценка средних расходов; покупки и
+        списания регистрируются отдельно в мастерской. Пустое поле означает
+        неизвестное значение.
       </p>
       {sourceUnavailable ? (
         <p role="status" className="recipe-warning">
@@ -127,7 +187,7 @@ export function MaterialPlan({
         </p>
       ) : null}
       <label className="plan-count">
-        Количество предметов
+        Количество готовых предметов
         <Input
           aria-label="Количество предметов"
           type="number"
@@ -153,7 +213,7 @@ export function MaterialPlan({
                   'На предмет',
                   'Нужно',
                   'Есть',
-                  'Докупить',
+                  'Докупить (ожидаемое)',
                   'Цена за единицу',
                   'Сумма покупки',
                 ].map((label) => (
@@ -168,7 +228,22 @@ export function MaterialPlan({
                 <tr key={row.id}>
                   <th scope="row">
                     {row.name}
-                    <small>{row.currency}</small>
+                    <small>
+                      {row.currency ?? 'Валюта неизвестна'} ·{' '}
+                      {row.origin === 'manual'
+                        ? 'Ручная цена'
+                        : 'Рыночная цена'}
+                    </small>
+                    <small>
+                      {row.capturedAt
+                        ? formatTimestamp(row.capturedAt)
+                        : 'Дата цены неизвестна'}
+                    </small>
+                    {row.origin === 'market' &&
+                    materials.find((material) => material.id === row.id)
+                      ?.capturedAt !== row.capturedAt ? (
+                      <small>В источнике есть новые цены</small>
+                    ) : null}
                   </th>
                   <td>{input(row.id, 'needed', 'На предмет')}</td>
                   <td>
@@ -182,9 +257,39 @@ export function MaterialPlan({
                       maximumFractionDigits: 8,
                     }) ?? '—'}
                   </td>
-                  <td>{input(row.id, 'price', `Цена (${row.currency})`)}</td>
                   <td>
-                    {row.result?.cost == null
+                    {input(
+                      row.id,
+                      'price',
+                      `Цена (${row.currency ?? 'выберите валюту'})`,
+                    )}
+                    <NativeSelect
+                      aria-label={`Валюта: ${row.name}`}
+                      value={row.currency ?? ''}
+                      onChange={(event) =>
+                        update({
+                          ...draft,
+                          rows: {
+                            ...draft.rows,
+                            [row.id]: {
+                              ...draft.rows[row.id]!,
+                              currency: event.target.value
+                                ? (event.target.value as 'chaos' | 'divine')
+                                : null,
+                              origin: 'manual',
+                              capturedAt: null,
+                            },
+                          },
+                        })
+                      }
+                    >
+                      <option value="">Выберите валюту</option>
+                      <option value="chaos">chaos</option>
+                      <option value="divine">divine</option>
+                    </NativeSelect>
+                  </td>
+                  <td>
+                    {row.result?.cost == null || row.currency === null
                       ? '—'
                       : `${row.result.cost} ${row.currency === 'divine' ? 'div' : 'c'}`}
                   </td>
@@ -199,14 +304,29 @@ export function MaterialPlan({
           <PlanTotal key={currency} currency={currency} amounts={amounts} />
         ))}
       </div>
-      {lines.some((row) => !row.result || row.result.cost === null) ? (
+      {!complete ? (
         <p role="status" className="recipe-warning">
-          План неполный: укажите количество и цену недостающих материалов. Цены
-          — неотрицательные числа до 8 знаков после точки; количество предметов
-          — от 1 до 1000.
+          План неполный: укажите количество, цену и валюту недостающих
+          материалов. Цены — неотрицательные числа до 8 знаков после точки;
+          количество предметов — от 1 до 1000.
         </p>
       ) : null}
       <div className="workspace-actions">
+        <Button
+          type="button"
+          disabled={sourceUnavailable}
+          onClick={() => {
+            update(refreshPlanPrices(draft, materials));
+            setNotice(
+              'Рыночные цены и валюты обновлены. Ручные цены, количество и остатки сохранены.',
+            );
+          }}
+        >
+          Обновить цены
+        </Button>
+        <Button type="button" onClick={download}>
+          Скачать TSV
+        </Button>
         <Button type="button" onClick={() => void copy()}>
           Скопировать план
         </Button>
@@ -229,9 +349,18 @@ export function MaterialPlan({
       </p>
       {budget ? (
         <>
+          <p>
+            Серверный бюджет для одного готового предмета: P50{' '}
+            <Money price={detail.evaluation.budget?.p50 ?? null} /> · P90{' '}
+            <Money price={detail.evaluation.budget?.p90 ?? null} />. Эти
+            квантили не включают правки плана и не умножаются на количество
+            предметов.
+          </p>
           <p className="catalog-price-note">
             Ручные цены меняют только план покупки. Расчёт риска ниже использует
-            сохранённую серверную модель и её собственные цены.
+            сохранённую серверную модель и её собственные цены. Цель и число
+            повторений симуляции задаются отдельно; число в плане — количество
+            готовых предметов, а не попыток.
           </p>
           <CraftRiskSection recipeId={detail.recipe.id} />
         </>
@@ -258,7 +387,13 @@ export function MaterialPlan({
             ...draft,
             rows: {
               ...draft.rows,
-              [id]: { ...row, [field]: event.target.value },
+              [id]: {
+                ...row,
+                [field]: event.target.value,
+                ...(field === 'price'
+                  ? { origin: 'manual', capturedAt: null }
+                  : {}),
+              },
             },
           })
         }

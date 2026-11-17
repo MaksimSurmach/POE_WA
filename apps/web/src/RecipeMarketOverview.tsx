@@ -235,6 +235,17 @@ export function RecipeMarketOverview({
                             <small>
                               {entry.recipe.craftMethod.replaceAll('-', ' ')}
                             </small>
+                            <span
+                              className="market-mobile-ask"
+                              aria-hidden="true"
+                            >
+                              {point.price ? (
+                                <Money price={point.price} />
+                              ) : (
+                                'Нет актуальной цены'
+                              )}{' '}
+                              · объявление, не продажа
+                            </span>
                           </td>
                           <td
                             className="table__cell"

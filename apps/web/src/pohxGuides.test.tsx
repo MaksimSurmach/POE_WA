@@ -39,6 +39,6 @@ describe('Pohx crafting library', () => {
         <RecipeLibrary entries={[]} />
       </MemoryRouter>,
     );
-    expect(offline).toContain('27 of 27');
+    expect(offline).toContain('27 из 27');
   });
 });

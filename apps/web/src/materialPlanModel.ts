@@ -3,14 +3,25 @@ import { calculateCostScenario } from '@poe-worksmith/domain/economics';
 
 export type PlanDraft = {
   count: string;
-  rows: Record<string, { needed: string; owned: string; price: string }>;
+  rows: Record<
+    string,
+    {
+      needed: string;
+      owned: string;
+      price: string;
+      currency: 'chaos' | 'divine' | null;
+      origin: 'market' | 'manual';
+      capturedAt: string | null;
+    }
+  >;
 };
 export type PlanMaterial = {
   id: string;
   name: string;
   quantity: number | null;
   price: number | null;
-  currency: string;
+  currency: 'chaos' | 'divine' | null;
+  capturedAt: string | null;
 };
 const textNumber = (value: number | null) =>
   value === null ? '' : value.toFixed(8).replace(/(?:\.0+|(\.\d*?)0+)$/, '$1');
@@ -23,7 +34,11 @@ export function planMaterials(detail: RecipeDetailView): PlanMaterial[] {
       name: detail.base.name,
       quantity: method.expectedBases,
       price: method.baseCost?.amount ?? null,
-      currency: method.baseCost?.currency ?? 'chaos',
+      currency: method.baseCost?.currency ?? null,
+      capturedAt:
+        method.priceSources.find(
+          (source) => source.itemId === detail.presentation.base.canonicalId,
+        )?.capturedAt ?? null,
     },
   ];
   for (const step of method.steps) {
@@ -44,18 +59,23 @@ export function planMaterials(detail: RecipeDetailView): PlanMaterial[] {
         if (
           existing.price !== material.unitPrice?.amount ||
           existing.currency !== material.unitPrice?.currency
-        )
+        ) {
           existing.price = null;
+          existing.capturedAt = null;
+          if (existing.currency !== material.unitPrice?.currency)
+            existing.currency = null;
+        }
       } else
         rows.push({
           id: material.itemId,
           name: material.name,
           quantity,
           price: material.unitPrice?.amount ?? null,
-          currency:
-            material.unitPrice?.currency ??
-            method.baseCost?.currency ??
-            'chaos',
+          currency: material.unitPrice?.currency ?? null,
+          capturedAt:
+            method.priceSources.find(
+              (source) => source.itemId === material.itemId,
+            )?.capturedAt ?? null,
         });
     }
   }
@@ -72,6 +92,9 @@ export function initialPlan(materials: PlanMaterial[]): PlanDraft {
           needed: textNumber(row.quantity),
           owned: '0',
           price: textNumber(row.price),
+          currency: row.currency,
+          origin: row.price === null ? 'manual' : 'market',
+          capturedAt: row.capturedAt,
         },
       ]),
     ),
@@ -98,6 +121,16 @@ export function readPlan(raw: string | null, fallback: PlanDraft): PlanDraft {
         return (
           row &&
           typeof row === 'object' &&
+          'currency' in row &&
+          (row.currency === 'chaos' ||
+            row.currency === 'divine' ||
+            row.currency === null) &&
+          'origin' in row &&
+          (row.origin === 'market' || row.origin === 'manual') &&
+          'capturedAt' in row &&
+          (row.capturedAt === null ||
+            (typeof row.capturedAt === 'string' &&
+              Number.isFinite(Date.parse(row.capturedAt)))) &&
           ['needed', 'owned', 'price'].every(
             (field) =>
               field in row &&
@@ -121,7 +154,10 @@ export function readPlan(raw: string | null, fallback: PlanDraft): PlanDraft {
   }
 }
 
-export function planLine(row: PlanDraft['rows'][string], count: string) {
+export function planLine(
+  row: Pick<PlanDraft['rows'][string], 'needed' | 'owned' | 'price'>,
+  count: string,
+) {
   const valid = (text: string) =>
     /^\d+(?:\.\d{1,8})?$/.test(text) && Number(text) <= 1e12;
   if (
@@ -150,6 +186,43 @@ export function planScope(detail: RecipeDetailView, league: string) {
     detail.gameVersion,
     detail.method.id,
     league,
-    planMaterials(detail).map(({ id, currency }) => [id, currency]),
+    'units-v3',
+    planMaterials(detail).map(({ id }) => id),
   ]);
+}
+
+export function refreshPlanPrices(
+  draft: PlanDraft,
+  materials: PlanMaterial[],
+): PlanDraft {
+  const latest = initialPlan(materials);
+  return {
+    ...draft,
+    rows: Object.fromEntries(
+      materials.map(({ id }) => [
+        id,
+        draft.rows[id]!.origin === 'manual'
+          ? draft.rows[id]!
+          : {
+              ...draft.rows[id]!,
+              price: latest.rows[id]!.price,
+              currency: latest.rows[id]!.currency,
+              capturedAt: latest.rows[id]!.capturedAt,
+            },
+      ]),
+    ),
+  };
+}
+
+export function planTsv(rows: string[][]) {
+  return rows
+    .map((row) =>
+      row
+        .map((value) => {
+          const cell = value.replace(/[\t\r\n]/g, ' ');
+          return /^\s*[=+\-@]/.test(cell) ? `'${cell}` : cell;
+        })
+        .join('\t'),
+    )
+    .join('\n');
 }

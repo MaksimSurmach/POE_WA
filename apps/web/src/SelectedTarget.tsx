@@ -13,7 +13,7 @@ export function SelectedTarget() {
         Откройте реальный рецепт из каталога. Выбранная цель сохранится при
         переходах между разделами.
       </StatusPanel>
-      <RecipeLibraryPage />
+      <RecipeLibraryPage selectionView={params.get('view') ?? 'item'} />
     </>
   );
 }

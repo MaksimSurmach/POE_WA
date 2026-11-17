@@ -1,3 +1,4 @@
+import { formatTimestamp } from './dateTime.js';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { RecipeDetailView } from '@poe-worksmith/contracts';
@@ -80,9 +81,12 @@ export function MarketAnalysis({ view }: { view: string }) {
         {detail.recipe.title} · {detail.gameVersion} ·{' '}
         {detail.method.priceSources[0]?.league ?? 'Лига источника неизвестна'}
       </p>
+      {detail.snapshot ? (
+        <p>Снимок: {formatTimestamp(detail.snapshot.capturedAt)}</p>
+      ) : null}
       <FavoriteButton recipeId={id} />
       <div className="workspace-actions">
-        <Link to={`/recipes/${encodeURIComponent(id)}?view=item`}>
+        <Link to={`/?recipe=${encodeURIComponent(id)}&view=item`}>
           Целевой предмет
         </Link>
         <Link to={`/market?view=history&recipe=${encodeURIComponent(id)}`}>
@@ -161,14 +165,9 @@ export function MarketAnalysis({ view }: { view: string }) {
                 <tr key={mod.canonicalId}>
                   <th scope="row">{mod.label}</th>
                   <td>
-                    {!selected?.itemPreview
-                      ? 'Неизвестно'
-                      : selected.itemPreview.modifiers.some(
-                            (candidate) =>
-                              candidate.canonicalId === mod.canonicalId,
-                          )
-                        ? 'Модификатор присутствует; диапазон проверьте по предмету'
-                        : 'В сохранённых модификаторах отсутствует'}
+                    Неизвестно: API сохраняет текст модификаторов объявления, но
+                    не связывает его с требованиями рецепта. Сверьте текст и
+                    диапазоны на предмете вручную.
                   </td>
                 </tr>
               ))}
@@ -177,10 +176,10 @@ export function MarketAnalysis({ view }: { view: string }) {
         </TableSurface>
       </div>
       <p className="catalog-price-note">
-        Сопоставление показывает сохранённые модификаторы, не проверяет числовые
-        диапазоны. Импорт пользовательского предмета недоступен: в текущем API
-        нет соответствующего парсера. Совпадение названия не подтверждает
-        выполнение требований.
+        Автоматическое сопоставление модификаторов и диапазонов недоступно.
+        Импорт пользовательского предмета недоступен: в текущем API нет
+        соответствующего парсера. Совпадение названия не подтверждает выполнение
+        требований.
       </p>
     </section>
   );

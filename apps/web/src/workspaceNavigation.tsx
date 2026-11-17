@@ -1,12 +1,6 @@
 import { Link, useLocation, type LinkProps } from 'react-router-dom';
 
-const contextKeys = [
-  'recipe',
-  'league',
-  'currency',
-  'method',
-  'range',
-] as const;
+const contextKeys = ['recipe', 'league', 'currency', 'range'] as const;
 
 export function selectedRecipe(pathname: string, search: string) {
   const match = /^\/recipes\/([^/]+)$/.exec(pathname);

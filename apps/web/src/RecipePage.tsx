@@ -3,7 +3,7 @@ import { planScope } from './materialPlanModel.js';
 import { StepCheck } from './StepCheck.js';
 import { FavoriteButton } from './Watchlist.js';
 import { formatTimestamp } from './dateTime.js';
-import { TableSurface } from './ui.js';
+import { Button, TableSurface } from './ui.js';
 import {
   domainErrorDefinitions,
   type CatalogEntry,
@@ -53,12 +53,17 @@ export function RecipePage({
     next.set('range', range);
     setParams(next, { replace: true });
   }
+  const [catalogState, setCatalogState] = useState<
+    'loading' | 'ready' | 'failed'
+  >('loading');
+  const [revision, setRevision] = useState(0);
   const [catalogEntries, setCatalogEntries] = useState<CatalogEntry[]>([]);
 
   useEffect(() => {
     let active = true;
     let inFlight = false;
     let catalog: CatalogResponse | null = null;
+    setCatalogState('loading');
     setCatalogEntries([]);
     setResponse(null);
     setLoadError(false);
@@ -86,10 +91,14 @@ export function RecipePage({
           )
         ) {
           catalog = await apiClient.getCatalog().catch(() => null);
-          if (active) setCatalogEntries(catalog?.data?.entries ?? []);
+          if (active) {
+            setCatalogEntries(catalog?.data?.entries ?? []);
+            setCatalogState(catalog?.data ? 'ready' : 'failed');
+          }
         }
       } catch (error) {
         if (active) {
+          setCatalogState('failed');
           catalog = null;
           setCatalogEntries([]);
           if (error instanceof ApiClientError && error.status === 404)
@@ -111,7 +120,7 @@ export function RecipePage({
       clearInterval(timer);
       window.removeEventListener('focus', onFocus);
     };
-  }, [recipeId]);
+  }, [recipeId, revision]);
 
   if (!response?.data)
     return (
@@ -126,35 +135,38 @@ export function RecipePage({
   const targetMods = detail.presentation.target.modifiers;
   const sourceLeague = method.priceSources[0]?.league;
   const selectedLeague = params.get('league');
-  if (sourceLeague && selectedLeague && sourceLeague !== selectedLeague)
-    return (
-      <article>
-        <h1>{recipe.title}</h1>
-        <StatusPanel tone="warning" title="Лига источника отличается">
-          Выбрана лига {selectedLeague}, а API рецепта вернул цены для{' '}
-          {sourceLeague}. Эти оценки нельзя переносить между лигами.{' '}
-          <Link
-            to={`/recipes/${encodeURIComponent(recipe.id)}?view=${encodeURIComponent(view)}&league=${encodeURIComponent(sourceLeague)}`}
-          >
-            Открыть данные лиги {sourceLeague}
-          </Link>
-        </StatusPanel>
-      </article>
-    );
+  const wrongLeague = Boolean(
+    sourceLeague && selectedLeague && sourceLeague !== selectedLeague,
+  );
+  const leagueWarning = wrongLeague ? (
+    <StatusPanel tone="warning" title="Лига источника отличается">
+      Выбрана лига {selectedLeague}, а API вернул цены для {sourceLeague}. Цены
+      и расчёты скрыты. Инструкции доступны независимо от лиги.{' '}
+      <Link
+        to={`/recipes/${encodeURIComponent(recipe.id)}?view=${encodeURIComponent(view)}&league=${encodeURIComponent(sourceLeague!)}`}
+      >
+        Открыть данные лиги {sourceLeague}
+      </Link>
+    </StatusPanel>
+  ) : null;
 
   if (view === 'budget' || view === 'materials')
     return (
       <article className="recipe-detail">
         <h1>{recipe.title}</h1>
-        <MaterialPlan
-          key={planScope(
-            detail,
-            sourceLeague ?? selectedLeague ?? 'Лига неизвестна',
-          )}
-          detail={detail}
-          budget={view === 'budget'}
-          sourceUnavailable={loadError}
-        />
+        {wrongLeague ? (
+          leagueWarning
+        ) : (
+          <MaterialPlan
+            key={planScope(
+              detail,
+              sourceLeague ?? selectedLeague ?? 'Лига неизвестна',
+            )}
+            detail={detail}
+            budget={view === 'budget'}
+            sourceUnavailable={loadError}
+          />
+        )}
       </article>
     );
   const show = (...views: string[]) =>
@@ -178,7 +190,13 @@ export function RecipePage({
 
   return (
     <article className="recipe-detail recipe-detail--compact">
+      {leagueWarning}
       <div className="recipe-detail__actions">
+        {view === 'item' ? (
+          <Link to={`/recipes/${encodeURIComponent(recipe.id)}?view=recipe`}>
+            Открыть рецепт
+          </Link>
+        ) : null}
         <FavoriteButton recipeId={recipe.id} />
         <Link
           to={`/market?recipe=${encodeURIComponent(recipe.id)}&view=history`}
@@ -203,8 +221,7 @@ export function RecipePage({
       </div>
       {loadError ? (
         <p role="status" className="recipe-warning">
-          Price update unavailable. Displayed prices are from the last
-          successful load.
+          Не удалось обновить цены. Показаны последние загруженные данные.
         </p>
       ) : null}
       <header className="recipe-detail__header">
@@ -218,7 +235,7 @@ export function RecipePage({
             </span>
           </div>
         </div>
-        {detail.baseTradeUrl ? (
+        {!wrongLeague && detail.baseTradeUrl ? (
           <a
             className="buy-base"
             href={detail.baseTradeUrl}
@@ -230,94 +247,114 @@ export function RecipePage({
         ) : null}
       </header>
 
-      <div className="recipe-economics" aria-label="Current economics">
-        {evaluation.expectedCraftCost ? (
-          <span>
-            Оценка средних затрат{' '}
-            <strong>
+      {!wrongLeague ? (
+        <>
+          <div className="recipe-economics" aria-label="Current economics">
+            {evaluation.expectedCraftCost ? (
+              <span>
+                Оценка средних затрат{' '}
+                <strong>
+                  <Money price={evaluation.expectedCraftCost} />
+                </strong>
+              </span>
+            ) : null}
+            <span>
+              Цена сопоставимого объявления{' '}
+              <strong>
+                <Money
+                  price={
+                    evaluation.estimatedSalePrice ??
+                    (detail.readiness?.fresh
+                      ? (detail.readiness.currentAskRange?.min ??
+                        detail.marketActivity?.observedAskSample?.[0])
+                      : null) ??
+                    null
+                  }
+                />
+              </strong>
+            </span>
+            {evaluation.profit ? (
+              <span>
+                Разница с asking price{' '}
+                <strong>
+                  {evaluation.profit ? (
+                    <ProfitBadge {...evaluation.profit} />
+                  ) : (
+                    'Not estimated'
+                  )}
+                </strong>
+              </span>
+            ) : null}
+            {evaluation.marginPercent !== null ? (
+              <span>
+                ROI{' '}
+                <strong className={economicClass(evaluation.marginPercent)}>
+                  {evaluation.marginPercent === null
+                    ? 'Not estimated'
+                    : formatMarginPercent(evaluation.marginPercent)}
+                </strong>
+              </span>
+            ) : null}
+            <span>
+              Метод крафта<strong>{method.name}</strong>
+            </span>
+          </div>
+          {evaluation.profitBlockedReason ? (
+            <p className="recipe-warning">
+              Profit and ROI withheld: {evaluation.profitBlockedReason}
+            </p>
+          ) : null}
+          {evaluation.expectedCraftCost ? (
+            <p>
+              Break-even ask at mean cost{' '}
               <Money price={evaluation.expectedCraftCost} />
-            </strong>
-          </span>
-        ) : null}
-        <span>
-          Цена сопоставимого объявления{' '}
-          <strong>
-            <Money
-              price={
-                evaluation.estimatedSalePrice ??
-                (detail.readiness?.fresh
-                  ? (detail.readiness.currentAskRange?.min ??
-                    detail.marketActivity?.observedAskSample?.[0])
-                  : null) ??
-                null
-              }
-            />
-          </strong>
-        </span>
-        {evaluation.profit ? (
-          <span>
-            Разница с asking price{' '}
-            <strong>
-              {evaluation.profit ? (
-                <ProfitBadge {...evaluation.profit} />
-              ) : (
-                'Not estimated'
-              )}
-            </strong>
-          </span>
-        ) : null}
-        {evaluation.marginPercent !== null ? (
-          <span>
-            ROI{' '}
-            <strong className={economicClass(evaluation.marginPercent)}>
-              {evaluation.marginPercent === null
-                ? 'Not estimated'
-                : formatMarginPercent(evaluation.marginPercent)}
-            </strong>
-          </span>
-        ) : null}
-        <span>
-          Метод крафта<strong>{method.name}</strong>
-        </span>
-      </div>
-      {evaluation.profitBlockedReason ? (
-        <p className="recipe-warning">
-          Profit and ROI withheld: {evaluation.profitBlockedReason}
-        </p>
-      ) : null}
-      {evaluation.expectedCraftCost ? (
-        <p>
-          Break-even ask at mean cost{' '}
-          <Money price={evaluation.expectedCraftCost} />
-        </p>
-      ) : null}
-      <details className="economics-help">
-        <summary>Как рассчитаны затраты и разница с ask</summary>
-        <p className="catalog-price-note">
-          ROI = (цена объявления − средние затраты) ÷ средние затраты × 100%.
-          При затратах 10 div и цене объявления 12 div разница составляет 2 div,
-          ROI — 20%. Это оценка по asking price, не реализованная прибыль.
-          Средние затраты не гарантируют бюджет отдельного крафта.
-        </p>
-      </details>
+            </p>
+          ) : null}
+          <details className="economics-help">
+            <summary>Как рассчитаны затраты и разница с ask</summary>
+            <p className="catalog-price-note">
+              ROI = (цена объявления − средние затраты) ÷ средние затраты ×
+              100%. При затратах 10 div и цене объявления 12 div разница
+              составляет 2 div, ROI — 20%. Это оценка по asking price, не
+              реализованная прибыль. Средние затраты не гарантируют бюджет
+              отдельного крафта.
+            </p>
+          </details>
 
-      {show('methods') ? (
-        <MethodsForTarget
-          entries={catalogEntries}
-          targetSignature={detail.targetSignature}
-          baseCanonicalId={detail.presentation.base.canonicalId}
-        />
-      ) : null}
-      {view === 'methods' &&
-      catalogEntries.filter(
-        ({ recipe: candidate, itemPreview }) =>
-          candidate.targetSignature === detail.targetSignature &&
-          itemPreview?.canonicalId === detail.presentation.base.canonicalId,
-      ).length < 2 ? (
-        <StatusPanel tone="info" title="Нет совместимых методов">
-          Для этой базы и targetSignature нет второго сопоставимого метода.
-          Совпадения названий недостаточно.
-        </StatusPanel>
+          {show('methods') ? (
+            <MethodsForTarget
+              entries={catalogEntries}
+              targetSignature={detail.targetSignature}
+            />
+          ) : null}
+          {show('methods') && catalogState !== 'ready' ? (
+            <StatusPanel
+              tone={catalogState === 'failed' ? 'danger' : 'info'}
+              title={
+                catalogState === 'failed'
+                  ? 'Сравнение методов недоступно'
+                  : 'Загрузка методов'
+              }
+            >
+              {catalogState === 'failed' ? (
+                <Button onClick={() => setRevision((value) => value + 1)}>
+                  Повторить
+                </Button>
+              ) : null}
+            </StatusPanel>
+          ) : null}
+          {view === 'methods' &&
+          catalogState === 'ready' &&
+          catalogEntries.filter(
+            ({ recipe: candidate }) =>
+              candidate.targetSignature === detail.targetSignature,
+          ).length < 2 ? (
+            <StatusPanel tone="info" title="Нет совместимых методов">
+              Для этой цели нет второго сопоставимого метода. Совпадения
+              названий недостаточно.
+            </StatusPanel>
+          ) : null}
+        </>
       ) : null}
 
       {show('item') ? (
@@ -348,13 +385,15 @@ export function RecipePage({
               using them as a current crafting budget.
             </p>
           ) : null}
-          <p>
-            Starting base: <Money price={method.baseCost} />.
-            {method.expectedBases == null
-              ? ' Expected base consumption is not verified.'
-              : ` ${method.expectedBases} expected bases per finished item.`}{' '}
-            Material prices are shown per use below.
-          </p>
+          {!wrongLeague ? (
+            <p>
+              Starting base: <Money price={method.baseCost} />.
+              {method.expectedBases == null
+                ? ' Expected base consumption is not verified.'
+                : ` ${method.expectedBases} expected bases per finished item.`}{' '}
+              Material prices are shown per use below.
+            </p>
+          ) : null}
           {!method.steps.length ? (
             <StatusPanel
               tone="info"
@@ -385,57 +424,60 @@ export function RecipePage({
                       )
                       .join(' · ')}
                   </span>
-                  <div className="recipe-ingredients">
-                    {step.materials.map((material) => {
-                      const art = detail.presentation.materials.find(
-                        (m) => m.canonicalId === material.itemId,
-                      );
-                      return (
-                        <span
-                          className="recipe-ingredient"
-                          key={material.itemId}
-                        >
-                          {art ? (
-                            <ItemTooltip
-                              item={{
-                                canonicalId: art.canonicalId,
-                                iconUrl: art.iconUrl,
-                                itemClass: art.itemClass,
-                                itemLevel: null,
-                                modifiers: [],
-                                name: art.name,
-                                properties: [],
-                                rarity: 'normal',
-                                role: 'material',
-                              }}
-                            />
-                          ) : null}
-                          <span>
-                            {material.name}:{' '}
-                            <Money price={material.unitPrice} /> each ·{' '}
-                            <Money price={material.costPerAttempt} /> per
-                            execution
-                            {execution && material.costPerAttempt ? (
-                              <>
-                                {' '}
-                                · {execution.count.toLocaleString()} executions
-                                ={' '}
-                                <Money
-                                  price={{
-                                    currency: material.costPerAttempt.currency,
-                                    amount:
-                                      material.costPerAttempt.amount *
-                                      execution.count,
-                                  }}
-                                />{' '}
-                                expected total
-                              </>
+                  {!wrongLeague ? (
+                    <div className="recipe-ingredients">
+                      {step.materials.map((material) => {
+                        const art = detail.presentation.materials.find(
+                          (m) => m.canonicalId === material.itemId,
+                        );
+                        return (
+                          <span
+                            className="recipe-ingredient"
+                            key={material.itemId}
+                          >
+                            {art ? (
+                              <ItemTooltip
+                                item={{
+                                  canonicalId: art.canonicalId,
+                                  iconUrl: art.iconUrl,
+                                  itemClass: art.itemClass,
+                                  itemLevel: null,
+                                  modifiers: [],
+                                  name: art.name,
+                                  properties: [],
+                                  rarity: 'normal',
+                                  role: 'material',
+                                }}
+                              />
                             ) : null}
+                            <span>
+                              {material.name}:{' '}
+                              <Money price={material.unitPrice} /> each ·{' '}
+                              <Money price={material.costPerAttempt} /> per
+                              execution
+                              {execution && material.costPerAttempt ? (
+                                <>
+                                  {' '}
+                                  · {execution.count.toLocaleString()}{' '}
+                                  executions ={' '}
+                                  <Money
+                                    price={{
+                                      currency:
+                                        material.costPerAttempt.currency,
+                                      amount:
+                                        material.costPerAttempt.amount *
+                                        execution.count,
+                                    }}
+                                  />{' '}
+                                  expected total
+                                </>
+                              ) : null}
+                            </span>
                           </span>
-                        </span>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
                   <small>
                     {step.success
                       ? `${(step.success.probability * 100).toPrecision(3)}% chance`
@@ -465,7 +507,7 @@ export function RecipePage({
         </DetailSection>
       ) : null}
 
-      {show('item') ? (
+      {!wrongLeague && show('item') ? (
         <DetailSection title="Источники цен" collapsed>
           <p>
             Starting base: <Money price={method.baseCost} /> · Expected bases
@@ -522,12 +564,12 @@ export function RecipePage({
           </div>
         </DetailSection>
       ) : null}
-      {detail.readiness && show('item') ? (
+      {!wrongLeague && detail.readiness && show('item') ? (
         <DetailSection title="Готовность данных" collapsed>
           <MarketReadiness readiness={detail.readiness} />
         </DetailSection>
       ) : null}
-      {detail.marketActivity && show('item') ? (
+      {!wrongLeague && detail.marketActivity && show('item') ? (
         <DetailSection title="Активность объявлений">
           <p>Inferred from listings, not sales.</p>
           <p>
@@ -588,7 +630,7 @@ export function RecipePage({
           </p>
         </DetailSection>
       ) : null}
-      {show('item') ? (
+      {!wrongLeague && show('item') ? (
         <DetailSection title="История цен">
           <RecipeTrendPanel
             onRangeChange={setTrendRange}
@@ -603,7 +645,7 @@ export function RecipePage({
           </Link>
         </DetailSection>
       ) : null}
-      {show('item') ? (
+      {!wrongLeague && show('item') ? (
         <details className="detail-section">
           <summary>Расчёт ожидаемой стоимости и риска</summary>
           <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
@@ -679,18 +721,12 @@ export function shouldRefreshMethodComparison(
 export function MethodsForTarget({
   entries,
   targetSignature,
-  baseCanonicalId,
 }: {
   entries: CatalogEntry[];
   targetSignature: string;
-  baseCanonicalId?: string;
 }) {
   const methods = entries
-    .filter(
-      ({ recipe, itemPreview }) =>
-        recipe.targetSignature === targetSignature &&
-        (!baseCanonicalId || itemPreview?.canonicalId === baseCanonicalId),
-    )
+    .filter(({ recipe }) => recipe.targetSignature === targetSignature)
     .sort((left, right) => {
       const rank = evidenceRank(left) - evidenceRank(right);
       if (rank !== 0) return rank;
@@ -745,6 +781,9 @@ export function MethodsForTarget({
                 </th>
                 <th className="table__column" scope="col">
                   Качество данных / причина недоступности
+                </th>
+                <th className="table__column" scope="col">
+                  Материалы
                 </th>
               </tr>
             </thead>
@@ -801,6 +840,13 @@ export function MethodsForTarget({
                     ) : (
                       unpricedMethodReason(evaluation)
                     )}
+                  </td>
+                  <td className="table__cell">
+                    <Link
+                      to={`/recipes/${encodeURIComponent(recipe.id)}?view=materials`}
+                    >
+                      План материалов
+                    </Link>
                   </td>
                 </tr>
               ))}

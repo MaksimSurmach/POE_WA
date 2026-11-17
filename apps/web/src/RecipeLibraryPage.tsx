@@ -12,7 +12,9 @@ import { filterPohxGuides, pohxGuides } from './pohxGuides.js';
 
 const apiClient = createApiClient();
 
-export function RecipeLibraryPage() {
+export function RecipeLibraryPage({
+  selectionView,
+}: { selectionView?: string | undefined } = {}) {
   const [entries, setEntries] = useState<CatalogEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -47,12 +49,18 @@ export function RecipeLibraryPage() {
       ) : entries === null ? (
         <StatusPanel tone="info" title="Загрузка рецептов" />
       ) : null}
-      <RecipeLibrary entries={entries ?? []} />
+      <RecipeLibrary entries={entries ?? []} selectionView={selectionView} />
     </>
   );
 }
 
-export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
+export function RecipeLibrary({
+  entries,
+  selectionView,
+}: {
+  entries: CatalogEntry[];
+  selectionView?: string | undefined;
+}) {
   const [params, setParams] = useSearchParams();
   const search = params.get('search') ?? '';
   const category = params.get('category') ?? 'all';
@@ -69,6 +77,10 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
       ...pohxGuides.map((g) => g.category),
     ]),
   ].sort();
+  const recipeHref = (id: string) =>
+    selectionView
+      ? `${['budget', 'item'].includes(selectionView) ? '/' : `/recipes/${encodeURIComponent(id)}`}?recipe=${encodeURIComponent(id)}&view=${encodeURIComponent(selectionView)}`
+      : `/recipes/${encodeURIComponent(id)}`;
   function update(key: string, value: string) {
     const next = new URLSearchParams(params);
     if (value && value !== 'all') next.set(key, value);
@@ -105,9 +117,10 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
           </NativeSelect>
         </label>
         <label className="catalog-filter">
-          <span>Source</span>
+          <span>Источник</span>
           <NativeSelect
             value={source}
+            disabled={params.get('view') === 'guides'}
             onChange={(e) => update('source', e.target.value)}
           >
             <option value="all">Все рецепты</option>
@@ -118,8 +131,8 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
       </section>
       <div className="catalog-results">
         <span role="status">
-          {filtered.length + guides.length} of{' '}
-          {entries.length + pohxGuides.length} recipes and guides
+          {filtered.length + guides.length} из{' '}
+          {entries.length + pohxGuides.length} рецептов и гайдов
         </span>
         <Button
           type="button"
@@ -141,7 +154,7 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
         {filtered.length ? (
           <li className="recipe-library__heading">
             <h2>Рыночные рецепты</h2>
-            <span>Materials, steps and collected asks</span>
+            <span>Материалы, шаги и собранные цены объявлений</span>
           </li>
         ) : null}
         {filtered.map(({ recipe, itemPreview }) => (
@@ -149,24 +162,20 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
             {itemPreview ? <ItemTooltip item={itemPreview} /> : null}
             <div>
               <h2>
-                <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
-                  {recipe.title}
-                </Link>
+                <Link to={recipeHref(recipe.id)}>{recipe.title}</Link>
               </h2>
               <p className="recipe-library__method">
                 {recipe.category.replaceAll('-', ' ')} · {recipe.craftMethod}
               </p>
               <p>{recipe.summary}</p>
-              <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
-                Материалы и шаги ›
-              </Link>
+              <Link to={recipeHref(recipe.id)}>Материалы и шаги ›</Link>
             </div>
           </li>
         ))}
         {guides.length ? (
           <li className="recipe-library__heading">
             <h2>Гайды Pohx / Convay</h2>
-            <span>Procedures and manual budget calculators</span>
+            <span>Инструкции и ручные калькуляторы расходов</span>
           </li>
         ) : null}
         {guides.map((guide) => (

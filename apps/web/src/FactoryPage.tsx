@@ -75,7 +75,8 @@ function readPending<T>(
 
 export function FactoryPage() {
   const [params, setParams] = useSearchParams();
-  const view = params.get('view') ?? 'batches';
+  const view =
+    params.get('view') ?? (params.has('batch') ? 'batch' : 'batches');
   const [status, setStatus] = useState('all');
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
   const [leagues, setLeagues] = useState<LeaguesResponse['data']>([]);
@@ -527,8 +528,10 @@ export function FactoryPage() {
                   required={false}
                   maxLength={2000}
                   value={
-                    params.get('planCount')
-                      ? `План: ${params.get('planCount')} предметов. Материалы сохранены только в этой вкладке браузера; это не подтверждение расходов.`
+                    Number.isInteger(Number(params.get('planCount'))) &&
+                    Number(params.get('planCount')) >= 1 &&
+                    Number(params.get('planCount')) <= 1000
+                      ? `План: ${Number(params.get('planCount'))} предметов. ${params.get('planNote')?.slice(0, 1500) ?? 'Бюджет — оценка средних расходов, не подтверждённые расходы.'}`
                       : ''
                   }
                 />
@@ -554,13 +557,16 @@ export function FactoryPage() {
               <TransactionFields
                 quantity={false}
                 label="Плановый бюджет (не фактический расход)"
-                {...(params.get('plannedBudget')
+                {...(params.get('plannedBudget') &&
+                ['chaos', 'divine'].includes(
+                  params.get('plannedCurrency') ?? '',
+                )
                   ? { initialAmount: params.get('plannedBudget')! }
                   : {})}
                 initialCurrency={
-                  params.get('plannedCurrency') ??
-                  params.get('currency') ??
-                  'chaos'
+                  params.get('plannedCurrency') === 'divine'
+                    ? 'divine'
+                    : 'chaos'
                 }
               />
               <details

@@ -1,6 +1,6 @@
 # Worksmith light preview
 
-The preview uses the production light theme, five top navigation sections and the 20 workspace views. The approved specification is implemented with the existing React, HeroUI and Vite stack.
+The preview uses the production light theme, five top navigation sections and the 20 workspace views. The implementation follows the supplied specification; the private reference site required login and visual parity is unverified. The views use with the existing React, HeroUI and Vite stack.
 
 From the repository root:
 
@@ -19,3 +19,5 @@ The shared UI boundary uses HeroUI buttons, inputs, alerts, chips, cards, disclo
 Check the exported file with `pnpm exec playwright test --config playwright.preview.config.ts` after installing Playwright Chromium.
 
 The isolated browser suite runs against the production entrypoint with synthetic, contract-validated API responses: `pnpm exec playwright test --config playwright.light.config.ts`. It does not contact a database. See [coverage and screenshots](../../docs/evidence/worksmith-light/README.md).
+
+Run `pnpm build` before the light suite: it imports the real server item formatter from `apps/server/dist` and compiled contracts. Ordinary runs keep evidence images unchanged; set `CAPTURE_LIGHT_EVIDENCE=1` to refresh the committed synthetic screenshots.

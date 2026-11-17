@@ -51,7 +51,8 @@ test('all 20 views render with contained tables, light surfaces and no runtime e
 }, info) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await mkdir('docs/evidence/worksmith-light', { recursive: true });
+  if (process.env.CAPTURE_LIGHT_EVIDENCE)
+    await mkdir('docs/evidence/worksmith-light', { recursive: true });
   for (const section of workspaceSections) {
     for (const [view] of section.tabs) {
       const path =
@@ -80,11 +81,13 @@ test('all 20 views render with contained tables, light surfaces and no runtime e
       ).toBe('#ffffff');
       expect(await page.locator('main').innerText()).not.toContain('Fettle');
       if (
-        (info.project.name === 'desktop' &&
+        process.env.CAPTURE_LIGHT_EVIDENCE &&
+        ((info.project.name === 'desktop' &&
           ['screener', 'catalog', 'overview', 'batches', 'general'].includes(
             view,
           )) ||
-        (info.project.name === 'mobile' && view === 'screener')
+          (['mobile', 'tablet'].includes(info.project.name) &&
+            ['screener', 'methods', 'overview', 'batch'].includes(view)))
       ) {
         await page.screenshot({
           path: `docs/evidence/worksmith-light/${info.project.name}-${view}.png`,
@@ -110,6 +113,10 @@ test('selected target survives budget → materials → workshop, including edit
   const owned = page.getByRole('spinbutton', { name: /^Есть:/ }).first();
   await quantity.fill('2');
   await price.fill('10.25');
+  await page
+    .getByRole('combobox', { name: /^Валюта:/ })
+    .first()
+    .selectOption('chaos');
   await owned.fill('1');
   await page.getByRole('link', { name: 'К материалам', exact: true }).click();
   await expect(
@@ -175,7 +182,7 @@ test('favorites preserve the actual target and storage failures never simulate s
   await page.getByRole('link', { name: 'Избранное', exact: true }).click();
   await expect(
     page.getByRole('link', { name: 'Niche Elemental Bow', exact: true }),
-  ).toHaveAttribute('href', new RegExp(`/recipes/${recipe}`));
+  ).toHaveAttribute('href', new RegExp(`recipe=${recipe}.*view=item`));
   await page.getByRole('button', { name: 'Удалить', exact: true }).click();
   await expect(
     page.getByRole('heading', {
@@ -393,4 +400,8 @@ test('step progress stays local and prices from another league cannot be relabel
   await expect(
     page.getByRole('spinbutton', { name: 'Количество предметов', exact: true }),
   ).toHaveCount(0);
+  await page.goto(`/recipes/${recipe}?view=steps&league=Another%20league`);
+  await expect(step).toBeVisible();
+  await expect(page.locator('.recipe-economics')).toHaveCount(0);
+  await expect(page.locator('.recipe-ingredients .money')).toHaveCount(0);
 });

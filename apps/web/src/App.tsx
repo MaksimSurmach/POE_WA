@@ -46,7 +46,7 @@ function CatalogRoute() {
       'category',
       'search',
       'sort',
-      'view',
+      'catalogView',
       'tag',
       'direction',
       'minProfit',
@@ -54,6 +54,10 @@ function CatalogRoute() {
       'minRoi',
     ])
       nextParams.delete(key);
+    if (
+      ['priced', 'activity', 'estimated'].includes(nextParams.get('view') ?? '')
+    )
+      nextParams.delete('view');
     for (const [key, item] of Object.entries(value)) {
       if (
         item !== undefined &&
@@ -61,7 +65,7 @@ function CatalogRoute() {
         item !== 'all' &&
         item !== defaultCatalogFilters[key as keyof CatalogFilters]
       )
-        nextParams.set(key, String(item));
+        nextParams.set(key === 'view' ? 'catalogView' : key, String(item));
     }
     setSearchParams(nextParams, { replace: true });
   }

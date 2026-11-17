@@ -9,7 +9,7 @@ import {
 } from './workspaceNavigation.js';
 
 describe('workspace navigation context', () => {
-  it('carries the selected target, method, league, currency and period across sections', () => {
+  it('carries the selected target, league, currency and period across sections', () => {
     const href = workspaceHref(
       '/market?view=history',
       '/recipes/stale-boots',
@@ -21,7 +21,6 @@ describe('workspace navigation context', () => {
       recipe: 'stale-boots',
       league: 'Covens',
       currency: 'divine',
-      method: 'essence',
       range: '7d',
     });
     expect(workspaceHref('/recipes/new', '/recipes/old', '?recipe=old')).toBe(

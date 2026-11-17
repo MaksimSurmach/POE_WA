@@ -1,4 +1,19 @@
 @layer utilities {
+  .craft-table thead .button {
+    width: 100%;
+    gap: 4px;
+  }
+  .craft-table .sort-icon {
+    margin: 0;
+    width: 12px;
+    min-width: 12px;
+    flex: 0 0 12px;
+  }
+  .market-mobile-ask,
+  .mobile-price-note,
+  .craft-table__mobile-ask {
+    display: none;
+  }
   .workspace-shell {
     min-height: 100dvh;
     background: var(--background);
@@ -325,6 +340,34 @@
     }
   }
   @media (max-width: 600px) {
+    .workspace-nav {
+      flex-wrap: wrap;
+      overflow: visible;
+      gap: 0;
+    }
+    .workspace-link {
+      padding-inline: 8px;
+    }
+    .market-mobile-ask,
+    .mobile-price-note,
+    .craft-table__mobile-ask {
+      display: block;
+      margin-top: 6px;
+    }
+    .workspace-context {
+      display: block;
+      margin: 0 0 8px auto;
+    }
+    .catalog-heading {
+      margin-bottom: 12px;
+    }
+    .catalog-decision {
+      padding-block: 8px;
+      margin-bottom: 12px;
+    }
+    .workspace-shell .app-main {
+      padding-top: 16px;
+    }
     .workspace-header {
       padding-inline: 16px;
     }

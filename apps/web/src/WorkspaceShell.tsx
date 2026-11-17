@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { createApiClient } from './apiClient.js';
 import { CubeIcon } from '@heroicons/react/24/outline';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
@@ -9,6 +11,21 @@ import {
 
 export function WorkspaceShell() {
   const { pathname, search } = useLocation();
+  const [league, setLeague] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    void createApiClient()
+      .getCurrentLeague()
+      .then((response) => {
+        if (active) setLeague(response.data.name);
+      })
+      .catch(() => {
+        if (active) setLeague(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   const params = new URLSearchParams(search);
   const section =
     workspaceSections.find(
@@ -20,10 +37,17 @@ export function WorkspaceShell() {
     ? 'guides'
     : pathname.startsWith('/recipes/')
       ? 'recipe'
-      : section.tabs[0][0];
+      : pathname === '/factory' && params.has('batch')
+        ? 'batch'
+        : section.tabs[0][0];
   const view = section.tabs.some(([id]) => id === rawView)
     ? rawView
     : defaultView;
+  useEffect(() => {
+    document
+      .querySelector('.workspace-tabs [aria-current="page"]')
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [pathname, view]);
   function tabHref(id: string) {
     let path: string = section.path;
     if (
@@ -32,7 +56,11 @@ export function WorkspaceShell() {
       recipe
     )
       path += `/${encodeURIComponent(recipe)}`;
-    return workspaceHref(`${path}?view=${id}`, pathname, search);
+    const target = new URLSearchParams(
+      section.path === '/' && id === 'screener' ? search : '',
+    );
+    target.set('view', id);
+    return workspaceHref(`${path}?${target}`, pathname, search);
   }
   return (
     <div className="workspace-shell">
@@ -72,7 +100,17 @@ export function WorkspaceShell() {
           ))}
         </nav>
         <span className="workspace-context">
-          Path of Exile 1 <span>PC</span>
+          {league ?? 'Лига неизвестна'}
+          {params.get('league') && params.get('league') !== league
+            ? ` · Выбрана: ${params.get('league')}`
+            : ''}{' '}
+          <span>
+            {(params.get('profitCurrency') ?? params.get('currency')) ===
+            'divine'
+              ? 'divine'
+              : 'chaos'}{' '}
+            · порог прибыли
+          </span>
         </span>
       </header>
       <nav

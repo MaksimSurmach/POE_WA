@@ -162,7 +162,7 @@ export function Watchlist() {
                     <tr key={id}>
                       <th scope="row">
                         <Link
-                          to={`/recipes/${encodeURIComponent(id)}?view=item`}
+                          to={`/?recipe=${encodeURIComponent(id)}&view=item`}
                         >
                           {entry?.recipe.title ?? id}
                         </Link>
