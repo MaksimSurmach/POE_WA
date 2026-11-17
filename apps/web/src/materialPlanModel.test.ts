@@ -211,6 +211,8 @@ it('detects changed quotes even without dates and leaves manual rows alone', () 
   };
   const row = initialPlan([source]).rows.x!;
   expect(planPriceChanged(row, source)).toBe(false);
+  const precise = { ...source, price: 0.0833333333 };
+  expect(planPriceChanged(initialPlan([precise]).rows.x!, precise)).toBe(false);
   expect(planPriceChanged(row, { ...source, price: 3 })).toBe(true);
   expect(planPriceChanged(row, { ...source, currency: 'divine' })).toBe(true);
   expect(planPriceChanged({ ...row, price: '', currency: null }, source)).toBe(

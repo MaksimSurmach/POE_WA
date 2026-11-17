@@ -235,6 +235,6 @@ export function planPriceChanged(
     row.origin === 'market' &&
     (row.capturedAt !== source.capturedAt ||
       row.currency !== source.currency ||
-      (row.price === '' ? null : Number(row.price)) !== source.price)
+      row.price !== textNumber(source.price))
   );
 }
