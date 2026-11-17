@@ -81,20 +81,20 @@ test('current market includes every recipe and selection preserves the overview'
   );
   await page.goto('/market');
   const overview = page.getByRole('region', {
-    name: 'All recipes market overview',
+    name: 'Обзор рынка всех рецептов',
     exact: true,
   });
   await expect(
     overview.getByRole('heading', {
-      name: 'All recipes · current market',
+      name: 'Все цели · текущий рынок',
       exact: true,
     }),
   ).toBeVisible();
   await overview
-    .getByText('Price vs. listing activity chart', { exact: true })
+    .getByText('График цены и активности объявлений', { exact: true })
     .click();
   const search = page.getByRole('searchbox', {
-    name: 'Find a market recipe',
+    name: 'Поиск рыночной цели',
     exact: true,
   });
   await search.fill('no-such-market-recipe');
@@ -109,7 +109,7 @@ test('current market includes every recipe and selection preserves the overview'
   );
   await expect(
     page.getByRole('region', { name: 'Selected recipe price history' }),
-  ).toContainText('Select a recipe');
+  ).toContainText('Выберите рецепт');
   await overview.getByRole('button', { name: /^2 recipes,/ }).click();
   const choices = page.getByRole('group', { name: 'Recipes at this point' });
   await expect(choices).toBeVisible();
@@ -121,7 +121,7 @@ test('current market includes every recipe and selection preserves the overview'
 
   await expect(overview.locator('tbody tr')).toHaveCount(entries.length);
   await expect(
-    overview.getByText('No fresh ask', { exact: true }).first(),
+    overview.getByText('Нет актуальной цены', { exact: true }).first(),
   ).toBeVisible();
   await overview
     .locator('tbody tr')
@@ -278,12 +278,12 @@ test('delayed old-league history cannot label or price the new-league catalog', 
   release();
   await expect(
     page.getByRole('heading', {
-      name: 'League changed while loading',
+      name: 'Лига изменилась во время загрузки',
       exact: true,
     }),
   ).toBeVisible();
   const overview = page.getByRole('region', {
-    name: 'All recipes market overview',
+    name: 'Обзор рынка всех рецептов',
   });
 
   await expect(
@@ -292,7 +292,7 @@ test('delayed old-league history cannot label or price the new-league catalog', 
   await expect(overview).not.toContainText('+99%');
   current = true;
   await page
-    .getByRole('button', { name: 'Reload current market', exact: true })
+    .getByRole('button', { name: 'Обновить текущий рынок', exact: true })
     .click();
   await expect(
     overview.locator('.recipe-market__recipes > summary'),
@@ -309,7 +309,7 @@ test('delayed old-league history cannot label or price the new-league catalog', 
     .click();
   await expect(
     page.getByRole('heading', {
-      name: 'League changed while loading history',
+      name: 'Лига изменилась во время загрузки истории',
       exact: true,
     }),
   ).toBeVisible();
@@ -373,7 +373,7 @@ test('mobile opportunities expose a target price and action in the first screen'
     page
       .locator('.craft-table tbody tr:not(.craft-table__readiness-group)')
       .first()
-      .locator('[data-label="Observed ask"]'),
+      .locator('[data-label="Цена объявления"]'),
   ).toBeInViewport();
   await expect(page.locator('.craft-table__steps').first()).toBeInViewport();
 });

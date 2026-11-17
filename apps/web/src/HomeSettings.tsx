@@ -12,8 +12,8 @@ import {
 
 const minuteMs = 60_000;
 const ageFields = [
-  ['maximumQuoteAgeMs', 'Maximum quote age (minutes)'],
-  ['freshnessWarningMs', 'Warning age (minutes)'],
+  ['maximumQuoteAgeMs', 'Максимальный возраст цены (минуты)'],
+  ['freshnessWarningMs', 'Предупреждать о возрасте (минуты)'],
 ] as const;
 
 /** Collapsed homepage settings; nothing is requested until it is opened. */
@@ -76,7 +76,7 @@ export function HomeSettings({
         }}
       >
         <summary>
-          <h2>Settings</h2>
+          <h2>Срок актуальности цен</h2>
         </summary>
         {settings && draft ? (
           <form
@@ -105,7 +105,7 @@ export function HomeSettings({
                     );
                   }
                   return api.save(latest.version, changes);
-                }, 'Settings saved.');
+                }, 'Настройки сохранены.');
             }}
           >
             <fieldset disabled={busy}>
@@ -136,20 +136,21 @@ export function HomeSettings({
               </div>
               <div className="market-admin__save">
                 <Button type="submit" disabled={!dirty}>
-                  Save settings
+                  Сохранить настройки
                 </Button>
               </div>
             </fieldset>
             <p className="market-admin__hint">
               These ages decide when a stored quote is flagged or hidden; they
               do not change how often collection runs. Refresh intervals differ
-              by target and data source — Collector details shows what is due
-              next. Pause or resume collection from the collector controls.
+              by target and data source — see the collector diagnostics for the
+              next due collection. Pause or resume collection from the collector
+              controls.
             </p>
           </form>
         ) : null}
         <p className="market-admin__hint" role="status">
-          {message || (settings ? '' : busy ? 'Loading settings…' : '')}
+          {message || (settings ? '' : busy ? 'Загрузка настроек…' : '')}
         </p>
       </details>
     </section>

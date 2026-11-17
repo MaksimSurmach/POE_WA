@@ -5,7 +5,7 @@ import type {
   FactoryProjection,
   FactoryTransaction,
 } from '@poe-worksmith/domain';
-import { Link } from 'react-router-dom';
+import { WorkspaceLink as Link } from './workspaceNavigation.js';
 import { factoryCostLabel } from './factoryForm.js';
 
 export function factoryMoney(value: string | null) {
@@ -47,7 +47,10 @@ export function FactoryMetrics({
     <>
       <dl className="factory-metrics">
         <div>
-          <dt>Realized profit (allocated sold items)</dt>
+          <dt>
+            Реализованная прибыль (проданные предметы с распределёнными
+            затратами)
+          </dt>
           <dd>{factoryMoney(metrics.realizedProfit)}</dd>
         </div>
         <div>
@@ -55,11 +58,11 @@ export function FactoryMetrics({
           <dd>{factoryMoney(metrics.recognizedItemResult)}</dd>
         </div>
         <div>
-          <dt>Cash flow</dt>
+          <dt>Денежный поток</dt>
           <dd>{factoryMoney(metrics.cashFlow)}</dd>
         </div>
         <div>
-          <dt>Unsold inventory cost</dt>
+          <dt>Себестоимость непроданных предметов</dt>
           <dd>{factoryMoney(metrics.inventoryCost)}</dd>
         </div>
         <div>
@@ -95,7 +98,7 @@ export function FactoryMetrics({
           <dd>{factoryMoney(metrics.salvageSaleRevenue)}</dd>
         </div>
         <div>
-          <dt>Confirmed sales / produced</dt>
+          <dt>Подтверждено продаж / произведено</dt>
           <dd>
             {metrics.soldCount} / {metrics.producedCount}
           </dd>
@@ -148,10 +151,10 @@ export function FactoryMetrics({
         </p>
       ) : null}
       <p className="factory-note">
-        Realized profit uses confirmed sales less their allocated production
-        costs and sale expenses. Cash flow includes all purchases and receipts.
-        Inventory and unused stock remain separate; no indicative resale value
-        is assumed.
+        Реализованная прибыль — подтверждённая выручка за вычетом отнесённой
+        себестоимости и расходов продажи. Денежный поток включает все покупки и
+        поступления. Непроданные предметы и неиспользованные материалы
+        учитываются отдельно; предполагаемая цена перепродажи им не назначается.
       </p>
       <p className="factory-note">
         Recognized item result subtracts disposed-item costs from sold-item
@@ -162,7 +165,7 @@ export function FactoryMetrics({
         <summary>Cash reconciliation</summary>
         <dl className="factory-metrics">
           <div>
-            <dt>Confirmed sale receipts</dt>
+            <dt>Поступления от подтверждённых продаж</dt>
             <dd>{factoryMoney(metrics.saleRevenue)}</dd>
           </div>
           <div>
@@ -191,8 +194,9 @@ export function FactoryMetrics({
           </div>
         </dl>
         <p className="factory-note">
-          Cash flow = all receipts − all spending. Refunded material cost is
-          removed from stock, not counted as another cash payment.
+          Денежный поток = все поступления − все платежи. Возвращённая
+          себестоимость материалов удаляется из запаса, а не учитывается
+          повторным платежом.
         </p>
       </details>
       {!metrics.allocationComplete ? (
@@ -217,7 +221,7 @@ export function FactoryBatchSummary({
       <div className="factory-actions">
         <h2>Batch {batch.id.slice(0, 8)}</h2>
         <Link to={`/recipes/${encodeURIComponent(batch.recipeId)}`}>
-          View recipe
+          Открыть рецепт
         </Link>
       </div>
       <p className="factory-note">
@@ -243,7 +247,7 @@ export function FactoryBatchSummary({
           <p className="factory-note">
             Frozen source {batch.forecast.sourceId}.{' '}
             {batch.forecast.riskRequest
-              ? `Objective: ${batch.forecast.riskRequest.objective.kind} × ${batch.forecast.riskRequest.objective.count}.`
+              ? `Цель расчёта: ${batch.forecast.riskRequest.objective.kind} × ${batch.forecast.riskRequest.objective.count}.`
               : 'First-run cash EV only; no comparable batch simulation.'}{' '}
             Retained assets have no assigned value.
           </p>
@@ -281,18 +285,23 @@ export function FactoryBatchSummary({
           </dl>
         ) : null}
       </details>
-      <h2>Produced inventory</h2>
+      <h2>Произведённые предметы</h2>
       {projection.inventory.length ? (
-        <div className="factory-scroll">
+        <div
+          className="factory-scroll"
+          role="region"
+          aria-label="Журнал партии"
+          tabIndex={0}
+        >
           <TableSurface>
             <table className="table__content factory-table">
               <thead className="table__header">
                 <tr className="table__row">
-                  <th className="table__column">Item / outcome</th>
-                  <th className="table__column">Status</th>
-                  <th className="table__column">Allocated cost</th>
-                  <th className="table__column">Advertised price</th>
-                  <th className="table__column">Confirmed sale</th>
+                  <th className="table__column">Предмет / результат</th>
+                  <th className="table__column">Статус</th>
+                  <th className="table__column">Отнесённая себестоимость</th>
+                  <th className="table__column">Цена объявления</th>
+                  <th className="table__column">Подтверждённая продажа</th>
                 </tr>
               </thead>
               <tbody className="table__body">
@@ -306,7 +315,7 @@ export function FactoryBatchSummary({
                       </small>
                       {item.modifiers.length ? (
                         <details>
-                          <summary>Modifiers</summary>
+                          <summary>Модификаторы</summary>
                           {item.modifiers.map((modifier) => (
                             <p key={modifier}>{modifier}</p>
                           ))}
@@ -330,7 +339,7 @@ export function FactoryBatchSummary({
                           <small>{formatTimestamp(item.soldAt)}</small>
                         </>
                       ) : (
-                        'No completed sale'
+                        'Продажа не подтверждена'
                       )}
                     </td>
                   </tr>
@@ -340,18 +349,25 @@ export function FactoryBatchSummary({
           </TableSurface>
         </div>
       ) : (
-        <p className="factory-note">No crafted items registered yet.</p>
+        <p className="factory-note">
+          Произведённые предметы пока не зарегистрированы.
+        </p>
       )}
       <details>
-        <summary>Material stock and cost allocations</summary>
-        <div className="factory-scroll">
+        <summary>Материалы и распределение затрат</summary>
+        <div
+          className="factory-scroll"
+          role="region"
+          aria-label="Журнал партии"
+          tabIndex={0}
+        >
           <TableSurface>
             <table className="table__content factory-table">
               <thead className="table__header">
                 <tr className="table__row">
-                  <th className="table__column">Purchase lot</th>
-                  <th className="table__column">Available quantity</th>
-                  <th className="table__column">Unused cost</th>
+                  <th className="table__column">Партия закупки</th>
+                  <th className="table__column">Доступное количество</th>
+                  <th className="table__column">Остаточная стоимость</th>
                 </tr>
               </thead>
               <tbody className="table__body">
@@ -374,10 +390,10 @@ export function FactoryBatchSummary({
             <table className="table__content factory-table">
               <thead className="table__header">
                 <tr className="table__row">
-                  <th className="table__column">Cost source</th>
-                  <th className="table__column">Production cost</th>
+                  <th className="table__column">Источник затрат</th>
+                  <th className="table__column">Затраты производства</th>
                   <th className="table__column">Allocated</th>
-                  <th className="table__column">Remaining</th>
+                  <th className="table__column">Остаток</th>
                 </tr>
               </thead>
               <tbody className="table__body">
@@ -406,15 +422,20 @@ export function FactoryBatchSummary({
         </div>
       </details>
       <details>
-        <summary>Audit log ({record.events.length} events)</summary>
-        <div className="factory-scroll">
+        <summary>Журнал событий ({record.events.length} events)</summary>
+        <div
+          className="factory-scroll"
+          role="region"
+          aria-label="Журнал партии"
+          tabIndex={0}
+        >
           <TableSurface>
             <table className="table__content factory-table">
               <thead className="table__header">
                 <tr className="table__row">
                   <th className="table__column">Event</th>
-                  <th className="table__column">Time / source</th>
-                  <th className="table__column">Recorded details</th>
+                  <th className="table__column">Время / источник</th>
+                  <th className="table__column">Сведения о событии</th>
                 </tr>
               </thead>
               <tbody className="table__body">

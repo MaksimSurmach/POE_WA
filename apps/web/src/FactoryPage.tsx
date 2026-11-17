@@ -1,3 +1,5 @@
+import { FactoryLedgerView } from './FactoryLedgerView.js';
+import { StatusPanel } from './components.js';
 import { formatTimestamp } from './dateTime.js';
 import { Button, NativeSelect, TableSurface } from './ui.js';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
@@ -73,6 +75,8 @@ function readPending<T>(
 
 export function FactoryPage() {
   const [params, setParams] = useSearchParams();
+  const view = params.get('view') ?? 'batches';
+  const [status, setStatus] = useState('all');
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
   const [leagues, setLeagues] = useState<LeaguesResponse['data']>([]);
   const [league, setLeague] = useState(params.get('league') ?? '');
@@ -143,7 +147,7 @@ export function FactoryPage() {
       .catch((failure) => {
         if (active)
           setError(
-            `Owner access required for My Factory. ${factoryErrorMessage(failure)}`,
+            `Owner access required for Моя мастерская. ${factoryErrorMessage(failure)}`,
           );
       });
     return () => {
@@ -193,6 +197,21 @@ export function FactoryPage() {
         if (active) {
           setRecord(response.data);
           setRecordReady(true);
+          setRecipeId(response.data.batch.recipeId);
+          setLeague(response.data.batch.league);
+          if (
+            params.get('recipe') !== response.data.batch.recipeId ||
+            params.get('league') !== response.data.batch.league
+          )
+            setParams(
+              (previous) => {
+                const next = new URLSearchParams(previous);
+                next.set('recipe', response.data.batch.recipeId);
+                next.set('league', response.data.batch.league);
+                return next;
+              },
+              { replace: true },
+            );
           const resolved = reconcileFactoryPending(
             pending,
             response.data.events,
@@ -217,11 +236,20 @@ export function FactoryPage() {
     };
   }, [selectedId, eventKey, refresh]);
 
-  function selectBatch(id: string) {
+  useEffect(() => {
+    setSelectedId(params.get('batch') ?? '');
+    if (params.get('recipe')) setRecipeId(params.get('recipe')!);
+    if (params.get('league')) setLeague(params.get('league')!);
+  }, [params.get('batch'), params.get('recipe'), params.get('league')]);
+
+  function selectBatch(id: string, selectedRecipeId = recipeId) {
     setSelectedId(id);
+    setRecipeId(selectedRecipeId);
     setParams((previous) => {
       const next = new URLSearchParams(previous);
       next.set('batch', id);
+      next.set('view', 'batch');
+      next.set('recipe', selectedRecipeId);
       next.set('league', league);
       return next;
     });
@@ -276,7 +304,7 @@ export function FactoryPage() {
       const response = await api.createFactoryBatch(pending.request);
       setPendingCreate(null);
       cachePending(createKey, null);
-      selectBatch(response.data.batch.id);
+      selectBatch(response.data.batch.id, response.data.batch.recipeId);
       setNotice(
         'Batch started. Record purchases, consumption and each crafted result.',
       );
@@ -374,22 +402,34 @@ export function FactoryPage() {
     void createBatch(new FormData(event.currentTarget));
   }
   const recipes = catalog?.data?.entries ?? [];
+  const visibleBatches =
+    batches?.batches.filter(
+      (batch) => status === 'all' || batch.projection.status === status,
+    ) ?? [];
   return (
     <article className="factory-page">
       <header className="catalog-heading">
         <div>
-          <h1>My Factory</h1>
-          <p>Actual production, inventory and confirmed sales.</p>
+          <h1>
+            {view === 'inventory'
+              ? 'Предметы'
+              : view === 'sales'
+                ? 'Продажи'
+                : view === 'batch'
+                  ? 'Партия'
+                  : 'Моя мастерская'}
+          </h1>
+          <p>Фактическое производство, инвентарь и подтверждённые продажи.</p>
         </div>
         <div className="factory-actions">
           <label>
-            Factory league
+            Лига мастерской
             <NativeSelect
               value={league}
               disabled={busy}
               onChange={(event) => changeLeague(event.target.value)}
             >
-              <option value="">Choose league</option>
+              <option value="">Выберите лигу</option>
               {leagues.map((item) => (
                 <option key={item.id} value={item.name}>
                   {item.name}
@@ -405,7 +445,7 @@ export function FactoryPage() {
               setRefresh((value) => value + 1);
             }}
           >
-            Refresh factory
+            Обновить мастерскую
           </Button>
         </div>
       </header>
@@ -423,7 +463,17 @@ export function FactoryPage() {
         </p>
       ) : null}
       {notice ? <p role="status">{notice}</p> : null}
-      {summary && summary.coverage.totalBatches > 0 ? (
+      {['inventory', 'sales'].includes(view) ? (
+        <FactoryLedgerView
+          key={view + league}
+          league={league}
+          sales={view === 'sales'}
+          revision={refresh}
+        />
+      ) : null}
+      {!['inventory', 'sales'].includes(view) &&
+      summary &&
+      summary.coverage.totalBatches > 0 ? (
         <details className="factory-panel">
           <summary>
             League totals · {summary.coverage.includedBatches} of{' '}
@@ -437,23 +487,29 @@ export function FactoryPage() {
           <FactoryMetrics metrics={summary.metrics} />
         </details>
       ) : null}
-      {batches ? (
+      {!['inventory', 'sales'].includes(view) && batches ? (
         <>
           <details
             className="factory-panel"
             open={Boolean((recipeId || batches.total === 0) && !selectedId)}
           >
-            <summary>Start a batch</summary>
-            <form onSubmit={submitBatch} aria-label="Start production batch">
+            <summary>Создать партию</summary>
+            <form onSubmit={submitBatch} aria-label="Создание партии">
               <fieldset disabled={busy} className="factory-fields">
                 <label>
-                  Crafting recipe
+                  Рецепт крафта
                   <NativeSelect
                     value={recipeId}
-                    onChange={(event) => setRecipeId(event.target.value)}
+                    onChange={(event) => {
+                      setRecipeId(event.target.value);
+                      const next = new URLSearchParams(params);
+                      next.set('recipe', event.target.value);
+                      next.delete('batch');
+                      setParams(next, { replace: true });
+                    }}
                     required
                   >
-                    <option value="">Choose recipe</option>
+                    <option value="">Выберите рецепт</option>
                     {recipes.map(({ recipe }) => (
                       <option key={recipe.id} value={recipe.id}>
                         {recipe.title}
@@ -467,19 +523,24 @@ export function FactoryPage() {
                 </label>
                 <FactoryField
                   name="batchNotes"
-                  label="Batch notes"
+                  label="Заметки к партии"
                   required={false}
                   maxLength={2000}
+                  value={
+                    params.get('planCount')
+                      ? `План: ${params.get('planCount')} предметов. Материалы сохранены только в этой вкладке браузера; это не подтверждение расходов.`
+                      : ''
+                  }
                 />
               </fieldset>
               <details
                 className="factory-optional"
                 open={Boolean(params.get('forecast'))}
               >
-                <summary>Historical production start (optional)</summary>
+                <summary>Дата начала производства (необязательно)</summary>
                 <FactoryField
                   name="startedAt"
-                  label="Production started at (local; blank means now)"
+                  label="Начало по местному времени (пусто — сейчас)"
                   type="datetime-local"
                   step="0.001"
                   required={false}
@@ -492,16 +553,24 @@ export function FactoryPage() {
               </details>
               <TransactionFields
                 quantity={false}
-                label="Planned budget (not actual spending)"
+                label="Плановый бюджет (не фактический расход)"
+                {...(params.get('plannedBudget')
+                  ? { initialAmount: params.get('plannedBudget')! }
+                  : {})}
+                initialCurrency={
+                  params.get('plannedCurrency') ??
+                  params.get('currency') ??
+                  'chaos'
+                }
               />
               <details
                 className="factory-optional"
                 open={Boolean(params.get('forecast'))}
               >
-                <summary>Link a saved risk forecast (optional)</summary>
+                <summary>Связать сохранённый прогноз риска</summary>
                 <FactoryField
                   name="forecastRunId"
-                  label="Saved risk simulation ID (optional)"
+                  label="ID сохранённого прогноза (необязательно)"
                   value={params.get('forecast') ?? ''}
                   required={false}
                 />
@@ -513,7 +582,7 @@ export function FactoryPage() {
               </details>
               {analysisError ? <p role="alert">{analysisError}</p> : null}
               <Button type="submit" disabled={busy || !analysis || !recipeId}>
-                {busy ? 'Saving…' : 'Start batch'}
+                {busy ? 'Сохранение…' : 'Создать партию'}
               </Button>
             </form>
             {pendingCreate ? (
@@ -523,7 +592,7 @@ export function FactoryPage() {
                   disabled={busy}
                   onClick={() => void createBatch()}
                 >
-                  Retry exact pending batch
+                  Повторить сохранённый запрос партии
                 </Button>
                 <span className="factory-note">
                   {pendingCreate.request.recipeId} ·{' '}
@@ -533,28 +602,59 @@ export function FactoryPage() {
             ) : null}
           </details>
           <section className="factory-panel">
-            <h2>Production batches</h2>
-            {batches.batches.length ? (
-              <div className="factory-scroll">
+            <h2>Партии производства</h2>
+            <label className="plan-count">
+              Статус партии
+              <NativeSelect
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+              >
+                <option value="all">Все статусы</option>
+                {[
+                  ...new Set(
+                    batches.batches.map((value) => value.projection.status),
+                  ),
+                ].map((value) => (
+                  <option key={value}>{value}</option>
+                ))}
+              </NativeSelect>
+            </label>
+            {status !== 'all' ? (
+              <p className="catalog-price-note">
+                Фильтр применяется к текущей странице партий.
+              </p>
+            ) : null}
+            {visibleBatches.length ? (
+              <div
+                className="factory-scroll"
+                role="region"
+                aria-label="Партии мастерской"
+                tabIndex={0}
+              >
                 <TableSurface>
                   <table className="table__content factory-table">
                     <thead className="table__header">
                       <tr className="table__row">
-                        <th className="table__column">Batch / recipe</th>
-                        <th className="table__column">Status</th>
-                        <th className="table__column">Realized profit</th>
-                        <th className="table__column">Cash flow</th>
-                        <th className="table__column">Unsold inventory</th>
+                        <th className="table__column">Партия / рецепт</th>
+                        <th className="table__column">Статус</th>
+                        <th className="table__column">Реализованная прибыль</th>
+                        <th className="table__column">Денежный поток</th>
+                        <th className="table__column">Непроданный инвентарь</th>
                       </tr>
                     </thead>
                     <tbody className="table__body">
-                      {batches.batches.map((batch) => (
+                      {visibleBatches.map((batch) => (
                         <tr className="table__row" key={batch.batch.id}>
                           <td className="table__cell">
                             <Button
                               type="button"
                               disabled={busy}
-                              onClick={() => selectBatch(batch.batch.id)}
+                              onClick={() =>
+                                selectBatch(
+                                  batch.batch.id,
+                                  batch.batch.recipeId,
+                                )
+                              }
                             >
                               {batch.batch.id.slice(0, 8)} ·{' '}
                               {recipes.find(
@@ -590,8 +690,11 @@ export function FactoryPage() {
               </div>
             ) : (
               <p className="factory-note">
-                No batches in this league yet. Choose a recipe above and start a
-                batch, then record purchases, crafted items and confirmed sales.
+                {status === 'all'
+                  ? 'В этой лиге пока нет партий.'
+                  : 'На этой странице нет партий с выбранным статусом.'}{' '}
+                Выберите рецепт, создайте партию, затем зарегистрируйте закупки,
+                результаты крафта и подтверждённые продажи.
               </p>
             )}
             {batches.total > batches.limit ? (
@@ -601,7 +704,7 @@ export function FactoryPage() {
                   disabled={busy || offset === 0}
                   onClick={() => setOffset(Math.max(0, offset - 20))}
                 >
-                  Previous batches
+                  Предыдущие партии
                 </Button>
                 <span className="factory-note">
                   {batches.total ? offset + 1 : 0}–
@@ -613,27 +716,33 @@ export function FactoryPage() {
                   disabled={busy || offset + batches.limit >= batches.total}
                   onClick={() => setOffset(offset + 20)}
                 >
-                  Next batches
+                  Следующие партии
                 </Button>
               </div>
             ) : null}
           </section>
         </>
-      ) : !error && league ? (
-        <p role="status">Loading private factory ledger…</p>
+      ) : !['inventory', 'sales'].includes(view) && !error && league ? (
+        <p role="status">Загрузка журнала мастерской…</p>
       ) : null}
-      {record ? (
+      {view === 'batch' && !selectedId ? (
+        <StatusPanel tone="info" title="Выберите партию">
+          Откройте партию из списка ниже, чтобы увидеть материалы, события и
+          результат.
+        </StatusPanel>
+      ) : null}
+      {record && view === 'batch' ? (
         <section className="factory-panel">
           <FactoryBatchSummary record={record} />
           <div className="factory-actions">
             <Button type="button" onClick={() => void download('csv')}>
-              Export CSV
+              Экспорт CSV
             </Button>
             <Button type="button" onClick={() => void download('json')}>
-              Export JSON
+              Экспорт JSON
             </Button>
           </div>
-          <h2>Record production and sales</h2>
+          <h2>Записать производство или продажу</h2>
           {pendingEvent ? (
             <div>
               <Button
@@ -641,7 +750,7 @@ export function FactoryPage() {
                 disabled={busy}
                 onClick={() => void appendEvent()}
               >
-                Retry exact pending event
+                Повторить сохранённый запрос события
               </Button>
               <p className="factory-note">
                 {pendingEvent.request.event.payload.type} ·{' '}
@@ -660,8 +769,8 @@ export function FactoryPage() {
             onSubmit={appendEvent}
           />
         </section>
-      ) : selectedId && !mutationError ? (
-        <p role="status">Loading selected batch…</p>
+      ) : view === 'batch' && selectedId && !mutationError ? (
+        <p role="status">Загрузка выбранной партии…</p>
       ) : null}
     </article>
   );

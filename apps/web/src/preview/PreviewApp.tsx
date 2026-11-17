@@ -6,8 +6,8 @@ export function PreviewApp() {
   return (
     <PreviewMode value={true}>
       <div className="preview-notice" role="note">
-        <strong>Design preview</strong>
-        <span>Sample data · No live connection · Writes disabled</span>
+        <strong>Тестовый просмотр</strong>
+        <span>Тестовые данные · Без подключения к базе · Запись отключена</span>
       </div>
       <HashRouter>
         <App />

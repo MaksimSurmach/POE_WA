@@ -1,7 +1,7 @@
 import { formatTimestamp } from './dateTime.js';
 import { Button, Input, NativeSelect, TableSurface, TextArea } from './ui.js';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { WorkspaceLink as Link } from './workspaceNavigation.js';
 import type {
   CraftAnalysis,
   CraftRiskRun,
@@ -294,7 +294,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
       className="detail-section craft-risk"
       aria-labelledby="craft-risk-heading"
     >
-      <h2 id="craft-risk-heading">Expected value &amp; risk</h2>
+      <h2 id="craft-risk-heading">Ожидаемая стоимость и риск</h2>
       <div className="craft-risk__body">
         {loadError ? (
           <div role="alert" className="recipe-warning">
@@ -303,7 +303,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
               type="button"
               onClick={() => setRevision((value) => value + 1)}
             >
-              Retry analysis
+              Повторить анализ
             </Button>
           </div>
         ) : !data ? (
@@ -358,8 +358,8 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                 <details>
                   <summary>
                     {model
-                      ? 'Create a replacement model revision'
-                      : 'Define outcome probabilities and values'}
+                      ? 'Создать новую версию модели'
+                      : 'Задать вероятности и стоимости результатов'}
                   </summary>
                   <GuidedOutcomeEditor
                     key={`${data.recipeHash}:${data.league}`}
@@ -409,7 +409,9 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                       type="submit"
                       disabled={saving || Boolean(loadError)}
                     >
-                      {saving ? 'Saving…' : 'Validate and save new revision'}
+                      {saving
+                        ? 'Сохранение…'
+                        : 'Проверить и сохранить новую версию'}
                     </Button>
                   </form>
                 </details>
@@ -419,11 +421,11 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                 Model editing and simulations require local owner access.
               </p>
             )}
-            <h3>Budget for your crafting objective</h3>
+            <h3>Бюджет выбранной цели</h3>
             <p className="catalog-price-note">
-              One target item, a fixed number of method runs, and a number of
-              successful target items have different bankroll distributions. A
-              method run ends in a terminal outcome and includes its declared
+              Один целевой предмет, a fixed number of method runs, and a number
+              of successful target items have different bankroll distributions.
+              A method run ends in a terminal outcome and includes its declared
               retries; it is not one currency roll.
             </p>
             <form onSubmit={startRisk} className="craft-risk__simulation">
@@ -439,16 +441,16 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
               >
                 <legend className="visually-hidden">Simulation inputs</legend>
                 <label>
-                  Objective
+                  Цель расчёта
                   <NativeSelect
                     value={objective}
                     onChange={(event) =>
                       setObjective(event.target.value as typeof objective)
                     }
                   >
-                    <option value="single-target">One target item</option>
-                    <option value="attempts">N method runs</option>
-                    <option value="successes">N target items</option>
+                    <option value="single-target">Один целевой предмет</option>
+                    <option value="attempts">N запусков метода</option>
+                    <option value="successes">N целевых предметов</option>
                   </NativeSelect>
                 </label>
                 <label>
@@ -463,7 +465,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                   />
                 </label>
                 <label>
-                  Available budget ({model?.currency ?? 'model currency'})
+                  Доступный бюджет ({model?.currency ?? 'model currency'})
                   <Input
                     inputMode="decimal"
                     maxLength={40}
@@ -481,7 +483,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                   />
                 </label>
                 <label>
-                  Simulation trials
+                  Количество симуляций
                   <NativeSelect
                     value={trials}
                     onChange={(event) => setTrials(event.target.value)}
@@ -492,7 +494,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                   </NativeSelect>
                 </label>
                 <label>
-                  Check first target within N method runs
+                  Проверить первый результат за N запусков метода
                   <Input
                     type="number"
                     min="1"
@@ -502,7 +504,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                   />
                 </label>
                 <label>
-                  Maximum stage steps per trial
+                  Максимум шагов на симуляцию
                   <Input
                     type="number"
                     min="1"
@@ -523,7 +525,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                     Boolean(loadError)
                   }
                 >
-                  {starting ? 'Starting simulation…' : 'Simulate objective'}
+                  {starting ? 'Запуск расчёта…' : 'Рассчитать риск'}
                 </Button>
                 {running ? (
                   <Button
@@ -531,7 +533,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                     onClick={() => void cancelRisk()}
                     disabled={job?.cancelRequested}
                   >
-                    Cancel simulation
+                    Отменить расчёт
                   </Button>
                 ) : null}
               </div>
@@ -583,7 +585,7 @@ export function CraftRiskSection({ recipeId }: { recipeId: string }) {
                   <Link
                     to={`/factory?recipe=${encodeURIComponent(recipeId)}&league=${encodeURIComponent(data.league)}&forecast=${encodeURIComponent(job.id)}`}
                   >
-                    Start a batch with this frozen forecast →
+                    Создать партию с этим сохранённым прогнозом →
                   </Link>
                 ) : null}
               </>

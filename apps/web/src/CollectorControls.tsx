@@ -193,7 +193,7 @@ export function CollectorControls({
             disabled={changing !== null}
             onClick={() => setPollRevision((value) => value + 1)}
           >
-            Check collection state
+            Проверить состояние сбора
           </Button>
         ) : (
           <Button
@@ -204,7 +204,7 @@ export function CollectorControls({
             liveAction
             onClick={() => void changePause(!paused)}
           >
-            {paused ? 'Resume collection' : 'Pause collection'}
+            {paused ? 'Возобновить сбор' : 'Приостановить сбор'}
           </Button>
         )}
         <Button
@@ -221,7 +221,7 @@ export function CollectorControls({
           liveAction
           onClick={() => void runNow()}
         >
-          Run now
+          Запустить сбор
         </Button>
       </div>
       <CollectorStatusLine
@@ -260,7 +260,7 @@ function CollectionState({
   if (paused === null)
     return unavailable ? (
       <strong className="recipe-warning">
-        Collection state unavailable — Run now stays off until it can be read
+        Состояние сбора недоступно — запуск отключён до успешной проверки
       </strong>
     ) : (
       <strong>Checking collection state</strong>

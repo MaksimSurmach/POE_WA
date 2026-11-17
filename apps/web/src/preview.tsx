@@ -1,5 +1,4 @@
 import './theme.css';
-import './workspace.css';
 import { createRoot } from 'react-dom/client';
 import { createPreviewFetch } from './preview/previewApi.js';
 

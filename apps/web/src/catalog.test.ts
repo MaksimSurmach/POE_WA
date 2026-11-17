@@ -238,11 +238,11 @@ describe('recipe catalog search and item type filters', () => {
   });
 
   it('reports price freshness from the server evaluation status', () => {
-    expect(getPriceStatus('success')).toBe('Updated');
-    expect(getPriceStatus('stale')).toBe('Outdated');
-    expect(getPriceStatus('partial')).toBe('Partial');
-    expect(getPriceStatus('loading')).toBe('Updating');
-    expect(getPriceStatus('error')).toBe('Unavailable');
+    expect(getPriceStatus('success')).toBe('Обновлено');
+    expect(getPriceStatus('stale')).toBe('Устарело');
+    expect(getPriceStatus('partial')).toBe('Частично');
+    expect(getPriceStatus('loading')).toBe('Обновляется');
+    expect(getPriceStatus('error')).toBe('Недоступно');
   });
 
   it('rounds ROI percentages without displaying negative zero', () => {

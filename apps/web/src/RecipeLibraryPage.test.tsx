@@ -22,7 +22,7 @@ it('includes every recipe even with no market prices and ignores profitability f
   );
   for (const { recipe } of entries) expect(html).toContain(recipe.title);
   expect(html).not.toContain('ROI');
-  expect(html).toContain('Materials and steps');
+  expect(html).toContain('Материалы и шаги');
 });
 
 it('filters the recipe library by class and preserves working recipe links', () => {

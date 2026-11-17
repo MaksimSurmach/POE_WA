@@ -3,17 +3,17 @@ import { expect, test, type Page } from '@playwright/test';
 async function enterSyntheticModel(page: Page, recipeId: string) {
   await page.goto(`/recipes/${recipeId}`);
   await page
-    .getByText('Advanced: expected value and risk calculator', { exact: true })
+    .getByText('Расчёт ожидаемой стоимости и риска', { exact: true })
     .click();
-  const risk = page.getByRole('region', { name: 'Expected value & risk' });
+  const risk = page.getByRole('region', { name: 'Ожидаемая стоимость и риск' });
   await expect(risk.getByText('EV unavailable', { exact: true })).toBeVisible();
   await risk
-    .getByText('Define outcome probabilities and values', { exact: true })
+    .getByText('Задать вероятности и стоимости результатов', { exact: true })
     .click();
   await risk.getByLabel('One base', { exact: true }).fill('10');
   await risk.getByLabel('Materials per attempt', { exact: true }).fill('2');
   await risk
-    .getByLabel('Cost source', { exact: true })
+    .getByLabel('Источник затрат', { exact: true })
     .fill('Synthetic acceptance fixture; not actual purchases');
   await risk
     .getByLabel('Assumptions and outcome boundaries')
@@ -72,9 +72,7 @@ async function enterSyntheticModel(page: Page, recipeId: string) {
     expectedNetProfit: { min: '43', max: '43' },
     expectedSalvageRecovery: { min: '5', max: '5' },
   });
-  await risk
-    .getByText('Create a replacement model revision', { exact: true })
-    .click();
+  await risk.getByText('Создать новую версию модели', { exact: true }).click();
   return risk;
 }
 
@@ -90,21 +88,21 @@ for (const width of [1440, 390]) {
         : 'quicksilver-alchemist-cheetah',
     );
     await risk
-      .getByRole('combobox', { name: 'Objective', exact: true })
+      .getByRole('combobox', { name: 'Цель расчёта', exact: true })
       .selectOption('attempts');
     await risk.getByLabel('Method runs', { exact: true }).fill('1');
-    await risk.getByLabel(/Available budget/).fill('20');
+    await risk.getByLabel(/Доступный бюджет/).fill('20');
     await risk
       .getByLabel('Seed', { exact: true })
       .fill('synthetic-acceptance-v1');
-    await risk.getByRole('button', { name: 'Simulate objective' }).click();
+    await risk.getByRole('button', { name: 'Рассчитать риск' }).click();
     await expect(
       risk.getByText('Simulation completed', { exact: true }),
     ).toBeVisible({ timeout: 30_000 });
     await expect(risk.getByText('P90 budget', { exact: true })).toBeVisible();
     await page.reload();
     await page
-      .getByText('Advanced: expected value and risk calculator', {
+      .getByText('Расчёт ожидаемой стоимости и риска', {
         exact: true,
       })
       .click();
@@ -117,7 +115,7 @@ for (const width of [1440, 390]) {
       ),
     ).toBe(true);
     await page
-      .getByRole('heading', { name: 'Expected value & risk' })
+      .getByRole('heading', { name: 'Ожидаемая стоимость и риск' })
       .scrollIntoViewIfNeeded();
     await page.screenshot({
       path: info.outputPath(`economics-${width}.png`),
@@ -233,26 +231,26 @@ test('owner cancels an expensive conditional simulation without publishing parti
   expect(saved.ok(), await saved.text()).toBe(true);
   await page.goto(`/recipes/${recipeId}`);
   await page
-    .getByText('Advanced: expected value and risk calculator', { exact: true })
+    .getByText('Расчёт ожидаемой стоимости и риска', { exact: true })
     .click();
-  const risk = page.getByRole('region', { name: 'Expected value & risk' });
+  const risk = page.getByRole('region', { name: 'Ожидаемая стоимость и риск' });
   await expect(
-    risk.getByRole('button', { name: 'Simulate objective' }),
+    risk.getByRole('button', { name: 'Рассчитать риск' }),
   ).toBeEnabled();
-  await risk.getByLabel(/Available budget/).fill('100');
+  await risk.getByLabel(/Доступный бюджет/).fill('100');
   await risk
-    .getByRole('combobox', { name: 'Simulation trials', exact: true })
+    .getByRole('combobox', { name: 'Количество симуляций', exact: true })
     .selectOption('10000');
-  await risk.getByLabel('Maximum stage steps per trial').fill('100000');
+  await risk.getByLabel('Максимум шагов на симуляцию').fill('100000');
   const created = page.waitForResponse(
     (response) =>
       response.url().endsWith('/api/admin/craft-analysis/simulations') &&
       response.request().method() === 'POST',
   );
-  await risk.getByRole('button', { name: 'Simulate objective' }).click();
+  await risk.getByRole('button', { name: 'Рассчитать риск' }).click();
   const runId = (await (await created).json()).data.id;
   await risk
-    .getByRole('button', { name: 'Cancel simulation', exact: true })
+    .getByRole('button', { name: 'Отменить расчёт', exact: true })
     .click();
   await expect(
     risk.getByText('Simulation cancelled', { exact: true }),

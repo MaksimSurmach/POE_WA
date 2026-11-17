@@ -106,9 +106,11 @@ describe('factory financial entry', () => {
     const html = renderToStaticMarkup(
       <FactoryMetrics metrics={projection.metrics} />,
     );
-    expect(html).toContain('Unsold inventory cost');
+    expect(html).toContain('Себестоимость непроданных предметов');
     expect(html).toContain('Unused material stock');
-    expect(html).toContain('Realized profit (allocated sold items)');
+    expect(html).toContain(
+      'Реализованная прибыль (проданные предметы с распределёнными затратами)',
+    );
     expect(html).toContain('Own time to sell (0 observations)');
     expect(html).not.toContain('0 min');
   });
@@ -158,7 +160,7 @@ describe('factory financial entry', () => {
       </MemoryRouter>,
     );
     expect(html).toContain('No forecast was attached');
-    expect(html).toContain('Confirmed sale');
+    expect(html).toContain('Подтверждённая продажа');
   });
   it('uses exact submit time for first events in a newly started batch', () => {
     const submitted = '2026-11-04T12:00:15.456Z';
@@ -418,7 +420,7 @@ describe('factory financial entry', () => {
         onSubmit={async () => true}
       />,
     );
-    expect(html).toContain('Correct an earlier event');
+    expect(html).toContain('Исправить предыдущее событие');
     expect(html).toContain('Event time (local; blank means now)');
   });
   it('keeps short observed sale times and ratio displays readable without changing exact metrics', () => {
@@ -441,10 +443,12 @@ describe('factory financial entry', () => {
         <App />
       </MemoryRouter>,
     );
-    expect(page).toContain('My Factory');
-    expect(page).toContain('Actual production, inventory and confirmed sales');
+    expect(page).toContain('Моя мастерская');
+    expect(page).toContain(
+      'Фактическое производство, инвентарь и подтверждённые продажи',
+    );
     const fields = renderToStaticMarkup(<TransactionFields quantity={false} />);
-    expect(fields).toContain('Amount in transaction currency');
+    expect(fields).toContain('Сумма в валюте операции');
     expect(fields).toContain('no conversion');
     expect(fields).toContain('will not rewrite this transaction');
   });

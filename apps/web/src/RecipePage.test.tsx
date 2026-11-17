@@ -66,10 +66,10 @@ describe('recipe page method comparison', () => {
       ([, id]) => id,
     );
 
-    expect(html).toContain('Methods for this target');
+    expect(html).toContain('Методы для этой цели');
     expect(links).toEqual(['chaos', 'fossil', 'blocked']);
     expect(html).toMatch(
-      /\/recipes\/chaos.*Best by expected profit.*5 div.*8 div.*\+3 div.*60\.0%.*4 div.*12 div.*Evidence grade A/,
+      /\/recipes\/chaos.*Лучший по оценке разницы с ask.*5 div.*8 div.*\+3 div.*60\.0%.*4 div.*12 div.*Evidence grade A/,
     );
     expect(html).toContain('No matching Trade sellers.');
   });
@@ -86,8 +86,8 @@ describe('recipe page method comparison', () => {
       ],
       'cluster',
     );
-    expect(html).toContain('Methods for this target');
-    expect(html).not.toContain('Best by expected profit');
+    expect(html).toContain('Методы для этой цели');
+    expect(html).not.toContain('Лучший по оценке разницы с ask');
   });
 });
 
@@ -108,7 +108,7 @@ it('identifies expired and unpriced methods without blocking usable fallback pro
     ],
     'cluster',
   );
-  expect(html).toMatch(/\/recipes\/chaos.*Best by expected profit/);
+  expect(html).toMatch(/\/recipes\/chaos.*Лучший по оценке разницы с ask/);
   expect(html).toContain('Only stale market data is available.');
   expect(html).toContain('No market snapshot is available.');
 });

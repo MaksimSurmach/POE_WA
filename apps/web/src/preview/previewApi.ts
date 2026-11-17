@@ -302,6 +302,16 @@ export function createPreviewFetch(): typeof fetch {
           asOf: at,
         },
       };
+    else if (path === '/api/admin/factory/inventory')
+      data = {
+        correlationId: id(1),
+        data: { items: projection.inventory, coverage },
+      };
+    else if (path === '/api/admin/factory/sales')
+      data = {
+        correlationId: id(1),
+        data: { sales: projection.sales, coverage },
+      };
     else if (path === '/api/admin/factory/batches')
       data = {
         correlationId: id(1),

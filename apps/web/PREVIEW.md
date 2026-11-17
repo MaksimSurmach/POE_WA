@@ -1,6 +1,6 @@
-# HeroUI preview
+# Worksmith light preview
 
-The application uses open-source HeroUI v3 with the dark blue palette and sidebar composition inspired by the [Finances reference](https://heroui.com/en/themes?template=finances). No HeroUI Pro template code is included.
+The preview uses the production light theme, five top navigation sections and the 20 workspace views. The approved specification is implemented with the existing React, HeroUI and Vite stack.
 
 From the repository root:
 
@@ -17,3 +17,5 @@ The preview renders the production pages with sample fixtures. Every HTTP write 
 The shared UI boundary uses HeroUI buttons, inputs, alerts, chips, cards, disclosure and table surfaces. Native selects retain platform keyboard and FormData behavior while using HeroUI styles. Recipe charts and grouped financial tables retain their domain interactions.
 
 Check the exported file with `pnpm exec playwright test --config playwright.preview.config.ts` after installing Playwright Chromium.
+
+The isolated browser suite runs against the production entrypoint with synthetic, contract-validated API responses: `pnpm exec playwright test --config playwright.light.config.ts`. It does not contact a database. See [coverage and screenshots](../../docs/evidence/worksmith-light/README.md).

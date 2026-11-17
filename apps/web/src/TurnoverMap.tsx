@@ -86,7 +86,7 @@ export function TurnoverMap({
       <div
         className="trade-map__graph"
         role="group"
-        aria-label="All recipes price and activity plot"
+        aria-label="Цены и активность всех рецептов"
       >
         {(peak === 0 ? [0] : [0, 1, 2, 3, 4]).map((tick) => (
           <span
@@ -177,7 +177,7 @@ export function TurnoverMap({
         role="group"
         aria-label="Recipes at this point"
       >
-        <p>Select a recipe · exact observations</p>
+        <p>Выберите рецепт · exact observations</p>
         {choices.map((recipe) => (
           <button
             type="button"
@@ -192,7 +192,7 @@ export function TurnoverMap({
         ))}
       </div>
       <p className="trade-map__axis trade-map__axis--price">
-        Observed asking price · {currency} (log scale)
+        Наблюдаемая цена объявления · {currency} (log scale)
       </p>
       <p className="trade-map__axis trade-map__overlap">
         Numbers group coincident recipes. Overlapping marks open a chooser with

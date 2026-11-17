@@ -6,6 +6,8 @@ import {
   currentLeagueResponseSchema,
   factoryBatchListResponseSchema,
   factoryBatchResponseSchema,
+  factoryInventoryResponseSchema,
+  factorySalesResponseSchema,
   factorySummaryResponseSchema,
   recipeResponseSchema,
   recipeTrendResponseSchema,
@@ -28,6 +30,8 @@ describe('standalone preview data', () => {
       ['/api/admin/factory/batches', factoryBatchListResponseSchema],
       [`/api/admin/factory/batches/${id}`, factoryBatchResponseSchema],
       ['/api/admin/factory/summary', factorySummaryResponseSchema],
+      ['/api/admin/factory/inventory', factoryInventoryResponseSchema],
+      ['/api/admin/factory/sales', factorySalesResponseSchema],
     ] as const) {
       const response = await fetch(path);
       expect(response.ok, path).toBe(true);

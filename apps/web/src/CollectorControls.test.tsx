@@ -115,7 +115,7 @@ it('does not imply that resuming restarts a disconnected collector', () => {
 it('reports an unreadable or stale pause state instead of guessing', () => {
   expect(line({ paused: null })).toContain('Checking collection state');
   expect(line({ paused: null, pauseUnavailable: true })).toContain(
-    'Collection state unavailable',
+    'Состояние сбора недоступно',
   );
   const stale = line({
     paused: true,
@@ -126,14 +126,14 @@ it('reports an unreadable or stale pause state instead of guessing', () => {
   expect(stale).toContain('Could not resume collection: conflict.');
 });
 
-it('renders native buttons with Run now disabled until both states are known', () => {
+it('renders native buttons with Запустить сбор disabled until both states are known', () => {
   const html = renderToStaticMarkup(<CollectorControls />);
   expect(html).toContain('role="group"');
   expect(html).toMatch(
-    /<button[^>]*type="button"[^>]*>Check collection state<\/button>/,
+    /<button[^>]*type="button"[^>]*>Проверить состояние сбора<\/button>/,
   );
   expect(html).toMatch(
-    /<button(?=[^>]*type="button")(?=[^>]*disabled="")[^>]*>Run now/,
+    /<button(?=[^>]*type="button")(?=[^>]*disabled="")[^>]*>Запустить сбор/,
   );
 });
 

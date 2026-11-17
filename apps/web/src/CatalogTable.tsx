@@ -2,7 +2,7 @@ import { formatTimestamp } from './dateTime.js';
 import { Button, NativeSelect, TableSurface } from './ui.js';
 import type { CatalogEntry } from '@poe-worksmith/contracts';
 import { Fragment, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { WorkspaceLink as Link } from './workspaceNavigation.js';
 
 import {
   type CatalogFilters,
@@ -17,13 +17,13 @@ import { ItemTooltip } from './ItemTooltip.js';
 import { isSingleSellerHypothesis } from './MarketReadiness.js';
 
 const allColumns = [
-  ['title', 'Item name'],
-  ['category', 'Item class'],
-  ['cost', 'Expected cost'],
-  ['ask', 'Observed ask'],
-  ['profit', 'Profit'],
+  ['title', 'Название предмета'],
+  ['category', 'Класс предмета'],
+  ['cost', 'Средние затраты'],
+  ['ask', 'Цена объявления'],
+  ['profit', 'Разница с ask'],
   ['roi', 'ROI'],
-  ['freshness', 'Market evidence'],
+  ['freshness', 'Рыночные данные'],
 ] as const;
 
 const evidenceGroups = [
@@ -80,20 +80,21 @@ export function CatalogTable({
       className="catalog-table-scroll"
       role="region"
       aria-label="Crafting targets"
+      tabIndex={0}
     >
       <details className="catalog-display-options">
-        <summary>Sort and display options</summary>
+        <summary>Сортировка и отображение</summary>
         <label className="catalog-method-toggle">
           <input
             type="checkbox"
             checked={allMethods}
             onChange={(event) => setAllMethods(event.target.checked)}
           />{' '}
-          Show every crafting method
+          Показать все методы крафта
         </label>
         <div className="catalog-mobile-sort">
           <label>
-            <span>Sort by</span>
+            <span>Сортировать по</span>
             <NativeSelect
               value={sort}
               onChange={(event) => {
@@ -115,7 +116,7 @@ export function CatalogTable({
             aria-label={`Sort direction: ${direction === 'asc' ? 'ascending' : 'descending'}. Activate to reverse.`}
             onClick={() => onSort(sort)}
           >
-            {direction === 'asc' ? 'Ascending ↑' : 'Descending ↓'}
+            {direction === 'asc' ? 'По возрастанию ↑' : 'По убыванию ↓'}
           </Button>
         </div>
       </details>
@@ -236,17 +237,20 @@ export function CatalogTable({
                               className="craft-table__steps"
                               to={`/recipes/${recipe.id}`}
                             >
-                              Materials and steps →
+                              Материалы и шаги →
                             </Link>
                             {readiness &&
                             isSingleSellerHypothesis(readiness) ? (
-                              <small>Single-seller price hypothesis</small>
+                              <small>Гипотеза цены одного продавца</small>
                             ) : null}
                           </div>
                         </div>
                       </th>
                       {hasCost ? (
-                        <td className="table__cell" data-label="Expected cost">
+                        <td
+                          className="table__cell"
+                          data-label="Средние затраты"
+                        >
                           <Money price={evaluation.expectedCraftCost} />
                           {evaluation.budget ? (
                             <small>
@@ -257,14 +261,14 @@ export function CatalogTable({
                           ) : null}
                         </td>
                       ) : null}
-                      <td className="table__cell" data-label="Observed ask">
+                      <td className="table__cell" data-label="Цена объявления">
                         <Money price={observedAsk(entry)} />
                         {sampleAsk ? (
                           <small>Sample ask · not a sale</small>
                         ) : null}
                       </td>
                       {hasProfit ? (
-                        <td className="table__cell" data-label="Profit">
+                        <td className="table__cell" data-label="Разница с ask">
                           {evaluation.profit ? (
                             <ProfitBadge {...evaluation.profit} />
                           ) : (
@@ -293,14 +297,14 @@ export function CatalogTable({
                         </td>
                       ) : null}
                       <td
-                        data-label="Market evidence"
+                        data-label="Рыночные данные"
                         className="table__cell craft-table__evidence"
                       >
                         <span>
                           {evaluation.status === 'loading'
                             ? sampleAsk
                               ? 'Price observed · evaluation pending'
-                              : 'Awaiting output observation'
+                              : 'Ожидается наблюдение цели'
                             : observedAsk(entry) && !evaluation.profit
                               ? 'Price observed'
                               : getPriceStatus(evaluation.status)}
@@ -317,7 +321,7 @@ export function CatalogTable({
                         ) : null}
 
                         <details className="evidence-details">
-                          <summary>Price evidence</summary>
+                          <summary>Источники цен</summary>
                           {sellers === 1 &&
                           !evaluation.grade &&
                           !evaluation.profitBlockedReason &&

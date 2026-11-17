@@ -53,7 +53,7 @@ export function MarketReadiness({
     <div data-market-readiness data-readiness-level={r.level}>
       <p>
         <strong>{readinessLabels[r.level]}</strong>
-        {isSingleSellerHypothesis(r) ? ' · Single-seller price hypothesis' : ''}
+        {isSingleSellerHypothesis(r) ? ' · Гипотеза цены одного продавца' : ''}
       </p>
       <p>
         Latest capture {time(r.capturedAt)}.{' '}
@@ -66,7 +66,7 @@ export function MarketReadiness({
             : ''}
       </p>
       <p>
-        Observed asks <AskRange range={r.currentAskRange} /> ·{' '}
+        Наблюдаемые цены объявлений <AskRange range={r.currentAskRange} /> ·{' '}
         {r.currentSellers} priced sellers · {r.currentListings} listings
         {r.comparableSellers !== null
           ? ` · ${r.comparableSellers} comparable sellers`

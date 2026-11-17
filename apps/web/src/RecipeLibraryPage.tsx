@@ -1,7 +1,8 @@
 import { Button, Input, NativeSelect } from './ui.js';
 import type { CatalogEntry } from '@poe-worksmith/contracts';
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { WorkspaceLink as Link } from './workspaceNavigation.js';
 
 import { createApiClient } from './apiClient.js';
 import { filterCatalog } from './catalog.js';
@@ -32,20 +33,19 @@ export function RecipeLibraryPage() {
     <>
       <section className="catalog-heading">
         <div>
-          <h1>Crafting recipes</h1>
+          <h1>Каталог рецептов</h1>
           <p>
-            Browse targets, materials and crafting steps. Recipes stay here
-            regardless of market profitability.
+            Цели, материалы и инструкции крафта. Каталог включает рецепты
+            независимо от рыночной оценки.
           </p>
         </div>
       </section>
       {failed ? (
-        <StatusPanel tone="danger" title="Recipes unavailable">
-          Market targets could not be loaded. Pohx guides remain available
-          below.
+        <StatusPanel tone="danger" title="Рецепты недоступны">
+          Не удалось загрузить рыночные цели. Гайды Pohx доступны ниже.
         </StatusPanel>
       ) : entries === null ? (
-        <StatusPanel tone="info" title="Loading recipes" />
+        <StatusPanel tone="info" title="Загрузка рецептов" />
       ) : null}
       <RecipeLibrary entries={entries ?? []} />
     </>
@@ -56,7 +56,8 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
   const [params, setParams] = useSearchParams();
   const search = params.get('search') ?? '';
   const category = params.get('category') ?? 'all';
-  const source = params.get('source') ?? 'all';
+  const source =
+    params.get('view') === 'guides' ? 'pohx' : (params.get('source') ?? 'all');
   const filtered =
     source === 'pohx'
       ? []
@@ -81,21 +82,21 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
         aria-label="Recipe filters"
       >
         <label className="catalog-search catalog-filter">
-          <span>Recipe name or target</span>
+          <span>Название рецепта или цель</span>
           <Input
             type="search"
             value={search}
-            placeholder="Search recipes…"
+            placeholder="Поиск рецептов…"
             onChange={(event) => update('search', event.target.value)}
           />
         </label>
         <label className="catalog-filter">
-          <span>Item class</span>
+          <span>Класс предмета</span>
           <NativeSelect
             value={category}
             onChange={(event) => update('category', event.target.value)}
           >
-            <option value="all">All classes</option>
+            <option value="all">Все классы</option>
             {categories.map((name) => (
               <option key={name} value={name}>
                 {name.replaceAll('-', ' ')}
@@ -109,8 +110,8 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
             value={source}
             onChange={(e) => update('source', e.target.value)}
           >
-            <option value="all">All recipes</option>
-            <option value="market">Market targets</option>
+            <option value="all">Все рецепты</option>
+            <option value="market">Рыночные цели</option>
             <option value="pohx">Pohx / Convay</option>
           </NativeSelect>
         </label>
@@ -120,19 +121,26 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
           {filtered.length + guides.length} of{' '}
           {entries.length + pohxGuides.length} recipes and guides
         </span>
-        <Button type="button" onClick={() => setParams({}, { replace: true })}>
-          Reset filters
+        <Button
+          type="button"
+          onClick={() => {
+            const next = new URLSearchParams(params);
+            for (const key of ['search', 'category', 'source'])
+              next.delete(key);
+            setParams(next, { replace: true });
+          }}
+        >
+          Сбросить фильтры
         </Button>
       </div>
       <p className="catalog-price-note">
-        Market targets include collected prices. Pohx / Convay guides include
-        manual spending calculators; they do not carry verified profit
-        estimates.
+        Рыночные цели содержат собранные цены. Гайды Pohx / Convay включают
+        ручные калькуляторы расходов, без подтверждённой оценки прибыли.
       </p>
       <ul className="recipe-library">
         {filtered.length ? (
           <li className="recipe-library__heading">
-            <h2>Market recipes</h2>
+            <h2>Рыночные рецепты</h2>
             <span>Materials, steps and collected asks</span>
           </li>
         ) : null}
@@ -150,14 +158,14 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
               </p>
               <p>{recipe.summary}</p>
               <Link to={`/recipes/${encodeURIComponent(recipe.id)}`}>
-                Materials and steps ›
+                Материалы и шаги ›
               </Link>
             </div>
           </li>
         ))}
         {guides.length ? (
           <li className="recipe-library__heading">
-            <h2>Pohx / Convay guides</h2>
+            <h2>Гайды Pohx / Convay</h2>
             <span>Procedures and manual budget calculators</span>
           </li>
         ) : null}
@@ -173,14 +181,14 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
               <p className="recipe-library__method">
                 {guide.category.replaceAll('-', ' ')} · Pohx / Convay ·{' '}
                 {guide.workInProgress
-                  ? 'Source work in progress'
-                  : 'Spending scenario'}
+                  ? 'Автор ещё готовит материал'
+                  : 'Сценарий расходов'}
               </p>
               <p>{guide.summary}</p>
               <Link to={`/recipes/pohx/${guide.id}`}>
                 {guide.workInProgress
-                  ? 'View source status'
-                  : 'Steps and cost calculator'}{' '}
+                  ? 'Посмотреть статус источника'
+                  : 'Шаги и калькулятор затрат'}{' '}
                 ›
               </Link>
             </div>
@@ -188,7 +196,7 @@ export function RecipeLibrary({ entries }: { entries: CatalogEntry[] }) {
         ))}
       </ul>
       {!filtered.length && !guides.length ? (
-        <StatusPanel tone="info" title="No matching recipes">
+        <StatusPanel tone="info" title="Нет подходящих рецептов">
           Try another name or item class.
         </StatusPanel>
       ) : null}

@@ -1,3 +1,7 @@
+import { MaterialPlan } from './MaterialPlan.js';
+import { planScope } from './materialPlanModel.js';
+import { StepCheck } from './StepCheck.js';
+import { FavoriteButton } from './Watchlist.js';
 import { formatTimestamp } from './dateTime.js';
 import { TableSurface } from './ui.js';
 import {
@@ -8,7 +12,8 @@ import {
   type TrendRange,
 } from '@poe-worksmith/contracts';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { WorkspaceLink as Link } from './workspaceNavigation.js';
 
 import {
   Money,
@@ -19,7 +24,7 @@ import {
 import { evidenceRank, formatMarginPercent } from './catalog.js';
 import { ApiClientError, createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
-import { RecipeTrendPanel } from './MarketTrendsPage.js';
+import { RecipeTrendPanel, trendRanges } from './MarketTrendsPage.js';
 import { CraftRiskSection } from './CraftRiskSection.js';
 import {
   isSingleSellerHypothesis,
@@ -30,11 +35,24 @@ const apiClient = createApiClient('', (url, options) =>
   fetch(url, { ...options, signal: AbortSignal.timeout(15_000) }),
 );
 
-export function RecipePage() {
-  const { recipeId } = useParams();
+export function RecipePage({
+  selectedRecipeId,
+}: { selectedRecipeId?: string } = {}) {
+  const route = useParams();
+  const recipeId = selectedRecipeId ?? route.recipeId;
+  const [params, setParams] = useSearchParams();
+  const view = params.get('view') ?? 'recipe';
   const [response, setResponse] = useState<RecipeResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [trendRange, setTrendRange] = useState<TrendRange>('24h');
+  const requestedRange = params.get('range') as TrendRange;
+  const trendRange = trendRanges.includes(requestedRange)
+    ? requestedRange
+    : '24h';
+  function setTrendRange(range: TrendRange) {
+    const next = new URLSearchParams(params);
+    next.set('range', range);
+    setParams(next, { replace: true });
+  }
   const [catalogEntries, setCatalogEntries] = useState<CatalogEntry[]>([]);
 
   useEffect(() => {
@@ -98,7 +116,7 @@ export function RecipePage() {
   if (!response?.data)
     return (
       <RecipeMessage
-        title={response || loadError ? 'Recipe unavailable' : 'Loading recipe'}
+        title={response || loadError ? 'Рецепт недоступен' : 'Загрузка рецепта'}
       />
     );
 
@@ -106,6 +124,42 @@ export function RecipePage() {
   const { evaluation, recipe } = detail;
   const method = detail.method;
   const targetMods = detail.presentation.target.modifiers;
+  const sourceLeague = method.priceSources[0]?.league;
+  const selectedLeague = params.get('league');
+  if (sourceLeague && selectedLeague && sourceLeague !== selectedLeague)
+    return (
+      <article>
+        <h1>{recipe.title}</h1>
+        <StatusPanel tone="warning" title="Лига источника отличается">
+          Выбрана лига {selectedLeague}, а API рецепта вернул цены для{' '}
+          {sourceLeague}. Эти оценки нельзя переносить между лигами.{' '}
+          <Link
+            to={`/recipes/${encodeURIComponent(recipe.id)}?view=${encodeURIComponent(view)}&league=${encodeURIComponent(sourceLeague)}`}
+          >
+            Открыть данные лиги {sourceLeague}
+          </Link>
+        </StatusPanel>
+      </article>
+    );
+
+  if (view === 'budget' || view === 'materials')
+    return (
+      <article className="recipe-detail">
+        <h1>{recipe.title}</h1>
+        <MaterialPlan
+          key={planScope(
+            detail,
+            sourceLeague ?? selectedLeague ?? 'Лига неизвестна',
+          )}
+          detail={detail}
+          budget={view === 'budget'}
+          sourceUnavailable={loadError}
+        />
+      </article>
+    );
+  const show = (...views: string[]) =>
+    views.includes(view) || !['item', 'steps', 'methods'].includes(view);
+
   const prices =
     detail.snapshot?.listings
       .map((l) => l.price)
@@ -125,14 +179,26 @@ export function RecipePage() {
   return (
     <article className="recipe-detail recipe-detail--compact">
       <div className="recipe-detail__actions">
+        <FavoriteButton recipeId={recipe.id} />
+        <Link
+          to={`/market?recipe=${encodeURIComponent(recipe.id)}&view=history`}
+        >
+          Рынок
+        </Link>
+        <Link to={`/?recipe=${encodeURIComponent(recipe.id)}&view=budget`}>
+          Бюджет
+        </Link>
+        <Link to={`/recipes/${encodeURIComponent(recipe.id)}?view=materials`}>
+          Материалы
+        </Link>
         <Link className="back-link" to="/recipes">
-          ‹ Recipes
+          ‹ Рецепты
         </Link>
         <Link
           className="back-link"
           to={`/factory?recipe=${encodeURIComponent(recipe.id)}`}
         >
-          Start a production batch →
+          Создать партию →
         </Link>
       </div>
       {loadError ? (
@@ -167,14 +233,14 @@ export function RecipePage() {
       <div className="recipe-economics" aria-label="Current economics">
         {evaluation.expectedCraftCost ? (
           <span>
-            Indicative expected cost{' '}
+            Оценка средних затрат{' '}
             <strong>
               <Money price={evaluation.expectedCraftCost} />
             </strong>
           </span>
         ) : null}
         <span>
-          Comparable asking price{' '}
+          Цена сопоставимого объявления{' '}
           <strong>
             <Money
               price={
@@ -190,7 +256,7 @@ export function RecipePage() {
         </span>
         {evaluation.profit ? (
           <span>
-            Margin at ask{' '}
+            Разница с asking price{' '}
             <strong>
               {evaluation.profit ? (
                 <ProfitBadge {...evaluation.profit} />
@@ -211,7 +277,7 @@ export function RecipePage() {
           </span>
         ) : null}
         <span>
-          Craft method<strong>{method.name}</strong>
+          Метод крафта<strong>{method.name}</strong>
         </span>
       </div>
       {evaluation.profitBlockedReason ? (
@@ -226,39 +292,55 @@ export function RecipePage() {
         </p>
       ) : null}
       <details className="economics-help">
-        <summary>How cost and profit estimates work</summary>
+        <summary>Как рассчитаны затраты и разница с ask</summary>
         <p className="catalog-price-note">
-          ROI = (asking price − expected cost) ÷ expected cost × 100%. A cost of
-          10 div and an ask of 12 div gives a 2 div spread and 20% ROI at that
-          ask. Expected cost is a mean across repeated crafts, not a guaranteed
-          budget.
+          ROI = (цена объявления − средние затраты) ÷ средние затраты × 100%.
+          При затратах 10 div и цене объявления 12 div разница составляет 2 div,
+          ROI — 20%. Это оценка по asking price, не реализованная прибыль.
+          Средние затраты не гарантируют бюджет отдельного крафта.
         </p>
       </details>
 
-      <MethodsForTarget
-        entries={catalogEntries}
-        targetSignature={detail.targetSignature}
-      />
+      {show('methods') ? (
+        <MethodsForTarget
+          entries={catalogEntries}
+          targetSignature={detail.targetSignature}
+          baseCanonicalId={detail.presentation.base.canonicalId}
+        />
+      ) : null}
+      {view === 'methods' &&
+      catalogEntries.filter(
+        ({ recipe: candidate, itemPreview }) =>
+          candidate.targetSignature === detail.targetSignature &&
+          itemPreview?.canonicalId === detail.presentation.base.canonicalId,
+      ).length < 2 ? (
+        <StatusPanel tone="info" title="Нет совместимых методов">
+          Для этой базы и targetSignature нет второго сопоставимого метода.
+          Совпадения названий недостаточно.
+        </StatusPanel>
+      ) : null}
 
-      <DetailSection title="Base and target">
-        <ItemTooltip item={detail.presentation.base} />
-        <p className="base-requirements">
-          {detail.base.name} · {detail.base.requirements.join(' · ')}
-        </p>
-        {(['prefix', 'suffix', 'implicit', 'enchant', 'other'] as const).map(
-          (group) =>
-            targetMods.some((m) => m.generationType === group) ? (
-              <p className="base-requirements" key={group}>
-                {group}:{' '}
-                {targetMods
-                  .filter((m) => m.generationType === group)
-                  .map((m) => m.label)
-                  .join(' · ') || 'None required'}
-              </p>
-            ) : null,
-        )}
-      </DetailSection>
-      {method ? (
+      {show('item') ? (
+        <DetailSection title="База и цель">
+          <ItemTooltip item={detail.presentation.base} />
+          <p className="base-requirements">
+            {detail.base.name} · {detail.base.requirements.join(' · ')}
+          </p>
+          {(['prefix', 'suffix', 'implicit', 'enchant', 'other'] as const).map(
+            (group) =>
+              targetMods.some((m) => m.generationType === group) ? (
+                <p className="base-requirements" key={group}>
+                  {group}:{' '}
+                  {targetMods
+                    .filter((m) => m.generationType === group)
+                    .map((m) => m.label)
+                    .join(' · ') || 'None required'}
+                </p>
+              ) : null,
+          )}
+        </DetailSection>
+      ) : null}
+      {method && show('steps') ? (
         <DetailSection title={method.name}>
           {evaluation.status === 'stale' ? (
             <p className="recipe-warning">
@@ -273,6 +355,15 @@ export function RecipePage() {
               : ` ${method.expectedBases} expected bases per finished item.`}{' '}
             Material prices are shown per use below.
           </p>
+          {!method.steps.length ? (
+            <StatusPanel
+              tone="info"
+              title="Нет проверенной последовательности шагов"
+            >
+              Метод пока не содержит подробных действий. Проверьте источник
+              рецепта.
+            </StatusPanel>
+          ) : null}
           <ol className="craft-steps">
             {method.steps.map((step) => {
               const execution = method.expectedExecutions.find(
@@ -280,6 +371,11 @@ export function RecipePage() {
               );
               return (
                 <li key={step.id}>
+                  <StepCheck
+                    recipeId={`${recipe.id}:${detail.gameVersion}:${method.id}:${sourceLeague ?? ''}`}
+                    stepId={step.id}
+                    stepName={step.title}
+                  />
                   <strong>{step.action}</strong>
                   <span>
                     {step.materials
@@ -369,68 +465,70 @@ export function RecipePage() {
         </DetailSection>
       ) : null}
 
-      <DetailSection title="Price evidence" collapsed>
-        <p>
-          Starting base: <Money price={method.baseCost} /> · Expected bases per
-          finished item: {method.expectedBases ?? 'Not estimated'}
-        </p>
-        {method.priceSources.map((source) => (
-          <p key={source.itemId}>
-            {source.itemId.replaceAll('-', ' ')} · {source.source} ·{' '}
-            {source.league} · {source.currency} ·{' '}
-            {source.priceBasis === 'economy-estimate'
-              ? 'Economy estimate'
-              : source.bulkSupported === false
-                ? 'Unit ask (bulk stock unverified)'
-                : 'Asking price'}{' '}
-            ·{' '}
-            {source.sortedSampleComplete
-              ? `Available ask sample: 20/${source.totalResults ?? 'unknown'} offers · `
-              : ''}
-            <time dateTime={source.capturedAt}>
-              {formatTimestamp(source.capturedAt)}
-            </time>
-            {source.verifiedAt && source.verifiedAt !== source.capturedAt ? (
-              <>
-                {' '}
-                · Rechecked{' '}
-                <time dateTime={source.verifiedAt}>
-                  {formatTimestamp(source.verifiedAt)}
-                </time>
-              </>
-            ) : null}
+      {show('item') ? (
+        <DetailSection title="Источники цен" collapsed>
+          <p>
+            Starting base: <Money price={method.baseCost} /> · Expected bases
+            per finished item: {method.expectedBases ?? 'Not estimated'}
           </p>
-        ))}
-        <p>
-          {detail.snapshot
-            ? `${detail.snapshot.listings.length} verified sellers · ${detail.snapshot.coverage ?? 'unknown'} search coverage${detail.snapshot.sortedPageComplete ? ' (complete lowest-price page)' : detail.snapshot.sortedSampleComplete ? ` (sorted price sample: 20/${detail.snapshot.totalResults} offers)` : ''}${detail.snapshot.listings.length > 0 && detail.snapshot.listings.length <= 2 ? ' · Thin market' : ''} · ${formatTimestamp(detail.snapshot.capturedAt)}`
-            : detail.marketActivity?.observedAskSample?.length
-              ? 'See observed asking prices below.'
-              : method.marketStatus === 'empty'
-                ? 'No verified comparable asking prices found.'
-                : 'Comparable market data unavailable.'}
-        </p>
-        <p>
-          Median verified ask (observed sample): <Money price={median} />
-        </p>
-        <div className="recipe-ingredients">
-          {detail.snapshot?.listings.slice(0, 5).map((listing) => (
-            <span className="recipe-ingredient" key={listing.id}>
-              {listing.itemPreview ? (
-                <ItemTooltip item={listing.itemPreview} />
+          {method.priceSources.map((source) => (
+            <p key={source.itemId}>
+              {source.itemId.replaceAll('-', ' ')} · {source.source} ·{' '}
+              {source.league} · {source.currency} ·{' '}
+              {source.priceBasis === 'economy-estimate'
+                ? 'Economy estimate'
+                : source.bulkSupported === false
+                  ? 'Unit ask (bulk stock unverified)'
+                  : 'Asking price'}{' '}
+              ·{' '}
+              {source.sortedSampleComplete
+                ? `Available ask sample: 20/${source.totalResults ?? 'unknown'} offers · `
+                : ''}
+              <time dateTime={source.capturedAt}>
+                {formatTimestamp(source.capturedAt)}
+              </time>
+              {source.verifiedAt && source.verifiedAt !== source.capturedAt ? (
+                <>
+                  {' '}
+                  · Rechecked{' '}
+                  <time dateTime={source.verifiedAt}>
+                    {formatTimestamp(source.verifiedAt)}
+                  </time>
+                </>
               ) : null}
-              <Money price={listing.price} />
-            </span>
+            </p>
           ))}
-        </div>
-      </DetailSection>
-      {detail.readiness ? (
-        <DetailSection title="Data readiness" collapsed>
+          <p>
+            {detail.snapshot
+              ? `${detail.snapshot.listings.length} verified sellers · ${detail.snapshot.coverage ?? 'unknown'} search coverage${detail.snapshot.sortedPageComplete ? ' (complete lowest-price page)' : detail.snapshot.sortedSampleComplete ? ` (sorted price sample: 20/${detail.snapshot.totalResults} offers)` : ''}${detail.snapshot.listings.length > 0 && detail.snapshot.listings.length <= 2 ? ' · Thin market' : ''} · ${formatTimestamp(detail.snapshot.capturedAt)}`
+              : detail.marketActivity?.observedAskSample?.length
+                ? 'See observed asking prices below.'
+                : method.marketStatus === 'empty'
+                  ? 'No verified comparable asking prices found.'
+                  : 'Comparable market data unavailable.'}
+          </p>
+          <p>
+            Median verified ask (observed sample): <Money price={median} />
+          </p>
+          <div className="recipe-ingredients">
+            {detail.snapshot?.listings.slice(0, 5).map((listing) => (
+              <span className="recipe-ingredient" key={listing.id}>
+                {listing.itemPreview ? (
+                  <ItemTooltip item={listing.itemPreview} />
+                ) : null}
+                <Money price={listing.price} />
+              </span>
+            ))}
+          </div>
+        </DetailSection>
+      ) : null}
+      {detail.readiness && show('item') ? (
+        <DetailSection title="Готовность данных" collapsed>
           <MarketReadiness readiness={detail.readiness} />
         </DetailSection>
       ) : null}
-      {detail.marketActivity ? (
-        <DetailSection title="Market activity">
+      {detail.marketActivity && show('item') ? (
+        <DetailSection title="Активность объявлений">
           <p>Inferred from listings, not sales.</p>
           <p>
             {detail.marketActivity.active === null
@@ -486,30 +584,34 @@ export function RecipePage() {
             </p>
           ) : null}
           <p>
-            <Link to="/factory">Your confirmed sales in My Factory</Link>
+            <Link to="/factory">Ваши подтверждённые продажи в мастерской</Link>
           </p>
         </DetailSection>
       ) : null}
-      <DetailSection title="Price history">
-        <RecipeTrendPanel
-          onRangeChange={setTrendRange}
-          range={trendRange}
-          recipeId={recipe.id}
-        />
-        <Link
-          className="recipe-link"
-          to={`/market?recipe=${encodeURIComponent(recipe.id)}&range=${trendRange}`}
-        >
-          Compare in market trends ›
-        </Link>
-      </DetailSection>
-      <details className="detail-section">
-        <summary>Advanced: expected value and risk calculator</summary>
-        <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
-      </details>
+      {show('item') ? (
+        <DetailSection title="История цен">
+          <RecipeTrendPanel
+            onRangeChange={setTrendRange}
+            range={trendRange}
+            recipeId={recipe.id}
+          />
+          <Link
+            className="recipe-link"
+            to={`/market?recipe=${encodeURIComponent(recipe.id)}&range=${trendRange}`}
+          >
+            Compare in market trends ›
+          </Link>
+        </DetailSection>
+      ) : null}
+      {show('item') ? (
+        <details className="detail-section">
+          <summary>Расчёт ожидаемой стоимости и риска</summary>
+          <CraftRiskSection key={recipe.id} recipeId={recipe.id} />
+        </details>
+      ) : null}
       {detail.uncertainties.length ? (
         <details className="detail-section">
-          <summary>Crafting and pricing caveats</summary>
+          <summary>Ограничения крафта и оценок</summary>
           <ul>
             {detail.uncertainties.map((note) => (
               <li key={note}>{note}</li>
@@ -525,10 +627,10 @@ function RecipeMessage({ title }: { title: string }) {
   return (
     <>
       <Link className="back-link" to="/recipes">
-        ‹ Recipes
+        ‹ Рецепты
       </Link>
       <StatusPanel
-        tone={title === 'Loading recipe' ? 'info' : 'danger'}
+        tone={title === 'Загрузка рецепта' ? 'info' : 'danger'}
         title={title}
       />
     </>
@@ -553,7 +655,7 @@ function DetailSection({
     );
   return (
     <section
-      className={`detail-section${title === 'Base and target' ? ' base-target' : ''}`}
+      className={`detail-section${title === 'База и цель' ? ' base-target' : ''}`}
     >
       <h2>{title}</h2>
       {children}
@@ -577,12 +679,18 @@ export function shouldRefreshMethodComparison(
 export function MethodsForTarget({
   entries,
   targetSignature,
+  baseCanonicalId,
 }: {
   entries: CatalogEntry[];
   targetSignature: string;
+  baseCanonicalId?: string;
 }) {
   const methods = entries
-    .filter(({ recipe }) => recipe.targetSignature === targetSignature)
+    .filter(
+      ({ recipe, itemPreview }) =>
+        recipe.targetSignature === targetSignature &&
+        (!baseCanonicalId || itemPreview?.canonicalId === baseCanonicalId),
+    )
     .sort((left, right) => {
       const rank = evidenceRank(left) - evidenceRank(right);
       if (rank !== 0) return rank;
@@ -598,7 +706,7 @@ export function MethodsForTarget({
   if (methods.length < 2) return null;
 
   return (
-    <DetailSection title="Methods for this target">
+    <DetailSection title="Методы для этой цели">
       <div
         className="craft-risk__table-wrap"
         role="region"
@@ -606,14 +714,11 @@ export function MethodsForTarget({
         tabIndex={0}
       >
         <TableSurface>
-          <table
-            className="table__content"
-            aria-label="Methods for this target"
-          >
+          <table className="table__content" aria-label="Методы для этой цели">
             <caption>
-              Expected profit uses mean cost. For one finished item, at least
-              half of runs cost at or below p50, and at least nine in ten cost
-              at or below p90.
+              Разница с asking price рассчитана по средним затратам. Для одного
+              предмета не менее половины крафтов укладываются в P50 затрат, не
+              менее девяти из десяти — в P90. Это не вероятность продажи.
             </caption>
             <thead className="table__header">
               <tr className="table__row">
@@ -621,25 +726,25 @@ export function MethodsForTarget({
                   Method
                 </th>
                 <th className="table__column" scope="col">
-                  Mean cost
+                  Средние затраты
                 </th>
                 <th className="table__column" scope="col">
-                  Sale ask
+                  Цена объявления
                 </th>
                 <th className="table__column" scope="col">
-                  Expected profit
+                  Оценка разницы с ask
                 </th>
                 <th className="table__column" scope="col">
                   ROI
                 </th>
                 <th className="table__column" scope="col">
-                  Budget p50
+                  Бюджет P50
                 </th>
                 <th className="table__column" scope="col">
-                  Budget p90
+                  Бюджет P90
                 </th>
                 <th className="table__column" scope="col">
-                  Grade or block reason
+                  Качество данных / причина недоступности
                 </th>
               </tr>
             </thead>
@@ -651,11 +756,11 @@ export function MethodsForTarget({
                       {recipe.craftMethod}
                     </Link>
                     {readiness && isSingleSellerHypothesis(readiness) ? (
-                      <small>Single-seller price hypothesis</small>
+                      <small>Гипотеза цены одного продавца</small>
                     ) : index === 0 &&
                       evaluation.profit &&
                       readiness === undefined ? (
-                      <small>Best by expected profit</small>
+                      <small>Лучший по оценке разницы с ask</small>
                     ) : null}
                   </th>
                   <td className="table__cell">
@@ -715,5 +820,5 @@ function unpricedMethodReason(evaluation: CatalogEntry['evaluation']) {
     return domainErrorDefinitions.SNAPSHOT_EXPIRED.publicMessage;
   if (evaluation.status === 'loading')
     return domainErrorDefinitions.SNAPSHOT_MISSING.publicMessage;
-  return 'Expected profit unavailable.';
+  return 'Оценка разницы с asking price недоступна.';
 }

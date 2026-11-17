@@ -250,11 +250,11 @@ export function filterMarketTargets<T extends MarketListTarget>(
 
 export function getPriceStatus(status: CatalogEntry['evaluation']['status']) {
   return {
-    success: 'Updated',
-    stale: 'Outdated',
-    loading: 'Updating',
-    partial: 'Partial',
-    error: 'Unavailable',
+    success: 'Обновлено',
+    stale: 'Устарело',
+    loading: 'Обновляется',
+    partial: 'Частично',
+    error: 'Недоступно',
   }[status];
 }
 

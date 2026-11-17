@@ -127,7 +127,7 @@ export function GuidedOutcomeEditor({
             />
           </label>
           <label>
-            Cost source
+            Источник затрат
             <Input
               value={draft.costSource}
               onChange={(event) => change('costSource', event.target.value)}

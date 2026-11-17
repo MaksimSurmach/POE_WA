@@ -14,21 +14,21 @@ import {
 import { factoryCostLabel, factoryExactTargetAllowed } from './factoryForm.js';
 
 const eventTypes = [
-  ['purchase', 'Buy materials or bases'],
-  ['consume', 'Consume purchased materials'],
-  ['produce', 'Register crafted result'],
-  ['list', 'List an item'],
-  ['sale', 'Confirm completed sale'],
-  ['activity', 'Record attempts and crafting time'],
-  ['expense', 'Add crafting or finishing expense'],
-  ['allocate', 'Allocate additional item costs'],
-  ['credit', 'Record recovery credit'],
-  ['return-material', 'Return unused materials to stock'],
-  ['refund', 'Refund unused purchase'],
-  ['item-status', 'Change inventory status'],
-  ['batch-status', 'Change production status'],
-  ['note', 'Update batch notes'],
-  ['void', 'Correct an earlier event'],
+  ['purchase', 'Закупить материалы или базы'],
+  ['consume', 'Списать закупленные материалы'],
+  ['produce', 'Зарегистрировать результат крафта'],
+  ['list', 'Выставить предмет'],
+  ['sale', 'Подтвердить состоявшуюся продажу'],
+  ['activity', 'Записать попытки и время крафта'],
+  ['expense', 'Добавить расходы крафта'],
+  ['allocate', 'Распределить дополнительные затраты'],
+  ['credit', 'Записать возврат стоимости'],
+  ['return-material', 'Вернуть материалы в запас'],
+  ['refund', 'Вернуть неиспользованную закупку'],
+  ['item-status', 'Изменить статус предмета'],
+  ['batch-status', 'Изменить статус партии'],
+  ['note', 'Изменить заметки партии'],
+  ['void', 'Исправить предыдущее событие'],
 ] as const;
 
 export function AllocationFields({
@@ -42,7 +42,7 @@ export function AllocationFields({
   const costs = projection.costs.filter((cost) => Number(cost.remaining) > 0);
   return (
     <fieldset>
-      <legend>Trace production cost to this item</legend>
+      <legend>Отнести затраты к этому предмету</legend>
       <p className="factory-note">
         Allocate consumed materials and expenses in chaos. Purchases still in
         stock are not production cost. Blank rows leave costs unallocated and
@@ -51,9 +51,11 @@ export function AllocationFields({
       {rows.map((row) => (
         <div className="factory-allocation" key={row}>
           <label>
-            Cost source
+            Источник затрат
             <NativeSelect name="allocationCost">
-              <option value="">Select cost or leave unallocated</option>
+              <option value="">
+                Выберите затраты или оставьте нераспределёнными
+              </option>
               {costs.map((cost) => (
                 <option key={cost.eventId} value={cost.eventId}>
                   {factoryCostLabel(cost.eventId, events, projection)} ·{' '}
@@ -64,7 +66,7 @@ export function AllocationFields({
           </label>
           <FactoryField
             name="allocationAmount"
-            label="Allocated cost (chaos)"
+            label="Отнесённая себестоимость (chaos)"
             type="number"
             step="any"
             min="0"
@@ -83,7 +85,7 @@ export function AllocationFields({
         disabled={rows.length >= 200}
         onClick={() => setRows([...rows, Math.max(-1, ...rows) + 1])}
       >
-        Add cost allocation
+        Добавить распределение затрат
       </Button>
     </fieldset>
   );
@@ -131,9 +133,9 @@ export function FactoryEventForm({
     await onSubmit(new FormData(event.currentTarget));
   }
   return (
-    <form onSubmit={submit} aria-label="Record factory event">
+    <form onSubmit={submit} aria-label="Запись события мастерской">
       <label>
-        Event type
+        Тип события
         <NativeSelect
           disabled={busy}
           value={type}
@@ -157,13 +159,13 @@ export function FactoryEventForm({
         {type === 'purchase' ? (
           <FactoryField
             name="resourceId"
-            label="Material or base name"
+            label="Название материала или базы"
             maxLength={200}
           />
         ) : null}
         {['consume', 'refund'].includes(type) ? (
-          <FactorySelect name="purchaseEventId" label="Purchase lot">
-            <option value="">Choose purchase</option>
+          <FactorySelect name="purchaseEventId" label="Партия закупки">
+            <option value="">Выберите закупку</option>
             {projection.stock
               .filter((lot) => Number(lot.quantityAvailable) > 0)
               .map((lot) => (
@@ -176,7 +178,7 @@ export function FactoryEventForm({
         ) : null}
         {type === 'return-material' ? (
           <FactorySelect name="consumeEventId" label="Consumption to reverse">
-            <option value="">Choose consumption</option>
+            <option value="">Выберите расход</option>
             {activeEvents
               .filter((event) => event.payload.type === 'consume')
               .map((event) => (
@@ -189,7 +191,7 @@ export function FactoryEventForm({
         {['consume', 'return-material', 'refund'].includes(type) ? (
           <FactoryField
             name="stockQuantity"
-            label="Stock quantity"
+            label="Количество из запаса"
             type="number"
             step="any"
             min="0.000001"
@@ -197,7 +199,9 @@ export function FactoryEventForm({
         ) : null}
         {['allocate', 'list', 'sale', 'item-status'].includes(type) ? (
           <FactorySelect name="itemId" label="Inventory item">
-            <option value="">Choose held or listed item</option>
+            <option value="">
+              Выберите имеющийся или выставленный предмет
+            </option>
             {availableItems.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.description} · {item.status} · {item.id.slice(0, 8)}
@@ -209,11 +213,11 @@ export function FactoryEventForm({
           <>
             <FactoryField
               name="description"
-              label="Crafted item description"
+              label="Описание созданного предмета"
               maxLength={200}
             />
             <label>
-              Outcome ID or classification label
+              ID результата или метка класса
               <Input
                 name="outcome"
                 value={outcomeId}
@@ -291,7 +295,7 @@ export function FactoryEventForm({
               </p>
             ) : (
               <details>
-                <summary>Advanced output matching</summary>
+                <summary>Сопоставление результата</summary>
                 <FactoryField
                   name="targetSignature"
                   label="Other verified output signature (optional)"
@@ -306,7 +310,7 @@ export function FactoryEventForm({
               </details>
             )}
             <label>
-              Modifiers (one per line)
+              Модификаторы (по одному в строке)
               <TextArea name="modifiers" rows={3} />
             </label>
             <p className="factory-note">
@@ -337,8 +341,8 @@ export function FactoryEventForm({
               type === 'list'
                 ? 'Advertised listing price (not a sale)'
                 : type === 'sale'
-                  ? 'Confirmed sale proceeds'
-                  : 'Actual transaction'
+                  ? 'Выручка подтверждённой продажи'
+                  : 'Фактическая операция'
             }
           />
         ) : null}
@@ -398,7 +402,7 @@ export function FactoryEventForm({
         ) : null}
         {type === 'batch-status' ? (
           <>
-            <FactorySelect name="status" label="Production status">
+            <FactorySelect name="status" label="Статус производства">
               {['active', 'completed', 'cancelled'].map((status) => (
                 <option key={status}>{status}</option>
               ))}
@@ -418,7 +422,7 @@ export function FactoryEventForm({
         {type === 'void' ? (
           <>
             <FactorySelect name="eventId" label="Event to correct">
-              <option value="">Choose active event</option>
+              <option value="">Выберите действующее событие</option>
               {activeEvents.map((event) => (
                 <option key={event.id} value={event.id}>
                   {event.payload.type} · {event.id.slice(0, 8)} ·{' '}
@@ -448,18 +452,18 @@ export function FactoryEventForm({
           />
           <FactoryField
             name="source"
-            label="Transaction or event source"
+            label="Источник операции или события"
             maxLength={200}
           />
           <FactoryField
             name="notes"
-            label="Event notes"
+            label="Заметки к событию"
             maxLength={2000}
             required={false}
           />
         </div>
         <Button type="submit" disabled={busy}>
-          {busy ? 'Recording…' : 'Record event'}
+          {busy ? 'Запись…' : 'Записать событие'}
         </Button>
       </fieldset>
     </form>
