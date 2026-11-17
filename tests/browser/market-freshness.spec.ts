@@ -77,7 +77,7 @@ test('an open recipe revalidates when its window regains focus', async ({
 
   unavailable = true;
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
-  await expect(page.getByText(/Price update unavailable/)).toBeVisible();
+  await expect(page.getByText(/Не удалось обновить цены/)).toBeVisible();
   await expect(base).toHaveValue('10');
 
   unavailable = false;
