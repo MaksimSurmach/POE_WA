@@ -55,7 +55,12 @@ test('settings-run-now-updates-homepage', async ({ page }) => {
     .toBeGreaterThan(Date.parse(before));
   await page.goto('/');
   await expect(cost).toContainText('11,536 c');
-  await expect(page.getByText(/Next Fixture League/)).toBeVisible();
+  await expect(
+    page.locator('.catalog-heading').getByText(/Next Fixture League/),
+  ).toBeVisible();
+  await expect(page.locator('.workspace-context')).toContainText(
+    'Next Fixture League',
+  );
   const detail = await page.request.get(`/api${recipe}`);
   expect(detail.ok()).toBe(true);
   const { data } = await detail.json();
