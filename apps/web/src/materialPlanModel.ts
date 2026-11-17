@@ -226,3 +226,15 @@ export function planTsv(rows: string[][]) {
     )
     .join('\n');
 }
+
+export function planPriceChanged(
+  row: PlanDraft['rows'][string],
+  source: PlanMaterial,
+) {
+  return (
+    row.origin === 'market' &&
+    (row.capturedAt !== source.capturedAt ||
+      row.currency !== source.currency ||
+      (row.price === '' ? null : Number(row.price)) !== source.price)
+  );
+}

@@ -638,7 +638,7 @@ export function FactoryPage() {
                 tabIndex={0}
               >
                 <TableSurface>
-                  <table className="table__content factory-table">
+                  <table className="table__content factory-table factory-batches-table">
                     <thead className="table__header">
                       <tr className="table__row">
                         <th className="table__column">Партия / рецепт</th>

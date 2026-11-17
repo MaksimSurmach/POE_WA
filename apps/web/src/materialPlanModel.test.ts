@@ -7,6 +7,7 @@ import {
   refreshPlanPrices,
   planScope,
   planTsv,
+  planPriceChanged,
 } from './materialPlanModel.js';
 import { profitableRecipeDetail } from './mocks/recipeDetails.js';
 
@@ -197,4 +198,25 @@ it('fills an untouched unknown price when a quote becomes available', () => {
     origin: 'market',
     capturedAt: '2026-11-17T10:00:00Z',
   });
+});
+
+it('detects changed quotes even without dates and leaves manual rows alone', () => {
+  const source = {
+    id: 'x',
+    name: 'x',
+    quantity: 1,
+    price: 2,
+    currency: 'chaos' as const,
+    capturedAt: null,
+  };
+  const row = initialPlan([source]).rows.x!;
+  expect(planPriceChanged(row, source)).toBe(false);
+  expect(planPriceChanged(row, { ...source, price: 3 })).toBe(true);
+  expect(planPriceChanged(row, { ...source, currency: 'divine' })).toBe(true);
+  expect(planPriceChanged({ ...row, price: '', currency: null }, source)).toBe(
+    true,
+  );
+  expect(
+    planPriceChanged({ ...row, origin: 'manual' }, { ...source, price: 3 }),
+  ).toBe(false);
 });

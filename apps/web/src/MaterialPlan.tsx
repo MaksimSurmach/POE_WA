@@ -16,6 +16,7 @@ import {
   readPlan,
   refreshPlanPrices,
   planTsv,
+  planPriceChanged,
   type PlanDraft,
 } from './materialPlanModel.js';
 
@@ -241,10 +242,11 @@ export function MaterialPlan({
                         ? formatTimestamp(row.capturedAt)
                         : 'Дата цены неизвестна'}
                     </small>
-                    {row.origin === 'market' &&
-                    materials.find((material) => material.id === row.id)
-                      ?.capturedAt !== row.capturedAt ? (
-                      <small>В источнике есть новые цены</small>
+                    {planPriceChanged(
+                      draft.rows[row.id]!,
+                      materials.find((material) => material.id === row.id)!,
+                    ) ? (
+                      <small>Данные источника изменились</small>
                     ) : null}
                   </th>
                   <td>{input(row.id, 'needed', 'На предмет')}</td>
