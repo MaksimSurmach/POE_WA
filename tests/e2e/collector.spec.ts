@@ -9,9 +9,9 @@ test('COLLECTOR-01 Run now publishes capture readiness in the packaged app', asy
 
   await page.goto('/');
   await expect(page.getByLabel('Operator token')).toHaveCount(0);
-  await page.getByText('Sort and display options', { exact: true }).click();
+  await page.getByText('Сортировка и отображение', { exact: true }).click();
   await page
-    .getByRole('checkbox', { name: 'Show every crafting method' })
+    .getByRole('checkbox', { name: 'Показать все методы крафта' })
     .check();
   const row = page.getByRole('row').filter({
     has: page.locator(`a[href="/recipes/${recipe}"]`),
@@ -19,7 +19,7 @@ test('COLLECTOR-01 Run now publishes capture readiness in the packaged app', asy
   await expect(row).toHaveAttribute('data-readiness-level', 'insufficient');
   await page.goto('/settings');
   await expect(page.getByText('Collector connected')).toBeVisible();
-  await page.getByRole('button', { name: 'Run now' }).click();
+  await page.getByRole('button', { name: 'Запустить сбор' }).click();
   await expect
     .poll(
       async () => {
@@ -30,31 +30,31 @@ test('COLLECTOR-01 Run now publishes capture readiness in the packaged app', asy
     )
     .toBe('done');
 
-  await page.getByText('Collector details', { exact: true }).click();
+  await page.getByText('Диагностика коллектора', { exact: true }).click();
   await expect(page.getByText(/leader · last contact/)).toBeVisible();
   const lastHour = page.getByRole('region', { name: 'Last 1h' });
   await expect(lastHour).toContainText(/successful \([1-9]\d* complete/);
 
   await page.goto('/');
-  await page.getByText('Sort and display options', { exact: true }).click();
+  await page.getByText('Сортировка и отображение', { exact: true }).click();
   await page
-    .getByRole('checkbox', { name: 'Show every crafting method' })
+    .getByRole('checkbox', { name: 'Показать все методы крафта' })
     .check();
   await expect(row).toHaveAttribute('data-readiness-level', 'price-observed');
-  await expect(row.locator('[data-label="Expected cost"]')).toContainText(
+  await expect(row.locator('[data-label="Средние затраты"]')).toContainText(
     '11,519 c',
   );
   await row
-    .getByRole('link', { name: 'Materials and steps →', exact: true })
+    .getByRole('link', { name: 'Материалы и шаги →', exact: true })
     .click();
-  await page.getByText('Data readiness', { exact: true }).click();
+  await page.getByText('Готовность данных', { exact: true }).click();
   await expect(
     page.locator(
       '[data-market-readiness][data-readiness-level="price-observed"]',
     ),
   ).toBeVisible();
   await expect(
-    page.getByText('Single-seller price hypothesis').first(),
+    page.getByText('Гипотеза цены одного продавца').first(),
   ).toBeVisible();
 });
 
@@ -63,7 +63,7 @@ test('COLLECTOR-02 disclosure fits a phone and identifies the recorded worker', 
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/settings');
-  await page.getByText('Collector details', { exact: true }).click();
+  await page.getByText('Диагностика коллектора', { exact: true }).click();
   await expect(page.getByText(/leader · last contact/)).toBeVisible();
   await expect(
     page.getByRole('heading', { name: 'Last 24 hours' }),
@@ -84,7 +84,7 @@ test('COLLECTOR-02 disclosure fits a phone and identifies the recorded worker', 
     await route.fulfill({ response, json });
   });
   await page.reload();
-  await page.getByText('Collector details', { exact: true }).click();
+  await page.getByText('Диагностика коллектора', { exact: true }).click();
   await expect(page.getByText(/stale telemetry/)).toBeVisible();
   await expect(page.getByText(/Cooling down.*HTTP 429.*until/)).toBeVisible();
   expect(
