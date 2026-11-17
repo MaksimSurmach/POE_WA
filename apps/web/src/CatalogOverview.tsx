@@ -11,20 +11,20 @@ export function CatalogOverview({ entries }: { entries: CatalogEntry[] }) {
     ({ readiness: r }) =>
       r?.fresh && r.activityMeasurable && (r.last24h.inferredExits ?? 0) > 0,
   ).length;
+  const headline = estimated
+    ? `${estimated} целей с оценкой разницы между затратами и asking price`
+    : priced
+      ? 'Цены доступны. Оценка прибыли пока не подтверждена.'
+      : 'Актуальных цен объявлений пока нет.';
   return (
     <section
       className="catalog-decision"
       aria-label="Market collection summary"
     >
-      <h2>
-        {estimated
-          ? `${estimated} целей с оценкой разницы между затратами и asking price`
-          : priced
-            ? 'Цены доступны. Оценка прибыли пока не подтверждена.'
-            : 'Актуальных цен объявлений пока нет.'}
-      </h2>
+      <h2>{headline}</h2>
       <details>
         <summary>Данные о ценах и активности</summary>
+        <h2 className="catalog-decision__mobile">{headline}</h2>
         <p className="catalog-decision__facts">
           <span>
             {priced} из {entries.length} целей с наблюдаемыми ценами
