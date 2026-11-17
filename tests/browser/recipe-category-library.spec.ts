@@ -324,13 +324,16 @@ test('refresh failures preserve useful data; history failures remain partial and
     route.fulfill({
       json: envelope({
         entries,
-        league: { id: 'archive-covens', name: 'Updated catalogue league' },
+        league: {
+          id: '00000000-0000-4000-8000-000000000001',
+          name: 'Obsolete catalogue label',
+        },
       }),
     }),
   );
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await expect(page.locator('.workspace-context')).toContainText(
-    'Updated catalogue league',
+    'Preview League',
   );
   await page.route('**/api/catalog', (route) =>
     route.fulfill({

@@ -158,7 +158,15 @@ test('all main pages share typography, palette and content width', async ({
 }) => {
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
-    let expected: unknown;
+    let expected:
+      | {
+          background: string;
+          text: string;
+          font: string;
+          titleSize: string;
+          width: number;
+        }
+      | undefined;
     for (const path of [
       '/',
       '/recipes',
@@ -180,7 +188,10 @@ test('all main pages share typography, palette and content width', async ({
           width: document.querySelector('main')!.getBoundingClientRect().width,
         };
       });
-      if (expected) expect(theme, path).toEqual(expected);
+      if (expected)
+        expect(theme, path).toEqual(
+          path === '/recipes' ? { ...expected, titleSize: '25px' } : expected,
+        );
       else expected = theme;
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth),

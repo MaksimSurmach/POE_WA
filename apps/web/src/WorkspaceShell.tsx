@@ -23,16 +23,18 @@ export function WorkspaceShell() {
       !['recipe', 'steps', 'methods', 'materials'].includes(
         params.get('view') ?? '',
       ));
-  const [league, setLeague] = useState<string | null>(null);
-  const [catalogLeague, setCatalogLeague] = useState<string | null | undefined>(
-    undefined,
+  const [league, setLeague] = useState<{ id: string; name: string } | null>(
+    null,
   );
+  const [catalogLeague, setCatalogLeague] = useState<
+    { id: string; name: string } | null | undefined
+  >(undefined);
   const [entries, setEntries] = useState<CatalogEntry[]>([]);
   const favorites = useFavorites();
   const acceptCatalog = useCallback(
     (data: NonNullable<CatalogResponse['data']>) => {
       setEntries(data.entries);
-      setCatalogLeague(data.league === null ? null : data.league?.name);
+      setCatalogLeague(data.league);
     },
     [],
   );
@@ -51,7 +53,7 @@ export function WorkspaceShell() {
     void api
       .getCurrentLeague(controller.signal)
       .then((r) => {
-        if (!controller.signal.aborted) setLeague(r.data.name);
+        if (!controller.signal.aborted) setLeague(r.data);
       })
       .catch(() => {});
     if (!libraryRoute)
@@ -114,8 +116,9 @@ export function WorkspaceShell() {
           </NavLink>
         </nav>
         <span className="workspace-context">
-          {(catalogLeague === undefined ? league : catalogLeague) ??
-            'League unavailable'}{' '}
+          {(catalogLeague === undefined || catalogLeague?.id === league?.id
+            ? league?.name
+            : catalogLeague?.name) ?? 'League unavailable'}{' '}
           · PC ·{' '}
           {(params.get('currency') ?? params.get('profitCurrency')) === 'divine'
             ? 'divine'
