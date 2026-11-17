@@ -8,6 +8,7 @@ import {
   domainErrorDefinitions,
   type CatalogEntry,
   type CatalogResponse,
+  type MarketReadiness as MarketReadinessView,
   type RecipeResponse,
   type TrendRange,
 } from '@poe-worksmith/contracts';
@@ -235,6 +236,16 @@ export function RecipePage({
             </span>
           </div>
         </div>
+        {!wrongLeague && detail.targetTradeUrl ? (
+          <a
+            className="buy-base"
+            href={detail.targetTradeUrl}
+            rel="noreferrer"
+            target="_blank"
+          >
+            Найти готовый предмет ↗
+          </a>
+        ) : null}
         {!wrongLeague && detail.baseTradeUrl ? (
           <a
             className="buy-base"
@@ -250,6 +261,7 @@ export function RecipePage({
       {!wrongLeague ? (
         <>
           <div className="recipe-economics" aria-label="Current economics">
+            <RecipeMarketStats readiness={detail.readiness} />
             {evaluation.expectedCraftCost ? (
               <span>
                 Оценка средних затрат{' '}
@@ -867,4 +879,57 @@ function unpricedMethodReason(evaluation: CatalogEntry['evaluation']) {
   if (evaluation.status === 'loading')
     return domainErrorDefinitions.SNAPSHOT_MISSING.publicMessage;
   return 'Оценка разницы с asking price недоступна.';
+}
+
+export function RecipeMarketStats({
+  readiness,
+}: {
+  readiness:
+    | Pick<
+        MarketReadinessView,
+        | 'fresh'
+        | 'capturedAt'
+        | 'currentAverageAsk'
+        | 'currentTotalListings'
+        | 'currentListings'
+        | 'coverage'
+      >
+    | null
+    | undefined;
+}) {
+  const current = readiness?.fresh && readiness.capturedAt ? readiness : null;
+  return (
+    <>
+      <span>
+        Средняя цена объявлений
+        <strong>
+          <Money price={current?.currentAverageAsk ?? null} />
+        </strong>
+        <small>
+          {current?.coverage === 'partial'
+            ? 'Собранная выборка · частичное покрытие'
+            : 'Среднее по собранным объявлениям, не продажам'}
+        </small>
+      </span>
+      <span>
+        Выставлено на продажу
+        <strong>
+          {current
+            ? (
+                current.currentTotalListings ?? current.currentListings
+              ).toLocaleString('ru-RU')
+            : '—'}
+        </strong>
+        <small>
+          {!current
+            ? 'Нет свежего снимка'
+            : current.currentTotalListings == null
+              ? 'Только собранные объявления'
+              : current.coverage === 'partial'
+                ? `Собрано ${current.currentListings.toLocaleString('ru-RU')} · частичное покрытие`
+                : 'Результаты запроса Trade'}
+        </small>
+      </span>
+    </>
+  );
 }

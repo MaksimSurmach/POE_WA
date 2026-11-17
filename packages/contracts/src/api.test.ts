@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   apiErrorEnvelopeSchema,
   catalogResponseSchema,
+  marketReadinessSchema,
+  recipeDetailViewSchema,
   publicDomainErrorSchema,
   rateLimitDiagnosticsResponseSchema,
   refreshProgressResponseSchema,
@@ -252,4 +254,35 @@ describe('HTTP API contracts', () => {
       response,
     );
   });
+});
+
+it('accepts deployed market observation extensions without replacing missing values with zero', () => {
+  const schema = marketReadinessSchema.pick({
+    currentTotalListings: true,
+    currentAverageAsk: true,
+  });
+  expect(schema.parse({})).toEqual({});
+  expect(
+    schema.parse({ currentTotalListings: null, currentAverageAsk: null }),
+  ).toEqual({ currentTotalListings: null, currentAverageAsk: null });
+  expect(
+    schema.parse({
+      currentTotalListings: 195,
+      currentAverageAsk: { amount: 132.5, currency: 'chaos' },
+    }),
+  ).toEqual({
+    currentTotalListings: 195,
+    currentAverageAsk: { amount: 132.5, currency: 'chaos' },
+  });
+  expect(schema.safeParse({ currentTotalListings: -1 }).success).toBe(false);
+  expect(
+    schema.safeParse({ currentAverageAsk: { amount: 2, currency: 'usd' } })
+      .success,
+  ).toBe(false);
+  const target = recipeDetailViewSchema.pick({ targetTradeUrl: true });
+  expect(target.parse({})).toEqual({});
+  expect(target.parse({ targetTradeUrl: null })).toEqual({
+    targetTradeUrl: null,
+  });
+  expect(target.safeParse({ targetTradeUrl: 'not-a-url' }).success).toBe(false);
 });

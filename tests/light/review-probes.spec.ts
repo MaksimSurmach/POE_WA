@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { createPreviewFetch } from '../../apps/web/src/preview/previewApi.js';
 import { createObservedItemPresentation } from '../../apps/server/dist/itemPresentation.js';
-import { recipeResponseSchema } from '../../packages/contracts/dist/index.js';
+import {
+  catalogResponseSchema,
+  recipeResponseSchema,
+} from '../../packages/contracts/dist/index.js';
 
 // Independent regression probes from the review; all APIs are local synthetic fixtures.
 test.beforeEach(async ({ page }) => {
@@ -47,6 +50,54 @@ test('first mobile target exposes its observed price and action', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  const response = await createPreviewFetch()('/api/catalog');
+  const body = await response.json();
+  const entry = body.data.entries[0];
+  entry.recipe.title =
+    'Bow Damage Large Cluster · Arcing Shot / Martial Prowess / Vicious Skewering';
+  entry.recipe.craftMethod = 'Chaos Orb · 3 Notables';
+  entry.readiness = {
+    level: 'price-observed',
+    capturedAt: '2026-11-17T10:00:00Z',
+    fresh: true,
+    coverage: 'partial',
+    currentListings: 5,
+    currentSellers: 4,
+    comparableSellers: 4,
+    currentAskRange: {
+      min: { amount: 42, currency: 'chaos' },
+      max: { amount: 55, currency: 'chaos' },
+    },
+    staleFloorCount: 0,
+    comparableAsks: true,
+    costVerified: false,
+    saleEligible: false,
+    activityMeasurable: false,
+    last24h: {
+      complete: 1,
+      partial: 1,
+      failed: 0,
+      failuresTrackedSince: null,
+      spanMinutes: 0,
+      completeSpanMinutes: 0,
+      largestGapMinutes: null,
+      overdueIntervals: null,
+      sellers: 4,
+      listings: 5,
+      repriced: null,
+      inferredExits: 0,
+      exitSellers: null,
+      uncertainExits: null,
+      relisted: null,
+      askRange: null,
+    },
+  };
+  const other = structuredClone(entry);
+  other.recipe.id = 'synthetic-other-method';
+  other.evaluation.recipeId = other.recipe.id;
+  body.data.entries = [entry, other];
+  catalogResponseSchema.parse(body);
+  await page.route('**/api/catalog', (route) => route.fulfill({ json: body }));
   await page.goto('/');
   const row = page
     .locator('.craft-table tbody tr:not(.craft-table__readiness-group)')

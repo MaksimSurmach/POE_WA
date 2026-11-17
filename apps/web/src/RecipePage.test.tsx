@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   MethodsForTarget,
+  RecipeMarketStats,
   shouldRefreshMethodComparison,
 } from './RecipePage.js';
 import { catalogFixtures } from './mocks/catalog.js';
@@ -147,4 +148,49 @@ it('compares validated target signatures even when optional item artwork is unav
     return copy;
   });
   expect(renderMethods(entries, 'cluster')).toContain('Методы для этой цели');
+});
+
+it('separates the observed mean and total Trade listings from a partial capture', () => {
+  const html = renderToStaticMarkup(
+    <RecipeMarketStats
+      readiness={{
+        fresh: true,
+        capturedAt: '2026-11-15T23:00:00Z',
+        coverage: 'partial',
+        currentListings: 100,
+        currentTotalListings: 195,
+        currentAverageAsk: { amount: 132.5, currency: 'chaos' },
+      }}
+    />,
+  );
+  expect(html).toContain('Средняя цена объявлений');
+  expect(html).toContain('132.5 c');
+  expect(html).toMatch(/Выставлено на продажу<strong>195<\/strong>/);
+  expect(html).toContain('Собрано 100 · частичное покрытие');
+  expect(html).toContain('Собранная выборка');
+});
+
+it('preserves a verified empty market and withholds stale or missing counts', () => {
+  const empty = {
+    fresh: true,
+    capturedAt: '2026-11-15T23:00:00Z',
+    coverage: 'complete' as const,
+    currentListings: 0,
+    currentTotalListings: 0,
+    currentAverageAsk: null,
+  };
+  expect(renderToStaticMarkup(<RecipeMarketStats readiness={empty} />)).toMatch(
+    /Выставлено на продажу<strong>0<\/strong>/,
+  );
+  for (const readiness of [
+    undefined,
+    { ...empty, fresh: false },
+    { ...empty, capturedAt: null },
+  ]) {
+    const html = renderToStaticMarkup(
+      <RecipeMarketStats readiness={readiness} />,
+    );
+    expect(html).toContain('Нет свежего снимка');
+    expect(html).toMatch(/Выставлено на продажу<strong>—<\/strong>/);
+  }
 });

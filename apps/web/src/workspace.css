@@ -1,4 +1,7 @@
 @layer utilities {
+  .catalog-decision__mobile {
+    display: none;
+  }
   .craft-table td[data-label='Средние затраты'],
   .factory-batches-table :is(th, td):nth-child(n + 3),
   .recipe-market__table :is(th, td):nth-child(2),
@@ -368,6 +371,27 @@
     .workspace-context {
       display: block;
       margin: 0 0 8px auto;
+    }
+    .catalog-decision > h2 {
+      display: none;
+    }
+    .catalog-decision .catalog-decision__mobile {
+      display: block;
+      margin-top: 8px;
+    }
+    .craft-table__identity > div {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .craft-table__mobile-ask {
+      order: 1;
+    }
+    .craft-table__steps {
+      order: 2;
+    }
+    .craft-table__identity > div > small {
+      order: 3;
     }
     .craft-table__steps {
       display: inline-flex;
