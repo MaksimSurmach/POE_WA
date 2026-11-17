@@ -43,6 +43,16 @@ export function libraryQuote(entry: CatalogEntry, currency: Price['currency']) {
       price: current,
       at: readiness.capturedAt,
       stale: !readiness.fresh,
+      evidence: {
+        comparableOnly: false,
+        captured: readiness.currentListings,
+        reported: readiness.currentTotalListings ?? null,
+        sellers: readiness.currentSellers,
+        exits: readiness.activityMeasurable
+          ? readiness.last24h.inferredExits
+          : null,
+        coverage: readiness.coverage,
+      },
     };
   const snapshot = entry.snapshot;
   const price = lowestAskInCurrency(snapshot, currency)?.price;
@@ -53,6 +63,14 @@ export function libraryQuote(entry: CatalogEntry, currency: Price['currency']) {
         stale: snapshot.expiresAt
           ? Date.parse(snapshot.expiresAt) <= Date.now()
           : null,
+        evidence: {
+          comparableOnly: true,
+          captured: snapshot.listings.length,
+          reported: snapshot.totalResults,
+          sellers: new Set(snapshot.listings.map((l) => l.seller)).size,
+          exits: null,
+          coverage: snapshot.coverage ?? null,
+        },
       }
     : null;
 }
@@ -184,6 +202,7 @@ export function selectRecipeLibrary(
         ask: quote?.price ?? null,
         quoteAt: quote?.at ?? null,
         quoteStale: quote?.stale ?? null,
+        quoteEvidence: quote?.evidence ?? null,
         coverage: {
           total: methods.length,
           estimated,

@@ -30,6 +30,7 @@ describe('approved 17 November archive (historical, never live product data)', (
     });
     expect(libraryQuote(entry, 'divine')).toMatchObject({
       price: { amount: 8 },
+      evidence: { captured: 10, reported: 42, sellers: 8, exits: null },
       at: '2026-07-20T00:00:00.000Z',
       stale: null,
     });
@@ -52,6 +53,13 @@ describe('approved 17 November archive (historical, never live product data)', (
     expect(
       selectRecipeLibrary(entries, { family: 'bench' }).outputs,
     ).toHaveLength(5);
+    expect(
+      all.outputs.find((o) =>
+        o.recipeIds.includes(
+          'small-cluster-armour-enduring-composure-2-passives',
+        ),
+      )?.quoteEvidence,
+    ).toMatchObject({ captured: 100, reported: 840, sellers: 84, exits: null });
   });
   it('uses cost rather than profit, preserves Fettle total and keeps unpriced routes', () => {
     expect(

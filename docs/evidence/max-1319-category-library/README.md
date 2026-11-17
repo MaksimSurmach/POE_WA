@@ -22,12 +22,12 @@ Executed with Node 22.23.5 and pnpm 11.8.0:
 - `pnpm test` — 910 Vitest tests plus the native service-control self-check passed.
 - `pnpm test:contracts` — seven provider contract tests passed.
 - `pnpm --filter @poe-worksmith/web preview:build` and `pnpm exec playwright test --config playwright.preview.config.ts` — two standalone offline preview checks passed, including the shared popup and retained deep routes.
-- `pnpm test:e2e:browser --config playwright.recipes.config.ts` — 20 passed, four viewport duplicates of desktop-only failure/deadline checks skipped.
+- `pnpm test:e2e:browser --config playwright.recipes.config.ts` — 27 passed, six viewport duplicates of desktop-only failure/deadline/context checks skipped.
 - `pnpm exec playwright test --config playwright.light.config.ts` — 60 existing browser regression checks passed after adapting removed navigation controls to retained deep-link flows.
 
 The isolated browser configuration starts Vite and intercepts APIs. It does not start, reset or migrate a database. Browser plugin was unavailable; local Playwright supplied screenshots and interaction checks. No browser runtime errors were observed in the catalogue flow.
 
-Checked 1440×1000, 768×1024 and 390×844; 200% zoom; category/family AND filtering; full versus filtered counts; mixed families; unknown/partial costs; source-bound quotes; Fettle's 38.5c cost / provisional +61.5c spread; actual Jagged versus unavailable Chaos instructions; real sibling history without relabeling; empty/partial/failed/timed-out history; reload/Back/Escape; native background inertness and focus trap; opener restoration after favorite removal; legacy favorite aliases; image fallback; density; and catalogue refresh failures retaining useful data.
+Checked 1440×1000, 768×1024 and 390×844; 200% zoom; category/family AND filtering; full versus filtered counts; mixed families; unknown/partial costs; source-bound quotes; Fettle's 38.5c cost / provisional +61.5c spread; Enduring Composure's 100 captured / 840 reported / 84 sellers with unknown exits; actual Jagged versus unavailable Chaos instructions; rejection of history from another league; real sibling history without relabeling; empty/partial/failed/timed-out history; reload/Back/Escape; native background inertness and focus trap; visible opener/search restoration after favorite removal, including items deep in the list; legacy favorite aliases; image fallback; density; and catalogue refresh failures retaining useful data.
 
 ## Reproduce
 
@@ -39,7 +39,7 @@ Checked 1440×1000, 768×1024 and 390×844; 200% zoom; category/family AND filte
 
 ## Review and dependency boundary
 
-Four incremental Claude Sonnet passes challenged method classification, quote provenance, favorite alias scope, history lookup, currency/rounding, ARIA, timeouts and content-hash compatibility. Retained findings were fixed and checked. A separate code review also caught a legacy query-view header regression; direct-link browser checks verify the fix. Simplification reused the existing snapshot-minimum helper, removed unused metadata/branches and coalesced refreshes; Recipes shares catalogue metadata with the shell through Outlet context, avoiding its duplicate initial fetch and keeping the header league current; unrelated Home loading lifecycles were retained.
+Incremental Claude Sonnet passes challenged method classification, quote provenance, favorite alias scope, history lookup, currency/rounding, ARIA, timeouts and content-hash compatibility. Retained findings were fixed and checked. A separate code review also caught a legacy query-view header regression; direct-link browser checks verify the fix. Simplification reused the existing snapshot-minimum helper, removed unused metadata/branches and coalesced refreshes; Recipes shares catalogue metadata with the shell through Outlet context, avoiding its duplicate initial fetch and keeping the header league current; unrelated Home loading lifecycles were retained.
 
 This is a compatible target-first **read adapter**, not a new target identity or a migration. Canonical recipe files, signatures, content hashes, existing URLs and stored history are unchanged. Five confirmed Bench finishes are typed read metadata outside hashed recipe definitions. Existing browser favorites are normalized to signatures when read; unknown saved IDs are preserved.
 

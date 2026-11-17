@@ -68,12 +68,14 @@ export function TargetDetailDialog({
   tab,
   onSelect,
   onClose,
+  leagueId,
 }: {
   output: RecipeLibraryOutput;
   recipeId: string;
   tab: 'market' | 'recipe';
   onSelect: (recipeId: string, tab: 'market' | 'recipe') => void;
   onClose: () => void;
+  leagueId?: string | undefined;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [marketOpened, setMarketOpened] = useState(tab === 'market');
@@ -117,7 +119,7 @@ export function TargetDetailDialog({
         if (!controller.signal.aborted) setFailed(true);
       });
     return () => controller.abort();
-  }, [validRecipeId, output.id, revision]);
+  }, [validRecipeId, output.id, revision, leagueId]);
   const currentDetail =
     detail &&
     detail.recipe.id === validRecipeId &&
@@ -296,8 +298,58 @@ export function TargetDetailDialog({
             aria-labelledby="market-tab"
             hidden={tab !== 'market'}
           >
+            <section
+              aria-label="Current asking evidence"
+              className="target-quote-evidence"
+            >
+              <h3>
+                Observed ask <LibraryMoney price={output.ask} />
+              </h3>
+              <dl>
+                <div>
+                  <dt>
+                    {output.quoteEvidence?.comparableOnly
+                      ? 'Comparable sample'
+                      : 'Captured sample'}
+                  </dt>
+                  <dd>{output.quoteEvidence?.captured ?? '—'}</dd>
+                </div>
+                <div>
+                  <dt>Reported listings</dt>
+                  <dd>{output.quoteEvidence?.reported ?? '—'}</dd>
+                </div>
+                <div>
+                  <dt>Sample sellers</dt>
+                  <dd>{output.quoteEvidence?.sellers ?? '—'}</dd>
+                </div>
+                <div>
+                  <dt>Inferred exits (reported 24h window)</dt>
+                  <dd>{output.quoteEvidence?.exits ?? 'Not measured'}</dd>
+                </div>
+              </dl>
+              <p>
+                Capture coverage: {output.quoteEvidence?.coverage ?? 'unknown'}.{' '}
+                {output.quoteAt ? (
+                  <>
+                    Captured {formatTimestamp(output.quoteAt)}
+                    {output.quoteStale
+                      ? ' · stale'
+                      : output.quoteStale === null
+                        ? ' · freshness unknown'
+                        : ''}
+                    .
+                  </>
+                ) : (
+                  'Capture time unavailable.'
+                )}{' '}
+                Activity follows the source's reported 24h window; its exact end
+                time is unavailable. Exits are inferred disappearances, not
+                confirmed sales.
+              </p>
+            </section>
             {marketOpened ? (
               <TargetMarketHistory
+                expectedLeagueId={leagueId}
                 recipeIds={output.recipeIds}
                 range={range}
                 onRangeChange={setRange}
@@ -481,12 +533,14 @@ export function TargetDetailDialog({
 }
 
 function TargetMarketHistory({
+  expectedLeagueId,
   recipeIds,
   range,
   onRangeChange,
   mode,
   onModeChange,
 }: {
+  expectedLeagueId?: string | undefined;
   recipeIds: string[];
   range: TrendRange;
   onRangeChange: (range: TrendRange) => void;
@@ -518,7 +572,8 @@ function TargetMarketHistory({
       const series = results.flatMap((result, index) =>
         result.status === 'fulfilled' &&
         result.value.data.recipeId === ids[index] &&
-        result.value.data.range === range
+        result.value.data.range === range &&
+        (!expectedLeagueId || result.value.data.league?.id === expectedLeagueId)
           ? [result.value.data]
           : [],
       );
@@ -535,9 +590,12 @@ function TargetMarketHistory({
       setPartial(series.length < results.length);
     });
     return () => controller.abort();
-  }, [idsKey, range, revision]);
+  }, [idsKey, range, revision, expectedLeagueId]);
   const current =
-    trend && recipeIds.includes(trend.recipeId) && trend.range === range
+    trend &&
+    recipeIds.includes(trend.recipeId) &&
+    trend.range === range &&
+    (!expectedLeagueId || trend.league?.id === expectedLeagueId)
       ? trend
       : null;
   return (

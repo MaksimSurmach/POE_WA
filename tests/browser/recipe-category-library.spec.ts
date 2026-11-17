@@ -47,7 +47,10 @@ test.beforeEach(async ({ page }) => {
       return route.fulfill({
         json: envelope({
           entries,
-          league: { id: 'archive-covens', name: 'Covens' },
+          league: {
+            id: 'fdd03e73-2884-4f55-96ee-3c1687c03f31',
+            name: 'Covens',
+          },
         }),
       });
     const recipe = /^\/api\/recipes\/([^/]+)$/.exec(url.pathname)?.[1];
@@ -318,22 +321,36 @@ test('refresh failures preserve useful data; history failures remain partial and
     info.project.name !== 'desktop',
     'Failure semantics are viewport-independent.',
   );
+  const leagueResponse = await createPreviewFetch()('/api/leagues/current');
+  const currentLeague = await leagueResponse.json();
+  currentLeague.data.id = 'fdd03e73-2884-4f55-96ee-3c1687c03f31';
+  currentLeague.data.name = 'Canonical Covens';
+  currentLeague.data.gggId = 'Covens';
+  await page.route('**/api/leagues/current', (route) =>
+    route.fulfill({ json: currentLeague }),
+  );
   await page.goto('/recipes');
   await expect(page.locator('[data-target-id]')).toHaveCount(66);
   await page.route('**/api/catalog', (route) =>
     route.fulfill({
-      json: envelope({
-        entries,
-        league: {
-          id: '00000000-0000-4000-8000-000000000001',
-          name: 'Obsolete catalogue label',
-        },
-      }),
+      json: {
+        ...envelope({
+          entries,
+          league: {
+            id: 'fdd03e73-2884-4f55-96ee-3c1687c03f31',
+            name: 'Obsolete catalogue label',
+          },
+        }),
+        isStale: true,
+        state: 'stale',
+        errorCode: 'PERSISTENCE_NOT_FOUND',
+      },
     }),
   );
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await expect(page.locator('.library-timestamp')).toContainText('Stale data');
   await expect(page.locator('.workspace-context')).toContainText(
-    'Preview League',
+    'Canonical Covens',
   );
   await page.route('**/api/catalog', (route) =>
     route.fulfill({
@@ -420,4 +437,99 @@ test('legacy recipe query deep links retain canonical favorite counts and catalo
       .getByRole('link', { name: 'Favorites 1', exact: true }),
   ).toBeVisible();
   await expect(page.locator('.workspace-context')).toContainText('Covens');
+});
+
+test('Market preserves captured versus reported listings and unknown exits', async ({
+  page,
+}) => {
+  await page.goto('/recipes?search=Enduring%20Composure');
+  await page
+    .getByRole('button', {
+      name: 'Enduring Composure · 2 passives',
+      exact: true,
+    })
+    .click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('tab', { name: 'Market' }).click();
+  const evidence = dialog.getByRole('region', {
+    name: 'Current asking evidence',
+  });
+  await expect(
+    evidence
+      .locator('div')
+      .filter({ has: page.getByText('Captured sample', { exact: true }) }),
+  ).toContainText('100');
+  await expect(
+    evidence
+      .locator('div')
+      .filter({ has: page.getByText('Reported listings', { exact: true }) }),
+  ).toContainText('840');
+  await expect(
+    evidence
+      .locator('div')
+      .filter({ has: page.getByText('Sample sellers', { exact: true }) }),
+  ).toContainText('84');
+  await expect(
+    evidence.locator('div').filter({
+      has: page.getByText('Inferred exits (reported 24h window)', {
+        exact: true,
+      }),
+    }),
+  ).toContainText('Not measured');
+});
+
+test('Market rejects an otherwise valid history response from another league', async ({
+  page,
+}, info) => {
+  test.skip(
+    info.project.name !== 'desktop',
+    'Market-context validation is viewport-independent.',
+  );
+  const history = histories.find((h) => h.recipeId === jaggedId)!;
+  await page.route('**/api/trends/**', (route) => {
+    const url = new URL(route.request().url());
+    return route.fulfill({
+      json: {
+        correlationId: '44444444-4444-4444-8444-444444444444',
+        data: {
+          ...history,
+          recipeId: url.pathname.split('/').at(-1),
+          range: url.searchParams.get('range'),
+          league: {
+            id: '00000000-0000-4000-8000-000000000001',
+            name: 'Synthetic wrong league',
+          },
+        },
+      },
+    });
+  });
+  await page.goto('/recipes');
+  await page.locator(`[id="route-${jaggedId}"]`).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('tab', { name: 'Market' }).click();
+  await expect(
+    dialog.getByText('Price history unavailable.', { exact: false }),
+  ).toBeVisible();
+  await expect(dialog.locator('.trend-chart__svg')).toHaveCount(0);
+});
+
+test('removing a favorite deep in the list restores visible search focus', async ({
+  page,
+}) => {
+  await page.goto('/recipes');
+  await expect(page.locator('[data-target-id]')).toHaveCount(66);
+  await page.evaluate(
+    (ids) => localStorage.setItem('worksmith:favorites', JSON.stringify(ids)),
+    [...new Set(entries.map((e) => e.recipe.targetSignature))],
+  );
+  await page.goto('/recipes?favorites=1');
+  await page.locator('.library-output-name').last().click();
+  const dialog = page.getByRole('dialog');
+  await dialog
+    .getByRole('button', { name: 'Remove favorite', exact: true })
+    .click();
+  await dialog.getByRole('button', { name: 'Done', exact: true }).click();
+  const search = page.getByLabel('Search items or modifiers', { exact: true });
+  await expect(search).toBeFocused();
+  await expect(search).toBeInViewport();
 });

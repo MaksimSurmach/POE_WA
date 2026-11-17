@@ -85,6 +85,7 @@ export function RecipeLibraryPage({
         entries={response?.data?.entries ?? []}
         loading={!response && !failed}
         stale={response?.isStale ?? false}
+        leagueId={response?.data?.league?.id}
       />
     </>
   );
@@ -95,11 +96,13 @@ export function RecipeLibrary({
   loading = false,
   stale = false,
   selectionView,
+  leagueId,
 }: {
   entries: CatalogEntry[];
   loading?: boolean;
   stale?: boolean;
   selectionView?: string | undefined;
+  leagueId?: string | undefined;
 }) {
   const [params, setParams] = useSearchParams();
   const location = useLocation();
@@ -203,10 +206,11 @@ export function RecipeLibrary({
   useEffect(() => {
     closing.current = false;
     if (selectedTarget || !opener.current) return;
-    (document.getElementById(opener.current) ?? searchRef.current)?.focus({
-      preventScroll: true,
-    });
-    window.scrollTo(0, scroll.current);
+    const trigger = document.getElementById(opener.current);
+    if (trigger) {
+      trigger.focus({ preventScroll: true });
+      window.scrollTo(0, scroll.current);
+    } else searchRef.current?.focus();
     opener.current = null;
   }, [selectedTarget]);
   useEffect(() => {
@@ -469,6 +473,7 @@ export function RecipeLibrary({
       {selectedTarget ? (
         detail ? (
           <TargetDetailDialog
+            leagueId={leagueId}
             output={detail}
             recipeId={params.get('recipe') ?? detail.selectedRecipeId}
             tab={params.get('detail') === 'market' ? 'market' : 'recipe'}

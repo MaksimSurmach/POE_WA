@@ -636,3 +636,27 @@
     }
   }
 }
+@layer utilities {
+  .target-quote-evidence {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  .target-detail-column .target-quote-evidence h3 {
+    margin: 0 0 12px;
+  }
+  .target-quote-evidence dl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+  }
+  .target-quote-evidence dt,
+  .target-quote-evidence p {
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .target-quote-evidence dd {
+    font-weight: 600;
+    font-size: 14px;
+  }
+}
