@@ -27,14 +27,16 @@ test('standalone file supports navigation without network or live writes', async
   const navigate = async (name: string) => {
     await page.getByRole('link', { name, exact: true }).click();
   };
-  await navigate('Настройки');
+  await navigate('Settings');
   await expect(
     page.getByRole('button', { name: 'Запустить сбор', exact: true }),
   ).toBeDisabled();
   await expect(
     page.getByRole('button', { name: 'Приостановить сбор', exact: true }),
   ).toBeDisabled();
-  await navigate('Рынок');
+  await page.evaluate(() => {
+    window.location.hash = '/market';
+  });
   const overview = page.getByRole('region', {
     name: 'Обзор рынка всех рецептов',
     exact: true,
@@ -53,11 +55,22 @@ test('standalone file supports navigation without network or live writes', async
     }),
   ).toBeFocused();
   await expect(overview).toBeVisible();
-  await navigate('Рецепты');
+  await navigate('Recipes');
   await expect(
-    page.getByRole('heading', { name: 'Каталог рецептов', exact: true }),
+    page.getByRole('heading', { name: 'Recipes', exact: true }),
   ).toBeVisible();
-  await navigate('Моя мастерская');
+  await expect(page.locator('[data-target-id]')).toHaveCount(7);
+  await page
+    .getByRole('button', { name: 'Niche Elemental Bow', exact: true })
+    .click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Done', exact: true })
+    .click();
+  await page.evaluate(() => {
+    window.location.hash = '/factory';
+  });
   await expect(
     page.getByRole('heading', { name: 'Моя мастерская', exact: true }),
   ).toBeVisible();

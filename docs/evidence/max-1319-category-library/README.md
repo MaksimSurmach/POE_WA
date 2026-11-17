@@ -21,6 +21,7 @@ Executed with Node 22.23.5 and pnpm 11.8.0:
 - Prettier over every changed source/document file — passed. Repository-wide `prettier --check .` still reports 59 unchanged pre-existing files; none belongs to this PR.
 - `pnpm test` — 910 Vitest tests plus the native service-control self-check passed.
 - `pnpm test:contracts` — seven provider contract tests passed.
+- `pnpm --filter @poe-worksmith/web preview:build` and `pnpm exec playwright test --config playwright.preview.config.ts` — two standalone offline preview checks passed, including the shared popup and retained deep routes.
 - `pnpm test:e2e:browser --config playwright.recipes.config.ts` — 20 passed, four viewport duplicates of desktop-only failure/deadline checks skipped.
 - `pnpm exec playwright test --config playwright.light.config.ts` — 60 existing browser regression checks passed after adapting removed navigation controls to retained deep-link flows.
 
