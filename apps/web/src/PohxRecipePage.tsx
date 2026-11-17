@@ -3,7 +3,8 @@ import { Button, Input, TableSurface } from './ui.js';
 import type { CraftingPrices } from '@poe-worksmith/contracts';
 import { calculateCostScenario } from '@poe-worksmith/domain/economics';
 import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { WorkspaceLink as Link } from './workspaceNavigation.js';
 import { createApiClient } from './apiClient.js';
 import { Money, StatusPanel, economicClass } from './components.js';
 import { materialName, pohxGuides, type PohxGuide } from './pohxGuides.js';
@@ -17,7 +18,7 @@ export function PohxRecipePage() {
     return (
       <>
         <Link to="/recipes">‹ Recipes</Link>
-        <StatusPanel tone="danger" title="Recipe not found" />
+        <StatusPanel tone="danger" title="Рецепт не найден" />
       </>
     );
   return <PohxCraft key={guide.id} guide={guide} />;
@@ -41,7 +42,7 @@ function PohxCraft({ guide }: { guide: PohxGuide }) {
           <h1>{guide.title}</h1>
           <p>{guide.summary}</p>
           <a href={guide.sourceUrl} target="_blank" rel="noreferrer">
-            Full guide by Pohx / Convay ↗
+            Полный гайд Pohx / Convay ↗
           </a>
         </div>
       </header>
@@ -51,7 +52,7 @@ function PohxCraft({ guide }: { guide: PohxGuide }) {
         are independent summaries; the source does not guarantee profitability.
       </p>
       {guide.workInProgress ? (
-        <StatusPanel tone="info" title="Source guide is unfinished">
+        <StatusPanel tone="info" title="Автор ещё не завершил гайд">
           Pohx has not published this procedure yet. Costs and ROI are
           unavailable; no steps or probabilities have been invented.
         </StatusPanel>
@@ -59,9 +60,9 @@ function PohxCraft({ guide }: { guide: PohxGuide }) {
         <>
           <div className="guide-layout">
             <section aria-labelledby="guide-procedure">
-              <h2 id="guide-procedure">Crafting procedure</h2>
+              <h2 id="guide-procedure">Порядок крафта</h2>
               <p>
-                <strong>Starting items:</strong> {guide.base}
+                <strong>Исходная база:</strong> {guide.base}
               </p>
               <ol className="guide-steps">
                 {guide.steps.map((step, i) => (
@@ -74,8 +75,8 @@ function PohxCraft({ guide }: { guide: PohxGuide }) {
                 finishes.
               </p>
               {guide.relatedRecipeIds.length ? (
-                <section aria-label="Calculated variants">
-                  <h3>Calculated variants</h3>
+                <section aria-label="Рассчитанные варианты">
+                  <h3>Рассчитанные варианты</h3>
                   <p>
                     These exact variants have a checked attempt model and
                     comparable market queries. They do not price every branch of

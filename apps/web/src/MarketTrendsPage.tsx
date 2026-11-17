@@ -1,3 +1,5 @@
+import { MarketAnalysis } from './MarketAnalysis.js';
+import { FavoriteButton } from './Watchlist.js';
 import { Button, Input, NativeSelect } from './ui.js';
 import type {
   CatalogResponse,
@@ -8,7 +10,8 @@ import type {
 } from '@poe-worksmith/contracts';
 import { trendRangeSchema } from '@poe-worksmith/contracts';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { WorkspaceLink as Link } from './workspaceNavigation.js';
 
 import { createApiClient } from './apiClient.js';
 import { StatusPanel } from './components.js';
@@ -157,14 +160,14 @@ export function RecipeTrendPanel({
       {trend && expectedLeagueId && trend.league?.id !== expectedLeagueId ? (
         <StatusPanel
           tone="warning"
-          title="League changed while loading history"
+          title="Лига изменилась во время загрузки истории"
         >
           <Button type="button" {...(onReload ? { onClick: onReload } : {})}>
-            Reload current market
+            Обновить текущий рынок
           </Button>
         </StatusPanel>
       ) : failed ? (
-        <StatusPanel tone="danger" title="Price history unavailable" />
+        <StatusPanel tone="danger" title="История цен недоступна" />
       ) : !trend ? (
         <StatusPanel tone="info" title="Loading price history" />
       ) : (
@@ -186,6 +189,8 @@ export function RecipeTrendPanel({
 export function MarketTrendsPage() {
   const [params, setParams] = useSearchParams();
   const range = parseRange(params.get('range'));
+  const view = params.get('view') ?? 'overview';
+  const analysisView = ['mods', 'compare', 'favorites'].includes(view);
   const [response, setResponse] = useState<TrendOverviewResponse | null>(null);
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
   const [catalogFailed, setCatalogFailed] = useState(false);
@@ -196,6 +201,7 @@ export function MarketTrendsPage() {
   const reload = () => setRevision((value) => value + 1);
 
   useEffect(() => {
+    if (analysisView) return;
     const controller = new AbortController();
     setResponse(null);
     setCatalog(null);
@@ -223,7 +229,7 @@ export function MarketTrendsPage() {
         if (!controller.signal.aborted) setCatalogFailed(true);
       });
     return () => controller.abort();
-  }, [range, revision]);
+  }, [range, revision, analysisView]);
 
   const loadedOverview =
     response?.data.range === range ? response.data : undefined;
@@ -251,34 +257,37 @@ export function MarketTrendsPage() {
     setParams(value, { replace: true });
   };
 
+  if (['mods', 'compare', 'favorites'].includes(view))
+    return <MarketAnalysis view={view} />;
+
   return (
     <section className="market-trends" aria-labelledby="market-trends-heading">
       <header className="catalog-heading">
         <div>
-          <h1 id="market-trends-heading">Market trends</h1>
-          <p>
-            Compare asking prices and how quickly listings leave Trade search.
-          </p>
+          <h1 id="market-trends-heading">Рынок</h1>
+          <p>Наблюдаемые цены объявлений и их исчезновения из поиска Trade.</p>
         </div>
         <div className="trade-dashboard__league">
-          {league ? `${league.name} · PC` : 'League unresolved · PC'}
+          {league ? `${league.name} · PC` : 'Лига неизвестна · PC'}
         </div>
       </header>
 
-      <RecipeMarketOverview
-        response={catalog}
-        failed={catalogFailed}
-        onRetry={reload}
-        selectedId={selectedId}
-        trends={overview}
-        onSelect={(recipe) => update({ recipe })}
-      />
+      {view === 'overview' ? (
+        <RecipeMarketOverview
+          response={catalog}
+          failed={catalogFailed}
+          onRetry={reload}
+          selectedId={selectedId}
+          trends={overview}
+          onSelect={(recipe) => update({ recipe })}
+        />
+      ) : null}
       <h2
         id="recipe-price-history"
         tabIndex={-1}
         className="recipe-trends-heading"
       >
-        Recipe price history
+        История цены выбранной цели
       </h2>
       <RangeControls
         range={range}
@@ -290,36 +299,36 @@ export function MarketTrendsPage() {
         className="handbook-controls trend-controls"
       >
         <label className="catalog-search">
-          <span>Search recipes</span>
+          <span>Поиск рецептов</span>
           <Input
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search recipes…"
+            placeholder="Поиск рецептов…"
             type="search"
             value={search}
           />
         </label>
         <label>
-          Sort{' '}
+          Сортировка{' '}
           <NativeSelect
             onChange={(event) => setSort(event.target.value as TrendSort)}
             value={sort}
           >
-            <option value="change">Price change</option>
-            <option value="ask">Latest ask (per currency)</option>
-            <option value="recent">Last observed</option>
-            <option value="title">Recipe</option>
+            <option value="change">Изменение цены</option>
+            <option value="ask">Последний ask (по валютам)</option>
+            <option value="recent">Последнее наблюдение</option>
+            <option value="title">Рецепт</option>
           </NativeSelect>
         </label>
         <label className="market-trends__picker">
-          <span>Recipe</span>
+          <span>Рецепт</span>
           <NativeSelect
-            aria-label="Choose recipe"
+            aria-label="Выберите рецепт"
             disabled={!rows.length}
             value={selectedId ?? ''}
             onChange={(event) => update({ recipe: event.target.value })}
           >
             <option disabled value="">
-              Select a recipe
+              Выберите рецепт
             </option>
             {selectedId &&
             !rows.some((entry) => entry.recipeId === selectedId) ? (
@@ -342,27 +351,27 @@ export function MarketTrendsPage() {
       </section>
 
       {leagueMismatch ? (
-        <StatusPanel tone="warning" title="League changed while loading">
+        <StatusPanel tone="warning" title="Лига изменилась во время загрузки">
           <Button type="button" onClick={reload}>
-            Reload current market
+            Обновить текущий рынок
           </Button>
         </StatusPanel>
       ) : failed ? (
-        <StatusPanel tone="danger" title="Market trends unavailable">
-          Price history could not be loaded. Try again when the service is
-          available.
+        <StatusPanel tone="danger" title="История цен недоступна">
+          Не удалось загрузить историю цен. Повторите запрос после
+          восстановления сервиса.
         </StatusPanel>
       ) : !overview ? (
-        <StatusPanel tone="info" title="Loading market trends" />
+        <StatusPanel tone="info" title="Загрузка истории цен" />
       ) : overview.state === 'unavailable' ? (
-        <StatusPanel tone="warning" title="League unresolved">
-          Price history appears once the current league is known.
+        <StatusPanel tone="warning" title="Лига неизвестна">
+          История появится после определения текущей лиги.
         </StatusPanel>
       ) : (
         <>
           {overview.state === 'empty' ? (
             <p className="handbook-empty">
-              No price history yet. Observations are saved when prices refresh.
+              Истории пока нет. Наблюдения сохраняются при обновлении цен.
             </p>
           ) : null}
           <div className="market-trends__history">
@@ -376,11 +385,17 @@ export function MarketTrendsPage() {
                     {overview.entries.find((e) => e.recipeId === selectedId)
                       ?.title ?? selectedId}
                   </h2>
+                  <FavoriteButton recipeId={selectedId} />
+                  <Link
+                    to={`/market?view=compare&recipe=${encodeURIComponent(selectedId)}`}
+                  >
+                    Сравнить предметы
+                  </Link>
                   <Link
                     className="recipe-link"
                     to={`/recipes/${encodeURIComponent(selectedId)}`}
                   >
-                    Open recipe ›
+                    Открыть рецепт ›
                   </Link>
                   <RecipeTrendPanel
                     range={range}
@@ -390,7 +405,7 @@ export function MarketTrendsPage() {
                   />
                 </>
               ) : (
-                <p>Select a recipe to see its price history.</p>
+                <p>Выберите рецепт для просмотра истории цен.</p>
               )}
             </section>
           </div>

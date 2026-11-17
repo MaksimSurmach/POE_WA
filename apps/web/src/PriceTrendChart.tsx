@@ -71,7 +71,7 @@ export function describeTrend(trend: RecipeTrend) {
   const summary = trend.summary;
   if (!summary)
     return trend.state === 'unavailable'
-      ? 'Price history is unavailable until the current league is resolved.'
+      ? 'История цен недоступна до определения текущей лиги.'
       : 'No independent ask observations have been recorded for this recipe yet.';
   const latest = `Latest cheapest ask ${formatAmount(summary.latestAsk, summary.currency)}, observed ${formatUtc(summary.latestObservedAt)}.`;
   if (summary.windowObservations === 0)

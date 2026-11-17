@@ -86,17 +86,15 @@ describe('market trend dashboard', () => {
         <App />
       </MemoryRouter>,
     );
-    expect(catalog).toMatch(/<nav aria-label="Primary"/);
+    expect(catalog).toMatch(/<nav aria-label="Основные разделы"/);
     expect(catalog).toContain('href="/market"');
     const market = renderToStaticMarkup(
       <MemoryRouter initialEntries={['/market?range=30d']}>
         <App />
       </MemoryRouter>,
     );
-    expect(market).toContain('Market trends');
-    expect(market).toContain('Loading market trends');
-    expect(market).toMatch(
-      /aria-current="page"[^>]*>[^]*?<span>Market trends<\/span>[^]*?<\/a>/,
-    );
+    expect(market).toContain('Рынок');
+    expect(market).toContain('Загрузка истории цен');
+    expect(market).toMatch(/aria-current="page"[^>]*>Рынок<\/a>/);
   });
 });

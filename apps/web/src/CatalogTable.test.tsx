@@ -72,7 +72,7 @@ describe('catalog table', () => {
       );
       expect(html.includes('12,345 c')).toBe(fresh);
       expect(html.includes('Sample ask · not a sale')).toBe(fresh);
-      expect(html).not.toContain('data-label="Profit"');
+      expect(html).not.toContain('data-label="Разница с ask"');
       expect(html).not.toContain('data-label="ROI"');
     },
   );
@@ -129,7 +129,7 @@ describe('catalog table', () => {
       </MemoryRouter>,
     );
     expect(html).toMatch(
-      /<td[^>]*data-label="Expected cost"[^>]*>[^]*120 c[^]*budget for one[^]*p50[^]*110 c[^]*p90[^]*140 c[^]*<\/td>/,
+      /<td[^>]*data-label="Средние затраты"[^>]*>[^]*120 c[^]*budget for one[^]*p50[^]*110 c[^]*p90[^]*140 c[^]*<\/td>/,
     );
   });
 
@@ -190,7 +190,7 @@ describe('catalog table', () => {
         />
       </MemoryRouter>,
     );
-    expect(html).toContain('Outdated');
+    expect(html).toContain('Устарело');
     expect(html).toContain('20.0%');
     expect(html).not.toContain('ROI withheld');
   });
@@ -241,8 +241,8 @@ describe('catalog table', () => {
       'ROI withheld: Paid finish is outside the cost model.',
     );
     expect(html).not.toContain('Single ask · ROI withheld');
-    expect(html).toContain('Awaiting output observation');
-    expect(html).not.toContain('Updating');
+    expect(html).toContain('Ожидается наблюдение цели');
+    expect(html).not.toContain('Обновляется');
   });
 
   it('exposes sortable column headers and readable full item names', () => {
@@ -260,7 +260,7 @@ describe('catalog table', () => {
     expect(html.match(/scope="col"/g)).toHaveLength(6);
     expect(html).toContain('aria-sort="descending"');
     expect(html).toContain('cluster jewel');
-    expect(html).toContain('Market evidence');
+    expect(html).toContain('Рыночные данные');
     expect(html).toContain(catalogFixtures[0]!.recipe.title);
   });
   it('keeps the table headers available when filters match nothing', () => {

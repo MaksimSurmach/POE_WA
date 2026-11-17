@@ -12,24 +12,45 @@
 @import './marketTrends.css' layer(worksmith);
 @import './tradeDashboard.css' layer(worksmith);
 @import './clarity.css';
+@import './workspace.css';
 
 @theme {
   --font-sans: 'Inter Variable', sans-serif;
 }
 
-/* Finances reference: HeroUI default blue accent, neutral dark surfaces, Inter. */
 @layer base {
-  :root.dark {
-    --background: oklch(12% 0.0015 253.83);
-    --foreground: oklch(99.11% 0.0015 253.83);
-    --surface: oklch(21.03% 0.003 253.83);
-    --surface-secondary: oklch(25.7% 0.0023 253.83);
-    --border: oklch(28% 0.0015 253.83);
-    --muted: oklch(70.5% 0.003 253.83);
-    --field-background: var(--surface-secondary);
-    --radius: 0.5rem;
-    --field-radius: 0.75rem;
+  :root,
+  :root.light {
+    color-scheme: light;
+    --background: #ffffff;
+    --foreground: #1d2433;
+    --surface: #ffffff;
+    --surface-secondary: #f7f8fa;
+    --surface-tertiary: #edf0f4;
+    --border: #e7e9ed;
+    --muted: #666f7d;
+    --accent: #2962ff;
+    --accent-foreground: #ffffff;
+    --accent-soft: #edf3ff;
+    --accent-soft-foreground: #214fc7;
+    --success: #14806b;
+    --success-soft: #edf8f4;
+    --success-soft-foreground: #116b59;
+    --danger: #c44951;
+    --danger-soft: #fdf0f1;
+    --danger-soft-foreground: #a5343e;
+    --warning: #946514;
+    --warning-soft: #fff8e8;
+    --warning-soft-foreground: #80550c;
+    --field-background: #ffffff;
+    --field-foreground: #1d2433;
+    --field-border: #cbd0d8;
+    --field-placeholder: #727985;
+    --focus: #2962ff;
+    --radius: 0.375rem;
+    --field-radius: 0.375rem;
     font-family: var(--font-sans);
+    font-size: 87.5%;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 }

@@ -39,7 +39,7 @@ test('settings-run-now-updates-homepage', async ({ page }) => {
   const cost = page
     .getByRole('row')
     .filter({ has: page.locator(`a[href="${recipe}"]`) })
-    .locator('[data-label="Expected cost"]');
+    .locator('[data-label="Средние затраты"]');
   await expect(cost).toContainText('11,519 c');
   await page.goto('/settings');
   const lastRun = page.getByLabel('Last run');
@@ -47,7 +47,7 @@ test('settings-run-now-updates-homepage', async ({ page }) => {
   const before = (await lastRun.getAttribute('datetime'))!;
   leagueName = 'Next Fixture League';
   const clickedAt = Date.now();
-  await page.getByRole('button', { name: 'Run now' }).click();
+  await page.getByRole('button', { name: 'Запустить сбор' }).click();
   await expect
     .poll(async () => Date.parse((await lastRun.getAttribute('datetime'))!), {
       timeout: 12_000,
@@ -55,7 +55,12 @@ test('settings-run-now-updates-homepage', async ({ page }) => {
     .toBeGreaterThan(Date.parse(before));
   await page.goto('/');
   await expect(cost).toContainText('11,536 c');
-  await expect(page.getByText(/Next Fixture League/)).toBeVisible();
+  await expect(
+    page.locator('.catalog-heading').getByText(/Next Fixture League/),
+  ).toBeVisible();
+  await expect(page.locator('.workspace-context')).toContainText(
+    'Next Fixture League',
+  );
   const detail = await page.request.get(`/api${recipe}`);
   expect(detail.ok()).toBe(true);
   const { data } = await detail.json();
@@ -85,15 +90,17 @@ test('shows a persistent Trade block after a successful maintenance run', async 
   );
   await page.goto('/settings');
   await expect(page.getByText(/Trade access blocked/)).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Run now' })).toBeEnabled();
+  await expect(
+    page.getByRole('button', { name: 'Запустить сбор' }),
+  ).toBeEnabled();
 });
 
-test('Run now becomes available again when its request stalls', async ({
+test('Запустить сбор becomes available again when its request stalls', async ({
   page,
 }) => {
   await page.route('**/api/run', () => {});
   await page.goto('/settings');
-  const button = page.getByRole('button', { name: 'Run now' });
+  const button = page.getByRole('button', { name: 'Запустить сбор' });
   await button.click();
   await expect(button).toBeDisabled();
   await expect(page.getByText(/Could not confirm the run/)).toBeVisible({
@@ -107,15 +114,15 @@ test('persists quote age changed from settings', async ({ page }) => {
   const response = await page.request.get(url);
   expect(response.ok()).toBe(true);
   const before = (await response.json()).data;
-  const field = 'Warning age (minutes)';
+  const field = 'Предупреждать о возрасте (минуты)';
   const oldMinutes = before.configured.freshnessWarningMs / 60_000;
   const nextMinutes = oldMinutes === 5 ? 6 : 5;
 
   try {
     await page.goto('/settings');
     await page.getByLabel(field).fill(String(nextMinutes));
-    await page.getByRole('button', { name: 'Save settings' }).click();
-    await expect(page.getByText('Settings saved.')).toBeVisible();
+    await page.getByRole('button', { name: 'Сохранить настройки' }).click();
+    await expect(page.getByText('Настройки сохранены.')).toBeVisible();
     await page.reload();
     await expect(page.getByLabel(field)).toHaveValue(String(nextMinutes));
   } finally {
@@ -170,18 +177,18 @@ test('visible collection controls pause, recover from conflict and resume', asyn
       exact: true,
     });
     await controls
-      .getByRole('button', { name: 'Pause collection', exact: true })
+      .getByRole('button', { name: 'Приостановить сбор', exact: true })
       .click();
     await expect(
       controls.getByText('Collection paused', { exact: true }),
     ).toBeVisible();
     await expect(
-      controls.getByRole('button', { name: 'Run now', exact: true }),
+      controls.getByRole('button', { name: 'Запустить сбор', exact: true }),
     ).toBeDisabled();
     expect((await read()).configured.collectionsPaused).toBe(true);
     await page.reload();
     await expect(
-      controls.getByRole('button', { name: 'Resume collection', exact: true }),
+      controls.getByRole('button', { name: 'Возобновить сбор', exact: true }),
     ).toBeVisible();
     let rejected = false;
     await page.route('**/api/admin/market/resume', async (route) => {
@@ -191,17 +198,17 @@ test('visible collection controls pause, recover from conflict and resume', asyn
       } else await route.continue();
     });
     await controls
-      .getByRole('button', { name: 'Resume collection', exact: true })
+      .getByRole('button', { name: 'Возобновить сбор', exact: true })
       .click();
     await expect(
       controls.getByText(/Could not resume collection/),
     ).toBeVisible();
     await expect(
-      controls.getByRole('button', { name: 'Run now', exact: true }),
+      controls.getByRole('button', { name: 'Запустить сбор', exact: true }),
     ).toBeDisabled();
     expect((await read()).configured.collectionsPaused).toBe(true);
     await controls
-      .getByRole('button', { name: 'Resume collection', exact: true })
+      .getByRole('button', { name: 'Возобновить сбор', exact: true })
       .click();
     await expect(
       controls.getByText('Collection active', { exact: true }),
@@ -234,7 +241,9 @@ test('quote-age edits keep the draft and require review before overwriting anoth
     before.configured.maximumQuoteAgeMs === 7_200_000 ? 3_600_000 : 7_200_000;
   try {
     await page.goto('/settings');
-    const input = page.getByLabel('Warning age (minutes)', { exact: true });
+    const input = page.getByLabel('Предупреждать о возрасте (минуты)', {
+      exact: true,
+    });
     await input.fill(String(draft));
     const current = await read();
     expect(
@@ -251,19 +260,19 @@ test('quote-age edits keep the draft and require review before overwriting anoth
       ).ok(),
     ).toBe(true);
     await page
-      .getByRole('button', { name: 'Save settings', exact: true })
+      .getByRole('button', { name: 'Сохранить настройки', exact: true })
       .click();
     await expect(page.getByText(/Quote ages changed elsewhere/)).toBeVisible();
     await expect(input).toHaveValue(String(draft));
     await expect(
-      page.getByLabel('Maximum quote age (minutes)', { exact: true }),
+      page.getByLabel('Максимальный возраст цены (минуты)', { exact: true }),
     ).toHaveValue(String(remoteMaximum / 60_000));
     expect((await read()).configured.freshnessWarningMs).toBe(remote * 60_000);
     await page
-      .getByRole('button', { name: 'Save settings', exact: true })
+      .getByRole('button', { name: 'Сохранить настройки', exact: true })
       .click();
     await expect(
-      page.getByText('Settings saved.', { exact: true }),
+      page.getByText('Настройки сохранены.', { exact: true }),
     ).toBeVisible();
     expect((await read()).configured.freshnessWarningMs).toBe(draft * 60_000);
     expect((await read()).configured.maximumQuoteAgeMs).toBe(remoteMaximum);

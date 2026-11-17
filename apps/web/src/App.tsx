@@ -1,3 +1,4 @@
+import { SelectedTarget } from './SelectedTarget.js';
 import { formatTimestamp } from './dateTime.js';
 import { WorkspaceShell as AppShell } from './WorkspaceShell.js';
 import { CatalogOverview } from './CatalogOverview.js';
@@ -7,7 +8,8 @@ import type {
   CurrentLeagueResponse,
 } from '@poe-worksmith/contracts';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, Route, Routes, useSearchParams } from 'react-router-dom';
+import { Route, Routes, useSearchParams } from 'react-router-dom';
+import { WorkspaceLink as Link } from './workspaceNavigation.js';
 
 import {
   defaultCatalogFilters,
@@ -39,18 +41,34 @@ function CatalogRoute() {
     next: CatalogFilters | ((current: CatalogFilters) => CatalogFilters),
   ) {
     const value = typeof next === 'function' ? next(filters) : next;
-    setSearchParams(
-      Object.fromEntries(
-        Object.entries(value).filter(
-          ([key, item]) =>
-            item !== undefined &&
-            item !== '' &&
-            item !== 'all' &&
-            item !== defaultCatalogFilters[key as keyof CatalogFilters],
-        ),
-      ),
-      { replace: true },
-    );
+    const nextParams = new URLSearchParams(searchParams);
+    for (const key of [
+      'category',
+      'search',
+      'sort',
+      'catalogView',
+      'tag',
+      'direction',
+      'minProfit',
+      'profitCurrency',
+      'currency',
+      'minRoi',
+    ])
+      nextParams.delete(key);
+    if (
+      ['priced', 'activity', 'estimated'].includes(nextParams.get('view') ?? '')
+    )
+      nextParams.delete('view');
+    for (const [key, item] of Object.entries(value)) {
+      if (
+        item !== undefined &&
+        item !== '' &&
+        item !== 'all' &&
+        item !== defaultCatalogFilters[key as keyof CatalogFilters]
+      )
+        nextParams.set(key === 'view' ? 'catalogView' : key, String(item));
+    }
+    setSearchParams(nextParams, { replace: true });
   }
   const [response, setResponse] = useState<CatalogResponse | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -156,7 +174,7 @@ function CatalogRoute() {
     <>
       <section className="catalog-heading" aria-labelledby="catalog-heading">
         <div>
-          <h1 id="catalog-heading">Craft opportunities</h1>
+          <h1 id="catalog-heading">Что крафтить</h1>
           <p>
             {catalogLeague === null
               ? 'League unavailable'
@@ -178,23 +196,23 @@ function CatalogRoute() {
       </section>
 
       {loadError ? (
-        <StatusPanel tone="danger" title="Recipes unavailable">
+        <StatusPanel tone="danger" title="Рецепты недоступны">
           The recipe list could not be loaded. Try again when the service is
           available.
           <Button type="button" onClick={reloadCatalog}>
-            Retry loading recipes
+            Повторить загрузку
           </Button>
         </StatusPanel>
       ) : null}
 
       {loadError ? null : !response ? (
-        <StatusPanel tone="info" title="Loading recipes" />
+        <StatusPanel tone="info" title="Загрузка рецептов" />
       ) : entries.length === 0 &&
         !filters.search.trim() &&
         filters.category === 'all' ? (
         <section className="empty-state" aria-labelledby="empty-heading">
-          <h2 id="empty-heading">No crafting targets available</h2>
-          <p>Crafting recipes will appear here.</p>
+          <h2 id="empty-heading">Нет доступных целей крафта</h2>
+          <p>Здесь появятся доступные рецепты крафта.</p>
         </section>
       ) : (
         <>
@@ -204,10 +222,10 @@ function CatalogRoute() {
             aria-label="Crafting target search and item types"
           >
             <label className="catalog-search catalog-filter">
-              <span>Item name</span>
+              <span>Название предмета</span>
               <Input
                 type="search"
-                placeholder="Search items or targets…"
+                placeholder="Поиск предметов и целей…"
                 value={filters.search}
                 onChange={(event) => updateFilter('search', event.target.value)}
               />
@@ -222,16 +240,16 @@ function CatalogRoute() {
                 (filters.tag && filters.tag !== 'all'),
               )}
             >
-              <summary>Filter targets</summary>
+              <summary>Фильтры</summary>
               <label className="catalog-filter">
-                <span>Item class</span>
+                <span>Класс предмета</span>
                 <NativeSelect
                   value={filters.category}
                   onChange={(event) =>
                     updateFilter('category', event.target.value)
                   }
                 >
-                  <option value="all">All classes</option>
+                  <option value="all">Все классы</option>
                   {categories.map((category) => (
                     <option key={category} value={category}>
                       {category.replaceAll('-', ' ')}
@@ -240,7 +258,7 @@ function CatalogRoute() {
                 </NativeSelect>
               </label>
               <label className="catalog-filter">
-                <span>Show targets</span>
+                <span>Показать цели</span>
                 <NativeSelect
                   value={filters.view ?? 'all'}
                   onChange={(event) =>
@@ -250,10 +268,10 @@ function CatalogRoute() {
                     )
                   }
                 >
-                  <option value="all">All targets</option>
-                  <option value="priced">With prices</option>
-                  <option value="activity">Observed exits</option>
-                  <option value="estimated">Profit estimates</option>
+                  <option value="all">Все цели</option>
+                  <option value="priced">С ценами</option>
+                  <option value="activity">Исчезновения объявлений</option>
+                  <option value="estimated">Оценки прибыли</option>
                 </NativeSelect>
               </label>
 
@@ -263,7 +281,7 @@ function CatalogRoute() {
                   value={filters.tag ?? 'all'}
                   onChange={(e) => updateFilter('tag', e.target.value)}
                 >
-                  <option value="all">All tags</option>
+                  <option value="all">Все теги</option>
                   {[...new Set(entries.flatMap((e) => e.recipe.tags))]
                     .sort()
                     .map((tag) => (
@@ -274,7 +292,7 @@ function CatalogRoute() {
 
               <div className="catalog-filter">
                 <label htmlFor="minimum-profit">
-                  Min profit (
+                  Мин. разница с asking price (
                   {filters.profitCurrency === 'divine' ? 'div' : 'c'})
                 </label>
                 <div className="catalog-profit-filter">
@@ -289,7 +307,7 @@ function CatalogRoute() {
                     }
                   />
                   <NativeSelect
-                    aria-label="Profit currency"
+                    aria-label="Валюта оценки"
                     value={filters.profitCurrency ?? 'chaos'}
                     onChange={(event) =>
                       updateFilter(
@@ -304,7 +322,7 @@ function CatalogRoute() {
                 </div>
               </div>
               <label className="catalog-filter">
-                <span>Min ROI (%)</span>
+                <span>Мин. ROI (%)</span>
                 <Input
                   type="number"
                   step="any"
@@ -320,14 +338,18 @@ function CatalogRoute() {
 
           <div className="catalog-results">
             <span role="status">
-              {filteredEntries.length} of {entries.length} recipes
+              {filteredEntries.length} из {entries.length} рецептов
             </span>
-            {searchParams.size > 0 ? (
+            {Object.entries(filters).some(
+              ([key, value]) =>
+                value !== undefined &&
+                value !== defaultCatalogFilters[key as keyof CatalogFilters],
+            ) ? (
               <Button
                 type="button"
                 onClick={() => setFilters(defaultCatalogFilters)}
               >
-                Reset filters
+                Сбросить фильтры
               </Button>
             ) : null}
           </div>
@@ -353,9 +375,9 @@ function CatalogRoute() {
             }
           />
           <p className="catalog-price-note" id="catalog-price-note">
-            Asking prices and listing exits are observations, not confirmed
-            sales. Open a target for materials, steps and evidence.{' '}
-            <Link to="/market">Compare market prices</Link>.
+            Цены объявлений и их исчезновения — наблюдения, не подтверждённые
+            продажи. Откройте цель для материалов, шагов и источников.{' '}
+            <Link to="/market">Сравнить цены на рынке</Link>.
           </p>
         </>
       )}
@@ -368,7 +390,7 @@ function CatalogRoute() {
       ) : null}
       {collectorMode ? (
         <p className="catalog-price-note">
-          <Link to="/settings">Collection status and settings</Link>
+          <Link to="/settings">Состояние сбора и настройки</Link>
         </p>
       ) : null}
     </>
@@ -379,8 +401,8 @@ export function App() {
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Route index element={<CatalogRoute />} />
-        <Route path="recipes" element={<RecipeLibraryPage />} />
+        <Route index element={<CraftRoute />} />
+        <Route path="recipes" element={<RecipeCollectionRoute />} />
         <Route path="recipes/pohx/:guideId" element={<PohxRecipePage />} />
         <Route path="recipes/:recipeId" element={<RecipePage />} />
         <Route path="factory" element={<FactoryPage />} />
@@ -388,7 +410,7 @@ export function App() {
         <Route path="settings" element={<CollectionSettingsPage />} />
         <Route
           path="*"
-          element={<StatusPanel tone="warning" title="Page not found" />}
+          element={<StatusPanel tone="warning" title="Страница не найдена" />}
         />
       </Route>
     </Routes>
@@ -396,20 +418,37 @@ export function App() {
 }
 
 function CollectionSettingsPage() {
+  const [params] = useSearchParams();
+  const data = params.get('view') === 'data';
   return (
     <>
       <header className="catalog-heading">
         <div>
-          <h1>Collection and settings</h1>
-          <p>
-            Check collection health and control when saved prices become
-            outdated.
-          </p>
+          <h1>{data ? 'Данные и источники' : 'Настройки'}</h1>
+          <p>Состояние коллектора и срок актуальности сохранённых цен.</p>
         </div>
       </header>
       <CollectorControls />
-      <HomeSettings initiallyOpen />
-      <CollectorReadinessReport />
+      {data ? <CollectorReadinessReport /> : <HomeSettings initiallyOpen />}
     </>
+  );
+}
+
+function CraftRoute() {
+  const [params] = useSearchParams();
+  return ['item', 'budget'].includes(params.get('view') ?? '') ? (
+    <SelectedTarget />
+  ) : (
+    <CatalogRoute />
+  );
+}
+function RecipeCollectionRoute() {
+  const [params] = useSearchParams();
+  return ['recipe', 'steps', 'methods', 'materials'].includes(
+    params.get('view') ?? '',
+  ) ? (
+    <SelectedTarget />
+  ) : (
+    <RecipeLibraryPage />
   );
 }

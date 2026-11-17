@@ -18,5 +18,3 @@ createRoot(root).render(
     </BrowserRouter>
   </StrictMode>,
 );
-
-import './workspace.css';

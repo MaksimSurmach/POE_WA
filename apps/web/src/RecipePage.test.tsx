@@ -62,14 +62,16 @@ function renderMethods(entries: CatalogEntry[], targetSignature: string) {
 describe('recipe page method comparison', () => {
   it('ranks the priced methods for the target and shows why a method is blocked', () => {
     const html = renderMethods([blocked, fossil, chaos, unique], 'cluster');
-    const links = [...html.matchAll(/href="\/recipes\/([^"]+)"/g)].map(
+    const links = [...html.matchAll(/href="\/recipes\/([^"?]+)"/g)].map(
       ([, id]) => id,
     );
 
-    expect(html).toContain('Methods for this target');
+    expect(html).toContain('Методы для этой цели');
     expect(links).toEqual(['chaos', 'fossil', 'blocked']);
+    for (const id of links)
+      expect(html).toContain(`href="/recipes/${id}?view=materials"`);
     expect(html).toMatch(
-      /\/recipes\/chaos.*Best by expected profit.*5 div.*8 div.*\+3 div.*60\.0%.*4 div.*12 div.*Evidence grade A/,
+      /\/recipes\/chaos.*Лучший по оценке разницы с ask.*5 div.*8 div.*\+3 div.*60\.0%.*4 div.*12 div.*Evidence grade A/,
     );
     expect(html).toContain('No matching Trade sellers.');
   });
@@ -86,8 +88,8 @@ describe('recipe page method comparison', () => {
       ],
       'cluster',
     );
-    expect(html).toContain('Methods for this target');
-    expect(html).not.toContain('Best by expected profit');
+    expect(html).toContain('Методы для этой цели');
+    expect(html).not.toContain('Лучший по оценке разницы с ask');
   });
 });
 
@@ -108,7 +110,7 @@ it('identifies expired and unpriced methods without blocking usable fallback pro
     ],
     'cluster',
   );
-  expect(html).toMatch(/\/recipes\/chaos.*Best by expected profit/);
+  expect(html).toMatch(/\/recipes\/chaos.*Лучший по оценке разницы с ask/);
   expect(html).toContain('Only stale market data is available.');
   expect(html).toContain('No market snapshot is available.');
 });
@@ -136,4 +138,13 @@ it('revalidates existing or unavailable comparisons and checks unique targets af
     shouldRefreshMethodComparison(catalog, 'ring', '2026-11-10T00:05:00.000Z'),
   ).toBe(true);
   expect(shouldRefreshMethodComparison(null, 'ring', publishedAt)).toBe(true);
+});
+
+it('compares validated target signatures even when optional item artwork is unavailable', () => {
+  const entries = [chaos, fossil].map((entry) => {
+    const copy = { ...entry };
+    delete copy.itemPreview;
+    return copy;
+  });
+  expect(renderMethods(entries, 'cluster')).toContain('Методы для этой цели');
 });

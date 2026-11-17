@@ -53,7 +53,7 @@ export function MarketReadiness({
     <div data-market-readiness data-readiness-level={r.level}>
       <p>
         <strong>{readinessLabels[r.level]}</strong>
-        {isSingleSellerHypothesis(r) ? ' · Single-seller price hypothesis' : ''}
+        {isSingleSellerHypothesis(r) ? ' · Гипотеза цены одного продавца' : ''}
       </p>
       <p>
         Latest capture {time(r.capturedAt)}.{' '}
@@ -66,7 +66,7 @@ export function MarketReadiness({
             : ''}
       </p>
       <p>
-        Observed asks <AskRange range={r.currentAskRange} /> ·{' '}
+        Наблюдаемые цены объявлений <AskRange range={r.currentAskRange} /> ·{' '}
         {r.currentSellers} priced sellers · {r.currentListings} listings
         {r.comparableSellers !== null
           ? ` · ${r.comparableSellers} comparable sellers`
@@ -150,7 +150,7 @@ export function MarketReadiness({
 }
 
 export function CollectorReadinessReport() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [report, setReport] = useState<CollectorReadinessResponse | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -179,9 +179,10 @@ export function CollectorReadinessReport() {
   return (
     <details
       className="detail-section"
+      open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}
     >
-      <summary>All Trade targets · 24-hour readiness</summary>
+      <summary>Все цели Trade · готовность за 24 часа</summary>
       {open && failed ? (
         <p role="status">Readiness report unavailable.</p>
       ) : null}

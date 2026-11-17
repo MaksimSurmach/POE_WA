@@ -153,3 +153,5 @@ apps/web/dist-preview/
 
 # Local visual review evidence
 .impeccable/review/
+
+output/playwright/light-results/

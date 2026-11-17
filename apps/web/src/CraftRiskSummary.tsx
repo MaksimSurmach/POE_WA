@@ -287,7 +287,7 @@ export function CraftRiskResult({
       ) : null}
       <dl className="craft-risk__metrics">
         <div>
-          <dt>Mean cost</dt>
+          <dt>Средние затраты</dt>
           <dd>{formatRiskMoney(result.meanCost, currency)}</dd>
         </div>
         <div>
@@ -353,7 +353,7 @@ export function CraftRiskResult({
         </div>
         <dl className="craft-risk__metrics">
           <div>
-            <dt>Mean cost in worst 5%</dt>
+            <dt>Средние затраты в худших 5% случаев</dt>
             <dd>{formatRiskMoney(result.expectedShortfall95Cost, currency)}</dd>
           </div>
           <div>

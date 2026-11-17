@@ -79,30 +79,30 @@ export function RecipeMarketOverview({
   const priced = points.filter((point) => point.price !== null);
   const selected = points.find((point) => point.id === selectedId);
   return (
-    <section className="recipe-market" aria-label="All recipes market overview">
+    <section className="recipe-market" aria-label="Обзор рынка всех рецептов">
       <header>
-        <h2>All recipes · current market</h2>
+        <h2>Все цели · текущий рынок</h2>
         {response?.data ? (
           <p className="recipe-market__note">
-            {entries.length} targets · {priced.length} with observed asks ·{' '}
-            {points.filter((point) => point.exits !== null).length} with
-            measurable activity. Asking prices and inferred listing exits, not
-            confirmed sales or profit.
+            {entries.length} целей · {priced.length} с наблюдаемыми ценами ·{' '}
+            {points.filter((point) => point.exits !== null).length} с измеренной
+            активностью. Цены объявлений и их исчезновения не подтверждают
+            продажи или прибыль.
           </p>
         ) : null}
       </header>
       {failed || (response && !response.data) ? (
-        <StatusPanel title="Market overview unavailable" tone="danger">
+        <StatusPanel title="Обзор рынка недоступен" tone="danger">
           <Button type="button" onClick={onRetry}>
-            Retry market overview
+            Повторить загрузку рынка
           </Button>
         </StatusPanel>
       ) : !response ? (
-        <StatusPanel title="Loading all recipes" tone="info" />
+        <StatusPanel title="Загрузка целей" tone="info" />
       ) : !response.data?.league ? (
-        <StatusPanel title="Current market league unresolved" tone="warning">
+        <StatusPanel title="Текущая лига неизвестна" tone="warning">
           <Button type="button" onClick={onRetry}>
-            Reload current market
+            Обновить текущий рынок
           </Button>
         </StatusPanel>
       ) : (
@@ -118,8 +118,9 @@ export function RecipeMarketOverview({
           {priced.length > 0 &&
           !points.some((point) => (point.exits ?? 0) > 0) ? (
             <p className="market-activity-note" role="status">
-              No listing exits recorded in the observed 24h window. Demand is
-              unconfirmed; “Not measurable” needs more fresh captures.
+              За наблюдаемое окно в 24 часа исчезновений объявлений не
+              зафиксировано. Спрос не подтверждён. Для оценки активности нужны
+              дополнительные свежие снимки.
             </p>
           ) : null}
           {selected ? (
@@ -129,7 +130,7 @@ export function RecipeMarketOverview({
               {selected.price ? (
                 <Money price={selected.price} />
               ) : (
-                'No fresh ask'
+                'Нет актуальной цены'
               )}
               {' · '}
               <Button
@@ -143,39 +144,41 @@ export function RecipeMarketOverview({
                   heading?.focus({ preventScroll: true });
                 }}
               >
-                View recipe price history ↓
+                Открыть историю цены ↓
               </Button>
             </p>
           ) : (
             <p className="recipe-market__note">
-              Select a recipe to see its price history.
+              Выберите рецепт для просмотра истории цен.
             </p>
           )}
           <div className="market-price-controls">
             <label>
-              <span>Find a market recipe</span>
+              <span>Поиск рыночной цели</span>
               <Input
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Item, method or class"
+                placeholder="Предмет, метод или класс"
               />
             </label>
             <label>
-              <span>Order current prices</span>
+              <span>Сортировка цен</span>
               <NativeSelect
                 value={order}
                 onChange={(event) => setOrder(event.target.value)}
               >
-                <option value="activity">Most observed exits</option>
-                <option value="price">Lowest ask · per currency</option>
-                <option value="title">Recipe name</option>
+                <option value="activity">
+                  Больше наблюдаемых исчезновений
+                </option>
+                <option value="price">Ниже цена объявления · по валютам</option>
+                <option value="title">Название рецепта</option>
               </NativeSelect>
             </label>
           </div>
           <details className="recipe-market__recipes" open>
             <summary>
-              {entries.length} targets · current prices and activity
+              {entries.length} целей · текущие цены и активность
             </summary>
             <div
               className="recipe-market__table-scroll"
@@ -187,15 +190,15 @@ export function RecipeMarketOverview({
                 <table className="table__content recipe-market__table">
                   <thead className="table__header">
                     <tr className="table__row">
-                      <th className="table__column">Recipe</th>
-                      <th className="table__column">Observed ask</th>
+                      <th className="table__column">Рецепт</th>
+                      <th className="table__column">Цена объявления</th>
                       <th className="table__column">
-                        Recorded ask change · {trends?.range ?? '7d'}
+                        Изменение цены объявления · {trends?.range ?? '7d'}
                       </th>
                       <th className="table__column">
-                        Inferred exits · 24h window
+                        Наблюдаемые исчезновения · 24 часа
                       </th>
-                      <th className="table__column">Collection evidence</th>
+                      <th className="table__column">Источники сбора</th>
                     </tr>
                   </thead>
                   <tbody className="table__body">
@@ -232,12 +235,26 @@ export function RecipeMarketOverview({
                             <small>
                               {entry.recipe.craftMethod.replaceAll('-', ' ')}
                             </small>
+                            <span
+                              className="market-mobile-ask"
+                              aria-hidden="true"
+                            >
+                              {point.price ? (
+                                <Money price={point.price} />
+                              ) : (
+                                'Нет актуальной цены'
+                              )}{' '}
+                              · объявление, не продажа
+                            </span>
                           </td>
-                          <td className="table__cell" data-label="Observed ask">
+                          <td
+                            className="table__cell"
+                            data-label="Цена объявления"
+                          >
                             {point.price ? (
                               <Money price={point.price} />
                             ) : (
-                              'No fresh ask'
+                              'Нет актуальной цены'
                             )}
                           </td>
                           <td
@@ -248,7 +265,7 @@ export function RecipeMarketOverview({
                               ? history
                                 ? 'Insufficient history'
                                 : trends
-                                  ? 'No history'
+                                  ? 'Нет истории'
                                   : 'History unavailable'
                               : formatPercent(change)}
                           </td>
@@ -256,7 +273,7 @@ export function RecipeMarketOverview({
                             className="table__cell"
                             data-label="Listing exits · 24h window"
                           >
-                            {point.exits ?? 'Not measurable'}
+                            {point.exits ?? 'Не измерено'}
                             {point.exits !== null && readiness ? (
                               <small>
                                 {Math.round(
@@ -283,7 +300,7 @@ export function RecipeMarketOverview({
                                 </small>
                               </>
                             ) : (
-                              'Collection evidence unavailable'
+                              'Источники сбора недоступны'
                             )}
                           </td>
                         </tr>
@@ -295,7 +312,7 @@ export function RecipeMarketOverview({
             </div>
           </details>
           <details className="market-map-disclosure">
-            <summary>Price vs. listing activity chart</summary>
+            <summary>График цены и активности объявлений</summary>
             {(['chaos', 'divine'] as const).map((currency) => {
               const items = priced
                 .filter((point) => point.price?.currency === currency)

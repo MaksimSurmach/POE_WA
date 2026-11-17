@@ -104,7 +104,7 @@ export function CollectorDetails() {
       className="collector-details"
       onToggle={(event) => setOpen(event.currentTarget.open)}
     >
-      <summary>Collector details</summary>
+      <summary>Диагностика коллектора</summary>
       {open ? (
         <>
           {unavailable ? (

@@ -25,7 +25,7 @@ test('public schedule follows settings changed by another client', async ({
     await patch({ refreshCron: '0 */4 * * *' });
     await page.goto('/admin/market');
     await expect(
-      page.getByRole('heading', { name: 'Page not found' }),
+      page.getByRole('heading', { name: 'Страница не найдена' }),
     ).toBeVisible();
     await patch({ collectionsPaused: true, refreshCron: '15 */4 * * *' });
     const refresh = await page.request.get('/api/refresh');
@@ -66,18 +66,18 @@ test('an open recipe revalidates when its window regains focus', async ({
   await expect(page.getByRole('heading', { name: title })).toBeVisible();
 
   await page
-    .getByText('Advanced: expected value and risk calculator', { exact: true })
+    .getByText('Расчёт ожидаемой стоимости и риска', { exact: true })
     .click();
-  const risk = page.getByRole('region', { name: 'Expected value & risk' });
+  const risk = page.getByRole('region', { name: 'Ожидаемая стоимость и риск' });
   await risk
-    .getByText('Define outcome probabilities and values', { exact: true })
+    .getByText('Задать вероятности и стоимости результатов', { exact: true })
     .click();
   const base = risk.getByLabel('One base', { exact: true });
   await base.fill('10');
 
   unavailable = true;
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
-  await expect(page.getByText(/Price update unavailable/)).toBeVisible();
+  await expect(page.getByText(/Не удалось обновить цены/)).toBeVisible();
   await expect(base).toHaveValue('10');
 
   unavailable = false;

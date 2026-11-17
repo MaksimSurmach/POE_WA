@@ -1,5 +1,5 @@
 import type { CatalogEntry } from '@poe-worksmith/contracts';
-import { Link } from 'react-router-dom';
+import { WorkspaceLink as Link } from './workspaceNavigation.js';
 import { observedAsk } from './catalog.js';
 
 export function CatalogOverview({ entries }: { entries: CatalogEntry[] }) {
@@ -18,18 +18,21 @@ export function CatalogOverview({ entries }: { entries: CatalogEntry[] }) {
     >
       <h2>
         {estimated
-          ? `${estimated} recipes have an ask-based profit estimate`
+          ? `${estimated} целей с оценкой разницы между затратами и asking price`
           : priced
-            ? 'Prices are available. Profit is not verified yet.'
-            : 'No current asking prices are available.'}
+            ? 'Цены доступны. Оценка прибыли пока не подтверждена.'
+            : 'Актуальных цен объявлений пока нет.'}
       </h2>
-      <p className="catalog-decision__facts">
-        <span>
-          {priced} of {entries.length} recipes with observed asks
-        </span>
-        <span>{active} with observed listing exits</span>
-        <Link to="/recipes">Browse crafting steps</Link>
-      </p>
+      <details>
+        <summary>Данные о ценах и активности</summary>
+        <p className="catalog-decision__facts">
+          <span>
+            {priced} из {entries.length} целей с наблюдаемыми ценами
+          </span>
+          <span>{active} целей с наблюдаемыми исчезновениями объявлений</span>
+          <Link to="/recipes">Открыть рецепты</Link>
+        </p>
+      </details>
     </section>
   );
 }

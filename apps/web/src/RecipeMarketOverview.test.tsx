@@ -87,7 +87,12 @@ it('plots multiple recipes and keeps unknown activity outside the numerical axis
           price: 42,
           activity: null,
         },
-        { id: 'active', name: 'Observed exits', price: 84, activity: 3 },
+        {
+          id: 'active',
+          name: 'Исчезновения объявлений',
+          price: 84,
+          activity: 3,
+        },
       ]}
       currency="chaos"
       activityDescription="inferred exits"

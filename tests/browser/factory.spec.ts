@@ -24,19 +24,19 @@ for (const width of [1440, 390]) {
     await page.goto(
       '/factory?recipe=quicksilver-mageblood-cheetah&league=Fixture%20League',
     );
-    const create = page.getByRole('form', { name: 'Start production batch' });
+    const create = page.getByRole('form', { name: 'Создание партии' });
     await create
-      .getByLabel('Batch notes', { exact: true })
+      .getByLabel('Заметки к партии', { exact: true })
       .fill(`Synthetic acceptance ${width}; not real purchases or sales`);
     await create
-      .getByLabel('Amount in transaction currency', { exact: true })
+      .getByLabel('Сумма в валюте операции', { exact: true })
       .fill('100');
     await create
-      .getByRole('button', { name: 'Start batch', exact: true })
+      .getByRole('button', { name: 'Создать партию', exact: true })
       .click();
     await expect(page).toHaveURL(/batch=/);
     const id = new URL(page.url()).searchParams.get('batch')!;
-    const form = page.getByRole('form', { name: 'Record factory event' });
+    const form = page.getByRole('form', { name: 'Запись события мастерской' });
     await expect(form).toBeVisible();
 
     // The server commits this purchase, but the browser loses its response.
@@ -55,15 +55,15 @@ for (const width of [1440, 390]) {
       retry = false,
     ) {
       await form
-        .getByRole('combobox', { name: 'Event type', exact: true })
+        .getByRole('combobox', { name: 'Тип события', exact: true })
         .selectOption(type);
       await fill(form);
       await form
-        .getByLabel('Transaction or event source', { exact: true })
+        .getByLabel('Источник операции или события', { exact: true })
         .fill('Synthetic browser acceptance; no real game transaction');
       if (retry) {
         await form
-          .getByRole('button', { name: 'Record event', exact: true })
+          .getByRole('button', { name: 'Записать событие', exact: true })
           .click();
         await expect(page.getByRole('alert')).toContainText(
           'Your inputs are preserved',
@@ -75,7 +75,7 @@ for (const width of [1440, 390]) {
         );
         await page
           .getByRole('button', {
-            name: 'Retry exact pending event',
+            name: 'Повторить сохранённый запрос события',
             exact: true,
           })
           .click();
@@ -87,7 +87,7 @@ for (const width of [1440, 390]) {
             r.request().method() === 'POST',
         );
         await form
-          .getByRole('button', { name: 'Record event', exact: true })
+          .getByRole('button', { name: 'Записать событие', exact: true })
           .click();
         const result = await response;
         expect(result.ok(), await result.text()).toBe(true);
@@ -96,7 +96,7 @@ for (const width of [1440, 390]) {
         page.getByRole('status').filter({ hasText: 'Event recorded.' }),
       ).toBeVisible();
       await expect(
-        form.getByRole('button', { name: 'Record event', exact: true }),
+        form.getByRole('button', { name: 'Записать событие', exact: true }),
       ).toBeEnabled();
       return currentBatch(page, id);
     }
@@ -110,13 +110,13 @@ for (const width of [1440, 390]) {
         'purchase',
         async (f) => {
           await f
-            .getByLabel('Material or base name', { exact: true })
+            .getByLabel('Название материала или базы', { exact: true })
             .fill(resource);
           await f
-            .getByLabel('Transaction quantity', { exact: true })
+            .getByLabel('Количество в операции', { exact: true })
             .fill(quantity);
           await f
-            .getByLabel('Unit price in transaction currency', { exact: true })
+            .getByLabel('Цена единицы в валюте операции', { exact: true })
             .fill(price);
         },
         retry,
@@ -130,9 +130,11 @@ for (const width of [1440, 390]) {
     const consume = (purchaseId: string, quantity: string) =>
       record('consume', async (f) => {
         await f
-          .getByRole('combobox', { name: 'Purchase lot', exact: true })
+          .getByRole('combobox', { name: 'Партия закупки', exact: true })
           .selectOption(purchaseId);
-        await f.getByLabel('Stock quantity', { exact: true }).fill(quantity);
+        await f
+          .getByLabel('Количество из запаса', { exact: true })
+          .fill(quantity);
       });
     state = await consume(essencePurchase, '4');
     const essenceCost = state.events.at(-1)!.id;
@@ -141,10 +143,10 @@ for (const width of [1440, 390]) {
     for (const category of ['target', 'salvage']) {
       state = await record('produce', async (f) => {
         await f
-          .getByLabel('Crafted item description', { exact: true })
+          .getByLabel('Описание созданного предмета', { exact: true })
           .fill(`Synthetic ${category} item`);
         await f
-          .getByLabel('Outcome ID or classification label', { exact: true })
+          .getByLabel('ID результата или метка класса', { exact: true })
           .fill(`production-${category}`);
         await f
           .getByRole('combobox', { name: 'Outcome category', exact: true })
@@ -159,26 +161,29 @@ for (const width of [1440, 390]) {
             .uncheck();
         if (
           (await f
-            .getByRole('combobox', { name: 'Cost source', exact: true })
+            .getByRole('combobox', { name: 'Источник затрат', exact: true })
             .count()) < 2
         )
           await f
-            .getByRole('button', { name: 'Add cost allocation', exact: true })
+            .getByRole('button', {
+              name: 'Добавить распределение затрат',
+              exact: true,
+            })
             .click();
         await f
-          .getByRole('combobox', { name: 'Cost source', exact: true })
+          .getByRole('combobox', { name: 'Источник затрат', exact: true })
           .nth(0)
           .selectOption(essenceCost);
         await f
-          .getByLabel('Allocated cost (chaos)', { exact: true })
+          .getByLabel('Отнесённая себестоимость (chaos)', { exact: true })
           .nth(0)
           .fill('4');
         await f
-          .getByRole('combobox', { name: 'Cost source', exact: true })
+          .getByRole('combobox', { name: 'Источник затрат', exact: true })
           .nth(1)
           .selectOption(baseCost);
         await f
-          .getByLabel('Allocated cost (chaos)', { exact: true })
+          .getByLabel('Отнесённая себестоимость (chaos)', { exact: true })
           .nth(1)
           .fill('10');
       });
@@ -195,9 +200,7 @@ for (const width of [1440, 390]) {
       await f
         .getByRole('combobox', { name: 'Cost or credit category', exact: true })
         .selectOption('finishing');
-      await f
-        .getByLabel('Amount in transaction currency', { exact: true })
-        .fill('2');
+      await f.getByLabel('Сумма в валюте операции', { exact: true }).fill('2');
     });
     const finishing = state.events.at(-1)!.id;
     await record('allocate', async (f) => {
@@ -205,17 +208,17 @@ for (const width of [1440, 390]) {
         .getByRole('combobox', { name: 'Inventory item', exact: true })
         .selectOption(target.id);
       await f
-        .getByRole('combobox', { name: 'Cost source', exact: true })
+        .getByRole('combobox', { name: 'Источник затрат', exact: true })
         .selectOption(finishing);
-      await f.getByLabel('Allocated cost (chaos)', { exact: true }).fill('2');
+      await f
+        .getByLabel('Отнесённая себестоимость (chaos)', { exact: true })
+        .fill('2');
     });
     await record('list', async (f) => {
       await f
         .getByRole('combobox', { name: 'Inventory item', exact: true })
         .selectOption(target.id);
-      await f
-        .getByLabel('Amount in transaction currency', { exact: true })
-        .fill('50');
+      await f.getByLabel('Сумма в валюте операции', { exact: true }).fill('50');
     });
     const sale = () =>
       record('sale', async (f) => {
@@ -223,20 +226,20 @@ for (const width of [1440, 390]) {
           .getByRole('combobox', { name: 'Inventory item', exact: true })
           .selectOption(target.id);
         const proceeds = f.getByRole('group', {
-          name: 'Confirmed sale proceeds',
+          name: 'Выручка подтверждённой продажи',
           exact: true,
         });
         await proceeds
-          .getByRole('combobox', { name: 'Transaction currency', exact: true })
+          .getByRole('combobox', { name: 'Валюта операции', exact: true })
           .selectOption('divine');
         await proceeds
-          .getByLabel('Amount in transaction currency', { exact: true })
+          .getByLabel('Сумма в валюте операции', { exact: true })
           .fill('0.5');
         await proceeds
-          .getByLabel('Chaos per divine at transaction time', { exact: true })
+          .getByLabel('Курс chaos за divine на дату операции', { exact: true })
           .fill('100');
         await proceeds
-          .getByLabel('Historical exchange-rate source', { exact: true })
+          .getByLabel('Источник исторического курса', { exact: true })
           .fill('Synthetic locked rate 100; not a live quote');
         await f
           .getByLabel('Include transaction expense', { exact: true })
@@ -246,7 +249,7 @@ for (const width of [1440, 390]) {
             name: 'Expense paid for this sale',
             exact: true,
           })
-          .getByLabel('Amount in transaction currency', { exact: true })
+          .getByLabel('Сумма в валюте операции', { exact: true })
           .fill('1');
       });
     state = await sale();
@@ -285,7 +288,7 @@ for (const width of [1440, 390]) {
     );
     const downloading = page.waitForEvent('download');
     await page
-      .getByRole('button', { name: 'Export JSON', exact: true })
+      .getByRole('button', { name: 'Экспорт JSON', exact: true })
       .click();
     const download = await downloading;
     const exported = JSON.parse(
@@ -317,15 +320,15 @@ test('refresh reconciles a committed pending purchase before an intentional iden
   await page.goto(
     '/factory?recipe=quicksilver-mageblood-cheetah&league=Fixture%20League',
   );
-  const create = page.getByRole('form', { name: 'Start production batch' });
+  const create = page.getByRole('form', { name: 'Создание партии' });
   await create
-    .getByLabel('Batch notes', { exact: true })
+    .getByLabel('Заметки к партии', { exact: true })
     .fill('Synthetic lost-response reconciliation');
   await create
-    .getByLabel('Amount in transaction currency', { exact: true })
+    .getByLabel('Сумма в валюте операции', { exact: true })
     .fill('10');
   await create
-    .getByRole('button', { name: 'Start batch', exact: true })
+    .getByRole('button', { name: 'Создать партию', exact: true })
     .click();
   await expect(page).toHaveURL(/batch=/);
   const id = new URL(page.url()).searchParams.get('batch')!;
@@ -338,19 +341,19 @@ test('refresh reconciles a committed pending purchase before an intentional iden
     } else await route.continue();
   });
   async function enterPurchase() {
-    const form = page.getByRole('form', { name: 'Record factory event' });
+    const form = page.getByRole('form', { name: 'Запись события мастерской' });
     await form
-      .getByLabel('Material or base name', { exact: true })
+      .getByLabel('Название материала или базы', { exact: true })
       .fill('Synthetic identical purchase');
-    await form.getByLabel('Transaction quantity', { exact: true }).fill('1');
+    await form.getByLabel('Количество в операции', { exact: true }).fill('1');
     await form
-      .getByLabel('Unit price in transaction currency', { exact: true })
+      .getByLabel('Цена единицы в валюте операции', { exact: true })
       .fill('1');
     await form
-      .getByLabel('Transaction or event source', { exact: true })
+      .getByLabel('Источник операции или события', { exact: true })
       .fill('Synthetic acceptance only');
     await form
-      .getByRole('button', { name: 'Record event', exact: true })
+      .getByRole('button', { name: 'Записать событие', exact: true })
       .click();
   }
   await enterPurchase();
@@ -363,7 +366,7 @@ test('refresh reconciles a committed pending purchase before an intentional iden
   ).toBeVisible();
   await expect(
     page.getByRole('button', {
-      name: 'Retry exact pending event',
+      name: 'Повторить сохранённый запрос события',
       exact: true,
     }),
   ).toHaveCount(0);

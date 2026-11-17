@@ -12,7 +12,7 @@ test('ranks two priced methods and shows both profits on the homepage', async ({
   const jagged = '/recipes/physical-large-cluster-jagged';
   const chaos = '/recipes/physical-large-cluster-chaos';
   await page.goto(jagged);
-  const table = page.getByRole('table', { name: 'Methods for this target' });
+  const table = page.getByRole('table', { name: 'Методы для этой цели' });
   const rows = table.locator('tbody').getByRole('row');
   await expect(rows).toHaveCount(2);
 
@@ -23,14 +23,25 @@ test('ranks two priced methods and shows both profits on the homepage', async ({
   ];
   for (const [index, { path, profit }] of rankedMethods.entries()) {
     const row = rows.nth(index);
-    await expect(row.getByRole('link')).toHaveAttribute('href', path);
+    await expect(row.getByRole('rowheader').getByRole('link')).toHaveAttribute(
+      'href',
+      `${path}?recipe=${path.split('/').at(-1)}`,
+    );
+    await expect(
+      row.getByRole('link', { name: 'План материалов', exact: true }),
+    ).toHaveAttribute(
+      'href',
+      `${path}?view=materials&recipe=${path.split('/').at(-1)}`,
+    );
     const cells = row.getByRole('cell');
     await expect(cells.nth(2)).toHaveText(profit);
     await expect(cells.nth(4)).toHaveText(budget);
     await expect(cells.nth(5)).toHaveText(budget);
     await expect(row.getByLabel('Evidence grade A')).toBeVisible();
   }
-  await expect(rows.first().getByText('Best by expected profit')).toBeVisible();
+  await expect(
+    rows.first().getByText('Лучший по оценке разницы с ask'),
+  ).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 840 });
   const scrollRegion = page.getByRole('region', {
@@ -47,19 +58,21 @@ test('ranks two priced methods and shows both profits on the homepage', async ({
   ).toBeLessThanOrEqual(390);
 
   await page.goto('/');
-  await page.getByText('Sort and display options', { exact: true }).click();
+  await page.getByText('Сортировка и отображение', { exact: true }).click();
   await page
-    .getByRole('checkbox', { name: 'Show every crafting method' })
+    .getByRole('checkbox', { name: 'Показать все методы крафта' })
     .check();
   for (const { path, profit } of rankedMethods) {
     const row = page.getByRole('row').filter({
       has: page.locator(`a[href="${path}"]`),
     });
-    await expect(row.locator('[data-label="Profit"]')).toContainText(profit);
+    await expect(row.locator('[data-label="Разница с ask"]')).toContainText(
+      profit,
+    );
     await expect(row.locator('.craft-table__evidence')).toBeVisible();
   }
   await expect(
-    page.getByRole('button', { name: 'Item class', exact: true }),
+    page.getByRole('button', { name: 'Класс предмета', exact: true }),
   ).toHaveCount(0);
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),

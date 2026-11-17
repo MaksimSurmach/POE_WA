@@ -56,20 +56,26 @@ export function FactorySelect({
 export function TransactionFields({
   prefix = '',
   quantity = true,
-  label = 'Actual transaction',
+  label = 'Фактическая операция',
+  initialAmount,
+  initialCurrency = 'chaos',
 }: {
   prefix?: string;
   quantity?: boolean;
   label?: string;
+  initialAmount?: string;
+  initialCurrency?: string;
 }) {
-  const [currency, setCurrency] = useState('chaos');
+  const [currency, setCurrency] = useState(
+    initialCurrency === 'divine' ? 'divine' : 'chaos',
+  );
   return (
     <fieldset className="factory-fields">
       <legend>{label}</legend>
       {quantity ? (
         <FactoryField
           name={`${prefix}quantity`}
-          label="Transaction quantity"
+          label="Количество в операции"
           type="number"
           min="0.000001"
           step="any"
@@ -79,17 +85,18 @@ export function TransactionFields({
       )}
       <FactoryField
         name={`${prefix}unitPrice`}
+        {...(initialAmount === undefined ? {} : { value: initialAmount })}
         label={
           quantity
-            ? 'Unit price in transaction currency'
-            : 'Amount in transaction currency'
+            ? 'Цена единицы в валюте операции'
+            : 'Сумма в валюте операции'
         }
         type="number"
         min="0"
         step="any"
       />
       <label>
-        Transaction currency
+        Валюта операции
         <NativeSelect
           name={`${prefix}currency`}
           value={currency}
@@ -103,14 +110,14 @@ export function TransactionFields({
         <>
           <FactoryField
             name={`${prefix}chaosPerUnit`}
-            label="Chaos per divine at transaction time"
+            label="Курс chaos за divine на дату операции"
             type="number"
             min="0.000001"
             step="any"
           />
           <FactoryField
             name={`${prefix}rateSource`}
-            label="Historical exchange-rate source"
+            label="Источник исторического курса"
           />
         </>
       ) : (

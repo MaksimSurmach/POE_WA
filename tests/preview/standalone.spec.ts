@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 
 test('standalone file supports navigation without network or live writes', async ({
   page,
-}, testInfo) => {
+}) => {
   const errors: string[] = [];
   const remoteRequests: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -16,51 +16,50 @@ test('standalone file supports navigation without network or live writes', async
     pathToFileURL(resolve('apps/web/dist-preview/worksmith-heroui.html')).href,
   );
   await expect(
-    page.getByRole('heading', { name: 'Craft opportunities', exact: true }),
+    page.getByRole('heading', { name: 'Что крафтить', exact: true }),
   ).toBeVisible();
   await page
-    .getByRole('searchbox', { name: 'Item name', exact: true })
+    .getByRole('searchbox', { name: 'Название предмета', exact: true })
     .fill('Physical');
   await expect(
-    page.getByRole('status').filter({ hasText: 'of 7 recipes' }),
-  ).toHaveText('1 of 7 recipes');
+    page.getByRole('status').filter({ hasText: 'из 7 рецептов' }),
+  ).toHaveText('1 из 7 рецептов');
   const navigate = async (name: string) => {
-    if (testInfo.project.name === 'mobile')
-      await page
-        .getByRole('button', { name: 'Worksmith menu', exact: true })
-        .click();
     await page.getByRole('link', { name, exact: true }).click();
   };
-  await navigate('Settings');
+  await navigate('Настройки');
   await expect(
-    page.getByRole('button', { name: 'Run now', exact: true }),
+    page.getByRole('button', { name: 'Запустить сбор', exact: true }),
   ).toBeDisabled();
   await expect(
-    page.getByRole('button', { name: 'Pause collection', exact: true }),
+    page.getByRole('button', { name: 'Приостановить сбор', exact: true }),
   ).toBeDisabled();
-  await navigate('Market trends');
+  await navigate('Рынок');
   const overview = page.getByRole('region', {
-    name: 'All recipes market overview',
+    name: 'Обзор рынка всех рецептов',
     exact: true,
   });
-  await expect(overview).toContainText('7 targets');
+  await expect(overview).toContainText('7 целей');
   await page
-    .getByLabel('Choose recipe')
+    .getByLabel('Выберите рецепт')
     .selectOption({ label: 'Physical Large Cluster Jewel' });
   await page
-    .getByRole('button', { name: 'View recipe price history ↓', exact: true })
+    .getByRole('button', { name: 'Открыть историю цены ↓', exact: true })
     .click();
   await expect(
-    page.getByRole('heading', { name: 'Recipe price history', exact: true }),
+    page.getByRole('heading', {
+      name: 'История цены выбранной цели',
+      exact: true,
+    }),
   ).toBeFocused();
   await expect(overview).toBeVisible();
-  await navigate('Recipes');
+  await navigate('Рецепты');
   await expect(
-    page.getByRole('heading', { name: 'Crafting recipes', exact: true }),
+    page.getByRole('heading', { name: 'Каталог рецептов', exact: true }),
   ).toBeVisible();
-  await navigate('My Factory');
+  await navigate('Моя мастерская');
   await expect(
-    page.getByRole('heading', { name: 'My Factory', exact: true }),
+    page.getByRole('heading', { name: 'Моя мастерская', exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole('button', {
