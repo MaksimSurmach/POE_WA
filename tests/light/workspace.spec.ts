@@ -5,7 +5,6 @@ import {
   craftAnalysisResponseSchema,
   recipeResponseSchema,
 } from '../../packages/contracts/dist/index.js';
-import { workspaceSections } from '../../apps/web/src/workspaceNavigation.js';
 
 const recipe = 'no-listings-bow';
 const batch = '00000000-0000-4000-8000-000000000010';
@@ -46,55 +45,67 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test('all 20 views render with contained tables, light surfaces and no runtime errors', async ({
+test('active pages and retained deep links render with contained tables and no runtime errors', async ({
   page,
 }, info) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   if (process.env.CAPTURE_LIGHT_EVIDENCE)
     await mkdir('docs/evidence/worksmith-light', { recursive: true });
-  for (const section of workspaceSections) {
-    for (const [view] of section.tabs) {
-      const path =
-        section.path === '/recipes' && !['catalog', 'guides'].includes(view)
-          ? `/recipes/${recipe}`
-          : section.path;
-      await page.goto(
-        `${path}?view=${view}&recipe=${recipe}&league=Preview%20League&batch=${batch}`,
-      );
-      await expect(page.locator('main h1').first()).toBeVisible();
-      await expect(page.locator('vite-error-overlay')).toHaveCount(0);
-      await expect(
-        page.getByRole('navigation', { name: 'Main navigation', exact: true }),
-      ).toBeVisible();
-      expect(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth <= innerWidth,
-        ),
-      ).toBe(true);
-      expect(
-        await page.evaluate(() =>
-          getComputedStyle(document.documentElement)
-            .getPropertyValue('--background')
-            .trim(),
-        ),
-      ).toBe('#ffffff');
-      expect(await page.locator('main').innerText()).not.toContain('Fettle');
-      if (
-        process.env.CAPTURE_LIGHT_EVIDENCE &&
-        ((info.project.name === 'desktop' &&
-          ['screener', 'catalog', 'overview', 'batches', 'general'].includes(
-            view,
-          )) ||
-          (['mobile', 'tablet'].includes(info.project.name) &&
-            ['screener', 'methods', 'overview', 'batch'].includes(view)))
-      ) {
-        await page.screenshot({
-          path: `docs/evidence/worksmith-light/${info.project.name}-${view}.png`,
-          fullPage: false,
-        });
-      }
-    }
+  const routes = [
+    ['home', '/'],
+    ['item', '/?view=item'],
+    ['budget', '/?view=budget'],
+    ['catalogue', '/recipes'],
+    ['recipe', `/recipes/${recipe}`],
+    ['steps', `/recipes/${recipe}?view=steps`],
+    ['methods', `/recipes/${recipe}?view=methods`],
+    ['materials', `/recipes/${recipe}?view=materials`],
+    ['guide', '/recipes/pohx/totem-shield'],
+    ['market', '/market'],
+    ['history', '/market?view=history'],
+    ['mods', '/market?view=mods'],
+    ['compare', '/market?view=compare'],
+    ['favorites', '/market?view=favorites'],
+    ['batches', '/factory'],
+    ['batch', '/factory?view=batch'],
+    ['inventory', '/factory?view=inventory'],
+    ['sales', '/factory?view=sales'],
+    ['settings', '/settings'],
+    ['diagnostics', '/settings?view=data'],
+  ] as const;
+  for (const [name, path] of routes) {
+    const target = new URL(path, 'http://127.0.0.1:5188');
+    target.searchParams.set('recipe', recipe);
+    target.searchParams.set('league', 'Preview League');
+    target.searchParams.set('batch', batch);
+    await page.goto(target.href);
+    await expect(page.locator('main h1').first()).toBeVisible();
+    await expect(page.locator('vite-error-overlay')).toHaveCount(0);
+    await expect(
+      page.getByRole('navigation', { name: 'Main navigation', exact: true }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      await page.evaluate(() =>
+        getComputedStyle(document.documentElement)
+          .getPropertyValue('--background')
+          .trim(),
+      ),
+    ).toBe('#ffffff');
+    expect(await page.locator('main').innerText()).not.toContain('Fettle');
+    if (
+      process.env.CAPTURE_LIGHT_EVIDENCE &&
+      ['home', 'catalogue', 'market', 'batch', 'methods'].includes(name)
+    )
+      await page.screenshot({
+        path: `docs/evidence/worksmith-light/${info.project.name}-${name}.png`,
+        fullPage: false,
+      });
   }
   expect(errors).toEqual([]);
 });
@@ -213,14 +224,17 @@ test('missing values remain unavailable and API errors allow retry', async ({
   });
   await page.goto('/');
   await expect(
-    page.getByRole('heading', { name: 'Рецепты недоступны', exact: true }),
+    page.getByRole('heading', {
+      name: 'Market could not be refreshed',
+      exact: true,
+    }),
   ).toBeVisible();
   fail = false;
-  await page
-    .getByRole('button', { name: 'Повторить загрузку', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Retry', exact: true }).click();
   await expect(
-    page.getByRole('link', { name: 'Niche Elemental Bow', exact: true }),
+    page
+      .locator('.market-item-button')
+      .filter({ hasText: 'Niche Elemental Bow' }),
   ).toBeVisible();
   await page.goto(`/recipes/${recipe}?view=materials`);
   const price = page.getByRole('spinbutton', { name: /^Цена \(/ }).first();
@@ -328,7 +342,7 @@ test('keyboard reaches content, section links and horizontally scrolling tables'
   await page.keyboard.press('Enter');
   await expect(page.locator('main')).toBeFocused();
   const region = page.getByRole('region', {
-    name: 'Crafting targets',
+    name: 'Market items',
     exact: true,
   });
   await region.focus();

@@ -33,113 +33,12 @@
   .profit {
     font-variant-numeric: tabular-nums;
   }
-  .catalog-decision {
-    padding-block: 12px;
-    margin-bottom: 20px;
-    border-block: 1px solid var(--border);
-  }
-  .catalog-decision h2 {
-    margin: 0 0 6px;
-    font-size: 16px;
-  }
-  .catalog-decision p {
-    margin: 0;
-    color: var(--muted);
-    max-width: 90ch;
-  }
-  .catalog-decision__facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 24px;
-    padding-top: 8px;
-    font-size: 13px;
-  }
   .handbook-controls {
     grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
     padding: 0;
     gap: 12px;
     border: 0;
     background: transparent;
-  }
-  .catalog-advanced-filters {
-    grid-column: 1 / -1;
-  }
-  .catalog-advanced-filters > label,
-  .catalog-advanced-filters > .catalog-filter {
-    display: inline-grid;
-    width: min(220px, 100%);
-    margin: 8px 16px 0 0;
-    vertical-align: top;
-  }
-  .catalog-profit-filter {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 64px;
-  }
-  .catalog-display-options {
-    padding: 8px 12px;
-  }
-  .catalog-display-options > summary {
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .catalog-method-toggle {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    min-height: 36px;
-  }
-  .catalog-mobile-sort {
-    display: flex;
-    gap: 12px;
-    align-items: end;
-    margin-block: 8px;
-  }
-  .catalog-mobile-sort label {
-    display: grid;
-    gap: 6px;
-  }
-  .catalog-results {
-    min-height: 32px;
-    padding-block: 8px;
-    border: 0;
-    background: transparent;
-    font-size: 13px;
-  }
-  .craft-table {
-    table-layout: auto;
-    min-width: 900px;
-    font-size: 13px;
-  }
-  .craft-table th,
-  .craft-table td {
-    padding: 12px;
-  }
-  .craft-table th:first-child {
-    width: 32%;
-  }
-  .craft-table thead .button {
-    padding: 0;
-    background: transparent;
-    color: inherit;
-    font-size: 13px;
-    min-width: 0;
-    white-space: normal;
-    justify-content: flex-end;
-  }
-  .craft-table thead th:first-child .button,
-  .craft-table thead th:last-child .button {
-    justify-content: flex-start;
-  }
-  .craft-table__identity a {
-    font-size: 13px;
-    font-weight: 500;
-  }
-  .craft-table small,
-  .craft-table time {
-    font-size: 12px;
-  }
-  .craft-table__mobile-class {
-    display: inline;
   }
   .evidence-details {
     font-size: 12px;

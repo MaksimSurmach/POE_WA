@@ -108,6 +108,15 @@ export function RecipeLibrary({
   const location = useLocation();
   const navigate = useNavigate();
   const favorites = useFavorites();
+  const [density, setDensity] = useState(() => {
+    try {
+      return localStorage.getItem('worksmith:density') === 'compact'
+        ? 'compact'
+        : 'comfortable';
+    } catch {
+      return 'comfortable';
+    }
+  });
   const search = params.get('search') ?? '';
   const category = params.get('category') ?? 'all';
   const family = params.get('family') ?? 'all';
@@ -306,6 +315,25 @@ export function RecipeLibrary({
               <option value="cost">Lowest craft cost</option>
               <option value="ask">Highest asking price</option>
               <option value="name">Item name</option>
+            </NativeSelect>
+          </label>
+          <label>
+            Density
+            <NativeSelect
+              aria-label="Density"
+              value={density}
+              onChange={(e) => {
+                setDensity(e.target.value);
+                try {
+                  localStorage.setItem('worksmith:density', e.target.value);
+                  window.dispatchEvent(new Event('worksmith-density-change'));
+                } catch {
+                  /* Current view remains usable without persistence. */
+                }
+              }}
+            >
+              <option value="comfortable">Comfortable</option>
+              <option value="compact">Compact</option>
             </NativeSelect>
           </label>
           <label className="library-estimated">

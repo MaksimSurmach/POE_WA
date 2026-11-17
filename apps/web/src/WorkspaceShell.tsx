@@ -12,6 +12,17 @@ import {
 import { workspaceHref } from './workspaceNavigation.js';
 import { useFavorites } from './Watchlist.js';
 import { favoriteTargetIds } from './recipeLibraryModel.js';
+import './workspaceShell.css';
+
+function readDensity() {
+  try {
+    return localStorage.getItem('worksmith:density') === 'compact'
+      ? 'compact'
+      : 'comfortable';
+  } catch {
+    return 'comfortable';
+  }
+}
 
 export function WorkspaceShell() {
   const { pathname, search } = useLocation();
@@ -23,6 +34,9 @@ export function WorkspaceShell() {
       !['recipe', 'steps', 'methods', 'materials'].includes(
         params.get('view') ?? '',
       ));
+  const overviewRoute =
+    pathname === '/' && !['item', 'budget'].includes(params.get('view') ?? '');
+  const catalogRoute = libraryRoute || overviewRoute;
   const [league, setLeague] = useState<{ id: string; name: string } | null>(
     null,
   );
@@ -38,15 +52,16 @@ export function WorkspaceShell() {
     },
     [],
   );
-  const [density, setDensity] = useState(() => {
-    try {
-      return localStorage.getItem('worksmith:density') === 'compact'
-        ? 'compact'
-        : 'comfortable';
-    } catch {
-      return 'comfortable';
-    }
-  });
+  const [density, setDensity] = useState(readDensity);
+  useEffect(() => {
+    const update = () => setDensity(readDensity());
+    window.addEventListener('storage', update);
+    window.addEventListener('worksmith-density-change', update);
+    return () => {
+      window.removeEventListener('storage', update);
+      window.removeEventListener('worksmith-density-change', update);
+    };
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     const api = createApiClient();
@@ -56,7 +71,7 @@ export function WorkspaceShell() {
         if (!controller.signal.aborted) setLeague(r.data);
       })
       .catch(() => {});
-    if (!libraryRoute)
+    if (!catalogRoute)
       void api
         .getCatalog(controller.signal)
         .then((r) => {
@@ -66,7 +81,7 @@ export function WorkspaceShell() {
         })
         .catch(() => {});
     return () => controller.abort();
-  }, [pathname, libraryRoute, acceptCatalog]);
+  }, [pathname, catalogRoute, acceptCatalog]);
   const favoritesOnly = params.get('favorites') === '1';
   const savedCount = favoriteTargetIds(favorites.ids, entries).length;
   function favoriteView() {
@@ -125,7 +140,7 @@ export function WorkspaceShell() {
             : 'chaos'}
         </span>
         <div className="product-utilities">
-          {libraryRoute ? (
+          {catalogRoute ? (
             <button aria-pressed={favoritesOnly} onClick={favoriteView}>
               Favorites{' '}
               <span aria-label={`${savedCount} saved targets`}>
@@ -137,25 +152,7 @@ export function WorkspaceShell() {
               Favorites <span>{savedCount}</span>
             </Link>
           )}
-          <Link to="/settings">Settings</Link>
-          <label>
-            <span className="sr-only">Display density</span>
-            <select
-              aria-label="Display density"
-              value={density}
-              onChange={(e) => {
-                setDensity(e.target.value);
-                try {
-                  localStorage.setItem('worksmith:density', e.target.value);
-                } catch {
-                  /* Spacing remains available for this session. */
-                }
-              }}
-            >
-              <option value="comfortable">Comfortable</option>
-              <option value="compact">Compact</option>
-            </select>
-          </label>
+          <Link to={href('/settings')}>Settings</Link>
         </div>
       </header>
       <main className="app-main" id="main-content" tabIndex={-1}>

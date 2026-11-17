@@ -21,9 +21,11 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test('mobile table header text fits its buttons', async ({ page }) => {
+test('market table headers keep their controls inside the column', async ({
+  page,
+}) => {
   await page.goto('/');
-  const headers = page.locator('.craft-table thead th:visible');
+  const headers = page.locator('.market-items-table thead th:visible');
   await expect(headers.first()).toBeVisible();
   const outsideCell = await headers.evaluateAll(
     (cells) =>
@@ -39,17 +41,16 @@ test('mobile table header text fits its buttons', async ({ page }) => {
   const overflowing = await headers.evaluateAll(
     (cells) =>
       cells.filter((cell) => {
-        const button = cell.querySelector('button')!;
-        return button.scrollWidth > button.clientWidth;
+        const button = cell.querySelector('button');
+        return button ? button.scrollWidth > button.clientWidth : false;
       }).length,
   );
   expect(overflowing).toBe(0);
 });
 
-test('first mobile target exposes its observed price and action', async ({
+test('Home target methods deduplicate and its observed chart keeps its full size', async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
   const response = await createPreviewFetch()('/api/catalog');
   const body = await response.json();
   const entry = body.data.entries[0];
@@ -99,17 +100,27 @@ test('first mobile target exposes its observed price and action', async ({
   catalogResponseSchema.parse(body);
   await page.route('**/api/catalog', (route) => route.fulfill({ json: body }));
   await page.goto('/');
-  const row = page
-    .locator('.craft-table tbody tr:not(.craft-table__readiness-group)')
-    .first();
-  await expect(row.locator('.craft-table__mobile-ask')).toBeInViewport();
-  await expect(row.locator('.craft-table__mobile-ask .money')).toHaveText(
-    await row.locator('[data-label="Цена объявления"] .money').innerText(),
-  );
+  const rows = page.locator('[data-market-target]');
+  await expect(rows).toHaveCount(1);
+  const item = rows.first().locator('.market-item-button');
   await expect(
     page.getByRole('link', { name: 'Settings', exact: true }),
   ).toBeInViewport();
-  await expect(row.locator('.craft-table__steps')).toBeInViewport({ ratio: 1 });
+  await item.scrollIntoViewIfNeeded();
+  await expect(item).toBeInViewport();
+  await item.click();
+  const dialog = page.getByRole('dialog');
+  await expect(
+    dialog.getByRole('tab', { name: 'Market', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  await expect(
+    dialog.getByRole('region', { name: 'Current asking evidence' }),
+  ).toContainText('42 c');
+  const chart = dialog.locator('.trend-chart__svg');
+  await expect(chart).toBeVisible();
+  const chartBounds = await chart.boundingBox();
+  expect(chartBounds?.width).toBeGreaterThan(250);
+  expect(chartBounds?.height).toBeGreaterThan(200);
 });
 
 test('choosing a target for an empty budget stays in the budget journey', async ({
@@ -348,22 +359,160 @@ test('mobile market rows expose the same observed price beside their identity', 
   );
 });
 
-test('the threshold currency follows section links and an explicit change clears the legacy unit', async ({
+test('explicit market currency follows the shared section links', async ({
   page,
 }) => {
   await page.goto('/?currency=divine');
-  const currency = page.getByRole('combobox', {
-    name: 'Валюта оценки',
-    exact: true,
-  });
-  await page.getByText('Фильтры', { exact: true }).click();
-  await currency.selectOption('chaos');
-  await expect(page).not.toHaveURL(/currency=divine/);
-  await currency.selectOption('divine');
+  await expect(page.locator('.workspace-context')).toContainText('divine');
   await page
     .getByRole('navigation', { name: 'Main navigation', exact: true })
     .getByRole('link', { name: 'Recipes', exact: true })
     .click();
-  await expect(page).toHaveURL(/profitCurrency=divine/);
-  await expect(page.locator('.workspace-context')).toContainText(/divine/i);
+  await expect(page).toHaveURL(/currency=divine/);
+  await expect(page.locator('.workspace-context')).toContainText('divine');
+});
+
+test('Home controls preserve independent choices and family-scoped economics agree with CSV', async ({
+  page,
+}) => {
+  const body = await (await createPreviewFetch()('/api/catalog')).json();
+  const chaos = body.data.entries[0];
+  chaos.recipe.title = 'Synthetic family-scope target';
+  chaos.recipe.craftFamilies = ['chaos'];
+  chaos.recipe.methodName = 'Synthetic Chaos';
+  chaos.evaluation.expectedCraftCost = { amount: 50, currency: 'chaos' };
+  chaos.snapshot.listings = [
+    {
+      ...chaos.snapshot.listings[0],
+      price: { amount: 100, currency: 'chaos' },
+    },
+  ];
+  delete chaos.readiness;
+  const fossil = structuredClone(chaos);
+  fossil.recipe.id = 'synthetic-fossil-bench';
+  fossil.evaluation.recipeId = fossil.recipe.id;
+  fossil.recipe.craftFamilies = ['fossil', 'bench'];
+  fossil.recipe.methodName = 'Synthetic Fossil + Bench';
+  fossil.evaluation.expectedCraftCost = { amount: 70, currency: 'chaos' };
+  body.data.entries = [chaos, fossil];
+  catalogResponseSchema.parse(body);
+  await page.route('**/api/catalog', (route) => route.fulfill({ json: body }));
+  await page.goto('/');
+  const rows = page.locator('[data-market-target]');
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first().locator('td').nth(6)).toContainText('50 c');
+  await expect(rows.first().locator('td').nth(7)).toContainText('50 c');
+  await page.getByLabel('Size', { exact: true }).selectOption('asking-price');
+  await page
+    .getByLabel('Group by', { exact: true })
+    .selectOption('craft-method');
+  await expect(page.getByLabel('Color', { exact: true })).toHaveValue(
+    'cost-spread',
+  );
+  await expect(page.getByLabel('Size', { exact: true })).toHaveValue(
+    'asking-price',
+  );
+  await page
+    .getByLabel('Color', { exact: true })
+    .selectOption('listing-activity');
+  await expect(page.getByLabel('Group by', { exact: true })).toHaveValue(
+    'craft-method',
+  );
+  await page
+    .getByLabel('Craft method family', { exact: true })
+    .selectOption('fossil');
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first().locator('td').nth(6)).toContainText('70 c');
+  await expect(rows.first().locator('td').nth(7)).toContainText('30 c');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export', exact: true }).click();
+  const file = await download;
+  const { readFile } = await import('node:fs/promises');
+  const content = await readFile((await file.path())!, 'utf8');
+  expect(content.split('\r\n')).toHaveLength(2);
+  expect(content).toContain(
+    '"Synthetic family-scope target","Fossil","100","chaos"',
+  );
+  expect(content).toContain('"70","30"');
+  await page
+    .getByRole('button', { name: 'Clear filters', exact: true })
+    .click();
+  await expect(page.getByLabel('Group by', { exact: true })).toHaveValue(
+    'craft-method',
+  );
+  await expect(page.getByLabel('Color', { exact: true })).toHaveValue(
+    'listing-activity',
+  );
+  await expect(page.getByLabel('Size', { exact: true })).toHaveValue(
+    'asking-price',
+  );
+  await expect(rows.first().locator('td').nth(6)).toContainText('50 c');
+});
+
+test('catalogue stays usable while trends hang, and market tabs work from the keyboard', async ({
+  page,
+}) => {
+  const catalogue = await (await createPreviewFetch()('/api/catalog')).json();
+  const targetCount = new Set(
+    catalogue.data.entries.map(
+      (entry: { recipe: { targetSignature: string } }) =>
+        entry.recipe.targetSignature,
+    ),
+  ).size;
+  let release!: () => void;
+  let trendRequests = 0;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/api/trends?*', async (route) => {
+    trendRequests++;
+    await pending;
+    if (!page.isClosed() && !route.request().failure()) await route.fallback();
+  });
+  try {
+    await page.goto('/');
+    await expect.poll(() => trendRequests).toBeGreaterThan(0);
+    await expect(page.locator('[data-market-target]')).toHaveCount(
+      targetCount,
+      {
+        timeout: 3_000,
+      },
+    );
+    await expect(
+      page.getByRole('heading', { name: 'Loading market', exact: true }),
+    ).toHaveCount(0);
+    const track = page.getByRole('button', { name: 'Track item', exact: true });
+    await expect(track).toBeDisabled();
+    await expect(track).toHaveAttribute(
+      'aria-describedby',
+      'track-unavailable',
+    );
+    await expect(page.locator('#track-unavailable')).toHaveText(
+      'Independent monitoring unavailable',
+    );
+    const items = page.getByRole('tab', { name: 'Items', exact: true });
+    const materials = page.getByRole('tab', { name: 'Materials', exact: true });
+    await items.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(materials).toBeFocused();
+    await expect(materials).toHaveAttribute('aria-selected', 'true');
+    await expect(items).toHaveAttribute('tabindex', '-1');
+    await expect(
+      page.getByRole('tabpanel', { name: 'Materials', exact: true }),
+    ).toBeVisible();
+    await page.keyboard.press('Home');
+    await expect(items).toBeFocused();
+    await expect(items).toHaveAttribute('aria-selected', 'true');
+    await expect(materials).toHaveAttribute('tabindex', '-1');
+    await expect(
+      page.getByRole('tabpanel', { name: 'Items', exact: true }),
+    ).toBeVisible();
+    const completed = page.waitForResponse(
+      (response) => new URL(response.url()).pathname === '/api/trends',
+    );
+    release();
+    await completed;
+  } finally {
+    release();
+  }
 });

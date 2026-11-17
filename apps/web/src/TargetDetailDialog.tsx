@@ -13,6 +13,7 @@ import { FavoriteButton } from './Watchlist.js';
 import { PriceTrendChart } from './PriceTrendChart.js';
 import { formatTimestamp } from './dateTime.js';
 import type { RecipeLibraryOutput } from './recipeLibraryModel.js';
+import './targetDetail.css';
 
 const api = createApiClient();
 export function LibraryMoney({ price }: { price: Price | null }) {
@@ -55,13 +56,121 @@ export function TargetArt({
     </span>
   );
 }
-const modifierGroups = [
-  ['prefix', 'Prefixes'],
-  ['suffix', 'Suffixes'],
-  ['implicit', 'Implicits'],
-  ['enchant', 'Enchantments'],
-  ['other', 'Other requirements'],
-] as const;
+const ordinaryPropertyIds = new Set([
+  'item-level',
+  'influences',
+  'corrupted',
+  'fractured',
+  'passive-count',
+  'quality',
+]);
+export function TargetRequirements({
+  item,
+  name,
+  category,
+  patch,
+  league,
+}: {
+  item?: PresentedItem | undefined;
+  name: string;
+  category: string;
+  patch?: string | undefined;
+  league?: string | undefined;
+}) {
+  const ordinary =
+    item?.properties.filter((p) => ordinaryPropertyIds.has(p.id)) ?? [];
+  const base =
+    item?.properties.filter((p) => !ordinaryPropertyIds.has(p.id)) ?? [];
+  const enchantments =
+    item?.modifiers.filter((m) => m.generationType === 'enchant') ?? [];
+  const other =
+    item?.modifiers.filter(
+      (m) => m.generationType === 'implicit' || m.generationType === 'other',
+    ) ?? [];
+  return (
+    <aside className="target-requirements" aria-label="Exact item requirements">
+      <header>
+        <span className="target-card-kicker">Target item</span>
+        <h3>{name}</h3>
+        {item?.name && item.name !== name ? (
+          <p className="target-base-name">{item.name}</p>
+        ) : null}
+      </header>
+      <div className="target-property-grid">
+        <TargetArt item={item} category={category} />
+        {ordinary.length ? (
+          <dl>
+            {ordinary.map((p) => (
+              <div key={p.id}>
+                <dt>{p.label}</dt>
+                <dd>{p.value ?? 'Unknown'}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p>Ordinary properties unavailable.</p>
+        )}
+      </div>
+      {base.length || enchantments.length ? (
+        <section>
+          <h4>Base properties</h4>
+          {base.length ? (
+            <dl>
+              {base.map((p) => (
+                <div key={p.id}>
+                  <dt>{p.label}</dt>
+                  <dd>{p.value ?? 'Unknown'}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+          {enchantments.length ? (
+            <ul>
+              {enchantments.map((m, i) => (
+                <li key={`${m.canonicalId}-${i}`}>{m.label}</li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
+      {(['prefix', 'suffix'] as const).map((kind) => {
+        const modifiers =
+          item?.modifiers.filter((m) => m.generationType === kind) ?? [];
+        return modifiers.length ? (
+          <section key={kind}>
+            <h4>
+              Required {kind === 'prefix' ? 'prefixes' : 'suffixes'}{' '}
+              <span>{modifiers.length}</span>
+            </h4>
+            <ul>
+              {modifiers.map((m, i) => (
+                <li key={`${m.canonicalId}-${i}`}>{m.label}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null;
+      })}
+      {other.length ? (
+        <section>
+          <h4>Other requirements</h4>
+          <ul>
+            {other.map((m, i) => (
+              <li key={`${m.canonicalId}-${i}`}>
+                {m.label} <small>({m.generationType})</small>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {!item ? <p>Structured requirements unavailable.</p> : null}
+      <footer>
+        Required outcome · {league ?? 'League unavailable'} · PC
+        <br />
+        Patch {patch ?? 'unspecified'}
+      </footer>
+    </aside>
+  );
+}
 export function TargetDetailDialog({
   output,
   recipeId,
@@ -69,6 +178,7 @@ export function TargetDetailDialog({
   onSelect,
   onClose,
   leagueId,
+  leagueName,
 }: {
   output: RecipeLibraryOutput;
   recipeId: string;
@@ -76,6 +186,7 @@ export function TargetDetailDialog({
   onSelect: (recipeId: string, tab: 'market' | 'recipe') => void;
   onClose: () => void;
   leagueId?: string | undefined;
+  leagueName?: string | undefined;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [marketOpened, setMarketOpened] = useState(tab === 'market');
@@ -126,7 +237,7 @@ export function TargetDetailDialog({
     detail.targetSignature === output.id
       ? detail
       : null;
-  const item = currentDetail?.presentation.target ?? output.entry.itemPreview;
+  const item = output.entry.itemPreview ?? currentDetail?.presentation.target;
   const cost = entry?.evaluation.expectedCraftCost ?? null;
   const comparison = compareExpectedCostWithAsk({
     expectedCost: cost
@@ -180,49 +291,13 @@ export function TargetDetailDialog({
         </Button>
       </header>
       <div className="target-dialog-body">
-        <aside
-          className="target-requirements"
-          aria-label="Exact item requirements"
-        >
-          <TargetArt item={item} category={output.category} />
-          <h3>{item?.name ?? output.name}</h3>
-          <p>
-            Target requirements ·{' '}
-            {output.entry.recipe.patch ?? 'Patch unspecified'}
-          </p>
-          {item ? (
-            <>
-              <dl>
-                {item.properties.map((p) => (
-                  <div key={p.id}>
-                    <dt>{p.label}</dt>
-                    <dd>{p.value ?? 'Unknown'}</dd>
-                  </div>
-                ))}
-              </dl>
-              {modifierGroups.map(([kind, label]) => {
-                const mods = item.modifiers.filter(
-                  (m) => m.generationType === kind,
-                );
-                return mods.length ? (
-                  <section key={kind}>
-                    <h4>{label}</h4>
-                    <ul>
-                      {mods.map((m, i) => (
-                        <li key={`${m.canonicalId}-${i}`}>{m.label}</li>
-                      ))}
-                    </ul>
-                  </section>
-                ) : null;
-              })}
-              {!item.modifiers.length ? (
-                <p>Modifier requirements unavailable.</p>
-              ) : null}
-            </>
-          ) : (
-            <p>Structured requirements unavailable.</p>
-          )}
-        </aside>
+        <TargetRequirements
+          item={item}
+          name={output.name}
+          category={output.category}
+          patch={output.entry.recipe.patch}
+          league={leagueName ?? currentDetail?.method.priceSources[0]?.league}
+        />
         <section className="target-detail-column">
           <div
             className="target-detail-tabs"
@@ -267,7 +342,7 @@ export function TargetDetailDialog({
               Recipe
             </button>
           </div>
-          <label className="target-method">
+          <label className="target-method" hidden={tab !== 'recipe'}>
             Craft method
             <NativeSelect
               aria-label="Craft method"
@@ -303,7 +378,7 @@ export function TargetDetailDialog({
               className="target-quote-evidence"
             >
               <h3>
-                Observed ask <LibraryMoney price={output.ask} />
+                Lowest observed ask <LibraryMoney price={output.ask} />
               </h3>
               <dl>
                 <div>
@@ -357,8 +432,83 @@ export function TargetDetailDialog({
                 onModeChange={setChartMode}
               />
             ) : null}
+            <h3>Crafting methods</h3>
+            <div className="target-method-table-scroll">
+              <table className="target-method-table">
+                <caption className="sr-only">
+                  Methods for this exact output
+                </caption>
+                <thead>
+                  <tr>
+                    <th>Method</th>
+                    <th>Expected cost</th>
+                    <th>Est. craft margin</th>
+                    <th>
+                      <span className="sr-only">Recipe</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {output.methods.map((method) => {
+                    const methodCost = method.evaluation.expectedCraftCost;
+                    const result = compareExpectedCostWithAsk({
+                      expectedCost: methodCost
+                        ? {
+                            amount: String(methodCost.amount),
+                            currency: methodCost.currency,
+                          }
+                        : null,
+                      ask: output.ask
+                        ? {
+                            amount: String(output.ask.amount),
+                            currency: output.ask.currency,
+                          }
+                        : null,
+                    });
+                    return (
+                      <tr key={method.recipe.id}>
+                        <th scope="row">
+                          {method.recipe.methodName ??
+                            method.recipe.craftMethod}
+                        </th>
+                        <td>
+                          <LibraryMoney price={methodCost} />
+                        </td>
+                        <td>
+                          {result.profit !== null && methodCost ? (
+                            <>
+                              {Number(result.profit) > 0 ? '+' : ''}
+                              <LibraryMoney
+                                price={{
+                                  amount: Number(result.profit),
+                                  currency: methodCost.currency,
+                                }}
+                              />
+                            </>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                        <td>
+                          <Button
+                            onClick={() => onSelect(method.recipe.id, 'recipe')}
+                            aria-label={`View recipe: ${method.recipe.methodName ?? method.recipe.craftMethod}`}
+                          >
+                            View recipe
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="target-disclaimer">
+              Provisional estimate. Comparable sale price, selling costs and
+              player time are not verified.
+            </p>
             <p>
-              Asking quotes are not confirmed sales. Traded volume is unknown.
+              Asking prices · not completed sales. Traded volume is unknown.
             </p>
           </div>
           <div
@@ -381,7 +531,7 @@ export function TargetDetailDialog({
                 </strong>
               </div>
               <div>
-                <small>Provisional spread</small>
+                <small>Est. craft margin</small>
                 <strong>
                   {comparison.profit !== null && cost ? (
                     <>
@@ -410,8 +560,8 @@ export function TargetDetailDialog({
                   : {formatTimestamp(output.quoteAt)}.{' '}
                 </span>
               ) : null}
-              Ask − modeled craft cost. Comparability and realized profit are
-              unverified.
+              Provisional estimate. Comparable sale price, selling costs and
+              player time are not verified.
             </p>
             {!entry ? (
               <p role="alert">
@@ -426,7 +576,7 @@ export function TargetDetailDialog({
               <p role="status">Loading exact recipe…</p>
             ) : (
               <>
-                <h3>Base preparation</h3>
+                <h3>Base &amp; preparation</h3>
                 <p>{currentDetail.base.name}</p>
                 <ul>
                   {currentDetail.base.requirements.map((text) => (
@@ -452,19 +602,31 @@ export function TargetDetailDialog({
                 ) : (
                   <p>No steps are available for this exact recipe.</p>
                 )}
-                <h3>Materials</h3>
+                <h3>Materials used</h3>
                 <ul>
-                  {currentDetail.method.steps.flatMap((step) =>
-                    step.materials.map((m) => (
+                  {currentDetail.method.steps.flatMap((step) => {
+                    const execution =
+                      currentDetail.method.expectedExecutions.find(
+                        (value) => value.stepId === step.id,
+                      );
+                    return step.materials.map((m) => (
                       <li key={`${step.id}-${m.itemId}`}>
-                        {m.name} · {m.quantityPerAttempt ?? 'Unknown quantity'}{' '}
-                        per attempt · <LibraryMoney price={m.unitPrice} />
+                        <strong>{m.name}</strong> ·{' '}
+                        {m.quantityPerAttempt ?? 'Unknown quantity'} per
+                        execution · Unit quote:{' '}
+                        <LibraryMoney price={m.unitPrice} />
+                        <br />
+                        Expected use per finished item:{' '}
+                        {execution && m.quantityPerAttempt !== null
+                          ? `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 4 }).format(execution.count * m.quantityPerAttempt)} units (${execution.count.toLocaleString('en-US')} modeled executions)`
+                          : 'Not estimated'}
+                        .
                       </li>
-                    )),
-                  )}
+                    ));
+                  })}
                 </ul>
                 <details>
-                  <summary>Calculation and source evidence</summary>
+                  <summary>Calculation &amp; price sources</summary>
                   <p>
                     Procedure verification: {currentDetail.verification}. Model
                     status: {currentDetail.evaluation.status}. Cost
@@ -494,7 +656,25 @@ export function TargetDetailDialog({
                     </p>
                   ) : null}
                   {currentDetail.method.evidence ? (
-                    <p>{currentDetail.method.evidence.assumptions}</p>
+                    <>
+                      <p>
+                        {currentDetail.method.evidence.method} · Patch{' '}
+                        {currentDetail.method.evidence.patch} · Verified{' '}
+                        {currentDetail.method.evidence.verifiedAt}
+                      </p>
+                      <p>{currentDetail.method.evidence.assumptions}</p>
+                      {/^https:\/\/(?:beta\.)?craftofexile\.com\//.test(
+                        currentDetail.method.evidence.url,
+                      ) ? (
+                        <a
+                          href={currentDetail.method.evidence.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Recorded calculation ↗
+                        </a>
+                      ) : null}
+                    </>
                   ) : null}
                   <ul>
                     {currentDetail.uncertainties.map((text) => (
@@ -600,6 +780,7 @@ function TargetMarketHistory({
       : null;
   return (
     <>
+      <h3>Lowest observed asks</h3>
       <div className="target-history-controls">
         <label>
           History range

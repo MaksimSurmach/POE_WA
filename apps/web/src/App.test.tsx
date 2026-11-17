@@ -19,7 +19,7 @@ describe('application shell', () => {
     );
 
     expect(catalog).toContain('Worksmith — Home');
-    expect(catalog).toContain('Загрузка рецептов');
+    expect(catalog).toContain('Loading market');
     expect(catalog).toContain('href="/recipes"');
     expect(recipe).toContain('Загрузка рецепта');
     expect(recipe).toContain('Recipes');

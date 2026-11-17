@@ -1,43 +1,4 @@
 @layer utilities {
-  .product-shell .app-main {
-    max-width: 1900px;
-    padding: 26px 25px 48px;
-  }
-  .product-shell .workspace-header {
-    min-height: 56px;
-    padding-inline: 25px;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-  .product-shell .workspace-link {
-    min-height: 56px;
-  }
-  .product-utilities {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    font-size: 12px;
-  }
-  .product-utilities :is(button, a, select) {
-    min-height: 30px;
-    color: var(--foreground);
-    text-decoration: none;
-  }
-  .product-utilities button {
-    cursor: pointer;
-  }
-  .product-utilities button[aria-pressed='true'] {
-    color: var(--accent);
-  }
-  .product-utilities select {
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    max-width: 125px;
-  }
-  .product-utilities span[aria-label] {
-    margin-left: 5px;
-    color: var(--muted);
-  }
   .category-library {
     min-width: 0;
     font-size: 13px;
@@ -201,25 +162,6 @@
   .library-shelf li:last-child {
     border-bottom: 0;
   }
-  .target-art {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 46px;
-    height: 46px;
-    background: #18191c;
-    border: 1px solid #756343;
-    border-radius: 2px;
-    flex: none;
-    color: #c2b696;
-    font-size: 11px;
-  }
-  .target-art img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 3px;
-  }
   .library-identity {
     min-width: 0;
   }
@@ -282,265 +224,29 @@
     padding-block: 10px;
     grid-template-columns: 40px minmax(0, 1fr) 90px;
   }
-  .density-compact .target-art {
+  .density-compact .library-shelf .target-art {
     width: 40px;
     height: 40px;
   }
-  .target-dialog {
-    position: fixed;
-    inset: 0;
-    margin: auto;
-    padding: 0;
-    width: calc(100% - 32px);
-    max-width: 1140px;
-    max-height: calc(100dvh - 32px);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--surface);
-    color: var(--foreground);
-    font-size: 13px;
-    overflow: auto;
-    box-shadow: 0 20px 70px #0003;
-  }
-  .target-dialog::backdrop {
-    background: #17213266;
-  }
-  .target-dialog-heading {
-    padding: 16px 22px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    border-bottom: 1px solid var(--border);
-  }
-  .target-dialog-heading h2 {
-    font-size: 17px;
-    overflow-wrap: anywhere;
-  }
-  .target-dialog-body {
-    padding: 23px;
-    display: grid;
-    grid-template-columns: 302px minmax(0, 1fr);
-    gap: 23px;
-    align-items: start;
-  }
-  .target-requirements {
-    background: #17171b;
-    color: #aaa6ce;
-    border: 1px solid #756343;
-    padding: 20px;
-    border-radius: 3px;
-    text-align: center;
-  }
-  .target-requirements .target-art {
-    margin: 0 auto 14px;
-    width: 64px;
-    height: 64px;
-  }
-  .target-requirements h3 {
-    color: #d6bf7d;
-    font-size: 17px;
-    margin: 6px 0;
-  }
-  .target-requirements p {
-    font-size: 11px;
-  }
-  .target-requirements dl {
-    margin: 16px 0;
-    color: #bbb9b5;
-  }
-  .target-requirements dl > div {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .target-requirements section {
-    border-top: 1px solid #645538;
-    padding-top: 12px;
-    margin-top: 14px;
-  }
-  .target-requirements h4 {
-    font-size: 11px;
-    color: #d6bf7d;
-    margin: 0 0 7px;
-  }
-  .target-requirements ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .target-requirements li {
-    margin-block: 5px;
-    overflow-wrap: anywhere;
-  }
-  .target-detail-column {
-    min-width: 0;
-  }
-  .target-detail-tabs {
-    display: flex;
-    gap: 20px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 18px;
-  }
-  .target-detail-tabs button {
-    cursor: pointer;
-    padding: 10px 4px;
-    min-height: 36px;
-  }
-  .target-detail-tabs [aria-selected='true'] {
-    color: var(--accent);
-    border-bottom: 2px solid var(--accent);
-  }
-  .target-method {
-    display: grid;
-    gap: 7px;
-  }
-  .target-method select {
-    width: 100%;
-    white-space: normal;
-  }
-  .target-coverage,
-  .target-disclaimer {
-    font-size: 11px;
-    color: var(--muted);
-    margin-block: 12px;
-  }
-  .target-economics {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    border-block: 1px solid var(--border);
-    padding: 16px 0;
-    gap: 12px;
-  }
-  .target-economics small {
-    display: block;
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .target-economics strong {
-    display: block;
-    font-size: 20px;
-    margin-top: 6px;
-  }
-  .target-detail-column h3 {
-    font-size: 14px;
-    margin: 22px 0 10px;
-  }
-  .target-detail-column h4 {
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 5px;
-  }
-  .target-detail-column :is(p, li) {
-    line-height: 1.6;
-    overflow-wrap: anywhere;
-  }
-  .target-detail-column :is(ul, ol) {
-    padding-left: 20px;
-  }
-  .target-steps > li {
-    margin-bottom: 18px;
-  }
-  .target-detail-column details {
-    margin-top: 22px;
-    border-top: 1px solid var(--border);
-    padding-top: 14px;
-  }
-  .target-detail-column summary {
-    cursor: pointer;
-    min-height: 30px;
-  }
-  .target-dialog-footer {
-    position: sticky;
-    bottom: 0;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    padding: 14px 23px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 16px;
-  }
-  .target-dialog-footer > .button:last-child {
-    margin-left: auto;
-  }
-  .target-dialog-footer > span:not(.favorite-control) {
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .category-library :focus-visible,
-  .target-dialog :focus-visible,
-  .product-utilities :focus-visible {
+  .category-library :focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 3px;
   }
   @media (max-width: 1000px) {
-    .product-shell .app-main {
-      padding-inline: 18px;
-    }
-    .product-shell .workspace-header {
-      padding-inline: 18px;
-      gap: 12px;
-    }
     .library-controls .library-search {
       flex-basis: 100%;
       max-width: none;
-    }
-    .product-shell .workspace-context {
-      margin-left: auto;
-    }
-    .product-utilities {
-      margin-left: auto;
-      gap: 12px;
-    }
-    .target-dialog-body {
-      grid-template-columns: 240px minmax(0, 1fr);
-      gap: 18px;
-      padding: 18px;
     }
   }
   @media (max-width: 760px) {
     .library-shelves {
       grid-template-columns: minmax(0, 1fr);
     }
-    .target-dialog-body {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .product-shell .workspace-header {
-      gap: 8px 16px;
-    }
-    .product-shell .workspace-context {
-      font-size: 11px;
-    }
-    .product-utilities {
-      width: 100%;
-      padding-bottom: 8px;
-      margin: 0;
-    }
     .library-timestamp {
       display: none;
     }
   }
   @media (max-width: 550px) {
-    .product-shell .app-main {
-      padding-inline: 12px;
-    }
-    .product-shell .workspace-header {
-      padding-inline: 12px;
-    }
-    .product-shell .workspace-brand {
-      font-size: 16px;
-    }
-    .product-shell .workspace-brand svg {
-      width: 20px;
-    }
-    .product-shell .workspace-link {
-      padding-inline: 8px;
-    }
-    .product-shell .workspace-context {
-      width: 100%;
-      margin: 0;
-    }
     .library-controls {
       align-items: stretch;
     }
@@ -568,7 +274,7 @@
       grid-template-columns: 40px minmax(0, 1fr) 68px;
       gap: 9px;
     }
-    .target-art {
+    .library-shelf .target-art {
       width: 40px;
       height: 40px;
     }
@@ -578,85 +284,12 @@
     .library-summary {
       gap: 8px 12px;
     }
-    .target-dialog {
-      width: calc(100% - 16px);
-      max-height: calc(100dvh - 16px);
-    }
-    .target-dialog-heading {
-      padding: 12px;
-    }
-    .target-dialog-body {
-      padding: 12px;
-    }
-    .target-economics {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .target-dialog-footer {
-      padding: 12px;
-      gap: 10px;
-    }
   }
 }
 @layer utilities {
-  .target-history-controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: end;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-  .target-history-controls label {
-    display: grid;
-    gap: 6px;
-  }
-  .target-history-controls [role='group'] {
-    display: flex;
-    gap: 6px;
-  }
-  .target-history-controls [aria-pressed='true'] {
-    color: var(--accent);
-    background: var(--accent-soft);
-  }
-}
-@layer utilities {
-  @media (max-width: 760px) {
-    .product-shell .workspace-nav {
-      flex-basis: auto;
-    }
-    .product-shell .workspace-context {
-      display: block;
-    }
-  }
   @media (max-width: 550px) {
     .library-controls label.library-search {
       flex: 1 1 100%;
     }
-    .product-utilities {
-      flex-wrap: wrap;
-    }
-  }
-}
-@layer utilities {
-  .target-quote-evidence {
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 12px;
-    margin-bottom: 16px;
-  }
-  .target-detail-column .target-quote-evidence h3 {
-    margin: 0 0 12px;
-  }
-  .target-quote-evidence dl {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 24px;
-  }
-  .target-quote-evidence dt,
-  .target-quote-evidence p {
-    color: var(--muted);
-    font-size: 11px;
-  }
-  .target-quote-evidence dd {
-    font-weight: 600;
-    font-size: 14px;
   }
 }

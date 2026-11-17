@@ -1,0 +1,74 @@
+.handbook-controls {
+  grid-template-columns:
+    minmax(180px, 2fr) repeat(2, minmax(130px, 1fr))
+    minmax(150px, 1fr) minmax(100px, 0.8fr);
+  align-items: end;
+}
+.catalog-filter {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--font-small);
+}
+.catalog-filter input,
+.catalog-filter select,
+.craft-scenario input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--background);
+  color: var(--text);
+  caret-color: var(--accent);
+}
+.catalog-filter input::placeholder,
+.craft-scenario input::placeholder {
+  color: var(--muted);
+}
+.craft-scenario button {
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.craft-scenario button:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.catalog-price-note {
+  max-width: 90ch;
+  margin: 4px 0 16px;
+  color: var(--muted);
+  font-size: var(--font-small);
+  line-height: 1.5;
+}
+@media (max-width: 1000px) {
+  .handbook-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 620px) {
+  .handbook-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+    padding: 16px;
+  }
+  .handbook-controls input,
+  .handbook-controls select {
+    font-size: 1rem;
+  }
+  .catalog-search {
+    grid-column: 1 / -1;
+  }
+}
+.item-preview__trigger > .item-preview__fallback {
+  font-size: var(--font-body);
+}
+.market-admin.home-settings {
+  max-width: none;
+  margin-top: 24px;
+  padding-block: 0;
+}

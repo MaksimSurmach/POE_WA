@@ -35,10 +35,13 @@ const envelope = (data: unknown) => ({
 test.beforeEach(async ({ page }) => {
   const preview = createPreviewFetch();
   await page.route('https://web.poecdn.com/**', async (route) => {
+    // Semantic checks stay offline; screenshot captures load the original artwork.
+    if (!process.env.CAPTURE_CATEGORY_EVIDENCE) return route.abort();
     try {
-      await route.fulfill({ response: await route.fetch({ timeout: 10_000 }) });
+      const response = await route.fetch({ timeout: 10_000 });
+      if (!page.isClosed()) await route.fulfill({ response });
     } catch {
-      await route.abort();
+      if (!page.isClosed()) await route.abort().catch(() => {});
     }
   });
   await page.route('**/api/**', async (route) => {
@@ -299,7 +302,7 @@ test('search shortcut, modifier matching, image fallback, density and 200 percen
   await expect(
     page.locator(`[data-target-id="${physical.recipe.targetSignature}"]`),
   ).toBeVisible();
-  await page.getByLabel('Display density').selectOption('compact');
+  await page.getByLabel('Density').selectOption('compact');
   await expect(page.locator('.workspace-shell')).toHaveClass(/density-compact/);
   await expect(
     page.getByRole('img', { name: /image unavailable/ }).first(),
@@ -311,7 +314,7 @@ test('search shortcut, modifier matching, image fallback, density and 200 percen
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(page.viewportSize()!.width);
   await page.getByRole('button', { name: 'Clear all', exact: true }).click();
-  await expect(page.getByLabel('Display density')).toHaveValue('compact');
+  await expect(page.getByLabel('Density')).toHaveValue('compact');
 });
 
 test('refresh failures preserve useful data; history failures remain partial and offer retry', async ({

@@ -1,27 +1,11 @@
 @layer utilities {
-  .catalog-decision__mobile {
-    display: none;
-  }
-  .craft-table td[data-label='Средние затраты'],
   .factory-batches-table :is(th, td):nth-child(n + 3),
   .recipe-market__table :is(th, td):nth-child(2),
   .recipe-market__table td[data-label='Ask change'],
   .recipe-market__table td[data-label='Listing exits · 24h window'] {
     text-align: right;
   }
-  .craft-table thead .button {
-    width: 100%;
-    gap: 4px;
-  }
-  .craft-table .sort-icon {
-    margin: 0;
-    width: 12px;
-    min-width: 12px;
-    flex: 0 0 12px;
-  }
-  .market-mobile-ask,
-  .mobile-price-note,
-  .craft-table__mobile-ask {
+  .market-mobile-ask {
     display: none;
   }
   .workspace-shell {
@@ -207,7 +191,6 @@
   }
   .data-scroll,
   .factory-scroll,
-  .catalog-table-scroll,
   .recipe-market__table-scroll,
   .craft-risk__table-wrap {
     overflow: auto;
@@ -240,7 +223,6 @@
     font-weight: 500;
   }
   .data-scroll thead th,
-  .craft-table thead th,
   .recipe-market__table thead th {
     position: sticky;
     top: 0;
@@ -362,9 +344,7 @@
     .workspace-link {
       padding-inline: 8px;
     }
-    .market-mobile-ask,
-    .mobile-price-note,
-    .craft-table__mobile-ask {
+    .market-mobile-ask {
       display: block;
       margin-top: 6px;
     }
@@ -372,37 +352,7 @@
       display: block;
       margin: 0 0 8px auto;
     }
-    .catalog-decision > h2 {
-      display: none;
-    }
-    .catalog-decision .catalog-decision__mobile {
-      display: block;
-      margin-top: 8px;
-    }
-    .craft-table__identity > div {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .craft-table__mobile-ask {
-      order: 1;
-    }
-    .craft-table__steps {
-      order: 2;
-    }
-    .craft-table__identity > div > small {
-      order: 3;
-    }
-    .craft-table__steps {
-      display: inline-flex;
-      align-items: center;
-      min-height: 44px;
-    }
     .catalog-heading {
-      margin-bottom: 12px;
-    }
-    .catalog-decision {
-      padding-block: 8px;
       margin-bottom: 12px;
     }
     .workspace-shell .app-main {

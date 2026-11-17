@@ -52,6 +52,10 @@ export function libraryQuote(entry: CatalogEntry, currency: Price['currency']) {
           ? readiness.last24h.inferredExits
           : null,
         coverage: readiness.coverage,
+        seen: readiness.activityMeasurable ? readiness.last24h.listings : null,
+        repriced: readiness.activityMeasurable
+          ? readiness.last24h.repriced
+          : null,
       },
     };
   const snapshot = entry.snapshot;
@@ -70,6 +74,8 @@ export function libraryQuote(entry: CatalogEntry, currency: Price['currency']) {
           sellers: new Set(snapshot.listings.map((l) => l.seller)).size,
           exits: null,
           coverage: snapshot.coverage ?? null,
+          seen: null,
+          repriced: null,
         },
       }
     : null;
