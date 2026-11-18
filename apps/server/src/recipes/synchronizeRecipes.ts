@@ -365,7 +365,10 @@ async function synchronizeSchedules(
   const rows: (typeof collectorSchedule.$inferInsert)[] = [
     ...Array.from(
       targets,
-      ([key, { query, recipeIds, outputRecipeIds, items, scrapingPriority }]) => ({
+      ([
+        key,
+        { query, recipeIds, outputRecipeIds, items, scrapingPriority },
+      ]) => ({
         kind: 'trade-target',
         key,
         leagueId: league.id,

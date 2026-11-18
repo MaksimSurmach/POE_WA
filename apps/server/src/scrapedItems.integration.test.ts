@@ -78,6 +78,8 @@ const service = createScrapedItemService({
 
 async function prepare() {
   paused = false;
+  // Reconcile with this test's defaults, before a previous suite's pool periods can create slots.
+  await pool.query('truncate market_admin_settings, market_admin_audit');
   await pool.query(
     'truncate table scraped_items, collector_schedule, recipes, poe_leagues, game_data_versions restart identity cascade',
   );
@@ -957,10 +959,10 @@ describe('configured scraped items', () => {
       );
 
     // Admit the requested targets and advance past shared pacing between captures.
-    async function admitSlots(keys: string[]) {
+    async function admitSlots(keys: string[], at: Date) {
       await pool.query(
-        'update collector_schedule set next_due_at = now() where key = any($1)',
-        [keys],
+        'update collector_schedule set next_due_at = $2 where key = any($1)',
+        [keys, at],
       );
     }
 
@@ -1002,7 +1004,7 @@ describe('configured scraped items', () => {
       ).rejects.toMatchObject({ code: 'PERSISTENCE_NOT_FOUND' });
 
       let clock = Date.now();
-      await admitSlots([output.query.key!, base.query.key!]);
+      await admitSlots([output.query.key!, base.query.key!], new Date(clock));
       const { handler } = collect(
         async () => {
           clock += 60 * 60_000;
@@ -1372,12 +1374,12 @@ describe('configured scraped items', () => {
       const test = await service.startTest(output.id, {
         expectedRevision: output.revision,
       });
-      let outcome: CollectorResult = {
+      const outcome: CollectorResult = {
         status: 'blocked',
         reason: 'PROVIDER_CHALLENGE',
       };
       let clock = Date.now();
-      await admitSlots([output.query.key!]);
+      await admitSlots([output.query.key!], new Date(clock));
       const { handler } = collect(
         async () => {
           clock += 60 * 60_000;
@@ -1398,7 +1400,9 @@ describe('configured scraped items', () => {
       });
       expect(handler).toHaveBeenCalledTimes(1);
       // The existing recipe-scoped run still refreshes both its base and output.
-      const calls = handler.mock.calls.length;
+      // Stop the first worker before admitting new slots, so it cannot collect them before the request exists.
+      stops.at(-1)!.abort();
+      await workers.at(-1);
       await pool.query('delete from run_requests');
       await pool.query(
         "update collector_schedule set last_status = null, attempt = 0, retry_at = null, next_due_at = now() + interval '1 day', leased_until = null, enabled = enabled",
@@ -1406,9 +1410,18 @@ describe('configured scraped items', () => {
       await pool.query(
         'update collector_state set blocked_reason = null where id = 1',
       );
-      outcome = success(1);
-      await admitSlots([output.query.key!, (await item('base')).query.key!]);
+      await admitSlots(
+        [output.query.key!, (await item('base')).query.key!],
+        new Date(clock),
+      );
       const recipeRun = await enqueueRunRequest(pool, recipeId);
+      const recipeCollector = collect(
+        async () => {
+          clock += 60 * 60_000;
+          return success(1);
+        },
+        () => new Date(clock),
+      );
       await vi.waitFor(
         async () =>
           expect(
@@ -1421,7 +1434,7 @@ describe('configured scraped items', () => {
           ).toBe('done'),
         { timeout: 20_000 },
       );
-      expect(handler.mock.calls.length - calls).toBe(2);
+      expect(recipeCollector.handler).toHaveBeenCalledTimes(2);
     }, 60_000);
 
     it('refuses to test while collection is paused or the search is not scheduled', async () => {
