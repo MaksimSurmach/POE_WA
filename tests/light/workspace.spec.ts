@@ -490,6 +490,9 @@ test('keyboard reaches content, section links and horizontally scrolling tables'
   page,
 }, info) => {
   await page.goto('/');
+  await expect(
+    page.getByRole('link', { name: 'Skip to content', exact: true }),
+  ).toBeAttached();
   await page.keyboard.press('Tab');
   await expect(
     page.getByRole('link', { name: 'Skip to content', exact: true }),
