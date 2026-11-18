@@ -1,0 +1,173 @@
+{
+  "summary": {
+    "at": "2026-11-18T10:24:17.000Z",
+    "total": 3,
+    "states": {
+      "succeeded": 3
+    },
+    "finished": [
+      {
+        "recipe": "suppression-gloves-zeal",
+        "fetched": 8,
+        "coverage": "complete",
+        "matched": 8,
+        "sellers": 7,
+        "reason": null
+      },
+      {
+        "recipe": "suppression-gloves-fear",
+        "fetched": 3,
+        "coverage": "complete",
+        "matched": 3,
+        "sellers": 3,
+        "reason": null
+      },
+      {
+        "recipe": "suppression-boots-loathing",
+        "fetched": 8,
+        "coverage": "complete",
+        "matched": 2,
+        "sellers": 2,
+        "reason": null
+      }
+    ],
+    "failed": []
+  },
+  "tests": [
+    {
+      "itemId": "23f0a565-acc2-43f2-9332-ddd5bec264a3",
+      "role": "output",
+      "recipes": ["suppression-gloves-zeal"],
+      "revision": 2,
+      "oldQueryKey": "252bb443268a3036e9268d68e2fb5dfa243e78e684ae7b9a3963e35fc1893673",
+      "itemRevision": 2,
+      "requestId": "0ee0df47-3e0b-42d1-a398-e9c2a643d13f",
+      "scheduleKey": "4d0a5a8a71bf2c4c009a65c2834775ebd1053568488f91697cb29f99791d62c3",
+      "capture": {
+        "captureId": "eac348ba-6177-436d-ae99-4b0fdfe6ccda",
+        "capturedAt": "2026-11-18T10:23:11.758Z",
+        "coverage": "complete",
+        "durationMs": 14600,
+        "fetched": 8,
+        "partialReason": null,
+        "queryVersion": "4d0a5a8a71bf2c4c009a65c2834775ebd1053568488f91697cb29f99791d62c3",
+        "reportedTotal": 8,
+        "slices": 1,
+        "listings": {
+          "stored": 8,
+          "priced": 8,
+          "completeItems": 0,
+          "analyzed": 8,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 8,
+          "comparable": 7,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 2,
+      "currentScheduleKey": "4d0a5a8a71bf2c4c009a65c2834775ebd1053568488f91697cb29f99791d62c3",
+      "finishedAt": "2026-11-18T10:23:25.996Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T09:22:40.298Z",
+      "stale": false,
+      "startedAt": "2026-11-18T10:23:11.391Z",
+      "state": "succeeded"
+    },
+    {
+      "itemId": "932e5369-2591-4ca1-a9f3-4d8981bb7341",
+      "role": "output",
+      "recipes": ["suppression-gloves-fear"],
+      "revision": 2,
+      "oldQueryKey": "c39d1497b30cc799c024e9a71db0f2cac3b7ca079c8006714c7fc06a712a563e",
+      "itemRevision": 2,
+      "requestId": "30de5ae6-3e95-474c-b8be-c59040e5109a",
+      "scheduleKey": "5fd22e383f5016b4b4b6c7faa755632ff64566d8f8454c464ba6b05ea43fb6d6",
+      "capture": {
+        "captureId": "48ff5e39-680b-4de2-bbe2-0917b7eb4383",
+        "capturedAt": "2026-11-18T10:23:36.220Z",
+        "coverage": "complete",
+        "durationMs": 4954,
+        "fetched": 3,
+        "partialReason": null,
+        "queryVersion": "5fd22e383f5016b4b4b6c7faa755632ff64566d8f8454c464ba6b05ea43fb6d6",
+        "reportedTotal": 3,
+        "slices": 1,
+        "listings": {
+          "stored": 3,
+          "priced": 3,
+          "completeItems": 0,
+          "analyzed": 3,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 3,
+          "comparable": 3,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 2,
+      "currentScheduleKey": "5fd22e383f5016b4b4b6c7faa755632ff64566d8f8454c464ba6b05ea43fb6d6",
+      "finishedAt": "2026-11-18T10:23:40.725Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T09:22:40.305Z",
+      "stale": false,
+      "startedAt": "2026-11-18T10:23:26.028Z",
+      "state": "succeeded"
+    },
+    {
+      "itemId": "d6c1367c-0d7e-4c60-aaec-d3fcb442f932",
+      "role": "output",
+      "recipes": ["suppression-boots-loathing"],
+      "revision": 2,
+      "oldQueryKey": "1e6587fe667e0ad22f66d10d2e7e490e64699cd4d091568434f16f1da47a1897",
+      "itemRevision": 2,
+      "requestId": "70278aa1-f3c8-4a22-834d-e9f0123b6f85",
+      "scheduleKey": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+      "capture": {
+        "captureId": "741030f7-6acb-4569-8700-5567153ff075",
+        "capturedAt": "2026-11-18T10:24:00.620Z",
+        "coverage": "complete",
+        "durationMs": 863,
+        "fetched": 8,
+        "partialReason": null,
+        "queryVersion": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+        "reportedTotal": 8,
+        "slices": 1,
+        "listings": {
+          "stored": 8,
+          "priced": 8,
+          "completeItems": 0,
+          "analyzed": 8,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 2,
+          "comparable": 2,
+          "rejected": 6,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": [
+          {
+            "count": 6,
+            "reason": "and: explicit.stat_2250533757, explicit.stat_3005472710, explicit.stat_3680664274: thresholds not met",
+            "status": "rejected"
+          }
+        ]
+      },
+      "currentRevision": 2,
+      "currentScheduleKey": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+      "finishedAt": "2026-11-18T10:24:01.092Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T09:22:40.310Z",
+      "stale": false,
+      "startedAt": "2026-11-18T10:23:40.753Z",
+      "state": "succeeded"
+    }
+  ]
+}

@@ -1,0 +1,1319 @@
+{
+  "scope": "Independent real-time API/raw-capture price checks across this collection. Each row was validated at its actual checkedAt; historical checks are not current prices.",
+  "updatedAt": "2026-11-18T10:38:40.060Z",
+  "recipesWithValidatedAsks": 55,
+  "checks": [
+    {
+      "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads",
+      "captureId": "41349cd2-95d5-4707-9a60-522906b8860b",
+      "capturedAt": "2026-11-18T08:21:01.289Z",
+      "matchedRows": 35,
+      "sellers": 35,
+      "lowestFiveSellerAsksChaos": [385.4, 420, 578.1, 578.1, 578.1],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 385.4,
+      "apiAskingPrice": {
+        "amount": 385.4,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:19:57.935Z"
+    },
+    {
+      "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+      "captureId": "41349cd2-95d5-4707-9a60-522906b8860b",
+      "capturedAt": "2026-11-18T08:21:01.289Z",
+      "matchedRows": 35,
+      "sellers": 35,
+      "lowestFiveSellerAsksChaos": [385.4, 420, 578.1, 578.1, 578.1],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 385.4,
+      "apiAskingPrice": {
+        "amount": 385.4,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:19:57.935Z"
+    },
+    {
+      "recipeId": "chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall",
+      "captureId": "c536c4a1-24bf-4965-8564-3859f1d0ee50",
+      "capturedAt": "2026-11-18T08:22:45.299Z",
+      "matchedRows": 22,
+      "sellers": 22,
+      "lowestFiveSellerAsksChaos": [60, 70, 70, 70, 75],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 60,
+      "apiAskingPrice": {
+        "amount": 60,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:19:57.935Z"
+    },
+    {
+      "recipeId": "lichs-circlet-fractured-fire-loathing",
+      "captureId": "cc2f5ebe-be8a-476e-a346-85c5e1cab700",
+      "capturedAt": "2026-11-18T07:57:26.264Z",
+      "matchedRows": 1,
+      "sellers": 1,
+      "lowestFiveSellerAsksChaos": [770.8],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 770.8,
+      "apiAskingPrice": {
+        "amount": 770.8,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "573ea486-f7b5-455c-8ed2-74a6ccaa9d48",
+        "verifiedAt": "2026-11-18T09:26:22.549Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T09:54:50.421Z"
+    },
+    {
+      "recipeId": "medium-cluster-minion-blessed-rebirth-life-from-death-4-passives",
+      "captureId": "5a4da2ee-34ca-4b1e-b949-7fb3ffb9c7de",
+      "capturedAt": "2026-11-18T08:20:31.052Z",
+      "matchedRows": 17,
+      "sellers": 17,
+      "lowestFiveSellerAsksChaos": [220, 220, 220, 220, 222],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 220,
+      "apiAskingPrice": {
+        "amount": 220,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:19:57.935Z"
+    },
+    {
+      "recipeId": "physical-large-cluster-chaos",
+      "captureId": "949e19e5-a74a-4fad-b000-3a42c50d486a",
+      "capturedAt": "2026-11-18T08:17:03.836Z",
+      "matchedRows": 14,
+      "sellers": 14,
+      "lowestFiveSellerAsksChaos": [300, 300, 315, 320, 385.4],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 300,
+      "apiAskingPrice": {
+        "amount": 300,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:14:56.350Z"
+    },
+    {
+      "recipeId": "physical-large-cluster-jagged",
+      "captureId": "949e19e5-a74a-4fad-b000-3a42c50d486a",
+      "capturedAt": "2026-11-18T08:17:03.836Z",
+      "matchedRows": 14,
+      "sellers": 14,
+      "lowestFiveSellerAsksChaos": [300, 300, 315, 320, 385.4],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 300,
+      "apiAskingPrice": {
+        "amount": 300,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:14:56.350Z"
+    },
+    {
+      "recipeId": "rf-fire-trap-level-20",
+      "captureId": "8f6190ac-a343-48ed-9b40-f46981c4f140",
+      "capturedAt": "2026-11-18T07:57:01.896Z",
+      "matchedRows": 13,
+      "sellers": 13,
+      "lowestFiveSellerAsksChaos": [385.4, 770.8, 1348.9, 1541.6, 1927],
+      "outliersExcluded": 1,
+      "independentEstimateChaos": 770.8,
+      "apiAskingPrice": {
+        "amount": 770.8,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "573ea486-f7b5-455c-8ed2-74a6ccaa9d48",
+        "verifiedAt": "2026-11-18T09:26:22.549Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T09:54:50.421Z"
+    },
+    {
+      "recipeId": "small-cluster-life-fettle-2-passives",
+      "captureId": "dcadfcb8-061b-47c9-8538-14ce391ade1d",
+      "capturedAt": "2026-11-18T08:23:29.294Z",
+      "matchedRows": 10,
+      "sellers": 10,
+      "lowestFiveSellerAsksChaos": [80, 120, 192.7, 192.7, 192.7],
+      "outliersExcluded": 1,
+      "independentEstimateChaos": 120,
+      "apiAskingPrice": {
+        "amount": 120,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:19:57.935Z"
+    },
+    {
+      "recipeId": "sunfire-circlet-fractured-fire-loathing",
+      "captureId": "63573598-9cef-4976-8704-4ae3c8bf1480",
+      "capturedAt": "2026-11-18T08:03:39.395Z",
+      "matchedRows": 1,
+      "sellers": 1,
+      "lowestFiveSellerAsksChaos": [770.8],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 770.8,
+      "apiAskingPrice": {
+        "amount": 770.8,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "573ea486-f7b5-455c-8ed2-74a6ccaa9d48",
+        "verifiedAt": "2026-11-18T09:26:22.549Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T09:59:51.911Z"
+    },
+    {
+      "recipeId": "velour-gloves-fractured-suppression-zeal",
+      "captureId": "e00bb6b1-accd-4e87-be4a-b72e92bb541d",
+      "capturedAt": "2026-11-18T08:19:42.136Z",
+      "matchedRows": 4,
+      "sellers": 4,
+      "lowestFiveSellerAsksChaos": [963.5, 2890.5, 5010.2, 5395.6],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 963.5,
+      "apiAskingPrice": {
+        "amount": 963.5,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:14:56.350Z"
+    },
+    {
+      "recipeId": "week-one-heavy-belt-envy",
+      "captureId": "b619c184-495a-4bf7-8519-fcdb89b2c2b0",
+      "capturedAt": "2026-11-18T08:17:28.185Z",
+      "matchedRows": 72,
+      "sellers": 72,
+      "lowestFiveSellerAsksChaos": [110, 120, 180, 192.7, 192.7],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 110,
+      "apiAskingPrice": {
+        "amount": 110,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:14:56.350Z"
+    },
+    {
+      "recipeId": "week-one-spine-bow-contempt",
+      "captureId": "1018341e-9d76-415d-b52a-aa57842e3ccc",
+      "capturedAt": "2026-11-18T07:03:58.491Z",
+      "matchedRows": 44,
+      "sellers": 44,
+      "lowestFiveSellerAsksChaos": [8, 10, 10, 20, 20],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 8,
+      "apiAskingPrice": {
+        "amount": 8,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "63ee292a-1b25-4eca-bb1e-c63bd4333500",
+        "verifiedAt": "2026-11-18T08:50:45.870Z",
+        "chaosPerDivine": 190.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T08:59:37.665Z"
+    },
+    {
+      "recipeId": "week-one-stygian-vise-envy",
+      "captureId": "02fe7429-c617-4bcb-8b3f-6e49fa555fe1",
+      "capturedAt": "2026-11-18T07:05:23.043Z",
+      "matchedRows": 24,
+      "sellers": 24,
+      "lowestFiveSellerAsksChaos": [953.5, 1144.2, 1144.2, 1144.2, 1334.9],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 953.5,
+      "apiAskingPrice": {
+        "amount": 953.5,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "63ee292a-1b25-4eca-bb1e-c63bd4333500",
+        "verifiedAt": "2026-11-18T08:50:45.870Z",
+        "chaosPerDivine": 190.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T09:04:38.951Z"
+    },
+    {
+      "recipeId": "week-one-thicket-bow-dread",
+      "captureId": "e24f2225-143b-4701-b29b-bbc5480ea8ba",
+      "capturedAt": "2026-11-18T07:04:58.658Z",
+      "matchedRows": 8,
+      "sellers": 8,
+      "lowestFiveSellerAsksChaos": [70, 190, 190.7, 190.7, 190.7],
+      "outliersExcluded": 1,
+      "independentEstimateChaos": 190,
+      "apiAskingPrice": {
+        "amount": 190,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "63ee292a-1b25-4eca-bb1e-c63bd4333500",
+        "verifiedAt": "2026-11-18T08:50:45.870Z",
+        "chaosPerDivine": 190.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T09:04:38.951Z"
+    },
+    {
+      "recipeId": "wyvernscale-gauntlets-fractured-suppression-zeal",
+      "captureId": "798c2e28-4898-4078-b590-69b74ac1bc81",
+      "capturedAt": "2026-11-18T08:19:17.805Z",
+      "matchedRows": 3,
+      "sellers": 3,
+      "lowestFiveSellerAsksChaos": [770.8, 4624.8, 7708],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 770.8,
+      "apiAskingPrice": {
+        "amount": 770.8,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:14:56.350Z"
+    },
+    {
+      "recipeId": "chaos-large-cluster-grim-oath-touch-of-cruelty-wicked-pall",
+      "captureId": "34a2f300-959f-4025-9a41-dc6e1967087c",
+      "capturedAt": "2026-11-18T08:38:17.814Z",
+      "matchedRows": 9,
+      "sellers": 9,
+      "lowestFiveSellerAsksChaos": [72, 73, 73, 98, 100],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 72,
+      "apiAskingPrice": {
+        "amount": 72,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": null,
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:25:27.397Z"
+    },
+    {
+      "recipeId": "cold-large-cluster-sadist-snowstorm-widespread-destruction",
+      "captureId": "5a912d29-3c7a-4d44-82e8-f5725694bf09",
+      "capturedAt": "2026-11-18T08:39:06.524Z",
+      "matchedRows": 4,
+      "sellers": 4,
+      "lowestFiveSellerAsksChaos": [1549.6, 1743.3, 2324.4, 2905.5],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 1549.6,
+      "apiAskingPrice": {
+        "amount": 1549.6,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "medium-cluster-crit-pressure-points-basics-of-pain-5-passives",
+      "captureId": "a16c3ec3-bbf6-461c-a749-b16ee36a33b4",
+      "capturedAt": "2026-11-18T08:41:00.482Z",
+      "matchedRows": 35,
+      "sellers": 35,
+      "lowestFiveSellerAsksChaos": [70, 70, 80, 86, 90],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 70,
+      "apiAskingPrice": {
+        "amount": 70,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender",
+      "captureId": "32c58782-0d26-4559-9a04-62a21ef7b66e",
+      "capturedAt": "2026-11-18T08:40:31.199Z",
+      "matchedRows": 15,
+      "sellers": 15,
+      "lowestFiveSellerAsksChaos": [89, 90, 90, 90, 90],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 89,
+      "apiAskingPrice": {
+        "amount": 89,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged",
+      "captureId": "32c58782-0d26-4559-9a04-62a21ef7b66e",
+      "capturedAt": "2026-11-18T08:40:31.199Z",
+      "matchedRows": 15,
+      "sellers": 15,
+      "lowestFiveSellerAsksChaos": [89, 90, 90, 90, 90],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 89,
+      "apiAskingPrice": {
+        "amount": 89,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-slink-gloves-zeal",
+      "captureId": "a26d56f6-eedb-47cb-9b51-262d3a456cb7",
+      "capturedAt": "2026-11-18T08:39:30.923Z",
+      "matchedRows": 37,
+      "sellers": 37,
+      "lowestFiveSellerAsksChaos": [129, 193.7, 193.7, 193.7, 200],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 129,
+      "apiAskingPrice": {
+        "amount": 129,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-two-toned-boots-zeal",
+      "captureId": "39d5e72b-d2d0-47ea-8258-f6b72ee348f2",
+      "capturedAt": "2026-11-18T08:50:29.927Z",
+      "matchedRows": 7,
+      "sellers": 7,
+      "lowestFiveSellerAsksChaos": [35, 193.7, 774.8, 774.8, 1549.6],
+      "outliersExcluded": 2,
+      "independentEstimateChaos": 774.8,
+      "apiAskingPrice": {
+        "amount": 774.8,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "amethyst-ring-hunter-caster",
+      "captureId": "b424c4f2-3883-4ef5-904a-fda03dacbe49",
+      "capturedAt": "2026-11-18T09:28:40.181Z",
+      "matchedRows": 23,
+      "sellers": 23,
+      "lowestFiveSellerAsksChaos": [75, 100, 110, 120, 120],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 75,
+      "apiAskingPrice": {
+        "amount": 75,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "medium-cluster-minion-blessed-rebirth-life-from-death-5-passives",
+      "captureId": "62bcd134-d21e-41be-ac25-c4cfe2f21177",
+      "capturedAt": "2026-11-18T09:26:55.886Z",
+      "matchedRows": 20,
+      "sellers": 20,
+      "lowestFiveSellerAsksChaos": [229, 245, 255, 280, 350],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 229,
+      "apiAskingPrice": {
+        "amount": 229,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "minion-convoking-wand-fear-trigger",
+      "captureId": "576b428a-254a-4813-9ddd-a1600f856948",
+      "capturedAt": "2026-11-18T09:28:10.732Z",
+      "matchedRows": 7,
+      "sellers": 7,
+      "lowestFiveSellerAsksChaos": [2711.8, 2905.5, 2905.5, 4842.5, 5423.6],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 2711.8,
+      "apiAskingPrice": {
+        "amount": 2711.8,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-crystal-belt-woe",
+      "captureId": "e1bc72f9-0ce8-4038-8d77-fa224372a400",
+      "capturedAt": "2026-11-18T09:37:28.326Z",
+      "matchedRows": 56,
+      "sellers": 56,
+      "lowestFiveSellerAsksChaos": [150, 193.7, 193.7, 193.7, 193.7],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 150,
+      "apiAskingPrice": {
+        "amount": 150,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-fingerless-silk-gloves-woe",
+      "captureId": "c87ac57c-98b0-40a1-aa29-ceacaffc6d5b",
+      "capturedAt": "2026-11-18T09:36:28.355Z",
+      "matchedRows": 29,
+      "sellers": 29,
+      "lowestFiveSellerAsksChaos": [5, 5, 30, 44, 80],
+      "outliersExcluded": 2,
+      "independentEstimateChaos": 30,
+      "apiAskingPrice": {
+        "amount": 30,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering",
+      "captureId": "3b4adb02-be29-4dfd-a308-e7dbcc6f9d7a",
+      "capturedAt": "2026-11-18T09:43:48.537Z",
+      "matchedRows": 11,
+      "sellers": 11,
+      "lowestFiveSellerAsksChaos": [193.7, 193.7, 193.7, 193.7, 193.7],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 193.7,
+      "apiAskingPrice": {
+        "amount": 193.7,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged",
+      "captureId": "3b4adb02-be29-4dfd-a308-e7dbcc6f9d7a",
+      "capturedAt": "2026-11-18T09:43:48.537Z",
+      "matchedRows": 11,
+      "sellers": 11,
+      "lowestFiveSellerAsksChaos": [193.7, 193.7, 193.7, 193.7, 193.7],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 193.7,
+      "apiAskingPrice": {
+        "amount": 193.7,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "minion-fossilised-shield-greed",
+      "captureId": "8d060093-1902-4a7e-afd7-609c63ed7ae1",
+      "capturedAt": "2026-11-18T09:44:13.003Z",
+      "matchedRows": 2,
+      "sellers": 2,
+      "lowestFiveSellerAsksChaos": [2324.4, 23244],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 2324.4,
+      "apiAskingPrice": {
+        "amount": 2324.4,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "twilight-regalia-six-link-woe",
+      "captureId": "98d35841-d275-448f-b96e-77bc9bfc81ae",
+      "capturedAt": "2026-11-18T09:42:14.338Z",
+      "matchedRows": 31,
+      "sellers": 31,
+      "lowestFiveSellerAsksChaos": [387.4, 774.8, 774.8, 1162.2, 1162.2],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 387.4,
+      "apiAskingPrice": {
+        "amount": 387.4,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-bone-helmet-greed",
+      "captureId": "ec08424a-1100-4d53-ad53-91d13f525d6c",
+      "capturedAt": "2026-11-18T09:42:59.697Z",
+      "matchedRows": 1,
+      "sellers": 1,
+      "lowestFiveSellerAsksChaos": [387.4],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 387.4,
+      "apiAskingPrice": {
+        "amount": 387.4,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "harpyskin-gloves-fractured-suppression-zeal",
+      "captureId": "61eedde9-08df-4b20-9699-798f823fd4ec",
+      "capturedAt": "2026-11-18T09:48:04.938Z",
+      "matchedRows": 4,
+      "sellers": 4,
+      "lowestFiveSellerAsksChaos": [1355.9, 1549.6, 3486.6, 3874],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 1355.9,
+      "apiAskingPrice": {
+        "amount": 1355.9,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-broadhead-quiver-zeal",
+      "captureId": "f0d9d8bf-4c9d-45ff-b875-2ae6137a26bd",
+      "capturedAt": "2026-11-18T09:44:37.474Z",
+      "matchedRows": 102,
+      "sellers": 102,
+      "lowestFiveSellerAsksChaos": [4, 6, 7, 8, 10],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 4,
+      "apiAskingPrice": {
+        "amount": 4,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "fire-large-cluster-prismatic-heart-smoking-remains-widespread-destruction",
+      "captureId": "c7242213-ab9f-4d2f-9e0b-e2ac6fa878b2",
+      "capturedAt": "2026-11-18T09:51:07.022Z",
+      "matchedRows": 17,
+      "sellers": 17,
+      "lowestFiveSellerAsksChaos": [120, 130, 130, 150, 150],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 120,
+      "apiAskingPrice": {
+        "amount": 120,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "medium-cluster-brand-remarkable-grand-design-4-passives",
+      "captureId": "6be2f5ed-dc3c-4ad7-a449-65a91c9d801b",
+      "capturedAt": "2026-11-18T09:50:42.537Z",
+      "matchedRows": 2,
+      "sellers": 2,
+      "lowestFiveSellerAsksChaos": [387.4, 387.4],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 387.4,
+      "apiAskingPrice": {
+        "amount": 387.4,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "medium-cluster-brand-remarkable-grand-design-5-passives",
+      "captureId": "33b86f5f-ef99-40fc-beb5-1ab9e2c46790",
+      "capturedAt": "2026-11-18T09:50:18.077Z",
+      "matchedRows": 1,
+      "sellers": 1,
+      "lowestFiveSellerAsksChaos": [300],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 300,
+      "apiAskingPrice": {
+        "amount": 300,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": null,
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "medium-cluster-warcry-mob-mentality-lead-by-example-5-passives",
+      "captureId": "65f2fac9-5bed-4cae-b56c-20ad88994d1f",
+      "capturedAt": "2026-11-18T09:51:52.259Z",
+      "matchedRows": 46,
+      "sellers": 46,
+      "lowestFiveSellerAsksChaos": [135, 140, 140, 140, 140],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 135,
+      "apiAskingPrice": {
+        "amount": 135,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "quicksilver-mageblood-cheetah",
+      "captureId": "3ee1584f-7fb3-4b3c-aea8-628a9bc15233",
+      "capturedAt": "2026-11-18T09:49:53.686Z",
+      "matchedRows": 2,
+      "sellers": 2,
+      "lowestFiveSellerAsksChaos": [387.4, 774.8],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 387.4,
+      "apiAskingPrice": {
+        "amount": 387.4,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-vaal-regalia-six-link-woe",
+      "captureId": "680f4a7a-6087-4946-8193-5798b765865a",
+      "capturedAt": "2026-11-18T09:48:53.656Z",
+      "matchedRows": 43,
+      "sellers": 43,
+      "lowestFiveSellerAsksChaos": [90, 90, 100, 110, 120],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 90,
+      "apiAskingPrice": {
+        "amount": 90,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "medium-cluster-crit-pressure-points-basics-of-pain-4-passives",
+      "captureId": "458a65db-1f5d-4a85-9fa1-5bacd16ddc92",
+      "capturedAt": "2026-11-18T09:53:51.319Z",
+      "matchedRows": 22,
+      "sellers": 22,
+      "lowestFiveSellerAsksChaos": [193.7, 193.7, 193.7, 387.4, 387.4],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 193.7,
+      "apiAskingPrice": {
+        "amount": 193.7,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "stygian-life-resistances-fossils",
+      "captureId": "274e6d09-ff70-4896-873f-0023849a13f6",
+      "capturedAt": "2026-11-18T09:54:35.714Z",
+      "matchedRows": 2,
+      "sellers": 2,
+      "lowestFiveSellerAsksChaos": [1355.9, 1743.3],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 1355.9,
+      "apiAskingPrice": {
+        "amount": 1355.9,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "physical-large-cluster-alteration",
+      "captureId": "024aee2d-e5cf-4063-9d9a-5efeed973ddc",
+      "capturedAt": "2026-11-18T10:05:13.503Z",
+      "matchedRows": 2,
+      "sellers": 2,
+      "lowestFiveSellerAsksChaos": [33, 387.4],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 33,
+      "apiAskingPrice": {
+        "amount": 33,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "stygian-life-resistances-envy",
+      "captureId": "0910f0c9-ed2c-4c4c-9b1f-8a5d834b83d9",
+      "capturedAt": "2026-11-18T10:11:38.996Z",
+      "matchedRows": 5,
+      "sellers": 5,
+      "lowestFiveSellerAsksChaos": [968.5, 1743.3, 1937, 2905.5, 5811],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 968.5,
+      "apiAskingPrice": {
+        "amount": 968.5,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak",
+      "captureId": "ee54e869-3b9c-44dd-a3ba-9e2c8c19cfd1",
+      "capturedAt": "2026-11-18T10:12:03.335Z",
+      "matchedRows": 5,
+      "sellers": 5,
+      "lowestFiveSellerAsksChaos": [150, 150, 193.7, 193.7, 250],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 150,
+      "apiAskingPrice": {
+        "amount": 150,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+      "captureId": "ee54e869-3b9c-44dd-a3ba-9e2c8c19cfd1",
+      "capturedAt": "2026-11-18T10:12:03.335Z",
+      "matchedRows": 5,
+      "sellers": 5,
+      "lowestFiveSellerAsksChaos": [150, 150, 193.7, 193.7, 250],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 150,
+      "apiAskingPrice": {
+        "amount": 150,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak",
+      "captureId": "db190c7c-9e3d-4792-8ba8-6c91a19f44ea",
+      "capturedAt": "2026-11-18T10:12:27.742Z",
+      "matchedRows": 8,
+      "sellers": 8,
+      "lowestFiveSellerAsksChaos": [40, 80, 100, 100, 105],
+      "outliersExcluded": 1,
+      "independentEstimateChaos": 80,
+      "apiAskingPrice": {
+        "amount": 80,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged",
+      "captureId": "db190c7c-9e3d-4792-8ba8-6c91a19f44ea",
+      "capturedAt": "2026-11-18T10:12:27.742Z",
+      "matchedRows": 8,
+      "sellers": 8,
+      "lowestFiveSellerAsksChaos": [40, 80, 100, 100, 105],
+      "outliersExcluded": 1,
+      "independentEstimateChaos": 80,
+      "apiAskingPrice": {
+        "amount": 80,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-apothecarys-gloves-greed",
+      "captureId": "1788f4ee-72fe-4e53-9ab6-53bb00ac37a6",
+      "capturedAt": "2026-11-18T10:12:52.158Z",
+      "matchedRows": 25,
+      "sellers": 25,
+      "lowestFiveSellerAsksChaos": [25, 35, 40, 40, 45],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 25,
+      "apiAskingPrice": {
+        "amount": 25,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-leather-belt-envy",
+      "captureId": "725b5ff2-8d7d-4ce1-a893-4820c4431777",
+      "capturedAt": "2026-11-18T10:09:54.265Z",
+      "matchedRows": 76,
+      "sellers": 76,
+      "lowestFiveSellerAsksChaos": [120, 149, 193.7, 193.7, 193.7],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 120,
+      "apiAskingPrice": {
+        "amount": 120,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "medium-cluster-warcry-mob-mentality-lead-by-example-4-passives",
+      "captureId": "da161a7a-737e-4f73-bff2-054e96d668e0",
+      "capturedAt": "2026-11-18T10:21:42.871Z",
+      "matchedRows": 31,
+      "sellers": 31,
+      "lowestFiveSellerAsksChaos": [120, 135, 135, 140, 140],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 120,
+      "apiAskingPrice": {
+        "amount": 120,
+        "currency": "chaos"
+      },
+      "profitBlocked": true,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "suppression-boots-loathing",
+      "captureId": "741030f7-6acb-4569-8700-5567153ff075",
+      "capturedAt": "2026-11-18T10:24:00.620Z",
+      "matchedRows": 2,
+      "sellers": 2,
+      "lowestFiveSellerAsksChaos": [192.7, 1927],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 192.7,
+      "apiAskingPrice": {
+        "amount": 192.7,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:25:27.397Z"
+    },
+    {
+      "recipeId": "suppression-gloves-fear",
+      "captureId": "48ff5e39-680b-4de2-bbe2-0917b7eb4383",
+      "capturedAt": "2026-11-18T10:23:36.220Z",
+      "matchedRows": 3,
+      "sellers": 3,
+      "lowestFiveSellerAsksChaos": [1937, 2905.5, 6198.4],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 1937,
+      "apiAskingPrice": {
+        "amount": 1937,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "suppression-gloves-zeal",
+      "captureId": "eac348ba-6177-436d-ae99-4b0fdfe6ccda",
+      "capturedAt": "2026-11-18T10:23:11.758Z",
+      "matchedRows": 7,
+      "sellers": 7,
+      "lowestFiveSellerAsksChaos": [1355.9, 3486.6, 3874, 4648.8, 5423.6],
+      "outliersExcluded": 1,
+      "independentEstimateChaos": 3486.6,
+      "apiAskingPrice": {
+        "amount": 3486.6,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-spine-bow-contempt",
+      "captureId": "2054c2f8-28ce-43c2-a664-3b2c71e2606b",
+      "capturedAt": "2026-11-18T10:19:28.419Z",
+      "matchedRows": 45,
+      "sellers": 45,
+      "lowestFiveSellerAsksChaos": [8, 10, 10, 20, 20],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 8,
+      "apiAskingPrice": {
+        "amount": 8,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-stygian-vise-envy",
+      "captureId": "2b976f2b-babf-431a-a3b6-bd8cba4170af",
+      "capturedAt": "2026-11-18T10:20:53.206Z",
+      "matchedRows": 23,
+      "sellers": 23,
+      "lowestFiveSellerAsksChaos": [968.5, 968.5, 968.5, 1162.2, 1355.9],
+      "outliersExcluded": 0,
+      "independentEstimateChaos": 968.5,
+      "apiAskingPrice": {
+        "amount": 968.5,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-thicket-bow-dread",
+      "captureId": "5e721371-d347-4bcc-9fc9-5cba5495e925",
+      "capturedAt": "2026-11-18T10:20:28.699Z",
+      "matchedRows": 8,
+      "sellers": 8,
+      "lowestFiveSellerAsksChaos": [60, 80, 190, 192.7, 192.7],
+      "outliersExcluded": 2,
+      "independentEstimateChaos": 190,
+      "apiAskingPrice": {
+        "amount": 190,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "5c9992d1-bb88-4158-848e-40bfdf86593b",
+        "verifiedAt": "2026-11-18T10:01:46.081Z",
+        "chaosPerDivine": 192.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:25:27.397Z"
+    },
+    {
+      "recipeId": "suppression-boots-loathing",
+      "captureId": "004faf76-991d-494c-915f-a0e8b24856c0",
+      "capturedAt": "2026-11-18T10:35:41.265Z",
+      "matchedRows": 6,
+      "sellers": 6,
+      "lowestFiveSellerAsksChaos": [193.7, 1355.9, 1549.6, 1549.6, 1743.3],
+      "outliersExcluded": 1,
+      "independentEstimateChaos": 1355.9,
+      "apiAskingPrice": {
+        "amount": 1355.9,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    },
+    {
+      "recipeId": "week-one-thicket-bow-dread",
+      "captureId": "79673e01-c129-49cb-a8f2-525ab91d37ac",
+      "capturedAt": "2026-11-18T10:36:26.188Z",
+      "matchedRows": 9,
+      "sellers": 9,
+      "lowestFiveSellerAsksChaos": [60, 80, 190, 193.7, 193.7],
+      "outliersExcluded": 2,
+      "independentEstimateChaos": 190,
+      "apiAskingPrice": {
+        "amount": 190,
+        "currency": "chaos"
+      },
+      "profitBlocked": false,
+      "fx": {
+        "snapshotId": "67560fca-99f1-4d86-8703-7fb619feadb5",
+        "verifiedAt": "2026-11-18T10:37:10.749Z",
+        "chaosPerDivine": 193.7
+      },
+      "result": "PASS",
+      "checkedAt": "2026-11-18T10:38:40.060Z"
+    }
+  ]
+}

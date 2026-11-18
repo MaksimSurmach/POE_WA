@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-11-18T09:54:30.229Z",
+  "scope": "Unmodified actual raw provider item contains fractured14+ suppression, returned by an output search whose wire uses an explicit suppression filter (its exact bound is recorded). Existing current capture/queryVersion identity asserted; no extra provider requests or seller/item IDs retained.",
+  "examples": [
+    {
+      "captureId": "a26d56f6-eedb-47cb-9b51-262d3a456cb7",
+      "capturedAt": "2026-11-18T08:39:30.923Z",
+      "queryKey": "806d7a70580d7c68b11318212e8b1946236c2b13fcce3ddc3a89c70746a2f63e",
+      "recipeIds": ["week-one-slink-gloves-zeal"],
+      "wireFilter": {
+        "id": "explicit.stat_3680664274",
+        "value": {
+          "min": 8
+        }
+      },
+      "actualFracturedModifier": "+14% chance to Suppress Spell Damage"
+    },
+    {
+      "captureId": "e00bb6b1-accd-4e87-be4a-b72e92bb541d",
+      "capturedAt": "2026-11-18T08:19:42.136Z",
+      "queryKey": "759af096334502f1e6717dd43ce462eed831784da3a57a6a889f0295c460c7e8",
+      "recipeIds": ["velour-gloves-fractured-suppression-zeal"],
+      "wireFilter": {
+        "id": "explicit.stat_3680664274",
+        "value": {
+          "min": 11
+        }
+      },
+      "actualFracturedModifier": "+14% chance to Suppress Spell Damage"
+    },
+    {
+      "captureId": "798c2e28-4898-4078-b590-69b74ac1bc81",
+      "capturedAt": "2026-11-18T08:19:17.805Z",
+      "queryKey": "1835f4a624213ea56a20b5537a0bb88b562b8dd651f31c0cf8cf2b46b63073ac",
+      "recipeIds": ["wyvernscale-gauntlets-fractured-suppression-zeal"],
+      "wireFilter": {
+        "id": "explicit.stat_3680664274",
+        "value": {
+          "min": 11
+        }
+      },
+      "actualFracturedModifier": "+14% chance to Suppress Spell Damage"
+    }
+  ]
+}

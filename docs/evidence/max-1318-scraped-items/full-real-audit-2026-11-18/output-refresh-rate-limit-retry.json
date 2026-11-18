@@ -1,0 +1,66 @@
+{
+  "summary": {
+    "at": "2026-11-18T10:23:22.661Z",
+    "total": 1,
+    "states": {
+      "succeeded": 1
+    },
+    "finished": [
+      {
+        "recipe": "medium-cluster-warcry-mob-mentality-lead-by-example-4-passives",
+        "fetched": 60,
+        "coverage": "complete",
+        "matched": 60,
+        "sellers": 31,
+        "reason": null
+      }
+    ],
+    "failed": []
+  },
+  "tests": [
+    {
+      "itemId": "1c15e19a-24b8-4b64-b90a-2e621d6fa66f",
+      "role": "output",
+      "recipes": [
+        "medium-cluster-warcry-mob-mentality-lead-by-example-4-passives"
+      ],
+      "revision": 1,
+      "itemRevision": 1,
+      "requestId": "bb1f9635-bb00-4184-a52b-f3332066a6d4",
+      "scheduleKey": "00c0ae9d323fab320a688d14166385eb980bad0f8930773a2ecd296cbe45ea74",
+      "capture": {
+        "captureId": "da161a7a-737e-4f73-bff2-054e96d668e0",
+        "capturedAt": "2026-11-18T10:21:42.871Z",
+        "coverage": "complete",
+        "durationMs": 88743,
+        "fetched": 60,
+        "partialReason": null,
+        "queryVersion": "00c0ae9d323fab320a688d14166385eb980bad0f8930773a2ecd296cbe45ea74",
+        "reportedTotal": 60,
+        "slices": 1,
+        "listings": {
+          "stored": 60,
+          "priced": 60,
+          "completeItems": 0,
+          "analyzed": 60,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 60,
+          "comparable": 31,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 1,
+      "currentScheduleKey": "00c0ae9d323fab320a688d14166385eb980bad0f8930773a2ecd296cbe45ea74",
+      "finishedAt": "2026-11-18T10:23:11.256Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T08:55:43.441Z",
+      "stale": false,
+      "startedAt": "2026-11-18T10:21:42.506Z",
+      "state": "succeeded"
+    }
+  ]
+}

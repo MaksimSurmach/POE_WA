@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-11-18T10:25:18.702Z",
+  "scope": "Unmodified actual raw provider item contains fractured14+ suppression, returned by an output search whose wire uses an explicit suppression filter (its exact bound is recorded). Existing current capture/queryVersion identity asserted; no extra provider requests or seller/item IDs retained.",
+  "examples": [
+    {
+      "captureId": "eac348ba-6177-436d-ae99-4b0fdfe6ccda",
+      "capturedAt": "2026-11-18T10:23:11.758Z",
+      "queryKey": "4d0a5a8a71bf2c4c009a65c2834775ebd1053568488f91697cb29f99791d62c3",
+      "recipeIds": ["suppression-gloves-zeal"],
+      "wireFilter": {
+        "id": "explicit.stat_3680664274",
+        "value": {
+          "min": 14
+        }
+      },
+      "actualFracturedModifier": "+14% chance to Suppress Spell Damage"
+    },
+    {
+      "captureId": "48ff5e39-680b-4de2-bbe2-0917b7eb4383",
+      "capturedAt": "2026-11-18T10:23:36.220Z",
+      "queryKey": "5fd22e383f5016b4b4b6c7faa755632ff64566d8f8454c464ba6b05ea43fb6d6",
+      "recipeIds": ["suppression-gloves-fear"],
+      "wireFilter": {
+        "id": "explicit.stat_3680664274",
+        "value": {
+          "min": 14
+        }
+      },
+      "actualFracturedModifier": "+14% chance to Suppress Spell Damage"
+    },
+    {
+      "captureId": "741030f7-6acb-4569-8700-5567153ff075",
+      "capturedAt": "2026-11-18T10:24:00.620Z",
+      "queryKey": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+      "recipeIds": ["suppression-boots-loathing"],
+      "wireFilter": {
+        "id": "explicit.stat_3680664274",
+        "value": {
+          "min": 14
+        }
+      },
+      "actualFracturedModifier": "+14% chance to Suppress Spell Damage"
+    }
+  ]
+}
