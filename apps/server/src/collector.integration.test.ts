@@ -374,7 +374,9 @@ it('freezes only the pool whose period disappeared and resumes the same cycle', 
   await vi.waitFor(async () =>
     expect((await row(output)).lastStatus).toBe('succeeded'),
   );
-  expect((await row(housekeeping)).lastStatus).toBe('succeeded');
+  await vi.waitFor(async () =>
+    expect((await row(housekeeping)).lastStatus).toBe('succeeded'),
+  );
   expect((await row(base)).lastStartedAt).toBeNull();
   const status = await readCollectorQueue(pool, now(), undefined, false, true);
   expect(status.tradePools).toContainEqual(

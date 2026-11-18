@@ -404,7 +404,7 @@ async function finishSchedule(
       schedule.kind === 'trade-target' &&
       result.status === 'retry' &&
       result.reason === 'PROVIDER_UNAVAILABLE' &&
-      result.retryAt !== undefined;
+      explicitRetry !== undefined;
     const deferred =
       providerDeferral ||
       (pooled &&
