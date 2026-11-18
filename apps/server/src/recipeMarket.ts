@@ -446,6 +446,27 @@ export async function compileScrapedItemQuery(
     };
     query.query = search;
   }
+  // Persist the same filter IDs that the worker rebuilds from the handbook.
+  const wire = z
+    .object({
+      stats: z
+        .array(
+          z
+            .object({
+              filters: z.array(z.object({ id: z.string() }).passthrough()),
+            })
+            .passthrough(),
+        )
+        .optional(),
+    })
+    .passthrough()
+    .parse(query.query);
+  wire.stats?.forEach((group) =>
+    group.filters.forEach((f) => {
+      f.id = tradeStatMappings[f.id]?.queryId ?? f.id;
+    }),
+  );
+  query.query = wire;
   return {
     ok: true,
     query: tradeQuery({

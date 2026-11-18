@@ -1,0 +1,230 @@
+{
+  "source": "Actual Prophet Crown returned by both configured Helmet searches on 18 November 2026. Original recorded price/currency retained; no provider or account identifiers.",
+  "item": {
+    "ilvl": 85,
+    "league": "Covens",
+    "rarity": "Rare",
+    "sockets": [
+      {
+        "group": 0
+      },
+      {
+        "group": 0
+      },
+      {
+        "group": 0
+      },
+      {
+        "group": 1
+      }
+    ],
+    "baseType": "Prophet Crown",
+    "extended": {
+      "hashes": {
+        "crafted": [["crafted.stat_3321629045", [0]]],
+        "explicit": [
+          ["explicit.stat_2339757871", [2]],
+          ["explicit.stat_3299347043", [3]],
+          ["explicit.stat_1050105434", [1]],
+          ["explicit.stat_3372524247", [4]],
+          ["explicit.stat_4237190083", [0]]
+        ],
+        "implicit": [
+          ["implicit.stat_196824923", [1]],
+          ["implicit.stat_4101445926", [0]]
+        ]
+      },
+      "base_defence_percentile": 96
+    },
+    "typeLine": "Prophet Crown",
+    "verified": true,
+    "frameType": 2,
+    "properties": [
+      {
+        "name": "Armour",
+        "type": 16,
+        "values": [["418", 1]]
+      },
+      {
+        "name": "Energy Shield",
+        "type": 18,
+        "values": [["61", 1]]
+      }
+    ],
+    "explicitMods": [
+      {
+        "hash": "stat.explicit.stat_2339757871",
+        "mods": [
+          {
+            "tier": "S1"
+          }
+        ],
+        "domain": "explicit",
+        "description": "37% increased Energy Shield Recharge Rate"
+      },
+      {
+        "hash": "stat.explicit.stat_3299347043",
+        "mods": [
+          {
+            "tier": "P2"
+          }
+        ],
+        "domain": "explicit",
+        "description": "+126 to maximum Life"
+      },
+      {
+        "hash": "stat.explicit.stat_1050105434",
+        "mods": [
+          {
+            "tier": "P1"
+          }
+        ],
+        "domain": "explicit",
+        "description": "+69 to maximum Mana"
+      },
+      {
+        "hash": "stat.explicit.stat_3372524247",
+        "mods": [
+          {
+            "tier": "S2"
+          }
+        ],
+        "domain": "explicit",
+        "description": "+42% to Fire Resistance"
+      },
+      {
+        "hash": "stat.explicit.stat_4237190083",
+        "mods": [
+          {
+            "tier": "S0"
+          }
+        ],
+        "domain": "explicit",
+        "description": "9% increased Mana Reservation Efficiency of Skills"
+      },
+      {
+        "hash": "stat.crafted.stat_3321629045",
+        "mods": [
+          {
+            "tier": "R3"
+          }
+        ],
+        "flags": {
+          "crafted": true
+        },
+        "domain": "crafted",
+        "description": "64% increased Armour and Energy Shield"
+      }
+    ],
+    "implicitMods": [
+      {
+        "hash": "stat.implicit.stat_196824923",
+        "mods": [{}],
+        "domain": "implicit",
+        "description": "While a Unique Enemy is in your Presence, 9% of Physical Damage from Hits taken as Lightning Damage"
+      },
+      {
+        "hash": "stat.implicit.stat_4101445926",
+        "mods": [{}],
+        "domain": "implicit",
+        "description": "26% increased Mana Cost Efficiency"
+      }
+    ]
+  },
+  "originalPrice": {
+    "amount": 4,
+    "currency": "divine"
+  },
+  "handbookTargets": [
+    {
+      "baseTypes": ["Lich's Circlet"],
+      "builds": [],
+      "corrupted": false,
+      "game": "poe1",
+      "league": "Covens",
+      "name": "3.30.0:7e102af69348dca17b7fe597672e2eec",
+      "patch": "3.30.0",
+      "realm": "pc",
+      "requiredMods": [],
+      "slot": "crafted-item",
+      "sources": [],
+      "tradeSearch": {
+        "category": "armour.helmet",
+        "currency": "chaos",
+        "groups": [
+          {
+            "filters": [
+              {
+                "id": "explicit.stat_1050105434",
+                "min": 50
+              },
+              {
+                "id": "explicit.stat_3299347043",
+                "min": 100
+              },
+              {
+                "id": "explicit.stat_3372524247",
+                "min": 42
+              },
+              {
+                "id": "explicit.stat_4237190083",
+                "min": 9
+              }
+            ],
+            "type": "and"
+          }
+        ],
+        "includeOtherCurrencies": true,
+        "rarity": "rare",
+        "scope": "strict",
+        "status": "securable",
+        "version": 1
+      }
+    },
+    {
+      "baseTypes": ["Sunfire Circlet"],
+      "builds": [],
+      "corrupted": false,
+      "game": "poe1",
+      "league": "Covens",
+      "name": "3.30.0:3f5c5fe358bf0e304df8552243f89bed",
+      "patch": "3.30.0",
+      "realm": "pc",
+      "requiredMods": [],
+      "slot": "crafted-item",
+      "sources": [],
+      "tradeSearch": {
+        "category": "armour.helmet",
+        "currency": "chaos",
+        "groups": [
+          {
+            "filters": [
+              {
+                "id": "explicit.stat_1050105434",
+                "min": 50
+              },
+              {
+                "id": "explicit.stat_3299347043",
+                "min": 100
+              },
+              {
+                "id": "explicit.stat_3372524247",
+                "min": 42
+              },
+              {
+                "id": "explicit.stat_4237190083",
+                "min": 9
+              }
+            ],
+            "type": "and"
+          }
+        ],
+        "includeOtherCurrencies": true,
+        "rarity": "rare",
+        "scope": "strict",
+        "status": "securable",
+        "version": 1
+      }
+    }
+  ]
+}

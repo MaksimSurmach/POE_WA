@@ -1,0 +1,277 @@
+{
+  "source": "Actual modern-support RF result from authenticated diagnostic A/B/A collection 18 November 2026. Real item/price/currency, no provider or seller identifiers.",
+  "item": {
+    "ilvl": 83,
+    "league": "Covens",
+    "rarity": "Rare",
+    "sockets": [
+      {
+        "group": 0
+      },
+      {
+        "group": 0
+      },
+      {
+        "group": 0
+      }
+    ],
+    "baseType": "Archdemon Crown",
+    "extended": {
+      "hashes": {
+        "crafted": [
+          ["crafted.stat_2551600084", [0]],
+          ["crafted.stat_280731498", [0]]
+        ],
+        "explicit": [
+          ["explicit.effect_1200122555", [0]],
+          ["explicit.effect_3293595800", [1]],
+          ["explicit.stat_328541901", [4]],
+          ["explicit.stat_1050105434", [3]],
+          ["explicit.stat_4220027924", [2]],
+          ["explicit.stat_1175385867", [0]],
+          ["explicit.stat_4251717817", [1]]
+        ],
+        "implicit": [
+          ["implicit.stat_4154259475", [0]],
+          ["implicit.stat_524797741", [0]]
+        ]
+      },
+      "base_defence_percentile": 42
+    },
+    "typeLine": "Archdemon Crown",
+    "verified": true,
+    "frameType": 2,
+    "influences": {
+      "elder": true
+    },
+    "properties": [
+      {
+        "name": "Armour",
+        "type": 16,
+        "values": [["197", 0]]
+      },
+      {
+        "name": "Energy Shield",
+        "type": 18,
+        "values": [["40", 0]]
+      }
+    ],
+    "explicitMods": [
+      {
+        "hash": "stat.explicit.effect_1200122555",
+        "mods": [
+          {
+            "tier": "S2"
+          }
+        ],
+        "domain": "explicit",
+        "description": "Socketed Gems are Supported by Level 18 [SupportBurningDamage::18|Burning Damage Support]"
+      },
+      {
+        "hash": "stat.explicit.effect_3293595800",
+        "mods": [
+          {
+            "tier": "P1"
+          }
+        ],
+        "domain": "explicit",
+        "description": "Socketed Gems are Supported by Level 20 [SupportConcentratedEffect::20|Concentrated Effect Support]"
+      },
+      {
+        "hash": "stat.explicit.stat_328541901",
+        "mods": [
+          {
+            "tier": "S4"
+          }
+        ],
+        "domain": "explicit",
+        "description": "+40 to Intelligence"
+      },
+      {
+        "hash": "stat.explicit.stat_1050105434",
+        "mods": [
+          {
+            "tier": "P3"
+          }
+        ],
+        "domain": "explicit",
+        "description": "+62 to maximum Mana"
+      },
+      {
+        "hash": "stat.explicit.stat_4220027924",
+        "mods": [
+          {
+            "tier": "S6"
+          }
+        ],
+        "domain": "explicit",
+        "description": "+19% to Cold Resistance"
+      },
+      {
+        "hash": "stat.explicit.stat_1175385867",
+        "mods": [
+          {
+            "tier": "S2"
+          }
+        ],
+        "domain": "explicit",
+        "description": "27% increased Burning Damage"
+      },
+      {
+        "hash": "stat.explicit.stat_4251717817",
+        "mods": [
+          {
+            "tier": "P1"
+          }
+        ],
+        "domain": "explicit",
+        "description": "24% increased Area Damage"
+      },
+      {
+        "hash": "stat.crafted.stat_2551600084",
+        "mods": [
+          {
+            "tier": "P0"
+          }
+        ],
+        "flags": {
+          "crafted": true
+        },
+        "domain": "crafted",
+        "description": "+1 to Level of Socketed AoE Gems"
+      },
+      {
+        "hash": "stat.crafted.stat_280731498",
+        "mods": [
+          {
+            "tier": "P0"
+          }
+        ],
+        "flags": {
+          "crafted": true
+        },
+        "domain": "crafted",
+        "description": "9% increased Area of Effect"
+      }
+    ],
+    "implicitMods": [
+      {
+        "hash": "stat.implicit.stat_4154259475",
+        "mods": [{}],
+        "domain": "implicit",
+        "description": "-2 to Level of Socketed Support Gems"
+      },
+      {
+        "hash": "stat.implicit.stat_524797741",
+        "mods": [{}],
+        "domain": "implicit",
+        "description": "+2 to Level of Socketed Skill Gems"
+      }
+    ]
+  },
+  "originalPrice": {
+    "amount": 80,
+    "currency": "chaos"
+  },
+  "handbookTarget": {
+    "baseTypes": ["Archdemon Crown"],
+    "builds": [],
+    "corrupted": false,
+    "game": "poe1",
+    "league": "Covens",
+    "name": "3.29.3.3:cad83c782eab5974e3dbd84a2776c235",
+    "patch": "3.29.3.3",
+    "realm": "pc",
+    "requiredMods": [],
+    "slot": "crafted-item",
+    "sources": [],
+    "tradeSearch": {
+      "currency": "chaos",
+      "groups": [
+        {
+          "filters": [
+            {
+              "id": "explicit.indexable_support_68"
+            },
+            {
+              "id": "explicit.indexable_support_98"
+            },
+            {
+              "id": "explicit.stat_2551600084",
+              "min": 1
+            },
+            {
+              "id": "explicit.stat_280731498",
+              "min": 8
+            }
+          ],
+          "type": "and"
+        }
+      ],
+      "includeOtherCurrencies": true,
+      "rarity": "rare",
+      "scope": "strict",
+      "status": "securable",
+      "version": 1
+    }
+  },
+  "modernWireRequest": {
+    "query": {
+      "status": {
+        "option": "securable"
+      },
+      "type": "Archdemon Crown",
+      "stats": [
+        {
+          "type": "and",
+          "filters": [
+            {
+              "id": "explicit.effect_1200122555",
+              "value": {}
+            },
+            {
+              "id": "explicit.effect_3293595800",
+              "value": {}
+            },
+            {
+              "id": "explicit.stat_2551600084",
+              "value": {
+                "min": 1
+              }
+            },
+            {
+              "id": "explicit.stat_280731498",
+              "value": {
+                "min": 8
+              }
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "type_filters": {
+          "filters": {
+            "rarity": {
+              "option": "rare"
+            }
+          }
+        },
+        "misc_filters": {
+          "filters": {
+            "corrupted": {
+              "option": "false"
+            }
+          }
+        },
+        "trade_filters": {
+          "filters": {
+            "price": {}
+          }
+        }
+      }
+    },
+    "sort": {
+      "price": "asc"
+    }
+  }
+}

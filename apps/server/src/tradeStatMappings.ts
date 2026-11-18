@@ -9,6 +9,8 @@ export const tradeStatMappings: Record<
     negativeText?: string;
     valueMode?: 'average';
     aliases?: readonly { hash: string; text: string }[];
+    // Keep historical modifier identities while using the current Trade filter.
+    queryId?: string;
   }
 > = {
   'explicit.stat_3182498570': {
@@ -547,6 +549,7 @@ Object.assign(tradeStatMappings, {
   'explicit.indexable_support_68': {
     key: 'burning_support',
     text: 'Socketed Gems are Supported by Level # Burning Damage',
+    queryId: 'explicit.effect_1200122555',
     aliases: [
       {
         hash: 'explicit.effect_1200122555',
@@ -557,6 +560,7 @@ Object.assign(tradeStatMappings, {
   'explicit.indexable_support_98': {
     key: 'concentrated_support',
     text: 'Socketed Gems are Supported by Level # Concentrated Effect',
+    queryId: 'explicit.effect_3293595800',
     aliases: [
       {
         hash: 'explicit.effect_3293595800',

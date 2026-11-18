@@ -301,6 +301,23 @@ describe('finished-item category comparability', () => {
       ).toEqual(['MATCH', 'REJECT']);
     },
   );
+  it('resolves exact official helmet bases and ignores contradictory structured class', () => {
+    expect(
+      compare('armour.helmet', [
+        { ...item, baseType: 'Prophet Crown' },
+        { ...item, baseType: 'Golden Wreath' },
+        { ...item, baseType: 'Runic Crest' },
+        { ...item, baseType: 'Uncatalogued Crown' },
+        { ...item, baseType: 'Prophet Crown', itemClass: 'Boots' },
+      ]).rows.map((row) => row.status),
+    ).toEqual(['MATCH', 'MATCH', 'MATCH', 'PARTIAL', 'REJECT']);
+    // A false Boots class must not make Prophet Crown match under armour.boots.
+    expect(
+      compare('armour.boots', [
+        { ...item, baseType: 'Prophet Crown', itemClass: 'Boots' },
+      ]).rows[0]?.status,
+    ).toBe('REJECT');
+  });
   it('does not relax item-level constraints for equivalent bases', () => {
     expect(
       compare('armour.boots', [

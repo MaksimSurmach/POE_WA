@@ -349,8 +349,8 @@ export function ScrapedItemEditor({
       ) : null}
       {item.recipes.some(({ definitionChanged }) => definitionChanged) ? (
         <p className="scraped-note" role="note">
-          A recipe&apos;s own definition no longer matches this item. The
-          configured requirements below are what is scraped.
+          A linked recipe was updated after linking. The configured requirements
+          below are what is scraped.
         </p>
       ) : null}
 

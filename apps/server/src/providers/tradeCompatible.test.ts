@@ -462,6 +462,96 @@ describe('Trade-compatible queries and transport', () => {
     },
   );
 
+  it('matches the actual Prophet Crown returned by both configured Helmet searches', async () => {
+    const fixture = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.helmet-category-actual.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    expect(fixture.handbookTargets).toHaveLength(2);
+    // Neutral unit identity/account envelope only; actual price/currency preserved, no FX.
+    const envelope = rawTradeListing('redacted-helmet-fixture');
+    const raw = {
+      ...envelope,
+      item: fixture.item,
+      listing: { ...envelope.listing, price: fixture.originalPrice },
+    };
+    for (const handbookTarget of fixture.handbookTargets) {
+      const target = recipeQueryTarget(JSON.stringify(handbookTarget));
+      const row = normalizeTradeCompatibleListing(raw, target);
+      expect(row.price).toBe(fixture.originalPrice.amount);
+      expect(
+        compareListingItems(target, {
+          currency: fixture.originalPrice.currency,
+          listings: [{ ...row, currency: fixture.originalPrice.currency }],
+        })[0]?.status,
+      ).toBe('MATCH');
+    }
+  });
+
+  it('sends the current wire IDs for the actual modern RF result and still matches it', async () => {
+    const fixture = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.rf-modern-query-actual.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    const target = createMarketTarget(fixture.handbookTarget);
+    expect(generateMarketTradeQuery(target).request).toEqual(
+      fixture.modernWireRequest,
+    );
+    // Neutral unit identity/account envelope only; actual price/currency preserved, no FX.
+    const envelope = rawTradeListing('redacted-rf-fixture');
+    const raw = {
+      ...envelope,
+      item: fixture.item,
+      listing: { ...envelope.listing, price: fixture.originalPrice },
+    };
+    const row = normalizeTradeCompatibleListing(raw, target);
+    expect(row.price).toBe(fixture.originalPrice.amount);
+    expect(
+      compareListingItems(target, {
+        currency: fixture.originalPrice.currency,
+        listings: [{ ...row, currency: fixture.originalPrice.currency }],
+      })[0]?.status,
+    ).toBe('MATCH');
+  });
+
+  it('keeps support level bounds on the wire ID and rejects wire IDs as input', async () => {
+    const { handbookTarget } = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.rf-modern-query-actual.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    handbookTarget.tradeSearch.groups[0].filters[1].min = 20;
+    const filters = generateMarketTradeQuery(createMarketTarget(handbookTarget))
+      .request.query.stats[0]?.filters;
+    expect(filters?.[0]).toEqual({
+      id: 'explicit.effect_1200122555',
+      value: {},
+    });
+    expect(filters?.[1]).toEqual({
+      id: 'explicit.effect_3293595800',
+      value: { min: 20 },
+    });
+    handbookTarget.tradeSearch.groups[0].filters[1].id =
+      'explicit.effect_3293595800';
+    expect(() =>
+      generateMarketTradeQuery(createMarketTarget(handbookTarget)),
+    ).toThrow();
+  });
+
   it('keeps duplicate same-origin evidence ambiguous instead of increasing its accepted value', () => {
     const target = { ...tradeTarget(), slot: 'crafted-item' };
     const raw = rawTradeListing();

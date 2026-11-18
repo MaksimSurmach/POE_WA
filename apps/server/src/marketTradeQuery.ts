@@ -100,7 +100,7 @@ export function generateMarketTradeQuery(
       ? { value: { min: group.min } }
       : {}),
     filters: group.filters.map((stat) => ({
-      id: stat.id,
+      id: tradeStatMappings[stat.id]?.queryId ?? stat.id,
       ...(stat.id.includes('|')
         ? {}
         : {

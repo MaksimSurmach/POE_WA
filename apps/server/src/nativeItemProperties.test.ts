@@ -22,6 +22,7 @@ import {
   comparableRecipeListings,
 } from './recipeMarket.js';
 import { generateMarketTradeQuery } from './marketTradeQuery.js';
+import { derivedRecipeSpecs } from './scrapedItemConfig.js';
 import { normalizeTradeCompatibleListing } from './providers/tradeCompatible.js';
 import { tradeStatMappings } from './tradeStatMappings.js';
 
@@ -583,6 +584,76 @@ describe('Convoking Wand crafted trigger evidence', () => {
       expect(comparable).toHaveLength(
         ['literal8s', 'official100'].includes(mode) ? 1 : 0,
       );
+    },
+  );
+});
+
+describe('strict persisted query carries modern stat ids', () => {
+  it.each([false, true])(
+    'persists modern ids and keeps min bounds; handbook stays legacy (marketEquivalent=%s)',
+    async (marketEquivalent) => {
+      const definition = validateRecipeDocument(
+        JSON.parse(
+          await readFile(
+            new URL('recipes/helmet/rf-fire-trap-level-20.json', root),
+            'utf8',
+          ),
+        ),
+      );
+      const specs = async (r: typeof definition) => {
+        const d = await derivedRecipeSpecs(r);
+        return {
+          ...d,
+          output: {
+            ...d.output,
+            spec: { ...d.output.spec, marketEquivalent },
+          },
+        };
+      };
+      const generated = await generateRecipeMarketQuery(
+        trade,
+        definition,
+        'Fixture League',
+        false,
+        specs,
+      );
+      const handbook = recipeQueryTarget(
+        generated.query.handbookTarget,
+      ).tradeSearch?.groups.flatMap((g) => g.filters);
+      const persisted = z
+        .object({
+          stats: z.array(
+            z.object({
+              filters: z.array(
+                z
+                  .object({
+                    id: z.string(),
+                    value: z.object({ min: z.number().optional() }).optional(),
+                  })
+                  .passthrough(),
+              ),
+            }),
+          ),
+        })
+        .passthrough()
+        .parse(generated.query.query)
+        .stats.flatMap((g) => g.filters);
+      const renamed = (handbook ?? []).filter((f) => {
+        const modern = tradeStatMappings[f.id]?.queryId;
+        return modern && modern !== f.id;
+      });
+      expect(renamed).toHaveLength(2);
+      for (const f of renamed) {
+        const modern = tradeStatMappings[f.id]?.queryId;
+        expect(persisted.map((p) => p.id)).toContain(modern);
+        expect(persisted.map((p) => p.id)).not.toContain(f.id);
+        if (f.min !== undefined)
+          expect(persisted.find((p) => p.id === modern)?.value?.min).toBe(
+            f.min,
+          );
+      }
+      // Level-20 requirement is retained under the modern id.
+      expect(persisted.some((p) => p.value?.min === 20)).toBe(true);
     },
   );
 });

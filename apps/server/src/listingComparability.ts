@@ -76,6 +76,26 @@ const baseClasses = new Map(
         : [],
     ),
 );
+// Exact official names also participate in structured class conflict checks.
+const helmetBases = z
+  .object({
+    source: z.string(),
+    verifiedAt: z.string(),
+    sourceSha256: z.string().regex(/^[a-f0-9]{64}$/),
+    bases: z.array(z.string().min(1)).length(96),
+  })
+  .parse(
+    JSON.parse(
+      readFileSync(
+        new URL(
+          '../mappings/poe-trade/helmet-bases-2026-11-18.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    ),
+  );
+for (const name of helmetBases.bases) baseClasses.set(name, 'Helmet');
 const categoryClasses = {
   'armour.boots': 'Boots',
   'armour.gloves': 'Gloves',
