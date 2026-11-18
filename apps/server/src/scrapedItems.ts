@@ -33,6 +33,7 @@ import { z } from 'zod';
 import { storedListingQuote } from './collectorResults.js';
 import {
   compileScrapedItemQuery,
+  recipeQueryTarget,
   recipeMarketTradeUrl,
   diagnoseRecipeListings,
   type RecipeMarketQuery,
@@ -171,15 +172,32 @@ export function createScrapedItemService(options: ScrapedItemServiceOptions) {
       item.spec,
       league.gggId,
     );
-    return result.ok
-      ? {
-          ...result,
-          key: await hashMarketQuery({
-            ...result.query,
-            league: league.gggId,
-          }),
-        }
-      : { ...result, key: null };
+    if (!result.ok) return { ...result, key: null };
+    const key = await hashMarketQuery({
+      ...result.query,
+      league: league.gggId,
+    });
+    try {
+      recipeMarketTradeUrl(result.query);
+    } catch (error) {
+      if (
+        !(error instanceof DomainError) ||
+        error.code !== 'MARKET_QUERY_INVALID'
+      )
+        throw error;
+      return {
+        ok: false,
+        key,
+        diagnostics: [
+          {
+            code: 'COLLECTOR_QUERY_UNSUPPORTED',
+            message:
+              'The collector cannot interpret this search. Check its Trade stat mappings and requirements.',
+          },
+        ],
+      };
+    }
+    return { ...result, key };
   }
 
   /**
@@ -915,9 +933,5 @@ function captureFacts(row: CaptureRow): ScrapedCaptureFacts {
 
 /** The Trade base type a compiled search asks for, when it names one. */
 function tradeBaseType(query: RecipeMarketQuery) {
-  const search = query.query.query;
-  if (!search || typeof search !== 'object' || Array.isArray(search))
-    return null;
-  const type = (search as CanonicalJsonObject).type;
-  return typeof type === 'string' && type ? type : null;
+  return recipeQueryTarget(query.query.handbookTarget).baseTypes[0] ?? null;
 }

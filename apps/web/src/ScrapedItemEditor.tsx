@@ -6,6 +6,7 @@ import type {
 } from '@poe-worksmith/contracts';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { scrapedItemMarketCategories } from '@poe-worksmith/domain';
 
 import { formatTimestamp } from './dateTime.js';
 import { ScrapedItemTestPanel } from './ScrapedItemTestPanel.js';
@@ -365,6 +366,58 @@ export function ScrapedItemEditor({
         <h3 id={`${heading}-req`}>Requirements</h3>
         <fieldset disabled={busy}>
           <legend className="visually-hidden">Item requirements</legend>
+          {item.role === 'output' ? (
+            <>
+              <label className="scraped-check">
+                <input
+                  type="checkbox"
+                  checked={draft.marketEquivalent}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      marketEquivalent: event.target.checked,
+                    })
+                  }
+                />
+                Compare finished market equivalents
+              </label>
+              <p className="scraped-help">
+                {draft.marketEquivalent
+                  ? 'Compare modifier values regardless of item level, influences, synthesis, fracture or bench origin. Tier and positive modifier upper limits are ignored. Corruption and rarity still apply.'
+                  : 'Strict search: every item requirement, modifier origin, value bound and tier applies.'}
+              </p>
+              {draft.marketEquivalent ? (
+                <label>
+                  Comparable bases
+                  <NativeSelect
+                    value={draft.marketSearchCategory}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        marketSearchCategory: event.target.value,
+                      })
+                    }
+                  >
+                    <option value="">This exact base</option>
+                    {scrapedItemMarketCategories.map((category) => (
+                      <option key={category} value={category}>
+                        {
+                          {
+                            'accessory.ring': 'All rings',
+                            'armour.helmet': 'All helmets',
+                            'armour.chest': 'All body armour',
+                            'armour.gloves': 'All gloves',
+                            'armour.boots': 'All boots',
+                            'armour.shield': 'All shields',
+                          }[category]
+                        }
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </label>
+              ) : null}
+            </>
+          ) : null}
           <div className="scraped-grid">
             <label>
               Item level{item.role === 'base' ? ' (exact)' : ' (minimum)'}
@@ -375,6 +428,7 @@ export function ScrapedItemEditor({
                 max={100}
                 step={1}
                 value={draft.itemLevel}
+                disabled={draft.marketEquivalent}
                 aria-invalid={issuesAt('item.itemLevel').length > 0}
                 aria-describedby={`${heading}-ilvl`}
                 onChange={(event) =>
@@ -412,6 +466,7 @@ export function ScrapedItemEditor({
                 <input
                   type="checkbox"
                   checked={draft[key]}
+                  disabled={draft.marketEquivalent && key !== 'corrupted'}
                   onChange={(event) =>
                     setDraft({ ...draft, [key]: event.target.checked })
                   }
@@ -420,7 +475,10 @@ export function ScrapedItemEditor({
               </label>
             ))}
           </fieldset>
-          <fieldset className="scraped-checks">
+          <fieldset
+            className="scraped-checks"
+            disabled={draft.marketEquivalent}
+          >
             <legend>Influences (item must have exactly these)</legend>
             {influenceOptions.map((influence) => (
               <label key={influence} className="scraped-check">
@@ -511,6 +569,12 @@ export function ScrapedItemEditor({
                     </label>
                     <label>
                       Maximum value
+                      {draft.marketEquivalent &&
+                      condition.minimumValue.trim() !== '' &&
+                      Number(condition.minimumValue) >= 0 &&
+                      ['explicit', 'fractured'].includes(condition.kind)
+                        ? ' (strict search only)'
+                        : ''}
                       <Input
                         type="number"
                         inputMode="decimal"
@@ -531,6 +595,7 @@ export function ScrapedItemEditor({
                       Tier
                       <NativeSelect
                         value={condition.tierMode}
+                        disabled={draft.marketEquivalent}
                         onChange={(event) =>
                           update(index, {
                             tierMode: event.target
@@ -552,6 +617,7 @@ export function ScrapedItemEditor({
                           max={20}
                           step={1}
                           value={condition.exactTier}
+                          disabled={draft.marketEquivalent}
                           aria-invalid={issuesAt(`${at}.exactTier`).length > 0}
                           aria-describedby={`${heading}-${index}-tier`}
                           onChange={(event) =>
@@ -574,6 +640,7 @@ export function ScrapedItemEditor({
                             max={20}
                             step={1}
                             value={condition.minimumTier}
+                            disabled={draft.marketEquivalent}
                             aria-invalid={
                               issuesAt(`${at}.minimumTier`).length > 0
                             }
@@ -595,6 +662,7 @@ export function ScrapedItemEditor({
                             max={20}
                             step={1}
                             value={condition.maximumTier}
+                            disabled={draft.marketEquivalent}
                             aria-invalid={
                               issuesAt(`${at}.maximumTier`).length > 0
                             }

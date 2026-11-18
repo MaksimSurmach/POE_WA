@@ -16,14 +16,12 @@ test('standalone file supports navigation without network or live writes', async
     pathToFileURL(resolve('apps/web/dist-preview/worksmith-heroui.html')).href,
   );
   await expect(
-    page.getByRole('heading', { name: 'Что крафтить', exact: true }),
+    page.getByRole('heading', { name: 'Market overview', exact: true }),
   ).toBeVisible();
   await page
-    .getByRole('searchbox', { name: 'Название предмета', exact: true })
+    .getByRole('searchbox', { name: 'Search market items', exact: true })
     .fill('Physical');
-  await expect(
-    page.getByRole('status').filter({ hasText: 'из 7 рецептов' }),
-  ).toHaveText('1 из 7 рецептов');
+  await expect(page.locator('[data-market-target]')).toHaveCount(1);
   const navigate = async (name: string) => {
     await page.getByRole('link', { name, exact: true }).click();
   };

@@ -9,6 +9,12 @@ import type { CanonicalRecipe } from './recipeSchema.js';
 export const scrapedItemRoleSchema = z.enum(['base', 'output']);
 export type ScrapedItemRole = z.output<typeof scrapedItemRoleSchema>;
 
+export const scrapedItemMarketCategories = [
+  'accessory.ring',
+  'armour.gloves',
+  'armour.boots',
+] as const;
+
 /** Influences the Trade site can filter on. */
 export const scrapedItemInfluences = [
   'shaper',
@@ -56,9 +62,17 @@ export const scrapedItemSpecSchema = z
       .max(maximumScrapedItemConditions),
     gameDataVersion: z.string().trim().min(1),
     item: scrapedItemItemSchema,
+    marketEquivalent: z.boolean().optional(),
+    marketSearchCategory: z.enum(scrapedItemMarketCategories).optional(),
     patch: z.string().trim().min(1),
   })
   .superRefine((spec, context) => {
+    if (spec.marketSearchCategory && !spec.marketEquivalent)
+      context.addIssue({
+        code: 'custom',
+        message: 'A category search requires finished-market equivalence',
+        path: ['marketSearchCategory'],
+      });
     const seen = new Set<string>();
     spec.conditions.forEach((condition, index) => {
       const identity = `${condition.kind}:${condition.modId ?? condition.modFamilyId}`;
@@ -95,6 +109,18 @@ export function scrapedItemEditIssues(
   spec: ScrapedItemSpec,
 ) {
   const issues: { path: string; message: string }[] = [];
+  if (role === 'base') {
+    if (spec.marketEquivalent !== undefined)
+      issues.push({
+        path: 'marketEquivalent',
+        message: 'A starting base must retain its exact crafting requirements',
+      });
+    if (spec.marketSearchCategory !== undefined)
+      issues.push({
+        path: 'marketSearchCategory',
+        message: 'A starting base cannot use a category-wide search',
+      });
+  }
   spec.item.influences.forEach((influence, index) => {
     if (!(scrapedItemInfluences as readonly string[]).includes(influence))
       issues.push({
@@ -122,6 +148,8 @@ export function scrapedItemSpecFromRecipe(
   role: ScrapedItemRole,
 ): ScrapedItemSpec {
   const item = role === 'base' ? recipe.startingBase : recipe.base;
+  const category =
+    recipe.category === 'ring' ? 'accessory.ring' : `armour.${recipe.category}`;
   return {
     conditions:
       role === 'base'
@@ -138,6 +166,18 @@ export function scrapedItemSpecFromRecipe(
         : Object.values(recipe.target).flat(),
     gameDataVersion: recipe.gameDataVersion,
     item: item as ScrapedItemSpec['item'],
+    ...(role === 'output'
+      ? {
+          marketEquivalent: true,
+          ...(recipe.tags.includes('base-independent')
+            ? {
+                marketSearchCategory: z
+                  .enum(scrapedItemMarketCategories)
+                  .parse(category),
+              }
+            : {}),
+        }
+      : {}),
     patch: recipe.patch,
   };
 }
@@ -165,5 +205,9 @@ export function scrapedItemDigest(
   role: ScrapedItemRole,
   spec: ScrapedItemSpec,
 ) {
-  return `${role}:${scrapedItemTargetSignature(spec)}`;
+  const identity = `${role}:${scrapedItemTargetSignature(spec)}`;
+  return spec.marketEquivalent === undefined &&
+    spec.marketSearchCategory === undefined
+    ? identity
+    : `${identity}:${JSON.stringify({ marketEquivalent: spec.marketEquivalent ?? false, marketSearchCategory: spec.marketSearchCategory ?? null })}`;
 }

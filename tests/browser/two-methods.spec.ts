@@ -6,7 +6,7 @@ test.skip(
   'Requires the legacy pipeline and the two-methods-priced market fixtures',
 );
 
-test('ranks two priced methods and shows both profits on the homepage', async ({
+test('keeps one Home target and exposes both priced methods in its popup', async ({
   page,
 }) => {
   const jagged = '/recipes/physical-large-cluster-jagged';
@@ -58,19 +58,42 @@ test('ranks two priced methods and shows both profits on the homepage', async ({
   ).toBeLessThanOrEqual(390);
 
   await page.goto('/');
-  await page.getByText('Сортировка и отображение', { exact: true }).click();
-  await page
-    .getByRole('checkbox', { name: 'Показать все методы крафта' })
-    .check();
+  const catalogue = (await (await page.request.get('/api/catalog')).json())
+    .data;
+  const signature = catalogue.entries.find(
+    (entry: { recipe: { id: string } }) =>
+      entry.recipe.id === jagged.split('/').at(-1),
+  ).recipe.targetSignature;
+  const target = page.locator(`[data-market-target="${signature}"]`);
+  await expect(target).toHaveCount(1);
+  await target.locator('.market-item-button').click();
+  const popup = page.getByRole('dialog');
+  await expect(
+    popup.getByRole('tab', { name: 'Market', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  const comparison = popup.getByRole('table', {
+    name: 'Methods for this exact output',
+  });
+  await expect(comparison.locator('tbody tr')).toHaveCount(2);
   for (const { path, profit } of rankedMethods) {
-    const row = page.getByRole('row').filter({
-      has: page.locator(`a[href="${path}"]`),
-    });
-    await expect(row.locator('[data-label="Разница с ask"]')).toContainText(
-      profit,
+    const name = catalogue.entries.find(
+      (entry: { recipe: { id: string } }) =>
+        entry.recipe.id === path.split('/').at(-1),
+    ).recipe.methodName;
+    const method = comparison.locator('tbody tr').filter({ hasText: name });
+    await expect(method.getByRole('cell').nth(1)).toContainText(profit);
+    await method
+      .getByRole('button', { name: `View recipe: ${name}`, exact: true })
+      .click();
+    await expect(
+      popup.getByRole('tab', { name: 'Recipe', exact: true }),
+    ).toHaveAttribute('aria-selected', 'true');
+    await expect(popup.getByLabel('Craft method', { exact: true })).toHaveValue(
+      path.split('/').at(-1)!,
     );
-    await expect(row.locator('.craft-table__evidence')).toBeVisible();
+    await popup.getByRole('tab', { name: 'Market', exact: true }).click();
   }
+  await popup.getByRole('button', { name: 'Done', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Класс предмета', exact: true }),
   ).toHaveCount(0);

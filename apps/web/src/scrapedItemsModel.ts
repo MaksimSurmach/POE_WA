@@ -20,6 +20,8 @@ export type ConditionDraft = {
   maximumTier: string;
 };
 export type ItemDraft = {
+  marketEquivalent: boolean;
+  marketSearchCategory: string;
   itemLevel: string;
   rarity: ScrapedItemSpec['item']['rarity'];
   influences: string[];
@@ -38,6 +40,8 @@ export function draftFromSpec(
   names: readonly (string | null)[] = [],
 ): ItemDraft {
   return {
+    marketEquivalent: spec.marketEquivalent === true,
+    marketSearchCategory: spec.marketSearchCategory ?? '',
     itemLevel: String(spec.item.itemLevel),
     rarity: spec.item.rarity,
     influences: [...spec.item.influences],
@@ -168,8 +172,21 @@ export function specFromDraft(
     };
   });
   if (errors.length) return { ok: false, errors };
+  const identity = { ...spec };
+  delete identity.marketEquivalent;
+  delete identity.marketSearchCategory;
   const parsed = scrapedItemSpecSchema.safeParse({
-    ...spec,
+    ...identity,
+    ...(draft.marketEquivalent
+      ? {
+          marketEquivalent: true,
+          ...(draft.marketSearchCategory
+            ? { marketSearchCategory: draft.marketSearchCategory }
+            : {}),
+        }
+      : spec.marketEquivalent === false
+        ? { marketEquivalent: false }
+        : {}),
     item: {
       ...spec.item,
       itemLevel,

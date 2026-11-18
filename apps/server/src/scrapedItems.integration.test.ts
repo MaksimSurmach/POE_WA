@@ -201,6 +201,34 @@ describe('configured scraped items', () => {
     ).toBe(1);
   });
 
+  it('reports an unsupported collector query on its item without hiding the other searches', async () => {
+    const before = await service.list();
+    const output = await item('output');
+    await pool.query(
+      "update provider_mappings set external_id = 'explicit.stat_9999999999' where provider = 'poe-trade' and canonical_id = 'mod:battle-hardened'",
+    );
+    const after = await service.list();
+    expect(after.items).toHaveLength(before.items.length);
+    const blocked = after.items.find(({ id }) => id === output.id)!;
+    expect(blocked.query).toMatchObject({
+      status: 'blocked',
+      tradeUrl: null,
+      diagnostics: [{ code: 'COLLECTOR_QUERY_UNSUPPORTED' }],
+    });
+    expect(after.items.some(({ query }) => query.status === 'ready')).toBe(
+      true,
+    );
+    await expect(
+      service.startTest(blocked.id, { expectedRevision: blocked.revision }),
+    ).rejects.toMatchObject({
+      diagnostics: [{ code: 'COLLECTOR_QUERY_UNSUPPORTED' }],
+    });
+    expect(
+      (await pool.query('select count(*)::int as n from run_requests')).rows[0]
+        .n,
+    ).toBe(0);
+  });
+
   it('applies an edit to the schedule, the publication dependencies and the Trade link alike', async () => {
     const before = await item('output');
     const oldKey = before.query.key!;
@@ -213,6 +241,7 @@ describe('configured scraped items', () => {
     const { item: after, schedule } = await service.save(before.id, {
       expectedRevision: before.revision,
       spec: edited(before.spec, (draft) => {
+        draft.marketEquivalent = false;
         draft.item.itemLevel = before.spec.item.itemLevel + 1;
         draft.conditions = [
           {
@@ -401,6 +430,15 @@ describe('configured scraped items', () => {
     ).toBe(true);
     expect(output.baseNameSource).toBe('trade');
     expect(output.baseName).toBe('Large Cluster Jewel');
+    const gloves = await item('output', 'suppression-gloves-zeal');
+    const { item: categoryOutput } = await service.save(gloves.id, {
+      expectedRevision: gloves.revision,
+      spec: { ...gloves.spec, marketSearchCategory: 'armour.gloves' },
+    });
+    expect(categoryOutput.query.status).toBe('ready');
+    expect(categoryOutput.baseNameSource).toBe('trade');
+    expect(categoryOutput.baseName).toBe(gloves.baseName);
+    expect(categoryOutput.baseName).not.toBe(categoryOutput.baseId);
 
     // An unrelated edit on existing mapped modifiers is not blocked by missing metadata.
     const saved = await service.save(output.id, {

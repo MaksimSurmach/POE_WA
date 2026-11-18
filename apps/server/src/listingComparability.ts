@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { z } from 'zod';
 import type {
   MarketResearchSnapshot,
@@ -8,6 +9,7 @@ import type {
 const evidence = z
   .object({
     baseType: z.string().optional(),
+    itemClass: z.string().optional(),
     rarity: z.string().optional(),
     league: z.string().optional(),
     patch: z.string().optional(),
@@ -42,6 +44,66 @@ const evidence = z
   })
   .passthrough();
 
+const baseClasses = new Map(
+  z
+    .object({
+      records: z.array(
+        z.object({
+          kind: z.string(),
+          payload: z
+            .object({
+              name: z.string().optional(),
+              itemClass: z.string().optional(),
+            })
+            .passthrough(),
+        }),
+      ),
+    })
+    .parse(
+      JSON.parse(
+        readFileSync(
+          new URL(
+            '../mappings/poe-trade/3.29.3.3/base-source.json',
+            import.meta.url,
+          ),
+          'utf8',
+        ),
+      ),
+    )
+    .records.flatMap(({ kind, payload }) =>
+      kind === 'base' && payload.name && payload.itemClass
+        ? [[payload.name, payload.itemClass] as const]
+        : [],
+    ),
+);
+const categoryClasses = {
+  'armour.boots': 'Boots',
+  'armour.gloves': 'Gloves',
+  'accessory.ring': 'Ring',
+} as const;
+const knownClasses = new Set([
+  ...baseClasses.values(),
+  ...Object.values(categoryClasses),
+]);
+function listingClass(item: {
+  baseType?: string | undefined;
+  itemClass?: string | undefined;
+}) {
+  if (item.itemClass !== undefined)
+    return knownClasses.has(item.itemClass) ? item.itemClass : undefined;
+  if (!item.baseType) return undefined;
+  const canonical = baseClasses.get(item.baseType);
+  if (canonical) return canonical;
+  // shortcut: preserve the three deployed English base-suffix policies until the base catalogue covers them.
+  return /(?:Boots|Greaves|Slippers|Sabatons)$/.test(item.baseType)
+    ? 'Boots'
+    : /(?:Gloves|Gauntlets|Mitts|Gages)$/.test(item.baseType)
+      ? 'Gloves'
+      : /Ring$/.test(item.baseType)
+        ? 'Ring'
+        : undefined;
+}
+
 /** Version 1 is an explicit interpretation of immutable imported data. */
 export function analyzeListingComparability(
   target: MarketTarget,
@@ -65,11 +127,30 @@ export function analyzeListingComparability(
     const rules = target.beltRules;
     if (!rules && !target.tradeSearch)
       unknown.push('versioned belt rules unavailable');
-    check(
-      'base',
-      item.baseType,
-      item.baseType !== undefined && target.baseTypes.includes(item.baseType),
-    );
+    if (target.tradeSearch?.category) {
+      const actual = listingClass(item);
+      check(
+        'item category',
+        actual,
+        actual === categoryClasses[target.tradeSearch.category],
+      );
+      const canonicalClass = item.baseType
+        ? baseClasses.get(item.baseType)
+        : undefined;
+      if (
+        item.itemClass &&
+        knownClasses.has(item.itemClass) &&
+        canonicalClass &&
+        item.itemClass !== canonicalClass
+      )
+        rejected.push('item class evidence: mismatch');
+    } else {
+      check(
+        'base',
+        item.baseType,
+        item.baseType !== undefined && target.baseTypes.includes(item.baseType),
+      );
+    }
     check(
       'rarity',
       item.rarity,

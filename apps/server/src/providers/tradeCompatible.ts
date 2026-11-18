@@ -212,7 +212,12 @@ const origins = [
 ] as const;
 // Trade wraps displayed labels in [canonical-id|label]; keep the raw record intact.
 const modifierText = (text: string) =>
-  text.replace(/\[[^[\]|]+\|([^[\]|]+)\]/g, '$1');
+  text
+    .replace(/\[[^[\]|]+\|([^[\]|]+)\]/g, '$1')
+    .replace(
+      /^1 Added Passive Skill is a Jewel Socket$/,
+      '1 Added Passive Skills are Jewel Sockets',
+    );
 
 function modifierLines(item: z.infer<typeof itemSchema>) {
   return origins.flatMap((origin) =>
@@ -312,32 +317,66 @@ export function normalizeTradeCompatibleListing(
   const parsed = listingSchema.safeParse(raw);
   if (!parsed.success) throw new DomainError('PROVIDER_RESPONSE_INVALID');
   const { item, listing, id } = parsed.data;
-  const mods = normalizedMods(item);
+  let mods = normalizedMods(item);
+  if (target.slot === 'crafted-item') {
+    // Ordinary Trade explicit filters include fractured and crafted contributions.
+    const contributions = new Map<string, typeof mods>();
+    for (const mod of mods) {
+      if (!/^(explicit|fractured|crafted)\./.test(mod.id)) continue;
+      const id = mod.id.replace(/^(fractured|crafted)\./, 'explicit.');
+      if (tradeStatMappings[id])
+        contributions.set(id, [...(contributions.get(id) ?? []), mod]);
+    }
+    mods = mods.filter(({ id }) => !contributions.has(id));
+    for (const [id, parts] of contributions) {
+      if (
+        new Set(parts.map(({ id }) => id.split('.')[0])).size !== parts.length
+      ) {
+        // Duplicate evidence stays ambiguous; never turn it into a larger accepted roll.
+        mods.push(...parts.map((part) => ({ ...part, id })));
+      } else {
+        mods.push(
+          parts.length === 1
+            ? { ...parts[0]!, id }
+            : { id, value: parts.reduce((sum, part) => sum + part.value, 0) },
+        );
+      }
+    }
+  }
   const elementalResistances = { fire: 0, cold: 0, lightning: 0 };
-  // shortcut: hybrid/conditional resistances remain unknown; add exact mappings before pricing those profiles.
+  let chaosResistance = 0;
+  // shortcut: conditional resistances remain unknown; add exact mappings before pricing those profiles.
   let resistanceEvidenceComplete = item.explicitMods !== undefined;
   for (const { description: line } of modifierLines(item)) {
-    if (!/Resistance/i.test(line) || /^\+?\d+% to Chaos Resistance$/.test(line))
-      continue;
-    const match = /^([+-]?\d+)% to (Fire|Cold|Lightning) Resistance$/.exec(
-      line,
-    );
+    if (!/Resistance/i.test(line)) continue;
+    const match =
+      /^([+-]?\d+)% to (Fire|Cold|Lightning|Chaos|Fire and Cold|Fire and Lightning|Fire and Chaos|Cold and Lightning|Cold and Chaos|Lightning and Chaos|all Elemental) Resistances?$/.exec(
+        line,
+      );
     if (!match) {
       resistanceEvidenceComplete = false;
       continue;
     }
-    const key = match[2]?.toLowerCase();
-    if (key === 'fire' || key === 'cold' || key === 'lightning')
-      elementalResistances[key] += Number(match[1]);
+    const elements =
+      match[2] === 'all Elemental'
+        ? ['fire', 'cold', 'lightning']
+        : match[2]!.toLowerCase().split(' and ');
+    for (const key of elements) {
+      if (key === 'fire' || key === 'cold' || key === 'lightning')
+        elementalResistances[key] += Number(match[1]);
+      else if (key === 'chaos') chaosResistance += Number(match[1]);
+    }
   }
-  if (resistanceEvidenceComplete)
-    mods.push({
-      id: 'pseudo.pseudo_total_elemental_resistance',
-      value:
-        elementalResistances.fire +
-        elementalResistances.cold +
-        elementalResistances.lightning,
-    });
+  if (resistanceEvidenceComplete) {
+    const total =
+      elementalResistances.fire +
+      elementalResistances.cold +
+      elementalResistances.lightning;
+    mods.push(
+      { id: 'pseudo.pseudo_total_elemental_resistance', value: total },
+      { id: 'pseudo.pseudo_total_resistance', value: total + chaosResistance },
+    );
+  }
   const configured =
     target.tradeSearch?.groups.flatMap((group) => group.filters) ?? [];
   const aliases = mods.flatMap((mod) => {

@@ -11,6 +11,26 @@ import {
 const spec = fixtureItem.spec;
 
 describe('scraped item drafts', () => {
+  it('preserves equivalent market scope and removes it when strict matching is selected', () => {
+    const equivalent = {
+      ...spec,
+      marketEquivalent: true,
+      marketSearchCategory: 'accessory.ring' as const,
+    };
+    const draft = draftFromSpec(equivalent);
+    expect(specFromDraft(equivalent, draft)).toEqual({
+      ok: true,
+      spec: equivalent,
+    });
+    const strict = specFromDraft(equivalent, {
+      ...draft,
+      marketEquivalent: false,
+    });
+    expect(strict).toEqual({ ok: true, spec });
+    expect(isDirty(equivalent, { ...draft, marketEquivalent: false })).toBe(
+      true,
+    );
+  });
   it('round-trips canonical IDs and values without change', () => {
     const draft = draftFromSpec(spec, ['Battle-Hardened', null]);
     expect(draft.conditions[0]).toMatchObject({
@@ -22,6 +42,8 @@ describe('scraped item drafts', () => {
     expect(isDirty(spec, draft)).toBe(false);
     const rebuilt = specFromDraft(spec, draft);
     expect(rebuilt.ok && rebuilt.spec).toEqual(spec);
+    const explicitStrict = { ...spec, marketEquivalent: false };
+    expect(isDirty(explicitStrict, draftFromSpec(explicitStrict))).toBe(false);
   });
 
   it('reports edits and reverts as dirty or clean', () => {

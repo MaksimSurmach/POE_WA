@@ -1,4 +1,5 @@
 import {
+  DomainError,
   aggregateMarketListings,
   scrapedItemDigest,
   scrapedItemSpecFromRecipe,
@@ -20,6 +21,7 @@ import {
 } from './marketResearch.js';
 import { analyzeListingComparability } from './listingComparability.js';
 import { generateMarketTradeQuery } from './marketTradeQuery.js';
+import { tradeStatMappings } from './tradeStatMappings.js';
 import { marketTargetInputSchema } from '@poe-worksmith/contracts';
 import {
   derivedRecipeSpecs,
@@ -247,6 +249,7 @@ export async function compileScrapedItemQuery(
   league: string,
 ): Promise<ScrapedItemCompilation> {
   const starting = role === 'base';
+  const equivalent = !starting && spec.marketEquivalent === true;
   const setup: CanonicalCraftSetup = {
     base: spec.item,
     gameDataVersion: spec.gameDataVersion,
@@ -265,6 +268,21 @@ export async function compileScrapedItemQuery(
       })),
     };
   const generated = generatedSearch.parse(result.value.query);
+  if (equivalent) {
+    const missing = generated.query.stats
+      .flatMap((group) => group.filters)
+      .map(({ id }) => id.replace(/^(fractured|crafted)\./, 'explicit.'))
+      .filter((id) => !tradeStatMappings[id]);
+    if (missing.length)
+      return {
+        ok: false,
+        diagnostics: [...new Set(missing)].map((entityId) => ({
+          code: 'COLLECTOR_QUERY_UNSUPPORTED',
+          entityId,
+          message: `The collector has no finished-item stat mapping for ${entityId}.`,
+        })),
+      };
+  }
   const nativeConditions = [
     {
       id: 'armour.es',
@@ -299,28 +317,49 @@ export async function compileScrapedItemQuery(
     builds: [],
     requiredMods: [],
     sources: [],
-    minItemLevel: item.itemLevel,
-    ...(starting ? { maxItemLevel: item.itemLevel } : {}),
-    influences: [...item.influences].sort(),
+    ...(!equivalent
+      ? {
+          minItemLevel: item.itemLevel,
+          ...(starting ? { maxItemLevel: item.itemLevel } : {}),
+          influences: [...item.influences].sort(),
+          synthesised: item.state.synthesised,
+        }
+      : {}),
     corrupted: item.state.corrupted,
-    synthesised: item.state.synthesised,
     tradeSearch: {
       version: 1,
+      ...(equivalent && spec.marketSearchCategory
+        ? { category: spec.marketSearchCategory }
+        : {}),
       scope: 'strict',
       status: 'securable',
       currency: 'chaos',
       includeOtherCurrencies: true,
       rarity: item.rarity,
-      fractured: item.state.fractured,
+      ...(!equivalent ? { fractured: item.state.fractured } : {}),
       groups: [
         ...generated.query.stats.map((g) => ({
           type: g.type,
-          filters: g.filters.map((stat) => ({
-            id: stat.id,
-            ...result.value.matchRules?.find((rule) => rule.id === stat.id),
-            ...(stat.value?.min !== undefined ? { min: stat.value.min } : {}),
-            ...(stat.value?.max !== undefined ? { max: stat.value.max } : {}),
-          })),
+          filters: g.filters.map((stat) => {
+            const id = equivalent
+              ? stat.id.replace(/^(fractured|crafted)\./, 'explicit.')
+              : stat.id;
+            const positiveFloor =
+              /^(explicit|fractured|crafted)\./.test(stat.id) &&
+              stat.value?.min !== undefined &&
+              stat.value.min >= 0;
+            return {
+              id,
+              ...(!equivalent
+                ? result.value.matchRules?.find((rule) => rule.id === stat.id)
+                : {}),
+              ...(stat.value?.min !== undefined ? { min: stat.value.min } : {}),
+              ...(stat.value?.max !== undefined &&
+              (!equivalent || !positiveFloor)
+                ? { max: stat.value.max }
+                : {}),
+            };
+          }),
         })),
         ...(nativeConditions.length
           ? [
@@ -352,8 +391,35 @@ export async function compileScrapedItemQuery(
   handbookTarget.tradeSearch?.groups.forEach((g) =>
     g.filters.sort((a, b) => a.id.localeCompare(b.id)),
   );
+  if (equivalent) {
+    try {
+      return {
+        ok: true,
+        query: tradeQuery({
+          ...generateMarketTradeQuery(createMarketTarget(handbookTarget))
+            .request,
+          handbookTarget: canonicalMarketJson(handbookTarget),
+        }),
+      };
+    } catch (error) {
+      if (
+        !(error instanceof DomainError) ||
+        error.code !== 'MARKET_QUERY_INVALID'
+      )
+        throw error;
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: 'COLLECTOR_QUERY_UNSUPPORTED',
+            message: 'The collector cannot execute this finished-item search.',
+          },
+        ],
+      };
+    }
+  }
   // Craft odds use the authored item level. Higher levels can add affix tiers;
-  // finished comparable items still use a minimum level only.
+  // Strict finished searches retain the requested minimum level.
   const query = { ...result.value.query };
   if (starting) {
     const search = z

@@ -300,7 +300,7 @@ export function createResourceReaders(
       }
       const { currentLeague, maximumQuoteAgeMs } = market;
       const definition = readRecipeDocument(recipe);
-      const generatedBase =
+      const baseTradeUrl =
         trade && currentLeague
           ? await generateRecipeMarketQuery(
               trade,
@@ -308,16 +308,14 @@ export function createResourceReaders(
               currentLeague.gggId,
               true,
               specs,
-            ).catch(() => null)
-          : null;
-      const baseTradeUrl =
-        generatedBase && currentLeague
-          ? recipeMarketTradeUrl(generatedBase)
+            )
+              .then(recipeMarketTradeUrl)
+              .catch(() => null)
           : null;
       const evaluation = market.evaluationFor(recipe);
       // The collector keys a target's schedule by this same query hash.
       const target =
-        (readMarketActivity || readReadiness) && trade && currentLeague
+        trade && currentLeague
           ? await generateRecipeMarketQuery(
               trade,
               definition,
@@ -326,6 +324,18 @@ export function createResourceReaders(
               specs,
             ).catch(() => null)
           : null;
+      let targetTradeUrl: string | null = null;
+      if (target) {
+        try {
+          targetTradeUrl = recipeMarketTradeUrl(target);
+        } catch (error) {
+          if (
+            !(error instanceof DomainError) ||
+            error.code !== 'MARKET_QUERY_INVALID'
+          )
+            throw error;
+        }
+      }
       const now = new Date();
       const key =
         target && currentLeague
@@ -371,6 +381,7 @@ export function createResourceReaders(
             }
           : {}),
         baseTradeUrl,
+        targetTradeUrl,
         snapshot: readCollectorResults
           ? null
           : await latestOutputSnapshot({

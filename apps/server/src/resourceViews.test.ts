@@ -19,7 +19,10 @@ import {
   synchronizeRecipes,
 } from './recipes/synchronizeRecipes.js';
 import { loadRecipeCatalog } from './recipes/loader.js';
-import { generateRecipeMarketQuery } from './recipeMarket.js';
+import {
+  generateRecipeMarketQuery,
+  recipeMarketTradeUrl,
+} from './recipeMarket.js';
 import { createResourceReaders } from './resourceViews.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
 import { recipeResultSchema } from './recipeResult.js';
@@ -506,6 +509,9 @@ describe('repository-backed resource views', () => {
     expect(
       recipeResponseSchema.parse(unavailable).data?.baseTradeUrl,
     ).toBeNull();
+    expect(
+      recipeResponseSchema.parse(unavailable).data?.targetTradeUrl,
+    ).toBeNull();
   });
 
   it.each([false, true])(
@@ -935,6 +941,7 @@ it.each(['fresh', 'expired', 'policy-expired'] as const)(
       async () => 300_000,
     );
     const response = await readers.readRecipe(correlationId, recipe.id);
+    expect(response.data?.targetTradeUrl).toBe(recipeMarketTradeUrl(query));
     expect(response.data?.snapshot === null).toBe(state !== 'fresh');
     const catalog = await readers.readCatalog(correlationId);
     expect(

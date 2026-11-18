@@ -12,7 +12,7 @@ The fixture contains 66 exact outputs, 72 recipes, six two-method outputs, ten e
 
 Freshness is forced stale. Operational fields absent from the normalized archive remain null where supported. Its required `last24h.completeSpanMinutes` uses a test-only zero placeholder and is never used as market evidence. The fixture is imported only by tests; production receives its catalogue from `/api/catalog`.
 
-## Checks
+## Original fixture checks
 
 Executed with Node 22.23.5 and pnpm 11.8.0:
 
@@ -37,17 +37,17 @@ Checked 1440×1000, 768×1024 and 390×844; 200% zoom; category/family AND filte
 4. Open Chaos: unavailable exact procedure, without Jagged steps. Search Fettle: one row, 38.5c, empty history.
 5. Save a legacy Chaos favorite, filter Fossil, remove it in the Jagged popup, and close. No orphan favorite remains; focus falls back to search when the row disappears.
 
-## Review and dependency boundary
+## Initial Category Library review
 
 Incremental Claude Sonnet passes challenged method classification, quote provenance, favorite alias scope, history lookup, currency/rounding, ARIA, timeouts and content-hash compatibility. Retained findings were fixed and checked. A separate code review also caught a legacy query-view header regression; direct-link browser checks verify the fix. Simplification reused the existing snapshot-minimum helper, removed unused metadata/branches and coalesced refreshes; Recipes shares catalogue metadata with the shell through Outlet context, avoiding its duplicate initial fetch and keeping the header league current; unrelated Home loading lifecycles were retained.
 
 This is a compatible target-first **read adapter**, not a new target identity or a migration. Canonical recipe files, signatures, content hashes, existing URLs and stored history are unchanged. Five confirmed Bench finishes are typed read metadata outside hashed recipe definitions. Existing browser favorites are normalized to signatures when read; unknown saved IDs are preserved.
 
-MAX-1318 still owns the complete Mosaic Home, persisted monitor-only target/version relationships, durable target-level history migration and independent monitoring lifecycle. Until then, the shared popup loads existing recipe-keyed histories on demand and displays one real source series with the most observation coverage. It does not sum overlapping method series; missing sources get an explicit warning and Retry. The popup component and pure selector can be reused by that Home implementation.
+The same PR now integrates Mosaic Home and the shared popup; see [actual-data Home verification](../max-1318-live-home/README.md). Independent monitor-only target/version storage and lifecycle remain outside this change. The popup loads existing recipe-keyed histories and displays one source series with the most observation coverage. It does not sum overlapping method series; missing sources get an explicit warning and Retry.
 
 The additive API fields and web bundle should be released together; cached older strict clients may need a reload.
 
-No database integration, live provider, production deployment, actual crafting or confirmed-sale/ROI verification was performed. Ask-minus-cost stays provisional; verified profit is not unlocked.
+The original fixture checks above did not exercise a database or provider. Subsequent PostgreSQL integration and current-data/provider acceptance are recorded separately in this PR. Production deployment, actual crafting and confirmed-sale/ROI verification have not been performed. Ask-minus-cost stays provisional; verified profit is not unlocked.
 
 ## Screenshots
 

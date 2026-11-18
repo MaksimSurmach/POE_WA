@@ -122,10 +122,11 @@
     border: 3px solid white;
     min-width: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   .market-map-group h3 {
-    position: absolute;
-    inset: 0 0 auto;
+    flex-shrink: 0;
     z-index: 2;
     background: #f7f8fae8;
     pointer-events: none;
@@ -141,7 +142,8 @@
   }
   .market-map-tiles {
     position: relative;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
   }
   .market-tile {
     container-type: size;

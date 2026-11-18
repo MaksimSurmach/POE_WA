@@ -37,7 +37,9 @@ const trade = new RegisteredTradeQueryGenerator(
       return {
         ok: true,
         diagnostics: [],
-        value: { id: `${target.kind}.stat_${target.modId}` },
+        value: {
+          id: `${target.kind}.stat_${target.modId === 'life' ? '3299347043' : '3680664274'}`,
+        },
       };
     },
   },
@@ -85,10 +87,7 @@ const stored = {
 
 /** The owner's configured requirements, applied over the recipe's authored ones. */
 const configured = (
-  change: (specs: {
-    base: ScrapedItemSpec;
-    output: ScrapedItemSpec;
-  }) => void,
+  change: (specs: { base: ScrapedItemSpec; output: ScrapedItemSpec }) => void,
 ): RecipeSpecResolver => {
   return async (input) => {
     const authored = (await derivedRecipeSpecs(input)) as {
@@ -185,17 +184,17 @@ const evaluate = async (specs: RecipeSpecResolver, available: object) => {
 
 const strongOutput = (id: string, price: number) =>
   listing(id, price, {
-    mods: [{ id: 'explicit.stat_life', value: 120, tier: 1 }],
+    mods: [{ id: 'explicit.stat_3299347043', value: 120, tier: 1 }],
   });
 const weakOutput = (id: string, price: number) =>
   listing(id, price, {
-    mods: [{ id: 'explicit.stat_life', value: 5, tier: 4 }],
+    mods: [{ id: 'explicit.stat_3299347043', value: 5, tier: 4 }],
   });
 const fracturedBase = (id: string, price: number) =>
   listing(id, price, {
     fractured: true,
     itemLevel: recipe.startingBase.itemLevel,
-    mods: [{ id: 'fractured.stat_suppression', value: 14, tier: 1 }],
+    mods: [{ id: 'fractured.stat_3680664274', value: 14, tier: 1 }],
   });
 describe('recipe economics under edited scraped-item searches', () => {
   it('keeps the effective search authoritative and attaches the recipe goal only when they differ', async () => {
@@ -279,7 +278,7 @@ describe('recipe economics under edited scraped-item searches', () => {
       listing(id, price, {
         fractured: true,
         itemLevel: recipe.startingBase.itemLevel,
-        mods: [{ id: 'fractured.stat_suppression', value: 3, tier: 3 }],
+        mods: [{ id: 'fractured.stat_3680664274', value: 3, tier: 3 }],
       });
     // The widened search collects it, but its roll is not the recipe's authored input.
     const weakOnly = await evaluate(relaxed, {

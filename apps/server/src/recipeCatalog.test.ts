@@ -793,7 +793,7 @@ describe('authored source catalog integrity', () => {
     expect(rows[2]?.status).not.toBe('MATCH');
   });
 
-  it('accepts fractured suppression and excludes the same numeric explicit roll on a different fracture', async () => {
+  it('accepts the same finished suppression value from either fractured or explicit origin', async () => {
     const recipe = (await recipes()).find(
       (r) => r.definition.id === 'suppression-gloves-zeal',
     )?.definition;
@@ -856,6 +856,6 @@ describe('authored source catalog integrity', () => {
     expect(compared.rows[0]?.status, JSON.stringify(compared.rows)).toBe(
       'MATCH',
     );
-    expect(compared.rows[1]?.status).not.toBe('MATCH');
+    expect(compared.rows[1]?.status).toBe('MATCH');
   });
 });

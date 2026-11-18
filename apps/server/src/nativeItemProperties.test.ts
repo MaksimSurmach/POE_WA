@@ -161,7 +161,7 @@ describe('native item property queries', () => {
       generateRecipeMarketQuery(trade, invalid, 'Fixture League'),
     ).rejects.toThrow('TRADE_NATIVE_FILTER_INVALID');
   });
-  it('keeps exact acquisition level, quality, six links and base percentile in both generated requests', async () => {
+  it('keeps exact acquisition level and native properties while finished equivalents omit item level', async () => {
     for (const starting of [true, false]) {
       const generated = await generateRecipeMarketQuery(
         trade,
@@ -181,7 +181,7 @@ describe('native item property queries', () => {
         socket_filters: { filters: { links: { min: 6, max: 6 } } },
         misc_filters: {
           filters: {
-            ilvl: { min: 86, ...(starting ? { max: 86 } : {}) },
+            ...(starting ? { ilvl: { min: 86, max: 86 } } : {}),
             quality: { min: 20, max: 20 },
           },
         },
@@ -200,6 +200,8 @@ describe('native item property queries', () => {
             ],
       });
       expect(actual).toMatchObject({ filters: expected });
+      if (!starting)
+        expect(actual.filters.misc_filters.filters).not.toHaveProperty('ilvl');
       expect(
         actual.stats
           .flatMap((g) => g.filters)

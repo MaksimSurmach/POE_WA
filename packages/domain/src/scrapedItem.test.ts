@@ -40,6 +40,8 @@ describe('scraped item requirements', () => {
     const output = scrapedItemSpecFromRecipe(recipe, 'output');
     expect(output.item).toEqual(recipe.base);
     expect(output.conditions).toEqual(Object.values(recipe.target).flat());
+    expect(output.marketEquivalent).toBe(true);
+    expect(base.marketEquivalent).toBeUndefined();
     expect(scrapedItemSpecSchema.safeParse(base).success).toBe(true);
     expect(scrapedItemSpecSchema.safeParse(output).success).toBe(true);
   });
@@ -48,6 +50,51 @@ describe('scraped item requirements', () => {
     expect(
       scrapedItemTargetSignature(scrapedItemSpecFromRecipe(recipe, 'output')),
     ).toBe(recipe.targetSignature);
+  });
+
+  it('derives category-wide finished searches only for explicitly independent recipes', () => {
+    const independent = fixtureRecipe({
+      ...recipe,
+      category: 'ring',
+      tags: [...recipe.tags, 'base-independent'],
+    });
+    expect(scrapedItemSpecFromRecipe(independent, 'output')).toMatchObject({
+      marketEquivalent: true,
+      marketSearchCategory: 'accessory.ring',
+    });
+    expect(
+      scrapedItemSpecFromRecipe(independent, 'base').marketSearchCategory,
+    ).toBeUndefined();
+    expect(
+      scrapedItemSpecFromRecipe(recipe, 'output').marketSearchCategory,
+    ).toBeUndefined();
+    expect(() =>
+      scrapedItemSpecFromRecipe(
+        fixtureRecipe({ ...independent, category: 'unsupported' }),
+        'output',
+      ),
+    ).toThrow();
+  });
+
+  it('includes the collection policy in dependency identity without changing the recipe target', () => {
+    const equivalent = scrapedItemSpecFromRecipe(recipe, 'output');
+    const strict = { ...equivalent };
+    delete strict.marketEquivalent;
+    expect(scrapedItemDigest('output', strict)).toBe(
+      `output:${scrapedItemTargetSignature(strict)}`,
+    );
+    expect(scrapedItemDigest('output', equivalent)).not.toBe(
+      scrapedItemDigest('output', strict),
+    );
+    expect(scrapedItemTargetSignature(equivalent)).toBe(
+      scrapedItemTargetSignature(strict),
+    );
+    expect(
+      scrapedItemDigest('output', {
+        ...equivalent,
+        marketSearchCategory: 'accessory.ring',
+      }),
+    ).not.toBe(scrapedItemDigest('output', equivalent));
   });
 
   it('changes the signature when requirements change but not when they are reordered', () => {
@@ -138,6 +185,22 @@ describe('scraped item requirements', () => {
         'Hale ‘of’ Giants',
       );
     });
+
+    it('rejects unsupported categories and category searches without market equivalence', () => {
+      expect(
+        scrapedItemSpecSchema.safeParse({
+          ...output,
+          marketSearchCategory: 'armour.belt',
+        }).success,
+      ).toBe(false);
+      expect(
+        scrapedItemSpecSchema.safeParse({
+          ...output,
+          marketEquivalent: false,
+          marketSearchCategory: 'accessory.ring',
+        }).success,
+      ).toBe(false);
+    });
   });
 
   describe('edit rules', () => {
@@ -146,6 +209,7 @@ describe('scraped item requirements', () => {
       expect(
         scrapedItemEditIssues('base', {
           ...output,
+          marketEquivalent: undefined,
           conditions: [{ kind: 'pseudo', modId: 'x', excluded: false }],
         }).map(({ path }) => path),
       ).toEqual(['conditions.0.kind']);
@@ -156,6 +220,16 @@ describe('scraped item requirements', () => {
         }).map(({ path }) => path),
       ).toEqual(['item.influences.0']);
       expect(scrapedItemEditIssues('output', output)).toEqual([]);
+    });
+
+    it('never applies finished-market equivalence to an acquisition base', () => {
+      expect(
+        scrapedItemEditIssues('base', {
+          ...output,
+          marketEquivalent: true,
+          marketSearchCategory: 'accessory.ring',
+        }).map(({ path }) => path),
+      ).toEqual(['marketEquivalent', 'marketSearchCategory']);
     });
 
     it('treats the base, game data version and variant as the item identity', () => {

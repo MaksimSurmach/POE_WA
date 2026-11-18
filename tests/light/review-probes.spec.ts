@@ -400,6 +400,19 @@ test('Home controls preserve independent choices and family-scoped economics agr
   await page.goto('/');
   const rows = page.locator('[data-market-target]');
   await expect(rows).toHaveCount(1);
+  expect(
+    await page.locator('.market-map-group').evaluateAll((groups) =>
+      groups.every((group) => {
+        const heading = group.querySelector('h3')!;
+        const tiles = group.querySelector('.market-map-tiles')!;
+        return (
+          getComputedStyle(heading).display === 'none' ||
+          heading.getBoundingClientRect().bottom <=
+            tiles.getBoundingClientRect().top + 1
+        );
+      }),
+    ),
+  ).toBe(true);
   await expect(rows.first().locator('td').nth(6)).toContainText('50 c');
   await expect(rows.first().locator('td').nth(7)).toContainText('50 c');
   await page.getByLabel('Size', { exact: true }).selectOption('asking-price');

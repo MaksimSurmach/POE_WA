@@ -102,8 +102,10 @@ function tone(value: number | null) {
 function tileColor(value: number | null, color: MarketColor) {
   if (value === null) return '#eef1f4';
   if (value === 0) return '#d8e0e8';
-  if (color === 'listing-activity')
-    return `hsl(216 67% ${Math.max(38, 92 - Math.log1p(value) * 11)}%)`;
+  if (color === 'listing-activity') {
+    const lightness = 92 - Math.log1p(value) * 11;
+    return `hsl(216 67% ${value < 20 ? Math.max(68, lightness) : Math.min(48, Math.max(38, lightness))}%)`;
+  }
   return value > 0 ? '#d5eee3' : '#f8dce0';
 }
 function observedSpan(from: string, to: string) {

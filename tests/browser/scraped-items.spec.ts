@@ -31,6 +31,13 @@ test('settings-scraped-items-edit-and-test', async ({ page }) => {
 
   // Validation names the field and saves nothing.
   const level = page.getByLabel(/^Item level/);
+  const equivalents = page.getByRole('checkbox', {
+    name: 'Compare finished market equivalents',
+  });
+  await expect(equivalents).toBeChecked();
+  await expect(level).toBeDisabled();
+  await equivalents.uncheck();
+  await expect(level).toBeEnabled();
   const current = Number(await level.inputValue());
   await level.fill('101');
   await page.getByRole('button', { name: 'Save requirements' }).click();
@@ -43,6 +50,9 @@ test('settings-scraped-items-edit-and-test', async ({ page }) => {
     page.getByRole('status').filter({ hasText: 'Saved.' }),
   ).toBeVisible();
   await expect(page.getByText(/edited by you/)).toBeVisible();
+  await page.reload();
+  await expect(equivalents).not.toBeChecked();
+  await expect(level).toHaveValue(String(current === 90 ? 89 : 90));
 
   // The test is this item's own request, tied to the saved revision.
   await page.getByRole('button', { name: 'Run test' }).click();

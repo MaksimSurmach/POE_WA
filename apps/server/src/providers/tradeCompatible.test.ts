@@ -204,6 +204,145 @@ describe('Trade-compatible queries and transport', () => {
     ).toEqual({ option: 'chaos' });
   });
 
+  it('recognizes the single-socket wording without accepting the wrong origin', () => {
+    const raw = {
+      ...rawTradeListing(),
+      item: {
+        ...rawTradeListing().item,
+        enchantMods: [
+          {
+            domain: 'enchant',
+            hash: 'stat.enchant.stat_4079888060',
+            description: '1 Added Passive Skill is a Jewel Socket',
+          },
+        ],
+      },
+    };
+    expect(
+      normalizeTradeCompatibleListing(raw, tradeTarget()).item.mods,
+    ).toEqual(
+      expect.arrayContaining([{ id: 'enchant.stat_4079888060', value: 1 }]),
+    );
+    raw.item.enchantMods[0]!.domain = 'explicit';
+    expect(
+      normalizeTradeCompatibleListing(raw, tradeTarget()).item.mods,
+    ).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'enchant.stat_4079888060' }),
+      ]),
+    );
+  });
+
+  it('totals output contributions without borrowing a tier or changing starting-base requirements', () => {
+    const raw = {
+      ...rawTradeListing(),
+      item: {
+        ...rawTradeListing().item,
+        explicitMods: [
+          {
+            domain: 'explicit',
+            hash: 'stat.explicit.stat_3299347043',
+            description: '+35 to maximum Life',
+            mods: [{ tier: 'P2' }],
+          },
+        ],
+        fracturedMods: [
+          {
+            domain: 'fractured',
+            hash: 'stat.fractured.stat_3299347043',
+            description: '+25 to maximum Life',
+            mods: [{ tier: 'P1' }],
+          },
+        ],
+        craftedMods: ['+30 to maximum Life'],
+      },
+    };
+    const output = normalizeTradeCompatibleListing(raw, {
+      ...tradeTarget(),
+      slot: 'crafted-item',
+    });
+    expect(output.item.mods).toEqual(
+      expect.arrayContaining([
+        { id: 'explicit.stat_3299347043', value: 90 },
+        { id: 'fractured.stat_3299347043', value: 25, tier: 1 },
+      ]),
+    );
+    const base = normalizeTradeCompatibleListing(raw, {
+      ...tradeTarget(),
+      slot: 'starting-base',
+    });
+    expect(base.item.mods).toEqual(
+      expect.arrayContaining([
+        { id: 'explicit.stat_3299347043', value: 35, tier: 2 },
+      ]),
+    );
+    expect(output.rawListing).toEqual(raw);
+  });
+
+  it('keeps duplicate same-origin evidence ambiguous instead of increasing its accepted value', () => {
+    const target = { ...tradeTarget(), slot: 'crafted-item' };
+    const raw = rawTradeListing();
+    raw.item.explicitMods = ['+45 to maximum Life', '+45 to maximum Life'];
+    const normalized = normalizeTradeCompatibleListing(raw, target);
+    const imported = createImportedMarketSnapshot(
+      {
+        targetId: target.id,
+        capturedAt: at.toISOString(),
+        sourceUrl: 'https://www.pathofexile.com/trade',
+        currency: 'chaos',
+        dataKind: 'observed',
+        listings: [normalized],
+      },
+      target,
+      at,
+    );
+    expect(
+      analyzeListingComparability(target, imported, at.getTime()).rows[0]
+        ?.status,
+    ).toBe('PARTIAL');
+    expect(normalized.item.mods).not.toEqual(
+      expect.arrayContaining([{ id: 'explicit.stat_3299347043', value: 90 }]),
+    );
+  });
+
+  it('sums hybrid, all-elemental, chaos and negative resistance values, withholding incomplete totals', () => {
+    const raw = rawTradeListing();
+    raw.item.explicitMods = [
+      '+10% to Fire and Cold Resistances',
+      '+7% to Fire and Chaos Resistances',
+      '+3% to all Elemental Resistances',
+      '-2% to Lightning Resistance',
+    ];
+    const normalized = normalizeTradeCompatibleListing(raw, tradeTarget());
+    expect(normalized.item.elementalResistances).toEqual({
+      fire: 20,
+      cold: 13,
+      lightning: 1,
+    });
+    expect(normalized.item.mods).toEqual(
+      expect.arrayContaining([
+        { id: 'pseudo.pseudo_total_elemental_resistance', value: 34 },
+        { id: 'pseudo.pseudo_total_resistance', value: 41 },
+      ]),
+    );
+    raw.item.explicitMods.push('+10% to Fire Resistance while moving');
+    expect(
+      normalizeTradeCompatibleListing(raw, tradeTarget()).item.mods,
+    ).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'pseudo.pseudo_total_resistance' }),
+      ]),
+    );
+    Reflect.deleteProperty(raw.item, 'explicitMods');
+    expect(
+      normalizeTradeCompatibleListing(raw, tradeTarget()).item.mods,
+    ).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'pseudo.pseudo_total_resistance' }),
+      ]),
+    );
+  });
+
   it('normalizes the sanitized November 1 object-mod response and preserves crafted origin', async () => {
     const raw = JSON.parse(
       await readFile(
