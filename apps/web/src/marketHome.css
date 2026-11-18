@@ -119,7 +119,7 @@
     container-type: size;
     container-name: market-group;
     position: absolute;
-    border: 3px solid white;
+    border: 0;
     min-width: 0;
     overflow: hidden;
     display: flex;
@@ -151,9 +151,10 @@
     position: absolute;
     min-height: 0;
     min-width: 0;
-    border: 1.5px solid white;
+    border: 0;
+    box-shadow: inset 0 0 0 1px white;
     overflow: hidden;
-    padding: 7px;
+    padding: 0;
     text-align: left;
     color: #1d3530;
     display: flex;
@@ -230,6 +231,7 @@
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    padding: 7px;
     overflow: hidden;
   }
   .market-tile small {
@@ -611,12 +613,12 @@
   .market-tile:focus-visible {
     outline-offset: -3px;
   }
-  @container market-group (max-height:48px) {
+  @container market-group (max-height:54px) {
     .market-map-group h3 {
       display: none;
     }
   }
-  @container market-tile (max-height: 45px) {
+  @container market-tile (max-height: 61px) {
     .market-tile-content strong,
     .market-tile-content small {
       display: none;
@@ -626,7 +628,7 @@
       white-space: nowrap;
     }
   }
-  @container market-tile (max-width: 80px) {
+  @container market-tile (max-width: 96px) {
     .market-tile-content strong,
     .market-tile-content small {
       display: none;
@@ -636,12 +638,12 @@
       white-space: nowrap;
     }
   }
-  @container market-tile (max-height: 17px) {
+  @container market-tile (max-height: 33px) {
     .market-tile-content {
       display: none;
     }
   }
-  @container market-tile (max-width: 32px) {
+  @container market-tile (max-width: 48px) {
     .market-tile-content {
       display: none;
     }
@@ -711,6 +713,8 @@
     .market-tile {
       container-type: size;
       container-name: market-tile;
+    }
+    .market-tile-content {
       padding: 4px;
     }
     .market-tile strong {
