@@ -3,7 +3,9 @@ import { mkdir } from 'node:fs/promises';
 import { createPreviewFetch } from '../../apps/web/src/preview/previewApi.js';
 import {
   craftAnalysisResponseSchema,
+  catalogResponseSchema,
   recipeResponseSchema,
+  trendOverviewResponseSchema,
 } from '../../packages/contracts/dist/index.js';
 
 const recipe = 'no-listings-bow';
@@ -43,6 +45,90 @@ test.beforeEach(async ({ page }) => {
       body: await response.text(),
     });
   });
+});
+
+test('market tiles explain their metrics on hover and keyboard focus, including tiny unknown tiles', async ({
+  page,
+}) => {
+  const preview = createPreviewFetch();
+  const catalog = catalogResponseSchema.parse(
+    await (await preview('http://localhost/api/catalog')).json(),
+  );
+  const trends = trendOverviewResponseSchema.parse(
+    await (await preview('http://localhost/api/trends?range=7d')).json(),
+  );
+  const data = { ...trends.data, league: catalog.data?.league ?? null };
+  await page.route('**/api/trends?*', (route) =>
+    route.fulfill({ json: { ...trends, data } }),
+  );
+  await page.goto('/?size=equal&currency=divine');
+  const known = page
+    .locator('.market-tile[aria-label*="Observed price change: 11.1"]')
+    .first();
+  await expect(known).toBeVisible();
+  await page
+    .getByRole('heading', { name: 'Market composition', exact: true })
+    .click();
+  await known.hover();
+  const tooltip = page.locator('[role="tooltip"]:not([data-exiting="true"])');
+  await expect(tooltip).toContainText('Observed asking prices:');
+  await expect(tooltip).toContainText('Captured listings');
+  await expect(tooltip).toContainText('Comparable sellers');
+  await expect(tooltip).toHaveCSS('opacity', '1');
+  await tooltip.hover();
+  await expect(tooltip).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(tooltip).toBeHidden();
+  await page.keyboard.press('Tab');
+  await known.focus();
+  await expect(tooltip).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(tooltip).toBeHidden();
+
+  await page.route('**/api/trends?*', async (route) => {
+    await route.fulfill({
+      json: {
+        ...trends,
+        data: {
+          ...data,
+          entries: data.entries.map((entry) => ({
+            ...entry,
+            summary: null,
+          })),
+        },
+      },
+    });
+  });
+  await page.reload();
+  const tiny = page.locator('.market-tile').first();
+  await expect(tiny).toHaveAttribute(
+    'aria-label',
+    /Observed price change: unknown/,
+  );
+  const label = await tiny.getAttribute('aria-label');
+  if (!label) throw new Error('Missing tile label');
+  const name = label.split('. Observed price change')[0] ?? label;
+  await tiny.evaluate((node) => {
+    node.style.width = '24px';
+    node.style.height = '14px';
+  });
+  await page
+    .getByRole('heading', { name: 'Market composition', exact: true })
+    .click();
+  await tiny.hover();
+  await expect(tooltip).toContainText(name);
+  await expect(tooltip).toContainText(
+    'No usable asking-price history in the last 7 days.',
+  );
+  const box = await tooltip.boundingBox();
+  const viewport = page.viewportSize();
+  if (!box || !viewport) throw new Error('Missing tooltip or viewport bounds');
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+  await tiny.click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(tooltip).toBeHidden();
 });
 
 test('active pages and retained deep links render with contained tables and no runtime errors', async ({

@@ -4,6 +4,7 @@ import type {
   TrendOverview,
 } from '@poe-worksmith/contracts';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Tooltip } from '@heroui/react';
 import {
   useLocation,
   useNavigate,
@@ -117,6 +118,119 @@ function observedSpan(from: string, to: string) {
     hours = Math.floor((minutes % 1440) / 60),
     rest = minutes % 60;
   return `${days ? `${days}d ` : ''}${hours ? `${hours}h ` : ''}${!days && (!hours || rest) ? `${rest}m ` : ''}observed`;
+}
+
+function MarketTileDetails({
+  row,
+  color,
+  size,
+  value,
+  historyState,
+}: {
+  row: MarketRow;
+  color: MarketColor;
+  size: MarketSize;
+  value: number;
+  historyState: 'loading' | 'failed' | 'ready';
+}) {
+  const change = row.change;
+  const missingChange =
+    historyState === 'failed'
+      ? 'Price history could not be loaded.'
+      : historyState === 'loading'
+        ? 'Price history is loading.'
+        : !row.summary
+          ? 'No usable asking-price history in the last 7 days.'
+          : change?.from === 0
+            ? 'The starting price is zero, so a percentage cannot be calculated.'
+            : 'Two price observations at different times are needed to calculate change.';
+  return (
+    <>
+      <strong>{row.output.name}</strong>
+      <span>{row.output.entry.recipe.baseName}</span>
+      <dl>
+        <div>
+          <dt>
+            {colorOptions.find(([id]) => id === color)?.[1]}
+            {color === 'price-change' ? ' · 7 days' : ''}
+          </dt>
+          <dd>
+            {color === 'price-change' ? (
+              change?.percent != null ? (
+                `${change.percent > 0 ? '+' : ''}${number(change.percent)}%`
+              ) : (
+                'Not available'
+              )
+            ) : color === 'cost-spread' ? (
+              row.spread ? (
+                <LibraryMoney price={row.spread} />
+              ) : (
+                'Not estimated'
+              )
+            ) : row.exits === null ? (
+              'Not measured'
+            ) : (
+              `${number(row.exits)} inferred exits`
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>Comparable ask</dt>
+          <dd>
+            {row.output.ask ? (
+              <LibraryMoney price={row.output.ask} />
+            ) : (
+              'No current estimate'
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>Captured listings</dt>
+          <dd>
+            {row.captured === null ? 'Not measured' : number(row.captured)}
+          </dd>
+        </div>
+        <div>
+          <dt>Comparable sellers</dt>
+          <dd>{row.sellers === null ? 'Not measured' : number(row.sellers)}</dd>
+        </div>
+      </dl>
+      {color === 'price-change' ? (
+        change?.percent != null ? (
+          <p>
+            Observed asking prices: {number(change.from)} → {number(change.to)}{' '}
+            {row.output.currency}.<br />
+            {formatTimestamp(change.fromObservedAt)} →{' '}
+            {formatTimestamp(change.toObservedAt)}.
+          </p>
+        ) : (
+          <p>{missingChange}</p>
+        )
+      ) : null}
+      {color === 'cost-spread' && !row.spread ? (
+        <p>
+          A current comparable ask and a craft-cost estimate in the same
+          currency are required.
+        </p>
+      ) : null}
+      {color === 'listing-activity' ? (
+        <p>
+          {row.exits === null ? 'Listing exits have not been measured. ' : ''}
+          Inferred exits are not confirmed sales.
+        </p>
+      ) : null}
+      <p>
+        Tile area:{' '}
+        {size === 'equal'
+          ? 'equal for every target'
+          : `${sizeOptions.find(([id]) => id === size)?.[1]} · ${number(value)}`}
+        .
+      </p>
+      <small>
+        Click to open Market details. Asking prices are not confirmed sales.
+      </small>
+    </>
+  );
 }
 export function MarketHome() {
   const [params, setParams] = useSearchParams();
@@ -684,48 +798,69 @@ export function MarketHome() {
               <h3 title={g.label}>{g.label}</h3>
               <div className="market-map-tiles">
                 {g.tiles.map((t) => (
-                  <button
-                    key={t.row.output.id}
-                    className={`market-tile ${color === 'listing-activity' && t.colorValue !== null && t.colorValue >= 20 ? 'market-tile-dark' : ''}`}
-                    style={{
-                      left: `${t.x * 100}%`,
-                      top: `${t.y * 100}%`,
-                      width: `${t.width * 100}%`,
-                      height: `${t.height * 100}%`,
-                      background: tileColor(t.colorValue, color),
-                    }}
-                    aria-label={`${t.row.output.name}. ${color === 'price-change' ? 'Observed price change' : color === 'cost-spread' ? 'Provisional spread' : 'Inferred exits'}: ${t.colorValue === null ? 'unknown' : number(t.colorValue)}. ${sizeOptions.find(([id]) => id === size)?.[1]}: ${number(t.value)}.${t.row.change ? ` Observed from ${formatTimestamp(t.row.change.fromObservedAt)} to ${formatTimestamp(t.row.change.toObservedAt)}.` : ''}`}
-                    title={`${t.row.output.name}\n${number(t.colorValue)} · ${number(t.value)} ${size}`}
-                    onClick={(e) =>
-                      open(t.row.output, 'market', e.currentTarget)
-                    }
-                  >
-                    <span className="market-tile-content">
-                      <strong>{t.row.output.name}</strong>
-                      <span>
-                        {color === 'price-change' && t.colorValue !== null ? (
-                          `${t.colorValue > 0 ? '+' : ''}${number(t.colorValue)}%`
-                        ) : color === 'cost-spread' ? (
-                          t.row.spread ? (
-                            <LibraryMoney price={t.row.spread} />
+                  <Tooltip key={t.row.output.id} delay={180} closeDelay={180}>
+                    <Tooltip.Trigger<'button'>
+                      render={(props) => <button {...props} />}
+                      type="button"
+                      className={`market-tile ${color === 'listing-activity' && t.colorValue !== null && t.colorValue >= 20 ? 'market-tile-dark' : ''}`}
+                      style={{
+                        left: `${t.x * 100}%`,
+                        top: `${t.y * 100}%`,
+                        width: `${t.width * 100}%`,
+                        height: `${t.height * 100}%`,
+                        background: tileColor(t.colorValue, color),
+                      }}
+                      aria-label={`${t.row.output.name}. ${color === 'price-change' ? 'Observed price change' : color === 'cost-spread' ? 'Provisional spread' : 'Inferred exits'}: ${t.colorValue === null ? 'unknown' : number(t.colorValue)}. ${sizeOptions.find(([id]) => id === size)?.[1]}: ${number(t.value)}.${t.row.change ? ` Observed from ${formatTimestamp(t.row.change.fromObservedAt)} to ${formatTimestamp(t.row.change.toObservedAt)}.` : ''}`}
+                      onClick={(e) =>
+                        open(t.row.output, 'market', e.currentTarget)
+                      }
+                    >
+                      <span className="market-tile-content">
+                        <strong>{t.row.output.name}</strong>
+                        <span>
+                          {color === 'price-change' && t.colorValue !== null ? (
+                            `${t.colorValue > 0 ? '+' : ''}${number(t.colorValue)}%`
+                          ) : color === 'cost-spread' ? (
+                            t.row.spread ? (
+                              <LibraryMoney price={t.row.spread} />
+                            ) : (
+                              'Not estimated'
+                            )
+                          ) : color === 'listing-activity' ? (
+                            t.colorValue === null ? (
+                              'Not measured'
+                            ) : (
+                              `${number(t.colorValue)} exits`
+                            )
                           ) : (
-                            'Not estimated'
-                          )
-                        ) : color === 'listing-activity' ? (
-                          t.colorValue === null ? (
-                            'Not measured'
-                          ) : (
-                            `${number(t.colorValue)} exits`
-                          )
-                        ) : (
-                          'Unknown change'
-                        )}
+                            'Unknown change'
+                          )}
+                        </span>
+                        <small>
+                          <LibraryMoney price={t.row.output.ask} />
+                        </small>
                       </span>
-                      <small>
-                        <LibraryMoney price={t.row.output.ask} />
-                      </small>
-                    </span>
-                  </button>
+                    </Tooltip.Trigger>
+                    <Tooltip.Content
+                      className="market-tile-tooltip"
+                      placement="top"
+                      offset={8}
+                    >
+                      <MarketTileDetails
+                        row={t.row}
+                        color={color}
+                        size={size}
+                        value={t.value}
+                        historyState={
+                          trendError
+                            ? 'failed'
+                            : currentTrends
+                              ? 'ready'
+                              : 'loading'
+                        }
+                      />
+                    </Tooltip.Content>
+                  </Tooltip>
                 ))}
               </div>
             </section>
