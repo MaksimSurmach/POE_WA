@@ -44,6 +44,7 @@ export const recipeResultSchema = z.strictObject({
           grade: z.enum(['A', 'B', 'C']).optional(),
           gradeReasons: z.array(z.string()).optional(),
           reason: z.string().optional(),
+          profitBlockedReason: z.string().optional(),
         })
         .catchall(z.json()),
       budget: z.strictObject({ p50: amount, p90: amount, currency }).nullable(),

@@ -730,15 +730,14 @@ export async function evaluateFreshRecipe(
     output.coverage !== 'complete' &&
     (requiresCompleteOutputCoverage(targetDependency.query.query) ||
       !output.sortedSampleComplete);
-  const saleStatus = definition.verification.profitBlockedReason
-    ? 'unverified_output_value'
-    : !output?.currencyAvailable
-      ? 'unavailable_currency'
-      : coverageBlocked
-        ? 'insufficient_coverage'
-        : comparableSellers >= minimumComparableSellers
-          ? 'accepted'
-          : 'insufficient_sellers';
+  const profitBlockedReason = definition.verification.profitBlockedReason;
+  const saleStatus = !output?.currencyAvailable
+    ? 'unavailable_currency'
+    : coverageBlocked
+      ? 'insufficient_coverage'
+      : comparableSellers >= minimumComparableSellers
+        ? 'accepted'
+        : 'insufficient_sellers';
   const usedTradeMaterials = materialMarkets.filter((m) =>
     tradeMaterialIds.has(m.id),
   );
@@ -788,7 +787,7 @@ export async function evaluateFreshRecipe(
       ? (definition.craft.baseConsumption?.expectedBases ?? null)
       : null,
     ask:
-      saleStatus === 'accepted' && inputsFresh
+      saleStatus === 'accepted' && inputsFresh && !profitBlockedReason
         ? (saleAsk?.price ?? null)
         : null,
   });
@@ -805,18 +804,19 @@ export async function evaluateFreshRecipe(
         })
       : null;
   const saleBlockedReason = {
-    unverified_output_value: definition.verification.profitBlockedReason,
     unavailable_currency: output
       ? 'A matching ask has no verified, fresh currency conversion.'
       : 'No fresh Trade observation for this crafted item.',
     insufficient_coverage:
       'Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.',
     insufficient_sellers: 'No matching Trade sellers for this crafted item.',
-    accepted: !inputsFresh
-      ? 'At least one market input has expired.'
-      : expectedCraftCost === null
-        ? 'Complete, verified craft cost evidence is unavailable.'
-        : undefined,
+    accepted:
+      profitBlockedReason ??
+      (!inputsFresh
+        ? 'At least one market input has expired.'
+        : expectedCraftCost === null
+          ? 'Complete, verified craft cost evidence is unavailable.'
+          : undefined),
   }[saleStatus];
   const methodCost = {
     ...materialEconomics,
@@ -867,6 +867,7 @@ export async function evaluateFreshRecipe(
       saleBasis: saleAsk?.basis ?? 'none',
       status: saleStatus,
       ...(saleBlockedReason ? { reason: saleBlockedReason } : {}),
+      ...(profitBlockedReason ? { profitBlockedReason } : {}),
       ...(gradedEvidence
         ? { grade: gradedEvidence.grade, gradeReasons: gradedEvidence.reasons }
         : {}),

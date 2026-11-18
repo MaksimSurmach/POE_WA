@@ -793,10 +793,36 @@ describe('sale evidence acceptance', () => {
       marginPercent: null,
       lastSuccessfulAt: null,
       methodCost: {
-        saleEvidence: { status: 'unverified_output_value', reason },
+        saleEvidence: {
+          status: 'accepted',
+          reason,
+          profitBlockedReason: reason,
+        },
       },
     });
     expect(evaluation.methodCost?.saleEvidence).not.toHaveProperty('grade');
+    expect(evaluation.confidence).toBe('low');
+  });
+
+  it('keeps insufficient coverage over a profit block and withholds ROI', async () => {
+    const evaluation = await evaluateWithTargetSellers(
+      ['one', 'two'],
+      'Observed items include an unmodelled finishing stage.',
+      'partial',
+    );
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      profit: null,
+      marginPercent: null,
+      methodCost: {
+        saleEvidence: {
+          status: 'insufficient_coverage',
+          reason: expect.stringContaining('Incomplete output coverage'),
+          profitBlockedReason:
+            'Observed items include an unmodelled finishing stage.',
+        },
+      },
+    });
   });
 
   it.each([
