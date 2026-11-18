@@ -4,6 +4,7 @@ import type {
   ScrapedItem,
   ScrapedItemDiagnostic,
   ScrapedItemModifiersResponse,
+  ScrapedItemBasesResponse,
   ScrapedItemTest,
   ScrapedNameSource,
 } from '@poe-worksmith/contracts';
@@ -284,7 +285,36 @@ export function createScrapedItemService(options: ScrapedItemServiceOptions) {
     return facts;
   }
 
+  async function readRecentListings(
+    schedules: readonly ScheduleRow[],
+    from: Date,
+    to: Date,
+  ) {
+    if (!schedules.length) return new Map<string, number>();
+    const { rows } = await pool.query<{
+      scheduleId: string;
+      count: number;
+      observed: boolean;
+    }>(
+      `select s.id as "scheduleId",
+         exists(select 1 from captures c where c.schedule_id = s.id and c.complete and c.captured_at >= $2 and c.captured_at <= $3
+           and (c.query_version is null or c.query_version = s.key)) as observed,
+         (select count(*)::int from listings l join captures c on c.id = l.last_capture_id
+          where l.schedule_id = s.id and l.last_seen_at >= $2 and l.last_seen_at <= $3
+            and (c.query_version is null or c.query_version = s.key)) as count
+       from collector_schedule s where s.id = any($1::uuid[])`,
+      [schedules.map(({ id }) => id), from, to],
+    );
+    return new Map(
+      rows
+        .filter((row) => row.observed || row.count > 0)
+        .map((row) => [row.scheduleId, row.count]),
+    );
+  }
+
   async function list() {
+    const to = now();
+    const from = new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
     const [league, recipes, paused] = await Promise.all([
       repositories.leagues.findCurrent(),
       readRecipes(),
@@ -317,9 +347,10 @@ export function createScrapedItemService(options: ScrapedItemServiceOptions) {
           [...compiled.values()].flatMap(({ key }) => (key ? [key] : [])),
         )
       : new Map<string, ScheduleRow>();
-    const [captures, names] = await Promise.all([
+    const [captures, names, recentListings] = await Promise.all([
       readLatestCaptures([...schedules.values()]),
       readNames(items.map(({ spec }) => spec)),
+      readRecentListings([...schedules.values()], from, to),
     ]);
     const byKey = new Map<string, string[]>();
     for (const [id, { key }] of compiled)
@@ -358,6 +389,14 @@ export function createScrapedItemService(options: ScrapedItemServiceOptions) {
         baseName: base.name,
         baseNameSource: base.source,
         id: item.id,
+        recentListings:
+          result.ok && league && schedule && recentListings.has(schedule.id)
+            ? {
+                count: recentListings.get(schedule.id)!,
+                from: from.toISOString(),
+                to: to.toISOString(),
+              }
+            : null,
         latestCapture: schedule ? (captures.get(schedule.id) ?? null) : null,
         modifiers: await Promise.all(
           item.spec.conditions.map(async (condition) => {
@@ -426,7 +465,7 @@ export function createScrapedItemService(options: ScrapedItemServiceOptions) {
         ?.itemId ?? null;
     return {
       collectionsPaused: paused,
-      generatedAt: now().toISOString(),
+      generatedAt: to.toISOString(),
       items: views,
       league: league
         ? { gggId: league.gggId, id: league.id, name: league.name }
@@ -455,12 +494,36 @@ export function createScrapedItemService(options: ScrapedItemServiceOptions) {
     spec: ScrapedItemSpec,
   ): Promise<ScrapedItemDiagnostic[]> {
     const diagnostics: ScrapedItemDiagnostic[] = [];
-    if (scrapedItemIdentityChanged(current.spec, spec))
+    if (
+      current.spec.gameDataVersion !== spec.gameDataVersion ||
+      current.spec.patch !== spec.patch
+    )
       diagnostics.push({
         code: 'ITEM_IDENTITY_IMMUTABLE',
         message:
-          'The base item, game data version and variant cannot be changed; create the search from a recipe instead.',
+          'The game data version and patch cannot be changed for this search.',
+        path: 'gameDataVersion',
+      });
+    if (
+      current.spec.item.baseId !== spec.item.baseId &&
+      spec.item.variant.kind !== 'none'
+    )
+      diagnostics.push({
+        code: 'BASE_VARIANT_RESET_REQUIRED',
         path: 'item.baseId',
+        message:
+          'Changing the base requires clearing its previous cluster-specific constraints.',
+      });
+    if (
+      current.spec.item.baseId === spec.item.baseId &&
+      JSON.stringify(current.spec.item.variant) !==
+        JSON.stringify(spec.item.variant)
+    )
+      diagnostics.push({
+        code: 'ITEM_IDENTITY_IMMUTABLE',
+        path: 'item.variant',
+        message:
+          'Cluster-specific constraints cannot be changed for this base.',
       });
     for (const issue of scrapedItemEditIssues(current.role, spec))
       diagnostics.push({ code: 'REQUIREMENT_UNSUPPORTED', ...issue });
@@ -496,7 +559,13 @@ export function createScrapedItemService(options: ScrapedItemServiceOptions) {
     const league = await repositories.leagues.findCurrent();
     const { trade } = await tradeFor([spec]);
     const compiled = await compile(trade, league, { role: current.role, spec });
-    return compiled.ok ? [] : [...compiled.diagnostics];
+    return compiled.ok
+      ? []
+      : compiled.diagnostics.map((diagnostic) =>
+          diagnostic.entityId === spec.item.baseId
+            ? { ...diagnostic, path: 'item.baseId' }
+            : diagnostic,
+        );
   }
 
   function checkWrite(write: ScrapedItemWrite) {
@@ -649,6 +718,32 @@ export function createScrapedItemService(options: ScrapedItemServiceOptions) {
   }
 
   return {
+    async listBases(
+      gameDataVersion: string,
+    ): Promise<ScrapedItemBasesResponse['data']> {
+      const { rows } = await pool.query<{
+        id: string;
+        name: string;
+        itemClass: string | null;
+      }>(
+        `select pm.canonical_id as id, min(pm.external_id) as name, max(ce.payload->>'itemClass') as "itemClass"
+         from provider_mappings pm join game_data_versions v on v.id = pm.game_data_version_id
+         left join canonical_entities ce on ce.game_data_version_id = v.id and ce.entity_kind = 'base' and ce.canonical_id = pm.canonical_id
+         where v.status = 'active' and v.game = 'poe1' and v.patch_version = $1
+           and pm.provider = 'poe-trade' and pm.entity_kind = 'base' and pm.status = 'active'
+         group by pm.canonical_id order by min(pm.external_id), pm.canonical_id`,
+        [gameDataVersion],
+      );
+      return {
+        bases: rows.map((row) => ({
+          ...row,
+          itemClass:
+            row.itemClass ??
+            options.presentation?.get(row.id)?.itemClass ??
+            null,
+        })),
+      };
+    },
     list,
 
     async save(

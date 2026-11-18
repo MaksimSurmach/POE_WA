@@ -186,7 +186,7 @@ describe('scraped item requirements', () => {
       );
     });
 
-    it('rejects unsupported categories and category searches without market equivalence', () => {
+    it('rejects unsupported categories and permits strict category searches', () => {
       expect(
         scrapedItemSpecSchema.safeParse({
           ...output,
@@ -199,7 +199,7 @@ describe('scraped item requirements', () => {
           marketEquivalent: false,
           marketSearchCategory: 'accessory.ring',
         }).success,
-      ).toBe(false);
+      ).toBe(true);
     });
   });
 
@@ -229,7 +229,7 @@ describe('scraped item requirements', () => {
           marketEquivalent: true,
           marketSearchCategory: 'accessory.ring',
         }).map(({ path }) => path),
-      ).toEqual(['marketEquivalent', 'marketSearchCategory']);
+      ).toEqual(['marketEquivalent']);
     });
 
     it('treats the base, game data version and variant as the item identity', () => {

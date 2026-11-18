@@ -334,7 +334,7 @@ export async function compileScrapedItemQuery(
     corrupted: item.state.corrupted,
     tradeSearch: {
       version: 1,
-      ...(equivalent && spec.marketSearchCategory
+      ...(spec.marketSearchCategory
         ? { category: spec.marketSearchCategory }
         : {}),
       scope: 'strict',

@@ -79,6 +79,14 @@ export const scrapedItemSchema = z.strictObject({
   baseName: z.string().nullable(),
   baseNameSource: scrapedNameSourceSchema,
   id: z.uuid(),
+  recentListings: z
+    .strictObject({
+      count: z.number().int().nonnegative(),
+      from: z.iso.datetime(),
+      to: z.iso.datetime(),
+    })
+    .nullable()
+    .optional(),
   latestCapture: scrapedCaptureFactsSchema.nullable(),
   modifiers: z.array(
     z.strictObject({
@@ -213,6 +221,22 @@ export const scrapedItemModifiersResponseSchema = z.strictObject({
 });
 export type ScrapedItemModifiersResponse = z.infer<
   typeof scrapedItemModifiersResponseSchema
+>;
+
+export const scrapedItemBasesResponseSchema = z.strictObject({
+  correlationId,
+  data: z.strictObject({
+    bases: z.array(
+      z.strictObject({
+        id: z.string().min(1),
+        name: z.string().min(1),
+        itemClass: z.string().nullable(),
+      }),
+    ),
+  }),
+});
+export type ScrapedItemBasesResponse = z.infer<
+  typeof scrapedItemBasesResponseSchema
 >;
 
 export const scrapedItemTestStartResponseSchema = z.strictObject({

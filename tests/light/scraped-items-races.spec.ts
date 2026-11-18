@@ -57,7 +57,22 @@ async function intercept(page: Page, handle: (route: Route) => Promise<void>) {
       body: await response.text(),
     });
   });
-  await page.route('**/api/settings/scraped-items**', handle);
+  await page.route('**/api/settings/scraped-items**', (route) =>
+    new URL(route.request().url()).pathname === `${path}/bases`
+      ? json(
+          route,
+          envelope({
+            bases: [
+              {
+                id: fixtureItem.baseId,
+                name: fixtureItem.baseName ?? fixtureItem.baseId,
+                itemClass: null,
+              },
+            ],
+          }),
+        )
+      : handle(route),
+  );
 }
 async function open(page: Page) {
   await page.goto(`/settings/scraped-items?item=${fixtureItem.id}`);

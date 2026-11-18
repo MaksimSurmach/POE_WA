@@ -9,6 +9,7 @@ import { SettingsNav } from './SettingsNav.js';
 import { fixtureCapture, fixtureItem } from './mocks/scrapedItems.js';
 
 const client = {
+  listBases: vi.fn(),
   save: vi.fn(),
   link: vi.fn(),
   unlink: vi.fn(),

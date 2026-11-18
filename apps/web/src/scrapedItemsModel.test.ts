@@ -11,7 +11,7 @@ import {
 const spec = fixtureItem.spec;
 
 describe('scraped item drafts', () => {
-  it('preserves equivalent market scope and removes it when strict matching is selected', () => {
+  it('preserves base category independently of equivalent versus strict matching', () => {
     const equivalent = {
       ...spec,
       marketEquivalent: true,
@@ -26,10 +26,26 @@ describe('scraped item drafts', () => {
       ...draft,
       marketEquivalent: false,
     });
-    expect(strict).toEqual({ ok: true, spec });
+    expect(strict).toEqual({
+      ok: true,
+      spec: { ...spec, marketSearchCategory: 'accessory.ring' },
+    });
     expect(isDirty(equivalent, { ...draft, marketEquivalent: false })).toBe(
       true,
     );
+  });
+  it('changes the exact base without carrying incompatible cluster constraints', () => {
+    const result = specFromDraft(spec, {
+      ...draftFromSpec(spec),
+      baseId: 'base:amethyst-ring',
+    });
+    expect(result.ok && result.spec.item).toMatchObject({
+      baseId: 'base:amethyst-ring',
+      variant: { kind: 'none' },
+    });
+    expect(
+      isDirty(spec, { ...draftFromSpec(spec), baseId: 'base:amethyst-ring' }),
+    ).toBe(true);
   });
   it('round-trips canonical IDs and values without change', () => {
     const draft = draftFromSpec(spec, ['Battle-Hardened', null]);

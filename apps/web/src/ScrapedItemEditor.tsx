@@ -1,12 +1,16 @@
 import type {
   ScrapedItem,
+  ScrapedItemBasesResponse,
   ScrapedItemDiagnostic,
   ScrapedItemModifiersResponse,
   ScrapedItemsResponse,
 } from '@poe-worksmith/contracts';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { scrapedItemMarketCategories } from '@poe-worksmith/domain';
+import {
+  scrapedItemMarketCategories,
+  scrapedItemMarketCategoryLabels,
+} from '@poe-worksmith/domain';
 
 import { formatTimestamp } from './dateTime.js';
 import { ScrapedItemTestPanel } from './ScrapedItemTestPanel.js';
@@ -21,6 +25,7 @@ import {
   isDirty,
   partialReasonLabel,
   specFromDraft,
+  scrapedSearchName,
   type ConditionDraft,
   type FieldError,
   type ItemDraft,
@@ -32,6 +37,7 @@ type Recipes = ScrapedItemsResponse['data']['recipes'];
 type EditorClient = Pick<
   ScrapedItemsClient,
   | 'save'
+  | 'listBases'
   | 'link'
   | 'unlink'
   | 'searchModifiers'
@@ -60,6 +66,117 @@ function FieldMessage({ id, errors }: { id: string; errors: FieldError[] }) {
       {errors.map(({ message }) => message).join(' ')}
     </span>
   ) : null;
+}
+
+function BasePicker({
+  client,
+  item,
+  value,
+  disabled,
+  errorId,
+  invalid,
+  onChange,
+}: {
+  client: Pick<ScrapedItemsClient, 'listBases'>;
+  item: ScrapedItem;
+  value: string;
+  disabled: boolean;
+  errorId: string;
+  invalid: boolean;
+  onChange: (id: string) => void;
+}) {
+  const [bases, setBases] = useState<ScrapedItemBasesResponse['data']['bases']>(
+    [],
+  );
+  const [filter, setFilter] = useState('');
+  const [status, setStatus] = useState('Loading available bases…');
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setBases([]);
+    setFailed(false);
+    setStatus('Loading available bases…');
+    client
+      .listBases(item.spec.gameDataVersion, controller.signal)
+      .then(({ data }) => {
+        if (controller.signal.aborted) return;
+        setBases(data.bases);
+        setStatus(
+          data.bases.length
+            ? ''
+            : 'No mapped bases are available for this game data.',
+        );
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setFailed(true);
+          setStatus('Base choices could not be loaded.');
+        }
+      });
+    return () => controller.abort();
+  }, [client, item.spec.gameDataVersion, retry]);
+  const visible = bases.filter((base) =>
+    [base.name, base.id, base.itemClass ?? '']
+      .join(' ')
+      .toLowerCase()
+      .includes(filter.trim().toLowerCase()),
+  );
+  const selected = bases.find((base) => base.id === value);
+  return (
+    <div className="scraped-picker">
+      <label>
+        Find a base
+        <Input
+          type="search"
+          value={filter}
+          disabled={disabled}
+          placeholder="Base name or item class"
+          onChange={(event) => setFilter(event.target.value)}
+        />
+      </label>
+      <label>
+        Base name
+        <NativeSelect
+          value={value}
+          aria-invalid={invalid}
+          aria-describedby={invalid ? errorId : undefined}
+          disabled={disabled || !bases.length}
+          onChange={(event) => onChange(event.target.value)}
+        >
+          {!visible.some((base) => base.id === value) ? (
+            <option value={value}>
+              {selected?.name ?? item.baseName ?? value}
+            </option>
+          ) : null}
+          {visible.map((base) => (
+            <option key={base.id} value={base.id}>
+              {base.name}
+              {base.itemClass ? ` · ${base.itemClass}` : ''}
+              {bases.some(
+                (other) => other.id !== base.id && other.name === base.name,
+              )
+                ? ` · ${base.id}`
+                : ''}
+            </option>
+          ))}
+        </NativeSelect>
+      </label>
+      {status ? (
+        <p role="status" className="scraped-hint">
+          {status}
+        </p>
+      ) : null}
+      {failed ? (
+        <Button type="button" onClick={() => setRetry((value) => value + 1)}>
+          Retry base choices
+        </Button>
+      ) : null}
+      {filter && !visible.length && !status ? (
+        <p className="scraped-hint">No mapped base matches this filter.</p>
+      ) : null}
+    </div>
+  );
 }
 
 /** Searches canonical modifiers; only ones with a Trade mapping can be added. */
@@ -300,7 +417,7 @@ export function ScrapedItemEditor({
     <article className="scraped-detail" aria-labelledby={heading}>
       <header className="scraped-detail__header">
         <div>
-          <h2 id={heading}>{item.baseName ?? item.baseId}</h2>
+          <h2 id={heading}>{scrapedSearchName(item)}</h2>
           <p className="scraped-hint">
             {role} · revision {item.revision}
             {item.origin === 'owner'
@@ -309,7 +426,7 @@ export function ScrapedItemEditor({
             {leagueName ? ` · ${leagueName}` : ''}
           </p>
           <p className="scraped-hint scraped-id">
-            <code>{item.baseId}</code>
+            <code>{item.spec.marketSearchCategory ?? item.baseId}</code>
           </p>
         </div>
         {item.query.tradeUrl ? (
@@ -366,6 +483,52 @@ export function ScrapedItemEditor({
         <h3 id={`${heading}-req`}>Requirements</h3>
         <fieldset disabled={busy}>
           <legend className="visually-hidden">Item requirements</legend>
+          <label>
+            Search by
+            <NativeSelect
+              value={draft.marketSearchCategory}
+              onChange={(event) =>
+                setDraft({ ...draft, marketSearchCategory: event.target.value })
+              }
+            >
+              <option value="">Exact base name</option>
+              {scrapedItemMarketCategories.map((category) => (
+                <option key={category} value={category}>
+                  All {scrapedItemMarketCategoryLabels[category].toLowerCase()}
+                </option>
+              ))}
+            </NativeSelect>
+          </label>
+          <BasePicker
+            client={client}
+            item={item}
+            value={draft.baseId}
+            disabled={Boolean(draft.marketSearchCategory)}
+            errorId={`${heading}-base`}
+            invalid={issuesAt('item.baseId').length > 0}
+            onChange={(baseId) => setDraft({ ...draft, baseId })}
+          />
+          {draft.marketSearchCategory ? (
+            <p className="scraped-help">
+              Search every base in this category. The exact base name is not
+              sent to Trade; the requirements below still apply.
+            </p>
+          ) : null}
+          <FieldMessage
+            id={`${heading}-base`}
+            errors={issuesAt('item.baseId')}
+          />
+          {draft.baseId !== item.spec.item.baseId ||
+          draft.marketSearchCategory !==
+            (item.spec.marketSearchCategory ?? '') ? (
+            <p className="scraped-note">
+              This changes the search used by {used} linked recipe
+              {used === 1 ? '' : 's'} and starts separate capture history.
+              Crafting instructions in those recipes are unchanged. Check the
+              retained modifier requirements against the new base. Base-specific
+              cluster constraints reset when the exact base changes.
+            </p>
+          ) : null}
           {item.role === 'output' ? (
             <>
               <label className="scraped-check">
@@ -386,34 +549,6 @@ export function ScrapedItemEditor({
                   ? 'Compare modifier values regardless of item level, influences, synthesis, fracture or bench origin. Tier and positive modifier upper limits are ignored. Corruption and rarity still apply.'
                   : 'Strict search: every item requirement, modifier origin, value bound and tier applies.'}
               </p>
-              {draft.marketEquivalent ? (
-                <label>
-                  Comparable bases
-                  <NativeSelect
-                    value={draft.marketSearchCategory}
-                    onChange={(event) =>
-                      setDraft({
-                        ...draft,
-                        marketSearchCategory: event.target.value,
-                      })
-                    }
-                  >
-                    <option value="">This exact base</option>
-                    {scrapedItemMarketCategories.map((category) => (
-                      <option key={category} value={category}>
-                        {
-                          {
-                            'accessory.ring': 'All rings',
-                            'armour.helmet': 'All helmets',
-                            'armour.gloves': 'All gloves',
-                            'armour.boots': 'All boots',
-                          }[category]
-                        }
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </label>
-              ) : null}
             </>
           ) : null}
           <div className="scraped-grid">

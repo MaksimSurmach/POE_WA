@@ -14,7 +14,30 @@ export const scrapedItemMarketCategories = [
   'armour.gloves',
   'armour.boots',
   'armour.helmet',
+  'accessory.belt',
+  'armour.chest',
+  'armour.shield',
+  'armour.quiver',
+  'weapon.bow',
+  'weapon.wand',
+  'jewel.cluster',
+  'flask',
 ] as const;
+
+export const scrapedItemMarketCategoryLabels = {
+  'accessory.ring': 'Rings',
+  'armour.gloves': 'Gloves',
+  'armour.boots': 'Boots',
+  'armour.helmet': 'Helmets',
+  'accessory.belt': 'Belts',
+  'armour.chest': 'Body armour',
+  'armour.shield': 'Shields',
+  'armour.quiver': 'Quivers',
+  'weapon.bow': 'Bows',
+  'weapon.wand': 'Wands',
+  'jewel.cluster': 'Cluster jewels',
+  flask: 'Flasks',
+} satisfies Record<(typeof scrapedItemMarketCategories)[number], string>;
 
 /** Influences the Trade site can filter on. */
 export const scrapedItemInfluences = [
@@ -68,12 +91,6 @@ export const scrapedItemSpecSchema = z
     patch: z.string().trim().min(1),
   })
   .superRefine((spec, context) => {
-    if (spec.marketSearchCategory && !spec.marketEquivalent)
-      context.addIssue({
-        code: 'custom',
-        message: 'A category search requires finished-market equivalence',
-        path: ['marketSearchCategory'],
-      });
     const seen = new Set<string>();
     spec.conditions.forEach((condition, index) => {
       const identity = `${condition.kind}:${condition.modId ?? condition.modFamilyId}`;
@@ -115,11 +132,6 @@ export function scrapedItemEditIssues(
       issues.push({
         path: 'marketEquivalent',
         message: 'A starting base must retain its exact crafting requirements',
-      });
-    if (spec.marketSearchCategory !== undefined)
-      issues.push({
-        path: 'marketSearchCategory',
-        message: 'A starting base cannot use a category-wide search',
       });
   }
   spec.item.influences.forEach((influence, index) => {

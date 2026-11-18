@@ -1,10 +1,17 @@
 import {
   scrapedItemInfluences,
   scrapedItemSpecSchema,
+  scrapedItemMarketCategoryLabels,
   type ScrapedItemCondition,
   type ScrapedItemSpec,
 } from '@poe-worksmith/domain';
-import type { ScrapedItemTest } from '@poe-worksmith/contracts';
+import type { ScrapedItem, ScrapedItemTest } from '@poe-worksmith/contracts';
+
+export function scrapedSearchName(item: ScrapedItem) {
+  return item.spec.marketSearchCategory
+    ? `All ${scrapedItemMarketCategoryLabels[item.spec.marketSearchCategory].toLowerCase()}`
+    : (item.baseName ?? item.baseId);
+}
 
 export type ConditionDraft = {
   kind: ScrapedItemCondition['kind'];
@@ -20,6 +27,7 @@ export type ConditionDraft = {
   maximumTier: string;
 };
 export type ItemDraft = {
+  baseId: string;
   marketEquivalent: boolean;
   marketSearchCategory: string;
   itemLevel: string;
@@ -40,6 +48,7 @@ export function draftFromSpec(
   names: readonly (string | null)[] = [],
 ): ItemDraft {
   return {
+    baseId: spec.item.baseId,
     marketEquivalent: spec.marketEquivalent === true,
     marketSearchCategory: spec.marketSearchCategory ?? '',
     itemLevel: String(spec.item.itemLevel),
@@ -180,15 +189,20 @@ export function specFromDraft(
     ...(draft.marketEquivalent
       ? {
           marketEquivalent: true,
-          ...(draft.marketSearchCategory
-            ? { marketSearchCategory: draft.marketSearchCategory }
-            : {}),
         }
       : spec.marketEquivalent === false
         ? { marketEquivalent: false }
         : {}),
+    ...(draft.marketSearchCategory
+      ? { marketSearchCategory: draft.marketSearchCategory }
+      : {}),
     item: {
       ...spec.item,
+      baseId: draft.baseId,
+      variant:
+        draft.baseId === spec.item.baseId
+          ? spec.item.variant
+          : { kind: 'none' },
       itemLevel,
       rarity: draft.rarity,
       influences: draft.influences,

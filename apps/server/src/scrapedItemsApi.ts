@@ -1,4 +1,5 @@
 import {
+  scrapedItemBasesResponseSchema,
   scrapedItemCaptureResponseSchema,
   scrapedItemLinkInputSchema,
   scrapedItemModifiersResponseSchema,
@@ -36,6 +37,9 @@ const unlinkParams = z.strictObject({
 const modifierQuery = z.strictObject({
   q: z.string().trim().min(2).max(100),
   gameDataVersion: z.string().trim().min(1).max(100).optional(),
+});
+const basesQuery = z.strictObject({
+  gameDataVersion: z.string().trim().min(1).max(100),
 });
 const unlinkQuery = z.strictObject({
   expectedRevision: z.coerce.number().int().min(1),
@@ -103,6 +107,14 @@ export function registerScrapedItemRoutes(
     return scrapedItemModifiersResponseSchema.parse({
       correlationId: request.id,
       data: await service.searchModifiers(query.q, query.gameDataVersion),
+    });
+  });
+
+  api.get(`${scrapedItemsPath}/bases`, async (request) => {
+    const query = parse(basesQuery, request.query);
+    return scrapedItemBasesResponseSchema.parse({
+      correlationId: request.id,
+      data: await service.listBases(query.gameDataVersion),
     });
   });
 

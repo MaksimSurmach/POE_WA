@@ -53,7 +53,7 @@ describe('category-scoped Trade search', () => {
     expect(() =>
       createMarketTarget({
         ...input,
-        tradeSearch: { ...input.tradeSearch, category: 'armour.chest' },
+        tradeSearch: { ...input.tradeSearch, category: 'armour.belt' },
       }),
     ).toThrow(/target profile is invalid/);
   });
