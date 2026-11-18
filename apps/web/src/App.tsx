@@ -12,6 +12,8 @@ import { RecipeLibraryPage } from './RecipeLibraryPage.js';
 import { PohxRecipePage } from './PohxRecipePage.js';
 import { FactoryPage } from './FactoryPage.js';
 import { CollectorReadinessReport } from './MarketReadiness.js';
+import { ScrapedItemsPage } from './ScrapedItemsPage.js';
+import { SettingsNav } from './SettingsNav.js';
 
 export function App() {
   return (
@@ -24,6 +26,7 @@ export function App() {
         <Route path="factory" element={<FactoryPage />} />
         <Route path="market" element={<MarketTrendsPage />} />
         <Route path="settings" element={<CollectionSettingsPage />} />
+        <Route path="settings/scraped-items" element={<ScrapedItemsPage />} />
         <Route
           path="*"
           element={<StatusPanel tone="warning" title="Страница не найдена" />}
@@ -44,6 +47,7 @@ function CollectionSettingsPage() {
           <p>Состояние коллектора и срок актуальности сохранённых цен.</p>
         </div>
       </header>
+      <SettingsNav />
       <CollectorControls />
       {data ? <CollectorReadinessReport /> : <HomeSettings initiallyOpen />}
     </>

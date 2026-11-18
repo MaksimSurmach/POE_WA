@@ -133,7 +133,7 @@
             ]
           },
           {
-            "description": "1 Added Passive Skill is Battle-Hardened",
+            "description": "1 Added Passive Skill is [affliction_notable_battle-hardened|Battle-Hardened]",
             "domain": "explicit",
             "hash": "stat.explicit.stat_4188581520",
             "mods": [
@@ -151,7 +151,7 @@
             ]
           },
           {
-            "description": "1 Added Passive Skill is Furious Assault",
+            "description": "1 Added Passive Skill is [affliction_notable_furious_assault|Furious Assault]",
             "domain": "explicit",
             "hash": "stat.explicit.stat_3415827027",
             "mods": [
@@ -168,7 +168,7 @@
             ]
           },
           {
-            "description": "1 Added Passive Skill is Master the Fundamentals",
+            "description": "1 Added Passive Skill is [affliction_notable_master_the_fundamentals|Master the Fundamentals]",
             "domain": "explicit",
             "hash": "stat.explicit.stat_3585232432",
             "mods": [

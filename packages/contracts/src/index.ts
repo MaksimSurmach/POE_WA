@@ -864,3 +864,4 @@ export * from './craftingPrices.js';
 export * from './craftAnalysis.js';
 
 export * from './factory.js';
+export * from './scrapedItems.js';

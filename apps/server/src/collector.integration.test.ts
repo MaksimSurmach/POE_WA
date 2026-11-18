@@ -50,17 +50,22 @@ const initial = new Date('2026-11-09T12:00:00Z').getTime();
 let time = initial;
 const now = () => new Date(time);
 
+// Other suites share this database; none of their collector rows may leak into a test.
+const resetCollectorState = () =>
+  pool.query(
+    'truncate listing_events, listings, captures, collector_schedule, run_requests, collector_state, collector_telemetry_runs',
+  );
+
 beforeEach(async () => {
   time = initial;
+  await resetCollectorState();
   await pool.query('truncate rate_limit_endpoint_policies, rate_limit_states');
 });
 
 afterEach(async () => {
   for (const worker of workers) worker.stop.abort();
   await Promise.all(workers.splice(0).map(({ done }) => done));
-  await pool.query(
-    'truncate listing_events, listings, captures, collector_schedule, run_requests, collector_state, collector_telemetry_runs',
-  );
+  await resetCollectorState();
 });
 
 afterAll(() => pool.end());

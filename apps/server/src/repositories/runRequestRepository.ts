@@ -15,7 +15,8 @@ export async function enqueueRunRequest(pool: Pool, recipeId: string | null) {
       where $2 is null or exists (
         select 1 from recipes where id = $2 and active for share
       )
-      on conflict (scope, (coalesce(recipe_id, ''))) where state in ('queued', 'running')
+      on conflict (scope, (coalesce(recipe_id, '')), (coalesce(scraped_item_id::text || ':' || scraped_item_revision::text, '')), (coalesce(schedule_key, '')))
+      where state in ('queued', 'running')
       do update set scope = excluded.scope
       returning id
     )

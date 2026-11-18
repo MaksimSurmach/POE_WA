@@ -93,6 +93,43 @@ The server image starts the API by default. Start a separate container with
 `node dist/entrypoints/collector.js` for collection. The three-service
 `compose.server.yaml` keeps the web/API, collector, and PostgreSQL separate.
 
+### Scraped items: coordinated upgrade
+
+Settings → Scraped items persists collector requirements independently of recipe
+definitions. A test inserts one revision- and query-bound `run_requests` row and
+sends `pg_notify('worksmith_wake', '')` in the same statement. The collector uses
+`LISTEN` to wake and reads the durable queue; the API never connects to a worker
+HTTP endpoint. Notifications carry no job data and are not the queue.
+
+**Migrations 0035–0036 require a coordinated API/collector cutover.** The previous
+API's enqueue conflict target does not match the new index, and the previous
+collector treats the new `item` scope as a broad run. Fence ingress and writes,
+stop both old processes, and back up the current database before migration.
+For the server Compose stack, while ingress remains fenced:
+
+```bash
+docker compose -f compose.server.yaml stop app collector
+docker compose -f compose.server.yaml build app collector
+docker compose -f compose.server.yaml run --rm --no-deps app node dist/migrate.js
+docker compose -f compose.server.yaml up -d app collector
+```
+
+The new API starts privately so the collector's health dependency can pass.
+Before reopening ingress, verify the upgraded collector is active, enqueue one
+item test, and confirm its request's submitted revision and schedule key match
+the sole dispatched search and returned capture. Verify all/recipe runs still
+work, and an edited search immediately withholds its previous-query economics.
+On hosts running app and collector separately, stop **both** deployments first;
+the app image also runs migrations at startup.
+
+Do not roll back only the containers against the new queue schema. Keep writes
+fenced and roll forward if validation fails. A full rollback requires a tested,
+coordinated database/schema rollback; preserve the post-upgrade database,
+configuration, test history and captures before any restore. No automatic down
+migration is provided. Stop the rollout on unrelated-search dispatch, lost
+request correlation, stale economics after an edit, or new publication failures.
+Provider access denials and cooldowns remain explicit test results, not success.
+
 ## Local PostgreSQL
 
 Requirements: Node.js 22, pnpm 11, and Docker Compose.

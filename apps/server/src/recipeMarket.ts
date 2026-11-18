@@ -1,9 +1,14 @@
 import {
-  canonicalCraftSetupFromRecipe,
   aggregateMarketListings,
+  scrapedItemDigest,
+  scrapedItemSpecFromRecipe,
+  scrapedItemTargetSignature,
+  type CanonicalCraftSetup,
   type MarketListing,
   type CanonicalJsonObject,
   type LoadedRecipeDefinition,
+  type ScrapedItemRole,
+  type ScrapedItemSpec,
   type TradeQueryGenerator,
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
@@ -14,23 +19,43 @@ import {
   createImportedMarketSnapshot,
 } from './marketResearch.js';
 import { analyzeListingComparability } from './listingComparability.js';
+import { generateMarketTradeQuery } from './marketTradeQuery.js';
 import { marketTargetInputSchema } from '@poe-worksmith/contracts';
+import {
+  derivedRecipeSpecs,
+  type RecipeSpecResolver,
+} from './scrapedItemConfig.js';
 
 export type RecipeMarketQuery = {
   provider: 'poe-trade';
   query: CanonicalJsonObject;
   schemaVersion: 1;
 };
+
+/** The same wire query used by the collector, including state and influence filters. */
+export function recipeMarketTradeUrl(query: RecipeMarketQuery) {
+  return generateMarketTradeQuery(recipeQueryTarget(query.query.handbookTarget))
+    .url;
+}
 export type RecipeMarketDependency =
   | Readonly<{
       kind: 'base' | 'target';
+      /** The search that is fetched, hashed, linked and diagnosed. */
       query: RecipeMarketQuery;
+      /**
+       * What a listing must satisfy to count for the recipe, present only when
+       * the owner changed the search so it no longer is the recipe's own
+       * requirement. A collected listing can match the search and still not
+       * be the item the recipe crafts or consumes.
+       */
+      eligibility?: RecipeMarketQuery;
       materialId?: never;
     }>
   | Readonly<{
       kind: 'material';
       materialId: string;
       query: RecipeMarketQuery | null;
+      eligibility?: never;
     }>;
 export type RecipeMarketDependencies = (input: {
   league: string;
@@ -39,17 +64,45 @@ export type RecipeMarketDependencies = (input: {
 
 export function createRecipeMarketDependencies(options: {
   trade: TradeQueryGenerator;
+  /**
+   * Decides the base/output requirements. Omitted means the requirements as
+   * authored in each recipe; production callers pass the configured resolver.
+   */
+  specs?: RecipeSpecResolver;
   resolveResource(
     itemId: string,
     gameDataVersion: string,
   ): Promise<string | null>;
 }): RecipeMarketDependencies {
+  const specs = options.specs ?? derivedRecipeSpecs;
   return async ({ league, recipe }) => {
     const resourceIds = new Set(
       recipe.craft.steps.flatMap((step) =>
         step.materials.map(({ itemId }) => itemId),
       ),
     );
+    // One read decides both the search and the eligibility, so an edit between
+    // the two cannot make them describe different configurations.
+    const configured = await specs(recipe);
+    const fixed: RecipeSpecResolver = () => configured;
+    const eligibility = async (starting: boolean) => {
+      const role = starting ? 'base' : 'output';
+      const authored = scrapedItemSpecFromRecipe(recipe, role);
+      if (
+        scrapedItemDigest(role, authored) ===
+        scrapedItemDigest(role, configured[role].spec)
+      )
+        return {};
+      const result = await compileScrapedItemQuery(
+        options.trade,
+        role,
+        authored,
+        league,
+      );
+      if (!result.ok)
+        throw new Error(result.diagnostics.map(({ code }) => code).join(','));
+      return { eligibility: result.query };
+    };
     return [
       {
         kind: 'base',
@@ -58,7 +111,9 @@ export function createRecipeMarketDependencies(options: {
           recipe,
           league,
           true,
+          fixed,
         ),
+        ...(await eligibility(true)),
       },
       ...(await Promise.all(
         [...resourceIds].sort().map(async (materialId) => {
@@ -82,7 +137,14 @@ export function createRecipeMarketDependencies(options: {
       )),
       {
         kind: 'target',
-        query: await generateRecipeMarketQuery(options.trade, recipe, league),
+        query: await generateRecipeMarketQuery(
+          options.trade,
+          recipe,
+          league,
+          false,
+          fixed,
+        ),
+        ...(await eligibility(false)),
       },
     ];
   };
@@ -144,38 +206,64 @@ const generatedSearch = z.object({
   }),
 });
 
+export type ScrapedItemDiagnostic = {
+  code: string;
+  entityId?: string;
+  message: string;
+};
+export type ScrapedItemCompilation =
+  | { ok: true; query: RecipeMarketQuery }
+  | { ok: false; diagnostics: readonly ScrapedItemDiagnostic[] };
+
+/** The recipe's base or output search, from whatever requirements are effective. */
 export async function generateRecipeMarketQuery(
   trade: TradeQueryGenerator,
   recipe: LoadedRecipeDefinition,
   league: string,
   starting = false,
+  specs: RecipeSpecResolver = derivedRecipeSpecs,
 ): Promise<RecipeMarketQuery> {
-  const setup = canonicalCraftSetupFromRecipe(recipe);
-  const result = await trade.generate({
+  const effective = (await specs(recipe))[starting ? 'base' : 'output'];
+  const result = await compileScrapedItemQuery(
+    trade,
+    starting ? 'base' : 'output',
+    effective.spec,
     league,
-    setup: starting
-      ? {
-          ...setup,
-          base: recipe.startingBase,
-          target: {
-            allOf: recipe.craft.startingMods.map(
-              ({ modId, tier, kind, minimumValue, maximumValue }) => ({
-                kind: kind ?? 'explicit',
-                modId,
-                excluded: false,
-                ...(tier ? { exactTier: tier } : {}),
-                ...(minimumValue === undefined ? {} : { minimumValue }),
-                ...(maximumValue === undefined ? {} : { maximumValue }),
-              }),
-            ),
-            anyOf: [],
-            minimumMatched: null,
-          },
-        }
-      : setup,
-  });
+  );
   if (!result.ok)
     throw new Error(result.diagnostics.map(({ code }) => code).join(','));
+  return result.query;
+}
+
+/**
+ * The only compiler for scraped-item searches. Every consumer of a search
+ * (collector schedules, publication, the Trade link and test diagnostics) uses
+ * its output, so they cannot disagree about what is being matched.
+ */
+export async function compileScrapedItemQuery(
+  trade: TradeQueryGenerator,
+  role: ScrapedItemRole,
+  spec: ScrapedItemSpec,
+  league: string,
+): Promise<ScrapedItemCompilation> {
+  const starting = role === 'base';
+  const setup: CanonicalCraftSetup = {
+    base: spec.item,
+    gameDataVersion: spec.gameDataVersion,
+    method: { kind: 'currency', currency: 'scraped-item' },
+    startingMods: [],
+    target: { allOf: spec.conditions, anyOf: [], minimumMatched: null },
+  };
+  const result = await trade.generate({ league, setup });
+  if (!result.ok)
+    return {
+      ok: false,
+      diagnostics: result.diagnostics.map(({ code, entityId, message }) => ({
+        code,
+        message,
+        ...(entityId ? { entityId } : {}),
+      })),
+    };
   const generated = generatedSearch.parse(result.value.query);
   const nativeConditions = [
     {
@@ -197,15 +285,15 @@ export async function generateRecipeMarketQuery(
           .base_defence_percentile,
     },
   ].filter(({ value }) => value !== undefined);
-  const item = starting ? recipe.startingBase : recipe.base;
-  const handbookTarget = marketTargetInputSchema.parse({
+  const item = spec.item;
+  const parsedTarget = marketTargetInputSchema.safeParse({
     name: starting
       ? `base:${item.baseId}`.slice(0, 200)
-      : recipe.targetSignature,
+      : scrapedItemTargetSignature(spec),
     game: 'poe1',
     realm: 'pc',
     league,
-    patch: recipe.patch,
+    patch: spec.patch,
     slot: starting ? 'starting-base' : 'crafted-item',
     baseTypes: [generated.query.type],
     builds: [],
@@ -248,6 +336,19 @@ export async function generateRecipeMarketQuery(
       ],
     },
   });
+  if (!parsedTarget.success)
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: 'MARKET_TARGET_INVALID',
+          message: parsedTarget.error.issues
+            .map(({ path, message }) => `${path.join('.')}: ${message}`)
+            .join('; '),
+        },
+      ],
+    };
+  const handbookTarget = parsedTarget.data;
   handbookTarget.tradeSearch?.groups.forEach((g) =>
     g.filters.sort((a, b) => a.id.localeCompare(b.id)),
   );
@@ -273,10 +374,13 @@ export async function generateRecipeMarketQuery(
     };
     query.query = search;
   }
-  return tradeQuery({
-    ...query,
-    handbookTarget: canonicalMarketJson(handbookTarget),
-  });
+  return {
+    ok: true,
+    query: tradeQuery({
+      ...query,
+      handbookTarget: canonicalMarketJson(handbookTarget),
+    }),
+  };
 }
 
 /** Trade's currency ordering cannot prove a converted resale floor from a prefix. */
@@ -289,14 +393,13 @@ export function requiresCompleteOutputCoverage(query: CanonicalJsonObject) {
   );
 }
 
-export function matchingRecipeListings(
+function analyzeRecipeListings(
   query: CanonicalJsonObject,
   listings: readonly MarketListing[],
   capturedAt: Date,
   now: Date,
-  currency: 'chaos' | 'divine' = 'chaos',
+  currency: 'chaos' | 'divine',
 ) {
-  if (!query.handbookTarget) return [...listings];
   const target = recipeQueryTarget(query.handbookTarget);
   // Raw provider observations remain immutable; matching uses the current normalizer.
   const normalizedListings = listings.flatMap((row) => {
@@ -345,12 +448,90 @@ export function matchingRecipeListings(
     target,
     now,
   );
+  return {
+    normalizedListings,
+    rows: analyzeListingComparability(target, imported, now.getTime()).rows,
+  };
+}
+
+export function matchingRecipeListings(
+  query: CanonicalJsonObject,
+  listings: readonly MarketListing[],
+  capturedAt: Date,
+  now: Date,
+  currency: 'chaos' | 'divine' = 'chaos',
+) {
+  if (!query.handbookTarget) return [...listings];
+  const { normalizedListings, rows } = analyzeRecipeListings(
+    query,
+    listings,
+    capturedAt,
+    now,
+    currency,
+  );
   const matches = new Set(
-    analyzeListingComparability(target, imported, now.getTime())
-      .rows.filter((row) => row.status === 'MATCH')
-      .map((row) => row.externalId),
+    rows.filter((row) => row.status === 'MATCH').map((row) => row.externalId),
   );
   return normalizedListings.filter((row) => matches.has(row.id));
+}
+
+/**
+ * Why stored listings did or did not match a search, using the exact matcher
+ * that prices recipes. Matching is not a statement about collection quality.
+ */
+export function diagnoseRecipeListings(
+  query: CanonicalJsonObject,
+  listings: readonly MarketListing[],
+  capturedAt: Date,
+  now: Date,
+  currency: 'chaos' | 'divine' = 'chaos',
+) {
+  const { normalizedListings, rows } = analyzeRecipeListings(
+    query,
+    listings,
+    capturedAt,
+    now,
+    currency,
+  );
+  const matched = rows.filter((row) => row.status === 'MATCH');
+  const comparable = aggregateMarketListings({
+    currency,
+    listings: normalizedListings.filter((row) =>
+      matched.some((match) => match.externalId === row.id),
+    ),
+  }).listings;
+  const reasons = new Map<
+    string,
+    { status: 'rejected' | 'unknown'; count: number }
+  >();
+  for (const row of rows) {
+    if (row.status === 'MATCH') continue;
+    const status = row.status === 'REJECT' ? 'rejected' : 'unknown';
+    for (const reason of row.reasons) {
+      const key = `${status}:${reason}`;
+      const found = reasons.get(key);
+      if (found) found.count++;
+      else reasons.set(key, { status, count: 1 });
+    }
+  }
+  return {
+    received: listings.length,
+    analyzed: rows.length,
+    unreadable: listings.length - normalizedListings.length,
+    completeItems: normalizedListings.filter(
+      (row) => row.item.modsComplete === true,
+    ).length,
+    matched: matched.length,
+    comparable: comparable.length,
+    rejected: rows.filter((row) => row.status === 'REJECT').length,
+    unknown: rows.filter((row) => row.status === 'PARTIAL').length,
+    reasons: [...reasons]
+      .map(([key, value]) => ({
+        reason: key.slice(key.indexOf(':') + 1),
+        ...value,
+      }))
+      .sort((a, b) => b.count - a.count || a.reason.localeCompare(b.reason)),
+  };
 }
 
 export function comparableRecipeListings(

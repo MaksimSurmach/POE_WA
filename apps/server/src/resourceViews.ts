@@ -1,6 +1,7 @@
 import { recipeStageFamilies } from './recipes/craftFamilyMetadata.js';
 import {
   generateRecipeMarketQuery,
+  recipeMarketTradeUrl,
   comparableRecipeListings,
   requiresCompleteOutputCoverage,
 } from './recipeMarket.js';
@@ -42,7 +43,10 @@ import {
   type CollectorReadinessReader,
 } from './collectorReadiness.js';
 import type { MarketActivityReader } from './marketActivity.js';
-import { marketTradeUrl } from './marketTradeQuery.js';
+import {
+  derivedRecipeSpecs,
+  type RecipeSpecResolver,
+} from './scrapedItemConfig.js';
 import { recipeResultSchema } from './recipeResult.js';
 import type { recipeResults } from './schema.js';
 import {
@@ -65,7 +69,11 @@ type ResourceEvaluation = Pick<
   | 'status'
 >;
 
-type CollectorResultRow = typeof recipeResults.$inferSelect;
+// Rows arrive already filtered to the recipe's current scraped-item requirements.
+type CollectorResultRow = Omit<
+  typeof recipeResults.$inferSelect,
+  'scrapedIdentity'
+>;
 type CollectorResultsReader = (
   leagueId?: string,
   recipeId?: string,
@@ -79,6 +87,8 @@ export function createResourceReaders(
   readCollectorResults?: CollectorResultsReader,
   readMarketActivity?: MarketActivityReader,
   readReadiness?: CollectorReadinessReader,
+  // Production passes the configured resolver; the default is the authored recipe.
+  specs: RecipeSpecResolver = derivedRecipeSpecs,
 ) {
   const recipeDocuments = new Map<
     string,
@@ -236,6 +246,7 @@ export function createResourceReaders(
                   recipe,
                   repositories,
                   trade,
+                  specs,
                 });
             const entry = toCatalogEntry(
               recipe,
@@ -296,14 +307,12 @@ export function createResourceReaders(
               definition,
               currentLeague.gggId,
               true,
+              specs,
             ).catch(() => null)
           : null;
       const baseTradeUrl =
         generatedBase && currentLeague
-          ? marketTradeUrl(currentLeague.gggId, {
-              query: generatedBase.query.query,
-              sort: { price: 'asc' },
-            })
+          ? recipeMarketTradeUrl(generatedBase)
           : null;
       const evaluation = market.evaluationFor(recipe);
       // The collector keys a target's schedule by this same query hash.
@@ -313,6 +322,8 @@ export function createResourceReaders(
               trade,
               definition,
               currentLeague.gggId,
+              false,
+              specs,
             ).catch(() => null)
           : null;
       const now = new Date();
@@ -369,6 +380,7 @@ export function createResourceReaders(
               recipe,
               repositories,
               trade,
+              specs,
             }),
       };
       return readCollectorResults
@@ -551,6 +563,7 @@ async function latestOutputSnapshot(input: {
   recipe: StoredRecipe;
   repositories: Repositories;
   trade: TradeQueryGenerator | undefined;
+  specs: RecipeSpecResolver;
 }): Promise<CatalogEntry['snapshot']> {
   if (!input.currentLeague) return null;
   const definition = validateRecipeDocument(input.recipe.definition);
@@ -559,6 +572,8 @@ async function latestOutputSnapshot(input: {
     input.trade,
     definition,
     input.currentLeague.gggId,
+    false,
+    input.specs,
   ).catch(() => null);
   if (!result) return null;
   const queryHash = await hashMarketQuery({

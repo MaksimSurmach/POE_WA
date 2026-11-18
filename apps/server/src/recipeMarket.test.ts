@@ -14,6 +14,14 @@ import {
   comparableRecipeListings,
   recipeQueryTarget,
 } from './recipeMarket.js';
+import {
+  derivedRecipeSpecs,
+  type RecipeSpecResolver,
+} from './scrapedItemConfig.js';
+import {
+  scrapedItemSpecFromRecipe,
+  scrapedItemTargetSignature,
+} from '@poe-worksmith/domain';
 
 const trade = new RegisteredTradeQueryGenerator(
   {
@@ -43,6 +51,7 @@ const trade = new RegisteredTradeQueryGenerator(
 const dependencies = createRecipeMarketDependencies({
   trade,
   resolveResource: async (id) => id,
+  specs: derivedRecipeSpecs,
 });
 const query = async (
   recipe: typeof canonicalRecipeFixture,
@@ -228,6 +237,75 @@ describe('recipe market dependencies', () => {
       kind: 'material',
       materialId: 'chaos-orb',
       query: null,
+    });
+  });
+
+  describe('configured scraped-item requirements', () => {
+    const recipe = fixtureRecipe({
+      ...canonicalRecipeFixture,
+      target: {
+        ...canonicalRecipeFixture.target,
+        prefixes: [{ kind: 'explicit', modId: 'authored-prefix' }],
+      },
+    });
+    const configured = (
+      override: (spec: ReturnType<typeof scrapedItemSpecFromRecipe>) => void,
+    ): RecipeSpecResolver => {
+      return async (input) => {
+        const base = derivedRecipeSpecs(input) as Awaited<
+          ReturnType<RecipeSpecResolver>
+        >;
+        const output = structuredClone(base.output.spec);
+        override(output);
+        return {
+          base: base.base,
+          output: { spec: output, configured: { id: 'item-1', revision: 2 } },
+        };
+      };
+    };
+    const compile = async (specs: RecipeSpecResolver) =>
+      (
+        await createRecipeMarketDependencies({
+          trade,
+          resolveResource: async (id) => id,
+          specs,
+        })({ recipe, league: 'Fixture League' })
+      ).filter((d) => d.kind !== 'material');
+
+    it('compiles an unedited configured spec byte-identically to the authored recipe', async () => {
+      expect(await compile(configured(() => undefined))).toEqual(
+        await compile(derivedRecipeSpecs),
+      );
+      expect(
+        scrapedItemTargetSignature(scrapedItemSpecFromRecipe(recipe, 'output')),
+      ).toBe(recipe.targetSignature);
+    });
+
+    it('uses edited requirements for the finished search and leaves the starting base alone', async () => {
+      const authored = await compile(derivedRecipeSpecs);
+      const edited = await compile(
+        configured((spec) => {
+          spec.conditions = [
+            { kind: 'explicit', modId: 'different', excluded: false },
+          ];
+          spec.item.itemLevel = 86;
+        }),
+      );
+      expect(edited.find((d) => d.kind === 'base')).toEqual(
+        authored.find((d) => d.kind === 'base'),
+      );
+      const before = authored.find((d) => d.kind === 'target')!.query;
+      const after = edited.find((d) => d.kind === 'target')!.query;
+      expect(after).not.toEqual(before);
+      expect(after.query).toMatchObject({
+        query: {
+          filters: { misc_filters: { filters: { ilvl: { min: 86 } } } },
+          stats: [{ filters: [{ id: 'explicit.stat_2' }] }],
+        },
+      });
+      expect(recipeQueryTarget(after.query.handbookTarget).name).not.toBe(
+        recipe.targetSignature,
+      );
     });
   });
 });

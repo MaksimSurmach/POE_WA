@@ -210,18 +210,27 @@ const origins = [
   'fractured',
   'enchant',
 ] as const;
+// Trade wraps displayed labels in [canonical-id|label]; keep the raw record intact.
+const modifierText = (text: string) =>
+  text.replace(/\[[^[\]|]+\|([^[\]|]+)\]/g, '$1');
+
 function modifierLines(item: z.infer<typeof itemSchema>) {
   return origins.flatMap((origin) =>
     (item[`${origin}Mods`] ?? []).map((mod) =>
       typeof mod === 'string'
-        ? { origin, description: mod, hash: undefined, tier: undefined }
+        ? {
+            origin,
+            description: modifierText(mod),
+            hash: undefined,
+            tier: undefined,
+          }
         : {
             origin: mod.flags?.fractured
               ? 'fractured'
               : mod.flags?.crafted
                 ? 'crafted'
                 : mod.domain,
-            description: mod.description,
+            description: modifierText(mod.description),
             hash: mod.hash.replace(/^stat\./, ''),
             tier: mod.mods?.length === 1 ? mod.mods[0]?.tier : undefined,
           },

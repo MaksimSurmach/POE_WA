@@ -113,6 +113,82 @@ describe('Trade-compatible queries and transport', () => {
       value: 1,
       tier: 1,
     });
+    expect(row.item.mods).toContainEqual({
+      id: 'explicit.stat_3415827027',
+      value: 1,
+      tier: 1,
+    });
+    expect(row.item.mods).toContainEqual({
+      id: 'explicit.stat_3585232432',
+      value: 1,
+      tier: 1,
+    });
+    expect(row.rawListing).toEqual(raw.result[0]);
+  });
+
+  it('reads Trade display labels in string modifiers without rewriting raw evidence', async () => {
+    const raw = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.cluster-modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    ).result[0];
+    raw.item.explicitMods = raw.item.explicitMods.map(
+      (mod: { description: string }) => mod.description,
+    );
+    const before = structuredClone(raw);
+    const row = normalizeTradeCompatibleListing(raw, tradeTarget());
+    for (const id of [
+      'explicit.stat_4188581520',
+      'explicit.stat_3415827027',
+      'explicit.stat_3585232432',
+    ]) {
+      expect(row.item.mods).toEqual(
+        expect.arrayContaining([expect.objectContaining({ id, value: 1 })]),
+      );
+    }
+    expect(raw).toEqual(before);
+    expect(row.rawListing).toEqual(before);
+    expect(row.item.modsComplete).toBe(false);
+  });
+
+  it('keeps malformed labels, wrong hashes and wrong origins unknown', async () => {
+    const raw = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.cluster-modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    ).result[0];
+    const original = raw.item.explicitMods.find(
+      (mod: { hash: string }) => mod.hash === 'stat.explicit.stat_4188581520',
+    );
+    for (const change of [
+      { description: '1 Added Passive Skill is [id|]' },
+      { description: '1 Added Passive Skill is [id|a|Battle-Hardened]' },
+      {
+        description: '1 Added Passive Skill is [outer|[inner|Battle-Hardened]]',
+      },
+      { description: '1 Added Passive Skill is [id|Battle-Hardened' },
+      { hash: 'stat.explicit.stat_3415827027' },
+      { domain: 'crafted' },
+    ]) {
+      const candidate = structuredClone(raw);
+      candidate.item.explicitMods = [{ ...original, ...change }];
+      const before = structuredClone(candidate);
+      const row = normalizeTradeCompatibleListing(candidate, tradeTarget());
+      expect(row.item.mods).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 'explicit.stat_4188581520' }),
+        ]),
+      );
+      expect(candidate).toEqual(before);
+    }
   });
 
   it('omits a currency restriction when comparing converted mixed-currency asks', () => {

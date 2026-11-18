@@ -507,6 +507,7 @@ export async function evaluateFreshRecipe(
     query: RecipeMarketQuery,
     requiredStock?: number,
     allowMissing = true,
+    eligibility?: RecipeMarketQuery,
   ) => {
     try {
       const market = await resolveMarket(
@@ -514,6 +515,7 @@ export async function evaluateFreshRecipe(
         marketContext,
         requiredStock,
         maximumQuoteAgeMs,
+        eligibility,
       );
       return market;
     } catch (error) {
@@ -526,12 +528,20 @@ export async function evaluateFreshRecipe(
       throw error;
     }
   };
-  const optionalMarket = async (query: RecipeMarketQuery, stock?: number) => {
-    const market = await readMarket(query, stock);
+  const optionalMarket = async (
+    query: RecipeMarketQuery,
+    stock?: number,
+    eligibility?: RecipeMarketQuery,
+  ) => {
+    const market = await readMarket(query, stock, true, eligibility);
     return market?.currencyAvailable ? market : null;
   };
   const usage = expectedMethodMaterialUsage(definition.craft);
-  const base = await optionalMarket(baseDependency.query);
+  const base = await optionalMarket(
+    baseDependency.query,
+    undefined,
+    baseDependency.eligibility,
+  );
   const materialMarkets = await Promise.all(
     dependencies
       .filter(({ kind }) => kind === 'material')
@@ -556,6 +566,7 @@ export async function evaluateFreshRecipe(
     targetDependency.query,
     undefined,
     allowMissingOutput,
+    targetDependency.eligibility,
   );
   const currency = output?.aggregation.sampleSize
     ? output.aggregation.currency
@@ -895,7 +906,10 @@ async function resolveMarket(
   },
   requiredStock?: number,
   maximumQuoteAgeMs = 30 * 60_000,
+  eligibility?: RecipeMarketQuery,
 ) {
+  // The search decides what was fetched; the recipe decides what counts.
+  const recipeQuery = (eligibility ?? tradeQuery).query;
   const canonicalHash = await hashMarketQuery({
     league: context.league,
     provider: tradeQuery.provider,
@@ -956,7 +970,7 @@ async function resolveMarket(
       (row) => !['chaos', 'divine'].includes(row.price.currency),
     ) ||
       comparableRecipeListings(
-        tradeQuery.query,
+        recipeQuery,
         listings.filter((row) => row.price.currency === 'divine'),
         snapshot.capturedAt,
         context.now,
@@ -964,7 +978,7 @@ async function resolveMarket(
       ).length > 0),
   );
   listings = comparableRecipeListings(
-    tradeQuery.query,
+    recipeQuery,
     listings,
     snapshot.capturedAt,
     context.now,
