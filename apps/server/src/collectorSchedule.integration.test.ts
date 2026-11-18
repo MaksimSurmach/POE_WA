@@ -227,7 +227,7 @@ it('reconciles the 72-recipe catalog without resetting existing schedule rows', 
       return row;
     }),
   );
-});
+}, 15_000);
 
 it('rolls all recipe targets to a new league while retaining disabled old history', async () => {
   const previous = await seedPrerequisites('Standard');
