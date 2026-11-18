@@ -166,6 +166,143 @@ beforeEach(prepare, 120_000);
 afterAll(() => pool.end());
 
 describe('configured scraped items', () => {
+  it('saves a different exact base and keeps the same configured item and recipe links', async () => {
+    const before = await item('base');
+    const after = await service.save(before.id, {
+      expectedRevision: before.revision,
+      spec: edited(before.spec, (draft) => {
+        draft.item.baseId = 'base:convoking-wand';
+        draft.item.variant = { kind: 'none' };
+      }),
+    });
+    expect(after.item).toMatchObject({
+      id: before.id,
+      baseId: 'base:convoking-wand',
+      origin: 'owner',
+      revision: before.revision + 1,
+    });
+    expect(after.item.recipes).toEqual(before.recipes);
+    expect(after.item.query.key).not.toBe(before.query.key);
+    const query = JSON.parse(
+      gunzipSync(
+        Buffer.from(
+          new URL(after.item.query.tradeUrl!).pathname.split('/').at(-1)!,
+          'base64url',
+        ),
+      ).toString(),
+    );
+    expect(query.query).toMatchObject({
+      type: 'Convoking Wand',
+      status: { option: 'securable' },
+    });
+    expect(
+      (await service.list()).items.find(({ id }) => id === before.id)?.baseId,
+    ).toBe('base:convoking-wand');
+  });
+
+  it('allows a category-wide starting search without relaxing exact level or influences', async () => {
+    const before = await item('base');
+    const after = await service.save(before.id, {
+      expectedRevision: before.revision,
+      spec: edited(before.spec, (draft) => {
+        draft.item.baseId = 'base:amethyst-ring';
+        draft.item.variant = { kind: 'none' };
+        draft.marketSearchCategory = 'accessory.ring';
+      }),
+    });
+    const query = JSON.parse(
+      gunzipSync(
+        Buffer.from(
+          new URL(after.item.query.tradeUrl!).pathname.split('/').at(-1)!,
+          'base64url',
+        ),
+      ).toString(),
+    );
+    expect(query.query.type).toBeUndefined();
+    expect(query.query.status.option).toBe('securable');
+    expect(query.query.filters.type_filters.filters.category.option).toBe(
+      'accessory.ring',
+    );
+    expect(query.query.filters.misc_filters.filters.ilvl).toEqual({
+      min: before.spec.item.itemLevel,
+      max: before.spec.item.itemLevel,
+    });
+    expect(after.item.spec.item.influences).toEqual(
+      before.spec.item.influences,
+    );
+  });
+
+  it('counts unique observed listings in seven days for the current query, excluding stale versions and future rows', async () => {
+    const before = await item('output');
+    const {
+      rows: [schedule],
+    } = await pool.query<{ id: string }>(
+      'select id from collector_schedule where key = $1',
+      [before.query.key],
+    );
+    const to = new Date('2026-11-18T12:00:00Z');
+    const write = async (
+      hours: number,
+      ids: string[],
+      version = before.query.key,
+      complete = true,
+    ) => {
+      const at = new Date(to.getTime() - hours * 3600000);
+      const {
+        rows: [capture],
+      } = await pool.query<{ id: string }>(
+        `insert into captures (schedule_id,captured_at,reported_total,fetched,complete,slices,duration_ms,query_version) values ($1,$2,$3,$3,$5,1,10,$4) returning id`,
+        [schedule!.id, at, ids.length, version, complete],
+      );
+      for (const id of ids)
+        await pool.query(
+          `insert into listings (schedule_id,item_id,first_seen_at,last_seen_at,first_capture_id,last_capture_id,item)
+         values ($1,$2,$3,$3,$4,$4,'{}') on conflict(schedule_id,item_id) do update set last_seen_at=excluded.last_seen_at,last_capture_id=excluded.last_capture_id`,
+          [schedule!.id, id, at, capture!.id],
+        );
+    };
+    const reader = createScrapedItemService({
+      pool,
+      applySchedules: async () => 'deferred',
+      readCollectionsPaused: async () => true,
+      now: () => to,
+    });
+    const recent = async () =>
+      (await reader.list()).items.find(({ id }) => id === before.id)!
+        .recentListings;
+    await write(72, [], before.query.key, false);
+    expect(await recent()).toBeNull();
+    await write(60, ['repeat'], before.query.key, false);
+    expect(await recent()).toMatchObject({ count: 1 });
+    await pool.query('delete from listings where schedule_id = $1', [
+      schedule!.id,
+    ]);
+    await write(54, []);
+    expect(await recent()).toMatchObject({ count: 0 });
+    await write(8 * 24, ['too-old']);
+    await write(48, ['repeat']);
+    await write(24, ['repeat', 'new']);
+    await write(12, ['wrong-query'], 'other-query-version');
+    await write(-1, ['future']);
+    const found = (await reader.list()).items.find(
+      ({ id }) => id === before.id,
+    )!;
+    expect(found.recentListings).toEqual({
+      count: 2,
+      from: '2026-11-11T12:00:00.000Z',
+      to: to.toISOString(),
+    });
+    const updated = await reader.save(before.id, {
+      expectedRevision: before.revision,
+      spec: edited(before.spec, (draft) => {
+        draft.marketEquivalent = false;
+        draft.item.itemLevel += 1;
+      }),
+    });
+    expect(updated.item.recentListings).toBeNull();
+    expect(updated.item.query.key).not.toBe(before.query.key);
+  });
+
   it('lists every current base and output search once, with the recipes sharing it', async () => {
     const data = await service.list();
     const outputs = data.items.filter(({ role }) => role === 'output');
@@ -389,9 +526,20 @@ describe('configured scraped items', () => {
     ).toEqual(['MODIFIER_UNKNOWN']);
     expect(
       await reject((draft) => {
-        draft.item.baseId = 'Another/Base';
+        draft.item.variant = { kind: 'none' };
       }),
     ).toEqual(['ITEM_IDENTITY_IMMUTABLE']);
+    expect(
+      await reject((draft) => {
+        draft.item.baseId = 'base:convoking-wand';
+      }),
+    ).toEqual(['BASE_VARIANT_RESET_REQUIRED']);
+    expect(
+      await reject((draft) => {
+        draft.item.baseId = 'Another/Base';
+        draft.item.variant = { kind: 'none' };
+      }),
+    ).toEqual(['TRADE_MAPPING_MISSING']);
     expect(
       await reject((draft) => {
         draft.item.influences = ['not-an-influence'];
@@ -1472,6 +1620,24 @@ describe('configured scraped items', () => {
       { scrapedItems: service, collectorPool: pool },
     );
     afterAll(() => api.close());
+
+    it('offers real active mapped bases for this game-data version', async () => {
+      const response = await api.inject({
+        method: 'GET',
+        url: `/api/settings/scraped-items/bases?gameDataVersion=${patch}`,
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().data.bases).toContainEqual({
+        id: 'base:convoking-wand',
+        name: 'Convoking Wand',
+        itemClass: null,
+      });
+      const missing = await api.inject({
+        method: 'GET',
+        url: '/api/settings/scraped-items/bases?gameDataVersion=unknown',
+      });
+      expect(missing.json().data.bases).toEqual([]);
+    });
 
     it('lists, saves, rejects and conflicts with typed responses', async () => {
       const listed = await api.inject({

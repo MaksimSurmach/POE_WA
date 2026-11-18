@@ -1,5 +1,6 @@
 import {
   apiErrorEnvelopeSchema,
+  scrapedItemBasesResponseSchema,
   scrapedItemCaptureResponseSchema,
   scrapedItemLinkInputSchema,
   scrapedItemModifiersResponseSchema,
@@ -95,6 +96,12 @@ export function createScrapedItemsClient(
   return {
     list: (signal?: AbortSignal) =>
       request('', scrapedItemsResponseSchema, { signal }),
+    listBases: (gameDataVersion: string, signal?: AbortSignal) =>
+      request(
+        `/bases?${new URLSearchParams({ gameDataVersion })}`,
+        scrapedItemBasesResponseSchema,
+        { signal },
+      ),
     searchModifiers: (
       query: string,
       gameDataVersion: string,

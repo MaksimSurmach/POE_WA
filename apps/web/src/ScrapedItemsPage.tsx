@@ -2,12 +2,26 @@ import type {
   ScrapedItem,
   ScrapedItemsResponse,
 } from '@poe-worksmith/contracts';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  CheckCircleIcon,
+  MinusCircleIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { StatusPanel } from './components.js';
 import { ScrapedItemEditor } from './ScrapedItemEditor.js';
 import { SettingsNav } from './SettingsNav.js';
+import { formatTimestamp } from './dateTime.js';
+import { scrapedSearchName } from './scrapedItemsModel.js';
 import {
   createScrapedItemsClient,
   type ScrapedItemsClient,
@@ -33,6 +47,34 @@ function describe(item: ScrapedItem) {
   return item.latestCapture.coverage === 'complete'
     ? 'Complete capture'
     : 'Partial capture';
+}
+
+/** Unique stored Trade listing IDs seen for this query in the current league; not sales, not worker health. */
+function listingEvidence(item: ScrapedItem) {
+  const recent = item.recentListings;
+  if (item.query.status === 'blocked') {
+    return {
+      tone: 'blocked',
+      Icon: XCircleIcon,
+      label: 'Blocked',
+      detail: 'This search cannot be built.',
+    };
+  }
+  if (!recent) {
+    return {
+      tone: 'unavailable',
+      Icon: MinusCircleIcon,
+      label: 'Not checked · 7d',
+      detail: 'No verified capture for this search in the last 7 days.',
+    };
+  }
+  const label = `${recent.count} listing${recent.count === 1 ? '' : 's'} · 7d`;
+  return {
+    tone: recent.count > 0 ? 'positive' : 'zero',
+    Icon: recent.count > 0 ? CheckCircleIcon : MinusCircleIcon,
+    label,
+    detail: `${recent.count} unique Trade listings found by this search in the current league, ${formatTimestamp(recent.from)} — ${formatTimestamp(recent.to)}. Repeated captures count once.`,
+  };
 }
 
 /** Settings → Scraped items: the searches the collector runs and the requirements behind each. */
@@ -86,8 +128,10 @@ export function ScrapedItemsPage({
         (item) =>
           !needle ||
           [
-            item.baseName ?? '',
-            item.baseId,
+            scrapedSearchName(item),
+            ...(item.spec.marketSearchCategory
+              ? []
+              : [item.baseName ?? '', item.baseId]),
             ...item.recipes.map(({ title }) => title),
           ]
             .join(' ')
@@ -96,12 +140,55 @@ export function ScrapedItemsPage({
       )
       .sort(
         (a, b) =>
-          (a.baseName ?? a.baseId).localeCompare(b.baseName ?? b.baseId) ||
+          scrapedSearchName(a).localeCompare(scrapedSearchName(b)) ||
           a.role.localeCompare(b.role) ||
           (a.recipes[0]?.title ?? '').localeCompare(b.recipes[0]?.title ?? ''),
       );
   }, [data, filter, role]);
   const selected = data?.items.find(({ id }) => id === selectedId) ?? null;
+  const panelRef = useRef<HTMLElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    let frame = 0;
+    const fit = () => {
+      frame = 0;
+      const available = Math.max(
+        320,
+        window.innerHeight -
+          Math.max(16, panel.getBoundingClientRect().top) -
+          16,
+      );
+      panel.style.setProperty('--scraped-list-height', `${available}px`);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(fit);
+    };
+    fit();
+    const observer = new ResizeObserver(schedule);
+    observer.observe(panel.closest('main') ?? panel);
+    window.addEventListener('resize', schedule);
+    window.addEventListener('scroll', schedule, { passive: true });
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', schedule);
+      window.removeEventListener('scroll', schedule);
+      cancelAnimationFrame(frame);
+    };
+  }, [data !== null]);
+  // Keep the selected search in view inside the scroll region (e.g. when opened from a link).
+  useEffect(() => {
+    const list = listRef.current;
+    const entry = list?.querySelector('[aria-current="true"]');
+    const region = list?.parentElement;
+    if (!entry || !region) return;
+    const bounds = region.getBoundingClientRect(),
+      row = entry.getBoundingClientRect();
+    if (row.top < bounds.top) region.scrollTop += row.top - bounds.top;
+    else if (row.bottom > bounds.bottom)
+      region.scrollTop += row.bottom - bounds.bottom;
+  }, [selectedId, data !== null]);
 
   const select = (id: string) => {
     const next = new URLSearchParams(params);
@@ -151,6 +238,7 @@ export function ScrapedItemsPage({
       {data ? (
         <div className="scraped-items">
           <section
+            ref={panelRef}
             className="scraped-items__list"
             aria-labelledby="scraped-list-heading"
           >
@@ -196,34 +284,54 @@ export function ScrapedItemsPage({
               </label>
             </div>
             {visible.length ? (
-              <ul className="scraped-list">
-                {visible.map((item) => (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      className="scraped-list__item"
-                      aria-current={item.id === selectedId ? 'true' : undefined}
-                      onClick={() => select(item.id)}
-                    >
-                      <span className="scraped-list__title">
-                        {item.baseName ?? item.baseId}
-                      </span>
-                      <span className="scraped-hint">{usedBy(item)}</span>
-                      <span className="scraped-hint">
-                        {item.role === 'base'
-                          ? 'Starting base'
-                          : 'Finished output'}{' '}
-                        · {item.recipes.length} recipe
-                        {item.recipes.length === 1 ? '' : 's'}
-                        {item.modifiers.length
-                          ? ` · ${item.modifiers.length} modifier${item.modifiers.length === 1 ? '' : 's'}`
-                          : ''}
-                      </span>
-                      <span className="scraped-hint">{describe(item)}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <div
+                className="scraped-list-scroll"
+                role="region"
+                aria-label="Search results"
+                tabIndex={0}
+              >
+                <ul className="scraped-list" ref={listRef}>
+                  {visible.map((item) => {
+                    const evidence = listingEvidence(item);
+                    return (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          data-item-id={item.id}
+                          className="scraped-list__item"
+                          aria-current={
+                            item.id === selectedId ? 'true' : undefined
+                          }
+                          onClick={() => select(item.id)}
+                        >
+                          <span className="scraped-list__title">
+                            {scrapedSearchName(item)}
+                          </span>
+                          <span className="scraped-hint">{usedBy(item)}</span>
+                          <span className="scraped-hint">
+                            {item.role === 'base'
+                              ? 'Starting base'
+                              : 'Finished output'}{' '}
+                            · {item.recipes.length} recipe
+                            {item.recipes.length === 1 ? '' : 's'}
+                            {item.modifiers.length
+                              ? ` · ${item.modifiers.length} modifier${item.modifiers.length === 1 ? '' : 's'}`
+                              : ''}
+                          </span>
+                          <span className="scraped-hint">{describe(item)}</span>
+                          <span
+                            className={`scraped-evidence scraped-evidence--${evidence.tone}`}
+                            title={evidence.detail}
+                          >
+                            <evidence.Icon aria-hidden="true" />
+                            {evidence.label}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             ) : (
               <p className="scraped-hint">No search matches this filter.</p>
             )}

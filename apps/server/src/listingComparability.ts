@@ -97,14 +97,29 @@ const helmetBases = z
   );
 for (const name of helmetBases.bases) baseClasses.set(name, 'Helmet');
 const categoryClasses = {
-  'armour.boots': 'Boots',
-  'armour.gloves': 'Gloves',
-  'armour.helmet': 'Helmet',
-  'accessory.ring': 'Ring',
+  'armour.boots': ['Boots'],
+  'armour.gloves': ['Gloves'],
+  'armour.helmet': ['Helmet'],
+  'accessory.ring': ['Ring'],
+  'accessory.belt': ['Belt'],
+  'armour.chest': ['Body Armour', 'BodyArmour'],
+  'armour.shield': ['Shield'],
+  'armour.quiver': ['Quiver'],
+  'weapon.bow': ['Bow'],
+  'weapon.wand': ['Wand'],
+  'jewel.cluster': ['Jewel', 'Cluster Jewel'],
+  flask: [
+    'Flask',
+    'Life Flask',
+    'Mana Flask',
+    'Hybrid Flask',
+    'Utility Flask',
+    'Critical Utility Flask',
+  ],
 } as const;
 const knownClasses = new Set([
   ...baseClasses.values(),
-  ...Object.values(categoryClasses),
+  ...Object.values(categoryClasses).flat(),
 ]);
 function listingClass(item: {
   baseType?: string | undefined;
@@ -151,8 +166,21 @@ export function compareListingItems(
       check(
         'item category',
         actual,
-        actual === categoryClasses[target.tradeSearch.category],
+        actual !== undefined &&
+          (
+            categoryClasses[target.tradeSearch.category] as readonly string[]
+          ).includes(actual),
       );
+      if (target.tradeSearch.category === 'jewel.cluster')
+        check(
+          'cluster base',
+          item.baseType,
+          [
+            'Small Cluster Jewel',
+            'Medium Cluster Jewel',
+            'Large Cluster Jewel',
+          ].includes(item.baseType ?? ''),
+        );
       const canonicalClass = item.baseType
         ? baseClasses.get(item.baseType)
         : undefined;

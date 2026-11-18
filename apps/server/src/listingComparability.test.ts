@@ -301,6 +301,33 @@ describe('finished-item category comparability', () => {
       ).toEqual(['MATCH', 'REJECT']);
     },
   );
+  it.each([
+    ['accessory.belt', 'Stygian Vise', 'Belt'],
+    ['armour.chest', 'Vaal Regalia', 'Body Armour'],
+    ['armour.shield', 'Fossilised Spirit Shield', 'Shield'],
+    ['armour.quiver', 'Broadhead Arrow Quiver', 'Quiver'],
+    ['weapon.bow', 'Spine Bow', 'Bow'],
+    ['weapon.wand', 'Convoking Wand', 'Wand'],
+    ['jewel.cluster', 'Large Cluster Jewel', 'Jewel'],
+    ['flask', 'Quicksilver Flask', 'Flask'],
+  ])(
+    'checks configured %s categories against structured item evidence',
+    (category, baseType, itemClass) => {
+      expect(
+        compare(category, [
+          { ...item, baseType, itemClass },
+          { ...item, baseType: 'Amethyst Ring', itemClass: 'Ring' },
+        ]).rows.map(({ status }) => status),
+      ).toEqual(['MATCH', 'REJECT']);
+    },
+  );
+  it('does not accept an ordinary jewel for a cluster-only category', () => {
+    expect(
+      compare('jewel.cluster', [
+        { ...item, baseType: 'Cobalt Jewel', itemClass: 'Jewel' },
+      ]).rows[0]?.status,
+    ).toBe('REJECT');
+  });
   it('resolves exact official helmet bases and ignores contradictory structured class', () => {
     expect(
       compare('armour.helmet', [
