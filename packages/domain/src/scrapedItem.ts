@@ -13,6 +13,7 @@ export const scrapedItemMarketCategories = [
   'accessory.ring',
   'armour.gloves',
   'armour.boots',
+  'armour.helmet',
 ] as const;
 
 /** Influences the Trade site can filter on. */

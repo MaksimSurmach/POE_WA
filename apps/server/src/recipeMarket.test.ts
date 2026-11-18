@@ -286,35 +286,41 @@ describe('recipe market dependencies', () => {
     }
   });
 
-  it('carries an explicitly base-independent output category to its handbook and wire query', async () => {
-    const recipe = fixtureRecipe({
-      ...canonicalRecipeFixture,
-      category: 'ring',
-      tags: ['base-independent'],
-    });
-    const spec = scrapedItemSpecFromRecipe(recipe, 'output');
-    const result = await compileScrapedItemQuery(
-      trade,
-      'output',
-      spec,
-      'Fixture League',
-    );
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(
-      recipeQueryTarget(result.query.query.handbookTarget).tradeSearch,
-    ).toMatchObject({ category: 'accessory.ring' });
-    expect(result.query.query).toMatchObject({
-      query: {
-        filters: {
-          type_filters: { filters: { category: { option: 'accessory.ring' } } },
+  it.each([
+    ['ring', 'accessory.ring'],
+    ['helmet', 'armour.helmet'],
+  ])(
+    'carries an explicitly base-independent %s output category to its handbook and wire query',
+    async (category, option) => {
+      const recipe = fixtureRecipe({
+        ...canonicalRecipeFixture,
+        category,
+        tags: ['base-independent'],
+      });
+      const spec = scrapedItemSpecFromRecipe(recipe, 'output');
+      const result = await compileScrapedItemQuery(
+        trade,
+        'output',
+        spec,
+        'Fixture League',
+      );
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(
+        recipeQueryTarget(result.query.query.handbookTarget).tradeSearch,
+      ).toMatchObject({ category: option });
+      expect(result.query.query).toMatchObject({
+        query: {
+          filters: {
+            type_filters: { filters: { category: { option } } },
+          },
         },
-      },
-    });
-    expect(
-      (result.query.query.query as Record<string, unknown>).type,
-    ).toBeUndefined();
-  });
+      });
+      expect(
+        (result.query.query.query as Record<string, unknown>).type,
+      ).toBeUndefined();
+    },
+  );
 
   it('preserves comparable listing depth before seller deduplication without changing catalog pricing', async () => {
     const targetQuery = (await query(canonicalRecipeFixture))!;

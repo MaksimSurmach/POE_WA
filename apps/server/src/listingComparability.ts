@@ -79,6 +79,7 @@ const baseClasses = new Map(
 const categoryClasses = {
   'armour.boots': 'Boots',
   'armour.gloves': 'Gloves',
+  'armour.helmet': 'Helmet',
   'accessory.ring': 'Ring',
 } as const;
 const knownClasses = new Set([

@@ -405,10 +405,8 @@ export function ScrapedItemEditor({
                           {
                             'accessory.ring': 'All rings',
                             'armour.helmet': 'All helmets',
-                            'armour.chest': 'All body armour',
                             'armour.gloves': 'All gloves',
                             'armour.boots': 'All boots',
-                            'armour.shield': 'All shields',
                           }[category]
                         }
                       </option>

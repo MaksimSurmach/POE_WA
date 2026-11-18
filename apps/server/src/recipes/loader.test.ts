@@ -26,6 +26,32 @@ async function write(r: string, name: string, value: unknown) {
   await writeFile(path.join(r, 'cluster-jewel', name), JSON.stringify(value));
 }
 describe('canonical Git JSON recipe loader', () => {
+  it('retains irrecoverable native implicit requirements when acquiring essence bases', async () => {
+    const catalog = await loadRecipeCatalog(
+      fileURLToPath(new URL('../../../../recipes/', import.meta.url)),
+    );
+    for (const id of [
+      'week-one-apothecarys-gloves-greed',
+      'week-one-fingerless-silk-gloves-woe',
+      'week-one-spiked-gloves-zeal',
+      'week-one-gripped-gloves-zeal',
+      'week-one-bone-helmet-greed',
+    ]) {
+      const recipe = catalog.find((r) => r.definition.id === id)?.definition;
+      expect(recipe, id).toBeDefined();
+      expect(recipe!.target.implicits, id).toHaveLength(1);
+      for (const implicit of recipe!.target.implicits) {
+        const start = recipe!.craft.startingMods.find(
+          (mod) => mod.kind === implicit.kind && mod.modId === implicit.modId,
+        );
+        expect(start, `${id}: required implicit`).toMatchObject({
+          minimumValue: implicit.minimumValue,
+        });
+        expect(start).not.toHaveProperty('maximumValue');
+      }
+    }
+  });
+
   it('loads category directories deterministically and ignores hidden files and obsolete Markdown', async () => {
     const r = await root();
     await write(r, 'b.json', {

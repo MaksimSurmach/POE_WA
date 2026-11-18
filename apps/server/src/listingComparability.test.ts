@@ -288,6 +288,7 @@ describe('finished-item category comparability', () => {
   });
   it.each([
     ['armour.gloves', 'Velour Gloves', 'Sorcerer Boots'],
+    ['armour.helmet', "Lich's Circlet", 'Sorcerer Boots'],
     ['accessory.ring', 'Opal Ring', 'Warlock Gloves'],
   ])(
     'supports only the actual production %s class policy',

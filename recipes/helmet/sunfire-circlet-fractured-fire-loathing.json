@@ -13,7 +13,8 @@
     "fractured",
     "reservation",
     "mana",
-    "life"
+    "life",
+    "base-independent"
   ],
   "base": {
     "baseId": "base:sunfire-circlet",

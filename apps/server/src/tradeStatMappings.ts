@@ -486,6 +486,19 @@ Object.assign(tradeStatMappings, {
     key: 'local_physical_damage',
     text: '#% increased Physical Damage',
   },
+  'fractured.stat_1509134228': {
+    key: 'local_physical_damage',
+    text: '#% increased Physical Damage',
+  },
+  'fractured.stat_1940865751': {
+    key: 'local_added_physical_damage',
+    text: 'Adds # to # Physical Damage',
+    valueMode: 'average',
+  },
+  'fractured.stat_210067635': {
+    key: 'local_attack_speed',
+    text: '#% increased Attack Speed',
+  },
   'explicit.stat_1940865751': {
     key: 'local_added_physical_damage',
     text: 'Adds # to # Physical Damage',

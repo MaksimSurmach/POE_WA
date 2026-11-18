@@ -6,8 +6,14 @@ import {
   createMarketTarget,
   createImportedMarketSnapshot,
 } from '../marketResearch.js';
-import { comparableRecipeListings } from '../recipeMarket.js';
-import { analyzeListingComparability } from '../listingComparability.js';
+import {
+  comparableRecipeListings,
+  recipeQueryTarget,
+} from '../recipeMarket.js';
+import {
+  analyzeListingComparability,
+  compareListingItems,
+} from '../listingComparability.js';
 import { generateMarketTradeQuery } from '../marketTradeQuery.js';
 import {
   TradeCompatibleTransport,
@@ -406,6 +412,55 @@ describe('Trade-compatible queries and transport', () => {
       ).item.mods,
     ).toContainEqual({ id: 'explicit.stat_1509134228', value: 118 });
   });
+
+  it.each([0, 1, 2, 3])(
+    'recognizes the observed fractured local modifier in item %i',
+    async (index) => {
+      const { fixtures } = JSON.parse(
+        await readFile(
+          new URL(
+            './fixtures/tradeCompatible/fetch.fractured-local-modern.json',
+            import.meta.url,
+          ),
+          'utf8',
+        ),
+      );
+      expect(fixtures).toHaveLength(4);
+      const fixture = fixtures[index];
+      const target = recipeQueryTarget(JSON.stringify(fixture.handbookTarget));
+      const envelope = rawTradeListing('redacted-fractured-fixture');
+      const raw = {
+        ...envelope,
+        item: fixture.item,
+        listing: { ...envelope.listing, price: fixture.originalPrice },
+      };
+      const row = normalizeTradeCompatibleListing(raw, target);
+      expect(row.item.mods).toContainEqual(fixture.expectedCanonicalModifier);
+      expect(
+        compareListingItems(target, {
+          currency: fixture.originalPrice.currency,
+          listings: [{ ...row, currency: fixture.originalPrice.currency }],
+        })[0]?.status,
+      ).toBe('MATCH');
+      if (index === 0) {
+        const base = normalizeTradeCompatibleListing(raw, {
+          ...target,
+          slot: 'starting-base',
+        });
+        expect(base.item.mods).toContainEqual({
+          id: 'explicit.stat_1509134228',
+          value: 47,
+          tier: 4,
+        });
+        expect(base.item.mods).not.toContainEqual(
+          expect.objectContaining({
+            id: 'explicit.stat_1509134228',
+            value: 207,
+          }),
+        );
+      }
+    },
+  );
 
   it('keeps duplicate same-origin evidence ambiguous instead of increasing its accepted value', () => {
     const target = { ...tradeTarget(), slot: 'crafted-item' };

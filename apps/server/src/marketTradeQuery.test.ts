@@ -25,7 +25,7 @@ const input = {
   },
 };
 describe('category-scoped Trade search', () => {
-  it.each(['armour.boots', 'armour.gloves', 'accessory.ring'])(
+  it.each(['armour.boots', 'armour.gloves', 'accessory.ring', 'armour.helmet'])(
     'uses the supported %s category without pinning a base',
     (category) => {
       const target = createMarketTarget({
@@ -53,7 +53,7 @@ describe('category-scoped Trade search', () => {
     expect(() =>
       createMarketTarget({
         ...input,
-        tradeSearch: { ...input.tradeSearch, category: 'armour.helmet' },
+        tradeSearch: { ...input.tradeSearch, category: 'armour.chest' },
       }),
     ).toThrow(/target profile is invalid/);
   });
