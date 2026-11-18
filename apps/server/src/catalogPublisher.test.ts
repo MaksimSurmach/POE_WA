@@ -467,6 +467,10 @@ describe('catalog evaluation and publication', () => {
         status: 'success',
       });
       expect(Number(report.evaluations[0]?.profit)).toBeGreaterThan(0);
+      expect(report.evaluations[0]?.methodCost).toMatchObject({
+        outputInputAt: now.toISOString(),
+        outputExpiresAt: new Date(now.getTime() + 300_000).toISOString(),
+      });
       if (materialId === 'chaos-orb')
         expect(report.evaluations[0]?.methodCost).toMatchObject({
           steps: [

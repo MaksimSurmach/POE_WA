@@ -428,6 +428,38 @@ function collectorEvaluation(
     method.craftInputAt &&
     result.expectedCraftCost !== null &&
     !expired(method.craftExpiresAt, method.craftInputAt);
+  // A fresh output ask survives expired craft inputs only with a proven quote lifetime.
+  const source = method?.source;
+  const outputOnly =
+    stale &&
+    method &&
+    source &&
+    !freshCraftCost &&
+    maximumQuoteAgeMs !== undefined &&
+    method.outputInputAt &&
+    method.outputExpiresAt &&
+    Date.parse(method.outputInputAt) <= Date.parse(source.capturedAt) &&
+    !expired(method.outputExpiresAt, method.outputInputAt) &&
+    result.estimatedSalePrice !== null &&
+    method.saleEvidence.status === 'accepted' &&
+    source.coverage === 'complete' &&
+    source.currencyAvailable &&
+    Date.parse(source.capturedAt) <= now &&
+    Date.parse(source.capturedAt) + maximumQuoteAgeMs > now
+      ? {
+          oldestInputAt: method.oldestInputAt,
+          expiresAt: method.expiresAt,
+          source,
+          marketStatus: 'priced' as const,
+          saleEvidence: {
+            ...method.saleEvidence,
+            reason:
+              method.saleEvidence.reason ??
+              'The craft inputs expired. The output ask is still fresh.',
+          },
+          budget: null,
+        }
+      : undefined;
   const methodCost = !stale
     ? method
     : freshCraftCost
@@ -440,7 +472,7 @@ function collectorEvaluation(
               'The output quote expired. The verified craft inputs are still fresh.',
           },
         }
-      : null;
+      : (outputOnly ?? null);
   return {
     ...result,
     methodCost,
@@ -449,8 +481,9 @@ function collectorEvaluation(
       !stale && result.status === 'success' ? row.evaluatedAt : null,
     ...(stale
       ? {
-          status: 'stale',
-          estimatedSalePrice: null,
+          confidence: outputOnly ? 'low' : result.confidence,
+          status: outputOnly ? 'partial' : 'stale',
+          estimatedSalePrice: outputOnly ? result.estimatedSalePrice : null,
           expectedCraftCost: freshCraftCost ? result.expectedCraftCost : null,
           marginPercent: null,
           profit: null,

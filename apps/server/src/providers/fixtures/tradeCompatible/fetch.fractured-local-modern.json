@@ -30,59 +30,17 @@
         "extended": {
           "hashes": {
             "crafted": [
-              [
-                "crafted.stat_1535626285",
-                [
-                  0
-                ]
-              ],
-              [
-                "crafted.stat_2375316951",
-                [
-                  0
-                ]
-              ]
+              ["crafted.stat_1535626285", [0]],
+              ["crafted.stat_2375316951", [0]]
             ],
             "explicit": [
-              [
-                "explicit.stat_1509134228",
-                [
-                  1
-                ]
-              ],
-              [
-                "explicit.stat_1940865751",
-                [
-                  0
-                ]
-              ],
-              [
-                "explicit.stat_210067635",
-                [
-                  2
-                ]
-              ],
-              [
-                "explicit.stat_821021828",
-                [
-                  3
-                ]
-              ],
-              [
-                "explicit.stat_691932474",
-                [
-                  1
-                ]
-              ]
+              ["explicit.stat_1509134228", [1]],
+              ["explicit.stat_1940865751", [0]],
+              ["explicit.stat_210067635", [2]],
+              ["explicit.stat_821021828", [3]],
+              ["explicit.stat_691932474", [1]]
             ],
-            "fractured": [
-              [
-                "fractured.stat_1509134228",
-                [
-                  0
-                ]
-              ]
-            ]
+            "fractured": [["fractured.stat_1509134228", [0]]]
           }
         },
         "typeLine": "Spine Bow",
@@ -97,42 +55,22 @@
           {
             "name": "Quality",
             "type": 6,
-            "values": [
-              [
-                "+20%",
-                1
-              ]
-            ]
+            "values": [["+20%", 1]]
           },
           {
             "name": "Physical Damage",
             "type": 9,
-            "values": [
-              [
-                "269-682",
-                1
-              ]
-            ]
+            "values": [["269-682", 1]]
           },
           {
             "name": "Critical Strike Chance",
             "type": 12,
-            "values": [
-              [
-                "7.99%",
-                1
-              ]
-            ]
+            "values": [["7.99%", 1]]
           },
           {
             "name": "Attacks per Second",
             "type": 13,
-            "values": [
-              [
-                "1.65",
-                1
-              ]
-            ]
+            "values": [["1.65", 1]]
           }
         ],
         "explicitMods": [
@@ -234,9 +172,7 @@
         "league": "Covens",
         "patch": "3.30.0",
         "slot": "crafted-item",
-        "baseTypes": [
-          "Spine Bow"
-        ],
+        "baseTypes": ["Spine Bow"],
         "builds": [],
         "requiredMods": [],
         "corrupted": false,
@@ -297,53 +233,16 @@
         "baseType": "Spine Bow",
         "extended": {
           "hashes": {
-            "crafted": [
-              [
-                "crafted.stat_2375316951",
-                [
-                  0
-                ]
-              ]
-            ],
+            "crafted": [["crafted.stat_2375316951", [0]]],
             "explicit": [
-              [
-                "explicit.stat_2843100721",
-                [
-                  1
-                ]
-              ],
-              [
-                "explicit.stat_3988349707",
-                [
-                  3
-                ]
-              ],
-              [
-                "explicit.stat_1940865751",
-                [
-                  0
-                ]
-              ],
-              [
-                "explicit.stat_210067635",
-                [
-                  2
-                ]
-              ]
+              ["explicit.stat_2843100721", [1]],
+              ["explicit.stat_3988349707", [3]],
+              ["explicit.stat_1940865751", [0]],
+              ["explicit.stat_210067635", [2]]
             ],
             "fractured": [
-              [
-                "fractured.stat_1509134228",
-                [
-                  0
-                ]
-              ],
-              [
-                "fractured.stat_3885634897",
-                [
-                  0
-                ]
-              ]
+              ["fractured.stat_1509134228", [0]],
+              ["fractured.stat_3885634897", [0]]
             ]
           }
         },
@@ -359,42 +258,22 @@
           {
             "name": "Quality",
             "type": 6,
-            "values": [
-              [
-                "+3%",
-                1
-              ]
-            ]
+            "values": [["+3%", 1]]
           },
           {
             "name": "Physical Damage",
             "type": 9,
-            "values": [
-              [
-                "168-412",
-                1
-              ]
-            ]
+            "values": [["168-412", 1]]
           },
           {
             "name": "Critical Strike Chance",
             "type": 12,
-            "values": [
-              [
-                "7.73%",
-                1
-              ]
-            ]
+            "values": [["7.73%", 1]]
           },
           {
             "name": "Attacks per Second",
             "type": 13,
-            "values": [
-              [
-                "1.65",
-                1
-              ]
-            ]
+            "values": [["1.65", 1]]
           }
         ],
         "explicitMods": [
@@ -486,9 +365,7 @@
         "league": "Covens",
         "patch": "3.30.0",
         "slot": "crafted-item",
-        "baseTypes": [
-          "Spine Bow"
-        ],
+        "baseTypes": ["Spine Bow"],
         "builds": [],
         "requiredMods": [],
         "corrupted": false,
@@ -559,48 +436,14 @@
         "baseType": "Spine Bow",
         "extended": {
           "hashes": {
-            "crafted": [
-              [
-                "crafted.stat_2375316951",
-                [
-                  0
-                ]
-              ]
-            ],
+            "crafted": [["crafted.stat_2375316951", [0]]],
             "explicit": [
-              [
-                "explicit.stat_1509134228",
-                [
-                  0
-                ]
-              ],
-              [
-                "explicit.stat_210067635",
-                [
-                  1
-                ]
-              ],
-              [
-                "explicit.stat_691932474",
-                [
-                  3
-                ]
-              ],
-              [
-                "explicit.stat_387439868",
-                [
-                  2
-                ]
-              ]
+              ["explicit.stat_1509134228", [0]],
+              ["explicit.stat_210067635", [1]],
+              ["explicit.stat_691932474", [3]],
+              ["explicit.stat_387439868", [2]]
             ],
-            "fractured": [
-              [
-                "fractured.stat_1940865751",
-                [
-                  0
-                ]
-              ]
-            ]
+            "fractured": [["fractured.stat_1940865751", [0]]]
           }
         },
         "typeLine": "Spine Bow",
@@ -615,42 +458,22 @@
           {
             "name": "Quality",
             "type": 6,
-            "values": [
-              [
-                "+21%",
-                1
-              ]
-            ]
+            "values": [["+21%", 1]]
           },
           {
             "name": "Physical Damage",
             "type": 9,
-            "values": [
-              [
-                "262-653",
-                1
-              ]
-            ]
+            "values": [["262-653", 1]]
           },
           {
             "name": "Critical Strike Chance",
             "type": 12,
-            "values": [
-              [
-                "8.19%",
-                1
-              ]
-            ]
+            "values": [["8.19%", 1]]
           },
           {
             "name": "Attacks per Second",
             "type": 13,
-            "values": [
-              [
-                "1.61",
-                1
-              ]
-            ]
+            "values": [["1.61", 1]]
           }
         ],
         "explicitMods": [
@@ -729,9 +552,7 @@
         "league": "Covens",
         "patch": "3.30.0",
         "slot": "crafted-item",
-        "baseTypes": [
-          "Spine Bow"
-        ],
+        "baseTypes": ["Spine Bow"],
         "builds": [],
         "requiredMods": [],
         "corrupted": false,
@@ -802,42 +623,13 @@
         "baseType": "Thicket Bow",
         "extended": {
           "hashes": {
-            "crafted": [
-              [
-                "crafted.stat_3382807662",
-                [
-                  0
-                ]
-              ]
-            ],
+            "crafted": [["crafted.stat_3382807662", [0]]],
             "explicit": [
-              [
-                "explicit.stat_2843100721",
-                [
-                  2
-                ]
-              ],
-              [
-                "explicit.stat_2027269580",
-                [
-                  0
-                ]
-              ],
-              [
-                "explicit.stat_3759663284",
-                [
-                  1
-                ]
-              ]
+              ["explicit.stat_2843100721", [2]],
+              ["explicit.stat_2027269580", [0]],
+              ["explicit.stat_3759663284", [1]]
             ],
-            "fractured": [
-              [
-                "fractured.stat_210067635",
-                [
-                  0
-                ]
-              ]
-            ]
+            "fractured": [["fractured.stat_210067635", [0]]]
           }
         },
         "typeLine": "Thicket Bow",
@@ -852,42 +644,22 @@
           {
             "name": "Quality",
             "type": 6,
-            "values": [
-              [
-                "+20%",
-                1
-              ]
-            ]
+            "values": [["+20%", 1]]
           },
           {
             "name": "Physical Damage",
             "type": 9,
-            "values": [
-              [
-                "38-115",
-                1
-              ]
-            ]
+            "values": [["38-115", 1]]
           },
           {
             "name": "Critical Strike Chance",
             "type": 12,
-            "values": [
-              [
-                "5.00%",
-                0
-              ]
-            ]
+            "values": [["5.00%", 0]]
           },
           {
             "name": "Attacks per Second",
             "type": 13,
-            "values": [
-              [
-                "1.79",
-                1
-              ]
-            ]
+            "values": [["1.79", 1]]
           }
         ],
         "explicitMods": [
@@ -956,9 +728,7 @@
         "league": "Covens",
         "patch": "3.30.0",
         "slot": "crafted-item",
-        "baseTypes": [
-          "Thicket Bow"
-        ],
+        "baseTypes": ["Thicket Bow"],
         "builds": [],
         "requiredMods": [],
         "corrupted": false,

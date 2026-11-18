@@ -761,13 +761,13 @@ export async function evaluateFreshRecipe(
     ...usedTradeMaterials.map((m) => m.expiresAt?.getTime() ?? Infinity),
     craftInputAt + maximumQuoteAgeMs,
   );
-  const oldestInputAt = Math.min(
-    craftInputAt,
+  const outputInputAt = Math.min(
     output?.snapshotCapturedAt.getTime() ?? Infinity,
     output?.currencyAvailable
       ? (output.conversionAt?.getTime() ?? Infinity)
       : Infinity,
   );
+  const oldestInputAt = Math.min(craftInputAt, outputInputAt);
   const expiresAt = Math.min(
     craftExpiresAt,
     output?.snapshotExpiresAt.getTime() ?? Infinity,
@@ -834,6 +834,13 @@ export async function evaluateFreshRecipe(
     craftExpiresAt: new Date(craftExpiresAt).toISOString(),
     ...(output
       ? {
+          outputInputAt: new Date(outputInputAt).toISOString(),
+          outputExpiresAt: new Date(
+            Math.min(
+              output.snapshotExpiresAt.getTime(),
+              outputInputAt + maximumQuoteAgeMs,
+            ),
+          ).toISOString(),
           source: {
             capturedAt: output.snapshotCapturedAt.toISOString(),
             sampleSize: output.aggregation.sampleSize,
