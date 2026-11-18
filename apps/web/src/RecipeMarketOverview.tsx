@@ -14,12 +14,7 @@ import { TurnoverMap } from './TurnoverMap.js';
 
 export function marketRecipePoint(entry: CatalogEntry) {
   const readiness = entry.readiness;
-  // Collector asks remain useful before craft costs or profit are verified.
-  const price = readiness
-    ? readiness.fresh
-      ? (readiness.currentAskRange?.min ?? null)
-      : null
-    : observedAsk(entry);
+  const price = observedAsk(entry);
   return {
     id: entry.recipe.id,
     name: entry.recipe.title,

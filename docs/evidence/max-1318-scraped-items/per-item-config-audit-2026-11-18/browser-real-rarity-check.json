@@ -1,0 +1,22 @@
+{
+  "verifiedOn": "2026-11-18",
+  "sourceHeadAtInspection": "2246b6a",
+  "surface": "Existing local127.0.0.1:5173 frontend with normal5181API and actualPG copy; read-only computer-use inspection",
+  "checks": {
+    "physicalJaggedRecipeAction": "Use one Jagged Fossil in a one-socket resonator on the same rare base of exactly item level83.",
+    "physicalRareProfile": "d6552cc1-ee71-4397-8652-e622d9a6ba61",
+    "raritySelected": "Rare",
+    "linkedMethods": [
+      "physical-large-cluster-chaos",
+      "physical-large-cluster-jagged"
+    ],
+    "bothLinksStatus": "Matches its recipe",
+    "currentCaptureReported": 545,
+    "currentCaptureFetched": 20,
+    "currentCaptureCoverage": "Partial",
+    "physicalNormalProfile": "c5b0301c-e75e-4216-ac5f-1241891ce984",
+    "normalRaritySelected": "Normal",
+    "normalOnlyMethod": "physical-large-cluster-alteration"
+  },
+  "limits": "No settings save or new worker request in this UI inspection; actual mutations/retests have separate API/database receipts. No new visual/layout claim."
+}

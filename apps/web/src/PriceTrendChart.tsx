@@ -71,7 +71,7 @@ export function describeTrend(trend: RecipeTrend) {
   const summary = trend.summary;
   if (!summary)
     return trend.state === 'unavailable'
-      ? 'История цен недоступна до определения текущей лиги.'
+      ? 'Price history is unavailable until the current league is known.'
       : 'No independent ask observations have been recorded for this recipe yet.';
   const latest = `Latest cheapest ask ${formatAmount(summary.latestAsk, summary.currency)}, observed ${formatUtc(summary.latestObservedAt)}.`;
   if (summary.windowObservations === 0)
@@ -140,7 +140,13 @@ function path(points: { x: number; y: number }[]) {
     .join(' ');
 }
 
-export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
+export function PriceTrendChart({
+  trend,
+  mode = 'line',
+}: {
+  trend: RecipeTrend;
+  mode?: 'line' | 'candles';
+}) {
   const container = useRef<HTMLElement>(null);
   const [width, setWidth] = useState(640);
   useEffect(() => {
@@ -165,6 +171,15 @@ export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
   const currency = summary.currency;
   const s = scale(trend, width);
   const window = observedWindow(trend);
+  const candleWidth = Math.max(
+    1,
+    Math.min(
+      8,
+      (((width - pad.left - pad.right) * trend.bucketSeconds * 1000) /
+        (window.end - window.start)) *
+        0.7,
+    ),
+  );
   const axisDate =
     window.end - window.start <= 48 * 3600_000
       ? new Intl.DateTimeFormat('en-GB', {
@@ -229,6 +244,25 @@ export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
           </text>
         </g>
         <g aria-hidden="true">
+          {mode === 'candles'
+            ? trend.buckets.map((bucket) => (
+                <rect
+                  key={`candle-${bucket.start}`}
+                  x={s.x(bucket) - candleWidth / 2}
+                  y={Math.min(s.y(bucket.open), s.y(bucket.close))}
+                  width={candleWidth}
+                  height={Math.max(
+                    1,
+                    Math.abs(s.y(bucket.open) - s.y(bucket.close)),
+                  )}
+                  fill={
+                    bucket.close >= bucket.open
+                      ? 'var(--success)'
+                      : 'var(--danger)'
+                  }
+                />
+              ))
+            : null}
           {trend.buckets
             .filter((bucket) => bucket.high > bucket.low)
             .map((bucket) => (
@@ -261,34 +295,38 @@ export function PriceTrendChart({ trend }: { trend: RecipeTrend }) {
                 r={3}
               />
             ))}
-          {runs
-            .filter((run) => run.length > 1)
-            .map((run) => (
-              <path
-                className="trend-chart__ask"
-                d={path(run.map((b) => ({ x: s.x(b), y: s.y(b.close) })))}
-                key={`ask-${run[0]!.start}`}
-              />
-            ))}
-          {trend.buckets.map((bucket) => (
-            <circle
-              className={
-                (bucket.minComparableSellers ?? 0) < 2
-                  ? 'trend-chart__point trend-chart__point--thin'
-                  : 'trend-chart__point'
-              }
-              cx={s.x(bucket)}
-              cy={s.y(bucket.close)}
-              key={`point-${bucket.start}`}
-              r={3.5}
-            />
-          ))}
+          {mode === 'line'
+            ? runs
+                .filter((run) => run.length > 1)
+                .map((run) => (
+                  <path
+                    className="trend-chart__ask"
+                    d={path(run.map((b) => ({ x: s.x(b), y: s.y(b.close) })))}
+                    key={`ask-${run[0]!.start}`}
+                  />
+                ))
+            : null}
+          {mode === 'line'
+            ? trend.buckets.map((bucket) => (
+                <circle
+                  className={
+                    (bucket.minComparableSellers ?? 0) < 2
+                      ? 'trend-chart__point trend-chart__point--thin'
+                      : 'trend-chart__point'
+                  }
+                  cx={s.x(bucket)}
+                  cy={s.y(bucket.close)}
+                  key={`point-${bucket.start}`}
+                  r={3.5}
+                />
+              ))
+            : null}
         </g>
       </svg>
       <figcaption className="trend-chart__legend">
         <span>Recorded span within {trend.range} · UTC</span>
         <span className="trend-chart__key trend-chart__key--ask">
-          Cheapest ask (close)
+          {mode === 'candles' ? 'Asking price OHLC' : 'Cheapest ask (close)'}
         </span>
         {trend.buckets.some((bucket) => bucket.craftCost !== null) ? (
           <span className="trend-chart__key trend-chart__key--cost">

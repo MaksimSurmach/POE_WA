@@ -1,5 +1,5 @@
 {
-  "id": "93be25e6-0cfb-40fb-9009-cbc07257a619",
+  "id": "2ca3e709-5ba0-45a9-b73f-eb757f1ed5e8",
   "prevId": "03d67380-9426-4c4b-a9d6-5b7c38448323",
   "version": "7",
   "dialect": "postgresql",
@@ -168,8 +168,12 @@
           "name": "aggregated_observations_market_query_id_market_queries_id_fk",
           "tableFrom": "aggregated_observations",
           "tableTo": "market_queries",
-          "columnsFrom": ["market_query_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "market_query_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -177,8 +181,12 @@
           "name": "aggregated_observations_league_id_poe_leagues_id_fk",
           "tableFrom": "aggregated_observations",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -186,8 +194,12 @@
           "name": "aggregated_observations_refresh_cycle_id_refresh_cycles_id_fk",
           "tableFrom": "aggregated_observations",
           "tableTo": "refresh_cycles",
-          "columnsFrom": ["refresh_cycle_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "refresh_cycle_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -291,8 +303,12 @@
           "name": "belt_price_updates_target_id_market_targets_id_fk",
           "tableFrom": "belt_price_updates",
           "tableTo": "market_targets",
-          "columnsFrom": ["target_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "target_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -381,8 +397,12 @@
           "name": "canonical_entities_game_data_version_id_game_data_versions_id_fk",
           "tableFrom": "canonical_entities",
           "tableTo": "game_data_versions",
-          "columnsFrom": ["game_data_version_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "game_data_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -390,7 +410,11 @@
       "compositePrimaryKeys": {
         "canonical_entities_game_data_version_id_entity_kind_canonical_id_pk": {
           "name": "canonical_entities_game_data_version_id_entity_kind_canonical_id_pk",
-          "columns": ["game_data_version_id", "entity_kind", "canonical_id"]
+          "columns": [
+            "game_data_version_id",
+            "entity_kind",
+            "canonical_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -549,8 +573,12 @@
           "name": "captures_schedule_id_collector_schedule_id_fk",
           "tableFrom": "captures",
           "tableTo": "collector_schedule",
-          "columnsFrom": ["schedule_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "schedule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -649,8 +677,12 @@
           "name": "catalog_state_published_cycle_id_refresh_cycles_id_fk",
           "tableFrom": "catalog_state",
           "tableTo": "refresh_cycles",
-          "columnsFrom": ["published_cycle_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "published_cycle_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -658,8 +690,12 @@
           "name": "catalog_state_previous_cycle_id_refresh_cycles_id_fk",
           "tableFrom": "catalog_state",
           "tableTo": "refresh_cycles",
-          "columnsFrom": ["previous_cycle_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "previous_cycle_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -715,25 +751,6 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
-        },
-        "scraping_priority": {
-          "name": "scraping_priority",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "settled_with_error": {
-          "name": "settled_with_error",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "settled_cycle_id": {
-          "name": "settled_cycle_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
         },
         "next_due_at": {
           "name": "next_due_at",
@@ -836,8 +853,12 @@
           "name": "collector_schedule_league_id_poe_leagues_id_fk",
           "tableFrom": "collector_schedule",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1037,82 +1058,6 @@
       },
       "isRLSEnabled": false
     },
-    "public.collector_trade_pool": {
-      "name": "collector_trade_pool",
-      "schema": "",
-      "columns": {
-        "league_id": {
-          "name": "league_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "priority": {
-          "name": "priority",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "period_minutes": {
-          "name": "period_minutes",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "cycle_id": {
-          "name": "cycle_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "started_at": {
-          "name": "started_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "paused_at": {
-          "name": "paused_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "members": {
-          "name": "members",
-          "type": "uuid[]",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "collector_trade_pool_league_id_poe_leagues_id_fk": {
-          "name": "collector_trade_pool_league_id_poe_leagues_id_fk",
-          "tableFrom": "collector_trade_pool",
-          "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "collector_trade_pool_league_id_priority_pk": {
-          "name": "collector_trade_pool_league_id_priority_pk",
-          "columns": ["league_id", "priority"]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "trade_pool_valid": {
-          "name": "trade_pool_valid",
-          "value": "\"collector_trade_pool\".\"priority\" between 1 and 7 and \"collector_trade_pool\".\"period_minutes\" > 0"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "public.craft_outcome_models": {
       "name": "craft_outcome_models",
       "schema": "",
@@ -1234,8 +1179,12 @@
           "name": "craft_outcome_models_recipe_id_recipes_id_fk",
           "tableFrom": "craft_outcome_models",
           "tableTo": "recipes",
-          "columnsFrom": ["recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1243,8 +1192,12 @@
           "name": "craft_outcome_models_league_id_poe_leagues_id_fk",
           "tableFrom": "craft_outcome_models",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1429,8 +1382,12 @@
           "name": "craft_risk_runs_model_id_craft_outcome_models_id_fk",
           "tableFrom": "craft_risk_runs",
           "tableTo": "craft_outcome_models",
-          "columnsFrom": ["model_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "model_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1438,8 +1395,12 @@
           "name": "craft_risk_runs_recipe_id_recipes_id_fk",
           "tableFrom": "craft_risk_runs",
           "tableTo": "recipes",
-          "columnsFrom": ["recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1447,8 +1408,12 @@
           "name": "craft_risk_runs_league_id_poe_leagues_id_fk",
           "tableFrom": "craft_risk_runs",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1532,8 +1497,12 @@
           "name": "factory_batches_recipe_id_recipes_id_fk",
           "tableFrom": "factory_batches",
           "tableTo": "recipes",
-          "columnsFrom": ["recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1541,8 +1510,12 @@
           "name": "factory_batches_league_id_poe_leagues_id_fk",
           "tableFrom": "factory_batches",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1633,8 +1606,12 @@
           "name": "factory_events_batch_id_factory_batches_id_fk",
           "tableFrom": "factory_events",
           "tableTo": "factory_batches",
-          "columnsFrom": ["batch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "batch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1692,8 +1669,12 @@
           "name": "factory_mutations_batch_id_factory_batches_id_fk",
           "tableFrom": "factory_mutations",
           "tableTo": "factory_batches",
-          "columnsFrom": ["batch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "batch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2028,8 +2009,12 @@
           "name": "jobs_refresh_cycle_id_refresh_cycles_id_fk",
           "tableFrom": "jobs",
           "tableTo": "refresh_cycles",
-          "columnsFrom": ["refresh_cycle_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "refresh_cycle_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2037,8 +2022,12 @@
           "name": "jobs_recipe_id_recipes_id_fk",
           "tableFrom": "jobs",
           "tableTo": "recipes",
-          "columnsFrom": ["recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2046,8 +2035,12 @@
           "name": "jobs_market_query_id_market_queries_id_fk",
           "tableFrom": "jobs",
           "tableTo": "market_queries",
-          "columnsFrom": ["market_query_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "market_query_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2227,8 +2220,12 @@
           "name": "listing_events_schedule_id_collector_schedule_id_fk",
           "tableFrom": "listing_events",
           "tableTo": "collector_schedule",
-          "columnsFrom": ["schedule_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "schedule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2236,8 +2233,12 @@
           "name": "listing_events_capture_id_captures_id_fk",
           "tableFrom": "listing_events",
           "tableTo": "captures",
-          "columnsFrom": ["capture_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "capture_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2453,8 +2454,12 @@
           "name": "listings_schedule_id_collector_schedule_id_fk",
           "tableFrom": "listings",
           "tableTo": "collector_schedule",
-          "columnsFrom": ["schedule_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "schedule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2462,8 +2467,12 @@
           "name": "listings_first_capture_id_captures_id_fk",
           "tableFrom": "listings",
           "tableTo": "captures",
-          "columnsFrom": ["first_capture_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "first_capture_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2471,8 +2480,12 @@
           "name": "listings_last_capture_id_captures_id_fk",
           "tableFrom": "listings",
           "tableTo": "captures",
-          "columnsFrom": ["last_capture_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "last_capture_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2480,7 +2493,10 @@
       "compositePrimaryKeys": {
         "listings_schedule_id_item_id_pk": {
           "name": "listings_schedule_id_item_id_pk",
-          "columns": ["schedule_id", "item_id"]
+          "columns": [
+            "schedule_id",
+            "item_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -2874,8 +2890,12 @@
           "name": "market_collection_requests_target_id_market_targets_id_fk",
           "tableFrom": "market_collection_requests",
           "tableTo": "market_targets",
-          "columnsFrom": ["target_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "target_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2883,8 +2903,12 @@
           "name": "market_collection_requests_run_id_market_collection_runs_id_fk",
           "tableFrom": "market_collection_requests",
           "tableTo": "market_collection_runs",
-          "columnsFrom": ["run_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "run_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -3031,8 +3055,12 @@
           "name": "market_collection_runs_target_id_market_targets_id_fk",
           "tableFrom": "market_collection_runs",
           "tableTo": "market_targets",
-          "columnsFrom": ["target_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "target_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -3136,8 +3164,12 @@
           "name": "market_collection_settings_target_id_market_targets_id_fk",
           "tableFrom": "market_collection_settings",
           "tableTo": "market_targets",
-          "columnsFrom": ["target_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "target_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3309,8 +3341,12 @@
           "name": "market_economy_attempts_snapshot_id_market_economy_snapshots_id_fk",
           "tableFrom": "market_economy_attempts",
           "tableTo": "market_economy_snapshots",
-          "columnsFrom": ["snapshot_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "snapshot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -3555,8 +3591,12 @@
           "name": "market_queries_recipe_id_recipes_id_fk",
           "tableFrom": "market_queries",
           "tableTo": "recipes",
-          "columnsFrom": ["recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -3681,8 +3721,12 @@
           "name": "market_research_snapshots_target_id_market_targets_id_fk",
           "tableFrom": "market_research_snapshots",
           "tableTo": "market_targets",
-          "columnsFrom": ["target_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "target_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -4076,7 +4120,10 @@
       "compositePrimaryKeys": {
         "provider_circuits_provider_endpoint_pk": {
           "name": "provider_circuits_provider_endpoint_pk",
-          "columns": ["provider", "endpoint"]
+          "columns": [
+            "provider",
+            "endpoint"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -4200,8 +4247,12 @@
           "name": "provider_mappings_game_data_version_id_game_data_versions_id_fk",
           "tableFrom": "provider_mappings",
           "tableTo": "game_data_versions",
-          "columnsFrom": ["game_data_version_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "game_data_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -4285,8 +4336,12 @@
           "name": "rate_limit_endpoint_policies_policy_rate_limit_states_policy_fk",
           "tableFrom": "rate_limit_endpoint_policies",
           "tableTo": "rate_limit_states",
-          "columnsFrom": ["policy"],
-          "columnsTo": ["policy"],
+          "columnsFrom": [
+            "policy"
+          ],
+          "columnsTo": [
+            "policy"
+          ],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         }
@@ -4541,8 +4596,12 @@
           "name": "raw_snapshots_market_query_id_market_queries_id_fk",
           "tableFrom": "raw_snapshots",
           "tableTo": "market_queries",
-          "columnsFrom": ["market_query_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "market_query_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -4550,8 +4609,12 @@
           "name": "raw_snapshots_league_id_poe_leagues_id_fk",
           "tableFrom": "raw_snapshots",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -4559,8 +4622,12 @@
           "name": "raw_snapshots_refresh_cycle_id_refresh_cycles_id_fk",
           "tableFrom": "raw_snapshots",
           "tableTo": "refresh_cycles",
-          "columnsFrom": ["refresh_cycle_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "refresh_cycle_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -4803,8 +4870,12 @@
           "name": "recipe_evaluations_recipe_id_recipes_id_fk",
           "tableFrom": "recipe_evaluations",
           "tableTo": "recipes",
-          "columnsFrom": ["recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -4812,8 +4883,12 @@
           "name": "recipe_evaluations_league_id_poe_leagues_id_fk",
           "tableFrom": "recipe_evaluations",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -4821,8 +4896,12 @@
           "name": "recipe_evaluations_refresh_cycle_id_refresh_cycles_id_fk",
           "tableFrom": "recipe_evaluations",
           "tableTo": "refresh_cycles",
-          "columnsFrom": ["refresh_cycle_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "refresh_cycle_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -4830,8 +4909,12 @@
           "name": "recipe_evaluations_observation_id_aggregated_observations_id_fk",
           "tableFrom": "recipe_evaluations",
           "tableTo": "aggregated_observations",
-          "columnsFrom": ["observation_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "observation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -5006,8 +5089,12 @@
           "name": "recipe_price_daily_recipe_id_recipes_id_fk",
           "tableFrom": "recipe_price_daily",
           "tableTo": "recipes",
-          "columnsFrom": ["recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -5015,8 +5102,12 @@
           "name": "recipe_price_daily_league_id_poe_leagues_id_fk",
           "tableFrom": "recipe_price_daily",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -5266,8 +5357,12 @@
           "name": "recipe_price_observations_recipe_id_recipes_id_fk",
           "tableFrom": "recipe_price_observations",
           "tableTo": "recipes",
-          "columnsFrom": ["recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -5275,8 +5370,12 @@
           "name": "recipe_price_observations_league_id_poe_leagues_id_fk",
           "tableFrom": "recipe_price_observations",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -5341,8 +5440,12 @@
           "name": "recipe_results_recipe_id_recipes_id_fk",
           "tableFrom": "recipe_results",
           "tableTo": "recipes",
-          "columnsFrom": ["recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -5350,8 +5453,12 @@
           "name": "recipe_results_league_id_poe_leagues_id_fk",
           "tableFrom": "recipe_results",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -5359,7 +5466,10 @@
       "compositePrimaryKeys": {
         "recipe_results_recipe_id_league_id_pk": {
           "name": "recipe_results_recipe_id_league_id_pk",
-          "columns": ["recipe_id", "league_id"]
+          "columns": [
+            "recipe_id",
+            "league_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -5681,8 +5791,12 @@
           "name": "refresh_cycles_league_id_poe_leagues_id_fk",
           "tableFrom": "refresh_cycles",
           "tableTo": "poe_leagues",
-          "columnsFrom": ["league_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -5721,6 +5835,24 @@
         },
         "recipe_id": {
           "name": "recipe_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scraped_item_id": {
+          "name": "scraped_item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scraped_item_revision": {
+          "name": "scraped_item_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "schedule_key": {
+          "name": "schedule_key",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -5773,6 +5905,12 @@
               "asc": true,
               "isExpression": true,
               "nulls": "last"
+            },
+            {
+              "expression": "coalesce(\"scraped_item_id\"::text || ':' || \"scraped_item_revision\"::text, '')",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
             }
           ],
           "isUnique": true,
@@ -5787,8 +5925,25 @@
           "name": "run_requests_recipe_id_recipes_id_fk",
           "tableFrom": "run_requests",
           "tableTo": "recipes",
-          "columnsFrom": ["recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "run_requests_scraped_item_id_scraped_items_id_fk": {
+          "name": "run_requests_scraped_item_id_scraped_items_id_fk",
+          "tableFrom": "run_requests",
+          "tableTo": "scraped_items",
+          "columnsFrom": [
+            "scraped_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -5799,11 +5954,274 @@
       "checkConstraints": {
         "run_requests_scope_recipe_check": {
           "name": "run_requests_scope_recipe_check",
-          "value": "(\"run_requests\".\"scope\" = 'all' and \"run_requests\".\"recipe_id\" is null)\n        or (\"run_requests\".\"scope\" = 'recipe' and \"run_requests\".\"recipe_id\" is not null)"
+          "value": "(\"run_requests\".\"scope\" = 'all' and \"run_requests\".\"recipe_id\" is null and \"run_requests\".\"scraped_item_id\" is null)\n        or (\"run_requests\".\"scope\" = 'recipe' and \"run_requests\".\"recipe_id\" is not null and \"run_requests\".\"scraped_item_id\" is null)\n        or (\"run_requests\".\"scope\" = 'item' and \"run_requests\".\"recipe_id\" is null and \"run_requests\".\"scraped_item_id\" is not null\n          and \"run_requests\".\"scraped_item_revision\" is not null and \"run_requests\".\"schedule_key\" is not null)"
         },
         "run_requests_state_check": {
           "name": "run_requests_state_check",
           "value": "\"run_requests\".\"state\" in ('queued', 'running', 'done', 'failed')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.scraped_item_recipes": {
+      "name": "scraped_item_recipes",
+      "schema": "",
+      "columns": {
+        "recipe_id": {
+          "name": "recipe_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "item_id": {
+          "name": "item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "authored_digest": {
+          "name": "authored_digest",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "linked_at": {
+          "name": "linked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "scraped_item_recipes_item_idx": {
+          "name": "scraped_item_recipes_item_idx",
+          "columns": [
+            {
+              "expression": "item_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "scraped_item_recipes_recipe_id_recipes_id_fk": {
+          "name": "scraped_item_recipes_recipe_id_recipes_id_fk",
+          "tableFrom": "scraped_item_recipes",
+          "tableTo": "recipes",
+          "columnsFrom": [
+            "recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "scraped_item_recipes_item_role_fk": {
+          "name": "scraped_item_recipes_item_role_fk",
+          "tableFrom": "scraped_item_recipes",
+          "tableTo": "scraped_items",
+          "columnsFrom": [
+            "item_id",
+            "role"
+          ],
+          "columnsTo": [
+            "id",
+            "role"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "scraped_item_recipes_recipe_id_role_pk": {
+          "name": "scraped_item_recipes_recipe_id_role_pk",
+          "columns": [
+            "recipe_id",
+            "role"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.scraped_item_revisions": {
+      "name": "scraped_item_revisions",
+      "schema": "",
+      "columns": {
+        "item_id": {
+          "name": "item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "spec": {
+          "name": "spec",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cause": {
+          "name": "cause",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "changed_at": {
+          "name": "changed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "scraped_item_revisions_item_id_scraped_items_id_fk": {
+          "name": "scraped_item_revisions_item_id_scraped_items_id_fk",
+          "tableFrom": "scraped_item_revisions",
+          "tableTo": "scraped_items",
+          "columnsFrom": [
+            "item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "scraped_item_revisions_item_id_revision_pk": {
+          "name": "scraped_item_revisions_item_id_revision_pk",
+          "columns": [
+            "item_id",
+            "revision"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "scraped_item_revisions_cause_check": {
+          "name": "scraped_item_revisions_cause_check",
+          "value": "\"scraped_item_revisions\".\"cause\" in ('seed', 'edit', 'link', 'unlink')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.scraped_items": {
+      "name": "scraped_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "spec": {
+          "name": "spec",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "origin": {
+          "name": "origin",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'recipe'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "scraped_items_id_role_uq": {
+          "name": "scraped_items_id_role_uq",
+          "columns": [
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "role",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "scraped_items_role_check": {
+          "name": "scraped_items_role_check",
+          "value": "\"scraped_items\".\"role\" in ('base', 'output')"
+        },
+        "scraped_items_origin_check": {
+          "name": "scraped_items_origin_check",
+          "value": "\"scraped_items\".\"origin\" in ('recipe', 'owner')"
+        },
+        "scraped_items_revision_check": {
+          "name": "scraped_items_revision_check",
+          "value": "\"scraped_items\".\"revision\" >= 1"
         }
       },
       "isRLSEnabled": false

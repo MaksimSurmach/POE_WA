@@ -1,5 +1,5 @@
 import type { RecipeResult } from './recipeResult.js';
-import type { RateLimitWindow } from '@poe-worksmith/domain';
+import type { RateLimitWindow, ScrapedItemSpec } from '@poe-worksmith/domain';
 import type { MarketAdminSettings } from '@poe-worksmith/contracts';
 import type {
   MarketTarget,
@@ -16,6 +16,7 @@ import {
   bigserial,
   boolean,
   check,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -1358,12 +1359,92 @@ export const collectorSchedule = pgTable(
   ],
 );
 
+/**
+ * Owner-editable requirements for one scraped search. Independent of recipe
+ * content hashes and of the global provider mappings, so neither a recipe sync
+ * nor a mapping import can overwrite an edit.
+ */
+export const scrapedItems = pgTable(
+  'scraped_items',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    role: text('role').notNull(),
+    spec: jsonb('spec').$type<ScrapedItemSpec>().notNull(),
+    // Bumped by every edit and recipe link change; stale writers are rejected.
+    revision: integer('revision').default(1).notNull(),
+    origin: text('origin').default('recipe').notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex('scraped_items_id_role_uq').on(table.id, table.role),
+    check('scraped_items_role_check', sql`${table.role} in ('base', 'output')`),
+    check(
+      'scraped_items_origin_check',
+      sql`${table.origin} in ('recipe', 'owner')`,
+    ),
+    check('scraped_items_revision_check', sql`${table.revision} >= 1`),
+  ],
+);
+
+export const scrapedItemRevisions = pgTable(
+  'scraped_item_revisions',
+  {
+    itemId: uuid('item_id')
+      .notNull()
+      .references(() => scrapedItems.id, { onDelete: 'cascade' }),
+    revision: integer('revision').notNull(),
+    spec: jsonb('spec').$type<ScrapedItemSpec>().notNull(),
+    cause: text('cause').notNull(),
+    changedAt: timestamp('changed_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.itemId, table.revision] }),
+    check(
+      'scraped_item_revisions_cause_check',
+      sql`${table.cause} in ('seed', 'edit', 'link', 'unlink')`,
+    ),
+  ],
+);
+
+/** Which scraped item a recipe's base or output search uses. */
+export const scrapedItemRecipes = pgTable(
+  'scraped_item_recipes',
+  {
+    recipeId: text('recipe_id')
+      .notNull()
+      .references(() => recipes.id),
+    role: text('role').notNull(),
+    itemId: uuid('item_id').notNull(),
+    // Digest of the recipe's authored requirement when it was linked; a later
+    // difference means the recipe changed while the configured item won.
+    authoredDigest: text('authored_digest').notNull(),
+    linkedAt: timestamp('linked_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.recipeId, table.role] }),
+    foreignKey({
+      columns: [table.itemId, table.role],
+      foreignColumns: [scrapedItems.id, scrapedItems.role],
+      name: 'scraped_item_recipes_item_role_fk',
+    }),
+    index('scraped_item_recipes_item_idx').on(table.itemId),
+  ],
+);
+
 export const runRequests = pgTable(
   'run_requests',
   {
     id: uuid('id').defaultRandom().primaryKey(),
     scope: text('scope').notNull(),
     recipeId: text('recipe_id').references(() => recipes.id),
+    // An 'item' request tests one scraped item at one configuration revision.
+    scrapedItemId: uuid('scraped_item_id').references(() => scrapedItems.id),
+    scrapedItemRevision: integer('scraped_item_revision'),
+    scheduleKey: text('schedule_key'),
     requestedAt: timestamp('requested_at', { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -1374,12 +1455,21 @@ export const runRequests = pgTable(
   },
   (table) => [
     uniqueIndex('run_requests_active_scope_recipe_uq')
-      .on(table.scope, sql`coalesce(${table.recipeId}, '')`)
+      .on(
+        table.scope,
+        sql`coalesce(${table.recipeId}, '')`,
+        sql`coalesce(${table.scrapedItemId}::text || ':' || ${table.scrapedItemRevision}::text, '')`,
+        // The same item and revision can be searched under different league or
+        // mapping hashes; each is its own request.
+        sql`coalesce(${table.scheduleKey}, '')`,
+      )
       .where(sql`${table.state} in ('queued', 'running')`),
     check(
       'run_requests_scope_recipe_check',
-      sql`(${table.scope} = 'all' and ${table.recipeId} is null)
-        or (${table.scope} = 'recipe' and ${table.recipeId} is not null)`,
+      sql`(${table.scope} = 'all' and ${table.recipeId} is null and ${table.scrapedItemId} is null)
+        or (${table.scope} = 'recipe' and ${table.recipeId} is not null and ${table.scrapedItemId} is null)
+        or (${table.scope} = 'item' and ${table.recipeId} is null and ${table.scrapedItemId} is not null
+          and ${table.scrapedItemRevision} is not null and ${table.scheduleKey} is not null)`,
     ),
     check(
       'run_requests_state_check',
@@ -1571,6 +1661,10 @@ export const recipeResults = pgTable(
       .notNull()
       .references(() => poeLeagues.id),
     recipeContentHash: text('recipe_content_hash').notNull(),
+    // The scraped-item requirements this result was computed from. Null marks a
+    // result published before requirements were configurable, which is current
+    // only while the recipe still uses its authored requirements.
+    scrapedIdentity: text('scraped_identity'),
     evaluatedAt: timestamp('evaluated_at', { withTimezone: true }).notNull(),
     result: jsonb('result').$type<RecipeResult>().notNull(),
   },

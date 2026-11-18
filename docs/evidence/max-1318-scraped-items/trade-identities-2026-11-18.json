@@ -1,0 +1,1431 @@
+{
+  "checkedAt": "2026-11-18",
+  "sources": [
+    "https://www.pathofexile.com/api/trade/data/stats",
+    "https://www.pathofexile.com/api/trade/data/items",
+    "https://www.pathofexile.com/api/trade/data/static"
+  ],
+  "scope": "Current public Trade identity subset used by the preserved deployed recipe catalogue. Identity evidence only; no affix weights, probabilities, prices or profit claim.",
+  "stats": [
+    {
+      "id": "pseudo.pseudo_total_resistance",
+      "text": "+#% total Resistance",
+      "type": "pseudo"
+    },
+    {
+      "id": "explicit.stat_3299347043",
+      "text": "+# to maximum Life",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3372524247",
+      "text": "+#% to Fire Resistance",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1050105434",
+      "text": "+# to maximum Mana",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_4220027924",
+      "text": "+#% to Cold Resistance",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3489782002",
+      "text": "+# to maximum Energy Shield",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1509134228",
+      "text": "#% increased Physical Damage",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2250533757",
+      "text": "#% increased Movement Speed",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_210067635",
+      "text": "#% increased Attack Speed (Local)",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2923486259",
+      "text": "+#% to Chaos Resistance",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_4052037485",
+      "text": "+# to maximum Energy Shield (Local)",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1940865751",
+      "text": "Adds # to # Physical Damage (Local)",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_681332047",
+      "text": "#% increased Attack Speed",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1256719186",
+      "text": "#% increased Duration",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1589917703",
+      "text": "Minions deal #% increased Damage",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3680664274",
+      "text": "+#% chance to Suppress Spell Damage",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_4237190083",
+      "text": "#% increased Mana Reservation Efficiency of Skills",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2448920197",
+      "text": "#% increased effect",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3005472710",
+      "text": "#% chance to Avoid Elemental Ailments",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3182498570",
+      "text": "#% increased Movement Speed during Effect",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2027269580",
+      "text": "+# to Level of Socketed Bow Gems",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2162097452",
+      "text": "+# to Level of all Minion Skill Gems",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1152182658",
+      "text": "1 Added Passive Skill is Martial Prowess",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3599340381",
+      "text": "1 Added Passive Skill is Fuel the Fight",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2342448236",
+      "text": "1 Added Passive Skill is Prismatic Heart",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1678643716",
+      "text": "1 Added Passive Skill is Widespread Destruction",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_540300548",
+      "text": "1 Added Passive Skill is Smite the Weak",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_124131830",
+      "text": "+# to Level of all Spell Skill Gems",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3944525413",
+      "text": "1 Added Passive Skill is Feed the Fury",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3640252904",
+      "text": "1 Added Passive Skill is Heavy Hitter",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3391925584",
+      "text": "1 Added Passive Skill is Pressure Points",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_4186213466",
+      "text": "1 Added Passive Skill is Unholy Grace",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3084359503",
+      "text": "1 Added Passive Skill is Basics of Pain",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1616734644",
+      "text": "1 Added Passive Skill is Wicked Pall",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1595367309",
+      "text": "1 Added Passive Skill is Snowstorm",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_567971948",
+      "text": "1 Added Passive Skill is Vicious Skewering",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2780712583",
+      "text": "1 Added Passive Skill is Touch of Cruelty",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3638731729",
+      "text": "1 Added Passive Skill is Sadist",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_664010431",
+      "text": "1 Added Passive Skill is Veteran Defender",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2442647190",
+      "text": "Recover #% of Life when you Block",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2322980282",
+      "text": "1 Added Passive Skill is Smoking Remains",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2043284086",
+      "text": "1 Added Passive Skill is Enduring Composure",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2337273077",
+      "text": "1 Added Passive Skill is Life from Death",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3212859169",
+      "text": "1 Added Passive Skill is Arcing Shot",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2195406641",
+      "text": "1 Added Passive Skill is Lead By Example",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2194205899",
+      "text": "1 Added Passive Skill is Grim Oath",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_3967845372",
+      "text": "Curse Enemies with Vulnerability on Hit",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2631806437",
+      "text": "1 Added Passive Skill is Tempered Arrowheads",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2068574831",
+      "text": "1 Added Passive Skill is Brutal Infamy",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1353571444",
+      "text": "1 Added Passive Skill is Fettle",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2350900742",
+      "text": "1 Added Passive Skill is Grand Design",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1048879642",
+      "text": "1 Added Passive Skill is Mob Mentality",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_691431951",
+      "text": "1 Added Passive Skill is Remarkable",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_2028847114",
+      "text": "Curse Enemies with Elemental Weakness on Hit",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.stat_1424794574",
+      "text": "1 Added Passive Skill is Blessed Rebirth",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.indexable_support_98",
+      "text": "Socketed Gems are Supported by Level # Concentrated Effect",
+      "type": "explicit"
+    },
+    {
+      "id": "explicit.indexable_support_68",
+      "text": "Socketed Gems are Supported by Level # Burning Damage",
+      "type": "explicit"
+    },
+    {
+      "id": "implicit.stat_2974417149",
+      "text": "#% increased Spell Damage",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_3299347043",
+      "text": "+# to maximum Life",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_2923486259",
+      "text": "+#% to Chaos Resistance",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_1589917703",
+      "text": "Minions deal #% increased Damage",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_1002362373",
+      "text": "#% increased Melee Damage",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_2162876159",
+      "text": "#% increased Projectile Attack Damage",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_3988349707",
+      "text": "+#% to Damage over Time Multiplier",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_4101445926",
+      "text": "#% increased Mana Cost Efficiency",
+      "type": "implicit"
+    },
+    {
+      "id": "implicit.stat_425242359",
+      "text": "#% of Physical Damage from Hits taken as Lightning Damage",
+      "type": "implicit"
+    },
+    {
+      "id": "fractured.stat_3372524247",
+      "text": "+#% to Fire Resistance",
+      "type": "fractured"
+    },
+    {
+      "id": "fractured.stat_2923486259",
+      "text": "+#% to Chaos Resistance",
+      "type": "fractured"
+    },
+    {
+      "id": "fractured.stat_3680664274",
+      "text": "+#% chance to Suppress Spell Damage",
+      "type": "fractured"
+    },
+    {
+      "id": "fractured.stat_3091578504",
+      "text": "Minions have #% increased Attack and Cast Speed",
+      "type": "fractured"
+    },
+    {
+      "id": "enchant.stat_3086156145",
+      "text": "Adds # Passive Skills",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_4079888060",
+      "text": "# Added Passive Skills are Jewel Sockets",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_2448920197",
+      "text": "#% increased effect",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|29",
+      "text": "Added Small Passive Skills grant: 15% increased Critical Strike Chance",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|15",
+      "text": "Added Small Passive Skills grant: 12% increased Cold Damage",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|16",
+      "text": "Added Small Passive Skills grant: 12% increased Chaos Damage",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|13",
+      "text": "Added Small Passive Skills grant: 12% increased Fire Damage",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|39",
+      "text": "Added Small Passive Skills grant: 4% increased maximum Life",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|8",
+      "text": "Added Small Passive Skills grant: 12% increased Attack Damage while holding a Shield",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|42",
+      "text": "Added Small Passive Skills grant: 15% increased Armour",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|6",
+      "text": "Added Small Passive Skills grant: 12% increased Damage with Two Handed Weapons",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|30",
+      "text": "Added Small Passive Skills grant: Minions have 12% increased maximum Life",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|4",
+      "text": "Added Small Passive Skills grant: 12% increased Damage with Bows\nAdded Small Passive Skills grant: 12% increased Damage Over Time with Bow Skills",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|35",
+      "text": "Added Small Passive Skills grant: 12% increased Brand Damage",
+      "type": "enchant"
+    },
+    {
+      "id": "enchant.stat_3948993189|28",
+      "text": "Added Small Passive Skills grant: Exerted Attacks deal 20% increased Damage",
+      "type": "enchant"
+    },
+    {
+      "id": "crafted.stat_3372524247",
+      "text": "+#% to Fire Resistance",
+      "type": "crafted"
+    },
+    {
+      "id": "crafted.stat_280731498",
+      "text": "#% increased Area of Effect",
+      "type": "crafted"
+    },
+    {
+      "id": "crafted.stat_4080418644",
+      "text": "+# to Strength",
+      "type": "crafted"
+    },
+    {
+      "id": "crafted.stat_2551600084",
+      "text": "+# to Level of Socketed AoE Gems",
+      "type": "crafted"
+    },
+    {
+      "id": "crafted.stat_3079007202",
+      "text": "#% chance to Trigger a Socketed Spell on Using a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost",
+      "type": "crafted"
+    }
+  ],
+  "bases": [
+    {
+      "type": "Leather Belt"
+    },
+    {
+      "type": "Heavy Belt"
+    },
+    {
+      "type": "Stygian Vise"
+    },
+    {
+      "type": "Crystal Belt"
+    },
+    {
+      "type": "Amethyst Ring"
+    },
+    {
+      "type": "Vermillion Ring"
+    },
+    {
+      "type": "Crystal Belt",
+      "text": "Auxium Crystal Belt",
+      "name": "Auxium",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Bear's Girdle Leather Belt",
+      "name": "Bear's Girdle",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Belt of the Deceiver Heavy Belt",
+      "name": "Belt of the Deceiver",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Bisco's Leash Heavy Belt",
+      "name": "Bisco's Leash",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Amethyst Ring",
+      "text": "Blackflame Amethyst Ring",
+      "name": "Blackflame",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Amethyst Ring",
+      "text": "Circle of Nostalgia Amethyst Ring",
+      "name": "Circle of Nostalgia",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Amethyst Ring",
+      "text": "Coiling Whisper Amethyst Ring",
+      "name": "Coiling Whisper",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Cyclopean Coil Leather Belt",
+      "name": "Cyclopean Coil",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Stygian Vise",
+      "text": "Darkness Enthroned Stygian Vise",
+      "name": "Darkness Enthroned",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Amethyst Ring",
+      "text": "Death Rush Amethyst Ring",
+      "name": "Death Rush",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Doryani's Invitation Heavy Belt",
+      "name": "Doryani's Invitation",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Dyadian Dawn Heavy Belt",
+      "name": "Dyadian Dawn",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Vermillion Ring",
+      "text": "Enmity's Embrace Vermillion Ring",
+      "name": "Enmity's Embrace",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Gluttony Leather Belt",
+      "name": "Gluttony",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Headhunter Leather Belt",
+      "name": "Headhunter",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Hyperboreus Leather Belt",
+      "name": "Hyperboreus",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Immortal Flesh Leather Belt",
+      "name": "Immortal Flesh",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Kaom's Binding Heavy Belt",
+      "name": "Kaom's Binding",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Leash of Oblation Leather Belt",
+      "name": "Leash of Oblation",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Mageblood Heavy Belt",
+      "name": "Mageblood",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Meginord's Girdle Heavy Belt",
+      "name": "Meginord's Girdle",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Amethyst Ring",
+      "text": "Ming's Heart Amethyst Ring",
+      "name": "Ming's Heart",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Mother's Embrace Heavy Belt",
+      "name": "Mother's Embrace",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Amethyst Ring",
+      "text": "Original Sin Amethyst Ring",
+      "name": "Original Sin",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Pyroshock Clasp Leather Belt",
+      "name": "Pyroshock Clasp",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Replica Headhunter Leather Belt",
+      "name": "Replica Headhunter",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Replica Siegebreaker Heavy Belt",
+      "name": "Replica Siegebreaker",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Screams of the Desiccated Leather Belt",
+      "name": "Screams of the Desiccated",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Siegebreaker Heavy Belt",
+      "name": "Siegebreaker",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "String of Servitude Heavy Belt",
+      "name": "String of Servitude",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Heavy Belt",
+      "text": "Survivor's Guilt Heavy Belt",
+      "name": "Survivor's Guilt",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Crystal Belt",
+      "text": "The Burden of Truth Crystal Belt",
+      "name": "The Burden of Truth",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Umbilicus Immortalis Leather Belt",
+      "name": "Umbilicus Immortalis",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Leather Belt",
+      "text": "Wurm's Molt Leather Belt",
+      "name": "Wurm's Molt",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Vaal Regalia"
+    },
+    {
+      "type": "Twilight Regalia"
+    },
+    {
+      "type": "Two-Toned Boots"
+    },
+    {
+      "type": "Fugitive Boots"
+    },
+    {
+      "type": "Slink Boots"
+    },
+    {
+      "type": "Warlock Boots"
+    },
+    {
+      "type": "Gripped Gloves"
+    },
+    {
+      "type": "Fingerless Silk Gloves"
+    },
+    {
+      "type": "Spiked Gloves"
+    },
+    {
+      "type": "Apothecary's Gloves"
+    },
+    {
+      "type": "Harpyskin Gloves"
+    },
+    {
+      "type": "Velour Gloves"
+    },
+    {
+      "type": "Slink Gloves"
+    },
+    {
+      "type": "Warlock Gloves"
+    },
+    {
+      "type": "Leviathan Gauntlets"
+    },
+    {
+      "type": "Wyvernscale Gauntlets"
+    },
+    {
+      "type": "Dragonscale Gauntlets"
+    },
+    {
+      "type": "Chimerascale Gauntlets"
+    },
+    {
+      "type": "Bone Helmet"
+    },
+    {
+      "type": "Grizzly Pelt"
+    },
+    {
+      "type": "Hubris Circlet"
+    },
+    {
+      "type": "Sunfire Circlet"
+    },
+    {
+      "type": "Lich's Circlet"
+    },
+    {
+      "type": "Royal Burgonet"
+    },
+    {
+      "type": "Archdemon Crown"
+    },
+    {
+      "type": "Fossilised Spirit Shield"
+    },
+    {
+      "type": "Titanium Spirit Shield"
+    },
+    {
+      "type": "Pinnacle Tower Shield"
+    },
+    {
+      "type": "Broadhead Arrow Quiver"
+    },
+    {
+      "type": "Bone Helmet",
+      "text": "Ancient Skull Bone Helmet",
+      "name": "Ancient Skull",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Slink Boots",
+      "text": "Atziri's Step Slink Boots",
+      "name": "Atziri's Step",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Two-Toned Boots",
+      "text": "Beacon of Madness Two-Toned Boots",
+      "name": "Beacon of Madness",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Titanium Spirit Shield",
+      "text": "Bitterbind Point Titanium Spirit Shield",
+      "name": "Bitterbind Point",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Fingerless Silk Gloves",
+      "text": "Black Zenith Fingerless Silk Gloves",
+      "name": "Black Zenith",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Spiked Gloves",
+      "text": "Ceaseless Feast Spiked Gloves",
+      "name": "Ceaseless Feast",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Hubris Circlet",
+      "text": "Crown of Eyes Hubris Circlet",
+      "name": "Crown of Eyes",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Warlock Boots",
+      "text": "Doryani's Delusion Warlock Boots",
+      "name": "Doryani's Delusion",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Slink Boots",
+      "text": "Doryani's Delusion Slink Boots (Legacy)",
+      "name": "Doryani's Delusion",
+      "disc": "legacy",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Hubris Circlet",
+      "text": "Eber's Unification Hubris Circlet",
+      "name": "Eber's Unification",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Royal Burgonet",
+      "text": "Echoes of Creation Royal Burgonet",
+      "name": "Echoes of Creation",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Slink Boots",
+      "text": "Farrul's Chase Slink Boots",
+      "name": "Farrul's Chase",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Hubris Circlet",
+      "text": "Indigon Hubris Circlet",
+      "name": "Indigon",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Fugitive Boots",
+      "text": "Inextricable Fate Fugitive Boots",
+      "name": "Inextricable Fate",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Pinnacle Tower Shield",
+      "text": "Lioneye's Remorse Pinnacle Tower Shield",
+      "name": "Lioneye's Remorse",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Pinnacle Tower Shield",
+      "text": "Magna Eclipsis Pinnacle Tower Shield",
+      "name": "Magna Eclipsis",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Fossilised Spirit Shield",
+      "text": "Manastorm Fossilised Spirit Shield (Legacy)",
+      "name": "Manastorm",
+      "disc": "legacy",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Twilight Regalia",
+      "text": "Mantle of Dreams Twilight Regalia",
+      "name": "Mantle of Dreams",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Bone Helmet",
+      "text": "Maw of Mischief Bone Helmet",
+      "name": "Maw of Mischief",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Slink Gloves",
+      "text": "Mercenary's Lot Slink Gloves",
+      "name": "Mercenary's Lot",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Titanium Spirit Shield",
+      "text": "Rathpith Globe Titanium Spirit Shield",
+      "name": "Rathpith Globe",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Broadhead Arrow Quiver",
+      "text": "Rearguard Broadhead Arrow Quiver (Legacy)",
+      "name": "Rearguard",
+      "disc": "legacy",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Broadhead Arrow Quiver",
+      "text": "Scorpion's Call Broadhead Arrow Quiver (Legacy)",
+      "name": "Scorpion's Call",
+      "disc": "legacy",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Broadhead Arrow Quiver",
+      "text": "Steelworm Broadhead Arrow Quiver",
+      "name": "Steelworm",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Broadhead Arrow Quiver",
+      "text": "Steelworm Broadhead Arrow Quiver (Legacy)",
+      "name": "Steelworm",
+      "disc": "legacy",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Dragonscale Gauntlets",
+      "text": "Surgebinders Dragonscale Gauntlets",
+      "name": "Surgebinders",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Vaal Regalia",
+      "text": "The Beast Fur Shawl Vaal Regalia",
+      "name": "The Beast Fur Shawl",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Lich's Circlet",
+      "text": "The Dark Monarch Lich's Circlet",
+      "name": "The Dark Monarch",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Royal Burgonet",
+      "text": "The Formless Flame Royal Burgonet",
+      "name": "The Formless Flame",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Royal Burgonet",
+      "text": "The Formless Inferno Royal Burgonet",
+      "name": "The Formless Inferno",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Vaal Regalia",
+      "text": "The Queen's Hunger Vaal Regalia",
+      "name": "The Queen's Hunger",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Dragonscale Gauntlets",
+      "text": "Worldcarver Dragonscale Gauntlets",
+      "name": "Worldcarver",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Hubris Circlet",
+      "text": "Ylfeban's Trickery Hubris Circlet",
+      "name": "Ylfeban's Trickery",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Orb of Augmentation"
+    },
+    {
+      "type": "Exalted Orb"
+    },
+    {
+      "type": "Orb of Scouring"
+    },
+    {
+      "type": "Serrated Fossil"
+    },
+    {
+      "type": "Corroded Fossil"
+    },
+    {
+      "type": "Aberrant Fossil"
+    },
+    {
+      "type": "Prismatic Fossil"
+    },
+    {
+      "type": "Pristine Fossil"
+    },
+    {
+      "type": "Metallic Fossil"
+    },
+    {
+      "type": "Jagged Fossil"
+    },
+    {
+      "type": "Shuddering Fossil"
+    },
+    {
+      "type": "Lesser Eldritch Ember"
+    },
+    {
+      "type": "Lesser Eldritch Ichor"
+    },
+    {
+      "type": "Enkindling Orb"
+    },
+    {
+      "type": "Deafening Essence of Contempt"
+    },
+    {
+      "type": "Shrieking Essence of Dread"
+    },
+    {
+      "type": "Deafening Essence of Envy"
+    },
+    {
+      "type": "Deafening Essence of Fear"
+    },
+    {
+      "type": "Deafening Essence of Greed"
+    },
+    {
+      "type": "Deafening Essence of Loathing"
+    },
+    {
+      "type": "Deafening Essence of Woe"
+    },
+    {
+      "type": "Deafening Essence of Zeal"
+    },
+    {
+      "type": "Chaos Orb"
+    },
+    {
+      "type": "Regal Orb"
+    },
+    {
+      "type": "Primal Crystallised Lifeforce"
+    },
+    {
+      "type": "Wild Crystallised Lifeforce"
+    },
+    {
+      "type": "Potent Chaotic Resonator"
+    },
+    {
+      "type": "Powerful Chaotic Resonator"
+    },
+    {
+      "type": "Prime Chaotic Resonator"
+    },
+    {
+      "type": "Quicksilver Flask"
+    },
+    {
+      "type": "Quicksilver Flask",
+      "text": "Rotgut Quicksilver Flask",
+      "name": "Rotgut",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Large Cluster Jewel"
+    },
+    {
+      "type": "Medium Cluster Jewel"
+    },
+    {
+      "type": "Small Cluster Jewel"
+    },
+    {
+      "type": "Small Cluster Jewel",
+      "text": "Calamitous Visions Small Cluster Jewel",
+      "name": "Calamitous Visions",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Small Cluster Jewel",
+      "text": "Kitava's Teachings Small Cluster Jewel",
+      "name": "Kitava's Teachings",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Medium Cluster Jewel",
+      "text": "Megalomaniac Medium Cluster Jewel",
+      "name": "Megalomaniac",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Small Cluster Jewel",
+      "text": "Natural Affinity Small Cluster Jewel",
+      "name": "Natural Affinity",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Small Cluster Jewel",
+      "text": "One With Nothing Small Cluster Jewel",
+      "name": "One With Nothing",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Small Cluster Jewel",
+      "text": "The Front Line Small Cluster Jewel",
+      "name": "The Front Line",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Small Cluster Jewel",
+      "text": "The Interrogation Small Cluster Jewel",
+      "name": "The Interrogation",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Small Cluster Jewel",
+      "text": "The Siege Small Cluster Jewel",
+      "name": "The Siege",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Large Cluster Jewel",
+      "text": "Voices Large Cluster Jewel",
+      "name": "Voices",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Convoking Wand"
+    },
+    {
+      "type": "Thicket Bow"
+    },
+    {
+      "type": "Spine Bow"
+    },
+    {
+      "type": "Spine Bow",
+      "text": "Reach of the Council Spine Bow",
+      "name": "Reach of the Council",
+      "flags": {
+        "unique": true
+      }
+    },
+    {
+      "type": "Spine Bow",
+      "text": "Voltaxic Rift Spine Bow",
+      "name": "Voltaxic Rift",
+      "flags": {
+        "unique": true
+      }
+    }
+  ],
+  "resources": [
+    {
+      "id": "chaos",
+      "name": "Chaos Orb"
+    },
+    {
+      "id": "exalted",
+      "name": "Exalted Orb"
+    },
+    {
+      "id": "scour",
+      "name": "Orb of Scouring"
+    },
+    {
+      "id": "regal",
+      "name": "Regal Orb"
+    },
+    {
+      "id": "aug",
+      "name": "Orb of Augmentation"
+    },
+    {
+      "id": "enkindling-orb",
+      "name": "Enkindling Orb"
+    },
+    {
+      "id": "lesser-eldritch-ember",
+      "name": "Lesser Eldritch Ember"
+    },
+    {
+      "id": "lesser-eldritch-ichor",
+      "name": "Lesser Eldritch Ichor"
+    },
+    {
+      "id": "wild-lifeforce",
+      "name": "Wild Crystallised Lifeforce"
+    },
+    {
+      "id": "primal-lifeforce",
+      "name": "Primal Crystallised Lifeforce"
+    },
+    {
+      "id": "metallic-fossil",
+      "name": "Metallic Fossil"
+    },
+    {
+      "id": "jagged-fossil",
+      "name": "Jagged Fossil"
+    },
+    {
+      "id": "aberrant-fossil",
+      "name": "Aberrant Fossil"
+    },
+    {
+      "id": "pristine-fossil",
+      "name": "Pristine Fossil"
+    },
+    {
+      "id": "corroded-fossil",
+      "name": "Corroded Fossil"
+    },
+    {
+      "id": "prismatic-fossil",
+      "name": "Prismatic Fossil"
+    },
+    {
+      "id": "serrated-fossil",
+      "name": "Serrated Fossil"
+    },
+    {
+      "id": "shuddering-fossil",
+      "name": "Shuddering Fossil"
+    },
+    {
+      "id": "potent-chaotic-resonator",
+      "name": "Potent Chaotic Resonator"
+    },
+    {
+      "id": "powerful-chaotic-resonator",
+      "name": "Powerful Chaotic Resonator"
+    },
+    {
+      "id": "prime-chaotic-resonator",
+      "name": "Prime Chaotic Resonator"
+    },
+    {
+      "id": "deafening-essence-of-woe",
+      "name": "Deafening Essence of Woe"
+    },
+    {
+      "id": "deafening-essence-of-greed",
+      "name": "Deafening Essence of Greed"
+    },
+    {
+      "id": "deafening-essence-of-contempt",
+      "name": "Deafening Essence of Contempt"
+    },
+    {
+      "id": "deafening-essence-of-fear",
+      "name": "Deafening Essence of Fear"
+    },
+    {
+      "id": "deafening-essence-of-loathing",
+      "name": "Deafening Essence of Loathing"
+    },
+    {
+      "id": "deafening-essence-of-zeal",
+      "name": "Deafening Essence of Zeal"
+    },
+    {
+      "id": "shrieking-essence-of-dread",
+      "name": "Shrieking Essence of Dread"
+    },
+    {
+      "id": "deafening-essence-of-envy",
+      "name": "Deafening Essence of Envy"
+    }
+  ]
+}

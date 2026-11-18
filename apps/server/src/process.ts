@@ -12,7 +12,9 @@ import { DomainError } from '@poe-worksmith/domain';
 import {
   synchronizeCollectorSchedules,
   synchronizeStoredRecipeCatalog,
+  synchronizeTradeTargetSchedules,
 } from './recipes/synchronizeRecipes.js';
+import { createScrapedItemService } from './scrapedItems.js';
 import { runCollector } from './collector.js';
 import {
   createCollectorEconomyCache,
@@ -34,6 +36,7 @@ import { HttpPoeTradeLeagueClient, LeagueResolver } from './leagues.js';
 import { GggRateLimitController } from './rateLimitController.js';
 import { createPostgresRepositories } from './repositories/index.js';
 import { createTradeSessionRepository } from './repositories/tradeSessionRepository.js';
+import { createScrapedItemSpecResolver } from './repositories/scrapedItemRepository.js';
 import { createPostgresTradeMappingCatalog } from './tradeMappings.js';
 import {
   clusterJewelVariantFilter,
@@ -401,6 +404,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       : undefined,
     activityReader,
     activityReader ? createCollectorReadinessReader(pool) : undefined,
+    createScrapedItemSpecResolver(pool),
   );
   const research = createMarketResearchRepository(pool);
   const craftAnalysis = createCraftAnalysisService({
@@ -435,6 +439,16 @@ export async function runProcess(forcedMode?: ApplicationMode) {
         leagues: repositories.leagues,
       }),
       marketAdmin: { store: admin },
+      scrapedItems: createScrapedItemService({
+        pool,
+        presentation: presentationCatalog,
+        applySchedules: async () =>
+          (await synchronizeTradeTargetSchedules(pool)) === 'synchronized'
+            ? 'synchronized'
+            : 'deferred',
+        readCollectionsPaused: async () =>
+          (await admin.read()).effective.collectionsPaused,
+      }),
       collectorPool: pool,
       collectorSkipStandard: config.collectorSkipStandard,
       readCollectorReadiness: activityReader

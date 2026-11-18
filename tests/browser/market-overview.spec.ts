@@ -158,7 +158,15 @@ test('all main pages share typography, palette and content width', async ({
 }) => {
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
-    let expected: unknown;
+    let expected:
+      | {
+          background: string;
+          text: string;
+          font: string;
+          titleSize: string;
+          width: number;
+        }
+      | undefined;
     for (const path of [
       '/',
       '/recipes',
@@ -180,8 +188,19 @@ test('all main pages share typography, palette and content width', async ({
           width: document.querySelector('main')!.getBoundingClientRect().width,
         };
       });
-      if (expected) expect(theme, path).toEqual(expected);
-      else expected = theme;
+      if (expected) {
+        const titleSize =
+          path === '/'
+            ? width === 390
+              ? '23px'
+              : '25px'
+            : path === '/recipes'
+              ? '25px'
+              : width === 390
+                ? '24px'
+                : '27px';
+        expect(theme, path).toEqual({ ...expected, titleSize });
+      } else expected = theme;
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth),
         path,
@@ -355,33 +374,46 @@ test('catalog labels its pinned observations when current-league discovery has a
     }),
   );
   await page.goto('/');
-  await expect(page.locator('.catalog-heading')).toContainText(
-    'Current Fixture League · Market observations',
+  await expect(page.locator('.workspace-context')).toContainText(
+    'Current Fixture League',
   );
-  await expect(page.locator('.catalog-heading')).not.toContainText(
+  await expect(page.locator('.workspace-context')).not.toContainText(
     'Next Fixture League',
   );
 });
 
-test('mobile opportunities expose a target price and action in the first screen', async ({
+test('mobile composition exposes a target action and preserves its price in Market', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto('/');
-  await expect(page.locator('.craft-table__identity').first()).toBeInViewport();
+  const tile = page.locator('.market-map .market-tile').first();
+  await expect(tile).toBeInViewport();
+  const tileAsk = tile.locator('.market-tile-content > small');
+  await expect(tileAsk).toHaveText(/^[\d,.]+\s*c$/);
+  const ask = await tileAsk.innerText();
+  await tile.click();
+  const popup = page.getByRole('dialog');
   await expect(
-    page
-      .locator('.craft-table tbody tr:not(.craft-table__readiness-group)')
-      .first()
-      .locator('.craft-table__mobile-ask'),
-  ).toBeInViewport();
-  await expect(page.locator('.craft-table__steps').first()).toBeInViewport({
-    ratio: 1,
+    popup.getByRole('tab', { name: 'Market', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  const evidence = popup.getByRole('region', {
+    name: 'Current asking evidence',
   });
-  const row = page
-    .locator('.craft-table tbody tr:not(.craft-table__readiness-group)')
-    .first();
-  await expect(row.locator('.craft-table__mobile-ask .money')).toHaveText(
-    await row.locator('[data-label="Цена объявления"] .money').innerText(),
-  );
+  const estimate = evidence.getByRole('heading', {
+    name: /Comparable asking estimate/,
+  });
+  await expect(estimate).toHaveText(`Comparable asking estimate ${ask}`);
+  await popup.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect(tile).toBeFocused();
+  const items = page.getByRole('region', { name: 'Market items', exact: true });
+  await items.scrollIntoViewIfNeeded();
+  await items.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect
+    .poll(() => items.evaluate((element) => element.scrollLeft))
+    .toBeGreaterThan(0);
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
 });

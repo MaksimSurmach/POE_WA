@@ -3,7 +3,15 @@
 export const tradeMappingVersion = 'awakened-318820895742+week-one-2026-11-11';
 export const tradeStatMappings: Record<
   string,
-  { key: string; text: string; negativeText?: string; valueMode?: 'average' }
+  {
+    key: string;
+    text: string;
+    negativeText?: string;
+    valueMode?: 'average';
+    aliases?: readonly { hash: string; text: string }[];
+    // Keep historical modifier identities while using the current Trade filter.
+    queryId?: string;
+  }
 > = {
   'explicit.stat_3182498570': {
     key: 'flask_movement_speed',
@@ -300,6 +308,10 @@ Object.assign(tradeStatMappings, {
     key: 'mod:movement-speed',
     text: '#% increased Movement Speed',
   },
+  'fractured.stat_2250533757': {
+    key: 'mod:movement-speed',
+    text: '#% increased Movement Speed',
+  },
   'explicit.stat_124131830': {
     key: 'mod:spell-gems',
     text: '+# to Level of all Spell Skill Gems',
@@ -468,6 +480,10 @@ Object.assign(tradeStatMappings, {
     key: 'bow_gem_level',
     text: '+# to Level of Socketed Bow Gems',
   },
+  'fractured.stat_2027269580': {
+    key: 'bow_gem_level',
+    text: '+# to Level of Socketed Bow Gems',
+  },
   'explicit.stat_210067635': {
     key: 'local_attack_speed',
     text: '#% increased Attack Speed',
@@ -475,6 +491,23 @@ Object.assign(tradeStatMappings, {
   'explicit.stat_1509134228': {
     key: 'local_physical_damage',
     text: '#% increased Physical Damage',
+  },
+  'crafted.stat_1509134228': {
+    key: 'local_physical_damage',
+    text: '#% increased Physical Damage',
+  },
+  'fractured.stat_1509134228': {
+    key: 'local_physical_damage',
+    text: '#% increased Physical Damage',
+  },
+  'fractured.stat_1940865751': {
+    key: 'local_added_physical_damage',
+    text: 'Adds # to # Physical Damage',
+    valueMode: 'average',
+  },
+  'fractured.stat_210067635': {
+    key: 'local_attack_speed',
+    text: '#% increased Attack Speed',
   },
   'explicit.stat_1940865751': {
     key: 'local_added_physical_damage',
@@ -496,5 +529,143 @@ Object.assign(tradeStatMappings, {
   'implicit.stat_3988349707': {
     key: 'damage_over_time_multiplier',
     text: '+#% to Damage over Time Multiplier',
+  },
+});
+
+// Preserve mappings used by the running collector for current database targets.
+Object.assign(tradeStatMappings, {
+  'explicit.stat_1050105434': {
+    key: 'mana',
+    text: '+# to maximum Mana',
+  },
+  'explicit.stat_4237190083': {
+    key: 'mana_reservation_efficiency',
+    text: '#% increased Mana Reservation Efficiency of Skills',
+  },
+  'explicit.stat_3967845372': {
+    key: 'vulnerability_on_hit',
+    text: 'Curse Enemies with Vulnerability on Hit',
+  },
+  'explicit.stat_2028847114': {
+    key: 'elemental_weakness_on_hit',
+    text: 'Curse Enemies with Elemental Weakness on Hit',
+  },
+  'pseudo.pseudo_total_resistance': {
+    key: 'total_resistance',
+    text: '+#% total Resistance',
+  },
+  'explicit.indexable_support_68': {
+    key: 'burning_support',
+    text: 'Socketed Gems are Supported by Level # Burning Damage',
+    queryId: 'explicit.effect_1200122555',
+    aliases: [
+      {
+        hash: 'explicit.effect_1200122555',
+        text: 'Socketed Gems are Supported by Level # Burning Damage Support',
+      },
+    ],
+  },
+  'explicit.indexable_support_98': {
+    key: 'concentrated_support',
+    text: 'Socketed Gems are Supported by Level # Concentrated Effect',
+    queryId: 'explicit.effect_3293595800',
+    aliases: [
+      {
+        hash: 'explicit.effect_3293595800',
+        text: 'Socketed Gems are Supported by Level # Concentrated Effect Support',
+      },
+    ],
+  },
+  'explicit.stat_3091578504': {
+    key: 'minion_attack_cast_speed',
+    text: 'Minions have #% increased Attack and Cast Speed',
+  },
+  'explicit.stat_3079007202': {
+    key: 'mod:crafted-trigger-8s',
+    text: '#% chance to Trigger a Socketed Spell on Using a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost',
+  },
+  'crafted.stat_4052037485': {
+    key: 'flat-energy-shield',
+    text: '+# to maximum Energy Shield',
+  },
+  'fractured.stat_4052037485': {
+    key: 'flat-energy-shield',
+    text: '+# to maximum Energy Shield',
+  },
+  'explicit.stat_3489782002': {
+    key: 'global-flat-energy-shield',
+    text: '+# to maximum Energy Shield',
+  },
+  'crafted.stat_3489782002': {
+    key: 'global-flat-energy-shield',
+    text: '+# to maximum Energy Shield',
+  },
+  'fractured.stat_3489782002': {
+    key: 'global-flat-energy-shield',
+    text: '+# to maximum Energy Shield',
+  },
+  'enchant.stat_3948993189|35': {
+    key: 'brand-damage-small-passives',
+    text: 'Added Small Passive Skills grant: 12% increased Brand Damage',
+  },
+  'explicit.stat_691431951': {
+    key: 'mod:remarkable',
+    text: '1 Added Passive Skill is Remarkable',
+  },
+  'explicit.stat_2350900742': {
+    key: 'mod:grand-design',
+    text: '1 Added Passive Skill is Grand Design',
+  },
+  'enchant.stat_3948993189|30': {
+    key: 'minion-life-small-passives',
+    text: 'Added Small Passive Skills grant: Minions have 12% increased maximum Life',
+  },
+  'explicit.stat_1424794574': {
+    key: 'mod:blessed-rebirth',
+    text: '1 Added Passive Skill is Blessed Rebirth',
+  },
+  'explicit.stat_2337273077': {
+    key: 'mod:life-from-death',
+    text: '1 Added Passive Skill is Life from Death',
+  },
+  'enchant.stat_3948993189|28': {
+    key: 'exerted-damage-small-passives',
+    text: 'Added Small Passive Skills grant: Exerted Attacks deal 20% increased Damage',
+  },
+  'explicit.stat_1048879642': {
+    key: 'mod:mob-mentality',
+    text: '1 Added Passive Skill is Mob Mentality',
+  },
+  'explicit.stat_2195406641': {
+    key: 'mod:lead-by-example',
+    text: '1 Added Passive Skill is Lead By Example',
+  },
+  'enchant.stat_3948993189|29': {
+    key: 'critical-chance-small-passives',
+    text: 'Added Small Passive Skills grant: 15% increased Critical Strike Chance',
+  },
+  'explicit.stat_3391925584': {
+    key: 'mod:pressure-points',
+    text: '1 Added Passive Skill is Pressure Points',
+  },
+  'explicit.stat_3084359503': {
+    key: 'mod:basics-of-pain',
+    text: '1 Added Passive Skill is Basics of Pain',
+  },
+  'enchant.stat_3948993189|39': {
+    key: 'maximum-life-small-passives',
+    text: 'Added Small Passive Skills grant: 4% increased maximum Life',
+  },
+  'explicit.stat_1353571444': {
+    key: 'mod:fettle',
+    text: '1 Added Passive Skill is Fettle',
+  },
+  'enchant.stat_3948993189|42': {
+    key: 'armour-small-passives',
+    text: 'Added Small Passive Skills grant: 15% increased Armour',
+  },
+  'explicit.stat_2043284086': {
+    key: 'mod:enduring-composure',
+    text: '1 Added Passive Skill is Enduring Composure',
   },
 });

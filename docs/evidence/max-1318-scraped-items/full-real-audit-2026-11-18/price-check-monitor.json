@@ -1,0 +1,185 @@
+{
+  "attempts": [
+    {
+      "at": "2026-11-18T08:49:35.877Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T08:49:35.095Z",
+        "currentComparablePricesChecked": 22,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T08:54:37.228Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T08:54:36.430Z",
+        "currentComparablePricesChecked": 23,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T08:59:38.427Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T08:59:37.665Z",
+        "currentComparablePricesChecked": 23,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:04:39.634Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:04:38.951Z",
+        "currentComparablePricesChecked": 22,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:09:40.719Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:09:40.068Z",
+        "currentComparablePricesChecked": 20,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:14:41.773Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:14:41.136Z",
+        "currentComparablePricesChecked": 20,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:19:42.810Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:19:42.172Z",
+        "currentComparablePricesChecked": 20,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:24:43.888Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:24:43.237Z",
+        "currentComparablePricesChecked": 20,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:29:45.129Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:29:44.379Z",
+        "currentComparablePricesChecked": 23,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:34:46.173Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:34:45.480Z",
+        "currentComparablePricesChecked": 23,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:39:47.364Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:39:46.560Z",
+        "currentComparablePricesChecked": 25,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:44:48.653Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:44:47.784Z",
+        "currentComparablePricesChecked": 30,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:49:49.988Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:49:49.079Z",
+        "currentComparablePricesChecked": 32,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:54:51.488Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:54:50.421Z",
+        "currentComparablePricesChecked": 38,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T09:59:52.967Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T09:59:51.911Z",
+        "currentComparablePricesChecked": 38,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T10:04:54.450Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T10:04:53.381Z",
+        "currentComparablePricesChecked": 37,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T10:09:55.923Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T10:09:54.871Z",
+        "currentComparablePricesChecked": 38,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T10:14:57.514Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T10:14:56.350Z",
+        "currentComparablePricesChecked": 45,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T10:19:59.706Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T10:19:57.935Z",
+        "currentComparablePricesChecked": 40,
+        "mismatches": 0
+      }
+    },
+    {
+      "at": "2026-11-18T10:25:01.141Z",
+      "result": "PASS",
+      "summary": {
+        "checkedAt": "2026-11-18T10:25:00.099Z",
+        "currentComparablePricesChecked": 42,
+        "mismatches": 0
+      }
+    }
+  ],
+  "terminal": true
+}

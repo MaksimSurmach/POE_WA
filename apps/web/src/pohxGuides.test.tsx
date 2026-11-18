@@ -22,7 +22,7 @@ describe('Pohx crafting library', () => {
       }
     }
   });
-  it('keeps source guides searchable without market data or profitability assumptions', () => {
+  it('retains guide records/search helpers while excluding guides from Category Library', () => {
     expect(filterPohxGuides('totem', 'shield').map((g) => g.id)).toContain(
       'totem-shield',
     );
@@ -32,13 +32,14 @@ describe('Pohx crafting library', () => {
         <RecipeLibrary entries={catalogFixtures} />
       </MemoryRouter>,
     );
-    expect(html).toContain('RF Totem Shield');
+    expect(html).not.toContain('RF Totem Shield');
     expect(html).not.toContain('href="/recipes/physical-large-cluster');
     const offline = renderToStaticMarkup(
       <MemoryRouter>
         <RecipeLibrary entries={[]} />
       </MemoryRouter>,
     );
-    expect(offline).toContain('27 из 27');
+    expect(offline).toContain('No recipes available');
+    expect(pohxGuides.find((g) => g.id === 'totem-shield')).toBeDefined();
   });
 });

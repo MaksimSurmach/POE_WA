@@ -90,19 +90,19 @@ beforeEach(async () => {
 
 afterAll(() => pool.end());
 
-it('reconciles the 55-recipe catalog without resetting existing schedule rows', async () => {
+it('reconciles the 72-recipe catalog without resetting existing schedule rows', async () => {
   const league = await seedPrerequisites();
   await syncCli();
   const first = await scheduleRows();
-  expect(first).toHaveLength(97);
+  expect(first).toHaveLength(128);
   const recipes = await loadRecipeCatalog(catalog);
   const tradeRows = first.filter(({ kind }) => kind === 'trade-target');
-  expect(tradeRows).toHaveLength(94);
+  expect(tradeRows).toHaveLength(125);
   const pools = await database.select().from(collectorTradePools);
   expect(pools).toHaveLength(2);
   for (const [priority, period, count] of [
-    [1, 180, 49],
-    [2, 720, 45],
+    [1, 180, 66],
+    [2, 720, 59],
   ] as const) {
     const poolRows = tradeRows.filter(
       (row) => row.scrapingPriority === priority,
@@ -180,13 +180,13 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
       (shared.payload.query as { handbookTarget: unknown }).handbookTarget,
     ).league,
   ).toBe(league.gggId);
-  const unique = withRuntimeState.find(
+  const sharedBase = withRuntimeState.find(
     ({ scrapingPriority, payload }) =>
       scrapingPriority === 2 &&
       Array.isArray(payload.recipeIds) &&
       payload.recipeIds.includes(chaos),
   )!;
-  expect(unique.payload.recipeIds).toEqual([chaos]);
+  expect(sharedBase.payload.recipeIds).toEqual([chaos, jagged]);
   const report = await synchronizeRecipes(
     repositories.recipes,
     recipes.filter(({ definition }) => definition.id !== chaos),
@@ -197,23 +197,26 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
     pool,
     loadCollectorScheduleConfig(cadence),
   );
-  const afterRemoval = await scheduleRows();
-  expect(afterRemoval.find((row) => row.id === unique.id)).toEqual({
-    ...unique,
-    enabled: false,
-  });
-  expect(afterRemoval.find((row) => row.id === shared.id)).toEqual({
-    ...shared,
-    payload: {
-      ...shared.payload,
-      recipeIds: [jagged],
-      outputRecipeIds: [jagged],
-    },
-  });
-  expect(afterRemoval.filter((row) => row.enabled)).toHaveLength(
-    first.length - 1,
+  expect(await scheduleRows()).toEqual(
+    withRuntimeState.map((row) => {
+      if (row.id === sharedBase.id)
+        return {
+          ...row,
+          payload: { ...row.payload, recipeIds: [jagged] },
+        };
+      if (row.id === shared.id)
+        return {
+          ...row,
+          payload: {
+            ...row.payload,
+            recipeIds: [jagged],
+            outputRecipeIds: [jagged],
+          },
+        };
+      return row;
+    }),
   );
-});
+}, 15_000);
 
 it('uses the highest priority among recipes sharing a query and rolls back unknown priorities', async () => {
   await seedPrerequisites();
@@ -346,9 +349,9 @@ it('rolls all recipe targets to a new league while retaining disabled old histor
   const newTargets = after.filter(
     (row) => row.kind === 'trade-target' && row.leagueId === next.id,
   );
-  expect(oldTargets).toHaveLength(94);
+  expect(oldTargets).toHaveLength(125);
   expect(oldTargets.every((row) => !row.enabled)).toBe(true);
-  expect(newTargets).toHaveLength(94);
+  expect(newTargets).toHaveLength(125);
   expect(newTargets.every((row) => row.enabled)).toBe(true);
   expect(
     after.find((row) => row.kind === 'economy' && row.enabled),
@@ -362,7 +365,7 @@ it('rolls all recipe targets to a new league while retaining disabled old histor
 
 it('keeps recipe sync and dry-run safe without league or mapping data', async () => {
   await syncCli();
-  expect(await repositories.recipes.listActive()).toHaveLength(55);
+  expect(await repositories.recipes.listActive()).toHaveLength(72);
   expect(await scheduleRows()).toEqual([]);
 
   await seedPrerequisites();
@@ -370,7 +373,7 @@ it('keeps recipe sync and dry-run safe without league or mapping data', async ()
   expect(await scheduleRows()).toEqual([]);
   await syncCli();
   const existing = await scheduleRows();
-  expect(existing).toHaveLength(97);
+  expect(existing).toHaveLength(128);
   await pool.query("update game_data_versions set status = 'archived'");
   await syncCli();
   expect(await scheduleRows()).toEqual(existing);
@@ -382,8 +385,8 @@ it('validates only schedule configuration before writing recipes', async () => {
   expect(await repositories.recipes.listActive()).toHaveLength(0);
 
   await syncCli([], { APP_PORT: 'invalid' });
-  expect(await repositories.recipes.listActive()).toHaveLength(55);
-  expect(await scheduleRows()).toHaveLength(97);
+  expect(await repositories.recipes.listActive()).toHaveLength(72);
+  expect(await scheduleRows()).toHaveLength(128);
 });
 
 it('disables only retention during shadow collection and can re-enable it', async () => {

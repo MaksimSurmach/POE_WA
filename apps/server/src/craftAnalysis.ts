@@ -47,7 +47,12 @@ const evidenceSchema = z.object({
     coverage: z.string(),
     currencyAvailable: z.boolean(),
   }),
-  saleEvidence: z.object({ status: z.string() }).optional(),
+  saleEvidence: z
+    .object({
+      status: z.string(),
+      profitBlockedReason: z.string().optional(),
+    })
+    .optional(),
   materialEvidence: z
     .record(
       z.string(),
@@ -142,7 +147,8 @@ export function resolveCraftAnalysisEvidence(
       evidence.source.coverage !== 'complete' ||
       evidence.source.sampleSize < 2 ||
       !evidence.source.currencyAvailable ||
-      evidence.saleEvidence?.status !== 'accepted'
+      evidence.saleEvidence?.status !== 'accepted' ||
+      Boolean(evidence.saleEvidence.profitBlockedReason)
     )
       continue;
     const observed = Date.parse(evidence.source.capturedAt);

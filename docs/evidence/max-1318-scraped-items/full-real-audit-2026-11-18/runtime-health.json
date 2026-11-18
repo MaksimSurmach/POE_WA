@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-11-18T10:39:37.006Z",
+  "enabled": 131,
+  "due": 65,
+  "paused": false,
+  "blocked": null,
+  "cooldownUntil": null,
+  "cooldownStatus": null,
+  "pacingUntil": "2026-11-18T10:39:52.345Z",
+  "retryUntil": null,
+  "retryReason": null,
+  "leaderPresent": true,
+  "nextDueAt": "2026-11-18T10:39:52.345Z"
+}

@@ -5,6 +5,7 @@ import { syntheticOutcomeInput } from './fixtures/outcomes.js';
 import {
   calculateMethodMaterialEconomics,
   compareCraftWithAsk,
+  compareExpectedCostWithAsk,
   expectedMethodMaterialUsage,
 } from './recipeEconomics.js';
 
@@ -28,6 +29,29 @@ describe('single-method recipes', () => {
     }
   });
 
+  it('compares an already totalled Fettle estimate without charging its base twice', () => {
+    expect(
+      compareExpectedCostWithAsk({
+        expectedCost: { amount: '38.49179117', currency: 'chaos' },
+        ask: { amount: '100', currency: 'chaos' },
+      }),
+    ).toMatchObject({
+      expectedCraftCost: '38.49179117',
+      profit: '61.50820883',
+    });
+    expect(
+      compareExpectedCostWithAsk({
+        expectedCost: { amount: '0', currency: 'chaos' },
+        ask: { amount: '100', currency: 'chaos' },
+      }),
+    ).toMatchObject({ profit: '100', marginPercent: null });
+    expect(
+      compareExpectedCostWithAsk({
+        expectedCost: { amount: '50', currency: 'chaos' },
+        ask: { amount: '100', currency: 'divine' },
+      }),
+    ).toMatchObject({ profit: null, marginPercent: null });
+  });
   it('binds an embedded exact-target success to the recipe output', () => {
     const model = syntheticOutcomeInput().model;
     model.stages[0]!.outcomes[0]!.matching = {

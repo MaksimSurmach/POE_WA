@@ -3,6 +3,7 @@ import {
   domainErrorCodes,
   domainErrorDefinitions,
   errorDispositions,
+  craftFamilySchema,
 } from '@poe-worksmith/domain';
 import { z } from 'zod';
 
@@ -60,6 +61,9 @@ export const recipeSchema = z
     summary: z.string().min(1),
     category: z.string().min(1),
     craftMethod: z.string().min(1),
+    craftFamilies: z.array(craftFamilySchema).min(1).optional(),
+    methodName: z.string().min(1).optional(),
+    baseName: z.string().min(1).optional(),
     targetSignature: z.string().min(1),
     patch: z.string().min(1).optional(),
     tags: z.array(z.string().min(1)),
@@ -888,3 +892,4 @@ export * from './craftingPrices.js';
 export * from './craftAnalysis.js';
 
 export * from './factory.js';
+export * from './scrapedItems.js';

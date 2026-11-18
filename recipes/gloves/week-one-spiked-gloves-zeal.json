@@ -88,7 +88,13 @@
       "kind": "currency",
       "currency": "deafening-essence-of-zeal"
     },
-    "startingMods": [],
+    "startingMods": [
+      {
+        "kind": "implicit",
+        "modId": "mod:implicit-melee-damage",
+        "minimumValue": 24
+      }
+    ],
     "uncertainties": [
       "Starting-base acquisition must use exactly item level 82. Higher item levels can change the affix pool and require a separate cost model.",
       "3.30 affix weights and the full joint stopping condition must be checked in the updated calculator before entering probability, expected executions or base consumption.",

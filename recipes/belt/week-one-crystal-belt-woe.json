@@ -3,7 +3,7 @@
   "id": "week-one-crystal-belt-woe",
   "title": "Week 1 · Crystal Belt · ES / fire / cold",
   "category": "belt",
-  "summary": "Local Maximum Energy Shield >= 38; Fire Resistance >= 30; Cold Resistance >= 30. First-week candidate; profitability unverified.",
+  "summary": "Maximum Energy Shield >= 38; Fire Resistance >= 30; Cold Resistance >= 30. First-week candidate; profitability unverified.",
   "patch": "3.30.0",
   "gameDataVersion": "3.29.3.3",
   "tags": ["week-one", "league-start", "energy-shield", "ci", "resistances"],
@@ -40,7 +40,7 @@
       {
         "excluded": false,
         "kind": "explicit",
-        "modId": "mod:flat-energy-shield",
+        "modId": "mod:global-flat-energy-shield",
         "minimumValue": 38
       }
     ],
@@ -61,7 +61,7 @@
     "implicits": [],
     "other": []
   },
-  "targetSignature": "3.30.0:502bc5f3c8580b820327882734f09adf",
+  "targetSignature": "3.30.0:186f17f9c25470b443c800811605ad63",
   "notes": "3.30 Crystal Belt implicit is 60–100 ES. Woe guarantees 38–43 explicit ES on belts. Native implicit is retained, no Blessed Orb reroll is priced. Tier-gated base: do not assume day-one supply.",
   "verification": {
     "status": "unverified",

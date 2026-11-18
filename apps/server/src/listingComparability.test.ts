@@ -220,3 +220,109 @@ describe('belt comparability v1', () => {
     ).toBe('PARTIAL');
   });
 });
+
+describe('finished-item category comparability', () => {
+  function compare(category: string, items: object[]) {
+    const categoryTarget = createMarketTarget(
+      {
+        name: 'Equivalent finished item',
+        game: 'poe1',
+        realm: 'pc',
+        league: 'Fixture',
+        patch: 'test',
+        slot: 'crafted-item',
+        baseTypes: ['Slink Boots'],
+        builds: [],
+        requiredMods: [],
+        sources: [],
+        minItemLevel: 84,
+        tradeSearch: {
+          version: 1,
+          scope: 'strict',
+          status: 'securable',
+          currency: 'chaos',
+          rarity: 'rare',
+          category,
+          groups: [],
+        },
+      },
+      now,
+    );
+    const snap = createImportedMarketSnapshot(
+      {
+        targetId: categoryTarget.id,
+        capturedAt: now.toISOString(),
+        sourceUrl: 'https://example.com/fixture',
+        currency: 'chaos',
+        dataKind: 'demo',
+        listings: items.map((entry, index) => ({
+          externalId: String(index),
+          price: 10 + index,
+          item: entry,
+        })),
+      },
+      categoryTarget,
+      now,
+    );
+    return analyzeListingComparability(categoryTarget, snap, now.getTime());
+  }
+  it('keeps production equivalent-base searches while rejecting a known different class and retaining unknowns', () => {
+    const result = compare('armour.boots', [
+      { ...item, baseType: 'Slink Boots' },
+      { ...item, baseType: 'Sorcerer Boots' },
+      { ...item, baseType: 'Warlock Gloves' },
+      { ...item, baseType: 'Uncatalogued item' },
+      { ...item, baseType: 'Slink Boots', itemClass: 'Gloves' },
+      { ...item, baseType: 'Sorcerer Boots', itemClass: 'Unknown' },
+    ]);
+    expect(result.rows.map((row) => row.status)).toEqual([
+      'MATCH',
+      'MATCH',
+      'REJECT',
+      'PARTIAL',
+      'REJECT',
+      'PARTIAL',
+    ]);
+    expect(result.rows[3]?.reasons).toContain('item category: unknown');
+    expect(result.rows[4]?.reasons).toContain('item category: mismatch');
+  });
+  it.each([
+    ['armour.gloves', 'Velour Gloves', 'Sorcerer Boots'],
+    ['armour.helmet', "Lich's Circlet", 'Sorcerer Boots'],
+    ['accessory.ring', 'Opal Ring', 'Warlock Gloves'],
+  ])(
+    'supports only the actual production %s class policy',
+    (category, matching, other) => {
+      expect(
+        compare(category, [
+          { ...item, baseType: matching },
+          { ...item, baseType: other },
+        ]).rows.map((row) => row.status),
+      ).toEqual(['MATCH', 'REJECT']);
+    },
+  );
+  it('resolves exact official helmet bases and ignores contradictory structured class', () => {
+    expect(
+      compare('armour.helmet', [
+        { ...item, baseType: 'Prophet Crown' },
+        { ...item, baseType: 'Golden Wreath' },
+        { ...item, baseType: 'Runic Crest' },
+        { ...item, baseType: 'Uncatalogued Crown' },
+        { ...item, baseType: 'Prophet Crown', itemClass: 'Boots' },
+      ]).rows.map((row) => row.status),
+    ).toEqual(['MATCH', 'MATCH', 'MATCH', 'PARTIAL', 'REJECT']);
+    // A false Boots class must not make Prophet Crown match under armour.boots.
+    expect(
+      compare('armour.boots', [
+        { ...item, baseType: 'Prophet Crown', itemClass: 'Boots' },
+      ]).rows[0]?.status,
+    ).toBe('REJECT');
+  });
+  it('does not relax item-level constraints for equivalent bases', () => {
+    expect(
+      compare('armour.boots', [
+        { ...item, baseType: 'Sorcerer Boots', itemLevel: 83 },
+      ]).rows[0]?.status,
+    ).toBe('REJECT');
+  });
+});

@@ -5,7 +5,6 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import {
   afterAll,
   afterEach,
-  beforeAll,
   beforeEach,
   expect,
   it,
@@ -59,25 +58,22 @@ const initial = new Date('2026-11-09T12:00:00Z').getTime();
 let time = initial;
 const now = () => new Date(time);
 
+// Other suites share this database; none of their collector rows may leak into a test.
+const resetCollectorState = () =>
+  pool.query(
+    'truncate listing_events, listings, captures, collector_schedule, run_requests, collector_state, collector_telemetry_runs, collector_trade_pool, market_admin_settings, market_admin_audit',
+  );
+
 beforeEach(async () => {
   time = initial;
+  await resetCollectorState();
   await pool.query('truncate rate_limit_endpoint_policies, rate_limit_states');
 });
 
-async function clearCollectorFixtures() {
-  await pool.query(
-    'truncate listing_events, listings, captures, collector_schedule, run_requests, collector_state, collector_telemetry_runs',
-  );
-  await pool.query(
-    'truncate collector_trade_pool, market_admin_settings, market_admin_audit',
-  );
-}
-
-beforeAll(clearCollectorFixtures);
 afterEach(async () => {
   for (const worker of workers) worker.stop.abort();
   await Promise.all(workers.splice(0).map(({ done }) => done));
-  await clearCollectorFixtures();
+  await resetCollectorState();
 });
 
 afterAll(() => pool.end());

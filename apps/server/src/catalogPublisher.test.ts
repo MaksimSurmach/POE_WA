@@ -467,6 +467,10 @@ describe('catalog evaluation and publication', () => {
         status: 'success',
       });
       expect(Number(report.evaluations[0]?.profit)).toBeGreaterThan(0);
+      expect(report.evaluations[0]?.methodCost).toMatchObject({
+        outputInputAt: now.toISOString(),
+        outputExpiresAt: new Date(now.getTime() + 300_000).toISOString(),
+      });
       if (materialId === 'chaos-orb')
         expect(report.evaluations[0]?.methodCost).toMatchObject({
           steps: [
@@ -560,9 +564,18 @@ describe('sale evidence acceptance', () => {
       quantity: number;
       baseAsk: number;
     },
+    differentOutputCohort = false,
   ) {
     const repositories = createInMemoryRepositories();
     const definition = fixtureRecipe(canonicalRecipeFixture);
+    const marketDependencies: typeof fixtureMarketDependencies = async (
+      input,
+    ) =>
+      (await fixtureMarketDependencies(input)).map((dependency) =>
+        differentOutputCohort && dependency.kind === 'target'
+          ? { ...dependency, eligibility: dependency.query }
+          : dependency,
+      );
     if (profitBlockedReason)
       definition.verification.profitBlockedReason = profitBlockedReason;
     if (budgetFixture) {
@@ -596,7 +609,7 @@ describe('sale evidence acceptance', () => {
       storedRecipe(definition.id, { ...definition } as JsonRecord),
     );
     const tradeQueries = (
-      await fixtureMarketDependencies({
+      await marketDependencies({
         recipe: definition,
         league: 'Mercenaries',
       })
@@ -675,7 +688,7 @@ describe('sale evidence acceptance', () => {
     const report = await evaluateAndPublishCatalog(repositories, {
       cycleId: refreshCycle.id,
       allowMissingOutput: coverage === 'missing',
-      marketDependencies: fixtureMarketDependencies,
+      marketDependencies,
       league: 'Mercenaries',
       now,
     });
@@ -789,7 +802,63 @@ describe('sale evidence acceptance', () => {
       marginPercent: null,
       lastSuccessfulAt: null,
       methodCost: {
-        saleEvidence: { status: 'unverified_output_value', reason },
+        saleEvidence: {
+          status: 'accepted',
+          reason,
+          profitBlockedReason: reason,
+        },
+      },
+    });
+    expect(evaluation.methodCost?.saleEvidence).not.toHaveProperty('grade');
+    expect(evaluation.confidence).toBe('low');
+  });
+
+  it('keeps insufficient coverage over a profit block and withholds ROI', async () => {
+    const evaluation = await evaluateWithTargetSellers(
+      ['one', 'two'],
+      'Observed items include an unmodelled finishing stage.',
+      'partial',
+    );
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      profit: null,
+      marginPercent: null,
+      methodCost: {
+        saleEvidence: {
+          status: 'insufficient_coverage',
+          reason: expect.stringContaining('Incomplete output coverage'),
+          profitBlockedReason:
+            'Observed items include an unmodelled finishing stage.',
+        },
+      },
+    });
+  });
+
+  it('retains a configured asking cohort but withholds authored craft ROI', async () => {
+    const evaluation = await evaluateWithTargetSellers(
+      ['one', 'two', 'three', 'four', 'five'],
+      undefined,
+      'complete',
+      undefined,
+      undefined,
+      true,
+    );
+    const reason = expect.stringMatching(
+      /Configured output search.*requirements/,
+    );
+    expect(evaluation.expectedCraftCost).not.toBeNull();
+    expect(evaluation.estimatedSalePrice).toBe('1000');
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      profit: null,
+      marginPercent: null,
+      lastSuccessfulAt: null,
+      methodCost: {
+        saleEvidence: {
+          status: 'accepted',
+          reason,
+          profitBlockedReason: reason,
+        },
       },
     });
     expect(evaluation.methodCost?.saleEvidence).not.toHaveProperty('grade');

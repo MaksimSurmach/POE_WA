@@ -1,0 +1,164 @@
+{
+  "summary": {
+    "at": "2026-11-18T07:57:44.292Z",
+    "total": 3,
+    "states": {
+      "succeeded": 3
+    },
+    "finished": [
+      {
+        "recipe": "rf-fire-trap-any-support",
+        "fetched": 100,
+        "coverage": "partial",
+        "matched": 100,
+        "sellers": 86,
+        "reason": "MIXED_CURRENCY_TOTAL_MISMATCH"
+      },
+      {
+        "recipe": "rf-fire-trap-level-20",
+        "fetched": 13,
+        "coverage": "complete",
+        "matched": 13,
+        "sellers": 13,
+        "reason": null
+      },
+      {
+        "recipe": "lichs-circlet-fractured-fire-loathing",
+        "fetched": 1,
+        "coverage": "complete",
+        "matched": 1,
+        "sellers": 1,
+        "reason": null
+      }
+    ],
+    "failed": []
+  },
+  "tests": [
+    {
+      "itemId": "360a3933-fc72-486c-87d3-b36deae58344",
+      "revision": 1,
+      "role": "output",
+      "recipes": ["rf-fire-trap-any-support"],
+      "itemRevision": 1,
+      "requestId": "7bfeb9f5-241b-49fb-bffe-0832303da32e",
+      "scheduleKey": "40e792966485ace7e18bc1e3b758a9c5f2a063b874cd1da701411b8f5070d7f8",
+      "capture": {
+        "captureId": "681c74f1-ee1b-46bb-835f-143ee24f9758",
+        "capturedAt": "2026-11-18T07:53:58.919Z",
+        "coverage": "partial",
+        "durationMs": 159047,
+        "fetched": 100,
+        "partialReason": "MIXED_CURRENCY_TOTAL_MISMATCH",
+        "queryVersion": "40e792966485ace7e18bc1e3b758a9c5f2a063b874cd1da701411b8f5070d7f8",
+        "reportedTotal": 116,
+        "slices": 2,
+        "listings": {
+          "stored": 100,
+          "priced": 100,
+          "completeItems": 0,
+          "analyzed": 100,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 100,
+          "comparable": 86,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 1,
+      "currentScheduleKey": "40e792966485ace7e18bc1e3b758a9c5f2a063b874cd1da701411b8f5070d7f8",
+      "finishedAt": "2026-11-18T07:56:37.544Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T07:52:05.720Z",
+      "stale": false,
+      "startedAt": "2026-11-18T07:53:58.479Z",
+      "state": "succeeded"
+    },
+    {
+      "itemId": "ab44f7d4-8ffb-4a12-93f9-e9b9197bd8b5",
+      "revision": 1,
+      "role": "output",
+      "recipes": ["rf-fire-trap-level-20"],
+      "itemRevision": 1,
+      "requestId": "81d360ea-849b-46e7-9e1e-a8b35bd0b486",
+      "scheduleKey": "3fb1b33efc07acc2ef01e18075b8a2cfa62177e2971617350ca18955ce79e884",
+      "capture": {
+        "captureId": "8f6190ac-a343-48ed-9b40-f46981c4f140",
+        "capturedAt": "2026-11-18T07:57:01.896Z",
+        "coverage": "complete",
+        "durationMs": 15396,
+        "fetched": 13,
+        "partialReason": null,
+        "queryVersion": "3fb1b33efc07acc2ef01e18075b8a2cfa62177e2971617350ca18955ce79e884",
+        "reportedTotal": 13,
+        "slices": 1,
+        "listings": {
+          "stored": 13,
+          "priced": 13,
+          "completeItems": 0,
+          "analyzed": 13,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 13,
+          "comparable": 13,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 1,
+      "currentScheduleKey": "3fb1b33efc07acc2ef01e18075b8a2cfa62177e2971617350ca18955ce79e884",
+      "finishedAt": "2026-11-18T07:57:16.939Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T07:52:05.728Z",
+      "stale": false,
+      "startedAt": "2026-11-18T07:56:37.816Z",
+      "state": "succeeded"
+    },
+    {
+      "itemId": "02e0ac7c-47a7-4491-8c4e-de7fa51b5213",
+      "revision": 2,
+      "role": "output",
+      "recipes": ["lichs-circlet-fractured-fire-loathing"],
+      "itemRevision": 2,
+      "requestId": "a2613fd0-365f-495d-971c-b10318b9447c",
+      "scheduleKey": "d2b46fa842b05ddf2a3f9467c8382dc525f4cf1c0fbe6d22e1d2cd039485fc26",
+      "capture": {
+        "captureId": "cc2f5ebe-be8a-476e-a346-85c5e1cab700",
+        "capturedAt": "2026-11-18T07:57:26.264Z",
+        "coverage": "complete",
+        "durationMs": 5798,
+        "fetched": 1,
+        "partialReason": null,
+        "queryVersion": "d2b46fa842b05ddf2a3f9467c8382dc525f4cf1c0fbe6d22e1d2cd039485fc26",
+        "reportedTotal": 1,
+        "slices": 1,
+        "listings": {
+          "stored": 1,
+          "priced": 1,
+          "completeItems": 0,
+          "analyzed": 1,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 1,
+          "comparable": 1,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 2,
+      "currentScheduleKey": "d2b46fa842b05ddf2a3f9467c8382dc525f4cf1c0fbe6d22e1d2cd039485fc26",
+      "finishedAt": "2026-11-18T07:57:31.698Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T07:52:05.735Z",
+      "stale": false,
+      "startedAt": "2026-11-18T07:57:16.987Z",
+      "state": "succeeded"
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import { observedAsk } from './catalog.js';
 import { WorkspaceLink as Link } from './workspaceNavigation.js';
 import { PreviewMode } from './previewMode.js';
 import { formatTimestamp } from './dateTime.js';
+import { favoriteTargetIds } from './recipeLibraryModel.js';
 
 export function readFavorites(raw: string | null): string[] {
   try {
@@ -26,7 +27,7 @@ export function readFavorites(raw: string | null): string[] {
     return [];
   }
 }
-function useFavorites() {
+export function useFavorites() {
   const preview = useContext(PreviewMode);
   const key = `${preview ? 'preview:' : ''}worksmith:favorites`;
   const read = () => {
@@ -47,13 +48,17 @@ function useFavorites() {
       window.removeEventListener('worksmith:favorites', update);
     };
   }, [key]);
-  function toggle(id: string) {
+  function toggle(id: string, aliases: string[] = []) {
     const current = read();
-    const next = current.includes(id)
-      ? current.filter((value) => value !== id)
-      : [...current, id];
+    const selected = current.some(
+      (value) => value === id || aliases.includes(value),
+    );
+    const remaining = current.filter(
+      (value) => value !== id && !aliases.includes(value),
+    );
+    const next = selected ? remaining : [...remaining, id];
     if (next.length > 500) {
-      setError('В избранном может быть не более 500 целей.');
+      setError('You can save up to 500 targets.');
       return;
     }
     try {
@@ -62,25 +67,32 @@ function useFavorites() {
       setError('');
       window.dispatchEvent(new Event('worksmith:favorites'));
     } catch {
-      setError(
-        'Не удалось сохранить избранное: хранилище браузера недоступно.',
-      );
+      setError('Favorites could not be saved: browser storage is unavailable.');
     }
   }
   return { ids, error, toggle };
 }
-export function FavoriteButton({ recipeId }: { recipeId: string }) {
+export function FavoriteButton({
+  recipeId,
+  targetId = recipeId,
+  aliases = [],
+}: {
+  recipeId: string;
+  targetId?: string;
+  aliases?: string[];
+}) {
   const { ids, error, toggle } = useFavorites();
-  const selected = ids.includes(recipeId);
+  const legacyIds = [...aliases, recipeId];
+  const selected = ids.some((id) => id === targetId || legacyIds.includes(id));
   return (
     <span className="favorite-control">
       <Button
         type="button"
         aria-pressed={selected}
-        onClick={() => toggle(recipeId)}
+        onClick={() => toggle(targetId, legacyIds)}
       >
         <StarIcon aria-hidden="true" />
-        {selected ? 'Убрать из избранного' : 'В избранное'}
+        {selected ? 'Remove favorite' : 'Add favorite'}
       </Button>
       {error ? <span role="alert">{error}</span> : null}
     </span>
@@ -112,30 +124,29 @@ export function Watchlist() {
   }, [revision]);
   return (
     <section>
-      <h1>Избранное</h1>
+      <h1>Favorites</h1>
       <p className="catalog-price-note">
-        Сохранено только в этом браузере. Показатели относятся к текущему
-        каталогу и его лиге. Цена объявления не подтверждает продажу.
+        Saved in this browser. Evidence belongs to the current catalogue and its
+        league. Asking prices are not confirmed sales.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       {failed ? (
-        <StatusPanel tone="danger" title="Избранное не удалось обновить">
+        <StatusPanel tone="danger" title="Favorites could not be refreshed">
           <Button onClick={() => setRevision((value) => value + 1)}>
-            Повторить
+            Retry
           </Button>
         </StatusPanel>
       ) : entries === null ? (
-        <StatusPanel tone="info" title="Загрузка избранного" />
+        <StatusPanel tone="info" title="Loading favorites" />
       ) : !ids.length ? (
-        <StatusPanel tone="info" title="Пока нет избранных целей">
-          Откройте предмет и нажмите «В избранное».{' '}
-          <Link to="/">К скринеру</Link>
+        <StatusPanel tone="info" title="No saved targets">
+          Open an item and choose Add favorite. <Link to="/">Browse items</Link>
         </StatusPanel>
       ) : (
         <div
           className="data-scroll"
           role="region"
-          aria-label="Избранные цели"
+          aria-label="Favorite targets"
           tabIndex={0}
         >
           <TableSurface>
@@ -143,11 +154,11 @@ export function Watchlist() {
               <thead>
                 <tr>
                   {[
-                    'Цель',
-                    'Затраты',
-                    'Цена объявления',
-                    'Состояние данных',
-                    'Действия',
+                    'Target',
+                    'Cost',
+                    'Observed ask',
+                    'Data status',
+                    'Actions',
                   ].map((label) => (
                     <th scope="col" key={label}>
                       {label}
@@ -156,13 +167,16 @@ export function Watchlist() {
                 </tr>
               </thead>
               <tbody>
-                {ids.map((id) => {
-                  const entry = entries.find(({ recipe }) => recipe.id === id);
+                {favoriteTargetIds(ids, entries).map((id) => {
+                  const entry = entries.find(
+                    ({ recipe }) =>
+                      recipe.targetSignature === id || recipe.id === id,
+                  );
                   return (
                     <tr key={id}>
                       <th scope="row">
                         <Link
-                          to={`/?recipe=${encodeURIComponent(id)}&view=item`}
+                          to={`/?recipe=${encodeURIComponent(entry?.recipe.id ?? id)}&view=item`}
                         >
                           {entry?.recipe.title ?? id}
                         </Link>
@@ -180,11 +194,22 @@ export function Watchlist() {
                       </td>
                       <td>
                         {entry
-                          ? `${entry.evaluation.status} · ${entry.evaluation.evaluatedAt ? formatTimestamp(entry.evaluation.evaluatedAt) : 'Нет даты'}`
-                          : 'Цель отсутствует в текущем каталоге'}
+                          ? `${entry.evaluation.status} · ${entry.evaluation.evaluatedAt ? formatTimestamp(entry.evaluation.evaluatedAt) : 'No timestamp'}`
+                          : 'Target absent from the current catalogue'}
                       </td>
                       <td>
-                        <Button onClick={() => toggle(id)}>Удалить</Button>
+                        <Button
+                          onClick={() =>
+                            toggle(
+                              id,
+                              entries
+                                .filter((e) => e.recipe.targetSignature === id)
+                                .map((e) => e.recipe.id),
+                            )
+                          }
+                        >
+                          Remove
+                        </Button>
                       </td>
                     </tr>
                   );

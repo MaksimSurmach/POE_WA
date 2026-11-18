@@ -1,0 +1,12 @@
+{
+  "sourceImage": "local/poe-worksmith:curse-rings-allres-20261117-collector",
+  "tradeStatSourceSha256": "1e58037601379a2e57e6cfd2e7c7268df5cdcd7aaf505f726a0c81b5ee9d1296",
+  "preservedAdditionalTradeStats": 30,
+  "actualRecipes": 72,
+  "baseAndOutputQueriesComparedToActiveCompiler": 144,
+  "queryMismatches": 0,
+  "storedConfiguredSearches": 128,
+  "generatedTradeLinksComparedToWorkerRequests": 128,
+  "linkMismatches": 0,
+  "checkedAt": "2026-11-18T02:20:07.081Z"
+}

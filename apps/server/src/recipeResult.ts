@@ -22,6 +22,8 @@ export const recipeResultSchema = z.strictObject({
       expiresAt: z.iso.datetime(),
       craftInputAt: z.iso.datetime().optional(),
       craftExpiresAt: z.iso.datetime().optional(),
+      outputInputAt: z.iso.datetime().optional(),
+      outputExpiresAt: z.iso.datetime().optional(),
       source: z
         .strictObject({
           captureId: z.uuid(),
@@ -42,6 +44,7 @@ export const recipeResultSchema = z.strictObject({
           grade: z.enum(['A', 'B', 'C']).optional(),
           gradeReasons: z.array(z.string()).optional(),
           reason: z.string().optional(),
+          profitBlockedReason: z.string().optional(),
         })
         .catchall(z.json()),
       budget: z.strictObject({ p50: amount, p90: amount, currency }).nullable(),

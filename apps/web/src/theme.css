@@ -4,7 +4,7 @@
 @import '@fontsource-variable/inter';
 
 @import './styles.css' layer(worksmith);
-@import './catalogTable.css' layer(worksmith);
+@import './catalogControls.css' layer(worksmith);
 @import './craftGuides.css' layer(worksmith);
 @import './craftRisk.css' layer(worksmith);
 @import './factory.css' layer(worksmith);
@@ -13,6 +13,7 @@
 @import './tradeDashboard.css' layer(worksmith);
 @import './clarity.css';
 @import './workspace.css';
+@import './recipeLibrary.css';
 
 @theme {
   --font-sans: 'Inter Variable', sans-serif;

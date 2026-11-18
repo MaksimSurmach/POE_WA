@@ -52,6 +52,17 @@ async function mappedTrade() {
   );
   for (const kind of ['stats', 'bases', 'resources'])
     identities[kind].push(...weekOne[kind]);
+  const current = JSON.parse(
+    await readFile(
+      new URL(
+        'docs/evidence/max-1318-scraped-items/trade-identities-2026-11-18.json',
+        root,
+      ),
+      'utf8',
+    ),
+  );
+  for (const kind of ['stats', 'bases', 'resources'])
+    identities[kind].push(...current[kind]);
   const manifests = await Promise.all(
     ['physical-large-cluster', 'recipe-catalog'].map(async (name) => {
       const file = fileURLToPath(
@@ -127,7 +138,7 @@ async function mappedTrade() {
 }
 
 describe('authored source catalog integrity', () => {
-  it('shares the exact 8-passive output search but prices normal and rare bases separately', async () => {
+  it('shares the exact 8-passive output and rare acquisition searches but keeps Alteration normal', async () => {
     const catalog = await recipes();
     const jagged = catalog.find(
       ({ definition }) => definition.id === 'physical-large-cluster-jagged',
@@ -135,8 +146,11 @@ describe('authored source catalog integrity', () => {
     const chaos = catalog.find(
       ({ definition }) => definition.id === 'physical-large-cluster-chaos',
     )?.definition;
-    if (!jagged || !chaos)
-      throw new Error('Expected both physical cluster methods');
+    const alteration = catalog.find(
+      ({ definition }) => definition.id === 'physical-large-cluster-alteration',
+    )?.definition;
+    if (!jagged || !chaos || !alteration)
+      throw new Error('Expected all physical cluster methods');
     expect(chaos.targetSignature).toBe(jagged.targetSignature);
 
     const trade = await mappedTrade();
@@ -145,16 +159,25 @@ describe('authored source catalog integrity', () => {
       generateRecipeMarketQuery(trade, recipe, league, starting);
     const hash = (input: Awaited<ReturnType<typeof query>>) =>
       hashMarketQuery({ ...input, league });
-    const [jaggedOutput, chaosOutput, normal, rare] = await Promise.all([
-      query(jagged),
-      query(chaos),
-      query(jagged, true),
-      query(chaos, true),
-    ]);
+    const [jaggedOutput, chaosOutput, jaggedStart, chaosStart, altStart] =
+      await Promise.all([
+        query(jagged),
+        query(chaos),
+        query(jagged, true),
+        query(chaos, true),
+        query(alteration, true),
+      ]);
     expect(await hash(jaggedOutput)).toBe(await hash(chaosOutput));
-    expect(await hash(normal)).not.toBe(await hash(rare));
+    expect(await hash(jaggedStart)).toBe(await hash(chaosStart));
+    expect(await hash(altStart)).not.toBe(await hash(jaggedStart));
 
-    for (const result of [jaggedOutput, chaosOutput, normal, rare]) {
+    for (const result of [
+      jaggedOutput,
+      chaosOutput,
+      jaggedStart,
+      chaosStart,
+      altStart,
+    ]) {
       expect(result.query).toMatchObject({
         query: {
           stats: expect.arrayContaining([
@@ -168,8 +191,9 @@ describe('authored source catalog integrity', () => {
       });
     }
     for (const [base, rarity] of [
-      [normal, 'normal'],
-      [rare, 'rare'],
+      [jaggedStart, 'rare'],
+      [chaosStart, 'rare'],
+      [altStart, 'normal'],
     ] as const) {
       expect(base.query).toMatchObject({
         query: {
@@ -180,6 +204,70 @@ describe('authored source catalog integrity', () => {
         },
       });
     }
+  });
+
+  it.each<[string, number, number]>([
+    ['physical-large-cluster-jagged', 83, 103],
+    [
+      'bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged',
+      68,
+      6030,
+    ],
+    [
+      'bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged',
+      68,
+      1600,
+    ],
+    [
+      'shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged',
+      68,
+      6159,
+    ],
+    [
+      'two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged',
+      68,
+      12465,
+    ],
+    [
+      'two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged',
+      68,
+      6229,
+    ],
+  ])('buys a rare level-matched base for %s', async (id, level, count) => {
+    const catalog = await recipes();
+    const recipe = catalog.find(
+      ({ definition }) => definition.id === id,
+    )?.definition;
+    if (!recipe) throw new Error(`Missing recipe ${id}`);
+    expect(recipe).toMatchObject({
+      startingBase: {
+        itemLevel: level,
+        rarity: 'rare',
+        variant: { kind: 'cluster-jewel', passiveCount: 8 },
+      },
+      craft: {
+        method: {
+          kind: 'fossil',
+          fossils: ['jagged-fossil'],
+          resonatorSockets: 1,
+        },
+        expectedExecutions: [{ count }],
+      },
+    });
+    const start = await generateRecipeMarketQuery(
+      await mappedTrade(),
+      recipe,
+      'Fixture League',
+      true,
+    );
+    expect(start.query).toMatchObject({
+      query: {
+        filters: {
+          misc_filters: { filters: { ilvl: { min: level, max: level } } },
+          type_filters: { filters: { rarity: { option: 'rare' } } },
+        },
+      },
+    });
   });
 
   it('loads every current recipe with resolvable target/base identities, material slugs and readable presentation', async () => {
@@ -224,6 +312,12 @@ describe('authored source catalog integrity', () => {
       },
     });
     for (const { definition } of catalog) {
+      if (definition.craft.evidence?.artifact)
+        expect(
+          (await readFile(new URL(definition.craft.evidence.artifact, root)))
+            .length,
+          definition.id,
+        ).toBeGreaterThan(0);
       await expect(
         dependencies({ recipe: definition, league: 'Fixture League' }),
       ).resolves.toEqual(
@@ -539,12 +633,22 @@ describe('authored source catalog integrity', () => {
     }
   });
 
-  it('binds Stygian and wand per-finished material totals to their exact archived AND requirements', async () => {
+  it('binds checked Stygian material totals while keeping the current wand method unestimated', async () => {
     const catalog = await recipes();
+    const wand = catalog.find(
+      ({ definition }) => definition.id === 'minion-convoking-wand-four-fossil',
+    )!.definition;
+    expect(wand.startingBase.itemLevel).toBe(82);
+    expect(wand.craft.method).toMatchObject({
+      kind: 'fossil',
+      fossils: ['corroded-fossil', 'metallic-fossil', 'shuddering-fossil'],
+      resonatorSockets: 3,
+    });
+    expect(wand.craft.evidence).toBeUndefined();
+    expect(wand.craft.expectedExecutions).toBeUndefined();
     for (const id of [
       'stygian-life-resistances-envy',
       'stygian-life-resistances-fossils',
-      'minion-convoking-wand-four-fossil',
     ]) {
       const recipe = catalog.find((r) => r.definition.id === id)?.definition;
       if (!recipe?.craft.evidence)
@@ -793,7 +897,7 @@ describe('authored source catalog integrity', () => {
     expect(rows[2]?.status).not.toBe('MATCH');
   });
 
-  it('accepts fractured suppression and excludes the same numeric explicit roll on a different fracture', async () => {
+  it('accepts the same finished suppression value from either fractured or explicit origin', async () => {
     const recipe = (await recipes()).find(
       (r) => r.definition.id === 'suppression-gloves-zeal',
     )?.definition;
@@ -856,6 +960,6 @@ describe('authored source catalog integrity', () => {
     expect(compared.rows[0]?.status, JSON.stringify(compared.rows)).toBe(
       'MATCH',
     );
-    expect(compared.rows[1]?.status).not.toBe('MATCH');
+    expect(compared.rows[1]?.status).toBe('MATCH');
   });
 });

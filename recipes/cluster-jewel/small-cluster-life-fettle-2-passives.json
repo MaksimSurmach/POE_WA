@@ -1,0 +1,199 @@
+{
+  "base": {
+    "baseId": "base:small-cluster-maximum-life-2",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 2,
+      "smallPassiveStatId": "maximum-life"
+    }
+  },
+  "category": "cluster-jewel",
+  "notes": "Исследование 16.11.2026: 4 предложений в общей выборке, не подтверждённые продажи. Модель среднего расхода 34.2c, P90 76.3c по историческому курсу и базе; текущая стоимость пересчитывается отдельно.",
+  "craft": {
+    "evidence": {
+      "method": "CoE 3.30.0.1 exact single-notable calculation",
+      "patch": "3.30.0.1",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.38&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX21heGltdW1fbGlmZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTQ5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=185&method=0%2C1",
+      "verifiedAt": "2026-11-16",
+      "settings": "Small · maximum Life 4% · 2 пассива; starting ilvl 83; target Fettle.",
+      "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+      "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+    },
+    "method": {
+      "currency": "orb-of-alteration",
+      "kind": "currency"
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "CoE 3.30.0.1 exact single-notable calculation",
+        "patch": "3.30.0.1",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.38&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX21heGltdW1fbGlmZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTQ5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=185&method=0%2C1",
+        "verifiedAt": "2026-11-16",
+        "settings": "Small · maximum Life 4% · 2 пассива; starting ilvl 83; target Fettle.",
+        "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+        "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+      }
+    },
+    "uncertainties": [
+      "Starting-base acquisition must use exactly item level 83. Higher item levels can change the affix pool and require a separate cost model.",
+      "Model only; asking prices do not prove sales. Small pool verified only at ilvl 83."
+    ],
+    "id": "alt-regal",
+    "name": "Alteration → Regal",
+    "steps": [
+      {
+        "action": "На rare-базу ровно ilvl 83 применить Orb of Scouring, затем Orb of Transmutation.",
+        "continueWhen": "База magic.",
+        "failureAction": "Не менять базу или ilvl без нового расчёта.",
+        "id": "prepare",
+        "materials": [
+          {
+            "itemId": "orb-of-scouring",
+            "quantity": 1
+          },
+          {
+            "itemId": "orb-of-transmutation",
+            "quantity": 1
+          }
+        ],
+        "title": "Подготовить базу"
+      },
+      {
+        "action": "Использовать Alteration до появления любого из: Fettle.",
+        "continueWhen": "Появился один целевой prefix.",
+        "failureAction": "Повторить Alteration.",
+        "id": "alteration",
+        "materials": [
+          {
+            "itemId": "orb-of-alteration",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "evidence": {
+            "method": "CoE 3.30.0.1 exact single-notable calculation",
+            "patch": "3.30.0.1",
+            "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.38&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX21heGltdW1fbGlmZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTQ5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=185&method=0%2C1",
+            "verifiedAt": "2026-11-16",
+            "settings": "Small · maximum Life 4% · 2 пассива; starting ilvl 83; target Fettle.",
+            "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+            "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+          },
+          "probability": 0.0024685243262862057
+        },
+        "title": "Поймать нужный notable"
+      },
+      {
+        "action": "Применить Regal Orb; цель сохранится, дополнительный мод свободный.",
+        "continueWhen": "Готовый редкий предмет с целью.",
+        "failureAction": "Не перебрасывать готовую цель.",
+        "id": "regal",
+        "materials": [
+          {
+            "itemId": "regal-orb",
+            "quantity": 1
+          }
+        ],
+        "title": "Применить Regal"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 1,
+        "evidence": {
+          "method": "CoE 3.30.0.1 exact single-notable calculation",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.38&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX21heGltdW1fbGlmZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTQ5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=185&method=0%2C1",
+          "verifiedAt": "2026-11-16",
+          "settings": "Small · maximum Life 4% · 2 пассива; starting ilvl 83; target Fettle.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "prepare"
+      },
+      {
+        "count": 405.100322225489,
+        "evidence": {
+          "method": "CoE 3.30.0.1 exact single-notable calculation",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.38&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX21heGltdW1fbGlmZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTQ5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=185&method=0%2C1",
+          "verifiedAt": "2026-11-16",
+          "settings": "Small · maximum Life 4% · 2 пассива; starting ilvl 83; target Fettle.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "alteration"
+      },
+      {
+        "count": 1,
+        "evidence": {
+          "method": "CoE 3.30.0.1 exact single-notable calculation",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.38&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX21heGltdW1fbGlmZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTQ5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=185&method=0%2C1",
+          "verifiedAt": "2026-11-16",
+          "settings": "Small · maximum Life 4% · 2 пассива; starting ilvl 83; target Fettle.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "regal"
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "base:small-cluster-maximum-life-2",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 2,
+      "smallPassiveStatId": "maximum-life"
+    }
+  },
+  "patch": "3.30.0.1",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Covens"],
+    "checkedAt": "2026-11-16",
+    "sources": [
+      "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.38&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX21heGltdW1fbGlmZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTQ5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=185&method=0%2C1",
+      "https://www.pathofexile.com/api/trade/data/stats"
+    ],
+    "notes": "CoE model and current Trade identities checked. Market snapshot is research evidence only; live prices come from collector.",
+    "profitBlockedReason": "Расход — модель CoE 3.30.0.1; продажи, торговое золото и время не подтверждены."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "small-cluster-life-fettle-2-passives",
+  "schemaVersion": 3,
+  "summary": "Small Cluster Jewel · 4% increased maximum Life · Fettle.",
+  "tags": ["cluster-craft-330", "maximum-life", "alteration"],
+  "targetSignature": "3.30.0.1:178bfacd5257f3986e5c044cf61e79a1",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:fettle"
+      }
+    ],
+    "suffixes": [],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Fettle · 2 passives"
+}

@@ -66,8 +66,16 @@ type CollectorOptions = {
 
 type CollectorDb = NodePgDatabase;
 type RunRequest = typeof runRequests.$inferSelect;
+// Item tests report what happened to their one search; other requests only count.
+const requestResultSchema = z.object({
+  scheduleId: z.uuid(),
+  status: z.enum(['succeeded', 'retry', 'blocked', 'unavailable']),
+  reason: z.string().nullable(),
+  captureId: z.uuid().nullable(),
+});
 const progressSchema = z.object({
   pending: z.array(z.uuid()),
+  results: z.array(requestResultSchema).optional(),
   recoverTradeAuthentication: z.literal(true).optional(),
   succeeded: z.number().int().nonnegative(),
   failed: z.number().int().nonnegative(),
@@ -158,6 +166,13 @@ async function startRequest(
                 sql`(${collectorSchedule.payload}->'recipeIds') ? ${request.recipeId}`,
               )
             : undefined,
+          // An item test runs exactly the search that was submitted, never its neighbours.
+          request.scope === 'item'
+            ? and(
+                eq(collectorSchedule.kind, 'trade-target'),
+                eq(collectorSchedule.key, request.scheduleKey ?? ''),
+              )
+            : undefined,
         ),
       )
       .returning({ id: collectorSchedule.id, kind: collectorSchedule.kind });
@@ -169,6 +184,7 @@ async function startRequest(
       id: request.id,
       progress: {
         pending: rows.map(({ id }) => id),
+        ...(request.scope === 'item' ? { results: [] } : {}),
         succeeded: 0,
         failed: 0,
         ...(state?.blocked && rows.some(({ kind }) => kind === 'trade-target')
@@ -224,6 +240,8 @@ async function skipUnavailable(
   tradeBlocked: boolean,
   now: Date,
   skipStandard: boolean,
+  blockedReason: string | null,
+  paused: boolean,
 ) {
   if (request.progress.pending.length === 0) return true;
   const enabled = await db
@@ -242,8 +260,25 @@ async function skipUnavailable(
     );
   if (enabled.length === request.progress.pending.length) return false;
 
+  const enabledIds = enabled.map(({ id }) => id);
+  const available = new Set(enabledIds);
+  if (request.progress.results)
+    request.progress.results.push(
+      ...request.progress.pending
+        .filter((id) => !available.has(id))
+        .map((scheduleId) => ({
+          scheduleId,
+          status: 'unavailable' as const,
+          reason: paused
+            ? 'COLLECTIONS_PAUSED'
+            : tradeBlocked
+              ? (blockedReason ?? 'TRADE_ACCESS_BLOCKED')
+              : 'SCHEDULE_UNAVAILABLE',
+          captureId: null,
+        })),
+    );
   request.progress.failed += request.progress.pending.length - enabled.length;
-  request.progress.pending = enabled.map(({ id }) => id);
+  request.progress.pending = enabledIds;
   await saveProgress(db, request, now);
   return request.progress.pending.length === 0;
 }
@@ -453,6 +488,23 @@ async function finishSchedule(
             pending: request.progress.pending.filter(
               (id) => id !== schedule.id,
             ),
+            ...(request.progress.results
+              ? {
+                  results: [
+                    ...request.progress.results,
+                    {
+                      scheduleId: schedule.id,
+                      status:
+                        result.status === 'success'
+                          ? ('succeeded' as const)
+                          : result.status,
+                      reason:
+                        result.status === 'success' ? null : result.reason,
+                      captureId,
+                    },
+                  ],
+                }
+              : {}),
             ...(request.progress.recoverTradeAuthentication
               ? { recoverTradeAuthentication: true }
               : {}),
@@ -602,6 +654,8 @@ async function collectSession({
           tradeBlocked && !recoverTradeAuthentication,
           timestamp,
           skipStandard,
+          queue.blocked ?? null,
+          queue.paused,
         ))
       )
         continue;

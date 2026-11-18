@@ -1,0 +1,71 @@
+{
+  "at": "2026-11-18T09:20:28.420Z",
+  "changes": [
+    {
+      "recipeId": "suppression-gloves-zeal",
+      "itemId": "23f0a565-acc2-43f2-9332-ddd5bec264a3",
+      "oldRevision": 1,
+      "newRevision": 2,
+      "oldQueryKey": "252bb443268a3036e9268d68e2fb5dfa243e78e684ae7b9a3963e35fc1893673",
+      "newQueryKey": "4d0a5a8a71bf2c4c009a65c2834775ebd1053568488f91697cb29f99791d62c3",
+      "category": "armour.gloves",
+      "beforeCapture": {
+        "captureId": "0a2ba2ef-2f8b-4d88-9d9e-46e4f94e97a9",
+        "capturedAt": "2026-11-18T06:23:22.286Z",
+        "coverage": "complete",
+        "durationMs": 326,
+        "fetched": 0,
+        "partialReason": null,
+        "queryVersion": "252bb443268a3036e9268d68e2fb5dfa243e78e684ae7b9a3963e35fc1893673",
+        "reportedTotal": 0,
+        "slices": 1
+      },
+      "requirementsUnchanged": true,
+      "acquisitionUnchanged": true
+    },
+    {
+      "recipeId": "suppression-gloves-fear",
+      "itemId": "932e5369-2591-4ca1-a9f3-4d8981bb7341",
+      "oldRevision": 1,
+      "newRevision": 2,
+      "oldQueryKey": "c39d1497b30cc799c024e9a71db0f2cac3b7ca079c8006714c7fc06a712a563e",
+      "newQueryKey": "5fd22e383f5016b4b4b6c7faa755632ff64566d8f8454c464ba6b05ea43fb6d6",
+      "category": "armour.gloves",
+      "beforeCapture": {
+        "captureId": "97a0d7cf-bea3-4f27-8c6c-fe52f8e921aa",
+        "capturedAt": "2026-11-18T08:23:58.771Z",
+        "coverage": "complete",
+        "durationMs": 287,
+        "fetched": 0,
+        "partialReason": null,
+        "queryVersion": "c39d1497b30cc799c024e9a71db0f2cac3b7ca079c8006714c7fc06a712a563e",
+        "reportedTotal": 0,
+        "slices": 1
+      },
+      "requirementsUnchanged": true,
+      "acquisitionUnchanged": true
+    },
+    {
+      "recipeId": "suppression-boots-loathing",
+      "itemId": "d6c1367c-0d7e-4c60-aaec-d3fcb442f932",
+      "oldRevision": 1,
+      "newRevision": 2,
+      "oldQueryKey": "1e6587fe667e0ad22f66d10d2e7e490e64699cd4d091568434f16f1da47a1897",
+      "newQueryKey": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+      "category": "armour.boots",
+      "beforeCapture": {
+        "captureId": "01df85dc-2753-4b03-aeda-3388885a9a1c",
+        "capturedAt": "2026-11-18T08:38:42.161Z",
+        "coverage": "complete",
+        "durationMs": 339,
+        "fetched": 0,
+        "partialReason": null,
+        "queryVersion": "1e6587fe667e0ad22f66d10d2e7e490e64699cd4d091568434f16f1da47a1897",
+        "reportedTotal": 0,
+        "slices": 1
+      },
+      "requirementsUnchanged": true,
+      "acquisitionUnchanged": true
+    }
+  ]
+}

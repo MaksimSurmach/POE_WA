@@ -100,7 +100,7 @@ export function generateMarketTradeQuery(
       ? { value: { min: group.min } }
       : {}),
     filters: group.filters.map((stat) => ({
-      id: stat.id,
+      id: tradeStatMappings[stat.id]?.queryId ?? stat.id,
       ...(stat.id.includes('|')
         ? {}
         : {
@@ -152,11 +152,18 @@ export function generateMarketTradeQuery(
   const request = {
     query: {
       status: { option: search.status },
-      type: target.baseTypes[0],
+      ...(search.category ? {} : { type: target.baseTypes[0] }),
       stats: native.stats,
       filters: {
         ...native.filters,
-        type_filters: { filters: { rarity: { option: search.rarity } } },
+        type_filters: {
+          filters: {
+            rarity: { option: search.rarity },
+            ...(search.category
+              ? { category: { option: search.category } }
+              : {}),
+          },
+        },
         misc_filters: { filters: misc },
         trade_filters: {
           filters: {

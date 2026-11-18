@@ -1,0 +1,330 @@
+{
+  "checkedAt": "2026-11-16T09:11:43.200376+01:00",
+  "modelPatch": "3.30.0.1",
+  "recipes": [
+    {
+      "id": "brand-remarkable-grand",
+      "materialCountsExcludingInitialPreparation": true,
+      "research": {
+        "id": "brand-remarkable-grand",
+        "name": "Remarkable + Grand Design",
+        "base": "Medium · Brand Damage 12% · 4–5 пассивов",
+        "itemLevel": [68, 83],
+        "method": "A",
+        "baseChaos": 1.0,
+        "meanChaos": 65.4698935840708,
+        "p90Chaos": 147.70907000000003,
+        "observedLowestChaos": 319.0,
+        "grossSpreadChaos": 253.5301064159292,
+        "reportedOffers": 40,
+        "sampleListings": 10,
+        "sampleSellers": 5,
+        "samplePrices": ["319 c", "319 c", "319 c", "319 c", "320 c"],
+        "capturedAt": "2026-11-16T07:37:43.459Z",
+        "tradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAACE32R3U7DMAyFX2XydYWatSnNbrlD4gnQVIXU1SKlPyQOrCp9d9wORCdt3DnH35GPnQneI_oRDhME0hTDUvUD2b6DAwQ00es3hzAnQOOArL1gbWO7e3IxEPrdM36ig2R1s_l1-uV0V7PcWMfUpWFrlrEzJ93Rw8JXWVoWQhYil4x-aBdxGd9anp0n0OozHOQ8JzetKi-VykSpvjIJf8x5cNbYH6hQIs-EkuIesM9kqtL0Md_DfJyPm7yXParNe1N67S2NV6diia_EYTl-MHd8pvc-DoT1lbXRLqwXDmNHJww2YF1ZwvY21XhtKPp_mHnNEXpPS3fw1qwfEgy3vgGm9jno8QEAAA",
+        "baseTradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAACE32Q3WqEMBCFX2WZaykVf1Bve1foE5RF0jiygRjdyWRbsXn3jm5bXNj2bjLzHc7JWeAckGZoFvCsOPh1Gic2o4MGPOpA6s0ixAR4nlB2L9iZMByebPCMdHjGd7SQbGoRvy4_nHKdrHtjhboeTCdrdPqkHD-sfJs9VmValGleCHpRNuBqPxjxzhMY1Ac0RYzJXWmdV3WdpVX9mRUQj_G4M7uGaHfv3UiKDM83_3SjC85IExDFTgJ4_YdYj0RhYuxu9L2yfuvIz45P6I3HrjWMw32qJ6U50L-MsRf7W0ZZfbdRZTFuEf1IvJ4nMnpr22vJ_gWJQObjzgEAAA",
+        "meanMaterialCounts": {
+          "alteration": 439.71091445427726,
+          "augmentation": 8.561946902654867,
+          "regal": 24.622418879056045,
+          "exalted": 11.305309734513274,
+          "scouring": 23.622418879056045,
+          "transmutation": 23.622418879056045
+        },
+        "completedSimulationCrafts": 678,
+        "meanStandardErrorChaos": 2.3647728294579298
+      },
+      "evidence": {
+        "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+        "patch": "3.30.0.1",
+        "url": "https://beta.craftofexile.com/",
+        "verifiedAt": "2026-11-16",
+        "settings": "Medium · Brand Damage 12% · 4–5 пассивов; starting ilvl 83; target Remarkable + Grand Design.",
+        "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+        "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+      }
+    },
+    {
+      "id": "minion-rebirth-life",
+      "materialCountsExcludingInitialPreparation": true,
+      "research": {
+        "id": "minion-rebirth-life",
+        "name": "Blessed Rebirth + Life from Death",
+        "base": "Medium · Minion maximum Life 12% · 4–5 пассивов",
+        "itemLevel": [68, 83],
+        "method": "A",
+        "baseChaos": 2.0,
+        "meanChaos": 76.73328481481482,
+        "p90Chaos": 163.05961,
+        "observedLowestChaos": 250.0,
+        "grossSpreadChaos": 173.26671518518518,
+        "reportedOffers": 22,
+        "sampleListings": 10,
+        "sampleSellers": 4,
+        "samplePrices": ["250 c", "250 c", "260 c", "270 c", "270 c"],
+        "capturedAt": "2026-11-16T07:28:47.800Z",
+        "tradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAACE32R3WrDMAyFX6XoOowkduqkt70b7AlGCZ6jUIPzM1veGjK_-5x0Yym0u5OPvoOO5BnePdoJDjM4kuTdUg0j6aGHAzhU3so3gxASoGnEqL1go323OxrvCO3uGT_RQLK6o_l1_uVk30S51SZS14Zuooy9Osuenha-Zmm5z4p9xouIfkjjcRnf6TibJ9DJCxyKEJK71oqXVcWysvpiKfwxl9FopX-gjOdcVLwQ_BGRMyZywVIhIJzCaRP4uki9eW9KK62m6eZWUYpnimljfqce-NRgrR8JmxtrK41bT-ymns7otMOm1oTdfaq1UpG3_zBhzeEGS0t3tFqtP-JUbH0DILUOG_IBAAA",
+        "baseTradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAACE32Q3WqEMBCFX2WZaykr_qDe9q7QJyiLpHFkAzHamcm2YvPujW5bXNj2bjLzHc7JWeDNI83QLMCixPM6jZOY0UEDjNqTerUIIQGZJ4y7Z-yMHw6P1rMgHZ7wHS0kmzqKX5YfTrkurntjI3U9mC6u0emzcvKw8m12rMq0KNO8iOhFWY-r_WCid57AoD6gKUJI7krrvKrrLK3qz-wI4RROO7NriHb33o2kyMh88083Ou9MbAJCtIsBWP8h1iORnwS7G32vLG8d8ezkjGwYu9YIDvepnpQWT_8yxl7sbxll9d1GlYWwReSRZD1PZPTWNuuY_QvbsgIdzgEAAA",
+        "meanMaterialCounts": {
+          "alteration": 482.9323671497585,
+          "augmentation": 10.399355877616747,
+          "regal": 30.305958132045088,
+          "exalted": 13.98389694041868,
+          "scouring": 29.305958132045088,
+          "transmutation": 29.305958132045088
+        },
+        "completedSimulationCrafts": 621,
+        "meanStandardErrorChaos": 2.977234100849135
+      },
+      "evidence": {
+        "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+        "patch": "3.30.0.1",
+        "url": "https://beta.craftofexile.com/",
+        "verifiedAt": "2026-11-16",
+        "settings": "Medium · Minion maximum Life 12% · 4–5 пассивов; starting ilvl 83; target Blessed Rebirth + Life from Death.",
+        "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+        "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+      }
+    },
+    {
+      "id": "warcry-mob-lead",
+      "materialCountsExcludingInitialPreparation": true,
+      "research": {
+        "id": "warcry-mob-lead",
+        "name": "Mob Mentality + Lead By Example",
+        "base": "Medium · Exerted Attack Damage 20% · 4–5 пассивов",
+        "itemLevel": [75, 83],
+        "method": "A",
+        "baseChaos": 3.0,
+        "meanChaos": 107.65207995129872,
+        "p90Chaos": 250.12769000000003,
+        "observedLowestChaos": 175.0,
+        "grossSpreadChaos": 67.34792004870128,
+        "reportedOffers": 58,
+        "sampleListings": 10,
+        "sampleSellers": 4,
+        "samplePrices": ["175 c", "175 c", "185 c", "185 c", "185 c"],
+        "capturedAt": "2026-11-16T07:55:42.604Z",
+        "tradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAAAA32QzWrDMBCEXyXs2RTLkV3J19wKfYISjCqviUCWjX7aGNfv3nXSUgeS6iSNvmFnZ4YQVUwB6hmGMZrBQQ0BdfLq3SIsGcRpRNJesTWp3x1sChH97gU_0UJ2cZP5bf7llGtJ7owl6vphWpLR6ZNy8Wnlm30uKlZWjJeEfiibcB3fG5rNM-jVGepyWbK7VsmFlHsm5Fch4I85j9Zo8wOxnAvxLCtePCIKJkueVxVnsByX4ybwdZFm895cvfImTjddkUQ1UVrKH_QDnx68T2PE9sbaKRsuFYfJxRMGE7BtTMT-PtV5pWPy_zDr-QZOa5uA0QEAAA",
+        "baseTradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAACE32Q0U6EMBBFf2Uzz8SIwAq87puJX2A2pJYh26QUnE5XCfbfHVg1bLL6Np05N_f2zvAWkCaoZ_CsOPhlGkY2g4MaPOpA6tUixAR4GlF2z9ia0O8ONnhG2j3hO1pIVrWIX-YfTrlW1p2xQl0OppU1On1Sju8Wvsnuy31a7NO8EPSsbMDFvjfinSfQqw-oixiTm9IqL6sqS8vq86GEeIzHjdklRLN5b0ZSZHi6-qcbXHBGmoAodhLA6z_EeiAKI2N7pe-U9WtHfnJ8Qm88to1h7G9THSnNgf5ljD3b3zIei-82yizGNaIfiJfzSEavbXst2b8AV7ts2c4BAAA",
+        "meanMaterialCounts": {
+          "alteration": 486.8685064935065,
+          "augmentation": 19.425324675324674,
+          "regal": 54.923701298701296,
+          "exalted": 25.6525974025974,
+          "scouring": 53.923701298701296,
+          "transmutation": 53.923701298701296
+        },
+        "completedSimulationCrafts": 616,
+        "meanStandardErrorChaos": 4.122015996709222
+      },
+      "evidence": {
+        "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+        "patch": "3.30.0.1",
+        "url": "https://beta.craftofexile.com/",
+        "verifiedAt": "2026-11-16",
+        "settings": "Medium · Exerted Attack Damage 20% · 4–5 пассивов; starting ilvl 83; target Mob Mentality + Lead By Example.",
+        "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+        "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+      }
+    },
+    {
+      "id": "critical-pressure-basics",
+      "materialCountsExcludingInitialPreparation": true,
+      "research": {
+        "id": "critical-pressure-basics",
+        "name": "Pressure Points + Basics of Pain",
+        "base": "Medium · Critical Strike Chance 15% · 4–5 пассивов",
+        "itemLevel": [68, 83],
+        "method": "A",
+        "baseChaos": 1.0,
+        "meanChaos": 39.04467068660775,
+        "p90Chaos": 85.55191,
+        "observedLowestChaos": 80.0,
+        "grossSpreadChaos": 40.95532931339225,
+        "reportedOffers": 59,
+        "sampleListings": 10,
+        "sampleSellers": 8,
+        "samplePrices": ["80 c", "80 c", "80 c", "80 c", "90 c"],
+        "capturedAt": "2026-11-16T07:23:06.812Z",
+        "tradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAACE32R3WrDMAyFX6XoOoykiUuc290V9gSjBM9RqMH5mS1vDZnffUpKWQrt7uSj76AjeYbPgG6CagZPioJfqmEkM_RQgUcdnPqwCDEBmkZk7Q0bE7rdqw2e0O2O-I0WktXN5vf5xqm-Ybk1lqlrwzQsY6_PqqeXha_ztDxk4pAVgtEvZQMu4zvDs4sEOnWBSsSYPLTKopQyz0r5s5fwx1xGa7S5QbnM5F6IsnhKpGWRCynSHOIpnjaBr4vUm_emdMoZmu5uxRKfidNyfq-f-PTgXBgJmztrq6xfT-ynns7ojcemNoTdY6p1SlNw_zBxzeEHR0t3dEavP-I1t34Blk26_PIBAAA",
+        "baseTradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAACE32Q3UrEMBCFX2WZ6yLW_tD21jvBJ5ClxHTKDqRpnUxWS827m3ZVurB6N5n5DufkLPDmkWdoFnCixLt1Gieh0UIDDrVn9WoQQgIyTxh3z9iRHw6PxjtBPjzhOxpINnUUvyw_nLJdXPdkInU5UBfXaPVJWblb-Ta7r8q0KNO8iOhZGY-r_UDRO09gUB_QFCEkN6V1XtV1llb150MN4RiOO7NLiHb33o2smGS--qcdrbcUm4AQ7WIAp_8Q65HZT4Ldlb5Xxm0dudnKCR057FoSHG5TPSstnv9lyJzNbxll9d1GlYWwRXQjy3qemPTWttMx-xdHkS4ozgEAAA",
+        "meanMaterialCounts": {
+          "alteration": 203.8606390210741,
+          "augmentation": 6.280761386811693,
+          "regal": 18.17403127124405,
+          "exalted": 8.506458191706322,
+          "scouring": 17.17403127124405,
+          "transmutation": 17.17403127124405
+        },
+        "completedSimulationCrafts": 1471,
+        "meanStandardErrorChaos": 0.9841628538522456
+      },
+      "evidence": {
+        "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+        "patch": "3.30.0.1",
+        "url": "https://beta.craftofexile.com/",
+        "verifiedAt": "2026-11-16",
+        "settings": "Medium · Critical Strike Chance 15% · 4–5 пассивов; starting ilvl 83; target Pressure Points + Basics of Pain.",
+        "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+        "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+      }
+    },
+    {
+      "id": "life-fettle",
+      "materialCountsExcludingInitialPreparation": false,
+      "research": {
+        "id": "life-fettle",
+        "name": "Fettle",
+        "base": "Small · maximum Life 4% · 2 пассива",
+        "itemLevel": [83, 83],
+        "method": "B",
+        "baseChaos": 1.0,
+        "meanChaos": 34.24229671681628,
+        "p90Chaos": 76.29416,
+        "observedLowestChaos": 150.2,
+        "grossSpreadChaos": 115.95770328318372,
+        "reportedOffers": 4,
+        "sampleListings": 4,
+        "sampleSellers": 3,
+        "samplePrices": ["170 c", "200 c", "1 div", "1 div"],
+        "capturedAt": "2026-11-16T08:07:16.218Z",
+        "tradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAAAA32QQU_DMAyF_8rkc4UISUe7625cOaKpCqmrRUrTkjiwquS_424gOmmQi-Pn78lPniGSphRhN8Mwkh087CCiSUG_OoRcAE0jsvbca-c2e5ciYdg84Qc6KM5m9r7MP5j2LcuddUxdBrZlGb05ak93C9_I-2oryq1QJaPv2iVctveWVz8U0OsT15yLm9ZaVXUtRVV_yhp-mdPorLHfkJClLB-FUgryIR9WcS4xm1W_-gYdLE1Xh_CDT96-ccDMgThiNH-YzRBCGgnbK3-nXTwfMU6ejhhtxLaxhP1tqgvaUAr_MMv7AtqfWXizAQAA",
+        "baseTradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAACE31QQU7DMBD8SuVzhAhpStxrb1w5oioyzka15Dhhd12Igv_OJgWUSoWT17MzmtmZ1FsEHNV-UsSGI81TP7Drg9orAhvRvHpQKVM8DiDYc2e83xx8JAbcPME7eJUtYtG-TD80ExqBW-eFdVm4RmAI9mQC3838urivdnm5y7elUM_GR5jdOyfWD5nqzIe8KWU3pXpbaV3klf4stErHdFyZXULUq_9qRIOOx6szQx9icFKESmInAcj-IbY9YhwYmit9azwtFdEY-ATkCJraMXS3WS0ayxH_5Th_9r9lPJbfbVRFSktE6pHn9YDOLm2TlexfD8PJkM0BAAA",
+        "meanMaterialCounts": {
+          "alteration": 405.100322225489,
+          "augmentation": 0,
+          "regal": 1,
+          "exalted": 0,
+          "scouring": 1,
+          "transmutation": 1
+        },
+        "completedSimulationCrafts": null,
+        "meanStandardErrorChaos": null
+      },
+      "evidence": {
+        "method": "CoE 3.30.0.1 exact single-notable calculation",
+        "patch": "3.30.0.1",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.38&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX21heGltdW1fbGlmZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTQ5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=185&method=0%2C1",
+        "verifiedAt": "2026-11-16",
+        "settings": "Small · maximum Life 4% · 2 пассива; starting ilvl 83; target Fettle.",
+        "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+        "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+      }
+    },
+    {
+      "id": "armour-enduring-composure",
+      "materialCountsExcludingInitialPreparation": false,
+      "research": {
+        "id": "armour-enduring-composure",
+        "name": "Enduring Composure",
+        "base": "Small · Armour 15% · 2 пассива",
+        "itemLevel": [83, 83],
+        "method": "B",
+        "baseChaos": 15.0,
+        "meanChaos": 21.619416475043685,
+        "p90Chaos": 29.00008,
+        "observedLowestChaos": 45.0,
+        "grossSpreadChaos": 23.380583524956315,
+        "reportedOffers": 540,
+        "sampleListings": 10,
+        "sampleSellers": 2,
+        "samplePrices": ["45 c", "45 c", "45 c", "45 c", "45 c"],
+        "capturedAt": "2026-11-16T08:06:27.506Z",
+        "tradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAAAA32QwU7DMBBEf6Xac4SaxK2SXrlx5YiqaHE2qiXHCfYaGgX_O5sWRCoVfLF3_EYz2hkCI8cAhxmGkc3g4ACBdPT4aglSBjyNJNpzj9ZuHm0MTH7zRB9kIbuYxfsy_2DoWpE7Y4W6fphWZHL6hI4fFr4pt9U-3-1ztRP0HW2kJb03El1k0ONZ7pSyu9ZaVXVd5lX9qQr4Zc6jNdp8Q8VWlUWlJAXSMR1Xda41m9W8enr0hqebRbjBRWfepGCSQlIx6D_MevA-jkztjb9DGy5LDJPjEwUTqG0MU3-f6jxqjv4fZjlfxt46S7MBAAA",
+        "baseTradeUrl": "https://www.pathofexile.com/trade/search/Covens/H4sIAAAAAAACE31QQW6DMBD8SrRnVJVAEOTaW649VhFyzaJYMoau10kQ9d-7kLYiUtqT17MzmtmZ4CMgjbCfwLPi4OepH9j0DvbgUQdS7xYhJsDjgIK9dsrazYsNnpE2B7yghWQRi_Zt-qEp1wjcGius28I0AqPTJ-X4aebX2XNZpLsizXdCPSsbcHbvjFhvE-jUVd4Yk4fSKi-rKkvL6jPfQjzG48rsFqJe_VcjKTI83p3peheckSIgip0E8PoPse6JwsDY3OlbZf1SkR8dn9Abj01tGLvHrJaU5kD_cow9298yivK7jTKLcYnoe-J5PZDRS9teS_YvgfwW-M0BAAA",
+        "meanMaterialCounts": {
+          "alteration": 71.52207085632988,
+          "augmentation": 0,
+          "regal": 1,
+          "exalted": 0,
+          "scouring": 1,
+          "transmutation": 1
+        },
+        "completedSimulationCrafts": null,
+        "meanStandardErrorChaos": null
+      },
+      "evidence": {
+        "method": "CoE 3.30.0.1 exact single-notable calculation",
+        "patch": "3.30.0.1",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.41&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2FybW91ciJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTgxIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=188&method=0%2C1",
+        "verifiedAt": "2026-11-16",
+        "settings": "Small · Armour 15% · 2 пассива; starting ilvl 83; target Enduring Composure.",
+        "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+        "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+      }
+    }
+  ],
+  "poolReplayVerification": [
+    {
+      "id": "brand-remarkable-grand",
+      "method": ["5", "3", "15"],
+      "level": 68,
+      "poolIdenticalThrough": 83,
+      "modifiers": 43,
+      "totalWeight": 22500,
+      "calculatorResult": "Calculations\nCreate simulation\nComputing permutations of valid combinations\nSuccess chance :\n1 out of 115 tries\n0.874%\nExpected costs :\n0\nWild Crystallised Lifeforce\n490130\nSacred Crystallised Lifeforce\n115\nCrystallised Rancour\n2885988\nConfidence :\n63.373 %\nTries\nX\nExecuted in 0.758 seconds",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2495.34&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25NZWRpdW0iLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6NjgsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2JyYW5kX2RhbWFnZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTI3IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTkzMCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d&class=181&method=5%2C3%2C15"
+    },
+    {
+      "id": "minion-rebirth-life",
+      "method": ["4", "18"],
+      "level": 68,
+      "poolIdenticalThrough": 83,
+      "modifiers": 44,
+      "totalWeight": 22499,
+      "calculatorResult": "Calculations\nCreate simulation\nComputing permutations of valid combinations\nSuccess chance :\n1 out of 143 tries\n0.701%\nExpected costs :\n143\nPristine Fossil\n143\nPrimitive Chaotic Resonator\n1104\nConfidence :\n63.341 %\nTries\nX\nExecuted in 0.649 seconds",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2495.29&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25NZWRpdW0iLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6NjgsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX21pbmlvbl9saWZlIn0%3D&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1ODkzIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTg5NCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d&class=176&method=4%2C18"
+    },
+    {
+      "id": "warcry-mob-lead",
+      "method": ["4", "21"],
+      "level": 75,
+      "poolIdenticalThrough": 83,
+      "modifiers": 45,
+      "totalWeight": 23372,
+      "calculatorResult": "Calculations\nCreate simulation\nComputing permutations of valid combinations\nSuccess chance :\n1 out of 289 tries\n0.347%\nExpected costs :\n289\nSerrated Fossil\n289\nPrimitive Chaotic Resonator\n2181\nConfidence :\n63.276 %\nTries\nX\nExecuted in 0.88 seconds",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2495.27&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25NZWRpdW0iLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6NzUsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX3dhcmNyeV9idWZmX2VmZmVjdCJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1ODc1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTg3OCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d&class=174&method=4%2C21"
+    },
+    {
+      "id": "critical-pressure-basics",
+      "method": ["4", "5"],
+      "level": 68,
+      "poolIdenticalThrough": 83,
+      "modifiers": 48,
+      "totalWeight": 22326,
+      "calculatorResult": "Calculations\nCreate simulation\nComputing permutations of valid combinations\nSuccess chance :\n1 out of 48 tries\n2.11%\nExpected costs :\n48\nDeft Fossil\n48\nPrimitive Chaotic Resonator\n343\nConfidence :\n63.599 %\nTries\nX\nExecuted in 0.746 seconds",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2495.28&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25NZWRpdW0iLCJtIjpbXSwibnMiOjAsInMiOltdLCJxIjpudWxsLCJxdCI6bnVsbCwibCI6NjgsInIiOiJyYXJlIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2NyaXRpY2FsX2NoYW5jZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1ODg1IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH0seyJpIjoiNTg4OCIsInQiOm51bGwsImIiOnRydWUsInMiOm51bGx9XX1d&class=175&method=4%2C5"
+    },
+    {
+      "id": "armour-enduring-composure",
+      "method": ["0", "1"],
+      "level": 83,
+      "poolIdenticalThrough": 83,
+      "modifiers": 79,
+      "totalWeight": 29606,
+      "calculatorResult": "Calculations\nCreate simulation\nComputing permutations of valid combinations\nSuccess chance :\n1 out of 72 tries\n1.4%\nExpected costs :\n72\nOrb of Alteration\n5.71\nConfidence :\n63.469 %\nTries\nX\nExecuted in 0.825 seconds",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.41&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2FybW91ciJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTgxIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=188&method=0%2C1"
+    },
+    {
+      "id": "life-fettle",
+      "method": ["0", "1"],
+      "level": 83,
+      "poolIdenticalThrough": 83,
+      "modifiers": 89,
+      "totalWeight": 30294,
+      "calculatorResult": "Calculations\nCreate simulation\nComputing permutations of valid combinations\nSuccess chance :\n1 out of 406 tries\n0.247%\nExpected costs :\n406\nOrb of Alteration\n32.2\nConfidence :\n63.257 %\nTries\nX\nExecuted in 0.883 seconds",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.38&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX21heGltdW1fbGlmZSJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTQ5IiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=185&method=0%2C1"
+    }
+  ],
+  "sourceHashes": {
+    "analysis.json": "5c7f1b3ec732655765507c207730a12b87413160c658ed42b0a6a841d23a4866",
+    "alt-regal-distributions.jsonl": "9f5837fb108efcb5a65468390a8f0e51453d0821e985fd29fe38db0a2ae0a866",
+    "coe-results-fettle.jsonl": "ba8191df3696ce3e6987069c83f2a0c88a8697fb06693511ce6b0930d2f1bf3e",
+    "coe-results-small.jsonl": "ec8ab178b0f182009a8e727fa79494b5429aac415dbd59955f64f8f7cd2e5500"
+  },
+  "limitations": [
+    "Medium Monte Carlo ignores useful Transmutation outcomes; expected usage is conservative for this procedure.",
+    "Medium estimates have sampling error; historical prices do not establish present profit."
+  ]
+}

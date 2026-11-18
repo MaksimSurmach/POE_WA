@@ -1,0 +1,19 @@
+{
+  "sourceHead": "9316d056ca5de6b0e9907ef1777caef87deecd5e",
+  "automatic": {
+    "domain": 215,
+    "contracts": 20,
+    "server": 628,
+    "web": 175,
+    "native": 1,
+    "total": 1039
+  },
+  "isolatedPostgresIntegration": 208,
+  "typecheck": "PASS",
+  "lint": "PASS",
+  "serverBuild": "PASS",
+  "changedSourceFormatting": "PASS",
+  "regressionBefore": "Two missing canonical modifier regressions failed before adding mappings.",
+  "regressionAfter": "Both actual excerpts MATCH; tier1 preserved; starting-base origins preserved; conditional movement excluded; below-floor variants REJECT.",
+  "limits": "Sourcechecks executed by root; Claude source reviews do not claim execution. UI/browser acceptance uses same web source as bd02d3a. Final evidence commit has its own exact-head CI."
+}

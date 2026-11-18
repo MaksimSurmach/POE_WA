@@ -13,6 +13,8 @@ import {
   registerMarketAdminRoutes,
   type MarketAdminApiOptions,
 } from './marketAdminApi.js';
+import { registerScrapedItemRoutes } from './scrapedItemsApi.js';
+import type { ScrapedItemService } from './scrapedItems.js';
 
 import {
   apiErrorEnvelopeSchema,
@@ -99,6 +101,7 @@ export function buildApi(
     marketAdmin?: MarketAdminApiOptions | undefined;
     craftAnalysis?: CraftAnalysisService | undefined;
     factory?: FactoryService | undefined;
+    scrapedItems?: ScrapedItemService | undefined;
     collectorPool?: Pool | undefined;
     collectorSkipStandard?: boolean;
     readCollectorReadiness?:
@@ -128,6 +131,7 @@ export function buildApi(
     const path = request.routeOptions.url ?? request.url.split('?')[0] ?? '';
     if (
       path.startsWith('/api/admin/') ||
+      path.startsWith('/api/settings/') ||
       path === '/api/run' ||
       path === '/api/collector/status'
     )
@@ -172,6 +176,7 @@ export function buildApi(
     if (
       (runRequest ||
         request.url.startsWith('/api/market') ||
+        request.url.startsWith('/api/settings/') ||
         request.url.startsWith('/api/admin/')) &&
       error &&
       typeof error === 'object' &&
@@ -184,7 +189,9 @@ export function buildApi(
       ].includes(String(error.code))
     ) {
       const invalid = new DomainError(
-        runRequest || request.url.startsWith('/api/admin/')
+        runRequest ||
+          request.url.startsWith('/api/admin/') ||
+          request.url.startsWith('/api/settings/')
           ? 'MARKET_QUERY_INVALID'
           : 'MARKET_IMPORT_INVALID',
       );
@@ -243,6 +250,7 @@ export function buildApi(
   registerMarketAdminRoutes(api, options.marketAdmin);
   registerCraftAnalysisRoutes(api, options.craftAnalysis);
   registerFactoryRoutes(api, options.factory);
+  registerScrapedItemRoutes(api, options.scrapedItems);
   registerMarketTrendsRoutes(api, options.marketTrends);
 
   api.get('/health/live', async (request) => ({

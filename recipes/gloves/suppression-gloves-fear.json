@@ -128,7 +128,13 @@
   "id": "suppression-gloves-fear",
   "schemaVersion": 3,
   "summary": "Use Fear essences on Dragonscale Gauntlets with acquired fractured spell suppression until at least 100 life; the essence grants minion damage.",
-  "tags": ["minion", "life", "spell-suppression", "fractured"],
+  "tags": [
+    "minion",
+    "life",
+    "spell-suppression",
+    "fractured",
+    "base-independent"
+  ],
   "targetSignature": "3.29.3.3:13506e25f47ba5c01d9b7146b8d91aed",
   "target": {
     "prefixes": [

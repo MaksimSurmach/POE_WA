@@ -1,0 +1,747 @@
+{
+  "resumedAt": "2026-11-18T10:24:43.191Z",
+  "sourceHead": "8d86997",
+  "restoredSchedules": 59,
+  "keptNewCompletions": 60,
+  "disabledSupersededSchedules": 12,
+  "enabledSchedules": [
+    {
+      "kind": "retention",
+      "n": 1
+    },
+    {
+      "kind": "economy",
+      "n": 1
+    },
+    {
+      "kind": "trade-target",
+      "n": 128
+    },
+    {
+      "kind": "league",
+      "n": 1
+    }
+  ],
+  "recipes": 72,
+  "outputs": 66,
+  "searches": 128,
+  "originalRun": {
+    "id": "7d084fd5-5989-4349-a709-68293be2f87f",
+    "state": "failed",
+    "summary": {
+      "failed": 1,
+      "pending": [],
+      "succeeded": 130
+    }
+  },
+  "restored": [
+    {
+      "id": "04823ea4-2400-4af1-927d-5b420bd0d5f7",
+      "key": "e8a568a04dece782bf515a9d2f6949513d650eae896b8c9a83d7a8524f3271b7",
+      "nextDueAt": "2026-11-18T05:45:14.649Z"
+    },
+    {
+      "id": "0580d342-77e6-414e-abf6-0e40a6454bb6",
+      "key": "36dfcf84158a99f9666a05f1690f0095b15643486e4727e48f9ca8714f69c5d4",
+      "nextDueAt": "2026-11-18T05:45:29.399Z"
+    },
+    {
+      "id": "06cddd16-1fe0-4cee-99da-d9e82ebf203d",
+      "key": "58f0254ebf5e08fbcfb47eacd5c659c88db4565208ed47a37ffa241a552c4b0d",
+      "nextDueAt": "2026-11-18T05:46:03.398Z"
+    },
+    {
+      "id": "0a7cd286-595c-41aa-8c1c-a403fb47f656",
+      "key": "fbb289b5d83468661a5aa7f18270d9a1bab3bb67e315139e7b76e10b7df2f68e",
+      "nextDueAt": "2026-11-18T05:47:32.473Z"
+    },
+    {
+      "id": "0b88451f-b836-47d5-9af4-e4b2b973b58c",
+      "key": "ed2d1b1f7ada5b80e38f5ad238ec06f8823118ec46a8c87dcbaec29cf75153af",
+      "nextDueAt": "2026-11-18T05:47:47.315Z"
+    },
+    {
+      "id": "11705d27-43ff-4272-83d9-a6b8c04d072e",
+      "key": "b1f1b54d5ae53493f4394ba870bfdc4cb83af459227d82fc6ed1d644935685dc",
+      "nextDueAt": "2026-11-18T05:48:36.608Z"
+    },
+    {
+      "id": "14c2efc3-04bb-41c0-97dd-b59e1f152d52",
+      "key": "7225f142a992736a92bcd11fc0bfdb21eed910f600fd3303a326aab7cd62b6af",
+      "nextDueAt": "2026-11-18T05:48:45.921Z"
+    },
+    {
+      "id": "23b4b0ec-5246-4c77-89e2-d9847570761a",
+      "key": "3f54abd85c5603dcbfb5efe9e1c06c19e34b00101328e6fc86d3d3b8f08ca2ca",
+      "nextDueAt": "2026-11-18T05:51:49.172Z"
+    },
+    {
+      "id": "31a37959-6e81-4b90-bd29-52b7a8d78f3a",
+      "key": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+      "nextDueAt": "2026-11-18T05:53:32.754Z"
+    },
+    {
+      "id": "341461a2-5784-4480-b22e-5312dff3f45a",
+      "key": "aa646fd4ab67fbabfb409b8ae14ab83bf34856f225d46436cc0e5fc3b21ce14a",
+      "nextDueAt": "2026-11-18T05:54:07.103Z"
+    },
+    {
+      "id": "357ad84f-f232-4058-9909-879513048f25",
+      "key": "eba51e8a4783bd600d08bdc41b7ea4480f5b3d8f9134fc64eb186188bf29f772",
+      "nextDueAt": "2026-11-18T05:56:35.585Z"
+    },
+    {
+      "id": "43993563-9199-469e-8a2b-c48956d4ca16",
+      "key": "b7c5b1c280f7450bcd624a2fb25ea20e28ec53dee3c462253d9a880506593fc3",
+      "nextDueAt": "2026-11-18T06:06:57.356Z"
+    },
+    {
+      "id": "49e8748e-83e3-4df0-aee3-0e8ebaaaed5b",
+      "key": "9652e83ee6f1016830c66f0d041fe49dc8f76c53b66ec8566207150e66198af4",
+      "nextDueAt": "2026-11-18T06:15:00.922Z"
+    },
+    {
+      "id": "54b43e2d-ca76-436f-be14-b9f149bc2824",
+      "key": "aa80e35e8d3b9efe3cf0a98998541363c753fb61cfb93a07629335d02da3d810",
+      "nextDueAt": "2026-11-18T06:16:33.578Z"
+    },
+    {
+      "id": "5d53d834-b856-4b4b-a8d9-111c15450fb8",
+      "key": "200644c8df62a01efd5980515fb4fa942372bcd6f96fa960434bcbb83cf000ac",
+      "nextDueAt": "2026-11-18T06:19:26.382Z"
+    },
+    {
+      "id": "5f7fa130-757f-4a00-9599-37f672625800",
+      "key": "a13d53a817e31856965bf6c9d998c4bd5b8bcce7e85808a860c90a9fadaa804e",
+      "nextDueAt": "2026-11-18T06:22:04.497Z"
+    },
+    {
+      "id": "6eeef8b6-beda-4671-bd07-d7a53a6acbda",
+      "key": "91e325dfdde06bf9cf4d5f49b450dc59caa28c6d2b07f823f1de8359e8d0f062",
+      "nextDueAt": "2026-11-18T06:28:00.363Z"
+    },
+    {
+      "id": "6fc1b650-1771-49d9-b7e3-952e89e837ab",
+      "key": "71d8b39463ae3580c2027026f8eb698abc89dccd6ec1f33e24a50eb1fda45c50",
+      "nextDueAt": "2026-11-18T06:28:34.494Z"
+    },
+    {
+      "id": "70d062fe-4a0b-41a7-b758-194229ff2d67",
+      "key": "872018f2a8bc29a9c7ba5569c5b86d74211a32a4d1b52c8671d8130d6159e0cf",
+      "nextDueAt": "2026-11-18T06:28:58.880Z"
+    },
+    {
+      "id": "74a8f43e-e998-4327-af94-d2d537769de3",
+      "key": "c75199b605d6c5955884c91b621d3a7abb0a143d4c5d46f51c6812a0b6407395",
+      "nextDueAt": "2026-11-18T06:29:38.397Z"
+    },
+    {
+      "id": "7a527054-d433-48f1-bb45-f4d504bf0183",
+      "key": "dca57aff9a57e153cf089c4dfdb38e9a4d62a9e6faad0522bf73fbc74e8e7204",
+      "nextDueAt": "2026-11-18T06:38:45.063Z"
+    },
+    {
+      "id": "7dd59439-423d-4062-8c08-c844374b3a5d",
+      "key": "0d294b06d0b6e8fb3b46ebcf1ada10dac3ae1f3e50c42d630c022187857a1cde",
+      "nextDueAt": "2026-11-18T06:44:48.593Z"
+    },
+    {
+      "id": "805d6c53-c3dc-416b-98b5-9f29c3b13cf7",
+      "key": "10774a713d2d9b28b85e04a7bcdd16f6acf1e952935bf7da6035665cf22a85d2",
+      "nextDueAt": "2026-11-18T06:54:03.694Z"
+    },
+    {
+      "id": "808e85cc-9851-4b34-875d-c77041828b6c",
+      "key": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+      "nextDueAt": "2026-11-18T06:54:54.523Z"
+    },
+    {
+      "id": "84e74ae1-1bd0-44c0-a724-b898a98af9b6",
+      "key": "dbbcd0ca68ea9caf4bf4d89f076113bc361617873bd142501667759b1ea51518",
+      "nextDueAt": "2026-11-18T07:00:08.951Z"
+    },
+    {
+      "id": "86122a3d-b2b2-4a9e-9121-e209e41f18d5",
+      "key": "982de38b250f41cef624895b64a6371c73ac89fdce3bbfde7c89958ee1c2af1e",
+      "nextDueAt": "2026-11-18T07:01:16.716Z"
+    },
+    {
+      "id": "8cd5ef15-0675-400f-878d-f6392b4a6e5e",
+      "key": "25720f95596d30c289672a459db40983287bf652ca4d4f300c3615435d40022f",
+      "nextDueAt": "2026-11-18T07:10:44.532Z"
+    },
+    {
+      "id": "9037d5d1-24cf-48c1-a3e1-701cd14c0351",
+      "key": "450e3c4c5e5c672a3dfa529f7b512c6ddd08179dd2c4d1a193eb0cd2cdd2390c",
+      "nextDueAt": "2026-11-18T07:13:42.085Z"
+    },
+    {
+      "id": "932f48f4-f861-44bf-9f4b-2d2c052b3c7b",
+      "key": "bb754bdd9741759d5d6551796a2c8684ce2fa8e599e10a5adcd32c9f098d707b",
+      "nextDueAt": "2026-11-18T07:14:11.696Z"
+    },
+    {
+      "id": "a501032e-9260-4166-825f-fad93a10b57d",
+      "key": "d4c018483b88e000c0313fb13587d6c3ba893f2c566040a9e68f055bf2fc13f1",
+      "nextDueAt": "2026-11-18T07:17:44.493Z"
+    },
+    {
+      "id": "ab081e0d-c4a1-4e5a-ac61-2d3dc412708d",
+      "key": "a7131eab3d33eeaf4af864c12e5e840494c11d9582f6cc4242d0c17f8babd9d6",
+      "nextDueAt": "2026-11-18T07:18:58.925Z"
+    },
+    {
+      "id": "ab2c1693-94ea-456c-834f-d1562d9f88bb",
+      "key": "7b007ff9f8a28602a8c70f42fba8c86838e58472fbc7ebbd04807b3199bf91fd",
+      "nextDueAt": "2026-11-18T07:19:28.414Z"
+    },
+    {
+      "id": "abeb727a-af7c-419d-b08a-2bb7ec310a3e",
+      "key": "25aad7330ae0939cf9505310151a3e259b9f13be4a393f6767aa694639026af4",
+      "nextDueAt": "2026-11-18T07:19:58.144Z"
+    },
+    {
+      "id": "b2a97270-aed2-49de-b6b0-ceaff7ea0038",
+      "key": "ab4c9b4fbc7d3d90fb40e1be1fcee78cb80637e6c6dbf986e4f5288813da35e6",
+      "nextDueAt": "2026-11-18T07:21:02.224Z"
+    },
+    {
+      "id": "b56187ec-abf6-42d8-b46b-dc8c7f8169aa",
+      "key": "1a8e38761f159fbd0e5a577fb5d7495629783f7ec9fe4beeae4219ec129e0103",
+      "nextDueAt": "2026-11-18T07:21:51.178Z"
+    },
+    {
+      "id": "b56ba10b-376b-4ffe-8796-04942af0660e",
+      "key": "06b7205faf17c8eac1d7838750d1581abab475ec0ea2a811d9d20bcb858c9981",
+      "nextDueAt": "2026-11-18T07:22:20.781Z"
+    },
+    {
+      "id": "bdebe6f6-e131-4fba-adff-cf7356eb2efe",
+      "key": "9729ddc7eb551380ca9973488a286ee83e12bd7d78859bfcfe269d7f0a2571b3",
+      "nextDueAt": "2026-11-18T07:25:41.874Z"
+    },
+    {
+      "id": "be9a182c-2350-42fc-98a9-d2d9a0dfda24",
+      "key": "35b5d2f928242ab77d8320b7458ad1becd4aa911773f97abca30882c1d1f8d8e",
+      "nextDueAt": "2026-11-18T07:27:09.799Z"
+    },
+    {
+      "id": "bf808006-d048-420d-be9a-0a16f7067920",
+      "key": "175e20ec044d2ace3cbfde4cdf473a428882265f23942cd06e00748f87776f5a",
+      "nextDueAt": "2026-11-18T07:28:39.108Z"
+    },
+    {
+      "id": "c2efda02-7217-430f-ab2e-9b58c7766999",
+      "key": "645711f70fa0d8291f3cbb31cbc039eb7b2db79cbbe4da56b81d8d608c3c61e5",
+      "nextDueAt": "2026-11-18T07:30:55.965Z"
+    },
+    {
+      "id": "c82fe2e4-b31d-4403-a5a7-308544b4db2b",
+      "key": "e714d9495933142477e12f876b2e143422d5351237fd3e31ee0fe0936cbbc305",
+      "nextDueAt": "2026-11-18T07:33:16.258Z"
+    },
+    {
+      "id": "c9d44f57-3a97-465e-addf-b1494eac7c30",
+      "key": "bd49fc569a6c50d81e5467f13d0ef3ede81b55a257374a291d6320258724bc17",
+      "nextDueAt": "2026-11-18T07:34:52.067Z"
+    },
+    {
+      "id": "cc4face9-7e9e-47ed-9a2b-42ba48e47ab6",
+      "key": "f80d207960972991cb94126d4c2ad5770f61036305ee7e0228ef3f0b6d18275b",
+      "nextDueAt": "2026-11-18T07:38:59.213Z"
+    },
+    {
+      "id": "cf22b167-9e29-4a1f-b7e1-ec9a0fd9cd2b",
+      "key": "a3401fae646d3ddc3366f86c34f1db971147abc8c170b9468b23994a608de263",
+      "nextDueAt": "2026-11-18T07:40:40.462Z"
+    },
+    {
+      "id": "cf80717d-0e0a-4e30-ae9d-e032da281b3c",
+      "key": "7eea3040096520861448e3826e5efd01c4b325aefdfb8b5cb323c23c632224e5",
+      "nextDueAt": "2026-11-18T07:42:24.053Z"
+    },
+    {
+      "id": "d18b72da-3583-4e9f-8e7a-8aa5b5e0a0d1",
+      "key": "064cbb1f288b94a8eede8b3cf9e3c76d2f01992fee8086e74d558ef51e02dc3f",
+      "nextDueAt": "2026-11-18T07:44:09.848Z"
+    },
+    {
+      "id": "d9093692-b8e5-4656-a570-9352c9b794f8",
+      "key": "6036677b7945ff52a386e6a52ba2313bfc4ef933cd02a2970d46cc79f5542f94",
+      "nextDueAt": "2026-11-18T07:50:36.618Z"
+    },
+    {
+      "id": "e067a0a6-8d26-4fc8-9da2-6e9c3d531bbc",
+      "key": "989558e67a8f805126cb6ce203f72c71ca45cd796691e099f441ee6589712a2a",
+      "nextDueAt": "2026-11-18T08:02:44.039Z"
+    },
+    {
+      "id": "e454a4ee-e1f2-4c23-b658-f3245b63bd1a",
+      "key": "de6627451e1dd9baebf9c531a7472a2976cae833566b9db6873931716131f982",
+      "nextDueAt": "2026-11-18T08:06:26.706Z"
+    },
+    {
+      "id": "e616562b-fbc4-4989-abcb-113b2409d39e",
+      "key": "c2648f4c429e2b9f1a0eb2d3eb87ad6bcde21fcc85c325a9a87c65c1fd336dcd",
+      "nextDueAt": "2026-11-18T08:07:55.899Z"
+    },
+    {
+      "id": "e98859aa-5fcb-45f0-bfe5-e92f0f322102",
+      "key": "c596af9a409bf4395c717ea0638a75c17d23ef7aaec1d5c2e269bc48e14bfa88",
+      "nextDueAt": "2026-11-18T08:08:25.512Z"
+    },
+    {
+      "id": "eb10d268-6aad-400f-bdcc-09065f5608e2",
+      "key": "9af1dd872b07d9a54da5bd25e8b7bb3fcfc88ab0cae382fd6fcb1cdc767037bf",
+      "nextDueAt": "2026-11-18T08:09:09.961Z"
+    },
+    {
+      "id": "ed0a64be-ec58-4bd3-bfca-74d18981c79c",
+      "key": "league",
+      "nextDueAt": "2026-11-18T22:00:00.000Z"
+    },
+    {
+      "id": "ed4e73b6-a1dc-44b3-9ec1-4dce786a3409",
+      "key": "retention",
+      "nextDueAt": "2026-11-19T02:15:00.000Z"
+    },
+    {
+      "id": "f015fa6a-3aeb-4b45-a333-cd53da5a81f1",
+      "key": "1e8064eb1569dc0f7fff0fe0728ef2e6a70af519b136bf60b7db0caf15e13f87",
+      "nextDueAt": "2026-11-18T08:12:42.079Z"
+    },
+    {
+      "id": "f5d68f56-5533-48c3-9515-eb8ed10ab521",
+      "key": "04cc7c66453546e78eb5f9903f2921f6552c8e3c5c963b4e127cd2f2c03f80b0",
+      "nextDueAt": "2026-11-18T08:22:38.213Z"
+    },
+    {
+      "id": "f7dd7244-0d1a-45a0-adfc-093ef0870e55",
+      "key": "c6bb5852742fbd5b8b0f93b32470c76606b211053a25a79228364ed3f7576580",
+      "nextDueAt": "2026-11-18T08:24:02.403Z"
+    },
+    {
+      "id": "f9e041fc-5d39-4d2c-bb47-07211a2849c8",
+      "key": "783d26a899355cfc3ec43e86f2ef24e18d8d345a982e54c5ebe4739dd0aac07e",
+      "nextDueAt": "2026-11-18T08:24:17.093Z"
+    },
+    {
+      "id": "fbd51d0e-ca6c-4bdd-af68-b62577a1c139",
+      "key": "79ba427efcbdd5907d4abab0224ada0f04d6f60e5acce4de26d2f81ae992c416",
+      "nextDueAt": "2026-11-18T08:25:29.678Z"
+    }
+  ],
+  "kept": [
+    {
+      "id": "0cb5afa3-259d-4fdc-a34d-f8e97744dcb5",
+      "key": "1e2960e1d3a8a3c40462f221c961d26ac9cd3a0f97b9b4b1520531a0f1c84f70",
+      "lastFinishedAt": "2026-11-18T08:17:18.989Z",
+      "nextDueAt": "2026-11-18T09:17:18.989Z"
+    },
+    {
+      "id": "16ebe172-4301-4067-a3f6-94329eb02de3",
+      "key": "39159de0a281a6601ad3d294a64bad1f5243d783f3ea76f5e00415e1f197cf4a",
+      "lastFinishedAt": "2026-11-18T08:19:17.335Z",
+      "nextDueAt": "2026-11-18T10:19:17.335Z"
+    },
+    {
+      "id": "2427dedd-9855-4d7a-a65f-4775ff027e8a",
+      "key": "1835f4a624213ea56a20b5537a0bb88b562b8dd651f31c0cf8cf2b46b63073ac",
+      "lastFinishedAt": "2026-11-18T08:19:32.175Z",
+      "nextDueAt": "2026-11-18T09:19:32.175Z"
+    },
+    {
+      "id": "29abf6d0-6a7b-4a11-9ae0-0403f6af8613",
+      "key": "759af096334502f1e6717dd43ce462eed831784da3a57a6a889f0295c460c7e8",
+      "lastFinishedAt": "2026-11-18T08:19:46.918Z",
+      "nextDueAt": "2026-11-18T09:19:46.918Z"
+    },
+    {
+      "id": "2ebeb9ab-3acf-4410-97a9-301e252684c7",
+      "key": "0b4313e2cd943b76488cdb6134a15d034122e50b8a47b2e91eab0568c520a131",
+      "lastFinishedAt": "2026-11-18T08:20:06.554Z",
+      "nextDueAt": "2026-11-18T09:20:06.554Z"
+    },
+    {
+      "id": "314a27a3-33eb-4967-8a5a-aa42cdef0a4a",
+      "key": "121e8214907e66ccd2adb4042d925e7774f25f3a94d355dfa022674828b165f6",
+      "lastFinishedAt": "2026-11-18T08:21:00.933Z",
+      "nextDueAt": "2026-11-18T09:21:00.933Z"
+    },
+    {
+      "id": "34b63689-c2eb-4278-8205-0649543bdce0",
+      "key": "c59a12ec3cf14a51783090ea096e41735b1133d5051b2a2029740b04f1157215",
+      "lastFinishedAt": "2026-11-18T08:22:44.588Z",
+      "nextDueAt": "2026-11-18T09:22:44.588Z"
+    },
+    {
+      "id": "3a039716-6945-4295-b77c-44bf1893db87",
+      "key": "b123f8411b9cfe84236249c751c906f6d951ca1a5e75ab3294c51ddc10a530d1",
+      "lastFinishedAt": "2026-11-18T08:23:28.917Z",
+      "nextDueAt": "2026-11-18T09:23:28.917Z"
+    },
+    {
+      "id": "3a2e15b2-9b37-4cbf-b988-1e9f04332293",
+      "key": "fb25bd2ab7ede8ab57f5689d26fcadd848ad8f3855395a7ea79b0d54bcca0f72",
+      "lastFinishedAt": "2026-11-18T08:23:58.452Z",
+      "nextDueAt": "2026-11-18T09:23:58.452Z"
+    },
+    {
+      "id": "401796f4-8bf4-48eb-b06e-7c1ef70ad794",
+      "key": "64697fae611a0c0ee360542bfab6ab394a1b0c45a84adce3ccf7416ec6381794",
+      "lastFinishedAt": "2026-11-18T08:25:37.909Z",
+      "nextDueAt": "2026-11-18T09:25:37.909Z"
+    },
+    {
+      "id": "411e7d4e-6bed-4635-8e66-abe11545f5b4",
+      "key": "b3703b2b6898646fc56b021c1528bb03be9d87578386f8b988ecc702410ca729",
+      "lastFinishedAt": "2026-11-18T08:31:57.474Z",
+      "nextDueAt": "2026-11-18T10:31:57.474Z"
+    },
+    {
+      "id": "43c60690-f925-475a-94d1-46f5bc32b612",
+      "key": "c05c3db76aa3b8fa2e00bd4959beac588a8b41b9b19dd9843f46b613156c4db6",
+      "lastFinishedAt": "2026-11-18T08:34:50.656Z",
+      "nextDueAt": "2026-11-18T10:34:50.656Z"
+    },
+    {
+      "id": "45053f98-5960-49f0-b287-e16bff821305",
+      "key": "adb9bf07d8b7f0d9612cc77b34e9ee4ee65599caa152ae04cf26b16320e9b2a6",
+      "lastFinishedAt": "2026-11-18T08:37:53.415Z",
+      "nextDueAt": "2026-11-18T10:37:53.415Z"
+    },
+    {
+      "id": "474afd0e-3d76-4994-b7ae-c4c258f4194e",
+      "key": "745ab45afbd67ca294987f04cb308b64215c9c3f4261f3a54ca3864d590f37d3",
+      "lastFinishedAt": "2026-11-18T08:38:18.154Z",
+      "nextDueAt": "2026-11-18T09:38:18.154Z"
+    },
+    {
+      "id": "4791b429-8e5c-41ef-b546-9bd542335fb2",
+      "key": "Covens",
+      "lastFinishedAt": "2026-11-18T10:01:46.251Z",
+      "nextDueAt": "2026-11-18T10:31:46.251Z"
+    },
+    {
+      "id": "4d186a77-0418-4638-95a0-f3956d8dfafc",
+      "key": "e27a71b3b6021a6d6385c89b48e5f22f3056e08f3a5c47928362f785969138d6",
+      "lastFinishedAt": "2026-11-18T10:20:43.077Z",
+      "nextDueAt": "2026-11-18T12:20:43.077Z"
+    },
+    {
+      "id": "539a7ba2-920e-4a17-b537-5435a6eec382",
+      "key": "95807758a8c802bc6215348e5492ffd7aec3e32348fa304c17df0b3807b7bf64",
+      "lastFinishedAt": "2026-11-18T08:39:06.835Z",
+      "nextDueAt": "2026-11-18T09:39:06.835Z"
+    },
+    {
+      "id": "573ef576-bc8a-4407-948b-9006a547ce12",
+      "key": "806d7a70580d7c68b11318212e8b1946236c2b13fcce3ddc3a89c70746a2f63e",
+      "lastFinishedAt": "2026-11-18T08:40:30.601Z",
+      "nextDueAt": "2026-11-18T10:40:30.601Z"
+    },
+    {
+      "id": "5a90315e-fdb9-43e9-86de-c9530583c835",
+      "key": "42963a597700529c227b68bf7a6903d5ad71aa7a1b8dd63742ae189b07138dbd",
+      "lastFinishedAt": "2026-11-18T10:20:28.296Z",
+      "nextDueAt": "2026-11-18T12:20:28.296Z"
+    },
+    {
+      "id": "5d13be8a-21f7-4b37-9c7f-5694d9f1a55a",
+      "key": "10d22df4303770e3ce6325298d034bb3a2727123f903bc07a6ae45e91154c287",
+      "lastFinishedAt": "2026-11-18T08:41:00.117Z",
+      "nextDueAt": "2026-11-18T09:41:00.117Z"
+    },
+    {
+      "id": "614d51c4-8a6a-4a2d-bbe5-5ca920fd77e3",
+      "key": "4e6e69e34c4be77e2a16f307ac782c84fa00a8107bd82869487b62718d901466",
+      "lastFinishedAt": "2026-11-18T10:21:42.435Z",
+      "nextDueAt": "2026-11-18T12:21:42.435Z"
+    },
+    {
+      "id": "6c1d5c40-e0e8-4671-bba7-002ff2c061c9",
+      "key": "84506af1b85e04921afdf5261e470596e3cced0c8dfdc7a9da4999ab3e39a428",
+      "lastFinishedAt": "2026-11-18T08:42:29.131Z",
+      "nextDueAt": "2026-11-18T09:42:29.131Z"
+    },
+    {
+      "id": "6d1b0134-ce11-46ba-ad85-d660f1c01db5",
+      "key": "0c6532dc47b8cce055c6ce7cde03af8db1bc2b60ebcb83141a8b4528a5afa5a7",
+      "lastFinishedAt": "2026-11-18T08:50:29.264Z",
+      "nextDueAt": "2026-11-18T10:50:29.264Z"
+    },
+    {
+      "id": "6f33b31b-e4c3-484d-a284-adf563ef6b8e",
+      "key": "4d1cae677082513879034fe410aa2b8e0f13405183d99222b8b22399779bf0b5",
+      "lastFinishedAt": "2026-11-18T08:50:45.716Z",
+      "nextDueAt": "2026-11-18T10:50:45.716Z"
+    },
+    {
+      "id": "752d00cc-cb74-4f5b-bf8b-7f3405d7ddf2",
+      "key": "00c0ae9d323fab320a688d14166385eb980bad0f8930773a2ecd296cbe45ea74",
+      "lastFinishedAt": "2026-11-18T10:23:11.256Z",
+      "nextDueAt": "2026-11-18T11:23:11.256Z"
+    },
+    {
+      "id": "7640dca0-1e9e-4e0d-bce4-1074b61f17f6",
+      "key": "41d1a38acabf7c8665fb10e00a56d8631ccc925c8dd3e8b8c4dd7db875e6caea",
+      "lastFinishedAt": "2026-11-18T09:26:22.053Z",
+      "nextDueAt": "2026-11-18T11:26:22.053Z"
+    },
+    {
+      "id": "76762426-3128-4324-85bc-93cd5908c0ff",
+      "key": "834ead1116d9c6c55b33025e1fb20dc61d24d108a0d3758d1eccf3bcbd8da195",
+      "lastFinishedAt": "2026-11-18T09:26:31.374Z",
+      "nextDueAt": "2026-11-18T11:26:31.374Z"
+    },
+    {
+      "id": "769a2b3c-5712-4a20-8670-b997044ebec9",
+      "key": "2db3c1f9b0cc7ee979609617e9216cbe3d62276b3ffec426bb67b9e6805ca30e",
+      "lastFinishedAt": "2026-11-18T09:28:10.268Z",
+      "nextDueAt": "2026-11-18T10:28:10.268Z"
+    },
+    {
+      "id": "8197722c-0ad4-4ec2-9f41-33f858b6ff43",
+      "key": "a9eab0bdfcbc31d9b4d8e2fc97f99e3e6f344b8f16b511a2a10dce2fb94eb924",
+      "lastFinishedAt": "2026-11-18T09:28:39.826Z",
+      "nextDueAt": "2026-11-18T10:28:39.826Z"
+    },
+    {
+      "id": "83271430-8ba8-4b46-b9b8-5f236de1cd14",
+      "key": "f87272eb31327690f354ff40789d67523b7808c014e5c5e71efa2ea11848e146",
+      "lastFinishedAt": "2026-11-18T09:29:24.299Z",
+      "nextDueAt": "2026-11-18T10:29:24.299Z"
+    },
+    {
+      "id": "8748e734-f477-441f-a8b3-5f4038345053",
+      "key": "ade28a196beb35939443dea7ac53c588eb82e32efce6ae3bc82559e4f8e5485d",
+      "lastFinishedAt": "2026-11-18T09:32:17.390Z",
+      "nextDueAt": "2026-11-18T10:32:17.390Z"
+    },
+    {
+      "id": "8cfffd26-a8c5-498d-a139-81c620c4e688",
+      "key": "89282a60b905d780c353126f46a6806d8b1143062a7840df3864a7cc074f8aa4",
+      "lastFinishedAt": "2026-11-18T09:37:27.904Z",
+      "nextDueAt": "2026-11-18T11:37:27.904Z"
+    },
+    {
+      "id": "8db60c2b-a36e-4c83-922e-9db40caf8c2e",
+      "key": "4ef4b629c5b0bdde355b6fdabb12b3d26684ded59a522143e2a8089b0e733975",
+      "lastFinishedAt": "2026-11-18T09:38:56.797Z",
+      "nextDueAt": "2026-11-18T11:38:56.797Z"
+    },
+    {
+      "id": "9cfd66bd-e3e8-4c3e-bcbb-403184d9123e",
+      "key": "30ce90ade8e677e61a9f3ef2b6780f9ec62ed66a0b60b0731fb110c7e803b43a",
+      "lastFinishedAt": "2026-11-18T09:41:49.799Z",
+      "nextDueAt": "2026-11-18T10:41:49.799Z"
+    },
+    {
+      "id": "a55caac8-fa77-436b-933d-5cf84fedf0c7",
+      "key": "6f9bee56e4fd51d8330df43a45ea600ef956d3fb8c06235e7e3fa2b8156867bc",
+      "lastFinishedAt": "2026-11-18T09:42:59.293Z",
+      "nextDueAt": "2026-11-18T10:42:59.293Z"
+    },
+    {
+      "id": "aff30475-6b1a-4c92-b44a-58433678f160",
+      "key": "ee1f5c1d61363d12b769389063d0db8b062b5e70ffadca3e9cf7de61c900168d",
+      "lastFinishedAt": "2026-11-18T09:43:14.093Z",
+      "nextDueAt": "2026-11-18T11:43:14.093Z"
+    },
+    {
+      "id": "b26df43c-8ebb-44c0-93f0-5fe155e02fa7",
+      "key": "219582eee278a157bd08702e70cb8cc48c26ac9e7301b6db07f4304453b39857",
+      "lastFinishedAt": "2026-11-18T09:43:24.132Z",
+      "nextDueAt": "2026-11-18T11:43:24.132Z"
+    },
+    {
+      "id": "b3c60668-5535-4f03-8ce5-dee4b15dde81",
+      "key": "d24f567b66c48346e662bf11470cb100468abe75145a0f4ca7c0811145b8ec53",
+      "lastFinishedAt": "2026-11-18T09:44:03.624Z",
+      "nextDueAt": "2026-11-18T10:44:03.624Z"
+    },
+    {
+      "id": "b8a6e1ba-0cc4-4d8a-8686-28b531dc0e0a",
+      "key": "e36ce658ad6fc808461e9ea6c4a3a9279c8e5c0e7124240b672dc8026f850b85",
+      "lastFinishedAt": "2026-11-18T09:44:18.339Z",
+      "nextDueAt": "2026-11-18T10:44:18.339Z"
+    },
+    {
+      "id": "ba3b06ea-6b8b-4121-a620-b128df47cf0f",
+      "key": "35d6f553d09520629c91e0903a4d41c625ebbe159588eeafac78023793505749",
+      "lastFinishedAt": "2026-11-18T09:47:40.490Z",
+      "nextDueAt": "2026-11-18T11:47:40.490Z"
+    },
+    {
+      "id": "c21d0b98-5c0d-40f3-883d-27ab0cd18b9f",
+      "key": "e3cb9385404d24067bc7aaebb762437b78a602ff446edc80b6a5fb314c29c757",
+      "lastFinishedAt": "2026-11-18T09:48:05.274Z",
+      "nextDueAt": "2026-11-18T10:48:05.274Z"
+    },
+    {
+      "id": "c7379e90-f435-4efc-bd9b-e2da9d9433ef",
+      "key": "9c5d85b7a3a4321f1c2047a06a18e3b4c9047e73def837c41b3231e329a7d698",
+      "lastFinishedAt": "2026-11-18T09:48:29.277Z",
+      "nextDueAt": "2026-11-18T10:48:29.277Z"
+    },
+    {
+      "id": "cb5d3f34-29aa-4f74-a32f-f4e5b895c2e4",
+      "key": "f72f06503a4a1d8f120e1a266be309cc5abcf6ea997bbce2ab4126a0d271869f",
+      "lastFinishedAt": "2026-11-18T09:49:53.267Z",
+      "nextDueAt": "2026-11-18T11:49:53.267Z"
+    },
+    {
+      "id": "d19093ba-81df-48d5-a389-e671b4ecd7cd",
+      "key": "6f248363c49ee0e7c4ba5b464867425e8d955fc72ff09db94d4472671315f17f",
+      "lastFinishedAt": "2026-11-18T09:50:08.002Z",
+      "nextDueAt": "2026-11-18T10:50:08.002Z"
+    },
+    {
+      "id": "d74f7ee7-c15b-49db-b6ad-4270fad0ce59",
+      "key": "8e2b00c097715d66fc19005f94005d10024c0cbec734729205b273be610b5dba",
+      "lastFinishedAt": "2026-11-18T09:50:22.793Z",
+      "nextDueAt": "2026-11-18T10:50:22.793Z"
+    },
+    {
+      "id": "d78b195f-9e36-4a8e-855c-24053c3656ef",
+      "key": "c01ae1361a64b194f301e75ca8748d55508f0a34ebb3c04661d10853b1219127",
+      "lastFinishedAt": "2026-11-18T09:50:42.865Z",
+      "nextDueAt": "2026-11-18T10:50:42.865Z"
+    },
+    {
+      "id": "ddb543e7-3f00-45a2-87e7-4c255cecaffb",
+      "key": "b7d8d5c5de8d170bac0c72463b6cb2932148967f40a8df67ecb86110701df22b",
+      "lastFinishedAt": "2026-11-18T10:19:04.321Z",
+      "nextDueAt": "2026-11-18T12:19:04.321Z"
+    },
+    {
+      "id": "e161da64-f476-4cfd-84e1-6bbf3b0934e1",
+      "key": "0fb47377641292d397d2ed5398fed6a2ba34b38a38d83f3cf190ec380c44806a",
+      "lastFinishedAt": "2026-11-18T09:51:51.882Z",
+      "nextDueAt": "2026-11-18T10:51:51.882Z"
+    },
+    {
+      "id": "e3a5c350-8014-4432-b741-c05d6af9beb6",
+      "key": "c9ac138a231a08deaf434e1bde1b1be343660870458ac643cf298ab4dbcc6059",
+      "lastFinishedAt": "2026-11-18T09:53:50.874Z",
+      "nextDueAt": "2026-11-18T10:53:50.874Z"
+    },
+    {
+      "id": "e515e512-4ecb-4918-b4a8-d337d2f19f87",
+      "key": "1e38c594eb94488f3925408b15a5167678646bf0f6a7fa7e02d4d471f6c550ec",
+      "lastFinishedAt": "2026-11-18T09:54:35.319Z",
+      "nextDueAt": "2026-11-18T10:54:35.319Z"
+    },
+    {
+      "id": "e99aa9ef-bc9e-476b-bad5-b340990ac20b",
+      "key": "84cae637caa7c6807d81a0e3253f939a1d5ff62b2dfaa285d361ac7e64c502d7",
+      "lastFinishedAt": "2026-11-18T09:54:50.049Z",
+      "nextDueAt": "2026-11-18T10:54:50.049Z"
+    },
+    {
+      "id": "ee4c5640-0592-4039-af48-4e5d44036310",
+      "key": "4373ab185c9271f1a4b0bdf9597153ebdaafc158f26bf08a097acaf1e746e448",
+      "lastFinishedAt": "2026-11-18T10:01:45.803Z",
+      "nextDueAt": "2026-11-18T12:01:45.803Z"
+    },
+    {
+      "id": "f1c9c1e4-70a0-405b-922e-9880e199334a",
+      "key": "e3b329933dd0cf6dea98ad522cab2c10d4e063e5b50a6484091a4ab9ee3c80cd",
+      "lastFinishedAt": "2026-11-18T10:04:49.106Z",
+      "nextDueAt": "2026-11-18T12:04:49.106Z"
+    },
+    {
+      "id": "f1f9368e-a3b0-46b2-9d48-4e6043c66c72",
+      "key": "2b1f3f8e4702b9820330e58ec588a6ab925e422586db93ce5992eda5f8440932",
+      "lastFinishedAt": "2026-11-18T10:05:13.872Z",
+      "nextDueAt": "2026-11-18T11:05:13.872Z"
+    },
+    {
+      "id": "f223d57b-822d-496a-a3cf-dc57a8754e14",
+      "key": "8b3b16f537910adad1c8bdc8f806406f0ab82d63b4ed90b9777d9eb8c68ea777",
+      "lastFinishedAt": "2026-11-18T10:09:30.108Z",
+      "nextDueAt": "2026-11-18T11:09:30.108Z"
+    },
+    {
+      "id": "f27a24f1-e013-4389-8c91-62444277690a",
+      "key": "fc3ef684465a86695c1628da73fdc2b8aefe75f23687aea9a5ed7e323462f162",
+      "lastFinishedAt": "2026-11-18T10:11:38.524Z",
+      "nextDueAt": "2026-11-18T12:11:38.524Z"
+    },
+    {
+      "id": "f2cec3f4-3f34-40e0-8c0d-d6b5820610fb",
+      "key": "4c6283472cfca2c8c9ec4b24e584e251ff9f7318262e732cfad710e019078469",
+      "lastFinishedAt": "2026-11-18T10:11:53.269Z",
+      "nextDueAt": "2026-11-18T11:11:53.269Z"
+    },
+    {
+      "id": "f7065961-399f-44d0-95cb-d6a349fa10ca",
+      "key": "78dcd0f1db62e42021e219a9913b37f129c2e7e1ee4fef0cf159ffecd5323dc8",
+      "lastFinishedAt": "2026-11-18T10:12:08.052Z",
+      "nextDueAt": "2026-11-18T11:12:08.052Z"
+    },
+    {
+      "id": "fa4377b5-4d66-4454-b775-8ac001352e1b",
+      "key": "01a0f00d3d6d75fc4675d534a4ca99fffca7d6d7f75a8cbdb9d715039142f08e",
+      "lastFinishedAt": "2026-11-18T10:12:28.088Z",
+      "nextDueAt": "2026-11-18T11:12:28.088Z"
+    },
+    {
+      "id": "fd1160ac-34b5-4335-b0ab-6e347a22309c",
+      "key": "6f71f1ef7d03c5e0ef651e2fcabc4586da1eb38d58639fc7533c67738da4ca85",
+      "lastFinishedAt": "2026-11-18T10:13:22.036Z",
+      "nextDueAt": "2026-11-18T12:13:22.036Z"
+    }
+  ],
+  "disabled": [
+    {
+      "id": "0953e3d7-03e4-473f-8181-bb8c8628d799",
+      "key": "a005b168494c149073be2b1c16b7f151a62e3d305b03f2f6bd95b6788dbb66e0"
+    },
+    {
+      "id": "1b25a714-a471-4ee7-bcea-1fb5c96d6130",
+      "key": "bb03e96cca3517a50b5c7355084b7d44d6c856ec16e5d3f38fec5f260a6a6ec4"
+    },
+    {
+      "id": "3ad7f18a-4c93-434a-a73f-1503b60926a8",
+      "key": "c39d1497b30cc799c024e9a71db0f2cac3b7ca079c8006714c7fc06a712a563e"
+    },
+    {
+      "id": "3b22894a-a4dc-4a14-84b0-b24f7a79adb9",
+      "key": "05a63316ce6e4ca30c66e8f7ca338b82e0ce95356e3cf3356159956ef8b7afc8"
+    },
+    {
+      "id": "4c89428e-1be0-4c84-a420-f6427d37b77d",
+      "key": "1e6587fe667e0ad22f66d10d2e7e490e64699cd4d091568434f16f1da47a1897"
+    },
+    {
+      "id": "6d965a2b-4044-428f-9970-5892aa311e70",
+      "key": "dbb61ff82243209c0964ab130745d1afecec9822d8696202d657feff3909cf04"
+    },
+    {
+      "id": "7fbcfec9-1fdc-4344-892b-6505c756e8e1",
+      "key": "eeab6e09b2965e9909cf5ef7567abb0f9f681bbb6a9dab21fb1bc2c729885619"
+    },
+    {
+      "id": "8627c170-e7db-4b2a-b17b-9cbcee5b2539",
+      "key": "58d0983d18eeb1aa5a706cfd8df12583cd811af15139d93334188c2b30a0d27e"
+    },
+    {
+      "id": "866a359f-04a1-41ad-84d1-37fdb4a02a0c",
+      "key": "8c2c4668a697c87fef907ca6f804202593d69f181629051910ae5983bf2ab5f6"
+    },
+    {
+      "id": "b9e7f4e5-a74a-46d6-956c-fddc87ce6840",
+      "key": "32cd13b80df7ba6e3a87daabae0a87dbfb712573c9e1b99b96c298599812278f"
+    },
+    {
+      "id": "df414a99-05a3-4e83-b4bf-6e3412b1a128",
+      "key": "1c7db6096ceab6eb0f09831b9ad72b53342b82e75e84ee6308cc52734d0ed729"
+    },
+    {
+      "id": "f739cc05-d410-4b3c-8020-97011fae3ad7",
+      "key": "252bb443268a3036e9268d68e2fb5dfa243e78e684ae7b9a3963e35fc1893673"
+    }
+  ],
+  "scope": "Local actual-data preproduction copy. Original enabled dispatch restored; fresh next-due advances retained; superseded and diagnostic searches stay disabled. No production changes."
+}

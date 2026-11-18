@@ -1,0 +1,75 @@
+{
+  "startedAt": "2026-11-18T12:00:30.992Z",
+  "sourceRecipesChanged": [
+    "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+    "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged",
+    "physical-large-cluster-jagged",
+    "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged",
+    "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+    "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged"
+  ],
+  "canonicalTargetSignaturesUnchanged": 72,
+  "scope": "Normal owner API saves and one link only, local actual-data copy. Rare Jagged acquisition; exact levels and finished goals retained. Physical Alteration normal profile is preserved.",
+  "changes": [
+    {
+      "kind": "save",
+      "itemId": "063905f2-80d0-435a-9b25-c6bd3b5c5a34",
+      "recipeIds": [
+        "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged"
+      ],
+      "beforeRevision": 1,
+      "afterRevision": 2,
+      "beforeQueryKey": "7225f142a992736a92bcd11fc0bfdb21eed910f600fd3303a326aab7cd62b6af",
+      "afterQueryKey": "450e3c4c5e5c672a3dfa529f7b512c6ddd08179dd2c4d1a193eb0cd2cdd2390c",
+      "beforeRarity": "normal",
+      "afterRarity": "rare"
+    },
+    {
+      "kind": "save",
+      "itemId": "3689ebca-0e43-4402-a3d0-5d12933cfaa2",
+      "recipeIds": [
+        "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+        "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged"
+      ],
+      "beforeRevision": 1,
+      "afterRevision": 2,
+      "beforeQueryKey": "dbbcd0ca68ea9caf4bf4d89f076113bc361617873bd142501667759b1ea51518",
+      "afterQueryKey": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+      "beforeRarity": "normal",
+      "afterRarity": "rare"
+    },
+    {
+      "kind": "save",
+      "itemId": "b26a9fe1-b595-4e7d-b231-edb17809448e",
+      "recipeIds": [
+        "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+        "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged"
+      ],
+      "beforeRevision": 1,
+      "afterRevision": 2,
+      "beforeQueryKey": "f80d207960972991cb94126d4c2ad5770f61036305ee7e0228ef3f0b6d18275b",
+      "afterQueryKey": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+      "beforeRarity": "normal",
+      "afterRarity": "rare"
+    },
+    {
+      "kind": "relink",
+      "recipeId": "physical-large-cluster-jagged",
+      "fromItemId": "c5b0301c-e75e-4216-ac5f-1241891ce984",
+      "toItemId": "d6552cc1-ee71-4397-8652-e622d9a6ba61"
+    }
+  ],
+  "finishedAt": "2026-11-18T12:00:32.728Z",
+  "invariants": {
+    "items": 128,
+    "recipes": 72,
+    "outputs": 66,
+    "uniqueTradeQueries": 125,
+    "enabledSchedules": 128,
+    "canonicalTargetSignaturesUnchanged": 72,
+    "outputSpecsAndQueryKeysUnchanged": 66,
+    "all72AuthoredConfiguredBaseAndOutputDigestsAgree": true,
+    "physicalAlterationNormal83Preserved": true,
+    "legacyNullIdentityResultsForSix": 0
+  }
+}

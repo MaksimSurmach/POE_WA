@@ -1,0 +1,114 @@
+{
+  "summary": {
+    "at": "2026-11-18T10:37:32.662Z",
+    "total": 2,
+    "states": {
+      "succeeded": 2
+    },
+    "finished": [
+      {
+        "recipe": "suppression-boots-loathing",
+        "fetched": 8,
+        "coverage": "complete",
+        "matched": 8,
+        "sellers": 6,
+        "reason": null
+      },
+      {
+        "recipe": "week-one-thicket-bow-dread",
+        "fetched": 9,
+        "coverage": "complete",
+        "matched": 9,
+        "sellers": 9,
+        "reason": null
+      }
+    ],
+    "failed": []
+  },
+  "tests": [
+    {
+      "itemId": "d6c1367c-0d7e-4c60-aaec-d3fcb442f932",
+      "role": "output",
+      "recipes": ["suppression-boots-loathing"],
+      "revision": 2,
+      "itemRevision": 2,
+      "requestId": "ead63f16-7fae-4309-9a10-2206378466e2",
+      "scheduleKey": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+      "capture": {
+        "captureId": "004faf76-991d-494c-915f-a0e8b24856c0",
+        "capturedAt": "2026-11-18T10:35:41.265Z",
+        "coverage": "complete",
+        "durationMs": 44597,
+        "fetched": 8,
+        "partialReason": null,
+        "queryVersion": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+        "reportedTotal": 8,
+        "slices": 1,
+        "listings": {
+          "stored": 8,
+          "priced": 8,
+          "completeItems": 0,
+          "analyzed": 8,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 8,
+          "comparable": 6,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 2,
+      "currentScheduleKey": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+      "finishedAt": "2026-11-18T10:36:25.575Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T10:35:32.360Z",
+      "stale": false,
+      "startedAt": "2026-11-18T10:35:40.971Z",
+      "state": "succeeded"
+    },
+    {
+      "itemId": "6419e5bc-20ad-473e-b4e1-1eef64d7af93",
+      "role": "output",
+      "recipes": ["week-one-thicket-bow-dread"],
+      "revision": 1,
+      "itemRevision": 1,
+      "requestId": "020f2458-5613-4398-8ada-494e6689f8fa",
+      "scheduleKey": "e27a71b3b6021a6d6385c89b48e5f22f3056e08f3a5c47928362f785969138d6",
+      "capture": {
+        "captureId": "79673e01-c129-49cb-a8f2-525ab91d37ac",
+        "capturedAt": "2026-11-18T10:36:26.188Z",
+        "coverage": "complete",
+        "durationMs": 45003,
+        "fetched": 9,
+        "partialReason": null,
+        "queryVersion": "e27a71b3b6021a6d6385c89b48e5f22f3056e08f3a5c47928362f785969138d6",
+        "reportedTotal": 9,
+        "slices": 1,
+        "listings": {
+          "stored": 9,
+          "priced": 9,
+          "completeItems": 0,
+          "analyzed": 9,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 9,
+          "comparable": 9,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 1,
+      "currentScheduleKey": "e27a71b3b6021a6d6385c89b48e5f22f3056e08f3a5c47928362f785969138d6",
+      "finishedAt": "2026-11-18T10:37:10.647Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T10:35:32.370Z",
+      "stale": false,
+      "startedAt": "2026-11-18T10:36:25.639Z",
+      "state": "succeeded"
+    }
+  ]
+}

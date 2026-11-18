@@ -1,0 +1,270 @@
+{
+  "sourceImage": "local/poe-worksmith:curse-rings-allres-20261117-collector",
+  "checkedAt": "2026-11-18T02:45:39.075Z",
+  "startupDryRun": {
+    "created": [],
+    "disabled": [],
+    "failed": [],
+    "unchanged": [
+      "amethyst-ring-hunter-caster",
+      "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads",
+      "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+      "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering",
+      "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged",
+      "chaos-large-cluster-grim-oath-touch-of-cruelty-wicked-pall",
+      "chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall",
+      "chimerascale-gauntlets-fractured-suppression-zeal",
+      "cold-large-cluster-sadist-snowstorm-widespread-destruction",
+      "fire-large-cluster-prismatic-heart-smoking-remains-widespread-destruction",
+      "harpyskin-gloves-fractured-suppression-zeal",
+      "lichs-circlet-fractured-fire-loathing",
+      "medium-cluster-brand-remarkable-grand-design-4-passives",
+      "medium-cluster-brand-remarkable-grand-design-5-passives",
+      "medium-cluster-crit-pressure-points-basics-of-pain-4-passives",
+      "medium-cluster-crit-pressure-points-basics-of-pain-5-passives",
+      "medium-cluster-minion-blessed-rebirth-life-from-death-4-passives",
+      "medium-cluster-minion-blessed-rebirth-life-from-death-5-passives",
+      "medium-cluster-warcry-mob-mentality-lead-by-example-4-passives",
+      "medium-cluster-warcry-mob-mentality-lead-by-example-5-passives",
+      "minion-bone-helmet-greed",
+      "minion-convoking-wand-fear-trigger",
+      "minion-convoking-wand-four-fossil",
+      "minion-fossilised-shield-greed",
+      "physical-large-cluster-alteration",
+      "physical-large-cluster-chaos",
+      "physical-large-cluster-jagged",
+      "quicksilver-alchemist-cheetah",
+      "quicksilver-mageblood-cheetah",
+      "rf-fire-trap-any-support",
+      "rf-fire-trap-level-20",
+      "ring-warlord-vulnerability-caster",
+      "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender",
+      "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged",
+      "small-cluster-armour-enduring-composure-2-passives",
+      "small-cluster-life-fettle-2-passives",
+      "stygian-life-resistances-envy",
+      "stygian-life-resistances-fossils",
+      "sunfire-circlet-fractured-fire-loathing",
+      "suppression-boots-loathing",
+      "suppression-gloves-fear",
+      "suppression-gloves-zeal",
+      "twilight-regalia-six-link-woe",
+      "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak",
+      "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+      "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak",
+      "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged",
+      "velour-gloves-fractured-suppression-zeal",
+      "week-one-apothecarys-gloves-greed",
+      "week-one-bone-helmet-greed",
+      "week-one-broadhead-quiver-zeal",
+      "week-one-crystal-belt-woe",
+      "week-one-fingerless-silk-gloves-woe",
+      "week-one-gripped-gloves-zeal",
+      "week-one-heavy-belt-envy",
+      "week-one-hubris-circlet-woe",
+      "week-one-leather-belt-envy",
+      "week-one-lichs-circlet-woe",
+      "week-one-royal-burgonet-greed",
+      "week-one-slink-boots-zeal",
+      "week-one-slink-gloves-zeal",
+      "week-one-spiked-gloves-zeal",
+      "week-one-spine-bow-contempt",
+      "week-one-stygian-vise-envy",
+      "week-one-thicket-bow-dread",
+      "week-one-titanium-shield-woe",
+      "week-one-twilight-regalia-week-one-six-link-woe",
+      "week-one-two-toned-boots-zeal",
+      "week-one-vaal-regalia-six-link-woe",
+      "week-one-warlock-boots-woe",
+      "week-one-warlock-gloves-woe",
+      "wyvernscale-gauntlets-fractured-suppression-zeal"
+    ],
+    "updated": []
+  },
+  "preservedRuntimeAssets": [
+    {
+      "path": "recipes/wand/minion-convoking-wand-four-fossil.json",
+      "status": "changed",
+      "bytes": 6940,
+      "sha256": "b7c541cbd55705e9767200421688525ecc18c4aeead44699df7d88e1092f2474",
+      "checkoutSha256": "b7c541cbd55705e9767200421688525ecc18c4aeead44699df7d88e1092f2474"
+    },
+    {
+      "path": "recipes/cluster-jewel/medium-cluster-minion-blessed-rebirth-life-from-death-4-passives.json",
+      "status": "new",
+      "bytes": 12710,
+      "sha256": "bfa676a1aa5d6e9309d23503e24cbc074fff38f35e5e763ecc5b86dfb0c1e45c",
+      "checkoutSha256": "bfa676a1aa5d6e9309d23503e24cbc074fff38f35e5e763ecc5b86dfb0c1e45c"
+    },
+    {
+      "path": "recipes/cluster-jewel/medium-cluster-crit-pressure-points-basics-of-pain-5-passives.json",
+      "status": "new",
+      "bytes": 12732,
+      "sha256": "bed2dec11a52ace671d960a4bf27bc11e8061a377870077505b42f7fd5f19f42",
+      "checkoutSha256": "bed2dec11a52ace671d960a4bf27bc11e8061a377870077505b42f7fd5f19f42"
+    },
+    {
+      "path": "recipes/cluster-jewel/medium-cluster-warcry-mob-mentality-lead-by-example-5-passives.json",
+      "status": "new",
+      "bytes": 12717,
+      "sha256": "862e289f2b04f99bafcf5f76f6e641a01e03f426c00004bee6ee9244013a23e5",
+      "checkoutSha256": "862e289f2b04f99bafcf5f76f6e641a01e03f426c00004bee6ee9244013a23e5"
+    },
+    {
+      "path": "recipes/cluster-jewel/medium-cluster-minion-blessed-rebirth-life-from-death-5-passives.json",
+      "status": "new",
+      "bytes": 12710,
+      "sha256": "f90a6521c6c5bae04451540ea466fc4bacf3302d5b1bba4c8bf38ec3caaec7b0",
+      "checkoutSha256": "f90a6521c6c5bae04451540ea466fc4bacf3302d5b1bba4c8bf38ec3caaec7b0"
+    },
+    {
+      "path": "recipes/cluster-jewel/medium-cluster-warcry-mob-mentality-lead-by-example-4-passives.json",
+      "status": "new",
+      "bytes": 12717,
+      "sha256": "b80e73b6943dcec2c4a506c3aa64df1b3aaccbc0678595739c8e8bc250b2fae8",
+      "checkoutSha256": "b80e73b6943dcec2c4a506c3aa64df1b3aaccbc0678595739c8e8bc250b2fae8"
+    },
+    {
+      "path": "recipes/cluster-jewel/small-cluster-armour-enduring-composure-2-passives.json",
+      "status": "new",
+      "bytes": 11536,
+      "sha256": "93cb52e63c2995ec81b87f8d483368cd1172b913006b3471304075572e61d298",
+      "checkoutSha256": "93cb52e63c2995ec81b87f8d483368cd1172b913006b3471304075572e61d298"
+    },
+    {
+      "path": "recipes/cluster-jewel/small-cluster-life-fettle-2-passives.json",
+      "status": "new",
+      "bytes": 11387,
+      "sha256": "bc7cf1eef7d937b180fd3ac63fd7ba8704ccb80d20ee7ce78ad706a11076c6cb",
+      "checkoutSha256": "bc7cf1eef7d937b180fd3ac63fd7ba8704ccb80d20ee7ce78ad706a11076c6cb"
+    },
+    {
+      "path": "recipes/cluster-jewel/medium-cluster-brand-remarkable-grand-design-5-passives.json",
+      "status": "new",
+      "bytes": 12542,
+      "sha256": "4dd898d2427d3fe958aae2ea78f291901360089bf2a7df579787f8edb28b7b43",
+      "checkoutSha256": "4dd898d2427d3fe958aae2ea78f291901360089bf2a7df579787f8edb28b7b43"
+    },
+    {
+      "path": "recipes/cluster-jewel/medium-cluster-brand-remarkable-grand-design-4-passives.json",
+      "status": "new",
+      "bytes": 12542,
+      "sha256": "8236188060c1e6388d6ead0eb9be920f6ccdeb60e24d1da785d993f667258271",
+      "checkoutSha256": "8236188060c1e6388d6ead0eb9be920f6ccdeb60e24d1da785d993f667258271"
+    },
+    {
+      "path": "recipes/cluster-jewel/medium-cluster-crit-pressure-points-basics-of-pain-4-passives.json",
+      "status": "new",
+      "bytes": 12732,
+      "sha256": "5ad95972fba7b3f02697a877e40707425d1d6f7ea14b7afcba6c53c5e0324ebb",
+      "checkoutSha256": "5ad95972fba7b3f02697a877e40707425d1d6f7ea14b7afcba6c53c5e0324ebb"
+    },
+    {
+      "path": "recipes/boots/week-one-slink-boots-zeal.json",
+      "status": "changed",
+      "bytes": 4144,
+      "sha256": "0e0fd78de92bed4be611ebd9e168cba78d9c505d5d1029206defd038cfd4ddd9",
+      "checkoutSha256": "0e0fd78de92bed4be611ebd9e168cba78d9c505d5d1029206defd038cfd4ddd9"
+    },
+    {
+      "path": "recipes/gloves/week-one-slink-gloves-zeal.json",
+      "status": "changed",
+      "bytes": 4152,
+      "sha256": "c1c7e1bc2735abe3e5959f9b90a4917a4b9688c5b8d7134b4bf8db7fa6a2b633",
+      "checkoutSha256": "c1c7e1bc2735abe3e5959f9b90a4917a4b9688c5b8d7134b4bf8db7fa6a2b633"
+    },
+    {
+      "path": "recipes/gloves/chimerascale-gauntlets-fractured-suppression-zeal.json",
+      "status": "new",
+      "bytes": 6360,
+      "sha256": "653d2a8ac303db44df0a31290dd9ecc977f41125ce4918867a101ec0c343e5d8",
+      "checkoutSha256": "653d2a8ac303db44df0a31290dd9ecc977f41125ce4918867a101ec0c343e5d8"
+    },
+    {
+      "path": "recipes/gloves/wyvernscale-gauntlets-fractured-suppression-zeal.json",
+      "status": "new",
+      "bytes": 4987,
+      "sha256": "3f3d59dcdaed4810a2169ca3798d3c216aec6dcaac73118967abab6ce28421b0",
+      "checkoutSha256": "3f3d59dcdaed4810a2169ca3798d3c216aec6dcaac73118967abab6ce28421b0"
+    },
+    {
+      "path": "recipes/gloves/velour-gloves-fractured-suppression-zeal.json",
+      "status": "new",
+      "bytes": 4939,
+      "sha256": "5e6c53c921cf4241066acb6edd3babdb1b8c45e9159b3c97c52beb0f5addc4df",
+      "checkoutSha256": "5e6c53c921cf4241066acb6edd3babdb1b8c45e9159b3c97c52beb0f5addc4df"
+    },
+    {
+      "path": "recipes/gloves/harpyskin-gloves-fractured-suppression-zeal.json",
+      "status": "new",
+      "bytes": 4957,
+      "sha256": "777e8ff61d9dbcb1820d5cb97e404155a70e270a55cce9df3e6db6bd936c4cd4",
+      "checkoutSha256": "777e8ff61d9dbcb1820d5cb97e404155a70e270a55cce9df3e6db6bd936c4cd4"
+    },
+    {
+      "path": "recipes/README.md",
+      "status": "changed",
+      "bytes": 3025,
+      "sha256": "e1a88432f730f8978987b117f1ea125e32ee9711e52e8c8e27ea25487f1a698d",
+      "checkoutSha256": "e1a88432f730f8978987b117f1ea125e32ee9711e52e8c8e27ea25487f1a698d"
+    },
+    {
+      "path": "recipes/belt/week-one-crystal-belt-woe.json",
+      "status": "changed",
+      "bytes": 3914,
+      "sha256": "d01e8f3015449483ccbed1ace9fb31dfa93dfc3f60f57fd5e10a3a67187ac15e",
+      "checkoutSha256": "d01e8f3015449483ccbed1ace9fb31dfa93dfc3f60f57fd5e10a3a67187ac15e"
+    },
+    {
+      "path": "recipes/helmet/sunfire-circlet-fractured-fire-loathing.json",
+      "status": "new",
+      "bytes": 5398,
+      "sha256": "a1eb642b786cc32dda7cab2d5bf75a0c8ab77641e31ccbbda18cc7e71d7d9074",
+      "checkoutSha256": "a1eb642b786cc32dda7cab2d5bf75a0c8ab77641e31ccbbda18cc7e71d7d9074"
+    },
+    {
+      "path": "recipes/helmet/lichs-circlet-fractured-fire-loathing.json",
+      "status": "new",
+      "bytes": 5388,
+      "sha256": "688a98a5d7ad6c2a443d905e94b865c72d1b473d1f993851d2a6078818b585eb",
+      "checkoutSha256": "688a98a5d7ad6c2a443d905e94b865c72d1b473d1f993851d2a6078818b585eb"
+    },
+    {
+      "path": "recipes/ring/amethyst-ring-hunter-caster.json",
+      "status": "new",
+      "bytes": 4916,
+      "sha256": "8c79a50eb98aaf7d0b8b8b82a8269efe3cc9d8a0f1d0afa94fcc3d6da7fe5797",
+      "checkoutSha256": "8c79a50eb98aaf7d0b8b8b82a8269efe3cc9d8a0f1d0afa94fcc3d6da7fe5797"
+    },
+    {
+      "path": "recipes/ring/ring-warlord-vulnerability-caster.json",
+      "status": "new",
+      "bytes": 4908,
+      "sha256": "74bf25e825dd3c39c933b5cbac2689a6fd71c0f8918eac97ff72bc57438b1dd5",
+      "checkoutSha256": "74bf25e825dd3c39c933b5cbac2689a6fd71c0f8918eac97ff72bc57438b1dd5"
+    },
+    {
+      "path": "apps/server/mappings/poe-trade/3.29.3.3/recipe-catalog.json",
+      "status": "changed",
+      "bytes": 27313,
+      "sha256": "8d493fb3bc14b066eab80174e53d240183208fc228b392c9bf9a467553da29ea",
+      "checkoutSha256": "8d493fb3bc14b066eab80174e53d240183208fc228b392c9bf9a467553da29ea"
+    },
+    {
+      "path": "apps/server/mappings/poe-trade/3.29.3.3/base-source.json",
+      "status": "changed",
+      "bytes": 27006,
+      "sha256": "9507eeb43a2317a9dad908de2d0455c82bbcbe81bd09fac76849882c1efb4cd2",
+      "checkoutSha256": "9507eeb43a2317a9dad908de2d0455c82bbcbe81bd09fac76849882c1efb4cd2"
+    },
+    {
+      "path": "apps/server/presentation/poe1/3.29.3.3/physical-large-cluster.json",
+      "status": "changed",
+      "bytes": 29932,
+      "sha256": "fec900cad39b62924a144c96d9813b6d7442b06213e73f39e3a65b84653be4b7",
+      "checkoutSha256": "fec900cad39b62924a144c96d9813b6d7442b06213e73f39e3a65b84653be4b7"
+    }
+  ],
+  "retiredRuntimeRecipe": "recipes/boots/week-one-fugitive-boots-zeal.json",
+  "draftsRetained": true
+}

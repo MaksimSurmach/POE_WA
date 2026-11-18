@@ -1,0 +1,225 @@
+{
+  "summary": {
+    "at": "2026-11-18T12:04:18.439Z",
+    "total": 4,
+    "states": {
+      "succeeded": 4
+    },
+    "finished": [
+      {
+        "recipe": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged",
+        "fetched": 2,
+        "coverage": "complete",
+        "matched": 2,
+        "sellers": 2,
+        "reason": null
+      },
+      {
+        "recipe": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+        "fetched": 0,
+        "coverage": "complete",
+        "matched": 0,
+        "sellers": 0,
+        "reason": null
+      },
+      {
+        "recipe": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+        "fetched": 10,
+        "coverage": "complete",
+        "matched": 10,
+        "sellers": 10,
+        "reason": null
+      },
+      {
+        "recipe": "physical-large-cluster-chaos",
+        "fetched": 20,
+        "coverage": "partial",
+        "matched": 20,
+        "sellers": 20,
+        "reason": "MIXED_CURRENCY_SLICE_UNPROVEN"
+      }
+    ],
+    "failed": []
+  },
+  "tests": [
+    {
+      "itemId": "063905f2-80d0-435a-9b25-c6bd3b5c5a34",
+      "role": "base",
+      "recipes": [
+        "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged"
+      ],
+      "revision": 2,
+      "itemRevision": 2,
+      "requestId": "dbd1aaef-e10f-4a8b-bc23-7c303446db02",
+      "scheduleKey": "450e3c4c5e5c672a3dfa529f7b512c6ddd08179dd2c4d1a193eb0cd2cdd2390c",
+      "capture": {
+        "captureId": "08c6689e-e601-456b-a010-97390bdb48f7",
+        "capturedAt": "2026-11-18T12:02:24.291Z",
+        "coverage": "complete",
+        "durationMs": 14544,
+        "fetched": 2,
+        "partialReason": null,
+        "queryVersion": "450e3c4c5e5c672a3dfa529f7b512c6ddd08179dd2c4d1a193eb0cd2cdd2390c",
+        "reportedTotal": 2,
+        "slices": 1,
+        "listings": {
+          "stored": 2,
+          "priced": 2,
+          "completeItems": 0,
+          "analyzed": 2,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 2,
+          "comparable": 2,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 2,
+      "currentScheduleKey": "450e3c4c5e5c672a3dfa529f7b512c6ddd08179dd2c4d1a193eb0cd2cdd2390c",
+      "finishedAt": "2026-11-18T12:02:38.511Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T12:01:18.068Z",
+      "stale": false,
+      "startedAt": "2026-11-18T12:02:23.962Z",
+      "state": "succeeded"
+    },
+    {
+      "itemId": "3689ebca-0e43-4402-a3d0-5d12933cfaa2",
+      "role": "base",
+      "recipes": [
+        "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+        "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged"
+      ],
+      "revision": 2,
+      "itemRevision": 2,
+      "requestId": "a2e1afb4-7c03-490f-bc03-912d8ccdc9b1",
+      "scheduleKey": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+      "capture": {
+        "captureId": "9c45862e-353d-4add-a47a-ec1ab74cccdb",
+        "capturedAt": "2026-11-18T12:02:48.697Z",
+        "coverage": "complete",
+        "durationMs": 404,
+        "fetched": 0,
+        "partialReason": null,
+        "queryVersion": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+        "reportedTotal": 0,
+        "slices": 1,
+        "listings": {
+          "stored": 0,
+          "priced": 0,
+          "completeItems": 0,
+          "analyzed": 0,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 0,
+          "comparable": 0,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 2,
+      "currentScheduleKey": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+      "finishedAt": "2026-11-18T12:02:48.698Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T12:01:18.078Z",
+      "stale": false,
+      "startedAt": "2026-11-18T12:02:38.564Z",
+      "state": "succeeded"
+    },
+    {
+      "itemId": "b26a9fe1-b595-4e7d-b231-edb17809448e",
+      "role": "base",
+      "recipes": [
+        "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+        "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged"
+      ],
+      "revision": 2,
+      "itemRevision": 2,
+      "requestId": "f6e18753-15c2-4c95-bc22-c8655b4510f9",
+      "scheduleKey": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+      "capture": {
+        "captureId": "b4295d21-03ae-409c-acd5-3ef3373ed461",
+        "capturedAt": "2026-11-18T12:03:13.057Z",
+        "coverage": "complete",
+        "durationMs": 759,
+        "fetched": 10,
+        "partialReason": null,
+        "queryVersion": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+        "reportedTotal": 10,
+        "slices": 1,
+        "listings": {
+          "stored": 10,
+          "priced": 10,
+          "completeItems": 0,
+          "analyzed": 10,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 10,
+          "comparable": 10,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 2,
+      "currentScheduleKey": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+      "finishedAt": "2026-11-18T12:03:13.467Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T12:01:18.086Z",
+      "stale": false,
+      "startedAt": "2026-11-18T12:02:48.744Z",
+      "state": "succeeded"
+    },
+    {
+      "itemId": "d6552cc1-ee71-4397-8652-e622d9a6ba61",
+      "role": "base",
+      "recipes": [
+        "physical-large-cluster-chaos",
+        "physical-large-cluster-jagged"
+      ],
+      "revision": 2,
+      "itemRevision": 2,
+      "requestId": "9788ecb0-58e2-4638-8d15-0f32ec95d27a",
+      "scheduleKey": "10774a713d2d9b28b85e04a7bcdd16f6acf1e952935bf7da6035665cf22a85d2",
+      "capture": {
+        "captureId": "f8e67ec3-edfe-4cb6-a0fa-322f1523d931",
+        "capturedAt": "2026-11-18T12:03:37.560Z",
+        "coverage": "partial",
+        "durationMs": 15708,
+        "fetched": 20,
+        "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+        "queryVersion": "10774a713d2d9b28b85e04a7bcdd16f6acf1e952935bf7da6035665cf22a85d2",
+        "reportedTotal": 545,
+        "slices": 1,
+        "listings": {
+          "stored": 20,
+          "priced": 20,
+          "completeItems": 0,
+          "analyzed": 20,
+          "excluded": 0,
+          "unreadable": 0,
+          "matched": 20,
+          "comparable": 20,
+          "rejected": 0,
+          "unknown": 0
+        },
+        "listingsUnavailable": null,
+        "reasons": []
+      },
+      "currentRevision": 2,
+      "currentScheduleKey": "10774a713d2d9b28b85e04a7bcdd16f6acf1e952935bf7da6035665cf22a85d2",
+      "finishedAt": "2026-11-18T12:03:52.775Z",
+      "reason": null,
+      "requestedAt": "2026-11-18T12:01:18.093Z",
+      "stale": false,
+      "startedAt": "2026-11-18T12:03:13.660Z",
+      "state": "succeeded"
+    }
+  ]
+}

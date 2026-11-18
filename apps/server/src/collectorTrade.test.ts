@@ -1,4 +1,4 @@
-import { createInMemoryRepositories } from '@poe-worksmith/domain';
+import { createInMemoryRepositories, DomainError } from '@poe-worksmith/domain';
 import {
   chromium,
   type BrowserContext,
@@ -433,6 +433,169 @@ describe('collector Trade captures', () => {
     expect(await run(target(), signal)).toEqual(first);
     expect(requests.search).toBe(1);
     expect(now()).toEqual(at);
+  });
+
+  describe('capture time budget', () => {
+    // Runs `onHit` on the Nth permit request, then defers to the real gate.
+    function onPermit(
+      rateLimits: GggRateLimitController,
+      nth: number,
+      onHit: () => void,
+    ) {
+      const wait = rateLimits.waitForPermit.bind(rateLimits);
+      let calls = 0;
+      vi.spyOn(rateLimits, 'waitForPermit').mockImplementation(
+        async (...args) => {
+          if (++calls === nth) onHit();
+          return wait(...args);
+        },
+      );
+    }
+    const expire = () => vi.advanceTimersByTime(8 * 60_000);
+    const fakeTimers = () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+      vi.setSystemTime(at);
+    };
+
+    it('retains collected rows as a partial capture when pacing exhausts the budget', async () => {
+      const { rateLimits, economy } = setup(listings(24));
+      fakeTimers();
+      // Permits: root search, detail batch 1 (10 rows), detail batch 2 -> budget expires.
+      onPermit(rateLimits, 3, expire);
+      const run = fixtureTradeCapture(rateLimits, economy, environment);
+      expect(await run(target(), new AbortController().signal)).toMatchObject({
+        status: 'success',
+        capture: {
+          complete: false,
+          partialReason: 'CAPTURE_TIME_BUDGET',
+          reportedTotal: 24,
+          fetched: 10,
+          sortedSampleIds: null,
+        },
+      });
+    });
+
+    it('does not fake success when the budget expires before a root is captured', async () => {
+      const { rateLimits, economy } = setup(listings(24));
+      fakeTimers();
+      onPermit(rateLimits, 1, expire);
+      const run = fixtureTradeCapture(rateLimits, economy, environment);
+      expect(await run(target(), new AbortController().signal)).toEqual({
+        status: 'retry',
+        reason: 'CAPTURE_TIME_BUDGET',
+      });
+    });
+
+    it('still throws when the parent aborts mid-capture', async () => {
+      const { rateLimits, economy } = setup(listings(24));
+      fakeTimers();
+      const parent = new AbortController();
+      onPermit(rateLimits, 3, () => parent.abort());
+      const run = fixtureTradeCapture(rateLimits, economy, environment);
+      await expect(run(target(), parent.signal)).rejects.toMatchObject({
+        name: 'AbortError',
+      });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('preserves provider failures when the local budget expires concurrently', async () => {
+      const { rateLimits, economy } = setup(listings(24));
+      fakeTimers();
+      onPermit(rateLimits, 3, () => {
+        expire();
+        throw new DomainError('PROVIDER_UNAVAILABLE');
+      });
+      const run = fixtureTradeCapture(rateLimits, economy, environment);
+      expect(await run(target(), new AbortController().signal)).toEqual({
+        status: 'retry',
+        reason: 'PROVIDER_UNAVAILABLE',
+      });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('clears the budget timer after a complete capture', async () => {
+      const { rateLimits, economy } = setup(listings(24));
+      fakeTimers();
+      const run = fixtureTradeCapture(rateLimits, economy, environment);
+      expect(await run(target(), new AbortController().signal)).toMatchObject({
+        status: 'success',
+        capture: { complete: true, fetched: 24 },
+      });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it.each([false, true])(
+      'keeps recovery deadlines distinct from observed auth denial (proactive=%s)',
+      async (recoverAuthentication) => {
+        const { rateLimits, economy } = setup([]);
+        fakeTimers();
+        loginBrowser({ onNavigation: expire });
+        const { sessions } = sessionStorage();
+        const fetch = vi.mocked(globalThis.fetch);
+        if (!recoverAuthentication)
+          fetch.mockResolvedValueOnce(new Response(null, { status: 401 }));
+        const run = configuredTradeCapture(
+          rateLimits,
+          economy,
+          loginEnvironment,
+        );
+        expect(
+          await run(target(), new AbortController().signal, {
+            sessions: () => sessions,
+            recoverAuthentication,
+          }),
+        ).toEqual(
+          recoverAuthentication
+            ? { status: 'retry', reason: 'CAPTURE_TIME_BUDGET' }
+            : { status: 'blocked', reason: 'PROVIDER_AUTH_FAILED' },
+        );
+        expect(fetch).toHaveBeenCalledTimes(recoverAuthentication ? 0 : 1);
+        expect(await sessions.read()).toBeNull();
+        expect(vi.getTimerCount()).toBe(0);
+      },
+    );
+
+    it.each([
+      [429, 'retry', 'PROVIDER_RATE_LIMITED'],
+      [503, 'retry', 'PROVIDER_UNAVAILABLE'],
+      [403, 'blocked', 'PROVIDER_ACCESS_DENIED'],
+    ])(
+      'preserves observed HTTP %s when the budget expires during response handling',
+      async (status, expectedStatus, reason) => {
+        const { rateLimits, economy } = setup(listings(24));
+        fakeTimers();
+        const transportFetch = globalThis.fetch;
+        let details = 0;
+        vi.stubGlobal('fetch', async (input: URL, init?: RequestInit) => {
+          if (input.pathname.includes('/fetch/') && ++details === 2)
+            return new Response(
+              new ReadableStream({
+                cancel() {
+                  throw new DOMException('Body aborted', 'AbortError');
+                },
+              }),
+              { status: Number(status), headers: { 'Retry-After': '120' } },
+            );
+          return transportFetch(input, init);
+        });
+        const observe = rateLimits.observeResponse.bind(rateLimits);
+        vi.spyOn(rateLimits, 'observeResponse').mockImplementation(
+          async (...args) => {
+            const state = await observe(...args);
+            if (args[1].status === status) expire();
+            return state;
+          },
+        );
+        const run = fixtureTradeCapture(rateLimits, economy, environment);
+        expect(await run(target(), new AbortController().signal)).toMatchObject(
+          {
+            status: expectedStatus,
+            reason,
+          },
+        );
+        expect(vi.getTimerCount()).toBe(0);
+      },
+    );
   });
 
   it('preserves Retry-After from HTTP 503', async () => {
