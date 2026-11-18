@@ -1,0 +1,129 @@
+{
+  "handbookTarget": {
+    "baseTypes": ["Thicket Bow"],
+    "builds": [],
+    "corrupted": false,
+    "game": "poe1",
+    "league": "Covens",
+    "name": "3.30.0:134eb25af23fe068823f6af9290696f7",
+    "patch": "3.30.0",
+    "realm": "pc",
+    "requiredMods": [],
+    "slot": "crafted-item",
+    "sources": [],
+    "tradeSearch": {
+      "currency": "chaos",
+      "groups": [
+        {
+          "filters": [
+            {
+              "id": "explicit.stat_2027269580",
+              "min": 2
+            },
+            {
+              "id": "explicit.stat_210067635",
+              "min": 14
+            }
+          ],
+          "type": "and"
+        },
+        {
+          "filters": [
+            {
+              "id": "socket.links",
+              "max": 6,
+              "min": 6
+            }
+          ],
+          "type": "and"
+        }
+      ],
+      "includeOtherCurrencies": true,
+      "rarity": "rare",
+      "scope": "strict",
+      "status": "securable",
+      "version": 1
+    }
+  },
+  "item": {
+    "verified": true,
+    "baseType": "Thicket Bow",
+    "typeLine": "Thicket Bow",
+    "frameType": 2,
+    "rarity": "Rare",
+    "league": "Covens",
+    "ilvl": 86,
+    "fractured": true,
+    "sockets": [
+      {
+        "group": 0
+      },
+      {
+        "group": 0
+      },
+      {
+        "group": 0
+      },
+      {
+        "group": 0
+      },
+      {
+        "group": 0
+      },
+      {
+        "group": 0
+      }
+    ],
+    "properties": [
+      {
+        "name": "Bow",
+        "values": []
+      },
+      {
+        "name": "Quality",
+        "type": 6,
+        "values": [["+20%", 1]]
+      },
+      {
+        "name": "Physical Damage",
+        "type": 9,
+        "values": [["38-115", 1]]
+      },
+      {
+        "name": "Critical Strike Chance",
+        "type": 12,
+        "values": [["5.00%", 0]]
+      },
+      {
+        "name": "Attacks per Second",
+        "type": 13,
+        "values": [["1.77", 1]]
+      }
+    ],
+    "explicitMods": [
+      {
+        "hash": "stat.fractured.stat_2027269580",
+        "domain": "fractured",
+        "flags": {
+          "fractured": true
+        },
+        "description": "+2 to Level of Socketed Bow Gems",
+        "mods": [
+          {
+            "tier": "P1"
+          }
+        ]
+      },
+      {
+        "hash": "stat.explicit.stat_210067635",
+        "domain": "explicit",
+        "description": "18% increased Attack Speed",
+        "mods": [
+          {
+            "tier": "S0"
+          }
+        ]
+      }
+    ]
+  }
+}

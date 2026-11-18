@@ -462,6 +462,70 @@ describe('Trade-compatible queries and transport', () => {
     },
   );
 
+  it.each([
+    ['fetch.fractured-movement-modern.json', 'stat_2250533757', 25],
+    ['fetch.fractured-bow-gems-modern.json', 'stat_2027269580', 2],
+  ])(
+    'maps the actual modern fractured origin from %s',
+    async (file, statId, value) => {
+      const fixture = JSON.parse(
+        await readFile(
+          new URL(`./fixtures/tradeCompatible/${file}`, import.meta.url),
+          'utf8',
+        ),
+      );
+      const target = recipeQueryTarget(JSON.stringify(fixture.handbookTarget));
+      const raw = {
+        ...rawTradeListing('redacted-fractured-fixture'),
+        item: fixture.item,
+      };
+      const row = normalizeTradeCompatibleListing(raw, target);
+      expect(row.item.mods).toContainEqual({
+        id: `explicit.${statId}`,
+        value,
+        tier: 1,
+      });
+      expect(
+        compareListingItems(target, {
+          currency: 'chaos',
+          listings: [{ ...row, currency: 'chaos' }],
+        })[0]?.status,
+      ).toBe('MATCH');
+
+      const base = normalizeTradeCompatibleListing(raw, {
+        ...target,
+        slot: 'starting-base',
+      });
+      expect(base.item.mods).toContainEqual(
+        expect.objectContaining({ id: `fractured.${statId}`, value, tier: 1 }),
+      );
+      expect(base.item.mods).not.toContainEqual(
+        expect.objectContaining({ id: `explicit.${statId}` }),
+      );
+
+      const edited = structuredClone(raw);
+      const line = edited.item.explicitMods.find(
+        (mod: { hash: string }) => mod.hash === `stat.fractured.${statId}`,
+      );
+      expect(line).toBeDefined();
+      line.description = line.description.replace(
+        String(value),
+        String(value - 1),
+      );
+      expect(
+        compareListingItems(target, {
+          currency: 'chaos',
+          listings: [
+            {
+              ...normalizeTradeCompatibleListing(edited, target),
+              currency: 'chaos',
+            },
+          ],
+        })[0]?.status,
+      ).toBe('REJECT');
+    },
+  );
+
   it('matches the actual Prophet Crown returned by both configured Helmet searches', async () => {
     const fixture = JSON.parse(
       await readFile(

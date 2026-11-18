@@ -308,6 +308,10 @@ Object.assign(tradeStatMappings, {
     key: 'mod:movement-speed',
     text: '#% increased Movement Speed',
   },
+  'fractured.stat_2250533757': {
+    key: 'mod:movement-speed',
+    text: '#% increased Movement Speed',
+  },
   'explicit.stat_124131830': {
     key: 'mod:spell-gems',
     text: '+# to Level of all Spell Skill Gems',
@@ -473,6 +477,10 @@ Object.assign(tradeStatMappings, {
   },
   // Public Trade identities checked 2026-11-11; Local is only a dropdown qualifier.
   'explicit.stat_2027269580': {
+    key: 'bow_gem_level',
+    text: '+# to Level of Socketed Bow Gems',
+  },
+  'fractured.stat_2027269580': {
     key: 'bow_gem_level',
     text: '+# to Level of Socketed Bow Gems',
   },
