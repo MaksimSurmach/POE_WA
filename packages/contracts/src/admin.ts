@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-export const marketAdminSettingsSchema = z.strictObject({
+export const tradePoolMinutesSchema = z.record(
+  z.string().regex(/^[1-7]$/),
+  z.number().int().positive().max(2_147_483_647),
+);
+const settingsSchema = z.strictObject({
+  tradePoolMinutes: tradePoolMinutesSchema,
   automaticRefreshEnabled: z.boolean(),
   scheduledCollectionEnabled: z.boolean(),
   collectionsPaused: z.boolean(),
@@ -14,15 +19,16 @@ export const marketAdminSettingsSchema = z.strictObject({
   rawRetentionHours: z.number().int().min(24).max(2160),
   historyRetentionDays: z.number().int().min(14).max(730),
 });
+export const marketAdminSettingsSchema = settingsSchema.extend({
+  tradePoolMinutes: tradePoolMinutesSchema.default({ '1': 180, '2': 720 }),
+});
 // Stored rows from earlier releases may still contain retired settings.
 export const storedMarketAdminSettingsSchema =
   marketAdminSettingsSchema.strip();
 export type MarketAdminSettings = z.infer<typeof marketAdminSettingsSchema>;
 export const marketAdminPatchSchema = z.strictObject({
   version: z.number().int().nonnegative(),
-  settings: marketAdminSettingsSchema
-    .partial()
-    .refine((v) => Object.keys(v).length > 0),
+  settings: settingsSchema.partial().refine((v) => Object.keys(v).length > 0),
 });
 export const marketAdminSettingsResponseSchema = z.object({
   version: z.number().int(),

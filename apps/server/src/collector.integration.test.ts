@@ -54,7 +54,7 @@ const now = () => new Date(time);
 // Other suites share this database; none of their collector rows may leak into a test.
 const resetCollectorState = () =>
   pool.query(
-    'truncate listing_events, listings, captures, collector_schedule, run_requests, collector_state, collector_telemetry_runs',
+    'truncate listing_events, listings, captures, collector_schedule, run_requests, collector_state, collector_telemetry_runs, collector_trade_pool, market_admin_settings, market_admin_audit',
   );
 
 beforeEach(async () => {
@@ -67,7 +67,6 @@ afterEach(async () => {
   for (const worker of workers) worker.stop.abort();
   await Promise.all(workers.splice(0).map(({ done }) => done));
   await resetCollectorState();
-  await pool.query('truncate market_admin_settings, market_admin_audit');
 });
 
 afterAll(() => pool.end());
@@ -254,6 +253,217 @@ it('runs due rows once and advances their cadence', async () => {
   expect(handler).toHaveBeenCalledTimes(1);
   expect(await db.select().from(captures)).toHaveLength(1);
 });
+
+it('paces a Trade pool and rescales only unfinished slots', async () => {
+  const {
+    rows: [league],
+  } = await pool.query(
+    "insert into poe_leagues(ggg_id,name,synced_at) values($1,'Pool test',$2) returning id",
+    [randomUUID(), now()],
+  );
+  const target = { leagueId: league.id as string, scrapingPriority: 1 };
+  const ids = [
+    await schedule(target),
+    await schedule(target),
+    await schedule(target),
+  ];
+  const reconcile = () =>
+    pool.query('select reconcile_trade_pools($1)', [now()]);
+  await reconcile();
+  const original = await Promise.all(ids.map(row));
+  original.sort((a, b) => a.nextDueAt.getTime() - b.nextDueAt.getTime());
+  const [first, second, third] = original;
+  const minutesUntil = async (id: string) =>
+    ((await row(id)).nextDueAt.getTime() - time) / minute;
+  expect(await minutesUntil(first!.id)).toBeGreaterThanOrEqual(57);
+  expect(await minutesUntil(third!.id)).toBeLessThanOrEqual(180);
+  time += 60 * minute;
+  const handler = vi.fn(succeed);
+  const worker = start(handler);
+  await vi.waitFor(async () =>
+    expect((await row(first!.id)).settledCycleId).toBeTruthy(),
+  );
+  worker.stop.abort();
+  await worker.done;
+  const done = await row(first!.id);
+  expect(handler).toHaveBeenCalledTimes(1);
+
+  await pool.query(`insert into market_admin_settings(id,settings)
+    values(1,'{"tradePoolMinutes":{"1":240,"2":720}}')`);
+  await reconcile();
+  expect(await minutesUntil(second!.id)).toBeGreaterThanOrEqual(85.5);
+  expect(await minutesUntil(second!.id)).toBeLessThanOrEqual(90);
+  expect(await minutesUntil(third!.id)).toBeGreaterThanOrEqual(175.5);
+  const added = await schedule(target);
+  await reconcile();
+  const newSlot = await minutesUntil(added);
+  expect(newSlot).toBeGreaterThanOrEqual(57);
+  expect(newSlot).toBeLessThanOrEqual(60);
+  expect(await minutesUntil(third!.id)).toBeLessThanOrEqual(180);
+  expect(await row(first!.id)).toMatchObject({
+    settledCycleId: done.settledCycleId,
+    nextDueAt: done.nextDueAt,
+  });
+  await reconcile();
+  expect(await minutesUntil(added)).toBe(newSlot);
+});
+
+it('shares one start budget across pools and records exhausted retries', async () => {
+  const {
+    rows: [league],
+  } = await pool.query(
+    "insert into poe_leagues(ggg_id,name,synced_at) values($1,'Shared IP test',$2) returning id",
+    [randomUUID(), now()],
+  );
+  const item = await schedule({
+    leagueId: league.id,
+    scrapingPriority: 1,
+    attempt: 2,
+  });
+  const base = await schedule({ leagueId: league.id, scrapingPriority: 2 });
+  await pool.query('select reconcile_trade_pools($1)', [now()]);
+  time += 720 * minute;
+  const handler = vi
+    .fn<CollectorHandler>()
+    .mockRejectedValueOnce(new Error('offline'))
+    .mockImplementation(succeed);
+  start(handler);
+  await vi.waitFor(async () =>
+    expect((await row(item)).settledWithError).toBe(true),
+  );
+  expect(await row(item)).toMatchObject({
+    lastError: 'COLLECTOR_HANDLER_FAILED',
+    leasedUntil: null,
+  });
+  const queue = await readCollectorQueue(pool, now());
+  expect(queue.id).toBe(base);
+  expect(queue.nextDueAt!.getTime() - time).toBeCloseTo(0.95 * 144 * minute);
+  time = queue.nextDueAt!.getTime();
+  await wake();
+  await vi.waitFor(async () =>
+    expect((await row(base)).lastStatus).toBe('succeeded'),
+  );
+  expect(handler).toHaveBeenCalledTimes(2);
+});
+
+it('freezes only the pool whose period disappeared and resumes the same cycle', async () => {
+  const {
+    rows: [league],
+  } = await pool.query(
+    "insert into poe_leagues(ggg_id,name,synced_at) values($1,'Period test',$2) returning id",
+    [randomUUID(), now()],
+  );
+  const output = await schedule({ leagueId: league.id, scrapingPriority: 1 });
+  const base = await schedule({ leagueId: league.id, scrapingPriority: 2 });
+  await pool.query('select reconcile_trade_pools($1)', [now()]);
+  const poolState = async () =>
+    (
+      await pool.query(
+        'select cycle_id, started_at, paused_at from collector_trade_pool where league_id=$1 and priority=2',
+        [league.id],
+      )
+    ).rows[0];
+  const original = await poolState();
+  await pool.query(
+    `insert into market_admin_settings(id,settings) values(1,'{"tradePoolMinutes":{"1":180}}')`,
+  );
+  time += 720 * minute;
+  const housekeeping = await schedule({ kind: 'retention' });
+  const handler = vi.fn(succeed);
+  const worker = start(handler);
+  await vi.waitFor(async () =>
+    expect((await row(output)).lastStatus).toBe('succeeded'),
+  );
+  await vi.waitFor(async () =>
+    expect((await row(housekeeping)).lastStatus).toBe('succeeded'),
+  );
+  expect((await row(base)).lastStartedAt).toBeNull();
+  const status = await readCollectorQueue(pool, now(), undefined, false, true);
+  expect(status.tradePools).toContainEqual(
+    expect.objectContaining({
+      priority: 2,
+      reason: 'missing-period',
+      nextSlotAt: null,
+    }),
+  );
+  worker.stop.abort();
+  await worker.done;
+  const frozen = await poolState();
+  expect(frozen.paused_at).toEqual(now());
+  time += 60 * minute;
+  await pool.query(
+    `update market_admin_settings set settings='{"tradePoolMinutes":{"1":180,"2":720}}' where id=1`,
+  );
+  await pool.query('select reconcile_trade_pools($1)', [now()]);
+  expect(await poolState()).toMatchObject({
+    cycle_id: original.cycle_id,
+    paused_at: null,
+    started_at: new Date(original.started_at.getTime() + 60 * minute),
+  });
+  expect((await row(base)).nextDueAt.getTime()).toBeGreaterThan(time);
+});
+
+it.each([
+  { pooled: true, deferred: true },
+  { pooled: true, deferred: false },
+  { pooled: false, deferred: true },
+])(
+  'handles a provider outage with pooled=$pooled and deferral=$deferred',
+  async ({ pooled, deferred }) => {
+    const {
+      rows: [league],
+    } = await pool.query(
+      "insert into poe_leagues(ggg_id,name,synced_at) values($1,'Outage test',$2) returning id",
+      [randomUUID(), now()],
+    );
+    const id = await schedule({
+      leagueId: league.id,
+      scrapingPriority: pooled ? 1 : null,
+      attempt: 2,
+    });
+    await pool.query('select reconcile_trade_pools($1)', [now()]);
+    time += 720 * minute;
+    const retryAt = new Date(time + 240 * minute);
+    const handler = vi
+      .fn<CollectorHandler>()
+      .mockResolvedValueOnce({
+        status: 'retry',
+        reason: 'PROVIDER_UNAVAILABLE',
+        ...(deferred ? { retryAt } : {}),
+      })
+      .mockImplementation(succeed);
+    start(handler);
+    await vi.waitFor(async () =>
+      expect((await row(id)).lastStatus).toBe('failed'),
+    );
+    expect(await row(id)).toMatchObject({
+      attempt: deferred ? 2 : 0,
+      retryAt: deferred ? retryAt : null,
+      settledWithError: !deferred,
+      lastError: 'PROVIDER_UNAVAILABLE',
+    });
+    if (deferred) {
+      expect((await row(id)).settledCycleId).toBeNull();
+      time = retryAt.getTime() - 1;
+      await wake();
+      await delay(50);
+      expect(handler).toHaveBeenCalledTimes(1);
+      time++;
+      await wake();
+      await vi.waitFor(async () =>
+        expect((await row(id)).lastStatus).toBe('succeeded'),
+      );
+      expect(await row(id)).toMatchObject({
+        attempt: 0,
+        retryAt: null,
+        settledWithError: false,
+      });
+      expect(Boolean((await row(id)).settledCycleId)).toBe(pooled);
+    } else {
+      expect((await row(id)).settledCycleId).toBeTruthy();
+    }
+  },
+);
 
 it('backs off failures and recovers a due row with an expired lease', async () => {
   const id = await schedule({

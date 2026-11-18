@@ -303,6 +303,14 @@ test('settings validate, persist through the API and reload the saved values', a
     await route.fulfill({ json: { data: saved } });
   });
   await page.goto('/settings');
+  await page.getByText('Диагностика коллектора', { exact: true }).click();
+  const poolStatus = page.getByRole('region', { name: 'Пулы PoE Trade' });
+  await expect(poolStatus).toContainText('Preview League · P1');
+  await expect(poolStatus).toContainText(
+    'целей 12 · проверено 7 · осталось 4 · ошибок 1',
+  );
+  await expect(poolStatus).toContainText('ближайший старт');
+  await expect(poolStatus).toContainText('ожидание слота');
   const maximum = page.getByRole('spinbutton', {
     name: 'Максимальный возраст цены (минуты)',
     exact: true,
@@ -312,6 +320,12 @@ test('settings validate, persist through the API and reload the saved values', a
     exact: true,
   });
   await expect(maximum).toBeVisible();
+  const p1 = page.getByRole('spinbutton', { name: 'Пул P1', exact: true });
+  const p2 = page.getByRole('spinbutton', { name: 'Пул P2', exact: true });
+  const p7 = page.getByRole('spinbutton', { name: 'Пул P7', exact: true });
+  await expect(p1).toHaveValue('180');
+  await expect(p2).toHaveValue('720');
+  await expect(p7).toHaveValue('');
   await maximum.fill('10');
   await page
     .getByRole('button', { name: 'Сохранить настройки', exact: true })
@@ -319,6 +333,24 @@ test('settings validate, persist through the API and reload the saved values', a
   expect(writes).toBe(0);
   await maximum.fill('90');
   await warning.fill('30');
+  await p7.fill('1.5');
+  await page
+    .getByRole('button', { name: 'Сохранить настройки', exact: true })
+    .click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'целым положительным' }),
+  ).toBeVisible();
+  expect(writes).toBe(0);
+  await p1.fill('240');
+  await p7.fill('1440');
+  saved = {
+    ...saved,
+    version: saved.version + 1,
+    configured: {
+      ...saved.configured,
+      tradePoolMinutes: { ...saved.configured.tradePoolMinutes, 2: 600 },
+    },
+  };
   await page
     .getByRole('button', { name: 'Сохранить настройки', exact: true })
     .click();
@@ -329,6 +361,17 @@ test('settings validate, persist through the API and reload the saved values', a
   await page.reload();
   await expect(maximum).toHaveValue('90');
   await expect(warning).toHaveValue('30');
+  await expect(p1).toHaveValue('240');
+  await expect(p2).toHaveValue('600');
+  await expect(p7).toHaveValue('1440');
+  await p7.fill('');
+  await page
+    .getByRole('button', { name: 'Сохранить настройки', exact: true })
+    .click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Настройки сохранены.' }),
+  ).toBeVisible();
+  expect(saved.configured.tradePoolMinutes).toEqual({ 1: 240, 2: 600 });
 });
 
 test('keyboard reaches content, section links and horizontally scrolling tables', async ({

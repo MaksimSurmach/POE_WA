@@ -56,9 +56,11 @@ export function MarketReadiness({
         {isSingleSellerHypothesis(r) ? ' · Гипотеза цены одного продавца' : ''}
       </p>
       <p>
-        Latest capture {time(r.capturedAt)}.{' '}
+        Latest capture {time(r.capturedAt)}
+        {r.captureAgeMinutes != null ? ` (${r.captureAgeMinutes} min ago)` : ''}
+        .{' '}
         {r.fresh ? 'Fresh' : r.capturedAt ? 'Outdated' : 'Awaiting observation'}
-        .
+        .{r.lastCheckedAt ? <> Last check {time(r.lastCheckedAt)}.</> : null}
         {r.coverage === 'partial'
           ? ' Partial coverage. These asks describe the sample.'
           : r.coverage === 'complete'

@@ -1,5 +1,8 @@
 import { formatTimestamp } from './dateTime.js';
-import type { RateLimitDiagnosticsResponse } from '@poe-worksmith/contracts';
+import type {
+  CollectorStatus,
+  RateLimitDiagnosticsResponse,
+} from '@poe-worksmith/contracts';
 import { useEffect, useState } from 'react';
 import { createApiClient } from './apiClient.js';
 
@@ -67,7 +70,26 @@ function range(
     : `${format(sample.average)} average · ${format(sample.max)} highest observed`;
 }
 
-export function CollectorDetails() {
+type TradePool = NonNullable<CollectorStatus['tradePools']>[number];
+const poolReasons: Record<TradePool['reason'], string> = {
+  'missing-period': 'не задан период пула',
+  paused: 'пауза оператора',
+  disabled: 'сбор отключён',
+  blocked: 'блокировка Trade',
+  complete: 'окно завершено',
+  cooldown: 'пауза провайдера',
+  pacing: 'лимит частоты запросов',
+  retry: 'ожидание повтора',
+  lease: 'цель в работе',
+  slot: 'ожидание слота',
+  ready: 'готов к старту',
+};
+
+export function CollectorDetails({
+  tradePools,
+}: {
+  tradePools?: CollectorStatus['tradePools'];
+}) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<Diagnostics>();
   const [unavailable, setUnavailable] = useState(false);
@@ -107,6 +129,32 @@ export function CollectorDetails() {
       <summary>Диагностика коллектора</summary>
       {open ? (
         <>
+          {tradePools?.length ? (
+            <section aria-label="Пулы PoE Trade">
+              <h3>Пулы PoE Trade</h3>
+              <ul>
+                {tradePools.map((pool) => (
+                  <li key={`${pool.league}/${pool.priority}`}>
+                    <strong>
+                      {pool.league} · P{pool.priority}
+                    </strong>{' '}
+                    · период {pool.periodMinutes} мин · целей {pool.targets} ·
+                    проверено {pool.checked} · осталось{' '}
+                    {pool.targets - pool.checked - pool.errors} · ошибок{' '}
+                    {pool.errors}
+                    {pool.nextSlotAt ? (
+                      <> · ближайший старт {time(pool.nextSlotAt)}</>
+                    ) : null}
+                    {' · '}
+                    {poolReasons[pool.reason]}
+                    {pool.overdueSeconds > 0
+                      ? ` · опоздание ${Math.ceil(pool.overdueSeconds / 60)} мин`
+                      : ''}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {unavailable ? (
             <p role="status">
               Collector telemetry unavailable

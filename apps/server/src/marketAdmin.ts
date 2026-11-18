@@ -160,6 +160,9 @@ export function createMarketAdminStore(options: {
     const parsed = marketAdminPatchSchema.safeParse(input);
     if (!parsed.success) throw new DomainError('MARKET_QUERY_INVALID');
     return transaction(async (client) => {
+      await client.query(
+        "select pg_advisory_xact_lock(hashtext('poe-worksmith:collector-schedule-sync'))",
+      );
       const result = await client.query<{ version: number; settings: unknown }>(
         'select version,settings from market_admin_settings where id=1 for update',
       );
@@ -171,16 +174,38 @@ export function createMarketAdminStore(options: {
         { ...previous, ...parsed.data.settings },
         options.timezone,
       );
+      const periodsChanged =
+        JSON.stringify(previous.tradePoolMinutes) !==
+        JSON.stringify(settings.tradePoolMinutes);
+      if (periodsChanged) {
+        const inUse = await client.query(
+          `select 1 from collector_schedule where enabled and kind='trade-target'
+             and scraping_priority::text <> all($1::text[])
+           union all
+           select 1 from recipes where active and (
+             coalesce(definition #>> '{scrapingPriority,base}', '2') <> all($1::text[]) or
+             coalesce(definition #>> '{scrapingPriority,output}', '1') <> all($1::text[])
+           ) limit 1`,
+          [Object.keys(settings.tradePoolMinutes)],
+        );
+        if (inUse.rowCount) throw new DomainError('MARKET_QUERY_INVALID');
+      }
       await client.query(
         'update market_admin_settings set settings=$1::jsonb,version=version+1,updated_at=now() where id=1',
         [JSON.stringify(settings)],
       );
+      if (
+        periodsChanged ||
+        previous.collectionsPaused !== settings.collectionsPaused
+      )
+        await client.query('select reconcile_trade_pools($1)', [new Date()]);
       await audit(client, actor, action, {
         previous,
         settings,
         version: row.version + 1,
       });
       if (
+        periodsChanged ||
         previous.collectionsPaused !== settings.collectionsPaused ||
         previous.automaticRefreshEnabled !== settings.automaticRefreshEnabled ||
         previous.scheduledCollectionEnabled !==

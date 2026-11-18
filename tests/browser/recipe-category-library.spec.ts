@@ -219,6 +219,9 @@ test('exact methods never borrow instructions; Back, scope, focus and scroll sur
   await expect(
     page.getByRole('dialog').getByText('Crafting sequence', { exact: true }),
   ).toHaveCount(0);
+  await expect(
+    page.getByRole('dialog').locator('.target-requirements footer'),
+  ).toContainText('Required outcome · Covens · PC');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.locator(`[id="route-${chaosId}"]`)).toBeFocused();

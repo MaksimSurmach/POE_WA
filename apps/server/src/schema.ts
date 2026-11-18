@@ -1298,6 +1298,28 @@ export const marketTradeSession = marketCollectorPrivate.table(
   (table) => [check('trade_session_singleton_check', sql`${table.singleton}`)],
 );
 
+export const collectorTradePools = pgTable(
+  'collector_trade_pool',
+  {
+    leagueId: uuid('league_id')
+      .notNull()
+      .references(() => poeLeagues.id, { onDelete: 'cascade' }),
+    priority: integer('priority').notNull(),
+    periodMinutes: integer('period_minutes').notNull(),
+    cycleId: uuid('cycle_id').notNull().defaultRandom(),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    pausedAt: timestamp('paused_at', { withTimezone: true }),
+    members: uuid('members').array().notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.leagueId, t.priority] }),
+    check(
+      'trade_pool_valid',
+      sql`${t.priority} between 1 and 7 and ${t.periodMinutes} > 0`,
+    ),
+  ],
+);
+
 export const collectorSchedule = pgTable(
   'collector_schedule',
   {
@@ -1307,6 +1329,9 @@ export const collectorSchedule = pgTable(
     leagueId: uuid('league_id').references(() => poeLeagues.id),
     payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
     intervalMinutes: integer('interval_minutes').notNull(),
+    scrapingPriority: integer('scraping_priority'),
+    settledCycleId: uuid('settled_cycle_id'),
+    settledWithError: boolean('settled_with_error').default(false).notNull(),
     nextDueAt: timestamp('next_due_at', { withTimezone: true }).notNull(),
     attempt: integer('attempt').default(0).notNull(),
     retryAt: timestamp('retry_at', { withTimezone: true }),

@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import { marketAdminSettingsResponseSchema } from '@poe-worksmith/contracts';
+import {
+  collectorStatusSchema,
+  marketAdminSettingsResponseSchema,
+} from '@poe-worksmith/contracts';
 import pino from 'pino';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
@@ -104,6 +107,104 @@ describe('market admin settings and collector API', () => {
         scheduledCollectionEnabled: !paused,
       });
       expect(response.json().data.configured).toEqual(saved);
+    }
+  });
+
+  it('applies pool periods from older settings, preserves edits and rejects removing a used pool', async () => {
+    await pool.query(
+      "update market_admin_settings set settings=settings-'tradePoolMinutes' where id=1",
+    );
+    const readStatus = async () =>
+      collectorStatusSchema.parse(
+        (
+          await api.inject({ url: '/api/collector/status', headers: local })
+        ).json(),
+      );
+    const initial = (await store.read()).configured.tradePoolMinutes;
+    expect(initial).toEqual({ 1: 180, 2: 720 });
+    const periods = { ...initial, 1: 240, 3: 1440 };
+    const update = (version: number, settings: Record<string, unknown>) =>
+      store.patch({ version, settings }, 'operator');
+    const league = randomUUID();
+    await pool.query(
+      "insert into poe_leagues(id,ggg_id,name,synced_at) values ($1,'settings-pools','settings-pools',now())",
+      [league],
+    );
+    try {
+      await pool.query(
+        `insert into collector_schedule(kind,key,league_id,payload,interval_minutes,next_due_at,scraping_priority)
+           values ('trade-target','settings-pool-test',$1,'{}',180,now(),1)`,
+        [league],
+      );
+      expect(
+        (await update(0, { tradePoolMinutes: periods })).effective
+          .tradePoolMinutes,
+      ).toEqual(periods);
+      expect(
+        (
+          await pool.query(
+            'select period_minutes from collector_trade_pool where league_id=$1 and priority=1',
+            [league],
+          )
+        ).rows[0]?.period_minutes,
+      ).toBe(240);
+      expect(
+        (await update(1, { requestTimeoutMs: 12_000 })).effective
+          .tradePoolMinutes,
+      ).toEqual(periods);
+      await expect(
+        update(2, { tradePoolMinutes: { 2: 720 } }),
+      ).rejects.toMatchObject({ code: 'MARKET_QUERY_INVALID' });
+      expect((await store.read()).version).toBe(2);
+      expect(await auditRows()).toHaveLength(2);
+      const status = await readStatus();
+      const poolStatus = status.tradePools?.find(
+        (p) => p.league === 'settings-pools',
+      );
+      expect(poolStatus).toMatchObject({
+        priority: 1,
+        periodMinutes: 240,
+        targets: 1,
+        checked: 0,
+        errors: 0,
+        reason: 'slot',
+        overdueSeconds: 0,
+      });
+      expect(Date.parse(poolStatus!.nextSlotAt!)).toBe(
+        Date.parse(status.nextDueAt!),
+      );
+      await pool.query(
+        `update collector_schedule s set last_status='failed', settled_with_error=true, settled_cycle_id=p.cycle_id
+        from collector_trade_pool p where s.league_id=$1 and p.league_id=s.league_id and p.priority=s.scraping_priority`,
+        [league],
+      );
+      expect((await readStatus()).tradePools).toContainEqual(
+        expect.objectContaining({
+          league: 'settings-pools',
+          checked: 0,
+          errors: 1,
+          nextSlotAt: null,
+          reason: 'complete',
+        }),
+      );
+      await pool.query(`insert into recipes(id,content_hash,title,category,craft_method,game_version,guide_markdown,definition,active)
+        values ('settings-priority-test','hash','Pool test','jewel','chaos','3.30','','{"scrapingPriority":{"output":3}}',true)`);
+      await expect(
+        update(2, { tradePoolMinutes: initial }),
+      ).rejects.toMatchObject({ code: 'MARKET_QUERY_INVALID' });
+      await pool.query(
+        "update recipes set active=false where id='settings-priority-test'",
+      );
+      expect(
+        (await update(2, { tradePoolMinutes: initial })).effective
+          .tradePoolMinutes,
+      ).toEqual(initial);
+    } finally {
+      await pool.query('delete from collector_schedule where league_id=$1', [
+        league,
+      ]);
+      await pool.query('delete from poe_leagues where id=$1', [league]);
+      await pool.query("delete from recipes where id='settings-priority-test'");
     }
   });
 
@@ -244,6 +345,11 @@ describe('market admin settings and collector API', () => {
   });
 
   it.each([
+    { tradePoolMinutes: { 8: 100 } },
+    { tradePoolMinutes: { 1: 1.25 } },
+    { tradePoolMinutes: { 1: 0 } },
+    { tradePoolMinutes: { '01': 10 } },
+    { tradePoolMinutes: { 1: '180' } },
     { requestTimeoutMs: 999 },
     { requestTimeoutMs: 30_001 },
     { collectionConcurrency: 5 },
