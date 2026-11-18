@@ -389,14 +389,21 @@ test('mobile composition exposes a target action and preserves its price in Mark
   await page.goto('/');
   const tile = page.locator('.market-map .market-tile').first();
   await expect(tile).toBeInViewport();
+  const tileAsk = tile.locator('.market-tile-content > small');
+  await expect(tileAsk).toHaveText(/^[\d,.]+\s*c$/);
+  const ask = await tileAsk.innerText();
   await tile.click();
   const popup = page.getByRole('dialog');
   await expect(
     popup.getByRole('tab', { name: 'Market', exact: true }),
   ).toHaveAttribute('aria-selected', 'true');
-  await expect(
-    popup.getByRole('region', { name: 'Current asking evidence' }),
-  ).toContainText(/Lowest observed ask [\d,.]+ c/);
+  const evidence = popup.getByRole('region', {
+    name: 'Current asking evidence',
+  });
+  const estimate = evidence.getByRole('heading', {
+    name: /Comparable asking estimate/,
+  });
+  await expect(estimate).toHaveText(`Comparable asking estimate ${ask}`);
   await popup.getByRole('button', { name: 'Done', exact: true }).click();
   await expect(tile).toBeFocused();
   const items = page.getByRole('region', { name: 'Market items', exact: true });

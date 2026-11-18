@@ -236,8 +236,11 @@ test('Fettle total, empty history, keyboard trap and reloadable deep link', asyn
   await page.reload();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator('.target-economics')).toContainText('38.5 c');
-  await expect(dialog.locator('.target-economics')).toContainText('+61.5 c');
+  const economics = dialog.locator('.target-economics');
+  await expect(economics).toContainText('38.5 c');
+  await expect(economics).toContainText(/Comparable ask\s*—\s*Not estimated/);
+  await expect(economics).toContainText(/Est\. craft margin\s*—/);
+  await expect(economics).not.toContainText('+61.5 c');
   await expect(dialog.getByLabel('Craft method', { exact: true })).toHaveValue(
     fettleId,
   );
