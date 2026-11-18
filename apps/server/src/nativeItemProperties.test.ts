@@ -64,6 +64,18 @@ const weekOneIdentities = JSON.parse(
 identities.stats.push(...weekOneIdentities.stats);
 identities.bases.push(...weekOneIdentities.bases);
 identities.resources.push(...weekOneIdentities.resources);
+const currentIdentities = JSON.parse(
+  await readFile(
+    new URL(
+      'docs/evidence/max-1318-scraped-items/trade-identities-2026-11-18.json',
+      root,
+    ),
+    'utf8',
+  ),
+);
+identities.stats.push(...currentIdentities.stats);
+identities.bases.push(...currentIdentities.bases);
+identities.resources.push(...currentIdentities.resources);
 const manifest = await loadAndValidateTradeMappingManifest(
   fileURLToPath(
     new URL(

@@ -1,7 +1,7 @@
 {
   "patchVersion": "3.29.3.3",
   "source": "https://www.pathofexile.com/api/trade/data/items",
-  "sourceRevision": "mapping-identities-checked-2026-11-03.craft-profit.1+exiledata-mods-c2af0d896a3b.flask-speed + week-one-identities-2026-11-11",
+  "sourceRevision": "mapping-identities-checked-2026-11-03.craft-profit.1+exiledata-mods-c2af0d896a3b.flask-speed + week-one-identities-2026-11-11 + influenced-fractured-identities-2026-11-15 + cluster-crafts-2026-11-16",
   "records": [
     {
       "kind": "base",
@@ -665,6 +665,251 @@
         "metadata": {
           "coverage": "Trade identity only; local base ID, no affix weights or probability model.",
           "checkedAt": "2026-11-11"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:amethyst-ring",
+        "name": "Amethyst Ring",
+        "itemClass": "Ring",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-15",
+          "identitySource": "https://poedb.tw/us/Amethyst_Ring"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:vermillion-ring",
+        "name": "Vermillion Ring",
+        "itemClass": "Ring",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-15",
+          "identitySource": "https://poedb.tw/us/Vermillion_Ring"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:sunfire-circlet",
+        "name": "Sunfire Circlet",
+        "itemClass": "Helmet",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-15",
+          "identitySource": "https://poedb.tw/us/Sunfire_Circlet"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:velour-gloves",
+        "name": "Velour Gloves",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-15",
+          "identitySource": "https://poedb.tw/us/Velour_Gloves"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:harpyskin-gloves",
+        "name": "Harpyskin Gloves",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-15",
+          "identitySource": "https://poedb.tw/us/Harpyskin_Gloves"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:wyvernscale-gauntlets",
+        "name": "Wyvernscale Gauntlets",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-15",
+          "identitySource": "https://poedb.tw/us/Wyvernscale_Gauntlets"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:chimerascale-gauntlets",
+        "name": "Chimerascale Gauntlets",
+        "itemClass": "Gloves",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local Trade identity only; no affix pool or probability weights asserted.",
+          "checkedAt": "2026-11-15",
+          "identitySource": "https://poedb.tw/us/Chimerascale_Gauntlets"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:medium-cluster-brand-damage-4",
+        "name": "Medium Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local base identity for exact Trade filters only; no affix weights asserted.",
+          "checkedAt": "2026-11-16"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:medium-cluster-brand-damage-5",
+        "name": "Medium Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local base identity for exact Trade filters only; no affix weights asserted.",
+          "checkedAt": "2026-11-16"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:medium-cluster-minion-life-4",
+        "name": "Medium Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local base identity for exact Trade filters only; no affix weights asserted.",
+          "checkedAt": "2026-11-16"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:medium-cluster-minion-life-5",
+        "name": "Medium Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local base identity for exact Trade filters only; no affix weights asserted.",
+          "checkedAt": "2026-11-16"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:medium-cluster-exerted-damage-4",
+        "name": "Medium Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local base identity for exact Trade filters only; no affix weights asserted.",
+          "checkedAt": "2026-11-16"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:medium-cluster-exerted-damage-5",
+        "name": "Medium Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local base identity for exact Trade filters only; no affix weights asserted.",
+          "checkedAt": "2026-11-16"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:medium-cluster-critical-chance-4",
+        "name": "Medium Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local base identity for exact Trade filters only; no affix weights asserted.",
+          "checkedAt": "2026-11-16"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:medium-cluster-critical-chance-5",
+        "name": "Medium Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local base identity for exact Trade filters only; no affix weights asserted.",
+          "checkedAt": "2026-11-16"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:small-cluster-maximum-life-2",
+        "name": "Small Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local base identity for exact Trade filters only; no affix weights asserted.",
+          "checkedAt": "2026-11-16"
+        }
+      }
+    },
+    {
+      "kind": "base",
+      "payload": {
+        "id": "base:small-cluster-armour-2",
+        "name": "Small Cluster Jewel",
+        "itemClass": "Jewel",
+        "domain": "item",
+        "tags": [],
+        "metadata": {
+          "coverage": "Local base identity for exact Trade filters only; no affix weights asserted.",
+          "checkedAt": "2026-11-16"
         }
       }
     }

@@ -614,6 +614,204 @@
       "name": "Deafening Essence of Contempt",
       "itemClass": "Currency",
       "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Currency/Essence/Contempt7.png"
+    },
+    "base:amethyst-ring": {
+      "name": "Amethyst Ring",
+      "itemClass": "Ring",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Rings/AmethystRing.png"
+    },
+    "base:vermillion-ring": {
+      "name": "Vermillion Ring",
+      "itemClass": "Ring",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Rings/VermillionRing.png"
+    },
+    "base:sunfire-circlet": {
+      "name": "Sunfire Circlet",
+      "itemClass": "Helmet",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Helmets/HelmetInt9.png"
+    },
+    "base:velour-gloves": {
+      "name": "Velour Gloves",
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/GlovesDex4.png"
+    },
+    "base:harpyskin-gloves": {
+      "name": "Harpyskin Gloves",
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/GlovesDex3.png"
+    },
+    "base:wyvernscale-gauntlets": {
+      "name": "Wyvernscale Gauntlets",
+      "defences": ["Armour", "Evasion"],
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/GlovesStrDex3.png"
+    },
+    "base:chimerascale-gauntlets": {
+      "name": "Chimerascale Gauntlets",
+      "defences": ["Armour", "Evasion"],
+      "itemClass": "Gloves",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Armours/Gloves/GlovesStrDex2.png"
+    },
+    "mod:mana": {
+      "name": "Maximum Mana",
+      "generationType": "prefix"
+    },
+    "mod:fractured-fire-resistance": {
+      "name": "Fractured Fire Resistance",
+      "generationType": "suffix"
+    },
+    "mod:elemental-weakness-on-hit": {
+      "name": "Curse Enemies with Elemental Weakness on Hit",
+      "generationType": "suffix"
+    },
+    "primal-crystallised-lifeforce": {
+      "name": "Primal Crystallised Lifeforce",
+      "itemClass": "Currency",
+      "iconUrl": "https://www.pathofexile.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvSGFydmVzdC9QcmltYWxMaWZlZm9yY2UiLCJzY2FsZSI6MX1d/c498cdfd7f/PrimalLifeforce.png"
+    },
+    "mod:explicit-mana-efficiency": {
+      "name": "Mana Reservation Efficiency of Skills",
+      "generationType": "suffix"
+    },
+    "orb-of-augmentation": {
+      "name": "Orb of Augmentation",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyAddModToMagic.png"
+    },
+    "regal-orb": {
+      "name": "Regal Orb",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyUpgradeMagicToRare.png"
+    },
+    "exalted-orb": {
+      "name": "Exalted Orb",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyAddModToRare.png"
+    },
+    "brand-damage": {
+      "name": "12% increased Brand Damage"
+    },
+    "mod:remarkable": {
+      "generationType": "prefix",
+      "name": "Remarkable"
+    },
+    "mod:grand-design": {
+      "generationType": "prefix",
+      "name": "Grand Design"
+    },
+    "base:medium-cluster-brand-damage-4": {
+      "name": "Medium Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase2.png"
+    },
+    "base:medium-cluster-brand-damage-5": {
+      "name": "Medium Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase2.png"
+    },
+    "minion-life": {
+      "name": "Minions have 12% increased maximum Life"
+    },
+    "mod:blessed-rebirth": {
+      "generationType": "prefix",
+      "name": "Blessed Rebirth"
+    },
+    "mod:life-from-death": {
+      "generationType": "prefix",
+      "name": "Life from Death"
+    },
+    "base:medium-cluster-minion-life-4": {
+      "name": "Medium Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase2.png"
+    },
+    "base:medium-cluster-minion-life-5": {
+      "name": "Medium Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase2.png"
+    },
+    "exerted-damage": {
+      "name": "Exerted Attacks deal 20% increased Damage"
+    },
+    "mod:mob-mentality": {
+      "generationType": "prefix",
+      "name": "Mob Mentality"
+    },
+    "mod:lead-by-example": {
+      "generationType": "prefix",
+      "name": "Lead By Example"
+    },
+    "base:medium-cluster-exerted-damage-4": {
+      "name": "Medium Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase2.png"
+    },
+    "base:medium-cluster-exerted-damage-5": {
+      "name": "Medium Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase2.png"
+    },
+    "critical-chance": {
+      "name": "15% increased Critical Strike Chance"
+    },
+    "mod:pressure-points": {
+      "generationType": "prefix",
+      "name": "Pressure Points"
+    },
+    "mod:basics-of-pain": {
+      "generationType": "prefix",
+      "name": "Basics of Pain"
+    },
+    "base:medium-cluster-critical-chance-4": {
+      "name": "Medium Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase2.png"
+    },
+    "base:medium-cluster-critical-chance-5": {
+      "name": "Medium Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase2.png"
+    },
+    "maximum-life": {
+      "name": "4% increased maximum Life"
+    },
+    "mod:fettle": {
+      "generationType": "prefix",
+      "name": "Fettle"
+    },
+    "base:small-cluster-maximum-life-2": {
+      "name": "Small Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase1.png"
+    },
+    "armour": {
+      "name": "15% increased Armour"
+    },
+    "mod:enduring-composure": {
+      "generationType": "prefix",
+      "name": "Enduring Composure"
+    },
+    "base:small-cluster-armour-2": {
+      "name": "Small Cluster Jewel",
+      "itemClass": "Jewel",
+      "iconUrl": "https://web.poecdn.com/image/Art/2DItems/Jewels/NewGemBase1.png"
+    },
+    "mod:global-flat-energy-shield": {
+      "name": "Maximum Energy Shield",
+      "generationType": "prefix"
+    },
+    "mod:vulnerability-on-hit": {
+      "name": "Curse Enemies with Vulnerability on Hit",
+      "generationType": "suffix"
+    },
+    "mod:total-resistance": {
+      "name": "Total Resistance (including Chaos)",
+      "generationType": "other"
+    },
+    "powerful-chaotic-resonator": {
+      "name": "Powerful Chaotic Resonator",
+      "itemClass": "Currency",
+      "iconUrl": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRGVsdmUvUmVyb2xsMngyQSIsInNjYWxlIjoxfV0/80b90b6b94/Reroll2x2A.png"
     }
   }
 }

@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 3,
+  "id": "harpyskin-gloves-fractured-suppression-zeal",
+  "title": "T2 · Harpyskin Gloves · фрактура / attack speed",
+  "category": "gloves",
+  "summary": "Suppression fracture T2+ ≥11%; Deafening Zeal (17–18% attack speed) до жизни ≥100.",
+  "patch": "3.30.0",
+  "gameDataVersion": "3.29.3.3",
+  "tags": [
+    "user-craft",
+    "t1-t2-bases",
+    "base-t2",
+    "fractured",
+    "spell-suppression",
+    "attack-speed",
+    "life"
+  ],
+  "base": {
+    "baseId": "base:harpyskin-gloves",
+    "influences": [],
+    "itemLevel": 85,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": true,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "startingBase": {
+    "baseId": "base:harpyskin-gloves",
+    "influences": [],
+    "itemLevel": 85,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": true,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:life",
+        "minimumValue": 100
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "fractured",
+        "modId": "mod:fractured-suppression",
+        "minimumValue": 11
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:attack-speed",
+        "minimumValue": 17
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "targetSignature": "3.30.0:6b88f80eefcb4286b74e4352265f288f",
+  "notes": "T1/T2 означает два лучших обычных типа базы внутри evasion и armour/evasion: Velour/Harpyskin, Wyvernscale/Chimerascale. Фрактура suppression T2 11–12% или T1 13–14%; другие fractured-моды не подходят. Жизнь ≥100 — выбранный порог результата. Eldritch implicit и bench finish не входят в рецепт.",
+  "verification": {
+    "status": "unverified",
+    "leagues": [],
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://poedb.tw/us/Gloves_dex",
+      "https://poedb.tw/us/Gloves_str_dex",
+      "https://poedb.tw/us/Spell_suppression",
+      "https://poedb.tw/us/Deafening_Essence_of_Zeal"
+    ],
+    "notes": "Trade identities and described operation checked on 2026-11-15. Base/mod thresholds are selected authoring choices. No checked 3.30 joint probability, expected executions, acquisition price, completed sales or profitability.",
+    "profitBlockedReason": "Нет проверенной вероятности полного результата и среднего расхода для 3.30."
+  },
+  "craft": {
+    "id": "harpyskin-gloves-fractured-suppression-zeal",
+    "name": "Deafening Essence of Zeal",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-zeal"
+    },
+    "startingMods": [
+      {
+        "kind": "fractured",
+        "modId": "mod:fractured-suppression",
+        "minimumValue": 11
+      }
+    ],
+    "uncertainties": [
+      "3.30: вероятность полного результата и средний расход пока не проверены.",
+      "Покупается уже редкая база ровно ilvl 85 с указанным влиянием или нужным fractured-модом. Создание влияния, фрактуры и подготовка magic-базы не входят в метод.",
+      "Цена объявления не означает продажу. Бюджет задаётся до начала; при его исчерпании остановиться.",
+      "Starting-base acquisition must use exactly item level 85. Higher item levels can change the affix pool and require a separate cost model."
+    ],
+    "steps": [
+      {
+        "id": "essence-roll",
+        "title": "Получить все требуемые моды одновременно",
+        "action": "Купить rare Harpyskin Gloves ilvl 85 с fractured Spell Suppression ≥11% (T2 или T1), без influence, corruption и synthesis. Использовать Deafening Essence of Zeal: она гарантирует 17–18% increased Attack Speed.",
+        "continueWhen": "Фрактура suppression ≥11%, attack speed ≥17% и жизнь ≥100 одновременно.",
+        "failureAction": "Повторить платный крафт на той же базе до полного результата или исчерпания бюджета. Все прежние незафиксированные explicit/crafted-моды переролливаются; фрактура и влияние сохраняются.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-zeal",
+            "quantity": 1
+          }
+        ]
+      }
+    ]
+  }
+}

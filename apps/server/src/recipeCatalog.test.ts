@@ -52,6 +52,17 @@ async function mappedTrade() {
   );
   for (const kind of ['stats', 'bases', 'resources'])
     identities[kind].push(...weekOne[kind]);
+  const current = JSON.parse(
+    await readFile(
+      new URL(
+        'docs/evidence/max-1318-scraped-items/trade-identities-2026-11-18.json',
+        root,
+      ),
+      'utf8',
+    ),
+  );
+  for (const kind of ['stats', 'bases', 'resources'])
+    identities[kind].push(...current[kind]);
   const manifests = await Promise.all(
     ['physical-large-cluster', 'recipe-catalog'].map(async (name) => {
       const file = fileURLToPath(
@@ -539,12 +550,22 @@ describe('authored source catalog integrity', () => {
     }
   });
 
-  it('binds Stygian and wand per-finished material totals to their exact archived AND requirements', async () => {
+  it('binds checked Stygian material totals while keeping the current wand method unestimated', async () => {
     const catalog = await recipes();
+    const wand = catalog.find(
+      ({ definition }) => definition.id === 'minion-convoking-wand-four-fossil',
+    )!.definition;
+    expect(wand.startingBase.itemLevel).toBe(82);
+    expect(wand.craft.method).toMatchObject({
+      kind: 'fossil',
+      fossils: ['corroded-fossil', 'metallic-fossil', 'shuddering-fossil'],
+      resonatorSockets: 3,
+    });
+    expect(wand.craft.evidence).toBeUndefined();
+    expect(wand.craft.expectedExecutions).toBeUndefined();
     for (const id of [
       'stygian-life-resistances-envy',
       'stygian-life-resistances-fossils',
-      'minion-convoking-wand-four-fossil',
     ]) {
       const recipe = catalog.find((r) => r.definition.id === id)?.definition;
       if (!recipe?.craft.evidence)

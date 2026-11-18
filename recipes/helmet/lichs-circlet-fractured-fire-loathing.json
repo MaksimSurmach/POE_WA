@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 3,
+  "id": "lichs-circlet-fractured-fire-loathing",
+  "title": "T1 · Lich's Circlet · резерв / мана",
+  "category": "helmet",
+  "summary": "Фрактура fire resistance T2 42–45%; Loathing до жизни ≥100 и маны ≥50; резерв 9–10%.",
+  "patch": "3.30.0",
+  "gameDataVersion": "3.29.3.3",
+  "tags": [
+    "user-craft",
+    "t1-t2-bases",
+    "base-t1",
+    "fractured",
+    "reservation",
+    "mana",
+    "life"
+  ],
+  "base": {
+    "baseId": "base:lichs-circlet",
+    "influences": [],
+    "itemLevel": 85,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": true,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "startingBase": {
+    "baseId": "base:lichs-circlet",
+    "influences": [],
+    "itemLevel": 85,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": true,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "none"
+    }
+  },
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:life",
+        "minimumValue": 100
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:mana",
+        "minimumValue": 50
+      }
+    ],
+    "suffixes": [
+      {
+        "excluded": false,
+        "kind": "fractured",
+        "modId": "mod:fractured-fire-resistance",
+        "minimumValue": 42
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:explicit-mana-efficiency",
+        "minimumValue": 9
+      }
+    ],
+    "implicits": [],
+    "other": []
+  },
+  "targetSignature": "3.30.0:7e102af69348dca17b7fe597672e2eec",
+  "notes": "T1/T2 означает два лучших обычных ES-типа базы: Lich’s Circlet / Sunfire Circlet, не tier карты или аффикса. Фрактура fire resistance ≥42%; более сильные роллы также подходят. По согласованию выбран Essence of Loathing вместо Harvest Mana: резерв задаёт эссенция. Жизнь/мана — выбранный остановочный порог; высокий ES и Eldritch implicit не входят в требования.",
+  "verification": {
+    "status": "unverified",
+    "leagues": [],
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://poedb.tw/us/Helmets_int",
+      "https://poedb.tw/us/Deafening_Essence_of_Loathing",
+      "https://poedb.tw/us/Modifiers"
+    ],
+    "notes": "Trade identities and described operation checked on 2026-11-15. Base/mod thresholds are selected authoring choices. No checked 3.30 joint probability, expected executions, acquisition price, completed sales or profitability. 2026-11-16 audit: removed the unnecessary upper fire-fracture bound; higher rolls preserve the same suffix family and satisfy the full target. Exact ilvl 85 remains required.",
+    "profitBlockedReason": "Нет проверенной вероятности полного результата и среднего расхода для 3.30."
+  },
+  "craft": {
+    "id": "lichs-circlet-fractured-fire-loathing",
+    "name": "Deafening Essence of Loathing",
+    "method": {
+      "kind": "currency",
+      "currency": "deafening-essence-of-loathing"
+    },
+    "startingMods": [
+      {
+        "kind": "fractured",
+        "modId": "mod:fractured-fire-resistance",
+        "minimumValue": 42
+      }
+    ],
+    "uncertainties": [
+      "3.30: вероятность полного результата и средний расход пока не проверены.",
+      "Покупается уже редкая база ровно ilvl 85 с указанным влиянием или нужным fractured-модом. Создание влияния, фрактуры и подготовка magic-базы не входят в метод.",
+      "Цена объявления не означает продажу. Бюджет задаётся до начала; при его исчерпании остановиться.",
+      "Starting-base acquisition must use exactly item level 85. Higher item levels can change the affix pool and require a separate cost model."
+    ],
+    "steps": [
+      {
+        "id": "essence-roll",
+        "title": "Получить все требуемые моды одновременно",
+        "action": "Купить rare Lich's Circlet ilvl 85 с fractured fire resistance ≥42%, без influence, corruption и synthesis. Использовать Deafening Essence of Loathing: она гарантирует 9–10% increased Mana Reservation Efficiency of Skills.",
+        "continueWhen": "Fire fracture ≥42%, reservation efficiency ≥9%, жизнь ≥100 и мана ≥50 одновременно.",
+        "failureAction": "Повторить платный крафт на той же базе до полного результата или исчерпания бюджета. Все прежние незафиксированные explicit/crafted-моды переролливаются; фрактура и влияние сохраняются.",
+        "materials": [
+          {
+            "itemId": "deafening-essence-of-loathing",
+            "quantity": 1
+          }
+        ]
+      }
+    ]
+  }
+}

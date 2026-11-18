@@ -322,7 +322,7 @@ describe('repository-backed resource views', () => {
       await readers.readCatalog(correlationId),
     );
     expect(catalog.state).toBe('loading');
-    expect(catalog.data?.entries).toHaveLength(55);
+    expect(catalog.data?.entries).toHaveLength(72);
     for (const id of Object.keys(recipeStageFamilies))
       expect(catalog.data?.entries.some((e) => e.recipe.id === id)).toBe(true);
     expect(
