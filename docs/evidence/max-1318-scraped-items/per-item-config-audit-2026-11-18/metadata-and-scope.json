@@ -12,7 +12,6 @@
     "snapshotAt": "2026-11-18T11:04:53.630Z",
     "marketScope": "Instant Buyout only; owner confirmed in this follow-up. Ordinary online/offline offers excluded.",
     "scope": "All128 original profiles checked against source,93 official wire stats, nine exact empty re-tests, seven one-filter controls; subsequent crafting-input review found six Jagged recipes incorrectly acquiring normal instead of rare. Three profile saves and one Physical Jagged relink correct them. Four affected rare query groups re-tested with real authenticated Instant Buyout data.",
-    "unchangedProfiles": 125,
     "successfulEmptyRetests": 9,
     "successfulControls": 7,
     "sourceOrAuthoredConfigurationChanges": 6,
@@ -43,7 +42,8 @@
     "uniqueTradeQueriesAfterDeduplication": 125,
     "successfulCorrectedAcquisitionRetests": 4,
     "snapshotStage": "Initial stats/bounds snapshot before the later rarity fix; final runtime and mutation receipts are separate files.",
-    "mechanicalValidation": "Recipe/source agreement alone did not detect the same wrong rarity in both places. Full-reroll Jagged acquisition was reviewed separately."
+    "mechanicalValidation": "Recipe/source agreement alone did not detect the same wrong rarity in both places. Full-reroll Jagged acquisition was reviewed separately.",
+    "unchangedSpecifications": 125
   },
   "wireStats": {
     "enchant.stat_2448920197": {

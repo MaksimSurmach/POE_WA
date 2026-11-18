@@ -26,5 +26,13 @@
     "New3.30 crafting-probability simulation",
     "Production deployment",
     "Actual crafts, completed sales or realized profit"
-  ]
+  ],
+  "targetedLegacyBrowser": {
+    "passed": 1,
+    "durationSeconds": 16.5,
+    "scope": "Recipe comparison, Home shared target/popup, two priced methods, desktop/mobile, separate testPG; synthetic fixtures supplement actual-data acceptance.",
+    "RED": "Source-backed fixture still expected5queries; actual4.",
+    "GREEN": "Fixture total4/dedup2; Jagged expectedprofit14468 atsharedRarebase17. All original comparison/navigation/mobile assertions retained."
+  },
+  "independentCodexBrowserFixtureReview": "PASS two additional fixture/test files; source pricedListings rare17 unchanged. Three expected literals updated."
 }

@@ -18,7 +18,7 @@ test('keeps one Home target and exposes both priced methods in its popup', async
 
   const budget = /^\d[\d,]*(?:\.\d+)? c$/;
   const rankedMethods = [
-    { path: jagged, profit: '+14,475 c' },
+    { path: jagged, profit: '+14,468 c' },
     { path: chaos, profit: '+3,481 c' },
   ];
   for (const [index, { path, profit }] of rankedMethods.entries()) {

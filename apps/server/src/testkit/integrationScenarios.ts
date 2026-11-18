@@ -365,8 +365,8 @@ export async function seedTwoMethodsPriced(pool: Pool) {
     now,
     snapshotTtlMs,
   });
-  assert.equal(plan.queries.length, 5);
-  assert.equal(plan.report.deduplicatedDependencies, 1);
+  assert.equal(plan.queries.length, 4);
+  assert.equal(plan.report.deduplicatedDependencies, 2);
 
   for (const { marketQuery } of plan.queries) {
     const listings = pricedListings(
