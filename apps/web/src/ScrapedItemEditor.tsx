@@ -808,7 +808,7 @@ export function ScrapedItemEditor({
                   </td>
                   <td>
                     {recipe.definitionChanged
-                      ? 'Recipe definition differs from this item'
+                      ? 'Recipe updated after linking'
                       : 'Matches its recipe'}
                   </td>
                   <td>

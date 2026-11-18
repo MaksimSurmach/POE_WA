@@ -70,7 +70,7 @@ describe('Scraped items editor', () => {
     const html = editor();
     expect(html).toContain('Recipe A');
     expect(html).toContain('Recipe B');
-    expect(html).toContain('Recipe definition differs from this item');
+    expect(html).toContain('Recipe updated after linking');
     expect(html).toContain('Also served by the same search');
     expect(html).toContain('Recipe C');
     expect(html).toContain('Saving changes the search for 2 recipes');

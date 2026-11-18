@@ -1,0 +1,12 @@
+# Review and checks
+
+Source `0f61a1f` follows the full real-data audit fixes through `450934a`.
+
+- Actual Claude CLI (`claude-sonnet-5-5`) authored parser, query, deadline, freshness and price/profit patches in bounded stages. Root applied and verified them. This is distinct from the Codex peer reviews.
+- Root reproduced the publisher price/profit defect with two failing regressions. A peer then found a downstream exact-target valuation bypass in `craftAnalysis`: accepted asks could reach modeled outcomes despite the authored profit block. Root reproduced that with a failing regression; the revised Claude patch persists the authored block and excludes those outcome valuations. All 75 affected tests pass; peer re-review found no remaining issues across accepted-status consumers.
+- An independent Claude review raised a possible history ROI leak. Root checked the actual repository and chart: they preserve separately labeled asking-price and craft-cost series, without calculating ROI. Claude withdrew that finding after seeing those consumers. Preserve actual ask history; block profit in the actual profit consumers. See [unabridged bounded review results](claude-review-receipts.json).
+- Final automatic checks at this source: **1,033** (215 domain + 20 contracts + 622 server + 175 web + 1 native self-check); **208** isolated PostgreSQL integration tests; typecheck, lint, server build and changed-file formatting pass. The earlier full workspace build passed at `450934a`; this change only affects the server.
+- Integration tests use a separate PostgreSQL 17 test database. Final browser/provider acceptance uses the actual PostgreSQL 18.6 database copy and normal shipped API/collector, with no fixture or archive responses.
+- Previous exact-head CI `450934a`: quality passed; server-compose passed after retrying an initial Docker Hub authentication timeout. [Run](https://github.com/MaksimSurmach/POE_WA/actions/runs/44262344120/attempts/2). The final evidence commit has its own current GitHub checks.
+
+The 8-minute collector budget branches and provider/auth/parent-abort races are covered by focused tests. The successful real Slink recovery took 465,546 ms and ended with mixed-currency partial coverage; it did **not** hit the budget branch. The immutable failed original full-run row remains failed. No production deployment, crafting or confirmed-sale/realized-ROI verification was performed.

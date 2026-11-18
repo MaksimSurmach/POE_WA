@@ -1,0 +1,83 @@
+{
+  "checkedAt": "2026-11-18T06:33:43.110Z",
+  "captures": 121,
+  "changed": [
+    {
+      "recipes": ["week-one-spine-bow-contempt"],
+      "role": "output",
+      "before": 23,
+      "after": 49,
+      "beforeLowest": 8,
+      "afterLowest": 8,
+      "beforeEstimate": {
+        "price": {
+          "amount": "25",
+          "currency": "chaos"
+        },
+        "basis": "cheapest-after-outlier",
+        "ignoredOutliers": 1
+      },
+      "afterEstimate": {
+        "price": {
+          "amount": "8",
+          "currency": "chaos"
+        },
+        "basis": "cheapest",
+        "ignoredOutliers": 0
+      }
+    },
+    {
+      "recipes": ["week-one-thicket-bow-dread"],
+      "role": "output",
+      "before": 8,
+      "after": 9,
+      "beforeLowest": 70,
+      "afterLowest": 70,
+      "beforeEstimate": {
+        "price": {
+          "amount": "183.5",
+          "currency": "chaos"
+        },
+        "basis": "cheapest-after-outlier",
+        "ignoredOutliers": 1
+      },
+      "afterEstimate": {
+        "price": {
+          "amount": "183.5",
+          "currency": "chaos"
+        },
+        "basis": "cheapest-after-outlier",
+        "ignoredOutliers": 1
+      }
+    }
+  ],
+  "supportCounts": {
+    "observed": 5,
+    "recognizedBefore": 0,
+    "recognizedAfter": 5
+  },
+  "unsupported": [
+    {
+      "itemId": "62daeaf7-204e-479a-a749-b997e34bcfbe",
+      "role": "output",
+      "recipes": ["ring-warlord-vulnerability-caster"],
+      "currency": "mirror",
+      "capturedAt": "2026-11-18T03:58:55.024Z",
+      "status": "MATCH",
+      "reasons": [],
+      "blockedBefore": true,
+      "blockedAfter": true
+    },
+    {
+      "itemId": "b2103194-927d-472c-847e-3965e125a4fe",
+      "role": "output",
+      "recipes": ["week-one-hubris-circlet-woe"],
+      "currency": "fusing",
+      "capturedAt": "2026-11-18T04:07:07.828Z",
+      "status": "REJECT",
+      "reasons": ["and: armour.es: thresholds not met"],
+      "blockedBefore": true,
+      "blockedAfter": false
+    }
+  ]
+}

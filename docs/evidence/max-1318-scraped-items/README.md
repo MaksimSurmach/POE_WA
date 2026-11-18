@@ -1,51 +1,51 @@
 # Scraped items: actual-data acceptance
 
-Settings → Scraped items edits the persisted searches for starting bases and finished outputs, links recipes, opens the exact Trade query and runs one correlated test through the collector. API → PostgreSQL `run_requests` + transactional `pg_notify` → collector `LISTEN` → persisted capture/result. No API-to-worker HTTP endpoint exists.
+Settings → Scraped items edits persisted starting-base and finished-output searches, links recipes, opens the generated Trade query and runs one correlated collector test. API → PostgreSQL `run_requests` + transactional `pg_notify` → collector `LISTEN` → persisted capture/result. There is no API-to-worker HTTP connection.
 
-## Data and execution
+## Current full audit
 
-Verified on 18 November 2026 using a local PostgreSQL 18.6 copy of the current homelab database, copied at 02:30 CET: 72 active recipes, 66 exact recipe outputs and 128 configured base/output searches. No archive responses, mocked quotes, synthetic listings or recipe-file bootstrap served the final browser. The final loopback frontend uses the normal shipped API and collector entrypoints; writes affect this local copy. The initial bounded smoke test also imported the same application services directly. Production data and deployment were not changed.
+The [full real-data audit](full-real-audit-2026-11-18/) covers **128 configured searches and all 72 active recipes**, including the original full batch, its failed Slink request and successful correlated recovery. Machine-readable per-search and per-recipe receipts distinguish actual asking estimates from missing evidence. [Review and checks](full-real-audit-2026-11-18/review-and-checks.md) records Claude authorship, independent review, reproduced findings and validation.
 
-The live deployment carries additional recipe definitions and collector behavior beyond the checked-in baseline. This PR preserves its 30 additional Trade stat mappings, socket/resistance/provider-markup normalization and finished-market equivalence. All **144 authored base/output queries** for the actual 72 recipes matched the active compiler byte-for-byte. All **128 persisted searches** compiled successfully, and each generated Trade URL decoded to the worker's exact wire request. See [query compatibility](query-compatibility.json).
+Acceptance uses a local PostgreSQL 18.6 copy of the actual homelab database, copied on 18 November 2026 at 02:30 CET, followed by fresh authenticated Trade collection. There are 72 active recipes, 66 outputs and 128 searches. The loopback frontend uses the normal shipped API and collector. No archive responses, synthetic listings or fixture quotes serve this acceptance environment. Writes affect only the local copy; production was not modified.
 
-Starting bases retain exact acquisition constraints. Finished searches default to the deployed equivalent-market policy: modifier floors across fracture/bench origins, without item-level/influence/synthesis/fracture restrictions; only the three already-supported class-wide policies are offered. The editor explains ignored fields, permits explicit strict searches and keeps recipe eligibility separate from owner edits. Class matching uses checked metadata and the existing bounded English suffix fallback; unsupported evidence remains unknown.
+The audit corrects nine query identities intentionally: five acquisition searches retain their native implicit floors; two ordinary helmet comparisons use the supported helmet category; two RF searches send current provider support-effect IDs. The seven authored recipe changes update their content hashes and fence old economics. Canonical recipe identities, crafting inputs and exact acquisition constraints remain intact. Finished-item comparisons continue to enforce the authored result modifiers; owner edits never redefine recipe eligibility.
 
-## Startup preserves the deployed catalogue
+Parser corrections recognize actual modern support effects and crafted/fractured local weapon stats. Exact official helmet metadata resolves the observed Prophet Crown without guessing classes from arbitrary names. Unconverted currencies can be ignored only for definitely rejected items. Partial/uncertain matching evidence cannot become a comparable asking estimate. Independent capture/FX deadlines preserve a fresh output quote when craft inputs expire, while expired cost, budget and ROI remain withheld. A recipe's authored profit block no longer hides a qualifying asking quote; it still blocks both catalog ROI and outcome valuations.
 
-A read-only startup dry-run exposed source drift: the old 55-file checkout would disable 18 active recipes and change five records, including reactivating retired Fugitive Boots. This PR preserves the active image’s 72-recipe catalogue, mapping/base metadata and presentation; the retired source file is removed while unrelated drafts remain. The same dry-run now reports **72 unchanged; 0 created, updated, disabled or failed**. A normal API startup on the copied database retained all 72 recipes and 128 searches. Current public Trade metadata independently validates the preserved mapping identities; see [identity receipt](trade-identities-2026-11-18.json) and [startup receipt](catalog-preservation.json).
+## Initial compatibility baseline — before intentional audit corrections
 
-## Browser and real collector result
+These receipts describe source `a364812`, before the nine deliberate query corrections above. They are historical acceptance evidence, not claims that the corrected queries remain byte-identical.
 
-The actual Physical three-notable output is linked to two recipes. Through the UI, changed equivalent matching to strict, saved item level 84 as revision 2, reloaded and verified persistence; restored the original level 83/equivalent search as revision 3. Earlier-query captures were not relabelled. Modifier names, recipe links, current generated Trade URL, schedule state and capture facts came from the copied database.
+The older checkout would disable 18 active deployed definitions and change five records, including reactivating retired Fugitive Boots. The restored baseline preserved the live image's 72-recipe catalogue, 30 additional Trade stat mappings and provider normalization; the retired source file was removed. Its dry run reported **72 unchanged; 0 created, updated, disabled or failed**. All **144 authored base/output queries** matched the then-active deployed compiler; all **128 generated links** matched worker requests. See [compatibility](query-compatibility.json), [mapping identities](trade-identities-2026-11-18.json) and [startup receipt](catalog-preservation.json).
 
-Clicked **Run test** in the browser. The request persisted scope `item`, revision 3 and the exact current schedule key. The collector started **23 ms** after enqueue, dispatched **one search** and created **one capture**; no unrelated schedules ran. The real Trade response reported/fetched **14 listings** in **16,097 ms**. Current normalization matched **14**, with **9 comparable sellers**, **0 rejected** and **0 unknown**. The page displayed Succeeded and those same values. [Persisted request/capture evidence](real-worker-result.json) contains no seller accounts, session material or credentials.
+## Initial browser and real-worker acceptance
 
-Repeated the selected output through the **normal shipped API and collector entrypoints** after preserving the catalogue: **12 fetched/matched, 7 comparable sellers**, 0 rejected/unknown; worker wake **4 ms** ([request evidence](normal-entrypoint-result.json)). A separate browser test of the Hunter Amethyst Ring starting base fetched/matched **20**, with **20 comparable sellers**, from **141 reported**. Its coverage correctly remained **Partial / MIXED_CURRENCY_SLICE_UNPROVEN**, rather than claiming a complete market ([base request](normal-base-result.json)). These are later live observations, not replacements for the earlier capture.
+On the actual database copy, changed the Physical three-notable search to strict level 84, saved revision 2, reloaded and verified persistence, then restored level 83/equivalent as revision 3. Old-query captures were not relabeled.
 
-Complete item data remains 0: Trade does not establish exhaustive modifier absence. That does not prevent positive evidence from satisfying the selected requirements, and is not presented as a failed capture or proven absence.
+A browser **Run test** created scope `item`, revision 3 and the exact schedule key. The worker woke in **23 ms**, dispatched one search and fetched/matched **14 real listings**, with **9 comparable sellers**, in **16,097 ms**. The UI showed those persisted results: [receipt](real-worker-result.json). Repeated through normal shipped entrypoints: **12 fetched/matched, 7 sellers**, wake **4 ms** ([receipt](normal-entrypoint-result.json)). A browser starting-base test fetched/matched **20** from **141 reported**, correctly retaining partial mixed-currency coverage ([receipt](normal-base-result.json)). Later captures in the full audit are separate observations.
 
-Desktop 1440×1000 and mobile 390×844 use the same actual data. Document width matched each viewport; controls and capture diagnostics remained contained. Shared Home/Recipes navigation measured 57px high with 13px text. Browser race tests additionally cover late list/capture responses and transient polling failure.
+Trade does not establish exhaustive modifier absence, so `completeItems: 0` remains honest. Positive matching evidence can satisfy requirements without asserting that all absent modifiers are proven absent.
 
-## Verification and review
+Initial desktop 1440×1000 and mobile 390×844 checks showed no horizontal overflow. Navigation measured 57px high with 13px text; controls and diagnostics stayed contained. The browser suites also cover late list/capture responses, transient polling failure, filter-reset navigation, mobile partial quotes and unverified Fettle ROI.
 
-- Full unit suite: 988 passed, plus the native service-control self-check.
-- PostgreSQL 17 integration suite: 208 passed, including item-only dispatch, configuration revisions, relink concurrency, stale prices, unsupported mappings and capture coherence.
-- Browser suites: 75 light checks; 27 Category Library checks with 6 duplicate viewport cases skipped; 25 database-backed checks with 9 fixture/pipeline-specific cases skipped; 2 offline preview checks.
-- Typecheck, lint, full build, migration consistency and changed-file formatting passed. Existing bundle-size warning remains.
-- Claude authored the feature and backend corrections. After its provider quota stopped execution, the documented fallback completed the remaining work. All nine retained formal-review findings were closed; a [bounded review](bounded-review.md) checked the final compatibility and UI policy changes.
+Historical initial checks: 988 unit tests plus native self-check; 208 isolated PostgreSQL integration tests; 75 light browser checks; 27 Category Library checks with six duplicate viewport cases skipped; 25 database-backed browser checks with nine pipeline-specific cases skipped; two offline preview checks. Current source checks are recorded in the full-audit folder. Skipped cases were not executed in those configurations. Fixtures supplement tests and never serve final actual-data acceptance.
 
-Automated fixtures supplement the actual-data acceptance; they are not the final data source. Browser tests skipped by their pipeline/viewport guards were not executed in those configurations.
+## Scope and rollout
 
-Production rollout has not been performed. Migrations 0035–0036 require the coordinated old-API/old-collector stop and rollback boundary documented in the root README. Independent monitor-only target storage/lifecycle, actual crafting and confirmed-sale/ROI verification remain outside this PR. Asking prices and modeled margins do not prove sales or realized profit.
+Production rollout was not performed. Migrations **0035–0036 require a coordinated old API/collector stop**, backup and matched-version startup; application-only rollback across the new queue schema is unsupported. Follow the root README's release/rollback boundary. Verify one item test, an existing all/recipe refresh, request/capture correlation and old-query price fencing before opening access.
 
-## Screenshots
+Independent monitor-only target storage/lifecycle remains outside this PR, with its controls unavailable. Actual crafting and confirmed sales/realized ROI were not checked. Asking quotes and modeled costs do not prove sales or profit.
 
-![Saved settings on actual database data](settings-1440.jpg)
+## Initial actual-data screenshots
 
-![One real collector request and its results](real-collection-1440.jpg)
+These show the initial browser acceptance; the full-audit folder contains the later final checks.
+
+![Persisted settings](settings-1440.jpg)
+
+![One real worker request](real-collection-1440.jpg)
 
 ![Mobile settings](settings-390.jpg)
 
 ![Mobile capture diagnostics](real-collection-390.jpg)
 
-![Current Home with measured listing activity](home-real-1440.jpg)
+![Actual-data Home](home-real-1440.jpg)
