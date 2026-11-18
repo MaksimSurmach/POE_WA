@@ -782,13 +782,11 @@ export function MarketHome() {
           </p>
         ) : null}
         <div className="market-map" aria-label="Target market composition">
-          {composition.groups.map((g, index) => (
+          {composition.groups.map((g) => (
             <section
               key={g.id}
               className="market-map-group"
               style={{
-                // Keep narrow edge tiles above adjacent groups' rounded hit areas.
-                zIndex: composition.groups.length - index,
                 left: `${g.x * 100}%`,
                 top: `${g.y * 100}%`,
                 width: `${g.width * 100}%`,

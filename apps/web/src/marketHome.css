@@ -109,7 +109,6 @@
     font-size: 12px;
   }
   .market-map {
-    isolation: isolate;
     height: 310px;
     position: relative;
     margin: 0 15px 11px;

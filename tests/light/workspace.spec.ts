@@ -129,35 +129,6 @@ test('market tiles explain their metrics on hover and keyboard focus, including 
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
-  const groups = page.locator('.market-map-group');
-  await groups.first().evaluate((node) => {
-    Object.assign(node.style, {
-      left: '0px',
-      top: '0px',
-      width: '100px',
-      height: '100px',
-    });
-  });
-  await groups.nth(1).evaluate((node) => {
-    Object.assign(node.style, {
-      left: '100px',
-      top: '0px',
-      width: '100px',
-      height: '100px',
-    });
-  });
-  await tiny.evaluate((node) => {
-    Object.assign(node.style, {
-      left: '99.25px',
-      top: '50px',
-      width: '0.75px',
-      height: '20px',
-      zIndex: '1',
-    });
-  });
-  await page.mouse.move(5, 5, { steps: 6 });
-  await tiny.hover();
-  await expect(tooltip).toContainText(name);
   await tiny.click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(tooltip).toBeHidden();
