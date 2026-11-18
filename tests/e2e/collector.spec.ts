@@ -7,16 +7,19 @@ test('COLLECTOR-01 Run now publishes capture readiness in the packaged app', asy
 }) => {
   await waitForCollector(page.request);
 
-  await page.goto('/');
+  const catalogue = (await (await page.request.get('/api/catalog')).json())
+    .data;
+  const entry = catalogue.entries.find(
+    (e: { recipe: { id: string } }) => e.recipe.id === recipe,
+  );
+  expect(entry.readiness.level).toBe('insufficient');
+  await page.goto('/?family=chaos');
   await expect(page.getByLabel('Operator token')).toHaveCount(0);
-  await page.getByText('Сортировка и отображение', { exact: true }).click();
-  await page
-    .getByRole('checkbox', { name: 'Показать все методы крафта' })
-    .check();
-  const row = page.getByRole('row').filter({
-    has: page.locator(`a[href="/recipes/${recipe}"]`),
-  });
-  await expect(row).toHaveAttribute('data-readiness-level', 'insufficient');
+  const row = page.locator(
+    `[data-market-target="${entry.recipe.targetSignature}"]`,
+  );
+  const cost = row.getByRole('cell').nth(6);
+  await expect(cost).toContainText('Not estimated');
   await page.goto('/settings');
   await expect(page.getByText('Collector connected')).toBeVisible();
   await page.getByRole('button', { name: 'Запустить сбор' }).click();
@@ -35,18 +38,19 @@ test('COLLECTOR-01 Run now publishes capture readiness in the packaged app', asy
   const lastHour = page.getByRole('region', { name: 'Last 1h' });
   await expect(lastHour).toContainText(/successful \([1-9]\d* complete/);
 
-  await page.goto('/');
-  await page.getByText('Сортировка и отображение', { exact: true }).click();
-  await page
-    .getByRole('checkbox', { name: 'Показать все методы крафта' })
-    .check();
-  await expect(row).toHaveAttribute('data-readiness-level', 'price-observed');
-  await expect(row.locator('[data-label="Средние затраты"]')).toContainText(
-    '11,519 c',
-  );
-  await row
-    .getByRole('link', { name: 'Материалы и шаги →', exact: true })
-    .click();
+  await page.goto('/?family=chaos');
+  await expect(cost).toContainText('11,519 c');
+  await row.locator('.market-item-button').click();
+  const evidence = page
+    .getByRole('dialog')
+    .getByRole('region', { name: 'Current asking evidence' });
+  await expect(
+    evidence
+      .getByText('Sample sellers', { exact: true })
+      .locator('xpath=following-sibling::dd'),
+  ).toHaveText('1');
+  await expect(evidence).toContainText('Capture coverage: complete');
+  await page.goto(`/recipes/${recipe}`);
   await page.getByText('Готовность данных', { exact: true }).click();
   await expect(
     page.locator(
