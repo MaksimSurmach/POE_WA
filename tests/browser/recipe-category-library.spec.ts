@@ -139,18 +139,18 @@ test('archive renders unique shelves and matching methods; filters keep catalogu
     page.getByRole('button', { name: 'All item classes 66' }),
   ).toBeVisible();
   await expect(page.locator(`[id="route-${chaosId}"]`)).toHaveCount(0);
-  await page.getByLabel('With cost estimate', { exact: true }).click();
-  await expect(
-    page.getByLabel('With cost estimate', { exact: true }),
-  ).toBeChecked();
+  const estimated = page.getByLabel('With cost estimate', { exact: true });
+  await estimated.click();
+  await expect(estimated).toBeChecked();
   await expect(
     page.getByRole('heading', { name: 'No matching recipes' }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Clear all', exact: true }).click();
-  await page.getByLabel('With cost estimate', { exact: true }).click();
-  await expect(
-    page.getByLabel('With cost estimate', { exact: true }),
-  ).toBeChecked();
+  await expect(page).toHaveURL(/\/recipes$/);
+  await expect(estimated).not.toBeChecked();
+  await expect(page.locator('[data-target-id]')).toHaveCount(66);
+  await estimated.click();
+  await expect(estimated).toBeChecked();
   await expect(page.locator('[data-target-id]')).toHaveCount(10);
   await page.getByRole('button', { name: 'Cluster jewels 21' }).click();
   await expect(page.locator('[data-target-id]')).toHaveCount(10);
