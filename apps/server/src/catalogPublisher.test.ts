@@ -564,9 +564,18 @@ describe('sale evidence acceptance', () => {
       quantity: number;
       baseAsk: number;
     },
+    differentOutputCohort = false,
   ) {
     const repositories = createInMemoryRepositories();
     const definition = fixtureRecipe(canonicalRecipeFixture);
+    const marketDependencies: typeof fixtureMarketDependencies = async (
+      input,
+    ) =>
+      (await fixtureMarketDependencies(input)).map((dependency) =>
+        differentOutputCohort && dependency.kind === 'target'
+          ? { ...dependency, eligibility: dependency.query }
+          : dependency,
+      );
     if (profitBlockedReason)
       definition.verification.profitBlockedReason = profitBlockedReason;
     if (budgetFixture) {
@@ -600,7 +609,7 @@ describe('sale evidence acceptance', () => {
       storedRecipe(definition.id, { ...definition } as JsonRecord),
     );
     const tradeQueries = (
-      await fixtureMarketDependencies({
+      await marketDependencies({
         recipe: definition,
         league: 'Mercenaries',
       })
@@ -679,7 +688,7 @@ describe('sale evidence acceptance', () => {
     const report = await evaluateAndPublishCatalog(repositories, {
       cycleId: refreshCycle.id,
       allowMissingOutput: coverage === 'missing',
-      marketDependencies: fixtureMarketDependencies,
+      marketDependencies,
       league: 'Mercenaries',
       now,
     });
@@ -823,6 +832,36 @@ describe('sale evidence acceptance', () => {
         },
       },
     });
+  });
+
+  it('retains a configured asking cohort but withholds authored craft ROI', async () => {
+    const evaluation = await evaluateWithTargetSellers(
+      ['one', 'two', 'three', 'four', 'five'],
+      undefined,
+      'complete',
+      undefined,
+      undefined,
+      true,
+    );
+    const reason = expect.stringMatching(
+      /Configured output search.*requirements/,
+    );
+    expect(evaluation.expectedCraftCost).not.toBeNull();
+    expect(evaluation.estimatedSalePrice).toBe('1000');
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      profit: null,
+      marginPercent: null,
+      lastSuccessfulAt: null,
+      methodCost: {
+        saleEvidence: {
+          status: 'accepted',
+          reason,
+          profitBlockedReason: reason,
+        },
+      },
+    });
+    expect(evaluation.methodCost?.saleEvidence).not.toHaveProperty('grade');
   });
 
   it.each([

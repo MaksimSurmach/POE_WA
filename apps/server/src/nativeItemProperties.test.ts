@@ -657,3 +657,91 @@ describe('strict persisted query carries modern stat ids', () => {
     },
   );
 });
+
+describe('ordinary suppression output bases', () => {
+  it.each([
+    [
+      'recipes/gloves/suppression-gloves-zeal.json',
+      'Dragonscale Gauntlets',
+      'armour.gloves',
+      [
+        ['explicit.stat_3299347043', 100],
+        ['explicit.stat_3680664274', 14],
+        ['explicit.stat_681332047', 17],
+      ],
+    ],
+    [
+      'recipes/gloves/suppression-gloves-fear.json',
+      'Dragonscale Gauntlets',
+      'armour.gloves',
+      [
+        ['explicit.stat_3299347043', 100],
+        ['explicit.stat_1589917703', 28],
+        ['explicit.stat_3680664274', 14],
+      ],
+    ],
+    [
+      'recipes/boots/suppression-boots-loathing.json',
+      'Slink Boots',
+      'armour.boots',
+      [
+        ['explicit.stat_2250533757', 25],
+        ['explicit.stat_3680664274', 14],
+        ['explicit.stat_3005472710', 31],
+      ],
+    ],
+  ] as const)(
+    'uses ordinary finished bases and exact acquisition: %s',
+    async (file, baseType, category, floors) => {
+      const recipe = validateRecipeDocument(
+        JSON.parse(await readFile(new URL(file, root), 'utf8')),
+      );
+      const wire = async (starting: boolean) =>
+        generateMarketTradeQuery(
+          recipeQueryTarget(
+            (
+              await generateRecipeMarketQuery(
+                trade,
+                recipe,
+                'Fixture League',
+                starting,
+              )
+            ).query.handbookTarget,
+          ),
+        ).request.query;
+      const base = await wire(true);
+      const output = await wire(false);
+      expect(base.type).toBe(baseType);
+      expect(base.filters.misc_filters.filters.ilvl).toEqual({
+        min: 85,
+        max: 85,
+      });
+      expect(base.filters.misc_filters.filters.fractured_item).toEqual({
+        option: 'true',
+      });
+      expect(output).not.toHaveProperty('type');
+      expect(output.filters.type_filters.filters.category?.option).toBe(
+        category,
+      );
+      expect(base.stats.flatMap((g) => g.filters)).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'fractured.stat_3680664274',
+            value: expect.objectContaining({ min: 14 }),
+          }),
+        ]),
+      );
+      const filters = output.stats.flatMap((g) => g.filters);
+      expect(filters).toHaveLength(3);
+      expect(filters).toEqual(
+        expect.arrayContaining(
+          floors.map(([id, min]) => ({ id, value: { min } })),
+        ),
+      );
+      expect(output.filters.misc_filters.filters).not.toHaveProperty('ilvl');
+      expect(output.filters.misc_filters.filters).not.toHaveProperty(
+        'fractured_item',
+      );
+    },
+  );
+});

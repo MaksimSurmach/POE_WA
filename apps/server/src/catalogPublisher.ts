@@ -730,7 +730,11 @@ export async function evaluateFreshRecipe(
     output.coverage !== 'complete' &&
     (requiresCompleteOutputCoverage(targetDependency.query.query) ||
       !output.sortedSampleComplete);
-  const profitBlockedReason = definition.verification.profitBlockedReason;
+  const profitBlockedReason =
+    definition.verification.profitBlockedReason ??
+    (targetDependency.eligibility
+      ? 'Configured output search differs from the recipe requirements; its asking cohort cannot establish this craft profit.'
+      : undefined);
   const saleStatus = !output?.currencyAvailable
     ? 'unavailable_currency'
     : coverageBlocked

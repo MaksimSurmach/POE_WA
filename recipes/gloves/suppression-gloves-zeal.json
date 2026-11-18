@@ -128,7 +128,13 @@
   "id": "suppression-gloves-zeal",
   "schemaVersion": 3,
   "summary": "Use Zeal essences on Dragonscale Gauntlets with acquired fractured spell suppression until at least 100 life; the essence grants attack speed.",
-  "tags": ["life", "spell-suppression", "attack-speed", "fractured"],
+  "tags": [
+    "life",
+    "spell-suppression",
+    "attack-speed",
+    "fractured",
+    "base-independent"
+  ],
   "targetSignature": "3.29.3.3:779d9871b55e661e0481b722f49ea531",
   "target": {
     "prefixes": [

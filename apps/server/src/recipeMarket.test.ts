@@ -563,6 +563,12 @@ describe('recipe market dependencies', () => {
       );
       const before = authored.find((d) => d.kind === 'target')!.query;
       const after = edited.find((d) => d.kind === 'target')!.query;
+      expect(edited.find((d) => d.kind === 'target')?.eligibility).toEqual(
+        before,
+      );
+      expect(
+        authored.find((d) => d.kind === 'target')?.eligibility,
+      ).toBeUndefined();
       expect(after).not.toEqual(before);
       expect(after.query).toMatchObject({
         query: {
