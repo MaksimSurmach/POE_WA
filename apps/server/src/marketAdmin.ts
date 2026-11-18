@@ -139,7 +139,7 @@ export function createMarketAdminStore(options: {
       effective,
       restartRequired: false,
       applies:
-        'New requests and runs use current settings; active requests finish with their starting settings. Scheduler reconciles within 5 seconds.',
+        'Settings apply to new work; pause interrupts active market collection. Collection switches wake the collector immediately.',
       timezone: options.timezone,
       warnings,
     };
@@ -180,7 +180,13 @@ export function createMarketAdminStore(options: {
         settings,
         version: row.version + 1,
       });
-      if (previous.collectionsPaused !== settings.collectionsPaused)
+      if (
+        previous.collectionsPaused !== settings.collectionsPaused ||
+        previous.automaticRefreshEnabled !== settings.automaticRefreshEnabled ||
+        previous.scheduledCollectionEnabled !==
+          settings.scheduledCollectionEnabled ||
+        previous.manualRefreshEnabled !== settings.manualRefreshEnabled
+      )
         await client.query("select pg_notify('worksmith_wake', '')");
       return response({ version: row.version + 1, settings });
     });

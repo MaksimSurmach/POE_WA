@@ -10,6 +10,7 @@ import {
   type CollectorResult,
 } from './collector.js';
 import { loadDatabaseConfig } from './config.js';
+import { createMarketAdminStore, defaultAdminSettings } from './marketAdmin.js';
 import { createDatabasePool } from './database.js';
 import {
   CollectorTelemetry,
@@ -61,6 +62,7 @@ afterEach(async () => {
   await pool.query(
     'truncate listing_events, listings, captures, collector_schedule, run_requests, collector_state, collector_telemetry_runs',
   );
+  await pool.query('truncate market_admin_settings, market_admin_audit');
 });
 
 afterAll(() => pool.end());
@@ -849,6 +851,134 @@ it('pauses collection and resumes via a notification', async () => {
   } finally {
     await pool.query('delete from market_admin_settings where id = 1');
   }
+});
+
+const collectionSwitches = [
+  'collectionsPaused',
+  'automaticRefreshEnabled',
+  'scheduledCollectionEnabled',
+] as const;
+
+function settingsStore() {
+  return createMarketAdminStore({
+    pool,
+    defaults: defaultAdminSettings({
+      refreshCron: '0 * * * *',
+      requestTimeoutMs: 15_000,
+      concurrency: 1,
+      snapshotTtlMs: 30 * minute,
+    }),
+    timezone: 'UTC',
+    concurrencyLimit: 1,
+  });
+}
+
+it.each(collectionSwitches)(
+  'reads persisted %s before dispatch and wakes when it is enabled',
+  async (key) => {
+    const store = settingsStore();
+    await store.init();
+    await store.patch(
+      { version: 0, settings: { [key]: key === 'collectionsPaused' } },
+      'operator',
+    );
+    const due = await schedule();
+    const maintenance = await schedule({ kind: 'retention' });
+    start(succeed, 60_000);
+    await vi.waitFor(async () =>
+      expect((await row(maintenance)).lastStatus).toBe('succeeded'),
+    );
+    expect((await row(due)).lastStartedAt).toBeNull();
+    await store.patch(
+      { version: 1, settings: { [key]: key !== 'collectionsPaused' } },
+      'operator',
+    );
+    await vi.waitFor(
+      async () => expect((await row(due)).lastStatus).toBe('succeeded'),
+      { timeout: 1000 },
+    );
+  },
+);
+
+it.each(collectionSwitches)(
+  'interrupts an active capture when %s disables collection',
+  async (key) => {
+    const store = settingsStore();
+    await store.init();
+    const due = await schedule({ nextDueAt: new Date(time - 1) });
+    const next = await schedule();
+    let release!: () => void;
+    const finish = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    start(async (_, signal) => {
+      await Promise.race([
+        finish,
+        new Promise<void>((_, reject) =>
+          signal.addEventListener('abort', () => reject(signal.reason), {
+            once: true,
+          }),
+        ),
+      ]);
+      return succeed();
+    });
+    try {
+      await vi.waitFor(async () =>
+        expect((await row(due)).lastStatus).toBe('running'),
+      );
+      if (key === 'collectionsPaused')
+        // A database change without NOTIFY must still stop an active capture.
+        await pool.query(
+          "update market_admin_settings set settings=jsonb_set(settings,'{collectionsPaused}','true') where id=1",
+        );
+      else
+        await store.patch(
+          { version: 0, settings: { [key]: false } },
+          'operator',
+        );
+      expect(
+        (
+          await pool.query(
+            'select settings from market_admin_settings where id=1',
+          )
+        ).rows[0].settings[key],
+      ).toBe(key === 'collectionsPaused');
+      await vi.waitFor(
+        async () =>
+          expect((await row(due)).lastError).toBe('MARKET_COLLECTION_PAUSED'),
+        { timeout: 2000 },
+      );
+      expect((await row(next)).lastStartedAt).toBeNull();
+    } finally {
+      release();
+    }
+  },
+);
+
+it('allows an explicit manual run with automation off and honors the manual switch', async () => {
+  const store = settingsStore();
+  await store.init();
+  await store.patch(
+    { version: 0, settings: { automaticRefreshEnabled: false } },
+    'operator',
+  );
+  const due = await schedule();
+  const first = await enqueueRunRequest(pool, null);
+  start(succeed);
+  await vi.waitFor(async () =>
+    expect((await request(first)).state).toBe('done'),
+  );
+  const finished = (await row(due)).lastFinishedAt;
+  time += minute;
+  await store.patch(
+    { version: 1, settings: { manualRefreshEnabled: false } },
+    'operator',
+  );
+  const second = await enqueueRunRequest(pool, null);
+  await vi.waitFor(async () =>
+    expect((await request(second)).state).toBe('failed'),
+  );
+  expect((await row(due)).lastFinishedAt).toEqual(finished);
 });
 
 it('leaves discovery cadence untouched by a manual recipe refresh', async () => {

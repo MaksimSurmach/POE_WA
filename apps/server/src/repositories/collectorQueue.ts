@@ -6,6 +6,14 @@ type Query = Pick<Pool | PoolClient, 'query'>;
 export const nonStandardSchedulePredicate = `(kind not in ('trade-target', 'economy')
   or league_id in (select id from poe_leagues where ggg_id <> 'Standard'))`;
 
+export function marketCollectionEnabledSql(manual = 'false') {
+  return `not coalesce((select settings->>'collectionsPaused' = 'true' or
+    case when ${manual} then settings->>'manualRefreshEnabled' = 'false'
+    else settings->>'automaticRefreshEnabled' = 'false'
+      or settings->>'scheduledCollectionEnabled' = 'false' end
+    from market_admin_settings where id = 1), false)`;
+}
+
 export const tradeCapturePolicyPredicate = `r.policy in ('poe-trade', 'trade-search-request-limit', 'trade-fetch-request-limit')
   or exists (select 1 from rate_limit_endpoint_policies p
              where p.policy = r.policy and p.endpoint in ('trade', 'trade-search', 'trade-fetch'))`;
@@ -73,7 +81,8 @@ export async function readCollectorQueue(
                 case when s.kind = 'trade-target' then (select until from pacing) end) as due,
               coalesce((controls.request->'pending') ? s.id::text, false) as pending,
               (not $3::boolean or ${nonStandardSchedulePredicate}) and
-              (not controls.paused or s.kind not in ('trade-target','economy')) and
+              (s.kind not in ('trade-target','economy') or
+                ${marketCollectionEnabledSql("coalesce((controls.request->'pending') ? s.id::text, false)")}) and
               (s.kind <> 'trade-target' or controls.blocked is null
                 or (controls.request->>'recoverTradeAuthentication' = 'true'
                     and (controls.request->'pending') ? s.id::text)) as eligible

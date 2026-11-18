@@ -42,10 +42,20 @@ class CollectionWindowTest(unittest.TestCase):
 
     def test_starts_only_inside_window(self):
         docker, at = self.reconcile("2026-11-14T00:00:00+01:00", False)
-        with docker as run, patch.object(window, "pause") as pause:
+        with docker as run, patch.object(window, "pause") as pause, patch.object(window, "api"):
             window.reconcile(at)
-            pause.assert_called_once_with(False)
+            pause.assert_not_called()
             run.assert_any_call("start", "fixture-collector")
+
+    def test_running_collector_preserves_operator_pause(self):
+        docker, at = self.reconcile("2026-11-18T12:00:00+01:00", True)
+        for paused in [True, False]:
+            with docker as run, patch.object(window, "api", return_value={
+                "version": 27, "effective": {"collectionsPaused": paused}
+            }) as api:
+                window.reconcile(at)
+                api.assert_called_once_with("/api/admin/market/settings")
+                self.assertFalse(any(call.args[0] in ("start", "stop") for call in run.call_args_list))
 
     def test_stops_at_end_and_after_reboot(self):
         for at in ["2026-12-01T00:00:00+01:00", "2027-01-01T00:00:00+01:00"]:
@@ -65,7 +75,7 @@ class CollectionWindowTest(unittest.TestCase):
 
     def test_api_failure_stops_even_if_resume_failed(self):
         docker, at = self.reconcile("2026-11-14T00:00:00+01:00", True)
-        with docker as run, patch.object(window, "pause", side_effect=TimeoutError):
+        with docker as run, patch.object(window, "api", side_effect=TimeoutError):
             with self.assertRaises(TimeoutError):
                 window.reconcile(at)
             run.assert_any_call("stop", "--timeout", "60", "fixture-collector")
