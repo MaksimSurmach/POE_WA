@@ -96,6 +96,8 @@ it('keeps controlled tabs mounted and exact method actions distinct from target 
       leagueName="Covens"
     />,
   );
+  // Catalogue league is shown before any recipe detail (and its priceSources) loads.
+  expect(html).toContain('Required outcome · Covens · PC');
   expect(html).toContain('aria-controls="market-panel"');
   expect(html).toContain('aria-controls="recipe-panel"');
   expect(html).toContain('id="market-panel"');

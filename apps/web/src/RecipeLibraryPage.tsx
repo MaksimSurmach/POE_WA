@@ -86,6 +86,7 @@ export function RecipeLibraryPage({
         loading={!response && !failed}
         stale={response?.isStale ?? false}
         leagueId={response?.data?.league?.id}
+        leagueName={response?.data?.league?.name}
       />
     </>
   );
@@ -97,12 +98,14 @@ export function RecipeLibrary({
   stale = false,
   selectionView,
   leagueId,
+  leagueName,
 }: {
   entries: CatalogEntry[];
   loading?: boolean;
   stale?: boolean;
   selectionView?: string | undefined;
   leagueId?: string | undefined;
+  leagueName?: string | undefined;
 }) {
   const [params, setParams] = useSearchParams();
   const location = useLocation();
@@ -502,6 +505,7 @@ export function RecipeLibrary({
         detail ? (
           <TargetDetailDialog
             leagueId={leagueId}
+            leagueName={leagueName}
             output={detail}
             recipeId={params.get('recipe') ?? detail.selectedRecipeId}
             tab={params.get('detail') === 'market' ? 'market' : 'recipe'}

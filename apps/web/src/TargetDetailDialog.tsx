@@ -186,7 +186,7 @@ export function TargetDetailDialog({
   onSelect: (recipeId: string, tab: 'market' | 'recipe') => void;
   onClose: () => void;
   leagueId?: string | undefined;
-  leagueName?: string | undefined;
+  leagueName: string | undefined;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [marketOpened, setMarketOpened] = useState(tab === 'market');
@@ -296,7 +296,7 @@ export function TargetDetailDialog({
           name={output.name}
           category={output.category}
           patch={output.entry.recipe.patch}
-          league={leagueName ?? currentDetail?.method.priceSources[0]?.league}
+          league={leagueName}
         />
         <section className="target-detail-column">
           <div
