@@ -405,7 +405,9 @@ async function finishSchedule(
       (result.status === 'blocked' ||
         ['MARKET_COLLECTION_PAUSED', 'PROVIDER_RATE_LIMITED'].includes(
           result.reason,
-        ));
+        ) ||
+        (result.reason === 'PROVIDER_UNAVAILABLE' &&
+          explicitRetry !== undefined));
     const attemptsExhausted = !deferred && current.attempt >= 2;
     const settled =
       pooled && (result.status === 'success' || attemptsExhausted);

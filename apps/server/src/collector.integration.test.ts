@@ -2,14 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { eq, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import {
-  afterAll,
-  afterEach,
-  beforeEach,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { afterAll, afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 import {
   runCollector,
@@ -352,6 +345,64 @@ it('shares one start budget across pools and records exhausted retries', async (
   );
   expect(handler).toHaveBeenCalledTimes(2);
 });
+
+it.each([true, false])(
+  'handles a pooled provider outage with explicit deferral=%s',
+  async (deferred) => {
+    const {
+      rows: [league],
+    } = await pool.query(
+      "insert into poe_leagues(ggg_id,name,synced_at) values($1,'Outage test',$2) returning id",
+      [randomUUID(), now()],
+    );
+    const id = await schedule({
+      leagueId: league.id,
+      scrapingPriority: 1,
+      attempt: 2,
+    });
+    await pool.query('select reconcile_trade_pools($1)', [now()]);
+    time += 720 * minute;
+    const retryAt = new Date(time + 240 * minute);
+    const handler = vi
+      .fn<CollectorHandler>()
+      .mockResolvedValueOnce({
+        status: 'retry',
+        reason: 'PROVIDER_UNAVAILABLE',
+        ...(deferred ? { retryAt } : {}),
+      })
+      .mockImplementation(succeed);
+    start(handler);
+    await vi.waitFor(async () =>
+      expect((await row(id)).lastStatus).toBe('failed'),
+    );
+    expect(await row(id)).toMatchObject({
+      attempt: deferred ? 2 : 0,
+      retryAt: deferred ? retryAt : null,
+      settledWithError: !deferred,
+      lastError: 'PROVIDER_UNAVAILABLE',
+    });
+    if (deferred) {
+      expect((await row(id)).settledCycleId).toBeNull();
+      time = retryAt.getTime() - 1;
+      await wake();
+      await delay(50);
+      expect(handler).toHaveBeenCalledTimes(1);
+      time++;
+      await wake();
+      await vi.waitFor(async () =>
+        expect((await row(id)).lastStatus).toBe('succeeded'),
+      );
+      expect(await row(id)).toMatchObject({
+        attempt: 0,
+        retryAt: null,
+        settledWithError: false,
+      });
+      expect((await row(id)).settledCycleId).toBeTruthy();
+    } else {
+      expect((await row(id)).settledCycleId).toBeTruthy();
+    }
+  },
+);
 
 it('backs off failures and recovers a due row with an expired lease', async () => {
   const id = await schedule({

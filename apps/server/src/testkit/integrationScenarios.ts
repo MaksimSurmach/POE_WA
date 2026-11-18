@@ -15,6 +15,10 @@ import { createCollectorResultPublisher } from '../collectorResults.js';
 import { CollectorTelemetry } from '../observability/collectorTelemetry.js';
 import { loadCollectorScheduleConfig } from '../runtimeConfig.js';
 import {
+  createMarketAdminStore,
+  defaultAdminSettings,
+} from '../marketAdmin.js';
+import {
   newEconomyAttempt,
   newStoredEconomySnapshot,
 } from '../marketEconomy.js';
@@ -424,6 +428,21 @@ export async function prepareCollectorBrowserFixture(
     pool,
     options.recipeRoot,
   );
+  // Save restores real pool scheduling; short periods keep the synthetic browser fixture responsive.
+  await createMarketAdminStore({
+    pool,
+    defaults: {
+      ...defaultAdminSettings({
+        refreshCron: '*/15 * * * *',
+        requestTimeoutMs: 30_000,
+        concurrency: 1,
+        snapshotTtlMs: 30 * 60_000,
+      }),
+      tradePoolMinutes: { '1': 1, '2': 1 },
+    },
+    timezone: 'UTC',
+    concurrencyLimit: 1,
+  }).init();
   const schedules = await synchronizeCollectorSchedules(
     pool,
     loadCollectorScheduleConfig(),
