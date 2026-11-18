@@ -130,7 +130,7 @@ function MarketTileDetails({
   row: MarketRow;
   color: MarketColor;
   size: MarketSize;
-  value: number;
+  value: number | null;
   historyState: 'loading' | 'failed' | 'ready';
 }) {
   const change = row.change;
@@ -220,10 +220,9 @@ function MarketTileDetails({
         </p>
       ) : null}
       <p>
-        Tile area:{' '}
-        {size === 'equal'
-          ? 'equal for every target'
-          : `${sizeOptions.find(([id]) => id === size)?.[1]} · ${number(value)}`}
+        {value === null
+          ? 'No proportional tile for the selected size'
+          : `Tile area: ${size === 'equal' ? 'equal for every target' : `${sizeOptions.find(([id]) => id === size)?.[1]} · ${number(value)}`}`}
         .
       </p>
       <small>
@@ -881,20 +880,41 @@ export function MarketHome() {
               No positive measured size · {composition.unsized.length}
             </span>
             {composition.unsized.map((r) => (
-              <button
-                key={r.output.id}
-                onClick={(e) => open(r.output, 'market', e.currentTarget)}
-                title={r.output.name}
-              >
-                {r.output.name}
-                <small>
-                  {size === 'captured-listings'
-                    ? r.captured === 0
-                      ? '0 captured'
-                      : 'Unknown sample'
-                    : 'No positive asking price'}
-                </small>
-              </button>
+              <Tooltip key={r.output.id} delay={180} closeDelay={180}>
+                <Tooltip.Trigger<'button'>
+                  render={(props) => <button {...props} />}
+                  type="button"
+                  onClick={(e) => open(r.output, 'market', e.currentTarget)}
+                >
+                  {r.output.name}
+                  <small>
+                    {size === 'captured-listings'
+                      ? r.captured === 0
+                        ? '0 captured'
+                        : 'Unknown sample'
+                      : 'No positive asking price'}
+                  </small>
+                </Tooltip.Trigger>
+                <Tooltip.Content
+                  className="market-tile-tooltip"
+                  placement="top"
+                  offset={8}
+                >
+                  <MarketTileDetails
+                    row={r}
+                    color={color}
+                    size={size}
+                    value={null}
+                    historyState={
+                      trendError
+                        ? 'failed'
+                        : currentTrends
+                          ? 'ready'
+                          : 'loading'
+                    }
+                  />
+                </Tooltip.Content>
+              </Tooltip>
             ))}
           </nav>
         ) : null}

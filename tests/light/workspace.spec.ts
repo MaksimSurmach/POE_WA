@@ -109,9 +109,12 @@ test('market tiles explain their metrics on hover and keyboard focus, including 
   if (!label) throw new Error('Missing tile label');
   const name = label.split('. Observed price change')[0] ?? label;
   await tiny.evaluate((node) => {
-    node.style.width = '24px';
-    node.style.height = '14px';
+    node.style.width = '4px';
+    node.style.height = '4px';
   });
+  const tinyBox = await tiny.boundingBox();
+  expect(tinyBox?.width).toBe(4);
+  expect(tinyBox?.height).toBe(4);
   await page
     .getByRole('heading', { name: 'Market composition', exact: true })
     .click();
@@ -129,6 +132,21 @@ test('market tiles explain their metrics on hover and keyboard focus, including 
   await tiny.click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(tooltip).toBeHidden();
+
+  await page.goto('/?size=asking-price&currency=chaos');
+  const unsized = page
+    .getByRole('navigation', { name: 'Targets without proportional size' })
+    .getByRole('button')
+    .first();
+  await expect(unsized).toBeVisible();
+  const unsizedName = await unsized
+    .locator('small')
+    .evaluate((node) => node.previousSibling?.textContent);
+  await page.mouse.move(5, 5, { steps: 6 });
+  await unsized.hover();
+  await expect(tooltip).toContainText(unsizedName ?? 'Missing item name');
+  await expect(tooltip).toContainText('No current estimate');
+  await expect(tooltip).toContainText('No proportional tile');
 });
 
 test('active pages and retained deep links render with contained tables and no runtime errors', async ({
