@@ -235,6 +235,12 @@ describe('authored source catalog integrity', () => {
       },
     });
     for (const { definition } of catalog) {
+      if (definition.craft.evidence?.artifact)
+        expect(
+          (await readFile(new URL(definition.craft.evidence.artifact, root)))
+            .length,
+          definition.id,
+        ).toBeGreaterThan(0);
       await expect(
         dependencies({ recipe: definition, league: 'Fixture League' }),
       ).resolves.toEqual(
