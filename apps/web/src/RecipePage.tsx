@@ -22,7 +22,7 @@ import {
   StatusPanel,
   economicClass,
 } from './components.js';
-import { evidenceRank, formatMarginPercent } from './catalog.js';
+import { evidenceRank, formatMarginPercent, observedAsk } from './catalog.js';
 import { ApiClientError, createApiClient } from './apiClient.js';
 import { ItemTooltip } from './ItemTooltip.js';
 import { RecipeTrendPanel, trendRanges } from './MarketTrendsPage.js';
@@ -279,16 +279,7 @@ export function RecipePage({
             <span>
               Цена сопоставимого объявления{' '}
               <strong>
-                <Money
-                  price={
-                    evaluation.estimatedSalePrice ??
-                    (detail.readiness?.fresh
-                      ? (detail.readiness.currentAskRange?.min ??
-                        detail.marketActivity?.observedAskSample?.[0])
-                      : null) ??
-                    null
-                  }
-                />
+                <Money price={observedAsk(detail)} />
               </strong>
             </span>
             {evaluation.profit ? (
@@ -597,7 +588,9 @@ export function RecipePage({
           </p>
           {detail.marketActivity.observedAskSample?.length ? (
             <div>
-              <p>Lowest observed asks in this capture</p>
+              <p>
+                Unfiltered Trade sample asks; may include non-matching items
+              </p>
               <ul>
                 {detail.marketActivity.observedAskSample.map((price, index) => (
                   <li key={index}>
@@ -824,7 +817,7 @@ export function MethodsForTarget({
                     <Money price={evaluation.expectedCraftCost} />
                   </td>
                   <td className="table__cell">
-                    <Money price={evaluation.estimatedSalePrice} />
+                    <Money price={observedAsk({ evaluation, readiness })} />
                   </td>
                   <td className="table__cell">
                     {evaluation.profit ? (

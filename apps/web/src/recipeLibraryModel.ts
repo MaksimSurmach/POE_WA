@@ -1,6 +1,6 @@
 import type { CatalogEntry, Price } from '@poe-worksmith/contracts';
 import type { CraftFamily } from '@poe-worksmith/domain';
-import { lowestAskInCurrency } from './catalog.js';
+import { lowestAskInCurrency, observedAsk } from './catalog.js';
 
 const craftFamilyLabels: Record<CraftFamily, string> = {
   alteration: 'Alteration',
@@ -37,10 +37,10 @@ function routeFamilies(entry: CatalogEntry): CraftFamily[] {
 }
 export function libraryQuote(entry: CatalogEntry, currency: Price['currency']) {
   const readiness = entry.readiness;
-  const current = readiness?.currentAskRange?.min;
-  if (readiness && current?.currency === currency)
+  if (readiness) {
+    const current = observedAsk(entry);
     return {
-      price: current,
+      price: current?.currency === currency ? current : null,
       at: readiness.capturedAt,
       stale: !readiness.fresh,
       evidence: {
@@ -58,6 +58,7 @@ export function libraryQuote(entry: CatalogEntry, currency: Price['currency']) {
           : null,
       },
     };
+  }
   const snapshot = entry.snapshot;
   const price = lowestAskInCurrency(snapshot, currency)?.price;
   return price && snapshot

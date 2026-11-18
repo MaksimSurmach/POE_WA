@@ -19,10 +19,16 @@ import {
   createMarketTarget,
   createImportedMarketSnapshot,
 } from './marketResearch.js';
-import { analyzeListingComparability } from './listingComparability.js';
+import {
+  analyzeListingComparability,
+  compareListingItems,
+} from './listingComparability.js';
 import { generateMarketTradeQuery } from './marketTradeQuery.js';
 import { tradeStatMappings } from './tradeStatMappings.js';
-import { marketTargetInputSchema } from '@poe-worksmith/contracts';
+import {
+  marketImportListingSchema,
+  marketTargetInputSchema,
+} from '@poe-worksmith/contracts';
 import {
   derivedRecipeSpecs,
   type RecipeSpecResolver,
@@ -539,6 +545,35 @@ export function matchingRecipeListings(
     rows.filter((row) => row.status === 'MATCH').map((row) => row.externalId),
   );
   return normalizedListings.filter((row) => matches.has(row.id));
+}
+
+/** Unknown or unreadable evidence cannot clear an unconverted asking price. */
+export function rejectsRecipeListing(
+  query: CanonicalJsonObject,
+  row: MarketListing,
+) {
+  const target = recipeQueryTarget(query.handbookTarget);
+  let candidate;
+  try {
+    const item = row.item.rawListing
+      ? normalizeTradeCompatibleListing(row.item.rawListing, target).item
+      : row.item;
+    candidate = marketImportListingSchema.safeParse({
+      externalId: row.id,
+      price: Number(row.price.amount),
+      currency: row.price.currency,
+      item: { ...item, currency: row.price.currency },
+    });
+  } catch {
+    return false;
+  }
+  if (!candidate.success) return false;
+  return (
+    compareListingItems(target, {
+      currency: row.price.currency,
+      listings: [candidate.data],
+    })[0]?.status === 'REJECT'
+  );
 }
 
 /**

@@ -52,7 +52,10 @@ export function ScrapedItemCaptureReport({
             <dl className="scraped-facts">
               <Fact label="Stored listings" value={listings.stored} />
               <Fact label="With seller and price" value={listings.priced} />
-              <Fact label="Complete item data" value={listings.completeItems} />
+              <Fact
+                label="All modifiers verified"
+                value={listings.completeItems}
+              />
               <Fact label="Analyzed" value={listings.analyzed} />
               <Fact label="Matched" value={listings.matched} />
               <Fact label="Comparable sellers" value={listings.comparable} />

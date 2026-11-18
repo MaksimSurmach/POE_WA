@@ -104,13 +104,11 @@ function listingClass(item: {
         : undefined;
 }
 
-/** Version 1 is an explicit interpretation of immutable imported data. */
-export function analyzeListingComparability(
+export function compareListingItems(
   target: MarketTarget,
-  snapshot: MarketResearchSnapshot,
-  now = Date.now(),
+  snapshot: Pick<MarketResearchSnapshot, 'listings'> & { currency: string },
 ) {
-  const rows = snapshot.listings.flatMap((listing, index) => {
+  return snapshot.listings.flatMap((listing, index) => {
     if (
       listing.price === null ||
       (listing.currency !== undefined && listing.currency !== snapshot.currency)
@@ -337,6 +335,15 @@ export function analyzeListingComparability(
       },
     ];
   });
+}
+
+/** Version 1 is an explicit interpretation of immutable imported data. */
+export function analyzeListingComparability(
+  target: MarketTarget,
+  snapshot: MarketResearchSnapshot,
+  now = Date.now(),
+) {
+  const rows = compareListingItems(target, snapshot);
   const sellers = new Map<string, number>();
   for (const row of rows)
     if (row.status === 'MATCH' && row.seller)

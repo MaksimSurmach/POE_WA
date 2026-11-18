@@ -66,8 +66,9 @@ export function MarketReadiness({
             : ''}
       </p>
       <p>
-        Наблюдаемые цены объявлений <AskRange range={r.currentAskRange} /> ·{' '}
-        {r.currentSellers} priced sellers · {r.currentListings} listings
+        Unfiltered Trade sample (may include non-matching items){' '}
+        <AskRange range={r.currentAskRange} /> · {r.currentSellers} priced
+        sellers · {r.currentListings} listings
         {r.comparableSellers !== null
           ? ` · ${r.comparableSellers} comparable sellers`
           : ''}

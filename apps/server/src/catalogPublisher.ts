@@ -25,6 +25,7 @@ import {
   type RecipeMarketDependencies,
   type RecipeMarketQuery,
   comparableRecipeListings,
+  rejectsRecipeListing,
   requiresCompleteOutputCoverage,
 } from './recipeMarket.js';
 import type { Logger } from 'pino';
@@ -963,11 +964,13 @@ async function resolveMarket(
       marketExchange = exchange;
     }
   }
-  // An unconverted matching ask could be the true floor of this sorted sample.
+  // An unconverted ask can affect the floor unless the item is definitely rejected.
   const unconverted = Boolean(
     tradeQuery.query.handbookTarget &&
     (listings.some(
-      (row) => !['chaos', 'divine'].includes(row.price.currency),
+      (row) =>
+        !['chaos', 'divine'].includes(row.price.currency) &&
+        !rejectsRecipeListing(recipeQuery, row),
     ) ||
       comparableRecipeListings(
         recipeQuery,

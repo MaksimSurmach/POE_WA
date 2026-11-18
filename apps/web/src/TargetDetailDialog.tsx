@@ -378,7 +378,7 @@ export function TargetDetailDialog({
               className="target-quote-evidence"
             >
               <h3>
-                Lowest observed ask <LibraryMoney price={output.ask} />
+                Comparable asking estimate <LibraryMoney price={output.ask} />
               </h3>
               <dl>
                 <div>
@@ -402,6 +402,12 @@ export function TargetDetailDialog({
                   <dd>{output.quoteEvidence?.exits ?? 'Not measured'}</dd>
                 </div>
               </dl>
+              {output.quoteEvidence?.comparableOnly === false ? (
+                <p>
+                  Captured counts describe the search sample and may include
+                  non-matching items.
+                </p>
+              ) : null}
               <p>
                 Capture coverage: {output.quoteEvidence?.coverage ?? 'unknown'}.{' '}
                 {output.quoteAt ? (
@@ -525,7 +531,7 @@ export function TargetDetailDialog({
                 </strong>
               </div>
               <div>
-                <small>Observed ask</small>
+                <small>Comparable ask</small>
                 <strong>
                   <LibraryMoney price={output.ask} />
                 </strong>

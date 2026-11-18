@@ -55,7 +55,7 @@ const defaultColumns = [
 ];
 const columnLabels: Record<string, string> = {
   method: 'Craft method',
-  ask: 'Lowest ask',
+  ask: 'Comparable ask',
   change: 'Change',
   listings: 'Listings',
   cost: 'Craft cost',

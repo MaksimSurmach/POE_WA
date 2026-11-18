@@ -1,25 +1,104 @@
 import { describe, expect, it } from 'vitest';
 import type { CatalogEntry } from '@poe-worksmith/contracts';
-import { formatMarginPercent, lowestAskInCurrency } from './catalog.js';
+import {
+  formatMarginPercent,
+  lowestAskInCurrency,
+  observedAsk,
+} from './catalog.js';
 import { catalogFixtures } from './mocks/catalog.js';
 import { selectRecipeLibrary, libraryQuote } from './recipeLibraryModel.js';
 import { catalogEntrySchema } from '@poe-worksmith/contracts';
 import archive from './mocks/category-library-archive.json';
+
+describe('comparable capture price', () => {
+  const capturedAt = '2026-11-18T04:00:00.000Z';
+  const readiness = {
+    ...catalogEntrySchema.parse(archive.entries[0]).readiness!,
+    capturedAt,
+    fresh: true,
+    currentListings: 203,
+    currentAskRange: {
+      min: { amount: 5, currency: 'chaos' as const },
+      max: { amount: 90, currency: 'chaos' as const },
+    },
+  };
+  const entry: CatalogEntry = {
+    ...catalogFixtures[0]!,
+    readiness,
+    evaluation: {
+      ...catalogFixtures[0]!.evaluation,
+      estimatedSalePrice: { amount: 30, currency: 'chaos' },
+      source: {
+        captureId: '00000000-0000-4000-8000-000000000001',
+        comparable: true,
+        capturedAt,
+        comparableSellers: 132,
+        coverage: 'complete',
+      },
+    },
+  };
+
+  it('uses the matching estimate and retains unfiltered capture counts', () => {
+    expect(observedAsk(entry)).toEqual({ amount: 30, currency: 'chaos' });
+    expect(libraryQuote(entry, 'chaos')).toMatchObject({
+      price: { amount: 30 },
+      at: capturedAt,
+      evidence: { captured: 203, comparableOnly: false },
+    });
+  });
+
+  it('keeps missing estimates unknown without falling back to raw asks or snapshots', () => {
+    const unavailable = {
+      ...entry,
+      evaluation: { ...entry.evaluation, estimatedSalePrice: null },
+    };
+    expect(observedAsk(unavailable)).toBeNull();
+    for (const currency of ['chaos', 'divine'] as const)
+      expect(libraryQuote(unavailable, currency)).toMatchObject({
+        price: null,
+        at: capturedAt,
+        evidence: { captured: 203 },
+      });
+    expect(libraryQuote(entry, 'divine')).toMatchObject({
+      price: null,
+      at: capturedAt,
+    });
+  });
+
+  it('rejects stale, different or unverified capture sources', () => {
+    for (const source of [
+      undefined,
+      { ...entry.evaluation.source!, capturedAt: '2026-11-18T03:00:00.000Z' },
+      { ...entry.evaluation.source!, comparable: false },
+      { ...entry.evaluation.source!, captureId: undefined },
+    ]) {
+      const changed = { ...entry, evaluation: { ...entry.evaluation, source } };
+      expect(observedAsk(changed)).toBeNull();
+      expect(libraryQuote(changed, 'chaos')).toMatchObject({
+        price: null,
+        evidence: { captured: 203 },
+      });
+    }
+    expect(
+      observedAsk({ ...entry, readiness: { ...readiness, fresh: false } }),
+    ).toBeNull();
+  });
+});
 
 describe('approved 17 November archive (historical, never live product data)', () => {
   const entries = archive.entries.map((e) => catalogEntrySchema.parse(e));
   it('keeps quote price, timestamp and freshness attached to the same source', () => {
     const entry = { ...catalogFixtures[0]!, readiness: entries[0]!.readiness };
     expect(libraryQuote(entry, 'chaos')).toMatchObject({
-      price: { amount: 270 },
+      price: null,
       at: '2026-11-17T15:08:45.878Z',
       stale: true,
     });
     expect(libraryQuote(entry, 'divine')).toMatchObject({
-      price: { amount: 8 },
-      evidence: { captured: 10, reported: 42, sellers: 8, exits: null },
-      at: '2026-07-20T00:00:00.000Z',
-      stale: null,
+      price: null,
+      evidence: { comparableOnly: false },
+      at: '2026-11-17T15:08:45.878Z',
+      stale: true,
     });
   });
   it('retains 66 outputs, 72 routes and the complete global category/family counts', () => {
@@ -61,7 +140,7 @@ describe('approved 17 November archive (historical, never live product data)', (
     expect(fettle[0]).toMatchObject({
       cost: { amount: 38.49179117 },
       coverage: { estimated: 1, total: 1 },
-      ask: { amount: 100 },
+      ask: null,
     });
     const physical = selectRecipeLibrary(entries).outputs.find((o) =>
       o.recipeIds.includes('physical-large-cluster-chaos'),

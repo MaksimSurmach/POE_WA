@@ -3,7 +3,13 @@
 export const tradeMappingVersion = 'awakened-318820895742+week-one-2026-11-11';
 export const tradeStatMappings: Record<
   string,
-  { key: string; text: string; negativeText?: string; valueMode?: 'average' }
+  {
+    key: string;
+    text: string;
+    negativeText?: string;
+    valueMode?: 'average';
+    aliases?: readonly { hash: string; text: string }[];
+  }
 > = {
   'explicit.stat_3182498570': {
     key: 'flask_movement_speed',
@@ -476,6 +482,10 @@ Object.assign(tradeStatMappings, {
     key: 'local_physical_damage',
     text: '#% increased Physical Damage',
   },
+  'crafted.stat_1509134228': {
+    key: 'local_physical_damage',
+    text: '#% increased Physical Damage',
+  },
   'explicit.stat_1940865751': {
     key: 'local_added_physical_damage',
     text: 'Adds # to # Physical Damage',
@@ -524,10 +534,22 @@ Object.assign(tradeStatMappings, {
   'explicit.indexable_support_68': {
     key: 'burning_support',
     text: 'Socketed Gems are Supported by Level # Burning Damage',
+    aliases: [
+      {
+        hash: 'explicit.effect_1200122555',
+        text: 'Socketed Gems are Supported by Level # Burning Damage Support',
+      },
+    ],
   },
   'explicit.indexable_support_98': {
     key: 'concentrated_support',
     text: 'Socketed Gems are Supported by Level # Concentrated Effect',
+    aliases: [
+      {
+        hash: 'explicit.effect_3293595800',
+        text: 'Socketed Gems are Supported by Level # Concentrated Effect Support',
+      },
+    ],
   },
   'explicit.stat_3091578504': {
     key: 'minion_attack_cast_speed',

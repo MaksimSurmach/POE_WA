@@ -279,6 +279,134 @@ describe('Trade-compatible queries and transport', () => {
     expect(output.rawListing).toEqual(raw);
   });
 
+  it('recognizes observed support effect hashes without declaring the requested support absent', async () => {
+    const fixture = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.support-physical-modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    for (const { item, expected } of fixture.supports) {
+      const target = tradeTarget();
+      target.tradeSearch!.groups[0]!.filters = [
+        { id: expected.id, min: expected.value },
+      ];
+      const raw = { ...rawTradeListing(), item };
+      const row = normalizeTradeCompatibleListing(raw, target);
+      expect(row.item.mods).toContainEqual(expected);
+      expect(row.item.verifiedAbsentStats).not.toContain(expected.id);
+      expect(row.rawListing).toEqual(raw);
+      const mod = item.explicitMods[0];
+      const label =
+        expected.id === 'explicit.indexable_support_68'
+          ? 'Burning Damage'
+          : 'Concentrated Effect';
+      const legacy = {
+        ...mod,
+        hash: `stat.${expected.id}`,
+        description: `Socketed Gems are Supported by Level ${expected.value} ${label}`,
+      };
+      expect(
+        normalizeTradeCompatibleListing(
+          { ...raw, item: { ...item, explicitMods: [legacy] } },
+          target,
+        ).item.mods,
+      ).toContainEqual(expected);
+      expect(
+        normalizeTradeCompatibleListing(
+          {
+            ...raw,
+            item: {
+              ...item,
+              explicitMods: [],
+              extended: { hashes: { explicit: [] } },
+            },
+          },
+          target,
+        ).item.verifiedAbsentStats,
+      ).toContain(expected.id);
+      expect(
+        normalizeTradeCompatibleListing(
+          {
+            ...raw,
+            item: {
+              ...item,
+              explicitMods: [{ ...mod, mods: [] }],
+              extended: {
+                hashes: {
+                  explicit: [
+                    [expected.id, [0]],
+                    [mod.hash.replace(/^stat\./, ''), [1]],
+                  ],
+                },
+                mods: { explicit: [{ tier: 'P9' }, ...mod.mods] },
+              },
+            },
+          },
+          target,
+        ).item.mods,
+      ).toContainEqual(expected);
+      for (const rejected of [
+        { ...mod, hash: 'stat.explicit.effect_1' },
+        { ...mod, domain: 'crafted' },
+        { ...mod, description: mod.description.replace('|', '|Awakened ') },
+        { ...mod, description: `${mod.description} while Shapeshifted` },
+      ]) {
+        expect(
+          normalizeTradeCompatibleListing(
+            { ...raw, item: { ...item, explicitMods: [rejected] } },
+            target,
+          ).item.mods,
+        ).not.toContainEqual(expect.objectContaining({ id: expected.id }));
+      }
+    }
+  });
+
+  it('includes observed crafted physical damage in output totals while preserving base origins', async () => {
+    const { physical: item } = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.support-physical-modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    const raw = { ...rawTradeListing(), item };
+    expect(
+      normalizeTradeCompatibleListing(raw, {
+        ...tradeTarget(),
+        slot: 'crafted-item',
+      }).item.mods,
+    ).toContainEqual({ id: 'explicit.stat_1509134228', value: 130 });
+    expect(
+      normalizeTradeCompatibleListing(raw, {
+        ...tradeTarget(),
+        slot: 'starting-base',
+      }).item.mods,
+    ).toContainEqual({ id: 'explicit.stat_1509134228', value: 50, tier: 4 });
+    const crafted = item.explicitMods.find(
+      (mod: { domain: string }) => mod.domain === 'crafted',
+    );
+    expect(
+      normalizeTradeCompatibleListing(
+        {
+          ...raw,
+          item: {
+            ...item,
+            explicitMods: [
+              { ...crafted, description: '118% increased Physical Damage' },
+            ],
+          },
+        },
+        { ...tradeTarget(), slot: 'crafted-item' },
+      ).item.mods,
+    ).toContainEqual({ id: 'explicit.stat_1509134228', value: 118 });
+  });
+
   it('keeps duplicate same-origin evidence ambiguous instead of increasing its accepted value', () => {
     const target = { ...tradeTarget(), slot: 'crafted-item' };
     const raw = rawTradeListing();

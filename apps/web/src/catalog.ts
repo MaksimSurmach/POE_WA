@@ -34,10 +34,16 @@ export function formatMarginPercent(value: number) {
   return `${percentFormatter.format(Object.is(rounded, -0) ? 0 : rounded)}%`;
 }
 
-export function observedAsk(entry: CatalogEntry) {
-  return (
-    entry.evaluation.estimatedSalePrice ??
-    (entry.readiness?.fresh ? entry.readiness.currentAskRange?.min : null) ??
-    null
-  );
+export function observedAsk(
+  entry: Pick<CatalogEntry, 'evaluation' | 'readiness'>,
+) {
+  const { evaluation, readiness } = entry;
+  if (!readiness) return evaluation.estimatedSalePrice ?? null;
+  const source = evaluation.source;
+  return readiness.fresh &&
+    source?.comparable === true &&
+    source.captureId &&
+    source.capturedAt === readiness.capturedAt
+    ? (evaluation.estimatedSalePrice ?? null)
+    : null;
 }

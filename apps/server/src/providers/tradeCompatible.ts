@@ -263,8 +263,10 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
         ? pattern(mapping.negativeText)
         : null;
       for (const line of lines) {
+        const alias = mapping.aliases?.find(({ hash }) => hash === line.hash);
         if (
           line.hash !== undefined &&
+          !alias &&
           ![
             id,
             id.split('|')[0],
@@ -274,7 +276,10 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
         )
           continue;
         const negativeMatch = negativePattern?.exec(line.description);
-        const match = positivePattern.exec(line.description) ?? negativeMatch;
+        const match =
+          (alias ? pattern(alias.text) : positivePattern).exec(
+            line.description,
+          ) ?? negativeMatch;
         // The bench renders its guaranteed trigger without the Trade filter's chance placeholder.
         const guaranteedTrigger =
           id === 'crafted.stat_3079007202' &&
@@ -282,8 +287,9 @@ function normalizedMods(item: z.infer<typeof itemSchema>) {
             'Trigger a Socketed Spell when you Use a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost';
         if (!match && !guaranteedTrigger) continue;
         const indexes =
-          item.extended?.hashes?.[origin]?.find(([hash]) => hash === id)?.[1] ??
-          [];
+          item.extended?.hashes?.[origin]?.find(
+            ([hash]) => hash === (alias?.hash ?? id),
+          )?.[1] ?? [];
         const tiers = indexes.map(
           (index) => item.extended?.mods?.[origin]?.[index]?.tier,
         );
@@ -429,8 +435,13 @@ export function normalizeTradeCompatibleListing(
   const verifiedAbsentStats = configured.flatMap((stat) => {
     const origin = stat.id.split('.')[0] ?? '';
     const hashes = item.extended?.hashes?.[origin];
-    return hashes && !hashes.some(([id]) => id === stat.id)
-      ? [stat.id, stat.key ?? tradeStatMappings[stat.id]?.key ?? stat.id]
+    const mapping = tradeStatMappings[stat.id];
+    return hashes &&
+      !hashes.some(
+        ([id]) =>
+          id === stat.id || mapping?.aliases?.some(({ hash }) => hash === id),
+      )
+      ? [stat.id, stat.key ?? mapping?.key ?? stat.id]
       : [];
   });
   return {

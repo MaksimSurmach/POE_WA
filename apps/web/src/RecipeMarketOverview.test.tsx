@@ -10,7 +10,7 @@ const readiness: MarketReadiness = {
   level: 'price-observed',
   capturedAt: '2026-11-11T10:00:00Z',
   fresh: true,
-  coverage: 'partial',
+  coverage: 'complete',
   currentListings: 5,
   currentSellers: 4,
   comparableSellers: 4,
@@ -42,11 +42,25 @@ const readiness: MarketReadiness = {
     askRange: null,
   },
 };
-const entry = { ...catalogFixtures[0]!, readiness };
+const entry = {
+  ...catalogFixtures[0]!,
+  readiness,
+  evaluation: {
+    ...catalogFixtures[0]!.evaluation,
+    estimatedSalePrice: { amount: 50, currency: 'chaos' as const },
+    source: {
+      captureId: '00000000-0000-4000-8000-000000000001',
+      capturedAt: readiness.capturedAt!,
+      comparable: true,
+      comparableSellers: 4,
+      coverage: 'complete' as const,
+    },
+  },
+};
 
 it('includes a fresh collector ask even when cost and profit are unverified', () => {
   const point = marketRecipePoint(entry);
-  expect(point.price).toEqual({ amount: 42, currency: 'chaos' });
+  expect(point.price).toEqual({ amount: 50, currency: 'chaos' });
   expect(point.exits).toBeNull();
 });
 
@@ -67,6 +81,15 @@ it('preserves measured zero but never turns unknown or stale activity into zero'
     marketRecipePoint({
       ...entry,
       readiness: { ...readiness, currentAskRange: null },
+    }).price,
+  ).toEqual({ amount: 50, currency: 'chaos' });
+});
+
+it('keeps a missing comparable estimate unknown despite raw captured asks', () => {
+  expect(
+    marketRecipePoint({
+      ...entry,
+      evaluation: { ...entry.evaluation, estimatedSalePrice: null },
     }).price,
   ).toBeNull();
 });
