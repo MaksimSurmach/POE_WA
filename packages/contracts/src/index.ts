@@ -197,6 +197,8 @@ export const marketReadinessSchema = z.strictObject({
     'preliminary-candidate',
   ]),
   capturedAt: z.iso.datetime().nullable(),
+  lastCheckedAt: z.iso.datetime().nullable().optional(),
+  captureAgeMinutes: count.nullable().optional(),
   fresh: z.boolean(),
   coverage: z.enum(['complete', 'partial']).nullable(),
   currentListings: count,
@@ -536,6 +538,32 @@ export const recipeResponseSchema = resourceResponseSchema(
 );
 
 export const collectorStatusSchema = z.object({
+  tradePools: z
+    .array(
+      z.object({
+        league: z.string(),
+        priority: z.number().int().min(1).max(7),
+        periodMinutes: z.number().int().positive(),
+        targets: z.number().int().nonnegative(),
+        checked: z.number().int().nonnegative(),
+        errors: z.number().int().nonnegative(),
+        nextSlotAt: z.iso.datetime({ offset: true }).nullable(),
+        overdueSeconds: z.number().int().nonnegative(),
+        reason: z.enum([
+          'paused',
+          'disabled',
+          'blocked',
+          'complete',
+          'cooldown',
+          'pacing',
+          'retry',
+          'lease',
+          'slot',
+          'ready',
+        ]),
+      }),
+    )
+    .optional(),
   collectorState: z
     .object({
       lastRunFinishedAt: z.iso.datetime().nullable(),

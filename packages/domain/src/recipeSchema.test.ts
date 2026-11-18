@@ -11,6 +11,24 @@ import {
 
 const price = { amount: '2', currency: 'chaos' };
 describe('single-method recipes', () => {
+  it('accepts independent integer priorities from 1 to 7', () => {
+    for (const scrapingPriority of [{ base: 1 }, { output: 7 }]) {
+      expect(
+        validateRecipeDocument({ ...canonicalRecipeFixture, scrapingPriority })
+          .scrapingPriority,
+      ).toEqual(scrapingPriority);
+    }
+    for (const scrapingPriority of [
+      { base: 0 },
+      { output: 8 },
+      { base: 1.5 },
+    ]) {
+      expect(() =>
+        validateRecipeDocument({ ...canonicalRecipeFixture, scrapingPriority }),
+      ).toThrow();
+    }
+  });
+
   it('compares an already totalled Fettle estimate without charging its base twice', () => {
     expect(
       compareExpectedCostWithAsk({

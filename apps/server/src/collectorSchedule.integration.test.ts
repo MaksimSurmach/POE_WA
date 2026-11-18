@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -14,11 +15,12 @@ import { loadRecipeCatalog } from './recipes/loader.js';
 import {
   synchronizeCollectorSchedules,
   synchronizeRecipes,
+  synchronizeStoredRecipeCatalog,
 } from './recipes/synchronizeRecipes.js';
 import { createPostgresRepositories } from './repositories/index.js';
 import { createCaptureRepository } from './repositories/captureRepository.js';
 import { loadCollectorScheduleConfig } from './runtimeConfig.js';
-import { collectorSchedule } from './schema.js';
+import { collectorSchedule, collectorTradePools } from './schema.js';
 import { importTradeMappings } from './tradeMappings.js';
 
 const pool = createDatabasePool(loadDatabaseConfig());
@@ -93,48 +95,35 @@ it('reconciles the 72-recipe catalog without resetting existing schedule rows', 
   await syncCli();
   const first = await scheduleRows();
   expect(first).toHaveLength(128);
-  const tradeDue = first
-    .filter(({ kind }) => kind === 'trade-target')
-    .map(({ nextDueAt }) => nextDueAt.getTime())
-    .sort((a, b) => a - b);
-  expect(tradeDue).toHaveLength(125);
-  expect(tradeDue.map((due) => due - tradeDue[0]!)).toEqual(
-    Array.from({ length: 125 }, (_, index) => index * 60_000),
-  );
   const recipes = await loadRecipeCatalog(catalog);
-  const weekOneIds = new Set(
-    recipes
-      .filter(({ definition }) => definition.tags.includes('week-one'))
-      .map(({ definition }) => definition.id),
-  );
   const tradeRows = first.filter(({ kind }) => kind === 'trade-target');
-  const weekOneOutputs = tradeRows.filter(({ payload }) =>
-    (payload.outputRecipeIds as string[]).some((id) => weekOneIds.has(id)),
-  );
-  const establishedOutputs = tradeRows.filter(({ payload }) =>
-    (payload.outputRecipeIds as string[]).some((id) => !weekOneIds.has(id)),
-  );
-  const bases = tradeRows.filter(
-    ({ payload }) => (payload.outputRecipeIds as string[]).length === 0,
-  );
-  expect(weekOneOutputs).toHaveLength(23);
-  expect(establishedOutputs).toHaveLength(43);
-  expect(bases).toHaveLength(59);
-  expect(
-    weekOneOutputs.every(({ intervalMinutes }) => intervalMinutes === 120),
-  ).toBe(true);
-  expect(
-    establishedOutputs.every(({ intervalMinutes }) => intervalMinutes === 60),
-  ).toBe(true);
-  expect(bases.every(({ intervalMinutes }) => intervalMinutes === 120)).toBe(
-    true,
-  );
-  expect(
-    tradeRows.filter(({ intervalMinutes }) => intervalMinutes === 120),
-  ).toHaveLength(82);
-  expect(
-    tradeRows.reduce((total, row) => total + 60 / row.intervalMinutes, 0),
-  ).toBe(84);
+  expect(tradeRows).toHaveLength(125);
+  const pools = await database.select().from(collectorTradePools);
+  expect(pools).toHaveLength(2);
+  for (const [priority, period, count] of [
+    [1, 180, 66],
+    [2, 720, 59],
+  ] as const) {
+    const poolRows = tradeRows.filter(
+      (row) => row.scrapingPriority === priority,
+    );
+    expect(poolRows).toHaveLength(count);
+    const pool = pools.find((row) => row.priority === priority)!;
+    expect(pool.periodMinutes).toBe(period);
+    const step = (period * 60_000) / count;
+    const sorted = poolRows.sort(
+      (a, b) => a.nextDueAt.getTime() - b.nextDueAt.getTime(),
+    );
+    sorted.forEach((row, index) => {
+      expect(row.intervalMinutes).toBe(period);
+      expect((row.payload.outputRecipeIds as string[]).length > 0).toBe(
+        priority === 1,
+      );
+      const elapsed = row.nextDueAt.getTime() - pool.startedAt.getTime();
+      expect(elapsed).toBeGreaterThanOrEqual((index + 0.95) * step - 1);
+      expect(elapsed).toBeLessThanOrEqual((index + 1) * step + 1);
+    });
+  }
   expect(first.find(({ kind }) => kind === 'economy')).toMatchObject({
     leagueId: league.id,
     intervalMinutes: 30,
@@ -167,10 +156,6 @@ it('reconciles the 72-recipe catalog without resetting existing schedule rows', 
      where kind = 'trade-target'`,
   );
   const withRuntimeState = await scheduleRows();
-  await pool.query(
-    'update collector_schedule set interval_minutes = 60 where id = any($1::uuid[])',
-    [weekOneOutputs.map(({ id }) => id)],
-  );
   await syncCli();
   expect(await scheduleRows()).toEqual(withRuntimeState);
   await syncCli();
@@ -179,8 +164,8 @@ it('reconciles the 72-recipe catalog without resetting existing schedule rows', 
   const chaos = 'physical-large-cluster-chaos';
   const jagged = 'physical-large-cluster-jagged';
   const shared = withRuntimeState.find(
-    ({ intervalMinutes, payload }) =>
-      intervalMinutes === 60 &&
+    ({ scrapingPriority, payload }) =>
+      scrapingPriority === 1 &&
       Array.isArray(payload.recipeIds) &&
       payload.recipeIds.includes(chaos),
   )!;
@@ -196,8 +181,8 @@ it('reconciles the 72-recipe catalog without resetting existing schedule rows', 
     ).league,
   ).toBe(league.gggId);
   const sharedBase = withRuntimeState.find(
-    ({ intervalMinutes, payload }) =>
-      intervalMinutes === 120 &&
+    ({ scrapingPriority, payload }) =>
+      scrapingPriority === 2 &&
       Array.isArray(payload.recipeIds) &&
       payload.recipeIds.includes(chaos),
   )!;
@@ -232,6 +217,113 @@ it('reconciles the 72-recipe catalog without resetting existing schedule rows', 
     }),
   );
 }, 15_000);
+
+it('uses the highest priority among recipes sharing a query and rolls back unknown priorities', async () => {
+  await seedPrerequisites();
+  const chaos = 'physical-large-cluster-chaos';
+  const jagged = 'physical-large-cluster-jagged';
+  const recipes = (await loadRecipeCatalog(catalog)).filter(({ definition }) =>
+    [chaos, jagged].includes(definition.id),
+  );
+  const sync = async (jaggedOutput: number) => {
+    await synchronizeRecipes(
+      repositories.recipes,
+      recipes.map((source) => ({
+        ...source,
+        definition: {
+          ...source.definition,
+          scrapingPriority:
+            source.definition.id === chaos
+              ? { base: 1, output: 2 }
+              : { output: jaggedOutput },
+        },
+      })),
+      (path) => readFile(resolve(catalog, path)),
+    );
+    return synchronizeCollectorSchedules(
+      pool,
+      loadCollectorScheduleConfig(cadence),
+    );
+  };
+
+  await sync(1);
+  const first = await scheduleRows();
+  const shared = first.find(({ payload }) =>
+    (payload.outputRecipeIds as string[] | undefined)?.includes(jagged),
+  )!;
+  expect(shared).toMatchObject({
+    scrapingPriority: 1,
+    payload: { outputRecipeIds: [chaos, jagged] },
+  });
+  const chaosBase = first.find(
+    ({ payload }) =>
+      (payload.outputRecipeIds as string[] | undefined)?.length === 0 &&
+      (payload.recipeIds as string[]).includes(chaos),
+  );
+  expect(chaosBase).toMatchObject({ scrapingPriority: 1 });
+  await sync(2);
+  const second = await scheduleRows();
+  expect(second.find(({ id }) => id === shared.id)).toMatchObject({
+    scrapingPriority: 2,
+    intervalMinutes: 720,
+  });
+  const unsupported = recipes.map((source) => ({
+    ...source,
+    definition: { ...source.definition, scrapingPriority: { base: 7 } },
+  }));
+  const before = await repositories.recipes.listAll();
+  await expect(
+    synchronizeRecipes(repositories.recipes, unsupported, (path) =>
+      readFile(resolve(catalog, path)),
+    ),
+  ).rejects.toThrow(/period for Trade pool 7/);
+  expect(await repositories.recipes.listAll()).toEqual(before);
+  // Simulate a legacy recipe written ahead of the settings change.
+  await pool.query(
+    `update recipes set definition = jsonb_set(definition, '{scrapingPriority}', '{"base": 7}')`,
+  );
+  await expect(
+    synchronizeCollectorSchedules(pool, loadCollectorScheduleConfig(cadence)),
+  ).rejects.toThrow();
+  expect(await scheduleRows()).toEqual(second);
+});
+
+it('validates configured priorities before importing any catalog recipe', async () => {
+  const root = await mkdtemp(resolve(tmpdir(), 'worksmith-priority-catalog-'));
+  const { definition } = (await loadRecipeCatalog(catalog))[0]!;
+  await writeFile(
+    resolve(root, 'recipe.json'),
+    JSON.stringify({ ...definition, scrapingPriority: { output: 7 } }),
+  );
+  const previous = await pool.query(
+    'select * from market_admin_settings where id = 1',
+  );
+  try {
+    await pool.query('delete from market_admin_settings where id = 1');
+    for (const dryRun of [true, false]) {
+      await expect(
+        synchronizeStoredRecipeCatalog(root, pool, { dryRun }),
+      ).rejects.toThrow(/period for Trade pool 7/);
+      expect(await repositories.recipes.listAll()).toHaveLength(0);
+    }
+    await pool.query(
+      `insert into market_admin_settings (id, settings) values (1, '{"tradePoolMinutes":{"1":180,"2":720,"7":1440}}')`,
+    );
+    expect(
+      (await synchronizeStoredRecipeCatalog(root, pool, {})).created,
+    ).toEqual([definition.id]);
+  } finally {
+    await pool.query('delete from market_admin_settings where id = 1');
+    if (previous.rows[0]) {
+      const { version, settings, updated_at } = previous.rows[0];
+      await pool.query(
+        'insert into market_admin_settings (id,version,settings,updated_at) values (1,$1,$2,$3)',
+        [version, settings, updated_at],
+      );
+    }
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 it('rolls all recipe targets to a new league while retaining disabled old history', async () => {
   const previous = await seedPrerequisites('Standard');
@@ -387,7 +479,8 @@ it('ranks Allflame research queries only after three complete captures', async (
   expect(rows).toHaveLength(2);
   expect(
     rows.every(
-      ({ enabled, intervalMinutes }) => enabled && intervalMinutes === 360,
+      ({ enabled, intervalMinutes, scrapingPriority }) =>
+        enabled && intervalMinutes === 360 && scrapingPriority === null,
     ),
   ).toBe(true);
   expect(new Set(rows.map(({ key }) => key)).size).toBe(2);

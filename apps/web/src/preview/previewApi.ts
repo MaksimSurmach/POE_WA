@@ -49,6 +49,7 @@ const unavailable = () =>
     { status: 403 },
   );
 const configured: MarketAdminSettingsResponse['configured'] = {
+  tradePoolMinutes: { '1': 180, '2': 720 },
   automaticRefreshEnabled: true,
   scheduledCollectionEnabled: true,
   collectionsPaused: false,
@@ -218,6 +219,19 @@ export function createPreviewFetch(): typeof fetch {
           sessionCheckedAt: at,
         },
         latestRequest: null,
+        tradePools: [
+          {
+            league: league.name,
+            priority: 1,
+            periodMinutes: 180,
+            targets: 12,
+            checked: 7,
+            errors: 1,
+            nextSlotAt: '2026-11-11T13:00:00.000Z',
+            overdueSeconds: 0,
+            reason: 'slot',
+          },
+        ],
         lockHeld: true,
         nextDueAt: '2026-11-11T13:00:00.000Z',
       };

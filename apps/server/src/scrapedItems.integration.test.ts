@@ -902,6 +902,7 @@ describe('configured scraped items', () => {
         job: { id: string },
         signal: AbortSignal,
       ) => Promise<CollectorResult>,
+      now = () => new Date(),
     ) {
       const handler = vi.fn(handle);
       const stop = new AbortController();
@@ -916,6 +917,7 @@ describe('configured scraped items', () => {
           retention: handler,
         },
         jitterMs: () => 0,
+        now,
         maxIdleMs: 200,
       });
       workers.push(worker);
@@ -954,6 +956,14 @@ describe('configured scraped items', () => {
         "update collector_schedule set next_due_at = now() + interval '1 day'",
       );
 
+    // Admit the requested targets and advance past shared pacing between captures.
+    async function admitSlots(keys: string[]) {
+      await pool.query(
+        'update collector_schedule set next_due_at = now() where key = any($1)',
+        [keys],
+      );
+    }
+
     it('runs only the selected search and ties the result to that request, item revision and capture', async () => {
       await later();
       const output = await item('output');
@@ -991,7 +1001,15 @@ describe('configured scraped items', () => {
         service.readTest(base.id, test.requestId),
       ).rejects.toMatchObject({ code: 'PERSISTENCE_NOT_FOUND' });
 
-      const { handler } = collect(async () => success(3));
+      let clock = Date.now();
+      await admitSlots([output.query.key!, base.query.key!]);
+      const { handler } = collect(
+        async () => {
+          clock += 60 * 60_000;
+          return success(3);
+        },
+        () => new Date(clock),
+      );
       await vi.waitFor(
         async () => {
           expect(
@@ -1033,6 +1051,8 @@ describe('configured scraped items', () => {
       );
 
       // An edit makes the old result history, never the current one.
+      stops.at(-1)!.abort();
+      await workers.at(-1);
       const edit = await service.save(output.id, {
         expectedRevision: 1,
         spec: edited(output.spec, (draft) => {
@@ -1356,7 +1376,15 @@ describe('configured scraped items', () => {
         status: 'blocked',
         reason: 'PROVIDER_CHALLENGE',
       };
-      const { handler } = collect(async () => outcome);
+      let clock = Date.now();
+      await admitSlots([output.query.key!]);
+      const { handler } = collect(
+        async () => {
+          clock += 60 * 60_000;
+          return outcome;
+        },
+        () => new Date(clock),
+      );
       await vi.waitFor(
         async () =>
           expect(
@@ -1379,6 +1407,7 @@ describe('configured scraped items', () => {
         'update collector_state set blocked_reason = null where id = 1',
       );
       outcome = success(1);
+      await admitSlots([output.query.key!, (await item('base')).query.key!]);
       const recipeRun = await enqueueRunRequest(pool, recipeId);
       await vi.waitFor(
         async () =>
