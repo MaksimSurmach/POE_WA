@@ -132,6 +132,14 @@ test('market tiles explain their metrics on hover and keyboard focus, including 
   await tiny.click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(tooltip).toBeHidden();
+  const group = page.locator('.market-map-group').first();
+  await group.evaluate((node) => {
+    node.style.width = '4px';
+    node.style.height = '4px';
+  });
+  const groupContent = await group.locator('.market-map-tiles').boundingBox();
+  expect(groupContent?.width).toBe(4);
+  expect(groupContent?.height).toBe(4);
 
   await page.goto('/?size=asking-price&currency=chaos');
   const unsized = page

@@ -119,7 +119,7 @@
     container-type: size;
     container-name: market-group;
     position: absolute;
-    border: 3px solid white;
+    border: 0;
     min-width: 0;
     overflow: hidden;
     display: flex;
@@ -613,7 +613,7 @@
   .market-tile:focus-visible {
     outline-offset: -3px;
   }
-  @container market-group (max-height:48px) {
+  @container market-group (max-height:54px) {
     .market-map-group h3 {
       display: none;
     }
