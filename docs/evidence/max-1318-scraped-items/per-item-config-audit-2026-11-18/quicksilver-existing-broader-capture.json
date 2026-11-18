@@ -1,0 +1,78 @@
+{
+  "readAt": "2026-11-18T11:36:34.643Z",
+  "scope": "Existing broader Mageblood normal capture, not a new control or current asking-price claim. Raw hybrid prefix values explain why these rows fail the Alchemist duration goal.",
+  "examples": [
+    {
+      "queryKey": "6f248363c49ee0e7c4ba5b464867425e8d955fc72ff09db94d4472671315f17f",
+      "captureId": "3ee1584f-7fb3-4b3c-aea8-628a9bc15233",
+      "capturedAt": "2026-11-18T09:49:53.686Z",
+      "typeLine": "Dabbler's Quicksilver Flask of the Cheetah",
+      "explicit": [
+        {
+          "id": "stat.explicit.stat_1256719186",
+          "domain": "explicit",
+          "tiers": ["P2"],
+          "text": "31% reduced Duration"
+        },
+        {
+          "id": "stat.explicit.stat_2448920197",
+          "domain": "explicit",
+          "tiers": ["P2"],
+          "text": "25% increased effect"
+        },
+        {
+          "id": "stat.explicit.stat_3182498570",
+          "domain": "explicit",
+          "tiers": ["S1"],
+          "text": "14% increased Movement Speed during Effect"
+        }
+      ],
+      "enchant": [
+        {
+          "id": "stat.enchant.stat_2448920197",
+          "text": "70% increased effect"
+        },
+        {
+          "id": "stat.enchant.stat_4123533923",
+          "text": "Gains no Charges during Effect"
+        }
+      ]
+    },
+    {
+      "queryKey": "6f248363c49ee0e7c4ba5b464867425e8d955fc72ff09db94d4472671315f17f",
+      "captureId": "3ee1584f-7fb3-4b3c-aea8-628a9bc15233",
+      "capturedAt": "2026-11-18T09:49:53.686Z",
+      "typeLine": "Dabbler's Quicksilver Flask of the Cheetah",
+      "explicit": [
+        {
+          "id": "stat.explicit.stat_1256719186",
+          "domain": "explicit",
+          "tiers": ["P2"],
+          "text": "31% reduced Duration"
+        },
+        {
+          "id": "stat.explicit.stat_2448920197",
+          "domain": "explicit",
+          "tiers": ["P2"],
+          "text": "25% increased effect"
+        },
+        {
+          "id": "stat.explicit.stat_3182498570",
+          "domain": "explicit",
+          "tiers": ["S1"],
+          "text": "14% increased Movement Speed during Effect"
+        }
+      ],
+      "enchant": [
+        {
+          "id": "stat.enchant.stat_2448920197",
+          "text": "70% increased effect"
+        },
+        {
+          "id": "stat.enchant.stat_4123533923",
+          "text": "Gains no Charges during Effect"
+        }
+      ]
+    }
+  ]
+}

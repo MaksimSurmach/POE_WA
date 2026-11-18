@@ -1,0 +1,3905 @@
+{
+  "summary": {
+    "checkedAt": "2026-11-18T12:08:16.485Z",
+    "recipes": 72,
+    "currentComparableQuotes": 34,
+    "profilesWithCurrentKeyCapture": 128,
+    "uniqueTradeQueries": 125,
+    "emptyProfileCaptures": 7,
+    "emptyUniqueQueries": 6,
+    "nonemptyWithoutAnyMatchedItem": [],
+    "scope": "Post-rarity-fix read of all72 current API evaluations and exact underlying real capture identities. Existing captures are reused for unchanged keys; only four corrected rare groups were newly tested. Freshness/partial/empty rules remain unchanged; this is not a second full125-query batch."
+  },
+  "recipes": [
+    {
+      "id": "amethyst-ring-hunter-caster",
+      "evaluation": {
+        "recipeId": "amethyst-ring-hunter-caster",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "e7527b05-fa8e-4600-9ef6-2cffdc8b0882",
+        "queryKey": "e714d9495933142477e12f876b2e143422d5351237fd3e31ee0fe0936cbbc305",
+        "capture": {
+          "captureId": "75acbed1-dbc0-453b-b346-ea5898b82d2a",
+          "capturedAt": "2026-11-18T11:37:24.940Z",
+          "coverage": "partial",
+          "durationMs": 27236,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "e714d9495933142477e12f876b2e143422d5351237fd3e31ee0fe0936cbbc305",
+          "reportedTotal": 203,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "84d5bf63-970c-46c2-95e0-84bdbd2bb12a",
+        "queryKey": "f87272eb31327690f354ff40789d67523b7808c014e5c5e71efa2ea11848e146",
+        "capture": {
+          "captureId": "b424c4f2-3883-4ef5-904a-fda03dacbe49",
+          "capturedAt": "2026-11-18T09:28:40.181Z",
+          "coverage": "complete",
+          "durationMs": 44419,
+          "fetched": 30,
+          "partialReason": null,
+          "queryVersion": "f87272eb31327690f354ff40789d67523b7808c014e5c5e71efa2ea11848e146",
+          "reportedTotal": 30,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads",
+      "evaluation": {
+        "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads",
+        "confidence": "low",
+        "source": {
+          "captureId": "a2dd86e9-051c-44c1-8bd7-c7cfd77291e1",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:55:29.362Z",
+          "comparableSellers": 32,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 450,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "3b90fc29-13a9-4917-97ff-95f41301879f",
+        "queryKey": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+        "capture": {
+          "captureId": "b4295d21-03ae-409c-acd5-3ef3373ed461",
+          "capturedAt": "2026-11-18T12:03:13.057Z",
+          "coverage": "complete",
+          "durationMs": 759,
+          "fetched": 10,
+          "partialReason": null,
+          "queryVersion": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+          "reportedTotal": 10,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "2e0a48c7-bf58-4297-a2cb-800a6be345a5",
+        "queryKey": "c59a12ec3cf14a51783090ea096e41735b1133d5051b2a2029740b04f1157215",
+        "capture": {
+          "captureId": "a2dd86e9-051c-44c1-8bd7-c7cfd77291e1",
+          "capturedAt": "2026-11-18T11:55:29.362Z",
+          "coverage": "complete",
+          "durationMs": 88931,
+          "fetched": 51,
+          "partialReason": null,
+          "queryVersion": "c59a12ec3cf14a51783090ea096e41735b1133d5051b2a2029740b04f1157215",
+          "reportedTotal": 51,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+      "evaluation": {
+        "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+        "confidence": "low",
+        "source": {
+          "captureId": "a2dd86e9-051c-44c1-8bd7-c7cfd77291e1",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:55:29.362Z",
+          "comparableSellers": 32,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 450,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "b26a9fe1-b595-4e7d-b231-edb17809448e",
+        "queryKey": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+        "capture": {
+          "captureId": "b4295d21-03ae-409c-acd5-3ef3373ed461",
+          "capturedAt": "2026-11-18T12:03:13.057Z",
+          "coverage": "complete",
+          "durationMs": 759,
+          "fetched": 10,
+          "partialReason": null,
+          "queryVersion": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+          "reportedTotal": 10,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "2e0a48c7-bf58-4297-a2cb-800a6be345a5",
+        "queryKey": "c59a12ec3cf14a51783090ea096e41735b1133d5051b2a2029740b04f1157215",
+        "capture": {
+          "captureId": "a2dd86e9-051c-44c1-8bd7-c7cfd77291e1",
+          "capturedAt": "2026-11-18T11:55:29.362Z",
+          "coverage": "complete",
+          "durationMs": 88931,
+          "fetched": 51,
+          "partialReason": null,
+          "queryVersion": "c59a12ec3cf14a51783090ea096e41735b1133d5051b2a2029740b04f1157215",
+          "reportedTotal": 51,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering",
+      "evaluation": {
+        "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "3b90fc29-13a9-4917-97ff-95f41301879f",
+        "queryKey": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+        "capture": {
+          "captureId": "b4295d21-03ae-409c-acd5-3ef3373ed461",
+          "capturedAt": "2026-11-18T12:03:13.057Z",
+          "coverage": "complete",
+          "durationMs": 759,
+          "fetched": 10,
+          "partialReason": null,
+          "queryVersion": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+          "reportedTotal": 10,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "b1309e59-1178-4086-8f42-6fd2ba9f4efb",
+        "queryKey": "d24f567b66c48346e662bf11470cb100468abe75145a0f4ca7c0811145b8ec53",
+        "capture": {
+          "captureId": "3b4adb02-be29-4dfd-a308-e7dbcc6f9d7a",
+          "capturedAt": "2026-11-18T09:43:48.537Z",
+          "coverage": "complete",
+          "durationMs": 15479,
+          "fetched": 11,
+          "partialReason": null,
+          "queryVersion": "d24f567b66c48346e662bf11470cb100468abe75145a0f4ca7c0811145b8ec53",
+          "reportedTotal": 11,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged",
+      "evaluation": {
+        "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "b26a9fe1-b595-4e7d-b231-edb17809448e",
+        "queryKey": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+        "capture": {
+          "captureId": "b4295d21-03ae-409c-acd5-3ef3373ed461",
+          "capturedAt": "2026-11-18T12:03:13.057Z",
+          "coverage": "complete",
+          "durationMs": 759,
+          "fetched": 10,
+          "partialReason": null,
+          "queryVersion": "3af7f2b398e31d4a5aa9a9a44a2e5df545502fa39da82ce842fe06cfaeaa9f69",
+          "reportedTotal": 10,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "b1309e59-1178-4086-8f42-6fd2ba9f4efb",
+        "queryKey": "d24f567b66c48346e662bf11470cb100468abe75145a0f4ca7c0811145b8ec53",
+        "capture": {
+          "captureId": "3b4adb02-be29-4dfd-a308-e7dbcc6f9d7a",
+          "capturedAt": "2026-11-18T09:43:48.537Z",
+          "coverage": "complete",
+          "durationMs": 15479,
+          "fetched": 11,
+          "partialReason": null,
+          "queryVersion": "d24f567b66c48346e662bf11470cb100468abe75145a0f4ca7c0811145b8ec53",
+          "reportedTotal": 11,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "chaos-large-cluster-grim-oath-touch-of-cruelty-wicked-pall",
+      "evaluation": {
+        "recipeId": "chaos-large-cluster-grim-oath-touch-of-cruelty-wicked-pall",
+        "confidence": "low",
+        "source": {
+          "captureId": "92cb36df-f1df-4da7-b6bb-320170e82513",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:59:26.650Z",
+          "comparableSellers": 11,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 70,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "2b80402e-3b5f-46d9-9910-3bf1632c0f15",
+        "queryKey": "04cc7c66453546e78eb5f9903f2921f6552c8e3c5c963b4e127cd2f2c03f80b0",
+        "capture": {
+          "captureId": "564bb41e-254a-405b-b72b-d60d47da9f1f",
+          "capturedAt": "2026-11-18T11:43:33.269Z",
+          "coverage": "complete",
+          "durationMs": 14665,
+          "fetched": 5,
+          "partialReason": null,
+          "queryVersion": "04cc7c66453546e78eb5f9903f2921f6552c8e3c5c963b4e127cd2f2c03f80b0",
+          "reportedTotal": 5,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "98431315-421c-40ee-b8a9-8100c4e2f7c9",
+        "queryKey": "745ab45afbd67ca294987f04cb308b64215c9c3f4261f3a54ca3864d590f37d3",
+        "capture": {
+          "captureId": "92cb36df-f1df-4da7-b6bb-320170e82513",
+          "capturedAt": "2026-11-18T11:59:26.650Z",
+          "coverage": "complete",
+          "durationMs": 29492,
+          "fetched": 12,
+          "partialReason": null,
+          "queryVersion": "745ab45afbd67ca294987f04cb308b64215c9c3f4261f3a54ca3864d590f37d3",
+          "reportedTotal": 12,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall",
+      "evaluation": {
+        "recipeId": "chaos-large-cluster-touch-of-cruelty-unholy-grace-wicked-pall",
+        "confidence": "low",
+        "source": {
+          "captureId": "f71bd3bd-69d8-40fd-b293-7bb4a59a9bdb",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:56:58.803Z",
+          "comparableSellers": 24,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 70,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "2b80402e-3b5f-46d9-9910-3bf1632c0f15",
+        "queryKey": "04cc7c66453546e78eb5f9903f2921f6552c8e3c5c963b4e127cd2f2c03f80b0",
+        "capture": {
+          "captureId": "564bb41e-254a-405b-b72b-d60d47da9f1f",
+          "capturedAt": "2026-11-18T11:43:33.269Z",
+          "coverage": "complete",
+          "durationMs": 14665,
+          "fetched": 5,
+          "partialReason": null,
+          "queryVersion": "04cc7c66453546e78eb5f9903f2921f6552c8e3c5c963b4e127cd2f2c03f80b0",
+          "reportedTotal": 5,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "80565fa8-99de-47cb-8d77-a02ca31cbaf6",
+        "queryKey": "b123f8411b9cfe84236249c751c906f6d951ca1a5e75ab3294c51ddc10a530d1",
+        "capture": {
+          "captureId": "f71bd3bd-69d8-40fd-b293-7bb4a59a9bdb",
+          "capturedAt": "2026-11-18T11:56:58.803Z",
+          "coverage": "complete",
+          "durationMs": 43948,
+          "fetched": 29,
+          "partialReason": null,
+          "queryVersion": "b123f8411b9cfe84236249c751c906f6d951ca1a5e75ab3294c51ddc10a530d1",
+          "reportedTotal": 29,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "chimerascale-gauntlets-fractured-suppression-zeal",
+      "evaluation": {
+        "recipeId": "chimerascale-gauntlets-fractured-suppression-zeal",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "b84ee951-3fc4-487c-a084-077c0858f583",
+        "queryKey": "aa80e35e8d3b9efe3cf0a98998541363c753fb61cfb93a07629335d02da3d810",
+        "capture": {
+          "captureId": "d528d506-3a29-457a-8818-c0e622e8af25",
+          "capturedAt": "2026-11-18T10:30:54.915Z",
+          "coverage": "complete",
+          "durationMs": 779,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "aa80e35e8d3b9efe3cf0a98998541363c753fb61cfb93a07629335d02da3d810",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "00fce1f0-aab9-4ce8-9770-dc4e1d20bea4",
+        "queryKey": "30ce90ade8e677e61a9f3ef2b6780f9ec62ed66a0b60b0731fb110c7e803b43a",
+        "capture": {
+          "captureId": "e47460a3-7a43-4cab-ab2b-8d4128e4a94e",
+          "capturedAt": "2026-11-18T09:38:57.214Z",
+          "coverage": "partial",
+          "durationMs": 172891,
+          "fetched": 100,
+          "partialReason": "MIXED_CURRENCY_TOTAL_MISMATCH",
+          "queryVersion": "30ce90ade8e677e61a9f3ef2b6780f9ec62ed66a0b60b0731fb110c7e803b43a",
+          "reportedTotal": 226,
+          "slices": 2
+        }
+      }
+    },
+    {
+      "id": "cold-large-cluster-sadist-snowstorm-widespread-destruction",
+      "evaluation": {
+        "recipeId": "cold-large-cluster-sadist-snowstorm-widespread-destruction",
+        "confidence": "low",
+        "source": {
+          "captureId": "65596f45-bd66-4ce3-a04b-0fa767f3d220",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:59:56.266Z",
+          "comparableSellers": 4,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 1561.6,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "ed5ccb21-1c57-4c77-b589-067d8a68ea3e",
+        "queryKey": "ab4c9b4fbc7d3d90fb40e1be1fcee78cb80637e6c6dbf986e4f5288813da35e6",
+        "capture": {
+          "captureId": "b54db107-fd96-44d3-8adb-82d1d9f75a04",
+          "capturedAt": "2026-11-18T11:34:12.770Z",
+          "coverage": "complete",
+          "durationMs": 26104,
+          "fetched": 11,
+          "partialReason": null,
+          "queryVersion": "ab4c9b4fbc7d3d90fb40e1be1fcee78cb80637e6c6dbf986e4f5288813da35e6",
+          "reportedTotal": 11,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "648c29b4-c92f-4985-bc66-64e57c4d64ef",
+        "queryKey": "95807758a8c802bc6215348e5492ffd7aec3e32348fa304c17df0b3807b7bf64",
+        "capture": {
+          "captureId": "65596f45-bd66-4ce3-a04b-0fa767f3d220",
+          "capturedAt": "2026-11-18T11:59:56.266Z",
+          "coverage": "complete",
+          "durationMs": 14655,
+          "fetched": 4,
+          "partialReason": null,
+          "queryVersion": "95807758a8c802bc6215348e5492ffd7aec3e32348fa304c17df0b3807b7bf64",
+          "reportedTotal": 4,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "fire-large-cluster-prismatic-heart-smoking-remains-widespread-destruction",
+      "evaluation": {
+        "recipeId": "fire-large-cluster-prismatic-heart-smoking-remains-widespread-destruction",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "0d5a2d33-7f42-441b-a238-f4c72e54c83b",
+        "queryKey": "872018f2a8bc29a9c7ba5569c5b86d74211a32a4d1b52c8671d8130d6159e0cf",
+        "capture": {
+          "captureId": "706847fc-3a90-4900-a356-c31e8c9e61b5",
+          "capturedAt": "2026-11-18T10:37:13.392Z",
+          "coverage": "complete",
+          "durationMs": 42948,
+          "fetched": 1,
+          "partialReason": null,
+          "queryVersion": "872018f2a8bc29a9c7ba5569c5b86d74211a32a4d1b52c8671d8130d6159e0cf",
+          "reportedTotal": 1,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "7943d465-6a07-4f1e-9da1-c15a8944e9b1",
+        "queryKey": "0fb47377641292d397d2ed5398fed6a2ba34b38a38d83f3cf190ec380c44806a",
+        "capture": {
+          "captureId": "c7242213-ab9f-4d2f-9e0b-e2ac6fa878b2",
+          "capturedAt": "2026-11-18T09:51:07.022Z",
+          "coverage": "complete",
+          "durationMs": 45337,
+          "fetched": 34,
+          "partialReason": null,
+          "queryVersion": "0fb47377641292d397d2ed5398fed6a2ba34b38a38d83f3cf190ec380c44806a",
+          "reportedTotal": 34,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "harpyskin-gloves-fractured-suppression-zeal",
+      "evaluation": {
+        "recipeId": "harpyskin-gloves-fractured-suppression-zeal",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "0c44a46b-af74-43c2-a190-043b87eae1e0",
+        "queryKey": "9652e83ee6f1016830c66f0d041fe49dc8f76c53b66ec8566207150e66198af4",
+        "capture": {
+          "captureId": "4d9693cb-6711-4755-bef7-8bd8aa1908b8",
+          "capturedAt": "2026-11-18T10:30:30.424Z",
+          "coverage": "complete",
+          "durationMs": 1789,
+          "fetched": 4,
+          "partialReason": null,
+          "queryVersion": "9652e83ee6f1016830c66f0d041fe49dc8f76c53b66ec8566207150e66198af4",
+          "reportedTotal": 4,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "7d84aa0c-7d2f-416e-a94e-32da33ca4050",
+        "queryKey": "e3cb9385404d24067bc7aaebb762437b78a602ff446edc80b6a5fb314c29c757",
+        "capture": {
+          "captureId": "61eedde9-08df-4b20-9699-798f823fd4ec",
+          "capturedAt": "2026-11-18T09:48:04.938Z",
+          "coverage": "complete",
+          "durationMs": 783,
+          "fetched": 5,
+          "partialReason": null,
+          "queryVersion": "e3cb9385404d24067bc7aaebb762437b78a602ff446edc80b6a5fb314c29c757",
+          "reportedTotal": 5,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "lichs-circlet-fractured-fire-loathing",
+      "evaluation": {
+        "recipeId": "lichs-circlet-fractured-fire-loathing",
+        "confidence": "low",
+        "source": {
+          "captureId": "b4af828e-f1e8-44bf-a822-3cd2d04ac4f7",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:49:13.495Z",
+          "comparableSellers": 1,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Нет проверенной вероятности полного результата и среднего расхода для 3.30.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 780.8,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "8f0f7efc-4cfa-4ce4-9858-42b4460a1ef4",
+        "queryKey": "b7c5b1c280f7450bcd624a2fb25ea20e28ec53dee3c462253d9a880506593fc3",
+        "capture": {
+          "captureId": "fa6c72a8-a6cd-4c30-bc23-cf3300dfb2bc",
+          "capturedAt": "2026-11-18T10:30:05.952Z",
+          "coverage": "complete",
+          "durationMs": 11408,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "b7c5b1c280f7450bcd624a2fb25ea20e28ec53dee3c462253d9a880506593fc3",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "02e0ac7c-47a7-4491-8c4e-de7fa51b5213",
+        "queryKey": "d2b46fa842b05ddf2a3f9467c8382dc525f4cf1c0fbe6d22e1d2cd039485fc26",
+        "capture": {
+          "captureId": "b4af828e-f1e8-44bf-a822-3cd2d04ac4f7",
+          "capturedAt": "2026-11-18T11:49:13.495Z",
+          "coverage": "complete",
+          "durationMs": 5938,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "d2b46fa842b05ddf2a3f9467c8382dc525f4cf1c0fbe6d22e1d2cd039485fc26",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "medium-cluster-brand-remarkable-grand-design-4-passives",
+      "evaluation": {
+        "recipeId": "medium-cluster-brand-remarkable-grand-design-4-passives",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": {
+          "amount": 85.49622558,
+          "currency": "chaos"
+        },
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "9709e242-77bc-455f-8ac2-41c9102658ec",
+        "queryKey": "c75199b605d6c5955884c91b621d3a7abb0a143d4c5d46f51c6812a0b6407395",
+        "capture": {
+          "captureId": "731a0a5b-1bef-413a-987b-0766373a3d98",
+          "capturedAt": "2026-11-18T10:37:56.433Z",
+          "coverage": "partial",
+          "durationMs": 91885,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "c75199b605d6c5955884c91b621d3a7abb0a143d4c5d46f51c6812a0b6407395",
+          "reportedTotal": 131,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "f5140e61-8ee3-4924-ba5e-dc9a21913fc4",
+        "queryKey": "c01ae1361a64b194f301e75ca8748d55508f0a34ebb3c04661d10853b1219127",
+        "capture": {
+          "captureId": "6be2f5ed-dc3c-4ad7-a449-65a91c9d801b",
+          "capturedAt": "2026-11-18T09:50:42.537Z",
+          "coverage": "complete",
+          "durationMs": 776,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "c01ae1361a64b194f301e75ca8748d55508f0a34ebb3c04661d10853b1219127",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "medium-cluster-brand-remarkable-grand-design-5-passives",
+      "evaluation": {
+        "recipeId": "medium-cluster-brand-remarkable-grand-design-5-passives",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "12525308-bcd1-4e92-a80e-3d2f4bb475c5",
+        "queryKey": "58f0254ebf5e08fbcfb47eacd5c659c88db4565208ed47a37ffa241a552c4b0d",
+        "capture": {
+          "captureId": "981b0fa8-c0a6-477a-b3f1-835e6cc8cd81",
+          "capturedAt": "2026-11-18T10:26:04.253Z",
+          "coverage": "partial",
+          "durationMs": 20112,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "58f0254ebf5e08fbcfb47eacd5c659c88db4565208ed47a37ffa241a552c4b0d",
+          "reportedTotal": 155,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "80ef032f-0024-4263-9d05-35b7cb986fd2",
+        "queryKey": "8e2b00c097715d66fc19005f94005d10024c0cbec734729205b273be610b5dba",
+        "capture": {
+          "captureId": "33b86f5f-ef99-40fc-beb5-1ab9e2c46790",
+          "capturedAt": "2026-11-18T09:50:18.077Z",
+          "coverage": "complete",
+          "durationMs": 5096,
+          "fetched": 1,
+          "partialReason": null,
+          "queryVersion": "8e2b00c097715d66fc19005f94005d10024c0cbec734729205b273be610b5dba",
+          "reportedTotal": 1,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "medium-cluster-crit-pressure-points-basics-of-pain-4-passives",
+      "evaluation": {
+        "recipeId": "medium-cluster-crit-pressure-points-basics-of-pain-4-passives",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": {
+          "amount": 51.76474265,
+          "currency": "chaos"
+        },
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "c2bb8334-a14f-4de3-a299-70870d4139c7",
+        "queryKey": "c6bb5852742fbd5b8b0f93b32470c76606b211053a25a79228364ed3f7576580",
+        "capture": {
+          "captureId": "2170d012-29e9-4889-bea7-17e2a0223d78",
+          "capturedAt": "2026-11-18T11:43:57.661Z",
+          "coverage": "partial",
+          "durationMs": 20217,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "c6bb5852742fbd5b8b0f93b32470c76606b211053a25a79228364ed3f7576580",
+          "reportedTotal": 475,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "e24e0704-7885-42c4-84ab-4d8836cfcccb",
+        "queryKey": "1e38c594eb94488f3925408b15a5167678646bf0f6a7fa7e02d4d471f6c550ec",
+        "capture": {
+          "captureId": "458a65db-1f5d-4a85-9fa1-5bacd16ddc92",
+          "capturedAt": "2026-11-18T09:53:51.319Z",
+          "coverage": "complete",
+          "durationMs": 44297,
+          "fetched": 22,
+          "partialReason": null,
+          "queryVersion": "1e38c594eb94488f3925408b15a5167678646bf0f6a7fa7e02d4d471f6c550ec",
+          "reportedTotal": 22,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "medium-cluster-crit-pressure-points-basics-of-pain-5-passives",
+      "evaluation": {
+        "recipeId": "medium-cluster-crit-pressure-points-basics-of-pain-5-passives",
+        "confidence": "low",
+        "source": {
+          "captureId": "3c9e98ac-ff7d-4464-9a0d-5fe8351de6db",
+          "comparable": true,
+          "capturedAt": "2026-11-18T12:00:45.215Z",
+          "comparableSellers": 38,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Расход — модель CoE 3.30.0.1; продажи, торговое золото и время не подтверждены.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": {
+          "amount": 51.76474265,
+          "currency": "chaos"
+        },
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 80,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "d1c9f6d2-c0c0-449c-a9f5-cb8512110f61",
+        "queryKey": "06b7205faf17c8eac1d7838750d1581abab475ec0ea2a811d9d20bcb858c9981",
+        "capture": {
+          "captureId": "33ddcb07-0467-46b6-8e86-e97a329ef31e",
+          "capturedAt": "2026-11-18T11:35:08.680Z",
+          "coverage": "partial",
+          "durationMs": 29703,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "06b7205faf17c8eac1d7838750d1581abab475ec0ea2a811d9d20bcb858c9981",
+          "reportedTotal": 527,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "c6a9f80e-9132-44c6-bfa7-a53ffb0ab568",
+        "queryKey": "84506af1b85e04921afdf5261e470596e3cced0c8dfdc7a9da4999ab3e39a428",
+        "capture": {
+          "captureId": "3c9e98ac-ff7d-4464-9a0d-5fe8351de6db",
+          "capturedAt": "2026-11-18T12:00:45.215Z",
+          "coverage": "complete",
+          "durationMs": 99104,
+          "fetched": 64,
+          "partialReason": null,
+          "queryVersion": "84506af1b85e04921afdf5261e470596e3cced0c8dfdc7a9da4999ab3e39a428",
+          "reportedTotal": 64,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "medium-cluster-minion-blessed-rebirth-life-from-death-4-passives",
+      "evaluation": {
+        "recipeId": "medium-cluster-minion-blessed-rebirth-life-from-death-4-passives",
+        "confidence": "low",
+        "source": {
+          "captureId": "359980b2-a250-4f03-b7c9-b99637116b05",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:54:44.108Z",
+          "comparableSellers": 13,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Расход — модель CoE 3.30.0.1; продажи, торговое золото и время не подтверждены.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": {
+          "amount": 105.4129847,
+          "currency": "chaos"
+        },
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 290,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "abf75e9b-40eb-4d4b-83f9-80661f470110",
+        "queryKey": "7eea3040096520861448e3826e5efd01c4b325aefdfb8b5cb323c23c632224e5",
+        "capture": {
+          "captureId": "73b6f562-e5f8-4b41-8ee2-f6c1dac66421",
+          "capturedAt": "2026-11-18T11:38:50.896Z",
+          "coverage": "partial",
+          "durationMs": 29758,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "7eea3040096520861448e3826e5efd01c4b325aefdfb8b5cb323c23c632224e5",
+          "reportedTotal": 324,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "aecec201-8d82-488c-8ba2-632429888fea",
+        "queryKey": "121e8214907e66ccd2adb4042d925e7774f25f3a94d355dfa022674828b165f6",
+        "capture": {
+          "captureId": "359980b2-a250-4f03-b7c9-b99637116b05",
+          "capturedAt": "2026-11-18T11:54:44.108Z",
+          "coverage": "complete",
+          "durationMs": 45161,
+          "fetched": 34,
+          "partialReason": null,
+          "queryVersion": "121e8214907e66ccd2adb4042d925e7774f25f3a94d355dfa022674828b165f6",
+          "reportedTotal": 34,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "medium-cluster-minion-blessed-rebirth-life-from-death-5-passives",
+      "evaluation": {
+        "recipeId": "medium-cluster-minion-blessed-rebirth-life-from-death-5-passives",
+        "confidence": "low",
+        "source": {
+          "captureId": "bc5839a9-54ff-472d-9554-3bcaad979aa4",
+          "comparable": true,
+          "capturedAt": "2026-11-18T12:06:06.566Z",
+          "comparableSellers": 16,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Расход — модель CoE 3.30.0.1; продажи, торговое золото и время не подтверждены.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": {
+          "amount": 100.4129847,
+          "currency": "chaos"
+        },
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 370,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "67a7719c-910f-4656-814d-3a5617734ae9",
+        "queryKey": "645711f70fa0d8291f3cbb31cbc039eb7b2db79cbbe4da56b81d8d608c3c61e5",
+        "capture": {
+          "captureId": "9fe2d153-5fa4-4ee9-b00e-69aa7de7214f",
+          "capturedAt": "2026-11-18T11:36:52.374Z",
+          "coverage": "partial",
+          "durationMs": 29591,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "645711f70fa0d8291f3cbb31cbc039eb7b2db79cbbe4da56b81d8d608c3c61e5",
+          "reportedTotal": 533,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "49b405a8-e9be-4329-9bb5-30a1d58b455e",
+        "queryKey": "2db3c1f9b0cc7ee979609617e9216cbe3d62276b3ffec426bb67b9e6805ca30e",
+        "capture": {
+          "captureId": "bc5839a9-54ff-472d-9554-3bcaad979aa4",
+          "capturedAt": "2026-11-18T12:06:06.566Z",
+          "coverage": "complete",
+          "durationMs": 73738,
+          "fetched": 48,
+          "partialReason": null,
+          "queryVersion": "2db3c1f9b0cc7ee979609617e9216cbe3d62276b3ffec426bb67b9e6805ca30e",
+          "reportedTotal": 48,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "medium-cluster-warcry-mob-mentality-lead-by-example-4-passives",
+      "evaluation": {
+        "recipeId": "medium-cluster-warcry-mob-mentality-lead-by-example-4-passives",
+        "confidence": "low",
+        "source": {
+          "captureId": "da161a7a-737e-4f73-bff2-054e96d668e0",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:21:42.871Z",
+          "comparableSellers": 31,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Расход — модель CoE 3.30.0.1; продажи, торговое золото и время не подтверждены.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": {
+          "amount": 134.6056981,
+          "currency": "chaos"
+        },
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 120,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "a1383c68-aa70-4d51-94b6-29c716c8ba77",
+        "queryKey": "bb754bdd9741759d5d6551796a2c8684ce2fa8e599e10a5adcd32c9f098d707b",
+        "capture": {
+          "captureId": "eaa99736-c584-42f4-a1d5-a9d6bd098402",
+          "capturedAt": "2026-11-18T11:32:09.999Z",
+          "coverage": "partial",
+          "durationMs": 15747,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "bb754bdd9741759d5d6551796a2c8684ce2fa8e599e10a5adcd32c9f098d707b",
+          "reportedTotal": 321,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "1c15e19a-24b8-4b64-b90a-2e621d6fa66f",
+        "queryKey": "00c0ae9d323fab320a688d14166385eb980bad0f8930773a2ecd296cbe45ea74",
+        "capture": {
+          "captureId": "da161a7a-737e-4f73-bff2-054e96d668e0",
+          "capturedAt": "2026-11-18T10:21:42.871Z",
+          "coverage": "complete",
+          "durationMs": 88743,
+          "fetched": 60,
+          "partialReason": null,
+          "queryVersion": "00c0ae9d323fab320a688d14166385eb980bad0f8930773a2ecd296cbe45ea74",
+          "reportedTotal": 60,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "medium-cluster-warcry-mob-mentality-lead-by-example-5-passives",
+      "evaluation": {
+        "recipeId": "medium-cluster-warcry-mob-mentality-lead-by-example-5-passives",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": {
+          "amount": 133.6056981,
+          "currency": "chaos"
+        },
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "ae917d6b-6fb1-4a09-827b-d21485e1e400",
+        "queryKey": "a3401fae646d3ddc3366f86c34f1db971147abc8c170b9468b23994a608de263",
+        "capture": {
+          "captureId": "b3bebc0b-3aa7-48ab-a94c-3fd710ca46f8",
+          "capturedAt": "2026-11-18T11:38:21.077Z",
+          "coverage": "partial",
+          "durationMs": 29649,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "a3401fae646d3ddc3366f86c34f1db971147abc8c170b9468b23994a608de263",
+          "reportedTotal": 434,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "a1af643a-a8b8-4289-8e2c-9589d973ffb4",
+        "queryKey": "c9ac138a231a08deaf434e1bde1b1be343660870458ac643cf298ab4dbcc6059",
+        "capture": {
+          "captureId": "65f2fac9-5bed-4cae-b56c-20ad88994d1f",
+          "capturedAt": "2026-11-18T09:51:52.259Z",
+          "coverage": "complete",
+          "durationMs": 118915,
+          "fetched": 75,
+          "partialReason": null,
+          "queryVersion": "c9ac138a231a08deaf434e1bde1b1be343660870458ac643cf298ab4dbcc6059",
+          "reportedTotal": 75,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "minion-bone-helmet-greed",
+      "evaluation": {
+        "recipeId": "minion-bone-helmet-greed",
+        "confidence": "low",
+        "source": {
+          "captureId": "b1272c52-2478-4718-afb7-17cb0cfb4ef4",
+          "comparable": false,
+          "capturedAt": "2026-11-18T11:25:17.560Z",
+          "comparableSellers": 0,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "No matching Trade sellers for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "059fcc8f-db61-4c43-828b-57b173828970",
+        "queryKey": "6036677b7945ff52a386e6a52ba2313bfc4ef933cd02a2970d46cc79f5542f94",
+        "capture": {
+          "captureId": "47c243bd-d72a-4dc1-983e-44a993d95c00",
+          "capturedAt": "2026-11-18T11:39:50.392Z",
+          "coverage": "partial",
+          "durationMs": 44449,
+          "fetched": 23,
+          "partialReason": null,
+          "queryVersion": "6036677b7945ff52a386e6a52ba2313bfc4ef933cd02a2970d46cc79f5542f94",
+          "reportedTotal": 23,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "8d791780-f257-4075-90e3-4a9513b874cc",
+        "queryKey": "0b4313e2cd943b76488cdb6134a15d034122e50b8a47b2e91eab0568c520a131",
+        "capture": {
+          "captureId": "b1272c52-2478-4718-afb7-17cb0cfb4ef4",
+          "capturedAt": "2026-11-18T11:25:17.560Z",
+          "coverage": "complete",
+          "durationMs": 477,
+          "fetched": 0,
+          "partialReason": null,
+          "queryVersion": "0b4313e2cd943b76488cdb6134a15d034122e50b8a47b2e91eab0568c520a131",
+          "reportedTotal": 0,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "minion-convoking-wand-fear-trigger",
+      "evaluation": {
+        "recipeId": "minion-convoking-wand-fear-trigger",
+        "confidence": "low",
+        "source": {
+          "captureId": "a52a543c-ab78-482b-b6c6-ad0867cbfcf1",
+          "comparable": true,
+          "capturedAt": "2026-11-18T12:07:23.320Z",
+          "comparableSellers": 9,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:49.781Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 2732.8,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "b9a05f3c-1263-4e6a-a57a-f5f2bdb1ea14",
+        "queryKey": "9729ddc7eb551380ca9973488a286ee83e12bd7d78859bfcfe269d7f0a2571b3",
+        "capture": {
+          "captureId": "52ef5f8f-76d7-4250-a212-3747ac58d371",
+          "capturedAt": "2026-11-18T11:35:38.449Z",
+          "coverage": "complete",
+          "durationMs": 14644,
+          "fetched": 1,
+          "partialReason": null,
+          "queryVersion": "9729ddc7eb551380ca9973488a286ee83e12bd7d78859bfcfe269d7f0a2571b3",
+          "reportedTotal": 1,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "0d2597d0-5e35-48cd-94c9-492d3326ff60",
+        "queryKey": "a9eab0bdfcbc31d9b4d8e2fc97f99e3e6f344b8f16b511a2a10dce2fb94eb924",
+        "capture": {
+          "captureId": "a52a543c-ab78-482b-b6c6-ad0867cbfcf1",
+          "capturedAt": "2026-11-18T12:07:23.320Z",
+          "coverage": "complete",
+          "durationMs": 26844,
+          "fetched": 13,
+          "partialReason": null,
+          "queryVersion": "a9eab0bdfcbc31d9b4d8e2fc97f99e3e6f344b8f16b511a2a10dce2fb94eb924",
+          "reportedTotal": 13,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "minion-convoking-wand-four-fossil",
+      "evaluation": {
+        "recipeId": "minion-convoking-wand-four-fossil",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "7605c8e4-3f18-4093-bd4a-0466da76ccd6",
+        "queryKey": "25aad7330ae0939cf9505310151a3e259b9f13be4a393f6767aa694639026af4",
+        "capture": {
+          "captureId": "1a4c303e-ec13-4da2-94e1-d9bb8b46e7ba",
+          "capturedAt": "2026-11-18T11:33:48.410Z",
+          "coverage": "partial",
+          "durationMs": 20910,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "25aad7330ae0939cf9505310151a3e259b9f13be4a393f6767aa694639026af4",
+          "reportedTotal": 593,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "68298231-06d6-4531-9ac0-fa0c4a089ab0",
+        "queryKey": "8b3b16f537910adad1c8bdc8f806406f0ab82d63b4ed90b9777d9eb8c68ea777",
+        "capture": {
+          "captureId": "8bcd3862-f3ef-497f-b3a5-5bc384523fb1",
+          "capturedAt": "2026-11-18T10:05:38.048Z",
+          "coverage": "partial",
+          "durationMs": 232594,
+          "fetched": 107,
+          "partialReason": "PRICE_SLICE_LIMIT",
+          "queryVersion": "8b3b16f537910adad1c8bdc8f806406f0ab82d63b4ed90b9777d9eb8c68ea777",
+          "reportedTotal": 186,
+          "slices": 5
+        }
+      }
+    },
+    {
+      "id": "minion-fossilised-shield-greed",
+      "evaluation": {
+        "recipeId": "minion-fossilised-shield-greed",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "b3acce4b-6723-44de-bc95-cf6755e60df0",
+        "queryKey": "9af1dd872b07d9a54da5bd25e8b7bb3fcfc88ab0cae382fd6fcb1cdc767037bf",
+        "capture": {
+          "captureId": "79f79f43-89be-4ae1-8a82-227b65fac2e8",
+          "capturedAt": "2026-11-18T11:42:33.928Z",
+          "coverage": "partial",
+          "durationMs": 29681,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "9af1dd872b07d9a54da5bd25e8b7bb3fcfc88ab0cae382fd6fcb1cdc767037bf",
+          "reportedTotal": 155,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "b67759f3-0efc-4729-bed3-8d94a2b0648d",
+        "queryKey": "e36ce658ad6fc808461e9ea6c4a3a9279c8e5c0e7124240b672dc8026f850b85",
+        "capture": {
+          "captureId": "8d060093-1902-4a7e-afd7-609c63ed7ae1",
+          "capturedAt": "2026-11-18T09:44:13.003Z",
+          "coverage": "complete",
+          "durationMs": 5792,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "e36ce658ad6fc808461e9ea6c4a3a9279c8e5c0e7124240b672dc8026f850b85",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "physical-large-cluster-alteration",
+      "evaluation": {
+        "recipeId": "physical-large-cluster-alteration",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "c5b0301c-e75e-4216-ac5f-1241891ce984",
+        "queryKey": "3f54abd85c5603dcbfb5efe9e1c06c19e34b00101328e6fc86d3d3b8f08ca2ca",
+        "capture": {
+          "captureId": "5f5bbf4f-a0c0-417d-b17e-aca98b006554",
+          "capturedAt": "2026-11-18T10:28:07.308Z",
+          "coverage": "partial",
+          "durationMs": 45163,
+          "fetched": 38,
+          "partialReason": null,
+          "queryVersion": "3f54abd85c5603dcbfb5efe9e1c06c19e34b00101328e6fc86d3d3b8f08ca2ca",
+          "reportedTotal": 38,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "ca3e0748-ed69-4171-8e47-04f8aaf60e37",
+        "queryKey": "2b1f3f8e4702b9820330e58ec588a6ab925e422586db93ce5992eda5f8440932",
+        "capture": {
+          "captureId": "024aee2d-e5cf-4063-9d9a-5efeed973ddc",
+          "capturedAt": "2026-11-18T10:05:13.503Z",
+          "coverage": "complete",
+          "durationMs": 763,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "2b1f3f8e4702b9820330e58ec588a6ab925e422586db93ce5992eda5f8440932",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "physical-large-cluster-chaos",
+      "evaluation": {
+        "recipeId": "physical-large-cluster-chaos",
+        "confidence": "low",
+        "source": {
+          "captureId": "38d4df80-7fcd-4467-94fc-5040afe58f61",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:53:31.013Z",
+          "comparableSellers": 8,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 390.4,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "d6552cc1-ee71-4397-8652-e622d9a6ba61",
+        "queryKey": "10774a713d2d9b28b85e04a7bcdd16f6acf1e952935bf7da6035665cf22a85d2",
+        "capture": {
+          "captureId": "f8e67ec3-edfe-4cb6-a0fa-322f1523d931",
+          "capturedAt": "2026-11-18T12:03:37.560Z",
+          "coverage": "partial",
+          "durationMs": 15708,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "10774a713d2d9b28b85e04a7bcdd16f6acf1e952935bf7da6035665cf22a85d2",
+          "reportedTotal": 545,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "26f01635-814b-4d03-a2e0-1667224eb823",
+        "queryKey": "1e2960e1d3a8a3c40462f221c961d26ac9cd3a0f97b9b4b1520531a0f1c84f70",
+        "capture": {
+          "captureId": "38d4df80-7fcd-4467-94fc-5040afe58f61",
+          "capturedAt": "2026-11-18T11:53:31.013Z",
+          "coverage": "complete",
+          "durationMs": 5214,
+          "fetched": 8,
+          "partialReason": null,
+          "queryVersion": "1e2960e1d3a8a3c40462f221c961d26ac9cd3a0f97b9b4b1520531a0f1c84f70",
+          "reportedTotal": 8,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "physical-large-cluster-jagged",
+      "evaluation": {
+        "recipeId": "physical-large-cluster-jagged",
+        "confidence": "low",
+        "source": {
+          "captureId": "38d4df80-7fcd-4467-94fc-5040afe58f61",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:53:31.013Z",
+          "comparableSellers": 8,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 390.4,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "d6552cc1-ee71-4397-8652-e622d9a6ba61",
+        "queryKey": "10774a713d2d9b28b85e04a7bcdd16f6acf1e952935bf7da6035665cf22a85d2",
+        "capture": {
+          "captureId": "f8e67ec3-edfe-4cb6-a0fa-322f1523d931",
+          "capturedAt": "2026-11-18T12:03:37.560Z",
+          "coverage": "partial",
+          "durationMs": 15708,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "10774a713d2d9b28b85e04a7bcdd16f6acf1e952935bf7da6035665cf22a85d2",
+          "reportedTotal": 545,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "26f01635-814b-4d03-a2e0-1667224eb823",
+        "queryKey": "1e2960e1d3a8a3c40462f221c961d26ac9cd3a0f97b9b4b1520531a0f1c84f70",
+        "capture": {
+          "captureId": "38d4df80-7fcd-4467-94fc-5040afe58f61",
+          "capturedAt": "2026-11-18T11:53:31.013Z",
+          "coverage": "complete",
+          "durationMs": 5214,
+          "fetched": 8,
+          "partialReason": null,
+          "queryVersion": "1e2960e1d3a8a3c40462f221c961d26ac9cd3a0f97b9b4b1520531a0f1c84f70",
+          "reportedTotal": 8,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "quicksilver-alchemist-cheetah",
+      "evaluation": {
+        "recipeId": "quicksilver-alchemist-cheetah",
+        "confidence": "low",
+        "source": {
+          "captureId": "4481c678-129f-4076-806b-34aad71d5d10",
+          "comparable": false,
+          "capturedAt": "2026-11-18T11:24:53.081Z",
+          "comparableSellers": 0,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "No matching Trade sellers for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "aa3bfc69-1f38-4e3f-85ff-6d81cc05e1eb",
+        "queryKey": "0d294b06d0b6e8fb3b46ebcf1ada10dac3ae1f3e50c42d630c022187857a1cde",
+        "capture": {
+          "captureId": "c149b539-7b51-446d-8fe0-5b44798a192f",
+          "capturedAt": "2026-11-18T10:41:01.941Z",
+          "coverage": "partial",
+          "durationMs": 442257,
+          "fetched": 87,
+          "partialReason": null,
+          "queryVersion": "0d294b06d0b6e8fb3b46ebcf1ada10dac3ae1f3e50c42d630c022187857a1cde",
+          "reportedTotal": 87,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "6c3ec423-1747-4956-8d51-5d851a5c8b1b",
+        "queryKey": "9c5d85b7a3a4321f1c2047a06a18e3b4c9047e73def837c41b3231e329a7d698",
+        "capture": {
+          "captureId": "4481c678-129f-4076-806b-34aad71d5d10",
+          "capturedAt": "2026-11-18T11:24:53.081Z",
+          "coverage": "complete",
+          "durationMs": 414,
+          "fetched": 0,
+          "partialReason": null,
+          "queryVersion": "9c5d85b7a3a4321f1c2047a06a18e3b4c9047e73def837c41b3231e329a7d698",
+          "reportedTotal": 0,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "quicksilver-mageblood-cheetah",
+      "evaluation": {
+        "recipeId": "quicksilver-mageblood-cheetah",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "aa3bfc69-1f38-4e3f-85ff-6d81cc05e1eb",
+        "queryKey": "0d294b06d0b6e8fb3b46ebcf1ada10dac3ae1f3e50c42d630c022187857a1cde",
+        "capture": {
+          "captureId": "c149b539-7b51-446d-8fe0-5b44798a192f",
+          "capturedAt": "2026-11-18T10:41:01.941Z",
+          "coverage": "partial",
+          "durationMs": 442257,
+          "fetched": 87,
+          "partialReason": null,
+          "queryVersion": "0d294b06d0b6e8fb3b46ebcf1ada10dac3ae1f3e50c42d630c022187857a1cde",
+          "reportedTotal": 87,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "69c48ebd-7b7c-45e2-b424-b4768075490d",
+        "queryKey": "6f248363c49ee0e7c4ba5b464867425e8d955fc72ff09db94d4472671315f17f",
+        "capture": {
+          "captureId": "3ee1584f-7fb3-4b3c-aea8-628a9bc15233",
+          "capturedAt": "2026-11-18T09:49:53.686Z",
+          "coverage": "complete",
+          "durationMs": 14637,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "6f248363c49ee0e7c4ba5b464867425e8d955fc72ff09db94d4472671315f17f",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "rf-fire-trap-any-support",
+      "evaluation": {
+        "recipeId": "rf-fire-trap-any-support",
+        "confidence": "low",
+        "source": {
+          "captureId": "06b52ef1-85af-4fa6-adbc-3c714ff6581e",
+          "comparable": false,
+          "capturedAt": "2026-11-18T11:45:32.005Z",
+          "comparableSellers": 0,
+          "coverage": "partial"
+        },
+        "profitBlockedReason": "Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "c8c53461-5c71-433a-9209-25a3ccbaaf5b",
+        "queryKey": "dca57aff9a57e153cf089c4dfdb38e9a4d62a9e6faad0522bf73fbc74e8e7204",
+        "capture": {
+          "captureId": "05d83396-f82d-4739-8d9e-7d6c1c9bd57c",
+          "capturedAt": "2026-11-18T10:39:28.352Z",
+          "coverage": "partial",
+          "durationMs": 93442,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "dca57aff9a57e153cf089c4dfdb38e9a4d62a9e6faad0522bf73fbc74e8e7204",
+          "reportedTotal": 441,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "360a3933-fc72-486c-87d3-b36deae58344",
+        "queryKey": "40e792966485ace7e18bc1e3b758a9c5f2a063b874cd1da701411b8f5070d7f8",
+        "capture": {
+          "captureId": "06b52ef1-85af-4fa6-adbc-3c714ff6581e",
+          "capturedAt": "2026-11-18T11:45:32.005Z",
+          "coverage": "partial",
+          "durationMs": 173122,
+          "fetched": 100,
+          "partialReason": "MIXED_CURRENCY_TOTAL_MISMATCH",
+          "queryVersion": "40e792966485ace7e18bc1e3b758a9c5f2a063b874cd1da701411b8f5070d7f8",
+          "reportedTotal": 128,
+          "slices": 2
+        }
+      }
+    },
+    {
+      "id": "rf-fire-trap-level-20",
+      "evaluation": {
+        "recipeId": "rf-fire-trap-level-20",
+        "confidence": "low",
+        "source": {
+          "captureId": "4a36629e-0d61-49e6-91aa-f2852781a33f",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:48:49.048Z",
+          "comparableSellers": 15,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 780.8,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "c8c53461-5c71-433a-9209-25a3ccbaaf5b",
+        "queryKey": "dca57aff9a57e153cf089c4dfdb38e9a4d62a9e6faad0522bf73fbc74e8e7204",
+        "capture": {
+          "captureId": "05d83396-f82d-4739-8d9e-7d6c1c9bd57c",
+          "capturedAt": "2026-11-18T10:39:28.352Z",
+          "coverage": "partial",
+          "durationMs": 93442,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "dca57aff9a57e153cf089c4dfdb38e9a4d62a9e6faad0522bf73fbc74e8e7204",
+          "reportedTotal": 441,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "ab44f7d4-8ffb-4a12-93f9-e9b9197bd8b5",
+        "queryKey": "3fb1b33efc07acc2ef01e18075b8a2cfa62177e2971617350ca18955ce79e884",
+        "capture": {
+          "captureId": "4a36629e-0d61-49e6-91aa-f2852781a33f",
+          "capturedAt": "2026-11-18T11:48:49.048Z",
+          "coverage": "complete",
+          "durationMs": 15669,
+          "fetched": 16,
+          "partialReason": null,
+          "queryVersion": "3fb1b33efc07acc2ef01e18075b8a2cfa62177e2971617350ca18955ce79e884",
+          "reportedTotal": 16,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "ring-warlord-vulnerability-caster",
+      "evaluation": {
+        "recipeId": "ring-warlord-vulnerability-caster",
+        "confidence": "low",
+        "source": {
+          "captureId": "715af036-44c1-4e15-a6c6-b81be1222001",
+          "comparable": false,
+          "capturedAt": "2026-11-18T11:58:07.273Z",
+          "comparableSellers": 41,
+          "coverage": "partial"
+        },
+        "profitBlockedReason": "A matching ask has no verified, fresh currency conversion.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "76b63fb4-3fd6-4e46-9034-3aad5d386abb",
+        "queryKey": "1a8e38761f159fbd0e5a577fb5d7495629783f7ec9fe4beeae4219ec129e0103",
+        "capture": {
+          "captureId": "643977bf-c16a-4416-ae46-c4ebde5ee466",
+          "capturedAt": "2026-11-18T11:34:38.906Z",
+          "coverage": "partial",
+          "durationMs": 29671,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "1a8e38761f159fbd0e5a577fb5d7495629783f7ec9fe4beeae4219ec129e0103",
+          "reportedTotal": 169,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "62daeaf7-204e-479a-a749-b997e34bcfbe",
+        "queryKey": "64697fae611a0c0ee360542bfab6ab394a1b0c45a84adce3ccf7416ec6381794",
+        "capture": {
+          "captureId": "715af036-44c1-4e15-a6c6-b81be1222001",
+          "capturedAt": "2026-11-18T11:58:07.273Z",
+          "coverage": "complete",
+          "durationMs": 79369,
+          "fetched": 55,
+          "partialReason": null,
+          "queryVersion": "64697fae611a0c0ee360542bfab6ab394a1b0c45a84adce3ccf7416ec6381794",
+          "reportedTotal": 55,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender",
+      "evaluation": {
+        "recipeId": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender",
+        "confidence": "low",
+        "source": {
+          "captureId": "c2f9ae44-0df6-4d02-8cb5-a3c73dbde264",
+          "comparable": true,
+          "capturedAt": "2026-11-18T12:00:20.651Z",
+          "comparableSellers": 16,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 70,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "c280897f-2c3d-4340-a184-152bccaadaed",
+        "queryKey": "450e3c4c5e5c672a3dfa529f7b512c6ddd08179dd2c4d1a193eb0cd2cdd2390c",
+        "capture": {
+          "captureId": "08c6689e-e601-456b-a010-97390bdb48f7",
+          "capturedAt": "2026-11-18T12:02:24.291Z",
+          "coverage": "complete",
+          "durationMs": 14544,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "450e3c4c5e5c672a3dfa529f7b512c6ddd08179dd2c4d1a193eb0cd2cdd2390c",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "1a984d1d-606f-4d81-96cd-97c48e5d9bc9",
+        "queryKey": "10d22df4303770e3ce6325298d034bb3a2727123f903bc07a6ae45e91154c287",
+        "capture": {
+          "captureId": "c2f9ae44-0df6-4d02-8cb5-a3c73dbde264",
+          "capturedAt": "2026-11-18T12:00:20.651Z",
+          "coverage": "complete",
+          "durationMs": 19787,
+          "fetched": 17,
+          "partialReason": null,
+          "queryVersion": "10d22df4303770e3ce6325298d034bb3a2727123f903bc07a6ae45e91154c287",
+          "reportedTotal": 17,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged",
+      "evaluation": {
+        "recipeId": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged",
+        "confidence": "low",
+        "source": {
+          "captureId": "c2f9ae44-0df6-4d02-8cb5-a3c73dbde264",
+          "comparable": true,
+          "capturedAt": "2026-11-18T12:00:20.651Z",
+          "comparableSellers": 16,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 70,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "063905f2-80d0-435a-9b25-c6bd3b5c5a34",
+        "queryKey": "450e3c4c5e5c672a3dfa529f7b512c6ddd08179dd2c4d1a193eb0cd2cdd2390c",
+        "capture": {
+          "captureId": "08c6689e-e601-456b-a010-97390bdb48f7",
+          "capturedAt": "2026-11-18T12:02:24.291Z",
+          "coverage": "complete",
+          "durationMs": 14544,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "450e3c4c5e5c672a3dfa529f7b512c6ddd08179dd2c4d1a193eb0cd2cdd2390c",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "1a984d1d-606f-4d81-96cd-97c48e5d9bc9",
+        "queryKey": "10d22df4303770e3ce6325298d034bb3a2727123f903bc07a6ae45e91154c287",
+        "capture": {
+          "captureId": "c2f9ae44-0df6-4d02-8cb5-a3c73dbde264",
+          "capturedAt": "2026-11-18T12:00:20.651Z",
+          "coverage": "complete",
+          "durationMs": 19787,
+          "fetched": 17,
+          "partialReason": null,
+          "queryVersion": "10d22df4303770e3ce6325298d034bb3a2727123f903bc07a6ae45e91154c287",
+          "reportedTotal": 17,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "small-cluster-armour-enduring-composure-2-passives",
+      "evaluation": {
+        "recipeId": "small-cluster-armour-enduring-composure-2-passives",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": {
+          "amount": 13.04007828,
+          "currency": "chaos"
+        },
+        "budget": {
+          "p50": {
+            "amount": 10.58441,
+            "currency": "chaos"
+          },
+          "p90": {
+            "amount": 23.59181,
+            "currency": "chaos"
+          }
+        },
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "9ff3db8f-0ad2-474c-859c-1c6564502e17",
+        "queryKey": "eba51e8a4783bd600d08bdc41b7ea4480f5b3d8f9134fc64eb186188bf29f772",
+        "capture": {
+          "captureId": "c5acc809-9ca0-44de-a00e-e13788c84f4d",
+          "capturedAt": "2026-11-18T10:29:41.623Z",
+          "coverage": "partial",
+          "durationMs": 20859,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "eba51e8a4783bd600d08bdc41b7ea4480f5b3d8f9134fc64eb186188bf29f772",
+          "reportedTotal": 1598,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "19166d39-950d-443a-8771-f4d7878d2261",
+        "queryKey": "ade28a196beb35939443dea7ac53c588eb82e32efce6ae3bc82559e4f8e5485d",
+        "capture": {
+          "captureId": "7aa87ad9-798e-449e-a164-47ee5452077a",
+          "capturedAt": "2026-11-18T09:29:24.769Z",
+          "coverage": "partial",
+          "durationMs": 173018,
+          "fetched": 100,
+          "partialReason": "MIXED_CURRENCY_TOTAL_MISMATCH",
+          "queryVersion": "ade28a196beb35939443dea7ac53c588eb82e32efce6ae3bc82559e4f8e5485d",
+          "reportedTotal": 1105,
+          "slices": 2
+        }
+      }
+    },
+    {
+      "id": "small-cluster-life-fettle-2-passives",
+      "evaluation": {
+        "recipeId": "small-cluster-life-fettle-2-passives",
+        "confidence": "low",
+        "source": {
+          "captureId": "2a1421f9-3244-41a5-b96b-fb2d8da2fcd5",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:57:42.759Z",
+          "comparableSellers": 9,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Расход — модель CoE 3.30.0.1; продажи, торговое золото и время не подтверждены.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": {
+          "amount": 48.10135677,
+          "currency": "chaos"
+        },
+        "budget": {
+          "p50": {
+            "amount": 33.94151,
+            "currency": "chaos"
+          },
+          "p90": {
+            "amount": 108.22061,
+            "currency": "chaos"
+          }
+        },
+        "estimatedSalePrice": {
+          "amount": 120,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "5e45b743-5b53-4dd2-8446-aaee72e0ef81",
+        "queryKey": "bd49fc569a6c50d81e5467f13d0ef3ede81b55a257374a291d6320258724bc17",
+        "capture": {
+          "captureId": "340942dc-873e-4cc9-9f42-c65abe714a70",
+          "capturedAt": "2026-11-18T11:37:51.515Z",
+          "coverage": "partial",
+          "durationMs": 29482,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "bd49fc569a6c50d81e5467f13d0ef3ede81b55a257374a291d6320258724bc17",
+          "reportedTotal": 216,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "1462f305-49e2-49c3-8430-7cdfa2565990",
+        "queryKey": "fb25bd2ab7ede8ab57f5689d26fcadd848ad8f3855395a7ea79b0d54bcca0f72",
+        "capture": {
+          "captureId": "2a1421f9-3244-41a5-b96b-fb2d8da2fcd5",
+          "capturedAt": "2026-11-18T11:57:42.759Z",
+          "coverage": "complete",
+          "durationMs": 14681,
+          "fetched": 9,
+          "partialReason": null,
+          "queryVersion": "fb25bd2ab7ede8ab57f5689d26fcadd848ad8f3855395a7ea79b0d54bcca0f72",
+          "reportedTotal": 9,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "stygian-life-resistances-envy",
+      "evaluation": {
+        "recipeId": "stygian-life-resistances-envy",
+        "confidence": "low",
+        "source": {
+          "captureId": "0910f0c9-ed2c-4c4c-9b1f-8a5d834b83d9",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:11:38.996Z",
+          "comparableSellers": 5,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 976,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "a8f27485-7acb-48b3-9c43-c4cff8aab137",
+        "queryKey": "35b5d2f928242ab77d8320b7458ad1becd4aa911773f97abca30882c1d1f8d8e",
+        "capture": {
+          "captureId": "6f920b31-924b-4610-9bdf-967d5b116075",
+          "capturedAt": "2026-11-18T11:36:02.913Z",
+          "coverage": "partial",
+          "durationMs": 19934,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "35b5d2f928242ab77d8320b7458ad1becd4aa911773f97abca30882c1d1f8d8e",
+          "reportedTotal": 321,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "ae3a4433-9a3f-49ff-886a-6cceb3fb5dc5",
+        "queryKey": "4c6283472cfca2c8c9ec4b24e584e251ff9f7318262e732cfad710e019078469",
+        "capture": {
+          "captureId": "0910f0c9-ed2c-4c4c-9b1f-8a5d834b83d9",
+          "capturedAt": "2026-11-18T10:11:38.996Z",
+          "coverage": "complete",
+          "durationMs": 14625,
+          "fetched": 5,
+          "partialReason": null,
+          "queryVersion": "4c6283472cfca2c8c9ec4b24e584e251ff9f7318262e732cfad710e019078469",
+          "reportedTotal": 5,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "stygian-life-resistances-fossils",
+      "evaluation": {
+        "recipeId": "stygian-life-resistances-fossils",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "a8f27485-7acb-48b3-9c43-c4cff8aab137",
+        "queryKey": "35b5d2f928242ab77d8320b7458ad1becd4aa911773f97abca30882c1d1f8d8e",
+        "capture": {
+          "captureId": "6f920b31-924b-4610-9bdf-967d5b116075",
+          "capturedAt": "2026-11-18T11:36:02.913Z",
+          "coverage": "partial",
+          "durationMs": 19934,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "35b5d2f928242ab77d8320b7458ad1becd4aa911773f97abca30882c1d1f8d8e",
+          "reportedTotal": 321,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "db8e7b57-883a-44b6-8a17-87f8dd1caea2",
+        "queryKey": "84cae637caa7c6807d81a0e3253f939a1d5ff62b2dfaa285d361ac7e64c502d7",
+        "capture": {
+          "captureId": "274e6d09-ff70-4896-873f-0023849a13f6",
+          "capturedAt": "2026-11-18T09:54:35.714Z",
+          "coverage": "complete",
+          "durationMs": 14668,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "84cae637caa7c6807d81a0e3253f939a1d5ff62b2dfaa285d361ac7e64c502d7",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "sunfire-circlet-fractured-fire-loathing",
+      "evaluation": {
+        "recipeId": "sunfire-circlet-fractured-fire-loathing",
+        "confidence": "low",
+        "source": {
+          "captureId": "feac70c3-0e96-4f50-8d26-d60cfb4f977a",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:53:06.465Z",
+          "comparableSellers": 1,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Нет проверенной вероятности полного результата и среднего расхода для 3.30.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 780.8,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "f718cfdc-7c0d-4280-b168-32a1c93f3a9b",
+        "queryKey": "783d26a899355cfc3ec43e86f2ef24e18d8d345a982e54c5ebe4739dd0aac07e",
+        "capture": {
+          "captureId": "63f11d47-f168-4593-9d4f-9c2e0b1e09a3",
+          "capturedAt": "2026-11-18T11:44:22.019Z",
+          "coverage": "complete",
+          "durationMs": 10551,
+          "fetched": 1,
+          "partialReason": null,
+          "queryVersion": "783d26a899355cfc3ec43e86f2ef24e18d8d345a982e54c5ebe4739dd0aac07e",
+          "reportedTotal": 1,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "3a94089c-b131-4b51-97ce-fd319772240a",
+        "queryKey": "dfb6bcb05873559a45624fef080443cb93f389efd1648050890a56f73f0075cd",
+        "capture": {
+          "captureId": "feac70c3-0e96-4f50-8d26-d60cfb4f977a",
+          "capturedAt": "2026-11-18T11:53:06.465Z",
+          "coverage": "complete",
+          "durationMs": 14808,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "dfb6bcb05873559a45624fef080443cb93f389efd1648050890a56f73f0075cd",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "suppression-boots-loathing",
+      "evaluation": {
+        "recipeId": "suppression-boots-loathing",
+        "confidence": "low",
+        "source": {
+          "captureId": "004faf76-991d-494c-915f-a0e8b24856c0",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:35:41.265Z",
+          "comparableSellers": 6,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 1366.4,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "6ba2c5e4-9d1e-4af7-9b40-2ca12cfa9000",
+        "queryKey": "36dfcf84158a99f9666a05f1690f0095b15643486e4727e48f9ca8714f69c5d4",
+        "capture": {
+          "captureId": "0ed5841b-daef-42ed-a923-4f245e12143a",
+          "capturedAt": "2026-11-18T10:25:39.903Z",
+          "coverage": "complete",
+          "durationMs": 14859,
+          "fetched": 8,
+          "partialReason": null,
+          "queryVersion": "36dfcf84158a99f9666a05f1690f0095b15643486e4727e48f9ca8714f69c5d4",
+          "reportedTotal": 8,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "d6c1367c-0d7e-4c60-aaec-d3fcb442f932",
+        "queryKey": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+        "capture": {
+          "captureId": "004faf76-991d-494c-915f-a0e8b24856c0",
+          "capturedAt": "2026-11-18T10:35:41.265Z",
+          "coverage": "complete",
+          "durationMs": 44597,
+          "fetched": 8,
+          "partialReason": null,
+          "queryVersion": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+          "reportedTotal": 8,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "suppression-gloves-fear",
+      "evaluation": {
+        "recipeId": "suppression-gloves-fear",
+        "confidence": "low",
+        "source": {
+          "captureId": "48ff5e39-680b-4de2-bbe2-0917b7eb4383",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:23:36.220Z",
+          "comparableSellers": 3,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 1952,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "e4468306-1c93-44df-b93c-9b817be83e33",
+        "queryKey": "200644c8df62a01efd5980515fb4fa942372bcd6f96fa960434bcbb83cf000ac",
+        "capture": {
+          "captureId": "b3e47174-61ef-4c94-a4c0-13a3dacc3195",
+          "capturedAt": "2026-11-18T11:26:31.151Z",
+          "coverage": "complete",
+          "durationMs": 662,
+          "fetched": 0,
+          "partialReason": null,
+          "queryVersion": "200644c8df62a01efd5980515fb4fa942372bcd6f96fa960434bcbb83cf000ac",
+          "reportedTotal": 0,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "932e5369-2591-4ca1-a9f3-4d8981bb7341",
+        "queryKey": "5fd22e383f5016b4b4b6c7faa755632ff64566d8f8454c464ba6b05ea43fb6d6",
+        "capture": {
+          "captureId": "48ff5e39-680b-4de2-bbe2-0917b7eb4383",
+          "capturedAt": "2026-11-18T10:23:36.220Z",
+          "coverage": "complete",
+          "durationMs": 4954,
+          "fetched": 3,
+          "partialReason": null,
+          "queryVersion": "5fd22e383f5016b4b4b6c7faa755632ff64566d8f8454c464ba6b05ea43fb6d6",
+          "reportedTotal": 3,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "suppression-gloves-zeal",
+      "evaluation": {
+        "recipeId": "suppression-gloves-zeal",
+        "confidence": "low",
+        "source": {
+          "captureId": "eac348ba-6177-436d-ae99-4b0fdfe6ccda",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:23:11.758Z",
+          "comparableSellers": 7,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 3513.6,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "e4468306-1c93-44df-b93c-9b817be83e33",
+        "queryKey": "200644c8df62a01efd5980515fb4fa942372bcd6f96fa960434bcbb83cf000ac",
+        "capture": {
+          "captureId": "b3e47174-61ef-4c94-a4c0-13a3dacc3195",
+          "capturedAt": "2026-11-18T11:26:31.151Z",
+          "coverage": "complete",
+          "durationMs": 662,
+          "fetched": 0,
+          "partialReason": null,
+          "queryVersion": "200644c8df62a01efd5980515fb4fa942372bcd6f96fa960434bcbb83cf000ac",
+          "reportedTotal": 0,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "23f0a565-acc2-43f2-9332-ddd5bec264a3",
+        "queryKey": "4d0a5a8a71bf2c4c009a65c2834775ebd1053568488f91697cb29f99791d62c3",
+        "capture": {
+          "captureId": "eac348ba-6177-436d-ae99-4b0fdfe6ccda",
+          "capturedAt": "2026-11-18T10:23:11.758Z",
+          "coverage": "complete",
+          "durationMs": 14600,
+          "fetched": 8,
+          "partialReason": null,
+          "queryVersion": "4d0a5a8a71bf2c4c009a65c2834775ebd1053568488f91697cb29f99791d62c3",
+          "reportedTotal": 8,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "twilight-regalia-six-link-woe",
+      "evaluation": {
+        "recipeId": "twilight-regalia-six-link-woe",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "d91d0926-857f-4bbc-9e61-f822ac371bc7",
+        "queryKey": "79ba427efcbdd5907d4abab0224ada0f04d6f60e5acce4de26d2f81ae992c416",
+        "capture": {
+          "captureId": "05bd278b-1dfa-4377-ae9a-781cda7dbb0c",
+          "capturedAt": "2026-11-18T11:44:46.382Z",
+          "coverage": "partial",
+          "durationMs": 45390,
+          "fetched": 36,
+          "partialReason": null,
+          "queryVersion": "79ba427efcbdd5907d4abab0224ada0f04d6f60e5acce4de26d2f81ae992c416",
+          "reportedTotal": 36,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "e35efa67-e81e-47cc-9aea-e5046b6fa78a",
+        "queryKey": "6f9bee56e4fd51d8330df43a45ea600ef956d3fb8c06235e7e3fa2b8156867bc",
+        "capture": {
+          "captureId": "98d35841-d275-448f-b96e-77bc9bfc81ae",
+          "capturedAt": "2026-11-18T09:42:14.338Z",
+          "coverage": "complete",
+          "durationMs": 45477,
+          "fetched": 38,
+          "partialReason": null,
+          "queryVersion": "6f9bee56e4fd51d8330df43a45ea600ef956d3fb8c06235e7e3fa2b8156867bc",
+          "reportedTotal": 38,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak",
+      "evaluation": {
+        "recipeId": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak",
+        "confidence": "low",
+        "source": {
+          "captureId": "ee54e869-3b9c-44dd-a3ba-9e2c8c19cfd1",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:12:03.335Z",
+          "comparableSellers": 5,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 150,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "a0cfd97a-f201-498b-b6c9-07b9d2ce42a6",
+        "queryKey": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+        "capture": {
+          "captureId": "9c45862e-353d-4add-a47a-ec1ab74cccdb",
+          "capturedAt": "2026-11-18T12:02:48.697Z",
+          "coverage": "complete",
+          "durationMs": 404,
+          "fetched": 0,
+          "partialReason": null,
+          "queryVersion": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+          "reportedTotal": 0,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "a306e7f9-6970-4f33-a39c-bb71b1963613",
+        "queryKey": "78dcd0f1db62e42021e219a9913b37f129c2e7e1ee4fef0cf159ffecd5323dc8",
+        "capture": {
+          "captureId": "ee54e869-3b9c-44dd-a3ba-9e2c8c19cfd1",
+          "capturedAt": "2026-11-18T10:12:03.335Z",
+          "coverage": "complete",
+          "durationMs": 5050,
+          "fetched": 5,
+          "partialReason": null,
+          "queryVersion": "78dcd0f1db62e42021e219a9913b37f129c2e7e1ee4fef0cf159ffecd5323dc8",
+          "reportedTotal": 5,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+      "evaluation": {
+        "recipeId": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+        "confidence": "low",
+        "source": {
+          "captureId": "ee54e869-3b9c-44dd-a3ba-9e2c8c19cfd1",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:12:03.335Z",
+          "comparableSellers": 5,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 150,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "3689ebca-0e43-4402-a3d0-5d12933cfaa2",
+        "queryKey": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+        "capture": {
+          "captureId": "9c45862e-353d-4add-a47a-ec1ab74cccdb",
+          "capturedAt": "2026-11-18T12:02:48.697Z",
+          "coverage": "complete",
+          "durationMs": 404,
+          "fetched": 0,
+          "partialReason": null,
+          "queryVersion": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+          "reportedTotal": 0,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "a306e7f9-6970-4f33-a39c-bb71b1963613",
+        "queryKey": "78dcd0f1db62e42021e219a9913b37f129c2e7e1ee4fef0cf159ffecd5323dc8",
+        "capture": {
+          "captureId": "ee54e869-3b9c-44dd-a3ba-9e2c8c19cfd1",
+          "capturedAt": "2026-11-18T10:12:03.335Z",
+          "coverage": "complete",
+          "durationMs": 5050,
+          "fetched": 5,
+          "partialReason": null,
+          "queryVersion": "78dcd0f1db62e42021e219a9913b37f129c2e7e1ee4fef0cf159ffecd5323dc8",
+          "reportedTotal": 5,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak",
+      "evaluation": {
+        "recipeId": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak",
+        "confidence": "low",
+        "source": {
+          "captureId": "db190c7c-9e3d-4792-8ba8-6c91a19f44ea",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:12:27.742Z",
+          "comparableSellers": 8,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 80,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "a0cfd97a-f201-498b-b6c9-07b9d2ce42a6",
+        "queryKey": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+        "capture": {
+          "captureId": "9c45862e-353d-4add-a47a-ec1ab74cccdb",
+          "capturedAt": "2026-11-18T12:02:48.697Z",
+          "coverage": "complete",
+          "durationMs": 404,
+          "fetched": 0,
+          "partialReason": null,
+          "queryVersion": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+          "reportedTotal": 0,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "23bf3fd9-8e10-4d4e-9258-08848c65a90a",
+        "queryKey": "01a0f00d3d6d75fc4675d534a4ca99fffca7d6d7f75a8cbdb9d715039142f08e",
+        "capture": {
+          "captureId": "db190c7c-9e3d-4792-8ba8-6c91a19f44ea",
+          "capturedAt": "2026-11-18T10:12:27.742Z",
+          "coverage": "complete",
+          "durationMs": 743,
+          "fetched": 9,
+          "partialReason": null,
+          "queryVersion": "01a0f00d3d6d75fc4675d534a4ca99fffca7d6d7f75a8cbdb9d715039142f08e",
+          "reportedTotal": 9,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged",
+      "evaluation": {
+        "recipeId": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged",
+        "confidence": "low",
+        "source": {
+          "captureId": "db190c7c-9e3d-4792-8ba8-6c91a19f44ea",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:12:27.742Z",
+          "comparableSellers": 8,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 80,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "3689ebca-0e43-4402-a3d0-5d12933cfaa2",
+        "queryKey": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+        "capture": {
+          "captureId": "9c45862e-353d-4add-a47a-ec1ab74cccdb",
+          "capturedAt": "2026-11-18T12:02:48.697Z",
+          "coverage": "complete",
+          "durationMs": 404,
+          "fetched": 0,
+          "partialReason": null,
+          "queryVersion": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+          "reportedTotal": 0,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "23bf3fd9-8e10-4d4e-9258-08848c65a90a",
+        "queryKey": "01a0f00d3d6d75fc4675d534a4ca99fffca7d6d7f75a8cbdb9d715039142f08e",
+        "capture": {
+          "captureId": "db190c7c-9e3d-4792-8ba8-6c91a19f44ea",
+          "capturedAt": "2026-11-18T10:12:27.742Z",
+          "coverage": "complete",
+          "durationMs": 743,
+          "fetched": 9,
+          "partialReason": null,
+          "queryVersion": "01a0f00d3d6d75fc4675d534a4ca99fffca7d6d7f75a8cbdb9d715039142f08e",
+          "reportedTotal": 9,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "velour-gloves-fractured-suppression-zeal",
+      "evaluation": {
+        "recipeId": "velour-gloves-fractured-suppression-zeal",
+        "confidence": "low",
+        "source": {
+          "captureId": "e9f78b5c-ab74-4ba8-bc51-db74dc9df39b",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:54:19.749Z",
+          "comparableSellers": 3,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Нет проверенной вероятности полного результата и среднего расхода для 3.30.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 976,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "2f682926-5f5d-4048-a4c8-972228b5ec40",
+        "queryKey": "ed2d1b1f7ada5b80e38f5ad238ec06f8823118ec46a8c87dcbaec29cf75153af",
+        "capture": {
+          "captureId": "a7092aeb-3305-4716-92b8-010b1b05a7db",
+          "capturedAt": "2026-11-18T10:26:54.051Z",
+          "coverage": "complete",
+          "durationMs": 14840,
+          "fetched": 8,
+          "partialReason": null,
+          "queryVersion": "ed2d1b1f7ada5b80e38f5ad238ec06f8823118ec46a8c87dcbaec29cf75153af",
+          "reportedTotal": 8,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "c7582203-8ea1-4131-b68b-97ed7aa9d6a3",
+        "queryKey": "759af096334502f1e6717dd43ce462eed831784da3a57a6a889f0295c460c7e8",
+        "capture": {
+          "captureId": "e9f78b5c-ab74-4ba8-bc51-db74dc9df39b",
+          "capturedAt": "2026-11-18T11:54:19.749Z",
+          "coverage": "complete",
+          "durationMs": 647,
+          "fetched": 3,
+          "partialReason": null,
+          "queryVersion": "759af096334502f1e6717dd43ce462eed831784da3a57a6a889f0295c460c7e8",
+          "reportedTotal": 3,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-apothecarys-gloves-greed",
+      "evaluation": {
+        "recipeId": "week-one-apothecarys-gloves-greed",
+        "confidence": "low",
+        "source": {
+          "captureId": "1788f4ee-72fe-4e53-9ab6-53bb00ac37a6",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:12:52.158Z",
+          "comparableSellers": 25,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 25,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "ee5466f1-349d-4cca-9ff8-7dabe73e773e",
+        "queryKey": "d6aa91a8debd911f88437b1a348ed289beae3636658b261d7b9a94f25fea7495",
+        "capture": {
+          "captureId": "8396753e-7594-45b0-96c3-4d920d4e3b44",
+          "capturedAt": "2026-11-18T10:24:25.034Z",
+          "coverage": "partial",
+          "durationMs": 45191,
+          "fetched": 34,
+          "partialReason": null,
+          "queryVersion": "d6aa91a8debd911f88437b1a348ed289beae3636658b261d7b9a94f25fea7495",
+          "reportedTotal": 34,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "70df070f-80f4-41b8-8519-2e5b27868b57",
+        "queryKey": "6f71f1ef7d03c5e0ef651e2fcabc4586da1eb38d58639fc7533c67738da4ca85",
+        "capture": {
+          "captureId": "1788f4ee-72fe-4e53-9ab6-53bb00ac37a6",
+          "capturedAt": "2026-11-18T10:12:52.158Z",
+          "coverage": "complete",
+          "durationMs": 30274,
+          "fetched": 25,
+          "partialReason": null,
+          "queryVersion": "6f71f1ef7d03c5e0ef651e2fcabc4586da1eb38d58639fc7533c67738da4ca85",
+          "reportedTotal": 25,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-bone-helmet-greed",
+      "evaluation": {
+        "recipeId": "week-one-bone-helmet-greed",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "bc397b4a-4878-44bb-8038-19c554b29c89",
+        "queryKey": "4cebf29bfc062618b43415db934e6867724a1696928eb3d96c16f8f6b2020895",
+        "capture": {
+          "captureId": "76d86caf-d843-44eb-9af5-5a7a131f3fbc",
+          "capturedAt": "2026-11-18T11:52:21.923Z",
+          "coverage": "partial",
+          "durationMs": 44542,
+          "fetched": 23,
+          "partialReason": null,
+          "queryVersion": "4cebf29bfc062618b43415db934e6867724a1696928eb3d96c16f8f6b2020895",
+          "reportedTotal": 23,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "2002a8c2-c5e7-45c7-b769-053587257e3d",
+        "queryKey": "ee1f5c1d61363d12b769389063d0db8b062b5e70ffadca3e9cf7de61c900168d",
+        "capture": {
+          "captureId": "ec08424a-1100-4d53-ad53-91d13f525d6c",
+          "capturedAt": "2026-11-18T09:42:59.697Z",
+          "coverage": "complete",
+          "durationMs": 14710,
+          "fetched": 1,
+          "partialReason": null,
+          "queryVersion": "ee1f5c1d61363d12b769389063d0db8b062b5e70ffadca3e9cf7de61c900168d",
+          "reportedTotal": 1,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-broadhead-quiver-zeal",
+      "evaluation": {
+        "recipeId": "week-one-broadhead-quiver-zeal",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "f2887d8e-036a-45e1-8788-178d9fc155ff",
+        "queryKey": "7b007ff9f8a28602a8c70f42fba8c86838e58472fbc7ebbd04807b3199bf91fd",
+        "capture": {
+          "captureId": "e0e74b96-b09f-485c-b2cb-336411ac8fc7",
+          "capturedAt": "2026-11-18T11:33:24.055Z",
+          "coverage": "partial",
+          "durationMs": 15749,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "7b007ff9f8a28602a8c70f42fba8c86838e58472fbc7ebbd04807b3199bf91fd",
+          "reportedTotal": 401,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "d8ee1ea8-d4b2-4961-936e-47a61b4b5046",
+        "queryKey": "35d6f553d09520629c91e0903a4d41c625ebbe159588eeafac78023793505749",
+        "capture": {
+          "captureId": "f0d9d8bf-4c9d-45ff-b875-2ae6137a26bd",
+          "capturedAt": "2026-11-18T09:44:37.474Z",
+          "coverage": "complete",
+          "durationMs": 183475,
+          "fetched": 102,
+          "partialReason": null,
+          "queryVersion": "35d6f553d09520629c91e0903a4d41c625ebbe159588eeafac78023793505749",
+          "reportedTotal": 102,
+          "slices": 2
+        }
+      }
+    },
+    {
+      "id": "week-one-crystal-belt-woe",
+      "evaluation": {
+        "recipeId": "week-one-crystal-belt-woe",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "185a361c-189d-4cc0-a9f3-31b69ecf597e",
+        "queryKey": "25720f95596d30c289672a459db40983287bf652ca4d4f300c3615435d40022f",
+        "capture": {
+          "captureId": "209e112c-9ebb-437e-a3ad-6ec41ba5bdf6",
+          "capturedAt": "2026-11-18T05:09:46.043Z",
+          "coverage": "partial",
+          "durationMs": 58781,
+          "fetched": 32,
+          "partialReason": null,
+          "queryVersion": "25720f95596d30c289672a459db40983287bf652ca4d4f300c3615435d40022f",
+          "reportedTotal": 32,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "9caeba63-4bcf-463e-8ddb-d05d555ce026",
+        "queryKey": "4ef4b629c5b0bdde355b6fdabb12b3d26684ded59a522143e2a8089b0e733975",
+        "capture": {
+          "captureId": "e1bc72f9-0ce8-4038-8d77-fa224372a400",
+          "capturedAt": "2026-11-18T09:37:28.326Z",
+          "coverage": "complete",
+          "durationMs": 88771,
+          "fetched": 56,
+          "partialReason": null,
+          "queryVersion": "4ef4b629c5b0bdde355b6fdabb12b3d26684ded59a522143e2a8089b0e733975",
+          "reportedTotal": 56,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-fingerless-silk-gloves-woe",
+      "evaluation": {
+        "recipeId": "week-one-fingerless-silk-gloves-woe",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "e58e192c-148c-4878-97da-be1ea5bbda70",
+        "queryKey": "f2885742513fd80e2f5709d4459989051ab299d82b33e8a607f9a21b98102b44",
+        "capture": {
+          "captureId": "daeaf5ac-c3ea-46a9-839f-817b20858d8d",
+          "capturedAt": "2026-11-18T11:49:37.939Z",
+          "coverage": "partial",
+          "durationMs": 45426,
+          "fetched": 31,
+          "partialReason": null,
+          "queryVersion": "f2885742513fd80e2f5709d4459989051ab299d82b33e8a607f9a21b98102b44",
+          "reportedTotal": 31,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "f616466d-ecca-4f32-b615-f3c8fae3605b",
+        "queryKey": "89282a60b905d780c353126f46a6806d8b1143062a7840df3864a7cc074f8aa4",
+        "capture": {
+          "captureId": "c87ac57c-98b0-40a1-aa29-ceacaffc6d5b",
+          "capturedAt": "2026-11-18T09:36:28.355Z",
+          "coverage": "complete",
+          "durationMs": 60029,
+          "fetched": 44,
+          "partialReason": null,
+          "queryVersion": "89282a60b905d780c353126f46a6806d8b1143062a7840df3864a7cc074f8aa4",
+          "reportedTotal": 44,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-gripped-gloves-zeal",
+      "evaluation": {
+        "recipeId": "week-one-gripped-gloves-zeal",
+        "confidence": "low",
+        "source": {
+          "captureId": "77276953-7e23-4458-91f1-ffbfaa58247c",
+          "comparable": false,
+          "capturedAt": "2026-11-18T11:23:39.828Z",
+          "comparableSellers": 0,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "No matching Trade sellers for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "e86d7320-6009-4a9c-ac2a-d8e2aee102d0",
+        "queryKey": "40e8ee6b24e2320c03efdcb6cf9551fc4edeac0d80709aab50ec9ab9024ddfb1",
+        "capture": {
+          "captureId": "78280025-cf22-460c-8573-c4597dede7eb",
+          "capturedAt": "2026-11-18T11:51:22.726Z",
+          "coverage": "partial",
+          "durationMs": 59143,
+          "fetched": 37,
+          "partialReason": null,
+          "queryVersion": "40e8ee6b24e2320c03efdcb6cf9551fc4edeac0d80709aab50ec9ab9024ddfb1",
+          "reportedTotal": 37,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "2f4b4162-3959-42dc-95fd-0aa7dd7c7698",
+        "queryKey": "219582eee278a157bd08702e70cb8cc48c26ac9e7301b6db07f4304453b39857",
+        "capture": {
+          "captureId": "77276953-7e23-4458-91f1-ffbfaa58247c",
+          "capturedAt": "2026-11-18T11:23:39.828Z",
+          "coverage": "complete",
+          "durationMs": 380,
+          "fetched": 0,
+          "partialReason": null,
+          "queryVersion": "219582eee278a157bd08702e70cb8cc48c26ac9e7301b6db07f4304453b39857",
+          "reportedTotal": 0,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-heavy-belt-envy",
+      "evaluation": {
+        "recipeId": "week-one-heavy-belt-envy",
+        "confidence": "low",
+        "source": {
+          "captureId": "4b1e5b3d-4a20-41e2-a55a-a5eceb2342ab",
+          "comparable": true,
+          "capturedAt": "2026-11-18T12:04:02.007Z",
+          "comparableSellers": 80,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 100,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "5e8aa9d5-073e-4da2-b0d8-76f48d4ae6f7",
+        "queryKey": "fbb289b5d83468661a5aa7f18270d9a1bab3bb67e315139e7b76e10b7df2f68e",
+        "capture": {
+          "captureId": "4bf9fde8-ea6c-430a-b3e9-32f04af7b48e",
+          "capturedAt": "2026-11-18T10:26:28.777Z",
+          "coverage": "partial",
+          "durationMs": 25419,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "fbb289b5d83468661a5aa7f18270d9a1bab3bb67e315139e7b76e10b7df2f68e",
+          "reportedTotal": 1204,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "c29e4977-e846-432f-a838-5eda9cfcbdc4",
+        "queryKey": "39159de0a281a6601ad3d294a64bad1f5243d783f3ea76f5e00415e1f197cf4a",
+        "capture": {
+          "captureId": "4b1e5b3d-4a20-41e2-a55a-a5eceb2342ab",
+          "capturedAt": "2026-11-18T12:04:02.007Z",
+          "coverage": "complete",
+          "durationMs": 124491,
+          "fetched": 82,
+          "partialReason": null,
+          "queryVersion": "39159de0a281a6601ad3d294a64bad1f5243d783f3ea76f5e00415e1f197cf4a",
+          "reportedTotal": 82,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-hubris-circlet-woe",
+      "evaluation": {
+        "recipeId": "week-one-hubris-circlet-woe",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "6de9b58c-d1bc-43fe-b938-5342a360e941",
+        "queryKey": "982de38b250f41cef624895b64a6371c73ac89fdce3bbfde7c89958ee1c2af1e",
+        "capture": {
+          "captureId": "b9067dfe-dcf0-4123-ba99-2aa42924ae33",
+          "capturedAt": "2026-11-18T10:51:24.470Z",
+          "coverage": "partial",
+          "durationMs": 81797,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "982de38b250f41cef624895b64a6371c73ac89fdce3bbfde7c89958ee1c2af1e",
+          "reportedTotal": 252,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "b2103194-927d-472c-847e-3965e125a4fe",
+        "queryKey": "c05c3db76aa3b8fa2e00bd4959beac588a8b41b9b19dd9843f46b613156c4db6",
+        "capture": {
+          "captureId": "2dd8d020-ad32-4404-ac68-8303a72820b3",
+          "capturedAt": "2026-11-18T08:31:58.169Z",
+          "coverage": "partial",
+          "durationMs": 172881,
+          "fetched": 100,
+          "partialReason": "MIXED_CURRENCY_TOTAL_MISMATCH",
+          "queryVersion": "c05c3db76aa3b8fa2e00bd4959beac588a8b41b9b19dd9843f46b613156c4db6",
+          "reportedTotal": 577,
+          "slices": 2
+        }
+      }
+    },
+    {
+      "id": "week-one-leather-belt-envy",
+      "evaluation": {
+        "recipeId": "week-one-leather-belt-envy",
+        "confidence": "low",
+        "source": {
+          "captureId": "725b5ff2-8d7d-4ce1-a893-4820c4431777",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:09:54.265Z",
+          "comparableSellers": 76,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 120,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "3aeb2ca0-b756-40d2-9341-cc37b2d66bb2",
+        "queryKey": "aa646fd4ab67fbabfb409b8ae14ab83bf34856f225d46436cc0e5fc3b21ce14a",
+        "capture": {
+          "captureId": "b3c89eba-f9b5-4e06-8d2b-100165b70008",
+          "capturedAt": "2026-11-18T10:29:17.225Z",
+          "coverage": "partial",
+          "durationMs": 15914,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "aa646fd4ab67fbabfb409b8ae14ab83bf34856f225d46436cc0e5fc3b21ce14a",
+          "reportedTotal": 1111,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "21b6fc70-2fd7-466f-bdd7-c700a5f9b13b",
+        "queryKey": "fc3ef684465a86695c1628da73fdc2b8aefe75f23687aea9a5ed7e323462f162",
+        "capture": {
+          "captureId": "725b5ff2-8d7d-4ce1-a893-4820c4431777",
+          "capturedAt": "2026-11-18T10:09:54.265Z",
+          "coverage": "complete",
+          "durationMs": 104732,
+          "fetched": 78,
+          "partialReason": null,
+          "queryVersion": "fc3ef684465a86695c1628da73fdc2b8aefe75f23687aea9a5ed7e323462f162",
+          "reportedTotal": 78,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-lichs-circlet-woe",
+      "evaluation": {
+        "recipeId": "week-one-lichs-circlet-woe",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "924c1f54-b598-4030-ac7e-0851a6363a17",
+        "queryKey": "989558e67a8f805126cb6ce203f72c71ca45cd796691e099f441ee6589712a2a",
+        "capture": {
+          "captureId": "b6d7b0ac-556c-4b01-88be-7ee96f06ff3b",
+          "capturedAt": "2026-11-18T11:40:34.829Z",
+          "coverage": "partial",
+          "durationMs": 29666,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "989558e67a8f805126cb6ce203f72c71ca45cd796691e099f441ee6589712a2a",
+          "reportedTotal": 698,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "3615438b-27dd-422a-a7c2-19f0f339c078",
+        "queryKey": "e3b329933dd0cf6dea98ad522cab2c10d4e063e5b50a6484091a4ab9ee3c80cd",
+        "capture": {
+          "captureId": "c534de6d-b675-4545-92fd-4c7dce7655c1",
+          "capturedAt": "2026-11-18T10:02:10.276Z",
+          "coverage": "partial",
+          "durationMs": 159296,
+          "fetched": 100,
+          "partialReason": "MIXED_CURRENCY_TOTAL_MISMATCH",
+          "queryVersion": "e3b329933dd0cf6dea98ad522cab2c10d4e063e5b50a6484091a4ab9ee3c80cd",
+          "reportedTotal": 639,
+          "slices": 2
+        }
+      }
+    },
+    {
+      "id": "week-one-royal-burgonet-greed",
+      "evaluation": {
+        "recipeId": "week-one-royal-burgonet-greed",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "4c941244-9197-4771-bcf7-0712d3515a4b",
+        "queryKey": "1e8064eb1569dc0f7fff0fe0728ef2e6a70af519b136bf60b7db0caf15e13f87",
+        "capture": {
+          "captureId": "3fba2775-ef07-41bf-9320-dc17f6e137e7",
+          "capturedAt": "2026-11-18T11:43:03.556Z",
+          "coverage": "partial",
+          "durationMs": 29594,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "1e8064eb1569dc0f7fff0fe0728ef2e6a70af519b136bf60b7db0caf15e13f87",
+          "reportedTotal": 495,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "0e68c163-555b-4825-a4bd-7d7dd4985da1",
+        "queryKey": "4373ab185c9271f1a4b0bdf9597153ebdaafc158f26bf08a097acaf1e746e448",
+        "capture": {
+          "captureId": "0184f7b4-275f-4018-98fb-ce34cc7a1bc1",
+          "capturedAt": "2026-11-18T09:55:00.105Z",
+          "coverage": "partial",
+          "durationMs": 406078,
+          "fetched": 100,
+          "partialReason": "MIXED_CURRENCY_TOTAL_MISMATCH",
+          "queryVersion": "4373ab185c9271f1a4b0bdf9597153ebdaafc158f26bf08a097acaf1e746e448",
+          "reportedTotal": 357,
+          "slices": 2
+        }
+      }
+    },
+    {
+      "id": "week-one-slink-boots-zeal",
+      "evaluation": {
+        "recipeId": "week-one-slink-boots-zeal",
+        "confidence": "low",
+        "source": {
+          "captureId": "94ae64fa-963c-4d64-a19f-f7af1b6e0978",
+          "comparable": false,
+          "capturedAt": "2026-11-18T10:13:22.482Z",
+          "comparableSellers": 0,
+          "coverage": "partial"
+        },
+        "profitBlockedReason": "Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "f1090db9-af2b-4c66-aa0a-aee91f715a35",
+        "queryKey": "d4c018483b88e000c0313fb13587d6c3ba893f2c566040a9e68f055bf2fc13f1",
+        "capture": {
+          "captureId": "31d0fa63-9c23-4456-a266-06b0e95bb022",
+          "capturedAt": "2026-11-18T11:32:34.471Z",
+          "coverage": "partial",
+          "durationMs": 20972,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "d4c018483b88e000c0313fb13587d6c3ba893f2c566040a9e68f055bf2fc13f1",
+          "reportedTotal": 490,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "0a57afc7-a395-4954-a404-fc2463870824",
+        "queryKey": "b7d8d5c5de8d170bac0c72463b6cb2932148967f40a8df67ecb86110701df22b",
+        "capture": {
+          "captureId": "94ae64fa-963c-4d64-a19f-f7af1b6e0978",
+          "capturedAt": "2026-11-18T10:13:22.482Z",
+          "coverage": "partial",
+          "durationMs": 342221,
+          "fetched": 188,
+          "partialReason": "PRICE_SLICE_UNRESOLVED",
+          "queryVersion": "b7d8d5c5de8d170bac0c72463b6cb2932148967f40a8df67ecb86110701df22b",
+          "reportedTotal": 345,
+          "slices": 5
+        }
+      }
+    },
+    {
+      "id": "week-one-slink-gloves-zeal",
+      "evaluation": {
+        "recipeId": "week-one-slink-gloves-zeal",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "5e5368ee-79f5-4b07-8e2c-2f4fe21441a9",
+        "queryKey": "064cbb1f288b94a8eede8b3cf9e3c76d2f01992fee8086e74d558ef51e02dc3f",
+        "capture": {
+          "captureId": "04f9cfcb-ad83-44e1-a839-d770a5bcf9c0",
+          "capturedAt": "2026-11-18T11:39:20.745Z",
+          "coverage": "partial",
+          "durationMs": 29568,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "064cbb1f288b94a8eede8b3cf9e3c76d2f01992fee8086e74d558ef51e02dc3f",
+          "reportedTotal": 370,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "efaa8293-dda2-4b2a-aed5-05f6f4041d8b",
+        "queryKey": "806d7a70580d7c68b11318212e8b1946236c2b13fcce3ddc3a89c70746a2f63e",
+        "capture": {
+          "captureId": "a26d56f6-eedb-47cb-9b51-262d3a456cb7",
+          "capturedAt": "2026-11-18T08:39:30.923Z",
+          "coverage": "complete",
+          "durationMs": 60069,
+          "fetched": 43,
+          "partialReason": null,
+          "queryVersion": "806d7a70580d7c68b11318212e8b1946236c2b13fcce3ddc3a89c70746a2f63e",
+          "reportedTotal": 43,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-spiked-gloves-zeal",
+      "evaluation": {
+        "recipeId": "week-one-spiked-gloves-zeal",
+        "confidence": "low",
+        "source": {
+          "captureId": "e9578d24-5599-4faa-8018-0d7b968edacb",
+          "comparable": false,
+          "capturedAt": "2026-11-18T11:24:28.647Z",
+          "comparableSellers": 0,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "No matching Trade sellers for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "1bfc474d-0db3-4baf-82ac-6b0e68ac0a2a",
+        "queryKey": "d9ce472f56315b1730352fe120dd9f882a714ce3f28722aeb3dae9faea29edf4",
+        "capture": {
+          "captureId": "4b17d1f8-3003-4336-808d-12ac86163990",
+          "capturedAt": "2026-11-18T11:50:23.320Z",
+          "coverage": "partial",
+          "durationMs": 59271,
+          "fetched": 35,
+          "partialReason": null,
+          "queryVersion": "d9ce472f56315b1730352fe120dd9f882a714ce3f28722aeb3dae9faea29edf4",
+          "reportedTotal": 35,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "620d0981-6a77-4268-bda7-f976d7151924",
+        "queryKey": "834ead1116d9c6c55b33025e1fb20dc61d24d108a0d3758d1eccf3bcbd8da195",
+        "capture": {
+          "captureId": "e9578d24-5599-4faa-8018-0d7b968edacb",
+          "capturedAt": "2026-11-18T11:24:28.647Z",
+          "coverage": "complete",
+          "durationMs": 437,
+          "fetched": 0,
+          "partialReason": null,
+          "queryVersion": "834ead1116d9c6c55b33025e1fb20dc61d24d108a0d3758d1eccf3bcbd8da195",
+          "reportedTotal": 0,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-spine-bow-contempt",
+      "evaluation": {
+        "recipeId": "week-one-spine-bow-contempt",
+        "confidence": "low",
+        "source": {
+          "captureId": "2054c2f8-28ce-43c2-a664-3b2c71e2606b",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:19:28.419Z",
+          "comparableSellers": 45,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 8,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "9564b10f-0b90-47e5-8f5b-8a6ac8cd64a6",
+        "queryKey": "b1f1b54d5ae53493f4394ba870bfdc4cb83af459227d82fc6ed1d644935685dc",
+        "capture": {
+          "captureId": "6a01fc01-d04a-4c90-94bb-5a9f248bf354",
+          "capturedAt": "2026-11-18T10:27:18.507Z",
+          "coverage": "partial",
+          "durationMs": 20067,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "b1f1b54d5ae53493f4394ba870bfdc4cb83af459227d82fc6ed1d644935685dc",
+          "reportedTotal": 653,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "48c52057-b700-47e3-9130-c8c88bd74c04",
+        "queryKey": "42963a597700529c227b68bf7a6903d5ad71aa7a1b8dd63742ae189b07138dbd",
+        "capture": {
+          "captureId": "2054c2f8-28ce-43c2-a664-3b2c71e2606b",
+          "capturedAt": "2026-11-18T10:19:28.419Z",
+          "coverage": "complete",
+          "durationMs": 60360,
+          "fetched": 46,
+          "partialReason": null,
+          "queryVersion": "42963a597700529c227b68bf7a6903d5ad71aa7a1b8dd63742ae189b07138dbd",
+          "reportedTotal": 46,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-stygian-vise-envy",
+      "evaluation": {
+        "recipeId": "week-one-stygian-vise-envy",
+        "confidence": "low",
+        "source": {
+          "captureId": "2b976f2b-babf-431a-a3b6-bd8cba4170af",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:20:53.206Z",
+          "comparableSellers": 23,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 976,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "33849574-7b35-407f-849b-7f6ad5d0be00",
+        "queryKey": "e8a568a04dece782bf515a9d2f6949513d650eae896b8c9a83d7a8524f3271b7",
+        "capture": {
+          "captureId": "ebda537a-f9dc-47c5-8a79-09b3920860dd",
+          "capturedAt": "2026-11-18T10:25:10.240Z",
+          "coverage": "partial",
+          "durationMs": 29518,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "e8a568a04dece782bf515a9d2f6949513d650eae896b8c9a83d7a8524f3271b7",
+          "reportedTotal": 336,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "0810433a-c657-4d29-8036-8b1417d4a24d",
+        "queryKey": "4e6e69e34c4be77e2a16f307ac782c84fa00a8107bd82869487b62718d901466",
+        "capture": {
+          "captureId": "2b976f2b-babf-431a-a3b6-bd8cba4170af",
+          "capturedAt": "2026-11-18T10:20:53.206Z",
+          "coverage": "complete",
+          "durationMs": 49722,
+          "fetched": 31,
+          "partialReason": null,
+          "queryVersion": "4e6e69e34c4be77e2a16f307ac782c84fa00a8107bd82869487b62718d901466",
+          "reportedTotal": 31,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-thicket-bow-dread",
+      "evaluation": {
+        "recipeId": "week-one-thicket-bow-dread",
+        "confidence": "low",
+        "source": {
+          "captureId": "79673e01-c129-49cb-a8f2-525ab91d37ac",
+          "comparable": true,
+          "capturedAt": "2026-11-18T10:36:26.188Z",
+          "comparableSellers": 9,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Complete, verified craft cost evidence is unavailable.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 190,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "2b380bc0-3578-44b2-9c97-3fcc83e2f5ab",
+        "queryKey": "175e20ec044d2ace3cbfde4cdf473a428882265f23942cd06e00748f87776f5a",
+        "capture": {
+          "captureId": "62edb671-471d-45b6-a94d-f4a389178cbc",
+          "capturedAt": "2026-11-18T11:36:27.314Z",
+          "coverage": "complete",
+          "durationMs": 25005,
+          "fetched": 15,
+          "partialReason": null,
+          "queryVersion": "175e20ec044d2ace3cbfde4cdf473a428882265f23942cd06e00748f87776f5a",
+          "reportedTotal": 15,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "6419e5bc-20ad-473e-b4e1-1eef64d7af93",
+        "queryKey": "e27a71b3b6021a6d6385c89b48e5f22f3056e08f3a5c47928362f785969138d6",
+        "capture": {
+          "captureId": "79673e01-c129-49cb-a8f2-525ab91d37ac",
+          "capturedAt": "2026-11-18T10:36:26.188Z",
+          "coverage": "complete",
+          "durationMs": 45003,
+          "fetched": 9,
+          "partialReason": null,
+          "queryVersion": "e27a71b3b6021a6d6385c89b48e5f22f3056e08f3a5c47928362f785969138d6",
+          "reportedTotal": 9,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-titanium-shield-woe",
+      "evaluation": {
+        "recipeId": "week-one-titanium-shield-woe",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "08040427-c2ec-4ddc-943c-2fff2fe9da0f",
+        "queryKey": "c2648f4c429e2b9f1a0eb2d3eb87ad6bcde21fcc85c325a9a87c65c1fd336dcd",
+        "capture": {
+          "captureId": "046f2cc9-46bc-4285-838d-14dc590fa9c7",
+          "capturedAt": "2026-11-18T11:41:34.330Z",
+          "coverage": "partial",
+          "durationMs": 29655,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "c2648f4c429e2b9f1a0eb2d3eb87ad6bcde21fcc85c325a9a87c65c1fd336dcd",
+          "reportedTotal": 338,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "09648041-49ba-4f85-a210-67b0a521f1f9",
+        "queryKey": "0c6532dc47b8cce055c6ce7cde03af8db1bc2b60ebcb83141a8b4528a5afa5a7",
+        "capture": {
+          "captureId": "db02e138-736a-4654-a0e7-481e97f525b9",
+          "capturedAt": "2026-11-18T08:42:29.571Z",
+          "coverage": "partial",
+          "durationMs": 480014,
+          "fetched": 114,
+          "partialReason": "PRICE_SLICE_LIMIT",
+          "queryVersion": "0c6532dc47b8cce055c6ce7cde03af8db1bc2b60ebcb83141a8b4528a5afa5a7",
+          "reportedTotal": 384,
+          "slices": 5
+        }
+      }
+    },
+    {
+      "id": "week-one-twilight-regalia-week-one-six-link-woe",
+      "evaluation": {
+        "recipeId": "week-one-twilight-regalia-week-one-six-link-woe",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "a9c39aa2-1af2-43cd-bb55-1589bfb6b1a9",
+        "queryKey": "de6627451e1dd9baebf9c531a7472a2976cae833566b9db6873931716131f982",
+        "capture": {
+          "captureId": "94f59b2f-3852-4fc9-a23c-0b99ed19fe08",
+          "capturedAt": "2026-11-18T11:41:04.665Z",
+          "coverage": "partial",
+          "durationMs": 29598,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "de6627451e1dd9baebf9c531a7472a2976cae833566b9db6873931716131f982",
+          "reportedTotal": 230,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "93b3d2ee-95df-416f-ae3f-2709caf930bf",
+        "queryKey": "41d1a38acabf7c8665fb10e00a56d8631ccc925c8dd3e8b8c4dd7db875e6caea",
+        "capture": {
+          "captureId": "8ca9af1d-dacc-4fa9-9fbf-7f39fc27d61b",
+          "capturedAt": "2026-11-18T09:21:41.754Z",
+          "coverage": "partial",
+          "durationMs": 280803,
+          "fetched": 115,
+          "partialReason": "PRICE_SLICE_LIMIT",
+          "queryVersion": "41d1a38acabf7c8665fb10e00a56d8631ccc925c8dd3e8b8c4dd7db875e6caea",
+          "reportedTotal": 199,
+          "slices": 5
+        }
+      }
+    },
+    {
+      "id": "week-one-two-toned-boots-zeal",
+      "evaluation": {
+        "recipeId": "week-one-two-toned-boots-zeal",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "8f2fecd7-b835-429a-b667-97dd6bf6c001",
+        "queryKey": "a13d53a817e31856965bf6c9d998c4bd5b8bcce7e85808a860c90a9fadaa804e",
+        "capture": {
+          "captureId": "c8c7a9f6-e724-44e4-9276-17ecdf2fa721",
+          "capturedAt": "2026-11-18T10:31:43.786Z",
+          "coverage": "partial",
+          "durationMs": 134416,
+          "fetched": 94,
+          "partialReason": null,
+          "queryVersion": "a13d53a817e31856965bf6c9d998c4bd5b8bcce7e85808a860c90a9fadaa804e",
+          "reportedTotal": 94,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "73a80f51-7979-4f16-9ac8-6f8c36bbc2fa",
+        "queryKey": "4d1cae677082513879034fe410aa2b8e0f13405183d99222b8b22399779bf0b5",
+        "capture": {
+          "captureId": "39d5e72b-d2d0-47ea-8258-f6b72ee348f2",
+          "capturedAt": "2026-11-18T08:50:29.927Z",
+          "coverage": "complete",
+          "durationMs": 16261,
+          "fetched": 7,
+          "partialReason": null,
+          "queryVersion": "4d1cae677082513879034fe410aa2b8e0f13405183d99222b8b22399779bf0b5",
+          "reportedTotal": 7,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-vaal-regalia-six-link-woe",
+      "evaluation": {
+        "recipeId": "week-one-vaal-regalia-six-link-woe",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "ed00b025-597f-4fd6-977c-38a26fe6ddb0",
+        "queryKey": "a7131eab3d33eeaf4af864c12e5e840494c11d9582f6cc4242d0c17f8babd9d6",
+        "capture": {
+          "captureId": "2d6edfc1-6ee5-4f7e-afe1-647894d5abed",
+          "capturedAt": "2026-11-18T11:32:59.599Z",
+          "coverage": "complete",
+          "durationMs": 11219,
+          "fetched": 5,
+          "partialReason": null,
+          "queryVersion": "a7131eab3d33eeaf4af864c12e5e840494c11d9582f6cc4242d0c17f8babd9d6",
+          "reportedTotal": 5,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "c1451826-30ee-4f08-96c3-6ac9b6334280",
+        "queryKey": "f72f06503a4a1d8f120e1a266be309cc5abcf6ea997bbce2ab4126a0d271869f",
+        "capture": {
+          "captureId": "680f4a7a-6087-4946-8193-5798b765865a",
+          "capturedAt": "2026-11-18T09:48:53.656Z",
+          "coverage": "complete",
+          "durationMs": 59971,
+          "fetched": 43,
+          "partialReason": null,
+          "queryVersion": "f72f06503a4a1d8f120e1a266be309cc5abcf6ea997bbce2ab4126a0d271869f",
+          "reportedTotal": 43,
+          "slices": 1
+        }
+      }
+    },
+    {
+      "id": "week-one-warlock-boots-woe",
+      "evaluation": {
+        "recipeId": "week-one-warlock-boots-woe",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "67d24052-66d5-48b0-af9b-0238917fc9c1",
+        "queryKey": "91e325dfdde06bf9cf4d5f49b450dc59caa28c6d2b07f823f1de8359e8d0f062",
+        "capture": {
+          "captureId": "3f6977c1-453a-4001-8f24-a1e56532cd40",
+          "capturedAt": "2026-11-18T10:34:00.798Z",
+          "coverage": "partial",
+          "durationMs": 56132,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "91e325dfdde06bf9cf4d5f49b450dc59caa28c6d2b07f823f1de8359e8d0f062",
+          "reportedTotal": 671,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "7a75bace-ebb4-483b-8841-d43b9b213ace",
+        "queryKey": "adb9bf07d8b7f0d9612cc77b34e9ee4ee65599caa152ae04cf26b16320e9b2a6",
+        "capture": {
+          "captureId": "0dbe5288-28a5-4bb0-83e9-2cdee57ec7fa",
+          "capturedAt": "2026-11-18T08:35:15.057Z",
+          "coverage": "partial",
+          "durationMs": 158757,
+          "fetched": 100,
+          "partialReason": "MIXED_CURRENCY_TOTAL_MISMATCH",
+          "queryVersion": "adb9bf07d8b7f0d9612cc77b34e9ee4ee65599caa152ae04cf26b16320e9b2a6",
+          "reportedTotal": 171,
+          "slices": 2
+        }
+      }
+    },
+    {
+      "id": "week-one-warlock-gloves-woe",
+      "evaluation": {
+        "recipeId": "week-one-warlock-gloves-woe",
+        "confidence": "low",
+        "profitBlockedReason": "No fresh Trade observation for this crafted item.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": null,
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "b381a305-da0a-41a2-9c7c-ea371291b790",
+        "queryKey": "c596af9a409bf4395c717ea0638a75c17d23ef7aaec1d5c2e269bc48e14bfa88",
+        "capture": {
+          "captureId": "6cf5a189-eacf-402e-97a3-89f70265c60c",
+          "capturedAt": "2026-11-18T11:42:04.121Z",
+          "coverage": "partial",
+          "durationMs": 29748,
+          "fetched": 20,
+          "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN",
+          "queryVersion": "c596af9a409bf4395c717ea0638a75c17d23ef7aaec1d5c2e269bc48e14bfa88",
+          "reportedTotal": 711,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "68166229-7214-4380-8c3c-fac706d8f377",
+        "queryKey": "b3703b2b6898646fc56b021c1528bb03be9d87578386f8b988ecc702410ca729",
+        "capture": {
+          "captureId": "5f9cb1ca-c3eb-49d5-b1f4-c07e71dddc32",
+          "capturedAt": "2026-11-18T08:25:38.293Z",
+          "coverage": "partial",
+          "durationMs": 379480,
+          "fetched": 202,
+          "partialReason": "PRICE_SLICE_LIMIT",
+          "queryVersion": "b3703b2b6898646fc56b021c1528bb03be9d87578386f8b988ecc702410ca729",
+          "reportedTotal": 497,
+          "slices": 5
+        }
+      }
+    },
+    {
+      "id": "wyvernscale-gauntlets-fractured-suppression-zeal",
+      "evaluation": {
+        "recipeId": "wyvernscale-gauntlets-fractured-suppression-zeal",
+        "confidence": "low",
+        "source": {
+          "captureId": "edb372cf-d93d-4539-97c1-aa268e3d3444",
+          "comparable": true,
+          "capturedAt": "2026-11-18T11:53:55.392Z",
+          "comparableSellers": 2,
+          "coverage": "complete"
+        },
+        "profitBlockedReason": "Нет проверенной вероятности полного результата и среднего расхода для 3.30.",
+        "status": "partial",
+        "evaluatedAt": "2026-11-18T12:07:20.535Z",
+        "expectedCraftCost": null,
+        "budget": null,
+        "estimatedSalePrice": {
+          "amount": 4684.8,
+          "currency": "chaos"
+        },
+        "profit": null,
+        "marginPercent": null,
+        "snapshotId": null,
+        "lastSuccessfulAt": null,
+        "errorCode": null
+      },
+      "base": {
+        "itemId": "92fd845a-2168-4aa1-8995-841b00f7a6ac",
+        "queryKey": "71d8b39463ae3580c2027026f8eb698abc89dccd6ec1f33e24a50eb1fda45c50",
+        "capture": {
+          "captureId": "00d21f72-3a53-47ef-9e9f-e206e017e666",
+          "capturedAt": "2026-11-18T10:35:12.264Z",
+          "coverage": "complete",
+          "durationMs": 29116,
+          "fetched": 1,
+          "partialReason": null,
+          "queryVersion": "71d8b39463ae3580c2027026f8eb698abc89dccd6ec1f33e24a50eb1fda45c50",
+          "reportedTotal": 1,
+          "slices": 1
+        }
+      },
+      "output": {
+        "itemId": "a42649b4-7053-4b25-a4a1-20e533b5cdd8",
+        "queryKey": "1835f4a624213ea56a20b5537a0bb88b562b8dd651f31c0cf8cf2b46b63073ac",
+        "capture": {
+          "captureId": "edb372cf-d93d-4539-97c1-aa268e3d3444",
+          "capturedAt": "2026-11-18T11:53:55.392Z",
+          "coverage": "complete",
+          "durationMs": 733,
+          "fetched": 2,
+          "partialReason": null,
+          "queryVersion": "1835f4a624213ea56a20b5537a0bb88b562b8dd651f31c0cf8cf2b46b63073ac",
+          "reportedTotal": 2,
+          "slices": 1
+        }
+      }
+    }
+  ]
+}

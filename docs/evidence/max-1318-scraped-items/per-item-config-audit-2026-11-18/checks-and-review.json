@@ -1,0 +1,30 @@
+{
+  "sourceBase": "51cf438",
+  "unitChecks": {
+    "domain": 215,
+    "contracts": 20,
+    "server": 634,
+    "web": 175,
+    "native": 1,
+    "total": 1045
+  },
+  "postgresIntegration": {
+    "passed": 208,
+    "files": 26,
+    "database": "Separate PostgreSQL17 test database, never actual-data acceptance copy"
+  },
+  "typecheck": "PASS",
+  "lint": "PASS",
+  "recipeValidation": {
+    "status": "PASS",
+    "recipes": 72
+  },
+  "regression": "New source-backed Jagged assertions were RED before correction, GREEN after. Shared rare acquisition and preserved normal Alteration are asserted. Shared schedule survives removal of Chaos. Capture170/current200FX plus sorted sample exclusion remain tested.",
+  "independentCodexReview": "PASS source/test diff and128-profile evidence consistency; first review caught stale unique-base disable assertion, corrected and verified208PASS. Reviewer did not mutate files or rerun tests.",
+  "actualData": "Normal API + PG request/NOTIFY + shipped collector, four corrected acquisition tests all succeeded. No fixture data served acceptance.",
+  "notRun": [
+    "New3.30 crafting-probability simulation",
+    "Production deployment",
+    "Actual crafts, completed sales or realized profit"
+  ]
+}

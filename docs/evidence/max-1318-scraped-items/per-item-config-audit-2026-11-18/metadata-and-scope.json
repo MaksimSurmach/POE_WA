@@ -1,0 +1,422 @@
+{
+  "summary": {
+    "items": 128,
+    "recipes": 72,
+    "uniqueWireStats": 93,
+    "candidates": {
+      "partial": 54,
+      "empty": 9
+    },
+    "confirmedConfigDefects": 6,
+    "sourceHead": "51cf4380d60f8de84471840d7f0e87f86afa19c3",
+    "snapshotAt": "2026-11-18T11:04:53.630Z",
+    "marketScope": "Instant Buyout only; owner confirmed in this follow-up. Ordinary online/offline offers excluded.",
+    "scope": "All128 original profiles checked against source,93 official wire stats, nine exact empty re-tests, seven one-filter controls; subsequent crafting-input review found six Jagged recipes incorrectly acquiring normal instead of rare. Three profile saves and one Physical Jagged relink correct them. Four affected rare query groups re-tested with real authenticated Instant Buyout data.",
+    "unchangedProfiles": 125,
+    "successfulEmptyRetests": 9,
+    "successfulControls": 7,
+    "sourceOrAuthoredConfigurationChanges": 6,
+    "priceScopeLimit": "A zero is an observed Instant Buyout result for this exact query, not a claim of global market absence. A partial sample is not a complete price floor.",
+    "metadata": {
+      "url": "https://www.pathofexile.com/api/trade/data/stats",
+      "savedPath": "/tmp/max1318-current-trade-stats.json",
+      "sha256": "3cd9474dbf93c79e66ef2131c878e829f8da4fd3ace25e21bf6eb0b9116ed79d",
+      "version": "unversioned Trade stats API snapshot",
+      "gameDataVersions": ["3.29.3.3"]
+    },
+    "handbookToWireStatAliases": {
+      "explicit.indexable_support_68": "explicit.effect_1200122555",
+      "explicit.indexable_support_98": "explicit.effect_3293595800"
+    },
+    "nativeImplicitAuthority": {
+      "url": "https://www.pathofexile.com/item-data/armour",
+      "verifiedOn": "2026-11-18",
+      "ranges": {
+        "Spiked Gloves melee damage": [24, 30],
+        "Gripped Gloves projectile attack damage": [22, 28],
+        "Bone Helmet minion damage": [20, 30]
+      }
+    },
+    "confirmedStatIdOrNumericBoundDefects": 0,
+    "profilesSaved": 3,
+    "recipeLinksMoved": 1,
+    "uniqueTradeQueriesAfterDeduplication": 125,
+    "successfulCorrectedAcquisitionRetests": 4,
+    "snapshotStage": "Initial stats/bounds snapshot before the later rarity fix; final runtime and mutation receipts are separate files.",
+    "mechanicalValidation": "Recipe/source agreement alone did not detect the same wrong rarity in both places. Full-reroll Jagged acquisition was reviewed separately."
+  },
+  "wireStats": {
+    "enchant.stat_2448920197": {
+      "text": "#% increased effect",
+      "type": "enchant"
+    },
+    "enchant.stat_3086156145": {
+      "text": "Adds # Passive Skills",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|12": {
+      "text": "Added Small Passive Skills grant: 12% increased Physical Damage",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|13": {
+      "text": "Added Small Passive Skills grant: 12% increased Fire Damage",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|15": {
+      "text": "Added Small Passive Skills grant: 12% increased Cold Damage",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|16": {
+      "text": "Added Small Passive Skills grant: 12% increased Chaos Damage",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|28": {
+      "text": "Added Small Passive Skills grant: Exerted Attacks deal 20% increased Damage",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|29": {
+      "text": "Added Small Passive Skills grant: 15% increased Critical Strike Chance",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|30": {
+      "text": "Added Small Passive Skills grant: Minions have 12% increased maximum Life",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|35": {
+      "text": "Added Small Passive Skills grant: 12% increased Brand Damage",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|39": {
+      "text": "Added Small Passive Skills grant: 4% increased maximum Life",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|4": {
+      "text": "Added Small Passive Skills grant: 12% increased Damage with Bows\nAdded Small Passive Skills grant: 12% increased Damage Over Time with Bow Skills",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|42": {
+      "text": "Added Small Passive Skills grant: 15% increased Armour",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|6": {
+      "text": "Added Small Passive Skills grant: 12% increased Damage with Two Handed Weapons",
+      "type": "enchant"
+    },
+    "enchant.stat_3948993189|8": {
+      "text": "Added Small Passive Skills grant: 12% increased Attack Damage while holding a Shield",
+      "type": "enchant"
+    },
+    "enchant.stat_4079888060": {
+      "text": "# Added Passive Skills are Jewel Sockets",
+      "type": "enchant"
+    },
+    "explicit.effect_1200122555": {
+      "text": "Socketed Gems are Supported by Level # Burning Damage Support",
+      "type": "explicit"
+    },
+    "explicit.effect_3293595800": {
+      "text": "Socketed Gems are Supported by Level # Concentrated Effect Support",
+      "type": "explicit"
+    },
+    "explicit.stat_1048879642": {
+      "text": "1 Added Passive Skill is Mob Mentality",
+      "type": "explicit"
+    },
+    "explicit.stat_1050105434": {
+      "text": "+# to maximum Mana",
+      "type": "explicit"
+    },
+    "explicit.stat_1152182658": {
+      "text": "1 Added Passive Skill is Martial Prowess",
+      "type": "explicit"
+    },
+    "explicit.stat_124131830": {
+      "text": "+# to Level of all Spell Skill Gems",
+      "type": "explicit"
+    },
+    "explicit.stat_1256719186": {
+      "text": "#% increased Duration",
+      "type": "explicit"
+    },
+    "explicit.stat_1353571444": {
+      "text": "1 Added Passive Skill is Fettle",
+      "type": "explicit"
+    },
+    "explicit.stat_1424794574": {
+      "text": "1 Added Passive Skill is Blessed Rebirth",
+      "type": "explicit"
+    },
+    "explicit.stat_1509134228": {
+      "text": "#% increased Physical Damage",
+      "type": "explicit"
+    },
+    "explicit.stat_1589917703": {
+      "text": "Minions deal #% increased Damage",
+      "type": "explicit"
+    },
+    "explicit.stat_1595367309": {
+      "text": "1 Added Passive Skill is Snowstorm",
+      "type": "explicit"
+    },
+    "explicit.stat_1616734644": {
+      "text": "1 Added Passive Skill is Wicked Pall",
+      "type": "explicit"
+    },
+    "explicit.stat_1678643716": {
+      "text": "1 Added Passive Skill is Widespread Destruction",
+      "type": "explicit"
+    },
+    "explicit.stat_1940865751": {
+      "text": "Adds # to # Physical Damage (Local)",
+      "type": "explicit"
+    },
+    "explicit.stat_2027269580": {
+      "text": "+# to Level of Socketed Bow Gems",
+      "type": "explicit"
+    },
+    "explicit.stat_2028847114": {
+      "text": "Curse Enemies with Elemental Weakness on Hit",
+      "type": "explicit"
+    },
+    "explicit.stat_2043284086": {
+      "text": "1 Added Passive Skill is Enduring Composure",
+      "type": "explicit"
+    },
+    "explicit.stat_2068574831": {
+      "text": "1 Added Passive Skill is Brutal Infamy",
+      "type": "explicit"
+    },
+    "explicit.stat_210067635": {
+      "text": "#% increased Attack Speed (Local)",
+      "type": "explicit"
+    },
+    "explicit.stat_2162097452": {
+      "text": "+# to Level of all Minion Skill Gems",
+      "type": "explicit"
+    },
+    "explicit.stat_2194205899": {
+      "text": "1 Added Passive Skill is Grim Oath",
+      "type": "explicit"
+    },
+    "explicit.stat_2195406641": {
+      "text": "1 Added Passive Skill is Lead By Example",
+      "type": "explicit"
+    },
+    "explicit.stat_2250533757": {
+      "text": "#% increased Movement Speed",
+      "type": "explicit"
+    },
+    "explicit.stat_2322980282": {
+      "text": "1 Added Passive Skill is Smoking Remains",
+      "type": "explicit"
+    },
+    "explicit.stat_2337273077": {
+      "text": "1 Added Passive Skill is Life from Death",
+      "type": "explicit"
+    },
+    "explicit.stat_2342448236": {
+      "text": "1 Added Passive Skill is Prismatic Heart",
+      "type": "explicit"
+    },
+    "explicit.stat_2350900742": {
+      "text": "1 Added Passive Skill is Grand Design",
+      "type": "explicit"
+    },
+    "explicit.stat_2448920197": {
+      "text": "#% increased effect",
+      "type": "explicit"
+    },
+    "explicit.stat_2551600084": {
+      "text": "+# to Level of Socketed AoE Gems",
+      "type": "explicit"
+    },
+    "explicit.stat_2631806437": {
+      "text": "1 Added Passive Skill is Tempered Arrowheads",
+      "type": "explicit"
+    },
+    "explicit.stat_2780712583": {
+      "text": "1 Added Passive Skill is Touch of Cruelty",
+      "type": "explicit"
+    },
+    "explicit.stat_280731498": {
+      "text": "#% increased Area of Effect",
+      "type": "explicit"
+    },
+    "explicit.stat_2923486259": {
+      "text": "+#% to Chaos Resistance",
+      "type": "explicit"
+    },
+    "explicit.stat_3005472710": {
+      "text": "#% chance to Avoid Elemental Ailments",
+      "type": "explicit"
+    },
+    "explicit.stat_3079007202": {
+      "text": "#% chance to Trigger a Socketed Spell on Using a Skill, with a 8 second Cooldown\nSpells Triggered this way have 150% more Cost",
+      "type": "explicit"
+    },
+    "explicit.stat_3084359503": {
+      "text": "1 Added Passive Skill is Basics of Pain",
+      "type": "explicit"
+    },
+    "explicit.stat_3091578504": {
+      "text": "Minions have #% increased Attack and Cast Speed",
+      "type": "explicit"
+    },
+    "explicit.stat_3182498570": {
+      "text": "#% increased Movement Speed during Effect",
+      "type": "explicit"
+    },
+    "explicit.stat_3212859169": {
+      "text": "1 Added Passive Skill is Arcing Shot",
+      "type": "explicit"
+    },
+    "explicit.stat_3299347043": {
+      "text": "+# to maximum Life",
+      "type": "explicit"
+    },
+    "explicit.stat_3372524247": {
+      "text": "+#% to Fire Resistance",
+      "type": "explicit"
+    },
+    "explicit.stat_3391925584": {
+      "text": "1 Added Passive Skill is Pressure Points",
+      "type": "explicit"
+    },
+    "explicit.stat_3415827027": {
+      "text": "1 Added Passive Skill is Furious Assault",
+      "type": "explicit"
+    },
+    "explicit.stat_3489782002": {
+      "text": "+# to maximum Energy Shield",
+      "type": "explicit"
+    },
+    "explicit.stat_3585232432": {
+      "text": "1 Added Passive Skill is Master the Fundamentals",
+      "type": "explicit"
+    },
+    "explicit.stat_3599340381": {
+      "text": "1 Added Passive Skill is Fuel the Fight",
+      "type": "explicit"
+    },
+    "explicit.stat_3638731729": {
+      "text": "1 Added Passive Skill is Sadist",
+      "type": "explicit"
+    },
+    "explicit.stat_3640252904": {
+      "text": "1 Added Passive Skill is Heavy Hitter",
+      "type": "explicit"
+    },
+    "explicit.stat_3680664274": {
+      "text": "+#% chance to Suppress Spell Damage",
+      "type": "explicit"
+    },
+    "explicit.stat_3944525413": {
+      "text": "1 Added Passive Skill is Feed the Fury",
+      "type": "explicit"
+    },
+    "explicit.stat_3967845372": {
+      "text": "Curse Enemies with Vulnerability on Hit",
+      "type": "explicit"
+    },
+    "explicit.stat_4052037485": {
+      "text": "+# to maximum Energy Shield (Local)",
+      "type": "explicit"
+    },
+    "explicit.stat_4186213466": {
+      "text": "1 Added Passive Skill is Unholy Grace",
+      "type": "explicit"
+    },
+    "explicit.stat_4188581520": {
+      "text": "1 Added Passive Skill is Battle-Hardened",
+      "type": "explicit"
+    },
+    "explicit.stat_4220027924": {
+      "text": "+#% to Cold Resistance",
+      "type": "explicit"
+    },
+    "explicit.stat_4237190083": {
+      "text": "#% increased Mana Reservation Efficiency of Skills",
+      "type": "explicit"
+    },
+    "explicit.stat_540300548": {
+      "text": "1 Added Passive Skill is Smite the Weak",
+      "type": "explicit"
+    },
+    "explicit.stat_567971948": {
+      "text": "1 Added Passive Skill is Vicious Skewering",
+      "type": "explicit"
+    },
+    "explicit.stat_664010431": {
+      "text": "1 Added Passive Skill is Veteran Defender",
+      "type": "explicit"
+    },
+    "explicit.stat_681332047": {
+      "text": "#% increased Attack Speed",
+      "type": "explicit"
+    },
+    "explicit.stat_691431951": {
+      "text": "1 Added Passive Skill is Remarkable",
+      "type": "explicit"
+    },
+    "fractured.stat_3091578504": {
+      "text": "Minions have #% increased Attack and Cast Speed",
+      "type": "fractured"
+    },
+    "fractured.stat_3372524247": {
+      "text": "+#% to Fire Resistance",
+      "type": "fractured"
+    },
+    "fractured.stat_3680664274": {
+      "text": "+#% chance to Suppress Spell Damage",
+      "type": "fractured"
+    },
+    "implicit.stat_1002362373": {
+      "text": "#% increased Melee Damage",
+      "type": "implicit"
+    },
+    "implicit.stat_1589917703": {
+      "text": "Minions deal #% increased Damage",
+      "type": "implicit"
+    },
+    "implicit.stat_2162876159": {
+      "text": "#% increased Projectile Attack Damage",
+      "type": "implicit"
+    },
+    "implicit.stat_2974417149": {
+      "text": "#% increased Spell Damage",
+      "type": "implicit"
+    },
+    "implicit.stat_3988349707": {
+      "text": "+#% to Damage over Time Multiplier",
+      "type": "implicit"
+    },
+    "pseudo.pseudo_has_crusader_influence": {
+      "text": "Has Crusader Influence",
+      "type": "pseudo"
+    },
+    "pseudo.pseudo_has_elder_influence": {
+      "text": "Has Elder Influence",
+      "type": "pseudo"
+    },
+    "pseudo.pseudo_has_hunter_influence": {
+      "text": "Has Hunter Influence",
+      "type": "pseudo"
+    },
+    "pseudo.pseudo_has_redeemer_influence": {
+      "text": "Has Redeemer Influence",
+      "type": "pseudo"
+    },
+    "pseudo.pseudo_has_shaper_influence": {
+      "text": "Has Shaper Influence",
+      "type": "pseudo"
+    },
+    "pseudo.pseudo_has_warlord_influence": {
+      "text": "Has Warlord Influence",
+      "type": "pseudo"
+    },
+    "pseudo.pseudo_total_resistance": {
+      "text": "+#% total Resistance",
+      "type": "pseudo"
+    }
+  }
+}

@@ -67,7 +67,7 @@ describe('recipe item presentation', () => {
     expect(presentation.base).toMatchObject({
       itemLevel: 83,
       name: 'Large Cluster Jewel',
-      rarity: 'normal',
+      rarity: 'rare',
     });
     expect(presentation.materials.map(({ quantity }) => quantity)).toEqual([
       1, 1,
