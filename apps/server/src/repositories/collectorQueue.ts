@@ -79,7 +79,7 @@ export async function readCollectorQueue(
        )
      ), pools as (
        select p.league_id as pool_league, p.priority, p.cycle_id, p.paused_at,
-              cardinality(p.members)::float8 / p.period_minutes as starts_per_minute,
+              cardinality(p.members)::float8 / configured_trade_pool_period(p.priority) as starts_per_minute,
               p.started_at + make_interval(mins => p.period_minutes) as cycle_end,
               min(s.next_due_at) filter (where s.enabled and s.settled_cycle_id is distinct from p.cycle_id) as next_slot,
               max(s.last_started_at) as last_start
@@ -106,7 +106,7 @@ export async function readCollectorQueue(
            interval '1 millisecond' * (select max(ms_per_target) from policy_cost)) as due from pools
      ), scheduled as (
        select s.id, s.kind, s.interval_minutes, s.retry_at, s.last_error, s.leased_until,
-              p.cycle_id, s.scraping_priority, s.league_id as pool_league_id, s.settled_cycle_id, s.settled_with_error,
+              p.cycle_id, p.starts_per_minute is null as period_missing, s.scraping_priority, s.league_id as pool_league_id, s.settled_cycle_id, s.settled_with_error,
               s.payload->>'discovery' = 'true' as discovery,
               greatest(s.next_due_at, s.retry_at) as raw_due,
               greatest(case when (controls.request->'pending') ? s.id::text and p.cycle_id is not null
@@ -116,7 +116,7 @@ export async function readCollectorQueue(
                 case when s.kind = 'trade-target' then (select blocked_until from cooldown) end,
                 case when s.kind = 'trade-target' then (select until from pacing) end) as due,
               coalesce((controls.request->'pending') ? s.id::text, false) as pending,
-              (s.scraping_priority is null or (p.cycle_id is not null and p.paused_at is null
+              (s.scraping_priority is null or (p.starts_per_minute is not null and p.paused_at is null
                 and (s.settled_cycle_id is distinct from p.cycle_id or (controls.request->'pending') ? s.id::text))) and
               (not $3::boolean or ${nonStandardSchedulePredicate}) and
               (s.kind not in ('trade-target','economy') or
@@ -155,7 +155,8 @@ export async function readCollectorQueue(
                     when s.due=(select until from pacing) then 'pacing'
                     when s.due=s.leased_until then 'lease' when s.due=s.retry_at then 'retry'
                     else 'slot' end order by s.due,s.id) filter (where s.eligible))[1],
-                    case when p.paused_at is not null or controls.paused then 'paused'
+                    case when bool_and(s.period_missing) then 'missing-period'
+                      when p.paused_at is not null or controls.paused then 'paused'
                       when bool_and(s.settled_cycle_id is not distinct from p.cycle_id) then 'complete'
                       when controls.blocked is not null then 'blocked' else 'disabled' end) as reason
                 from scheduled s join collector_trade_pool p on p.cycle_id=s.cycle_id
@@ -165,12 +166,12 @@ export async function readCollectorQueue(
                 group by p.league_id, p.priority, l.name
               ) stats), '[]'::jsonb) end as "tradePools",
             (select count(*)::int from scheduled) as enabled,
-            (select count(*)::int from scheduled where (cycle_id is null or eligible) and raw_due <= $1 and
+            (select count(*)::int from scheduled where (scraping_priority is null or eligible) and raw_due <= $1 and
                (leased_until is null or leased_until <= $1)) as due,
-            (select min(raw_due) from scheduled where (cycle_id is null or eligible) and raw_due <= $1 and
+            (select min(raw_due) from scheduled where (scraping_priority is null or eligible) and raw_due <= $1 and
                (leased_until is null or leased_until <= $1)) as "oldestDueAt",
             coalesce((select sum(60.0 / interval_minutes)::float8 from scheduled
-                      where kind = 'trade-target'), 0) as "tradeCapturesPerHour",
+                      where kind = 'trade-target' and (scraping_priority is null or not period_missing)), 0) as "tradeCapturesPerHour",
             controls.paused, controls.blocked,
             coalesce(controls.request->>'recoverTradeAuthentication' = 'true', false) as recovery,
             (select blocked_until from cooldown) as "cooldownUntil",

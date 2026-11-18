@@ -346,9 +346,68 @@ it('shares one start budget across pools and records exhausted retries', async (
   expect(handler).toHaveBeenCalledTimes(2);
 });
 
-it.each([true, false])(
-  'handles a pooled provider outage with explicit deferral=%s',
-  async (deferred) => {
+it('freezes only the pool whose period disappeared and resumes the same cycle', async () => {
+  const {
+    rows: [league],
+  } = await pool.query(
+    "insert into poe_leagues(ggg_id,name,synced_at) values($1,'Period test',$2) returning id",
+    [randomUUID(), now()],
+  );
+  const output = await schedule({ leagueId: league.id, scrapingPriority: 1 });
+  const base = await schedule({ leagueId: league.id, scrapingPriority: 2 });
+  await pool.query('select reconcile_trade_pools($1)', [now()]);
+  const poolState = async () =>
+    (
+      await pool.query(
+        'select cycle_id, started_at, paused_at from collector_trade_pool where league_id=$1 and priority=2',
+        [league.id],
+      )
+    ).rows[0];
+  const original = await poolState();
+  await pool.query(
+    `insert into market_admin_settings(id,settings) values(1,'{"tradePoolMinutes":{"1":180}}')`,
+  );
+  time += 720 * minute;
+  const housekeeping = await schedule({ kind: 'retention' });
+  const handler = vi.fn(succeed);
+  const worker = start(handler);
+  await vi.waitFor(async () =>
+    expect((await row(output)).lastStatus).toBe('succeeded'),
+  );
+  expect((await row(housekeeping)).lastStatus).toBe('succeeded');
+  expect((await row(base)).lastStartedAt).toBeNull();
+  const status = await readCollectorQueue(pool, now(), undefined, false, true);
+  expect(status.tradePools).toContainEqual(
+    expect.objectContaining({
+      priority: 2,
+      reason: 'missing-period',
+      nextSlotAt: null,
+    }),
+  );
+  worker.stop.abort();
+  await worker.done;
+  const frozen = await poolState();
+  expect(frozen.paused_at).toEqual(now());
+  time += 60 * minute;
+  await pool.query(
+    `update market_admin_settings set settings='{"tradePoolMinutes":{"1":180,"2":720}}' where id=1`,
+  );
+  await pool.query('select reconcile_trade_pools($1)', [now()]);
+  expect(await poolState()).toMatchObject({
+    cycle_id: original.cycle_id,
+    paused_at: null,
+    started_at: new Date(original.started_at.getTime() + 60 * minute),
+  });
+  expect((await row(base)).nextDueAt.getTime()).toBeGreaterThan(time);
+});
+
+it.each([
+  { pooled: true, deferred: true },
+  { pooled: true, deferred: false },
+  { pooled: false, deferred: true },
+])(
+  'handles a provider outage with pooled=$pooled and deferral=$deferred',
+  async ({ pooled, deferred }) => {
     const {
       rows: [league],
     } = await pool.query(
@@ -357,7 +416,7 @@ it.each([true, false])(
     );
     const id = await schedule({
       leagueId: league.id,
-      scrapingPriority: 1,
+      scrapingPriority: pooled ? 1 : null,
       attempt: 2,
     });
     await pool.query('select reconcile_trade_pools($1)', [now()]);
@@ -397,7 +456,7 @@ it.each([true, false])(
         retryAt: null,
         settledWithError: false,
       });
-      expect((await row(id)).settledCycleId).toBeTruthy();
+      expect(Boolean((await row(id)).settledCycleId)).toBe(pooled);
     } else {
       expect((await row(id)).settledCycleId).toBeTruthy();
     }

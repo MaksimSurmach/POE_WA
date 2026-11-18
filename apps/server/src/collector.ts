@@ -251,6 +251,7 @@ async function skipUnavailable(
       and(
         inArray(collectorSchedule.id, request.progress.pending),
         eq(collectorSchedule.enabled, true),
+        sql`(${collectorSchedule.scrapingPriority} is null or configured_trade_pool_period(${collectorSchedule.scrapingPriority}) is not null)`,
         skipStandard ? sql.raw(nonStandardSchedulePredicate) : undefined,
         sql`(${collectorSchedule.kind} not in ('trade-target', 'economy') or ${sql.raw(marketCollectionEnabledSql('true'))})`,
         tradeBlocked
@@ -399,15 +400,19 @@ async function finishSchedule(
         ? new Date(result.retryAt.getTime() + jitterMs())
         : undefined;
     const pooled = Boolean(schedule.poolCycleId);
+    const providerDeferral =
+      schedule.kind === 'trade-target' &&
+      result.status === 'retry' &&
+      result.reason === 'PROVIDER_UNAVAILABLE' &&
+      result.retryAt !== undefined;
     const deferred =
-      pooled &&
-      result.status !== 'success' &&
-      (result.status === 'blocked' ||
-        ['MARKET_COLLECTION_PAUSED', 'PROVIDER_RATE_LIMITED'].includes(
-          result.reason,
-        ) ||
-        (result.reason === 'PROVIDER_UNAVAILABLE' &&
-          explicitRetry !== undefined));
+      providerDeferral ||
+      (pooled &&
+        result.status !== 'success' &&
+        (result.status === 'blocked' ||
+          ['MARKET_COLLECTION_PAUSED', 'PROVIDER_RATE_LIMITED'].includes(
+            result.reason,
+          )));
     const attemptsExhausted = !deferred && current.attempt >= 2;
     const settled =
       pooled && (result.status === 'success' || attemptsExhausted);

@@ -94,12 +94,23 @@ export async function synchronizeRecipes(
   const periods = marketAdminSettingsSchema.shape.tradePoolMinutes.parse(
     options.tradePoolMinutes,
   );
+  const existing = new Map(
+    (await repository.listAll()).map((recipe) => [recipe.id, recipe]),
+  );
   for (const { definition } of sourceRecipes) {
     for (const [role, priority] of [
       ['base', definition.scrapingPriority?.base ?? 2],
       ['output', definition.scrapingPriority?.output ?? 1],
     ] as const) {
-      if (!Object.hasOwn(periods, priority))
+      if (Object.hasOwn(periods, priority)) continue;
+      // Existing assignments survive a lost period so startup can sync the healthy pools.
+      const previous = existing.get(definition.id);
+      const previousPriority = previous?.active
+        ? (validateRecipeDocument(previous.definition).scrapingPriority?.[
+            role
+          ] ?? (role === 'base' ? 2 : 1))
+        : undefined;
+      if (previousPriority !== priority)
         throw new Error(
           `Recipe ${definition.id} requires a period for Trade pool ${priority} (${role})`,
         );
@@ -112,9 +123,6 @@ export async function synchronizeRecipes(
     unchanged: [],
     updated: [],
   };
-  const existing = new Map(
-    (await repository.listAll()).map((recipe) => [recipe.id, recipe]),
-  );
   const sourceIds = new Set(
     sourceRecipes.map(({ definition }) => definition.id),
   );

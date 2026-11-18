@@ -267,6 +267,13 @@
       "when": 1795005693328,
       "tag": "0037_trade_priority_pools",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1795011457235,
+      "tag": "0038_isolate_missing_trade_period",
+      "breakpoints": true
     }
   ]
 }

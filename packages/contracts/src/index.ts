@@ -551,6 +551,7 @@ export const collectorStatusSchema = z.object({
         overdueSeconds: z.number().int().nonnegative(),
         reason: z.enum([
           'paused',
+          'missing-period',
           'disabled',
           'blocked',
           'complete',

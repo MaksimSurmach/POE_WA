@@ -218,7 +218,7 @@ it('reconciles the 72-recipe catalog without resetting existing schedule rows', 
   );
 }, 15_000);
 
-it('uses the highest priority among recipes sharing a query and rolls back unknown priorities', async () => {
+it('shares the highest priority, rejects new unconfigured assignments and isolates legacy ones', async () => {
   await seedPrerequisites();
   const chaos = 'physical-large-cluster-chaos';
   const jagged = 'physical-large-cluster-jagged';
@@ -284,8 +284,12 @@ it('uses the highest priority among recipes sharing a query and rolls back unkno
   );
   await expect(
     synchronizeCollectorSchedules(pool, loadCollectorScheduleConfig(cadence)),
-  ).rejects.toThrow();
-  expect(await scheduleRows()).toEqual(second);
+  ).resolves.toBe('synchronized');
+  const legacy = await scheduleRows();
+  expect(legacy.find((row) => row.id === chaosBase!.id)?.scrapingPriority).toBe(
+    7,
+  );
+  expect(legacy.find((row) => row.id === shared.id)?.intervalMinutes).toBe(180);
 });
 
 it('validates configured priorities before importing any catalog recipe', async () => {

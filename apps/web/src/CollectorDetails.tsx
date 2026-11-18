@@ -72,6 +72,7 @@ function range(
 
 type TradePool = NonNullable<CollectorStatus['tradePools']>[number];
 const poolReasons: Record<TradePool['reason'], string> = {
+  'missing-period': 'не задан период пула',
   paused: 'пауза оператора',
   disabled: 'сбор отключён',
   blocked: 'блокировка Trade',
