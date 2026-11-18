@@ -48,7 +48,15 @@ async function evaluate(
   options: {
     recipe?: ReturnType<typeof fixtureRecipe>;
     materialStock?: number;
-    foreign?: 'matching' | 'rejected';
+    foreign?:
+      | 'matching'
+      | 'rejected'
+      | 'unknown'
+      | 'unreadable'
+      | 'raw-matching'
+      | 'raw-unknown'
+      | 'raw-rejected';
+    foreignCurrency?: string;
     materialAgeMinutes?: number;
     materialExpiryMinutes?: number;
     maximumQuoteAgeMs?: number;
@@ -169,19 +177,45 @@ async function evaluate(
         },
       }),
     );
-    if (dependency.kind === 'target' && options.foreign)
+    if (dependency.kind === 'target' && options.foreign) {
+      const foreignCurrency = options.foreignCurrency ?? 'divine';
+      const foreignItem = { ...item('foreign-seller', foreignCurrency) };
+      if (options.foreign === 'rejected')
+        foreignItem.baseType = 'Unrelated base';
+      if (options.foreign === 'unknown') delete foreignItem.baseType;
+      if (options.foreign === 'unreadable') foreignItem.rawListing = {};
+      if (
+        options.foreign === 'raw-matching' ||
+        options.foreign === 'raw-unknown'
+      )
+        foreignItem.baseType = 'Unrelated cached base';
+      if (options.foreign.startsWith('raw-'))
+        foreignItem.rawListing = {
+          id: 'foreign',
+          listing: {
+            account: { name: 'foreign-seller' },
+            price: { amount: 1, currency: foreignCurrency },
+          },
+          item: {
+            verified: true,
+            baseType:
+              options.foreign === 'raw-rejected'
+                ? 'Unrelated raw base'
+                : target!.baseTypes[0]!,
+            league: target!.league,
+            ...(options.foreign === 'raw-unknown' ? {} : { frameType: 2 }),
+            ilvl: 84,
+            explicitMods: [],
+          },
+        };
       listings.push({
         ...listings[0]!,
         id: 'foreign',
         account: 'foreign-seller',
-        price: { amount: '1', currency: 'divine' },
-        item: {
-          ...item('foreign-seller', 'divine'),
-          ...(options.foreign === 'rejected'
-            ? { baseType: 'Unrelated base' }
-            : {}),
-        },
+        price: { amount: '1', currency: foreignCurrency },
+        item: foreignItem,
       });
+    }
     if (dependency.kind === 'target' && options.convertedAt)
       listings[0]!.item = {
         ...listings[0]!.item,
@@ -443,6 +477,79 @@ describe('catalog input evidence', () => {
       estimatedSalePrice: '300',
     });
     expect(evaluation.profit).not.toBeNull();
+  });
+
+  it.each([
+    ['matching', 'fusing'],
+    ['matching', 'mirror'],
+    ['unknown', 'fusing'],
+    ['unknown', 'mirror'],
+  ] as const)(
+    'withholds a floor for a %s %s row without conversion',
+    async (foreign, foreignCurrency) => {
+      const { evaluation } = await evaluate({ foreign, foreignCurrency });
+      expect(evaluation).toMatchObject({
+        status: 'partial',
+        estimatedSalePrice: null,
+        profit: null,
+      });
+    },
+  );
+
+  it.each(['fusing', 'mirror'])(
+    'does not let a rejected %s item block matching chaos asks',
+    async (foreignCurrency) => {
+      const { evaluation } = await evaluate({
+        foreign: 'rejected',
+        foreignCurrency,
+      });
+      expect(evaluation).toMatchObject({
+        status: 'success',
+        estimatedSalePrice: '300',
+      });
+      expect(evaluation.profit).not.toBeNull();
+    },
+  );
+
+  it.each([
+    ['raw-matching', 'partial', null],
+    ['raw-unknown', 'partial', null],
+    ['raw-rejected', 'success', '300'],
+  ] as const)(
+    'uses %s evidence over a contradictory cached item',
+    async (foreign, status, estimatedSalePrice) => {
+      const { evaluation } = await evaluate({
+        foreign,
+        foreignCurrency: 'mirror',
+      });
+      expect(evaluation).toMatchObject({ status, estimatedSalePrice });
+      if (estimatedSalePrice === null) expect(evaluation.profit).toBeNull();
+    },
+  );
+
+  it('keeps unreadable foreign evidence blocking the price floor', async () => {
+    const { evaluation } = await evaluate({
+      foreign: 'unreadable',
+      foreignCurrency: 'fusing',
+    });
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      estimatedSalePrice: null,
+      profit: null,
+    });
+  });
+
+  it('still requires complete mixed-currency coverage after rejecting a foreign item', async () => {
+    const { evaluation } = await evaluate({
+      foreign: 'rejected',
+      foreignCurrency: 'fusing',
+      outputSample: 'mixed-sorted',
+    });
+    expect(evaluation).toMatchObject({
+      status: 'partial',
+      estimatedSalePrice: null,
+      profit: null,
+    });
   });
 
   it('bounds the estimate by the material quote actually used', async () => {

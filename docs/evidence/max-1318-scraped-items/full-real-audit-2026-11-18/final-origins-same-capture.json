@@ -1,0 +1,70 @@
+{
+  "checkedAt": "2026-11-18T10:36:09.673Z",
+  "scope": "Normal shipped API re-normalizes the same immutable real raw captures. No in-memory mapping injection, no provider calls, no changed query or timestamps. Original request receipt retained separately.",
+  "results": [
+    {
+      "recipeId": "suppression-boots-loathing",
+      "captureId": "741030f7-6acb-4569-8700-5567153ff075",
+      "capturedAt": "2026-11-18T10:24:00.620Z",
+      "queryVersion": "65227d90957716d87fa7b76d3ee7f4eae1c900a11fb7135fd751e0f68b7efdfc",
+      "fetched": 8,
+      "before": {
+        "stored": 8,
+        "priced": 8,
+        "completeItems": 0,
+        "analyzed": 8,
+        "excluded": 0,
+        "unreadable": 0,
+        "matched": 2,
+        "comparable": 2,
+        "rejected": 6,
+        "unknown": 0
+      },
+      "after": {
+        "stored": 8,
+        "priced": 8,
+        "completeItems": 0,
+        "analyzed": 8,
+        "excluded": 0,
+        "unreadable": 0,
+        "matched": 8,
+        "comparable": 6,
+        "rejected": 0,
+        "unknown": 0
+      },
+      "remainingReasons": []
+    },
+    {
+      "recipeId": "week-one-thicket-bow-dread",
+      "captureId": "5e721371-d347-4bcc-9fc9-5cba5495e925",
+      "capturedAt": "2026-11-18T10:20:28.699Z",
+      "queryVersion": "e27a71b3b6021a6d6385c89b48e5f22f3056e08f3a5c47928362f785969138d6",
+      "fetched": 9,
+      "before": {
+        "stored": 9,
+        "priced": 9,
+        "completeItems": 0,
+        "analyzed": 9,
+        "excluded": 0,
+        "unreadable": 0,
+        "matched": 8,
+        "comparable": 8,
+        "rejected": 1,
+        "unknown": 0
+      },
+      "after": {
+        "stored": 9,
+        "priced": 9,
+        "completeItems": 0,
+        "analyzed": 9,
+        "excluded": 0,
+        "unreadable": 0,
+        "matched": 9,
+        "comparable": 9,
+        "rejected": 0,
+        "unknown": 0
+      },
+      "remainingReasons": []
+    }
+  ]
+}

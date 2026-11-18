@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-11-18T10:39:36.958313+00:00",
+  "scope": "Latest actual128 capture storage/price/seller integrity; foreign currencies remain unconverted unless verified FX exists and can never establish an unconverted comparable ask.",
+  "counts": {
+    "targets": 128,
+    "stored": 3829,
+    "unusable": 0,
+    "other_currency": 3,
+    "unconverted": 3,
+    "complete_storage_mismatch": 0,
+    "sample_storage_mismatch": 0
+  }
+}

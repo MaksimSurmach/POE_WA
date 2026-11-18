@@ -1,0 +1,96 @@
+{
+  "baseline": "51cf438",
+  "scope": "Six acquisition rarities and explanatory instructions only; this is not a new Craft of Exile simulation. Historical normal-rarity calculator evidence remains verbatim.",
+  "recipes": [
+    {
+      "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+      "path": "recipes/cluster-jewel/bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged.json",
+      "fieldsChanged": [
+        "startingBase.rarity",
+        "notes",
+        "craft.steps[0].action"
+      ],
+      "beforeRarity": "normal",
+      "afterRarity": "rare",
+      "exactItemLevel": 68,
+      "allOtherFieldsEqualTo51cf438": true,
+      "historicalCraftEvidenceSha256": "2fb11f98f22344cefbb220fa5e6f6e8e318d25d1908fc80c1b4103f83f3f5b80",
+      "historicalEvidenceUnchanged": true
+    },
+    {
+      "recipeId": "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged",
+      "path": "recipes/cluster-jewel/bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged.json",
+      "fieldsChanged": [
+        "startingBase.rarity",
+        "notes",
+        "craft.steps[0].action"
+      ],
+      "beforeRarity": "normal",
+      "afterRarity": "rare",
+      "exactItemLevel": 68,
+      "allOtherFieldsEqualTo51cf438": true,
+      "historicalCraftEvidenceSha256": "3897d5302ead4fce56ab08a1374d6d1b778f7db235a633b53d7af12826bc845c",
+      "historicalEvidenceUnchanged": true
+    },
+    {
+      "recipeId": "physical-large-cluster-jagged",
+      "path": "recipes/cluster-jewel/physical-large-cluster-jagged.json",
+      "fieldsChanged": [
+        "startingBase.rarity",
+        "notes",
+        "craft.steps[0].action"
+      ],
+      "beforeRarity": "normal",
+      "afterRarity": "rare",
+      "exactItemLevel": 83,
+      "allOtherFieldsEqualTo51cf438": true,
+      "historicalCraftEvidenceSha256": "51a909bb0348ee91d594f917c56bb71a36852e34dfaaac0bf64b9089f308b14d",
+      "historicalEvidenceUnchanged": true
+    },
+    {
+      "recipeId": "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged",
+      "path": "recipes/cluster-jewel/shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged.json",
+      "fieldsChanged": [
+        "startingBase.rarity",
+        "notes",
+        "craft.steps[0].action"
+      ],
+      "beforeRarity": "normal",
+      "afterRarity": "rare",
+      "exactItemLevel": 68,
+      "allOtherFieldsEqualTo51cf438": true,
+      "historicalCraftEvidenceSha256": "d4bdab54dab7860669fe72404c45a9638656349cf621498214350a1842951e5f",
+      "historicalEvidenceUnchanged": true
+    },
+    {
+      "recipeId": "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged",
+      "path": "recipes/cluster-jewel/two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak-jagged.json",
+      "fieldsChanged": [
+        "startingBase.rarity",
+        "notes",
+        "craft.steps[0].action"
+      ],
+      "beforeRarity": "normal",
+      "afterRarity": "rare",
+      "exactItemLevel": 68,
+      "allOtherFieldsEqualTo51cf438": true,
+      "historicalCraftEvidenceSha256": "54c7ce9991f5c498180c1e12a92af00696fcf9137c0b09317657b644fd551956",
+      "historicalEvidenceUnchanged": true
+    },
+    {
+      "recipeId": "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged",
+      "path": "recipes/cluster-jewel/two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak-jagged.json",
+      "fieldsChanged": [
+        "startingBase.rarity",
+        "notes",
+        "craft.steps[0].action"
+      ],
+      "beforeRarity": "normal",
+      "afterRarity": "rare",
+      "exactItemLevel": 68,
+      "allOtherFieldsEqualTo51cf438": true,
+      "historicalCraftEvidenceSha256": "6b4dad02392362e1520b658093dc4df25a3bc2740271a3ea31b1b9f787b3479b",
+      "historicalEvidenceUnchanged": true
+    }
+  ]
+}

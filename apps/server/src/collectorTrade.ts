@@ -46,6 +46,8 @@ import type { captures, collectorSchedule } from './schema.js';
 
 const maxPriceSlices = 5;
 const detailBatchSize = 10;
+// Leave time inside the collector lease to persist partial evidence after long provider waits.
+const captureBudgetMs = 8 * 60_000;
 const schedulePayload = z.object({
   provider: z.literal('poe-trade'),
   schemaVersion: z.literal(1),
@@ -79,9 +81,7 @@ type TradeCaptureOptions = {
   recoverAuthentication?: boolean;
 };
 
-function authenticationDenial(
-  response: MarketCollectionTransportResponse<unknown>,
-) {
+function authenticationDenial(response: RateLimitedResponse) {
   if (response.status === 401) return 'PROVIDER_AUTH_FAILED';
   if (response.status === 403)
     return response.headers.get('cf-mitigated') === 'challenge'
@@ -129,15 +129,19 @@ async function captureFx(target: MarketTarget, economy: Economy, at: Date) {
 
 async function collectTradeCapture(
   target: MarketTarget,
-  signal: AbortSignal,
+  parent: AbortSignal,
   transport: TradeTransport,
   rateLimits: RateLimitGate,
   economy: Economy,
-  reauthenticate: (() => Promise<TradeTransport | null>) | undefined,
+  reauthenticate:
+    ((signal: AbortSignal) => Promise<TradeTransport | null>) | undefined,
   recoverAuthentication: boolean,
   telemetry?: CollectorTelemetry,
 ): Promise<TradeCaptureResult> {
   const started = Date.now();
+  const budget = new AbortController();
+  const signal = AbortSignal.any([parent, budget.signal]);
+  const timer = setTimeout(() => budget.abort(), captureBudgetMs);
   let authenticationAttempted = false;
   let currentTransport = transport;
   async function permit(endpoint: 'trade-search' | 'trade-fetch') {
@@ -184,9 +188,9 @@ async function collectTradeCapture(
       await telemetry?.operation('session-recovery', reason);
       let refreshed: TradeTransport | null | undefined;
       try {
-        refreshed = await reauthenticate?.();
+        refreshed = await reauthenticate?.(signal);
       } catch (error) {
-        signal.throwIfAborted();
+        parent.throwIfAborted();
         if (error instanceof ProviderRateLimitDeferred) throw error;
         if (error instanceof TradeLoginRateLimited) {
           const state = await rateLimits.observeResponse(
@@ -198,11 +202,13 @@ async function collectTradeCapture(
           );
           throw new ProviderRateLimitDeferred(state.blockedUntil);
         }
+        if (recoverAuthentication) signal.throwIfAborted();
         throw new DomainError(reason);
       }
-      signal.throwIfAborted();
+      parent.throwIfAborted();
       if (!refreshed) throw new DomainError(reason);
       currentTransport = refreshed;
+      signal.throwIfAborted();
     };
     const send = async () => {
       await permit(endpoint);
@@ -211,20 +217,33 @@ async function collectTradeCapture(
       );
       let state:
         Awaited<ReturnType<RateLimitGate['observeResponse']>> | undefined;
+      let observedError: DomainError | ProviderRateLimitDeferred | undefined;
       const response = await run(currentTransport, async (received) => {
         state = await rateLimits.observeResponse(endpoint, received, {
           collector: true,
         });
+        const denial = authenticationDenial(received);
+        if (received.status === 429)
+          observedError = new ProviderRateLimitDeferred(state.blockedUntil);
+        else if (received.status >= 500)
+          observedError =
+            state.blockedUntil.getTime() > Date.now()
+              ? new ProviderRateLimitDeferred(
+                  state.blockedUntil,
+                  'PROVIDER_UNAVAILABLE',
+                )
+              : new DomainError('PROVIDER_UNAVAILABLE');
+        else if (denial) observedError = new DomainError(denial);
+        else if (received.status >= 400)
+          observedError = new DomainError('MARKET_QUERY_INVALID');
+      }).catch((error: unknown) => {
+        // Received provider errors remain authoritative if disposing their body is interrupted.
+        throw observedError ?? error;
       });
       if (!state) throw new DomainError('PROVIDER_RESPONSE_INVALID');
-      signal.throwIfAborted();
-      if (response.status === 429)
-        throw new ProviderRateLimitDeferred(state.blockedUntil);
-      if (response.status >= 500 && state.blockedUntil.getTime() > Date.now())
-        throw new ProviderRateLimitDeferred(
-          state.blockedUntil,
-          'PROVIDER_UNAVAILABLE',
-        );
+      parent.throwIfAborted();
+      if (observedError instanceof ProviderRateLimitDeferred)
+        throw observedError;
       return response;
     };
 
@@ -233,6 +252,7 @@ async function collectTradeCapture(
     let response = await send();
     let denial: ReturnType<typeof authenticationDenial> =
       authenticationDenial(response);
+    if (denial && signal.aborted) throw new DomainError(denial);
     if (denial && reauthenticate && !authenticationAttempted) {
       await refresh(denial);
       response = await send();
@@ -375,24 +395,71 @@ async function collectTradeCapture(
     }
   }
 
+  let root: Awaited<ReturnType<typeof search>> | undefined;
+  let capturedAt: Date | undefined;
+  let fx: Awaited<ReturnType<typeof captureFx>> = null;
+  let sortedSampleIds: string[] | null = null;
+  const build = (reportedTotal: number, at: Date): TradeCaptureResult => {
+    const listings: Capture['listings'] = Array.from(rows, ([itemId, row]) => {
+      const price =
+        row.price !== null && row.currency
+          ? { amount: String(row.price), currency: row.currency }
+          : null;
+      const priceChaos =
+        price?.currency === 'chaos'
+          ? price.amount
+          : price?.currency === 'divine' && fx
+            ? convertChaosDivineQuote(price, 'chaos', fx.chaosPerDivine).amount
+            : null;
+      const seller =
+        typeof row.item.seller === 'string' ? row.item.seller : null;
+      return {
+        itemId,
+        seller,
+        fingerprint: fingerprint(row.item),
+        price,
+        priceChaos,
+        indexedAt: row.listedAt ? new Date(row.listedAt) : null,
+        item: row.rawListing?.item
+          ? { rawItem: row.rawListing.item }
+          : row.item,
+      };
+    });
+    return {
+      status: 'success',
+      capture: {
+        capturedAt: at,
+        reportedTotal,
+        fetched: listings.length,
+        complete: partialReason === null,
+        sortedSampleIds,
+        partialReason,
+        slices: sliceCount || 1,
+        fxSnapshotId: fx?.snapshotId ?? null,
+        fxChaosPerDivine: fx ? String(fx.chaosPerDivine) : null,
+        durationMs: Math.max(0, Date.now() - started),
+        listings,
+      },
+    };
+  };
+
   try {
-    const root = await search();
-    if (root.capturedAt === null || root.reportedTotal === null)
+    root = await search();
+    if (
+      root.capturedAt === null ||
+      root.reportedTotal === null ||
+      root.reportedTotal > 2_147_483_647 ||
+      !root.queryId ||
+      root.ids.length > completeOutputLimit
+    )
       throw new DomainError('PROVIDER_RESPONSE_INVALID');
-    const capturedAt = new Date(root.capturedAt);
-    const fx =
+    capturedAt = new Date(root.capturedAt);
+    fx =
       target.tradeSearch?.includeOtherCurrencies || singleCurrency === 'divine'
         ? await captureFx(target, economy, capturedAt)
         : null;
-    let sortedSampleIds: string[] | null = null;
     const startingBase = target.slot === 'starting-base';
     if (startingBase && root.reportedTotal > 20) {
-      if (
-        !root.queryId ||
-        root.reportedTotal > 2_147_483_647 ||
-        root.ids.length > completeOutputLimit
-      )
-        throw new DomainError('PROVIDER_RESPONSE_INVALID');
       const sampleIds = root.ids.slice(0, 20);
       await fetchRows(sampleIds, root.queryId);
       if (new Set(root.ids).size !== root.ids.length || root.inexact)
@@ -448,49 +515,9 @@ async function collectTradeCapture(
       )
         partialReason = 'SEARCH_CHANGED_DURING_CAPTURE';
     }
-    const listings: Capture['listings'] = Array.from(rows, ([itemId, row]) => {
-      const price =
-        row.price !== null && row.currency
-          ? { amount: String(row.price), currency: row.currency }
-          : null;
-      const priceChaos =
-        price?.currency === 'chaos'
-          ? price.amount
-          : price?.currency === 'divine' && fx
-            ? convertChaosDivineQuote(price, 'chaos', fx.chaosPerDivine).amount
-            : null;
-      const seller =
-        typeof row.item.seller === 'string' ? row.item.seller : null;
-      return {
-        itemId,
-        seller,
-        fingerprint: fingerprint(row.item),
-        price,
-        priceChaos,
-        indexedAt: row.listedAt ? new Date(row.listedAt) : null,
-        item: row.rawListing?.item
-          ? { rawItem: row.rawListing.item }
-          : row.item,
-      };
-    });
-    return {
-      status: 'success',
-      capture: {
-        capturedAt,
-        reportedTotal: root.reportedTotal,
-        fetched: listings.length,
-        complete: partialReason === null,
-        sortedSampleIds,
-        partialReason,
-        slices: sliceCount || 1,
-        fxSnapshotId: fx?.snapshotId ?? null,
-        fxChaosPerDivine: fx ? String(fx.chaosPerDivine) : null,
-        durationMs: Math.max(0, Date.now() - started),
-        listings,
-      },
-    };
+    return build(root.reportedTotal, capturedAt);
   } catch (error) {
-    signal.throwIfAborted();
+    parent.throwIfAborted();
     if (error instanceof ProviderRateLimitDeferred)
       return {
         status: 'retry',
@@ -507,11 +534,23 @@ async function collectTradeCapture(
       ].includes(error.code)
     )
       return { status: 'blocked', reason: error.code };
+    if (
+      budget.signal.aborted &&
+      (error === budget.signal.reason ||
+        (error instanceof Error && error.name === 'AbortError'))
+    ) {
+      if (root?.reportedTotal == null || !capturedAt)
+        return { status: 'retry', reason: 'CAPTURE_TIME_BUDGET' };
+      partialReason ??= 'CAPTURE_TIME_BUDGET';
+      return build(root.reportedTotal, capturedAt);
+    }
     return {
       status: 'retry',
       reason:
         error instanceof DomainError ? error.code : 'MARKET_COLLECTION_FAILED',
     };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -576,7 +615,7 @@ export function configuredTradeCapture(
       loginConfig = undefined;
     }
     const reauthenticate = loginConfig
-      ? async () => {
+      ? async (recoverySignal: AbortSignal) => {
           const loginResponses: RateLimitedResponse[] = [];
           const observeLoginResponses = async () => {
             let deferred: ProviderRateLimitDeferred | undefined;
@@ -606,16 +645,20 @@ export function configuredTradeCapture(
               ? {
                   beforeLoginRequest: async () => {
                     await observeLoginResponses();
-                    await rateLimits.waitForPermit('trade-login', signal, {
-                      collector: true,
-                      deferProviderBlock: true,
-                      onWait: async (_, until) =>
-                        telemetry.operation(
-                          'session-recovery',
-                          'PACING',
-                          until,
-                        ),
-                    });
+                    await rateLimits.waitForPermit(
+                      'trade-login',
+                      recoverySignal,
+                      {
+                        collector: true,
+                        deferProviderBlock: true,
+                        onWait: async (_, until) =>
+                          telemetry.operation(
+                            'session-recovery',
+                            'PACING',
+                            until,
+                          ),
+                      },
+                    );
                   },
                   onLoginResponse: (status, headers) => {
                     telemetry.recordResponse(
@@ -635,7 +678,7 @@ export function configuredTradeCapture(
             await manager.reauthenticate(async (session) => {
               await sessions.save(session);
               refreshed = makeTransport(session);
-            }, signal);
+            }, recoverySignal);
             await observeLoginResponses();
             return refreshed;
           } catch (error) {

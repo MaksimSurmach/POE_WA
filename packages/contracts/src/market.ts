@@ -1,3 +1,4 @@
+import { scrapedItemMarketCategories } from '@poe-worksmith/domain';
 import { z } from 'zod';
 
 const text = (maximum = 200) => z.string().trim().min(1).max(maximum);
@@ -220,6 +221,7 @@ export const tradeStatRuleSchema = z
 
 export const tradeSearchSchema = z.strictObject({
   version: z.literal(1),
+  category: z.enum(scrapedItemMarketCategories).optional(),
   scope: z.enum(['strict', 'broad']),
   status: z.enum(['available', 'securable', 'online', 'any']),
   currency: z.enum(['chaos', 'divine']),

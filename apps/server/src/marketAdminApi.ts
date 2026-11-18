@@ -52,7 +52,11 @@ export function registerMarketAdminRoutes(
           data: await store.patch(
             {
               version: parsed.data.version,
-              settings: { collectionsPaused: action === 'pause' },
+              settings: {
+                collectionsPaused: action === 'pause',
+                automaticRefreshEnabled: action === 'resume',
+                scheduledCollectionEnabled: action === 'resume',
+              },
             },
             request.id,
             `collection.${action}`,

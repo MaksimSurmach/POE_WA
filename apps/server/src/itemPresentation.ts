@@ -18,6 +18,10 @@ const metadataSchema = z.strictObject({
     .optional(),
   iconUrl: z.string().url().nullable().optional(),
   itemClass: z.string().min(1).optional(),
+  defences: z
+    .array(z.enum(['Armour', 'Evasion', 'Energy Shield']))
+    .nonempty()
+    .optional(),
   name: z.string().min(1),
 });
 
@@ -63,6 +67,12 @@ export function createRecipeItemPresentation(input: {
       value: String(recipe.base.itemLevel),
     },
   ];
+  if (base.defences)
+    properties.push({
+      id: 'defences',
+      label: 'Defences',
+      value: base.defences.join(' / '),
+    });
   properties.push(
     {
       id: 'influences',

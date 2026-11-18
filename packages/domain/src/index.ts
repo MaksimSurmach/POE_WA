@@ -14,9 +14,11 @@ export * from './models.js';
 export * from './priceEstimators.js';
 export * from './recipeSchema.js';
 export * from './recipeEconomics.js';
+export * from './craftFamilies.js';
 export * from './repositories.js';
 export * from './trade.js';
 export * from './nativeTradeFilters.js';
+export * from './scrapedItem.js';
 
 export * from './outcomeModel.js';
 export * from './outcomeEconomics.js';

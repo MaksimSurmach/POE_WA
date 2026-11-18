@@ -3,3 +3,6 @@ coverage
 pnpm-lock.yaml
 
 apps/web/dist-preview/
+
+# Historical archive fixture is kept compact; provenance is inside the fixture.
+apps/web/src/mocks/category-library-archive.json

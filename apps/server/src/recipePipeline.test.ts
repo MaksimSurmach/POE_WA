@@ -35,7 +35,9 @@ const trade = new RegisteredTradeQueryGenerator(
       diagnostics: [],
       value: {
         id:
-          target.modId === 'different' ? 'explicit.stat_2' : 'explicit.stat_1',
+          target.modId === 'different'
+            ? 'explicit.stat_2923486259'
+            : 'explicit.stat_3299347043',
       },
     }),
   },
@@ -193,13 +195,14 @@ describe('authored recipe to provider to published economics', () => {
                 patch: target.patch,
                 currency: 'chaos',
                 itemLevel: 84,
-                corrupted: false,
+                // Equivalents ignore fracture; missing corruption evidence still prevents a match.
+                ...(seller === 'unknown-seller' ? {} : { corrupted: false }),
                 synthesised: false,
                 ...(seller === 'unknown-seller' ? {} : { fractured: false }),
                 influences: [],
                 seller,
                 status: 'listed',
-                mods: [{ id: 'explicit.stat_1', value: 1 }],
+                mods: [{ id: 'explicit.stat_3299347043', value: 1 }],
                 modsComplete: false,
               },
             })),

@@ -1,0 +1,54 @@
+{
+  "baseline": "b06f7a1d9c2761e3101281ebfcc991cf77ea2ae4",
+  "scope": "Preserve deployed PR115 ebf4e62 collection-switch hotfix in PR114; test queued and active selected-item requests with persisted switches. No deployment or merge claimed by this preflight.",
+  "claude": {
+    "sessionId": "ae3ae190-7e9f-4f26-b8fb-edd67815c403",
+    "model": ["claude-sonnet-5-5"],
+    "tools": "disabled; supplied final integrated diff and deployment contract only",
+    "result": "**Verdict:** from the diff alone I found no provable correctness bug in the SQL gating, claim path or abort path. I did not run any tests. The items below are the concrete risks and process blockers I could find.\n\n**Pre-merge blockers (process)**\n1. `git status` shows `README.md` and `apps/server/src/scrapedItems.integration.test.ts` as unstaged (` M`). Everything else is staged. If the commit is made from the index, the head will lack the migration README fix and the item/manual switch tests. Stage them and confirm CI ran on the exact head.\n2. The `scrapedItems.integration.test.ts` hunk is not prettier-formatted. For example, `expect((await service.readTest(output.id, test.requestId)).state).toBe('failed'),` is about 93 columns wide, and `handle: (job…, signal: AbortSignal) => Promise<CollectorResult>,` also exceeds 80. If CI runs a format check, it fails here. I can't tell from the diff whether it does.\n\n**Operational hazards (behavior is as coded)**\n3. The UI Resume button now enables periodic collection.\n   - Source: `marketAdminApi.ts` sets `automaticRefreshEnabled: action === 'resume'` and `scheduledCollectionEnabled: action === 'resume'`.\n   - Prod's target state is paused true, automatic false, scheduled false, manual true.\n   - During the manual-only tests, use `PATCH /api/admin/market/settings` with `collectionsPaused:false` only. The Resume button would start periodic dispatch of all 128 trade queries.\n   - The Pause button restores the target state.\n4. The README migration command falls back silently.\n   - Source: `DATABASE_URL=\"${COLLECTOR_DATABASE_URL:-$DATABASE_URL}\"` run via `run … app`.\n   - If the `app` service doesn't get `COLLECTOR_DATABASE_URL`, it migrates through `DATABASE_URL` with no error.\n   - Before migrating, run `docker compose run --rm --no-deps app sh -c 'echo ${COLLECTOR_DATABASE_URL:+set}'` and confirm it prints `set`.\n5. The repo's `collection-window.py` change is not what runs on the host, since the deploy preserves the host script.\n   - The old line `pause(not active)` resumed collection every minute inside the window.\n   - Check that the live host script has the no-resume behavior, otherwise it clears the operator pause and defeats the restore step.\n6. Daily windows no longer auto-resume.\n   - Source: the removed `pause(not active)` in-window call is replaced by a read-only `api(settings)`.\n   - After the first out-of-window `pause(True)`, no later window collects until an operator resumes. The README documents this.\n   - Confirm the operator accepts that nothing runs unattended.\n\n**Not provable from the diff (check during acceptance)**\n7. An active-job abort goes through the generic handler catch.\n   - Source: `collector.ts`, `status: 'retry', reason: failureCode(error, …)`.\n   - I can't see whether `retry` adds a failure count or backoff to `retryAt`. If it does, a resume after a mid-capture pause may be delayed.\n   - The integration tests use fake handlers that reject with `signal.reason`. The real trade and economy handlers' mapping of an abort is untested.\n   - Pause once during a real capture and verify `lastError = MARKET_COLLECTION_PAUSED`, no partial capture row, and the `retryAt` on resume.\n8. `paused` was removed from the `skipUnavailable` query, and the diff doesn't show whether it is still used elsewhere in that function. You say the root kept it, so confirm that `tsc` and lint pass.\n\n**Minor, no action:** `manualRefreshEnabled=false` on an active manual item reports `MARKET_COLLECTION_PAUSED`. The new tests pin this label, so it is intentional."
+  },
+  "rootResolution": {
+    "stageAndExactHead": "All owned files staged before commit; pushed exact-head CI required.",
+    "format": "Prettier applied after review snapshot; lint/typecheck/build passed.",
+    "manualOnlyTest": "PATCH only collectionsPaused=false, retain automatic/scheduled=false; Resume action intentionally enables periodic collection. Restore original operator pause.",
+    "directDatabase": "Production has one direct DATABASE_URL, confirmed PostgreSQL18.6 databasepoe_worksmith; app/collector address same datastore. Dedicated COLLECTOR_DATABASE_URL is optional when DATABASE_URL is already direct. README preserves explicit directURL choice.",
+    "actualHostController": "Live script inside active window calls read-only api(settings), never pause(false); existing recovery extension preserved. Only pinned image archive and Compose image references will change.",
+    "nextWindow": "Existing owner-confirmed seasonal window is14Nov-1Dec, no recurring daily window. No new unsolicited auto-resume.",
+    "abortResult": "Real Trade capture rethrows parent abort; root will verify on real production capture before accepting rollout. Expected retry/backoff remains explicit.",
+    "pausedArgument": "Restored and used for structured COLLECTIONS_PAUSED result; full types/lint passed."
+  },
+  "checks": {
+    "automatic": 1045,
+    "postgresIntegration": 221,
+    "hostController": 8,
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "serverBuild": "PASS",
+    "format": "PASS",
+    "newItemSwitchCases": 5,
+    "regressionRED": "Baseline b06 collector+queue executes selected search despite manualRefreshEnabled=false: expectedblocked,actualsucceeded. Integrated source passes all221 cases, including active pause/manual-off abort with no capture and no unrelated started key."
+  },
+  "productionPreflight": {
+    "checkedAt": "2026-11-18T12:55:16.815Z",
+    "activeRecipes": 72,
+    "activeTradeKeysBefore": 128,
+    "capturesBefore": 5542,
+    "listingsBefore": 24191,
+    "lastMigrationIdBefore": 35,
+    "configuredProfileTableBefore": null,
+    "manualRequestsPending": 0,
+    "settingsBefore": {
+      "collectionsPaused": true,
+      "automaticRefreshEnabled": false,
+      "scheduledCollectionEnabled": false,
+      "manualRefreshEnabled": true
+    },
+    "topology": "Separate web, API and collector containers; private LAN/VPN allowlist retained.",
+    "expectedFreshSeed": "125 unique profiles/Trade keys,66 outputs,72 recipes. Historical local acceptance128profileIDs is not a first-install requirement."
+  },
+  "notCheckedHere": [
+    "Production migration and actual deployed acceptance",
+    "Merged-source artifact identity and packaged smoke",
+    "New3.30 crafting probability simulation or completed sales"
+  ]
+}

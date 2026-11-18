@@ -16,7 +16,7 @@
     }
   },
   "category": "cluster-jewel",
-  "notes": "The 3-notable fossil craft is a separate output target from the two-notable Alteration craft. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified.",
+  "notes": "The 3-notable fossil craft is a separate output target from the two-notable Alteration craft. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified. The starting base is acquired rare, matching the repeated full reroll. Historical calculator inputs and expected counts remain as recorded.",
   "craft": {
     "evidence": {
       "method": "Manually checked Craft of Exile calculator, displayed rounded probability and expected consumption",
@@ -53,7 +53,7 @@
     "name": "Jagged Fossil · 3 Notables",
     "steps": [
       {
-        "action": "Use one Jagged Fossil in a one-socket resonator on a base of exactly item level 83.",
+        "action": "Use one Jagged Fossil in a one-socket resonator on the same rare base of exactly item level 83.",
         "continueWhen": "The item has Battle-Hardened, Furious Assault and Master the Fundamentals.",
         "failureAction": "Repeat on the same base.",
         "id": "roll-with-fossil",
@@ -102,7 +102,7 @@
     "baseId": "Metadata/Items/Jewels/JewelPassiveTreeExpansionLarge",
     "influences": [],
     "itemLevel": 83,
-    "rarity": "normal",
+    "rarity": "rare",
     "state": {
       "corrupted": false,
       "fractured": false,

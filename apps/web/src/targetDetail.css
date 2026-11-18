@@ -1,0 +1,395 @@
+@layer utilities {
+  .target-art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    background: #18191c;
+    border: 1px solid #756343;
+    border-radius: 2px;
+    flex: none;
+    color: #c2b696;
+    font-size: 11px;
+  }
+  .target-art img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 3px;
+  }
+  .target-dialog {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--foreground);
+    overflow: auto;
+    box-shadow: 0 20px 70px #0003;
+    width: calc(100% - 50px);
+    max-width: 1140px;
+    height: calc(100dvh - 48px);
+    max-height: calc(100dvh - 48px);
+    border-radius: 5px;
+    font-size: 13px;
+  }
+  .target-dialog[open] {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
+  }
+  .target-dialog::backdrop {
+    background: #17213266;
+  }
+  .target-dialog-heading {
+    padding: 16px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .target-dialog-heading h2 {
+    font-size: 17px;
+    overflow-wrap: anywhere;
+    margin: 0;
+  }
+  .target-dialog-body {
+    overflow: auto;
+    padding: 23px;
+    display: grid;
+    grid-template-columns: 302px minmax(0, 1fr);
+    gap: 23px;
+    align-items: start;
+  }
+  .target-requirements {
+    background: #17171b;
+    color: #aaa6ce;
+    border: 1px solid #756343;
+    border-radius: 3px;
+    padding: 17px 15px 12px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    font-size: 12px;
+  }
+  .target-requirements .target-art {
+    width: 78px;
+    height: 78px;
+    margin: 0;
+  }
+  .target-requirements h3 {
+    color: #d6bf7d;
+    font:
+      19px/1.3 Georgia,
+      serif;
+    margin: 8px 0 5px;
+  }
+  .target-requirements p {
+    font-size: 11px;
+  }
+  .target-requirements dl {
+    color: #bbb9b5;
+    margin: 0;
+    font-size: 11px;
+  }
+  .target-requirements dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 7px;
+    line-height: 1.6;
+  }
+  .target-requirements section {
+    border-top: 1px solid #645538;
+    margin-top: 15px;
+    padding-top: 12px;
+  }
+  .target-requirements h4 {
+    color: #d6bf7d;
+    margin: 0 0 7px;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.045em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .target-requirements ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .target-requirements li {
+    overflow-wrap: anywhere;
+    margin-block: 7px;
+    line-height: 1.5;
+    font-size: 12px;
+  }
+  .target-detail-column {
+    min-width: 0;
+  }
+  .target-detail-tabs {
+    display: flex;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  .target-detail-tabs button {
+    cursor: pointer;
+    padding: 10px 4px;
+    min-height: 36px;
+  }
+  .target-detail-tabs [aria-selected='true'] {
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+  }
+  .target-method {
+    display: grid;
+    gap: 7px;
+  }
+  .target-method select {
+    width: 100%;
+    white-space: normal;
+  }
+  .target-coverage,
+  .target-disclaimer {
+    font-size: 11px;
+    color: var(--muted);
+    margin-block: 12px;
+  }
+  .target-economics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-block: 1px solid var(--border);
+    padding: 16px 0;
+    gap: 12px;
+  }
+  .target-economics small {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .target-economics strong {
+    display: block;
+    font-size: 20px;
+    margin-top: 6px;
+  }
+  .target-detail-column h3 {
+    font-size: 14px;
+    margin: 22px 0 10px;
+    scroll-margin-top: 12px;
+  }
+  .target-detail-column h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  .target-detail-column :is(p, li) {
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  .target-detail-column :is(ul, ol) {
+    padding-left: 20px;
+  }
+  .target-steps > li {
+    margin-bottom: 18px;
+  }
+  .target-detail-column details {
+    margin-top: 22px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+  .target-detail-column summary {
+    cursor: pointer;
+    min-height: 30px;
+  }
+  .target-dialog-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 14px 23px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+  }
+  .target-dialog-footer > .button:last-child {
+    margin-left: auto;
+  }
+  .target-dialog-footer > span:not(.favorite-control) {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .target-dialog :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  .target-history-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .target-history-controls label {
+    display: grid;
+    gap: 6px;
+  }
+  .target-history-controls [role='group'] {
+    display: flex;
+    gap: 6px;
+  }
+  .target-history-controls [aria-pressed='true'] {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .target-quote-evidence {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  .target-detail-column .target-quote-evidence h3 {
+    margin: 0 0 12px;
+  }
+  .target-quote-evidence dl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+  }
+  .target-quote-evidence dt,
+  .target-quote-evidence p {
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .target-quote-evidence dd {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .target-requirements > header {
+    text-align: center;
+  }
+  .target-card-kicker {
+    display: block;
+    color: #a9a59d;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .target-requirements .target-base-name {
+    color: #b5b1a6;
+    margin: 0 0 15px;
+    font-size: 12px;
+  }
+  .target-property-grid {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 11px;
+    align-items: start;
+    margin-top: 16px;
+  }
+  .target-requirements dd {
+    margin: 0;
+    text-align: right;
+  }
+  .target-requirements h4 > span {
+    color: #aaa6ce;
+    font-size: 11px;
+  }
+  .target-requirements li small {
+    color: #a9a59d;
+    font-size: 10px;
+  }
+  .target-requirements footer {
+    margin-top: 17px;
+    padding-top: 10px;
+    border-top: 1px solid #645538;
+    font-size: 10px;
+    line-height: 1.7;
+    color: #a9a59d;
+    text-align: center;
+  }
+  .target-method[hidden] {
+    display: none;
+  }
+  .target-method-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .target-method-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .target-method-table :is(th, td) {
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .target-method-table thead th {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .target-method-table tbody th {
+    max-width: 220px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  .target-method-table :is(td:nth-child(2), td:nth-child(3)) {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .target-method-table .button {
+    min-height: 31px;
+    white-space: nowrap;
+  }
+  .target-steps {
+    list-style: decimal;
+  }
+  .target-steps > li::marker {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  @media (max-width: 1150px) {
+    .target-dialog-body {
+      grid-template-columns: 270px minmax(0, 1fr);
+      padding: 18px;
+    }
+  }
+  @media (min-width: 601px) and (max-width: 900px) {
+    .target-dialog-body {
+      grid-template-columns: 235px minmax(0, 1fr);
+      gap: 16px;
+    }
+  }
+  @media (max-width: 600px) {
+    .target-dialog {
+      width: calc(100% - 16px);
+      max-height: calc(100dvh - 16px);
+    }
+    .target-dialog-heading {
+      padding: 12px;
+    }
+    .target-dialog-body {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 12px;
+    }
+    .target-economics {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .target-requirements {
+      position: static;
+    }
+    .target-dialog-footer {
+      padding: 12px;
+      gap: 12px;
+    }
+    .target-dialog-footer :is(button, a) {
+      min-height: 40px;
+    }
+  }
+}

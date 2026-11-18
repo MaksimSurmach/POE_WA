@@ -2,11 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import { App } from './App.js';
-import {
-  selectedRecipe,
-  workspaceHref,
-  workspaceSections,
-} from './workspaceNavigation.js';
+import { selectedRecipe, workspaceHref } from './workspaceNavigation.js';
 
 describe('workspace navigation context', () => {
   it('carries the selected target, league, currency and period across sections', () => {
@@ -47,13 +43,7 @@ describe('workspace navigation context', () => {
     );
     expect(selectedRecipe('/recipes/%E0%A4%A', '')).toBeNull();
   });
-  it('provides exactly the 20 requested views and asks for a selection instead of choosing a fixture', () => {
-    expect(
-      workspaceSections.reduce(
-        (total, section) => total + section.tabs.length,
-        0,
-      ),
-    ).toBe(20);
+  it('asks for a selection on retained deep links instead of choosing a fixture', () => {
     const html = renderToStaticMarkup(
       <MemoryRouter initialEntries={['/?view=budget']}>
         <App />

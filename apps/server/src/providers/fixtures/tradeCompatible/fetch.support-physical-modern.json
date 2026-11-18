@@ -1,0 +1,289 @@
+{
+  "source": "Actual Covens captures, 18 November 2026. Selected item fields only; no listing, account, item ID or price.",
+  "supports": [
+    {
+      "item": {
+        "verified": true,
+        "baseType": "Archdemon Crown",
+        "rarity": "Rare",
+        "frameType": 2,
+        "league": "Covens",
+        "ilvl": 83,
+        "influences": {
+          "elder": true
+        },
+        "explicitMods": [
+          {
+            "hash": "stat.explicit.effect_1200122555",
+            "mods": [
+              {
+                "tier": "S3"
+              }
+            ],
+            "domain": "explicit",
+            "description": "Socketed Gems are Supported by Level 16 [SupportBurningDamage::16|Burning Damage Support]"
+          }
+        ],
+        "extended": {
+          "hashes": {
+            "explicit": [["explicit.effect_1200122555", [3]]]
+          }
+        }
+      },
+      "expected": {
+        "id": "explicit.indexable_support_68",
+        "value": 16,
+        "tier": 3
+      }
+    },
+    {
+      "item": {
+        "verified": true,
+        "baseType": "Archdemon Crown",
+        "rarity": "Rare",
+        "frameType": 2,
+        "league": "Covens",
+        "ilvl": 83,
+        "influences": {
+          "elder": true
+        },
+        "explicitMods": [
+          {
+            "hash": "stat.explicit.effect_1200122555",
+            "mods": [
+              {
+                "tier": "S1"
+              }
+            ],
+            "domain": "explicit",
+            "description": "Socketed Gems are Supported by Level 20 [SupportBurningDamage::20|Burning Damage Support]"
+          }
+        ],
+        "extended": {
+          "hashes": {
+            "explicit": [["explicit.effect_1200122555", [3]]]
+          }
+        }
+      },
+      "expected": {
+        "id": "explicit.indexable_support_68",
+        "value": 20,
+        "tier": 1
+      }
+    },
+    {
+      "item": {
+        "verified": true,
+        "baseType": "Archdemon Crown",
+        "rarity": "Rare",
+        "frameType": 2,
+        "league": "Covens",
+        "ilvl": 83,
+        "influences": {
+          "elder": true
+        },
+        "explicitMods": [
+          {
+            "hash": "stat.explicit.effect_1200122555",
+            "mods": [
+              {
+                "tier": "S2"
+              }
+            ],
+            "domain": "explicit",
+            "description": "Socketed Gems are Supported by Level 18 [SupportBurningDamage::18|Burning Damage Support]"
+          }
+        ],
+        "extended": {
+          "hashes": {
+            "explicit": [["explicit.effect_1200122555", [4]]]
+          }
+        }
+      },
+      "expected": {
+        "id": "explicit.indexable_support_68",
+        "value": 18,
+        "tier": 2
+      }
+    },
+    {
+      "item": {
+        "verified": true,
+        "baseType": "Archdemon Crown",
+        "rarity": "Rare",
+        "frameType": 2,
+        "league": "Covens",
+        "ilvl": 83,
+        "influences": {
+          "elder": true
+        },
+        "explicitMods": [
+          {
+            "hash": "stat.explicit.effect_3293595800",
+            "mods": [
+              {
+                "tier": "P2"
+              }
+            ],
+            "domain": "explicit",
+            "description": "Socketed Gems are Supported by Level 18 [SupportConcentratedEffect::18|Concentrated Effect Support]"
+          }
+        ],
+        "extended": {
+          "hashes": {
+            "explicit": [["explicit.effect_3293595800", [1]]]
+          }
+        }
+      },
+      "expected": {
+        "id": "explicit.indexable_support_98",
+        "value": 18,
+        "tier": 2
+      }
+    },
+    {
+      "item": {
+        "verified": true,
+        "baseType": "Archdemon Crown",
+        "rarity": "Rare",
+        "frameType": 2,
+        "league": "Covens",
+        "ilvl": 83,
+        "influences": {
+          "elder": true
+        },
+        "explicitMods": [
+          {
+            "hash": "stat.explicit.effect_3293595800",
+            "mods": [
+              {
+                "tier": "P3"
+              }
+            ],
+            "domain": "explicit",
+            "description": "Socketed Gems are Supported by Level 16 [SupportConcentratedEffect::16|Concentrated Effect Support]"
+          }
+        ],
+        "extended": {
+          "hashes": {
+            "explicit": [["explicit.effect_3293595800", [5]]]
+          }
+        }
+      },
+      "expected": {
+        "id": "explicit.indexable_support_98",
+        "value": 16,
+        "tier": 3
+      }
+    },
+    {
+      "item": {
+        "verified": true,
+        "baseType": "Archdemon Crown",
+        "rarity": "Rare",
+        "frameType": 2,
+        "league": "Covens",
+        "ilvl": 83,
+        "influences": {
+          "elder": true
+        },
+        "explicitMods": [
+          {
+            "hash": "stat.explicit.effect_3293595800",
+            "mods": [
+              {
+                "tier": "P1"
+              }
+            ],
+            "domain": "explicit",
+            "description": "Socketed Gems are Supported by Level 20 [SupportConcentratedEffect::20|Concentrated Effect Support]"
+          }
+        ],
+        "extended": {
+          "hashes": {
+            "explicit": [["explicit.effect_3293595800", [3]]]
+          }
+        }
+      },
+      "expected": {
+        "id": "explicit.indexable_support_98",
+        "value": 20,
+        "tier": 1
+      }
+    }
+  ],
+  "physical": {
+    "verified": true,
+    "baseType": "Spine Bow",
+    "rarity": "Rare",
+    "frameType": 2,
+    "league": "Covens",
+    "ilvl": 80,
+    "properties": [
+      {
+        "name": "Bow",
+        "values": []
+      },
+      {
+        "name": "Physical Damage",
+        "type": 9,
+        "values": [["166-432", 1]]
+      },
+      {
+        "name": "Critical Strike Chance",
+        "type": 12,
+        "values": [["6.50%", 0]]
+      },
+      {
+        "name": "Attacks per Second",
+        "type": 13,
+        "values": [["1.60", 1]]
+      }
+    ],
+    "explicitMods": [
+      {
+        "hash": "stat.explicit.stat_1509134228",
+        "mods": [
+          {
+            "tier": "P4"
+          }
+        ],
+        "domain": "explicit",
+        "description": "50% increased Physical Damage"
+      },
+      {
+        "hash": "stat.explicit.stat_1940865751",
+        "mods": [
+          {
+            "tier": "P1"
+          }
+        ],
+        "domain": "explicit",
+        "description": "Adds 34 to 73 Physical Damage"
+      },
+      {
+        "hash": "stat.explicit.stat_210067635",
+        "mods": [
+          {
+            "tier": "S2"
+          }
+        ],
+        "domain": "explicit",
+        "description": "14% increased Attack Speed"
+      },
+      {
+        "hash": "stat.crafted.stat_1509134228",
+        "mods": [
+          {
+            "tier": "R3"
+          }
+        ],
+        "flags": {
+          "crafted": true
+        },
+        "domain": "crafted",
+        "description": "80% increased Physical Damage"
+      }
+    ]
+  }
+}

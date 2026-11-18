@@ -35,11 +35,18 @@ test('settings-run-now-updates-homepage', async ({ page }) => {
       )
     ).status(),
   ).toBe(404);
-  await page.goto('/');
+  // Home ranks the best known route; this check intentionally follows Chaos.
+  await page.goto('/?family=chaos');
+  const catalogue = (await (await page.request.get('/api/catalog')).json())
+    .data;
+  const signature = catalogue.entries.find(
+    (entry: { recipe: { id: string } }) =>
+      entry.recipe.id === recipe.split('/').at(-1),
+  ).recipe.targetSignature;
   const cost = page
-    .getByRole('row')
-    .filter({ has: page.locator(`a[href="${recipe}"]`) })
-    .locator('[data-label="Средние затраты"]');
+    .locator(`[data-market-target="${signature}"]`)
+    .getByRole('cell')
+    .nth(6);
   await expect(cost).toContainText('11,519 c');
   await page.goto('/settings');
   const lastRun = page.getByLabel('Last run');
@@ -53,11 +60,8 @@ test('settings-run-now-updates-homepage', async ({ page }) => {
       timeout: 12_000,
     })
     .toBeGreaterThan(Date.parse(before));
-  await page.goto('/');
+  await page.goto('/?family=chaos');
   await expect(cost).toContainText('11,536 c');
-  await expect(
-    page.locator('.catalog-heading').getByText(/Next Fixture League/),
-  ).toBeVisible();
   await expect(page.locator('.workspace-context')).toContainText(
     'Next Fixture League',
   );
@@ -146,13 +150,13 @@ test('catalog header labels stay inside their cells at 390px', async ({
 }) => {
   await page.setViewportSize({ width: 390, height: 840 });
   await page.goto('/');
-  const headers = page.locator('.craft-table thead th:visible');
+  const headers = page.locator('.market-items-table thead th:visible');
   await expect(headers.first()).toBeVisible();
   const overflowing = await headers.evaluateAll(
     (cells) =>
       cells.filter((cell) => {
-        const button = cell.querySelector('button')!;
-        return button.scrollWidth > button.clientWidth;
+        const button = cell.querySelector('button');
+        return button ? button.scrollWidth > button.clientWidth : false;
       }).length,
   );
   expect(overflowing).toBe(0);

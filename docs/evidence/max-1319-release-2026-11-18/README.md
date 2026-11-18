@@ -1,0 +1,9 @@
+# PR114 release verification — 18 November 2026
+
+[Review and preflight](review-and-preflight.json) records the actual Claude review, root resolution, the reproduced regression and isolated checks. The deployed collection-switch hotfix from PR115 is included so the new worker preserves operator pause and manual/periodic controls. Five selected-item regressions cover exact dispatch, queued rejection and interruption of active work. Historical real-data acceptance remains in the [per-item audit](../max-1318-scraped-items/per-item-config-audit-2026-11-18/).
+
+Production currently uses separate private web/API/collector services and PostgreSQL 18.6. Before 0035/0036: stop the host timer, fence web ingress, stop both old API and collector, and take a durable database/configuration backup. Migrate the direct connection; start matched API/worker privately. On this first install the profile tables do not exist, so final source seeds 125 deduplicated profiles, not the historical 128 local IDs. Verify 72 unchanged canonical targets, 66 outputs, 125 active Trade keys and exact item-request/capture correlation.
+
+Keep the existing host controller's recovery extension and private network restrictions. Replace its pinned collector image archive together with the Compose image references. Use manual-only settings for controlled acceptance and restore the owner's paused state afterward. Validate old-query invalidation, real capture cancellation and browser behavior. No container-only rollback across the queue migration; preserve post-upgrade state and roll forward on failure.
+
+This preflight does not claim deployment. The final deployment receipt will record the merged commit, images, backup, migrations, runtime and real-data acceptance separately. New 3.30 probability simulation, actual crafting and completed sales remain outside this release verification.

@@ -33,6 +33,28 @@ async function recipe() {
 }
 
 describe('recipe item presentation', () => {
+  it('preserves the deployed hybrid base defence description', async () => {
+    const input = validateRecipeDocument(
+      JSON.parse(
+        await readFile(
+          new URL(
+            '../../../recipes/gloves/chimerascale-gauntlets-fractured-suppression-zeal.json',
+            import.meta.url,
+          ),
+          'utf8',
+        ),
+      ),
+    );
+    const catalog = await loadItemPresentationCatalog(catalogPath);
+    expect(
+      createRecipeItemPresentation({ catalog, recipe: input }).target
+        .properties,
+    ).toContainEqual({
+      id: 'defences',
+      label: 'Defences',
+      value: 'Armour / Evasion',
+    });
+  });
   it('maps canonical data in deterministic source order', async () => {
     const input = await recipe();
     if (input.schemaVersion !== 3) throw new Error('expected V2 recipe');
@@ -45,7 +67,7 @@ describe('recipe item presentation', () => {
     expect(presentation.base).toMatchObject({
       itemLevel: 83,
       name: 'Large Cluster Jewel',
-      rarity: 'normal',
+      rarity: 'rare',
     });
     expect(presentation.materials.map(({ quantity }) => quantity)).toEqual([
       1, 1,

@@ -1,6 +1,10 @@
 import { createHash, randomUUID } from 'node:crypto';
 import pg, { type Pool } from 'pg';
-import { DomainError, type RiskSimulationRequest } from '@poe-worksmith/domain';
+import {
+  DomainError,
+  validateRecipeDocument,
+  type RiskSimulationRequest,
+} from '@poe-worksmith/domain';
 import {
   craftModelRecordSchema,
   craftRiskRunSchema,
@@ -10,6 +14,8 @@ import {
 } from '@poe-worksmith/contracts';
 import { canonicalMarketJson } from '../marketResearch.js';
 import { recipeResultSchema } from '../recipeResult.js';
+import { scrapedResultIsCurrent } from '../scrapedItemConfig.js';
+import { preloadScrapedItemSpecs } from './scrapedItemRepository.js';
 
 export function craftRequestHash(value: unknown) {
   return createHash('sha256').update(canonicalMarketJson(value)).digest('hex');
@@ -338,9 +344,11 @@ export function createCraftAnalysisRepository(
         method_cost: Record<string, unknown> | null;
         evaluated_at: Date;
         source_snapshot_dedupe_key: string | null;
+        scraped_identity?: string | null;
+        definition?: unknown;
       }>(
         pipeline === 'collector'
-          ? `select e.recipe_id, e.recipe_content_hash,
+          ? `select e.recipe_id, e.recipe_content_hash, e.scraped_identity, r.definition,
              r.definition->>'targetSignature' as target_signature,
              e.result->>'currency' as currency, e.result->>'estimatedSalePrice' as estimated_sale_price,
              e.result->'methodCost' as method_cost, e.evaluated_at,
@@ -357,14 +365,34 @@ export function createCraftAnalysisRepository(
         [leagueId],
       );
       if (pipeline === 'legacy') return result.rows;
-      return result.rows.flatMap((row) => {
+      // A valuation computed from since-edited scraped-item requirements priced
+      // a different search, so it is not a candidate for the recipe's current one.
+      const specs = await preloadScrapedItemSpecs(
+        pool,
+        result.rows.map((row) => row.recipe_id),
+      );
+      const candidates = [];
+      for (const row of result.rows) {
+        const { scraped_identity, definition, ...candidate } = row;
         const methodCost = recipeResultSchema.shape.methodCost.safeParse(
           row.method_cost,
         );
-        return methodCost.success
-          ? [{ ...row, method_cost: methodCost.data }]
-          : [];
-      });
+        if (!methodCost.success) continue;
+        try {
+          if (
+            !(await scrapedResultIsCurrent(
+              validateRecipeDocument(definition),
+              scraped_identity ?? null,
+              specs,
+            ))
+          )
+            continue;
+        } catch {
+          continue;
+        }
+        candidates.push({ ...candidate, method_cost: methodCost.data });
+      }
+      return candidates;
     },
   };
 }

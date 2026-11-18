@@ -4,6 +4,7 @@ import {
   mappedTargetFilter,
   noVariantFilter,
   RegisteredTradeQueryGenerator,
+  validateRecipeDocument,
 } from '@poe-worksmith/domain';
 import { and, desc, eq, gt, lte, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -27,6 +28,11 @@ import { createRecipeMarketDependencies } from './recipeMarket.js';
 import { recipeResultSchema } from './recipeResult.js';
 import { createPostgresRepositories } from './repositories/index.js';
 import { createMarketEconomyRepository } from './repositories/marketEconomyRepository.js';
+import { preloadScrapedItemSpecs } from './repositories/scrapedItemRepository.js';
+import {
+  recipeScrapedIdentity,
+  scrapedResultIsCurrent,
+} from './scrapedItemConfig.js';
 import {
   captures,
   collectorSchedule,
@@ -42,6 +48,11 @@ type CaptureQuote = QuoteEvidence & {
 };
 type QuoteSettings = { maximumQuoteAgeMs: number; freshnessWarningMs: number };
 
+/**
+ * Stored results that were computed from each recipe's current scraped-item
+ * requirements. A result computed from requirements that have since been edited
+ * is dropped rather than served: its prices describe a different search.
+ */
 export function createCollectorResultReader(pool: Pool) {
   const db = drizzle({ client: pool });
   const currentLeague = db
@@ -49,8 +60,8 @@ export function createCollectorResultReader(pool: Pool) {
     .from(poeLeagues)
     .where(eq(poeLeagues.isCurrent, true))
     .limit(1);
-  return (leagueId?: string, recipeId?: string) =>
-    db
+  return async (leagueId?: string, recipeId?: string) => {
+    const rows = await db
       .select()
       .from(recipeResults)
       .where(
@@ -61,6 +72,35 @@ export function createCollectorResultReader(pool: Pool) {
             : eq(recipeResults.recipeId, recipeId),
         ),
       );
+    if (!rows.length) return rows;
+    const ids = rows.map((row) => row.recipeId);
+    const [stored, specs] = await Promise.all([
+      createPostgresRepositories(pool).recipes.listActive(ids),
+      preloadScrapedItemSpecs(pool, ids),
+    ]);
+    const definitions = new Map(stored.map((recipe) => [recipe.id, recipe]));
+    const current = [];
+    for (const row of rows) {
+      const recipe = definitions.get(row.recipeId);
+      // Inactive recipes are never evaluated, so there is nothing to serve.
+      if (!recipe) continue;
+      try {
+        if (
+          await scrapedResultIsCurrent(
+            validateRecipeDocument(recipe.definition),
+            row.scrapedIdentity,
+            specs,
+          )
+        )
+          current.push(row);
+      } catch {
+        // A definition that no longer validates has no requirements to compare.
+        // Its stored error is still the honest answer, and holds no prices.
+        if (row.scrapedIdentity === null) current.push(row);
+      }
+    }
+    return current;
+  };
 }
 
 export function createCollectorEconomyCache() {
@@ -77,6 +117,50 @@ export function createCollectorEconomyCache() {
     snapshots.set(id, evidence);
     if (snapshots.size > 16) snapshots.delete(snapshots.keys().next().value!);
     return evidence;
+  };
+}
+
+type StoredListing = {
+  id: string;
+  seller: string;
+  price: string;
+  currency: string;
+  indexedAt: Date | null;
+  item: typeof listings.$inferSelect.item;
+};
+
+/** A stored active listing as the evaluator sees it; shared with item diagnostics. */
+export function storedListingQuote(row: StoredListing, capturedAt: Date) {
+  const indexedAt = row.indexedAt ?? capturedAt;
+  const price = { amount: row.price, currency: row.currency };
+  const item = {
+    ...row.item,
+    seller: row.seller,
+    currency: row.currency,
+    ...(row.item.rawItem
+      ? {
+          rawListing: {
+            id: row.id,
+            item: row.item.rawItem,
+            listing: {
+              account: { name: row.seller },
+              price: { amount: Number(row.price), currency: row.currency },
+            },
+          },
+        }
+      : {}),
+  };
+  return {
+    id: row.id,
+    account: row.seller,
+    ageSeconds: Math.max(
+      0,
+      Math.floor((capturedAt.getTime() - indexedAt.getTime()) / 1000),
+    ),
+    indexedAt: indexedAt.toISOString(),
+    price,
+    item,
+    fee: null,
   };
 }
 
@@ -168,37 +252,17 @@ async function readCaptureQuotes(
       quotes.set(key, quote);
     }
     if (!row?.seller || !row.price || !row.currency) continue;
-    const indexedAt = row.indexedAt ?? capturedAt;
-    const price = { amount: row.price, currency: row.currency };
-    const item = {
-      ...row.item,
-      seller: row.seller,
-      currency: row.currency,
-      ...(row.item.rawItem
-        ? {
-            rawListing: {
-              id: row.id,
-              item: row.item.rawItem,
-              listing: {
-                account: { name: row.seller },
-                price: { amount: Number(row.price), currency: row.currency },
-              },
-            },
-          }
-        : {}),
-    };
-    quote.payload.listings.push({
-      id: row.id,
-      account: row.seller,
-      ageSeconds: Math.max(
-        0,
-        Math.floor((capturedAt.getTime() - indexedAt.getTime()) / 1000),
+    quote.payload.listings.push(
+      storedListingQuote(
+        {
+          ...row,
+          seller: row.seller,
+          price: row.price,
+          currency: row.currency,
+        },
+        capturedAt,
       ),
-      indexedAt: indexedAt.toISOString(),
-      price,
-      item,
-      fee: null,
-    });
+    );
   }
   return quotes;
 }
@@ -283,7 +347,15 @@ export function createCollectorResultPublisher(
           : [],
       ),
     );
+    // One consistent read of the configured requirements. Both the dependencies
+    // and the identity stored with each result come from it, so a result always
+    // says which requirements it was computed from even if an edit lands midway.
+    const specs = await preloadScrapedItemSpecs(
+      client,
+      recipes.map(({ id }) => id),
+    );
     const marketDependencies = createRecipeMarketDependencies({
+      specs,
       trade: new RegisteredTradeQueryGenerator(
         await loadTradeMappingCatalog(client, [...versions]),
         [noVariantFilter, clusterJewelVariantFilter],
@@ -295,6 +367,15 @@ export function createCollectorResultPublisher(
     const observations: (typeof recipePriceObservations.$inferInsert)[] = [];
     for (const recipe of recipes) {
       let result;
+      let scrapedIdentity: string | null = null;
+      try {
+        scrapedIdentity = await recipeScrapedIdentity(
+          validateRecipeDocument(recipe.definition),
+          specs,
+        );
+      } catch {
+        // An unreadable recipe is reported by its evaluation just below.
+      }
       try {
         const { observationId, sourceSnapshotDedupeKey, ...fresh } =
           await evaluateFreshRecipe(
@@ -363,6 +444,7 @@ export function createCollectorResultPublisher(
       rows.push({
         recipeId: recipe.id,
         recipeContentHash: recipe.contentHash,
+        scrapedIdentity,
         leagueId: league.id,
         evaluatedAt: now,
         result: parsed,
@@ -376,6 +458,7 @@ export function createCollectorResultPublisher(
         target: [recipeResults.recipeId, recipeResults.leagueId],
         set: {
           recipeContentHash: sql`excluded.recipe_content_hash`,
+          scrapedIdentity: sql`excluded.scraped_identity`,
           evaluatedAt: sql`excluded.evaluated_at`,
           result: sql`excluded.result`,
         },

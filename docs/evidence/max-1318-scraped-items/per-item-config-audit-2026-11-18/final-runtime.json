@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-18T12:06:52.587Z",
+  "items": 128,
+  "recipes": 72,
+  "outputs": 66,
+  "uniqueTradeQueries": 125,
+  "queryReady": 128,
+  "currentKeyCaptures": 128,
+  "schedules": {
+    "enabled": 128,
+    "trade": 125,
+    "maintenance": 3,
+    "diagnostic": 0
+  },
+  "pendingManualRequests": 0,
+  "all72ConfiguredStartingBasesMatchSource": true,
+  "physicalAlterationNormal83Preserved": true,
+  "physicalJaggedUsesRare83": true
+}

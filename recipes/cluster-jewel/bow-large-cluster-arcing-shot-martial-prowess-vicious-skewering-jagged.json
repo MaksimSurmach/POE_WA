@@ -16,7 +16,7 @@
     }
   },
   "category": "cluster-jewel",
-  "notes": "The output target is shared with the Chaos Orb method. The starting base is acquired normal for this fossil route. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified.",
+  "notes": "The output target is shared with the Chaos Orb method. The starting base is acquired rare, matching the repeated full reroll. 3.30 review (2026-11-11): no changed crafting operation is used; 3.30 probabilities remain unverified. Historical calculator inputs and expected counts remain as recorded.",
   "craft": {
     "evidence": {
       "method": "Live Craft of Exile beta calculator, displayed rounded probability and average attempts",
@@ -56,7 +56,7 @@
       {
         "id": "roll-with-fossil",
         "title": "Roll with a Jagged Fossil",
-        "action": "Apply one Jagged Fossil in a Primitive Chaotic Resonator to the same item level 68 base until all three required notables are present.",
+        "action": "Apply one Jagged Fossil in a Primitive Chaotic Resonator to the same rare item level 68 base until all three required notables are present.",
         "continueWhen": "All three are present together: Arcing Shot, Martial Prowess, Vicious Skewering.",
         "failureAction": "Repeat on the same base.",
         "materials": [
@@ -103,7 +103,7 @@
     "baseId": "base:large-cluster-bow",
     "influences": [],
     "itemLevel": 68,
-    "rarity": "normal",
+    "rarity": "rare",
     "state": {
       "corrupted": false,
       "fractured": false,

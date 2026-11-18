@@ -25,6 +25,7 @@ import {
   type RecipeMarketDependencies,
   type RecipeMarketQuery,
   comparableRecipeListings,
+  rejectsRecipeListing,
   requiresCompleteOutputCoverage,
 } from './recipeMarket.js';
 import type { Logger } from 'pino';
@@ -507,6 +508,7 @@ export async function evaluateFreshRecipe(
     query: RecipeMarketQuery,
     requiredStock?: number,
     allowMissing = true,
+    eligibility?: RecipeMarketQuery,
   ) => {
     try {
       const market = await resolveMarket(
@@ -514,6 +516,7 @@ export async function evaluateFreshRecipe(
         marketContext,
         requiredStock,
         maximumQuoteAgeMs,
+        eligibility,
       );
       return market;
     } catch (error) {
@@ -526,12 +529,20 @@ export async function evaluateFreshRecipe(
       throw error;
     }
   };
-  const optionalMarket = async (query: RecipeMarketQuery, stock?: number) => {
-    const market = await readMarket(query, stock);
+  const optionalMarket = async (
+    query: RecipeMarketQuery,
+    stock?: number,
+    eligibility?: RecipeMarketQuery,
+  ) => {
+    const market = await readMarket(query, stock, true, eligibility);
     return market?.currencyAvailable ? market : null;
   };
   const usage = expectedMethodMaterialUsage(definition.craft);
-  const base = await optionalMarket(baseDependency.query);
+  const base = await optionalMarket(
+    baseDependency.query,
+    undefined,
+    baseDependency.eligibility,
+  );
   const materialMarkets = await Promise.all(
     dependencies
       .filter(({ kind }) => kind === 'material')
@@ -556,6 +567,7 @@ export async function evaluateFreshRecipe(
     targetDependency.query,
     undefined,
     allowMissingOutput,
+    targetDependency.eligibility,
   );
   const currency = output?.aggregation.sampleSize
     ? output.aggregation.currency
@@ -718,15 +730,18 @@ export async function evaluateFreshRecipe(
     output.coverage !== 'complete' &&
     (requiresCompleteOutputCoverage(targetDependency.query.query) ||
       !output.sortedSampleComplete);
-  const saleStatus = definition.verification.profitBlockedReason
-    ? 'unverified_output_value'
-    : !output?.currencyAvailable
-      ? 'unavailable_currency'
-      : coverageBlocked
-        ? 'insufficient_coverage'
-        : comparableSellers >= minimumComparableSellers
-          ? 'accepted'
-          : 'insufficient_sellers';
+  const profitBlockedReason =
+    definition.verification.profitBlockedReason ??
+    (targetDependency.eligibility
+      ? 'Configured output search differs from the recipe requirements; its asking cohort cannot establish this craft profit.'
+      : undefined);
+  const saleStatus = !output?.currencyAvailable
+    ? 'unavailable_currency'
+    : coverageBlocked
+      ? 'insufficient_coverage'
+      : comparableSellers >= minimumComparableSellers
+        ? 'accepted'
+        : 'insufficient_sellers';
   const usedTradeMaterials = materialMarkets.filter((m) =>
     tradeMaterialIds.has(m.id),
   );
@@ -749,13 +764,13 @@ export async function evaluateFreshRecipe(
     ...usedTradeMaterials.map((m) => m.expiresAt?.getTime() ?? Infinity),
     craftInputAt + maximumQuoteAgeMs,
   );
-  const oldestInputAt = Math.min(
-    craftInputAt,
+  const outputInputAt = Math.min(
     output?.snapshotCapturedAt.getTime() ?? Infinity,
     output?.currencyAvailable
       ? (output.conversionAt?.getTime() ?? Infinity)
       : Infinity,
   );
+  const oldestInputAt = Math.min(craftInputAt, outputInputAt);
   const expiresAt = Math.min(
     craftExpiresAt,
     output?.snapshotExpiresAt.getTime() ?? Infinity,
@@ -776,7 +791,7 @@ export async function evaluateFreshRecipe(
       ? (definition.craft.baseConsumption?.expectedBases ?? null)
       : null,
     ask:
-      saleStatus === 'accepted' && inputsFresh
+      saleStatus === 'accepted' && inputsFresh && !profitBlockedReason
         ? (saleAsk?.price ?? null)
         : null,
   });
@@ -793,18 +808,19 @@ export async function evaluateFreshRecipe(
         })
       : null;
   const saleBlockedReason = {
-    unverified_output_value: definition.verification.profitBlockedReason,
     unavailable_currency: output
       ? 'A matching ask has no verified, fresh currency conversion.'
       : 'No fresh Trade observation for this crafted item.',
     insufficient_coverage:
       'Incomplete output coverage: Trade order may differ from converted prices. Refresh a narrower target before deriving ROI.',
     insufficient_sellers: 'No matching Trade sellers for this crafted item.',
-    accepted: !inputsFresh
-      ? 'At least one market input has expired.'
-      : expectedCraftCost === null
-        ? 'Complete, verified craft cost evidence is unavailable.'
-        : undefined,
+    accepted:
+      profitBlockedReason ??
+      (!inputsFresh
+        ? 'At least one market input has expired.'
+        : expectedCraftCost === null
+          ? 'Complete, verified craft cost evidence is unavailable.'
+          : undefined),
   }[saleStatus];
   const methodCost = {
     ...materialEconomics,
@@ -822,6 +838,13 @@ export async function evaluateFreshRecipe(
     craftExpiresAt: new Date(craftExpiresAt).toISOString(),
     ...(output
       ? {
+          outputInputAt: new Date(outputInputAt).toISOString(),
+          outputExpiresAt: new Date(
+            Math.min(
+              output.snapshotExpiresAt.getTime(),
+              outputInputAt + maximumQuoteAgeMs,
+            ),
+          ).toISOString(),
           source: {
             capturedAt: output.snapshotCapturedAt.toISOString(),
             sampleSize: output.aggregation.sampleSize,
@@ -848,6 +871,7 @@ export async function evaluateFreshRecipe(
       saleBasis: saleAsk?.basis ?? 'none',
       status: saleStatus,
       ...(saleBlockedReason ? { reason: saleBlockedReason } : {}),
+      ...(profitBlockedReason ? { profitBlockedReason } : {}),
       ...(gradedEvidence
         ? { grade: gradedEvidence.grade, gradeReasons: gradedEvidence.reasons }
         : {}),
@@ -895,7 +919,10 @@ async function resolveMarket(
   },
   requiredStock?: number,
   maximumQuoteAgeMs = 30 * 60_000,
+  eligibility?: RecipeMarketQuery,
 ) {
+  // The search decides what was fetched; the recipe decides what counts.
+  const recipeQuery = (eligibility ?? tradeQuery).query;
   const canonicalHash = await hashMarketQuery({
     league: context.league,
     provider: tradeQuery.provider,
@@ -949,14 +976,16 @@ async function resolveMarket(
       marketExchange = exchange;
     }
   }
-  // An unconverted matching ask could be the true floor of this sorted sample.
+  // An unconverted ask can affect the floor unless the item is definitely rejected.
   const unconverted = Boolean(
     tradeQuery.query.handbookTarget &&
     (listings.some(
-      (row) => !['chaos', 'divine'].includes(row.price.currency),
+      (row) =>
+        !['chaos', 'divine'].includes(row.price.currency) &&
+        !rejectsRecipeListing(recipeQuery, row),
     ) ||
       comparableRecipeListings(
-        tradeQuery.query,
+        recipeQuery,
         listings.filter((row) => row.price.currency === 'divine'),
         snapshot.capturedAt,
         context.now,
@@ -964,7 +993,7 @@ async function resolveMarket(
       ).length > 0),
   );
   listings = comparableRecipeListings(
-    tradeQuery.query,
+    recipeQuery,
     listings,
     snapshot.capturedAt,
     context.now,

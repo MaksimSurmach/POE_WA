@@ -246,6 +246,20 @@
       "when": 1794330725288,
       "tag": "0034_collector_telemetry",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794960514741,
+      "tag": "0035_scraped_item_configuration",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794964200933,
+      "tag": "0036_scraped_result_identity",
+      "breakpoints": true
     }
   ]
 }

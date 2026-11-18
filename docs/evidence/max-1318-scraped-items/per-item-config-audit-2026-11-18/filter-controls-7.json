@@ -1,0 +1,391 @@
+{
+  "summary": {
+    "checkedAt": "2026-11-18T11:31:30.438Z",
+    "total": 7,
+    "finished": 7,
+    "states": {
+      "succeeded": 7
+    }
+  },
+  "scope": "Seven isolated temporary diagnostic schedules on the normal collector and persisted provider rate policy. Real authenticated data only. No recipe links or economics. Each control changes one filter; original128 profiles remain unchanged. Disable after completion.",
+  "results": [
+    {
+      "scheduleId": "ff4b0960-b295-4adc-89ed-6321f92950af",
+      "sourceItemId": "8d791780-f257-4075-90e3-4a9513b874cc",
+      "recipeIds": ["minion-bone-helmet-greed"],
+      "control": "explicit.stat_2162097452",
+      "key": "diag-mods:ee70e029f8cf5b5009c0c164f028e998dbc5c899dd7f4c82c11ed86371c289d4",
+      "state": "succeeded",
+      "reason": null,
+      "startedAt": "2026-11-18T11:28:54.034Z",
+      "finishedAt": "2026-11-18T11:29:09.696Z",
+      "temporaryScheduleDisabled": true,
+      "capture": {
+        "id": "fc6e1dbc-5723-4a11-a418-0a6ded9e895a",
+        "capturedAt": "2026-11-18T11:28:54.474Z",
+        "total": 123,
+        "fetched": 20,
+        "complete": false,
+        "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN"
+      },
+      "originalRequirementReplay": {
+        "counts": {
+          "REJECT": 20
+        },
+        "reasons": {
+          "and: explicit.stat_2162097452, explicit.stat_3299347043, explicit.stat_3372524247, implicit.stat_1589917703: thresholds not met": 20
+        },
+        "itemLevels": [73, 74, 77, 79, 80, 81, 83, 85, 86]
+      },
+      "observedStatValues": [
+        {
+          "id": "explicit.stat_2162097452",
+          "min": 2,
+          "max": null,
+          "rowsWithExactlyOneValue": 0,
+          "values": []
+        },
+        {
+          "id": "explicit.stat_3299347043",
+          "min": 91,
+          "max": null,
+          "rowsWithExactlyOneValue": 20,
+          "values": [
+            93, 94, 107, 109, 116, 118, 121, 122, 123, 128, 131, 136, 139, 140,
+            141, 144, 172
+          ]
+        },
+        {
+          "id": "explicit.stat_3372524247",
+          "min": 29,
+          "max": null,
+          "rowsWithExactlyOneValue": 20,
+          "values": [30, 34, 35, 36, 39, 40, 42, 43, 44, 45, 46, 47, 48]
+        },
+        {
+          "id": "implicit.stat_1589917703",
+          "min": 15,
+          "max": null,
+          "rowsWithExactlyOneValue": 20,
+          "values": [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+        }
+      ]
+    },
+    {
+      "scheduleId": "5e8e0a62-f16e-4867-9210-74035dfa9237",
+      "sourceItemId": "620d0981-6a77-4268-bda7-f976d7151924",
+      "recipeIds": ["week-one-spiked-gloves-zeal"],
+      "control": "implicit.stat_1002362373",
+      "key": "diag-mods:7508906bd9d5f36690eb0aae152276f781013a307f06627c043d28a3440f2a1a",
+      "state": "succeeded",
+      "reason": null,
+      "startedAt": "2026-11-18T11:29:18.468Z",
+      "finishedAt": "2026-11-18T11:29:18.887Z",
+      "temporaryScheduleDisabled": true,
+      "capture": {
+        "id": "a95c4e4c-b4f3-4569-8b8c-a01f6069a2a7",
+        "capturedAt": "2026-11-18T11:29:18.884Z",
+        "total": 0,
+        "fetched": 0,
+        "complete": true,
+        "partialReason": null
+      },
+      "originalRequirementReplay": {
+        "counts": {},
+        "reasons": {},
+        "itemLevels": []
+      },
+      "observedStatValues": [
+        {
+          "id": "explicit.stat_3299347043",
+          "min": 70,
+          "max": null,
+          "rowsWithExactlyOneValue": 0,
+          "values": []
+        },
+        {
+          "id": "explicit.stat_3372524247",
+          "min": 30,
+          "max": null,
+          "rowsWithExactlyOneValue": 0,
+          "values": []
+        },
+        {
+          "id": "explicit.stat_681332047",
+          "min": 17,
+          "max": null,
+          "rowsWithExactlyOneValue": 0,
+          "values": []
+        },
+        {
+          "id": "implicit.stat_1002362373",
+          "min": 24,
+          "max": null,
+          "rowsWithExactlyOneValue": 0,
+          "values": []
+        }
+      ]
+    },
+    {
+      "scheduleId": "6ccfe223-80a0-4aa8-a8ef-0176d81d45b7",
+      "sourceItemId": "2f4b4162-3959-42dc-95fd-0aa7dd7c7698",
+      "recipeIds": ["week-one-gripped-gloves-zeal"],
+      "control": "implicit.stat_2162876159",
+      "key": "diag-mods:c1f5f07f4834eac5768cf042fa2d8de05c421e56fda16cc43852eac1b976b751",
+      "state": "succeeded",
+      "reason": null,
+      "startedAt": "2026-11-18T11:29:42.879Z",
+      "finishedAt": "2026-11-18T11:29:43.366Z",
+      "temporaryScheduleDisabled": true,
+      "capture": {
+        "id": "52f26bb5-4bac-460e-b3c7-ff9472e6c065",
+        "capturedAt": "2026-11-18T11:29:43.363Z",
+        "total": 0,
+        "fetched": 0,
+        "complete": true,
+        "partialReason": null
+      },
+      "originalRequirementReplay": {
+        "counts": {},
+        "reasons": {},
+        "itemLevels": []
+      },
+      "observedStatValues": [
+        {
+          "id": "explicit.stat_3299347043",
+          "min": 70,
+          "max": null,
+          "rowsWithExactlyOneValue": 0,
+          "values": []
+        },
+        {
+          "id": "explicit.stat_3372524247",
+          "min": 30,
+          "max": null,
+          "rowsWithExactlyOneValue": 0,
+          "values": []
+        },
+        {
+          "id": "explicit.stat_681332047",
+          "min": 17,
+          "max": null,
+          "rowsWithExactlyOneValue": 0,
+          "values": []
+        },
+        {
+          "id": "implicit.stat_2162876159",
+          "min": 22,
+          "max": null,
+          "rowsWithExactlyOneValue": 0,
+          "values": []
+        }
+      ]
+    },
+    {
+      "scheduleId": "e8a2ec3d-7162-467e-a30b-706044475d6d",
+      "sourceItemId": "b26a9fe1-b595-4e7d-b231-edb17809448e",
+      "recipeIds": [
+        "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+        "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged"
+      ],
+      "control": "rarity",
+      "key": "diag-mods:f0b239972e7f3b6e96c4b20fb9afec39bd93a849f9a83e43d8662e8f617d45f7",
+      "state": "succeeded",
+      "reason": null,
+      "startedAt": "2026-11-18T11:30:07.356Z",
+      "finishedAt": "2026-11-18T11:30:08.474Z",
+      "temporaryScheduleDisabled": true,
+      "capture": {
+        "id": "a5497215-3cc5-4d98-9df1-ecbc2edac9b4",
+        "capturedAt": "2026-11-18T11:30:07.747Z",
+        "total": 9,
+        "fetched": 9,
+        "complete": true,
+        "partialReason": null
+      },
+      "originalRequirementReplay": {
+        "counts": {
+          "REJECT": 9
+        },
+        "reasons": {
+          "rarity: mismatch": 9
+        },
+        "itemLevels": [68]
+      },
+      "observedStatValues": [
+        {
+          "id": "enchant.stat_3086156145",
+          "min": 8,
+          "max": 8,
+          "rowsWithExactlyOneValue": 9,
+          "values": [8]
+        },
+        {
+          "id": "enchant.stat_3948993189|4",
+          "min": null,
+          "max": null,
+          "rowsWithExactlyOneValue": 9,
+          "values": [1]
+        },
+        {
+          "id": "enchant.stat_4079888060",
+          "min": 2,
+          "max": 2,
+          "rowsWithExactlyOneValue": 9,
+          "values": [2]
+        }
+      ]
+    },
+    {
+      "scheduleId": "5919869b-fafe-4d25-8d97-653c8a61302f",
+      "sourceItemId": "a0cfd97a-f201-498b-b6c9-07b9d2ce42a6",
+      "recipeIds": [
+        "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak",
+        "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak"
+      ],
+      "control": "item-level-max",
+      "key": "diag-mods:d2769418ee233dd8312d48e7c5c27c2d841cffd23a186cf7120b90f008b8d48e",
+      "state": "succeeded",
+      "reason": null,
+      "startedAt": "2026-11-18T11:30:31.732Z",
+      "finishedAt": "2026-11-18T11:30:47.510Z",
+      "temporaryScheduleDisabled": true,
+      "capture": {
+        "id": "3722a270-4333-4bf8-8487-2a81b2072d27",
+        "capturedAt": "2026-11-18T11:30:32.185Z",
+        "total": 2168,
+        "fetched": 20,
+        "complete": false,
+        "partialReason": "MIXED_CURRENCY_SLICE_UNPROVEN"
+      },
+      "originalRequirementReplay": {
+        "counts": {
+          "REJECT": 20
+        },
+        "reasons": {
+          "target maximum item level: mismatch": 20
+        },
+        "itemLevels": [78, 79, 82, 83]
+      },
+      "observedStatValues": [
+        {
+          "id": "enchant.stat_3086156145",
+          "min": 8,
+          "max": 8,
+          "rowsWithExactlyOneValue": 20,
+          "values": [8]
+        },
+        {
+          "id": "enchant.stat_3948993189|6",
+          "min": null,
+          "max": null,
+          "rowsWithExactlyOneValue": 20,
+          "values": [1]
+        },
+        {
+          "id": "enchant.stat_4079888060",
+          "min": 2,
+          "max": 2,
+          "rowsWithExactlyOneValue": 20,
+          "values": [2]
+        }
+      ]
+    },
+    {
+      "scheduleId": "4415cbed-fd4d-41fd-aab0-21ae61c95c17",
+      "sourceItemId": "063905f2-80d0-435a-9b25-c6bd3b5c5a34",
+      "recipeIds": [
+        "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged"
+      ],
+      "control": "rarity",
+      "key": "diag-mods:6d4e841d804219f4d3b53398db775d27f3c1b3daa9a40a1df352c0e4d0f880ce",
+      "state": "succeeded",
+      "reason": null,
+      "startedAt": "2026-11-18T11:30:56.179Z",
+      "finishedAt": "2026-11-18T11:31:02.207Z",
+      "temporaryScheduleDisabled": true,
+      "capture": {
+        "id": "ea87a6b0-48cf-405a-abc9-96458518e0c5",
+        "capturedAt": "2026-11-18T11:30:56.582Z",
+        "total": 2,
+        "fetched": 2,
+        "complete": true,
+        "partialReason": null
+      },
+      "originalRequirementReplay": {
+        "counts": {
+          "REJECT": 2
+        },
+        "reasons": {
+          "rarity: mismatch": 2
+        },
+        "itemLevels": [68]
+      },
+      "observedStatValues": [
+        {
+          "id": "enchant.stat_3086156145",
+          "min": 8,
+          "max": 8,
+          "rowsWithExactlyOneValue": 2,
+          "values": [8]
+        },
+        {
+          "id": "enchant.stat_3948993189|8",
+          "min": null,
+          "max": null,
+          "rowsWithExactlyOneValue": 2,
+          "values": [1]
+        },
+        {
+          "id": "enchant.stat_4079888060",
+          "min": 2,
+          "max": 2,
+          "rowsWithExactlyOneValue": 2,
+          "values": [2]
+        }
+      ]
+    },
+    {
+      "scheduleId": "0c8699ab-0f89-4dc7-9bcf-28d7acc95873",
+      "sourceItemId": "e4468306-1c93-44df-b93c-9b817be83e33",
+      "recipeIds": ["suppression-gloves-fear", "suppression-gloves-zeal"],
+      "control": "fractured.stat_3680664274",
+      "key": "diag-mods:3f40c7551d2f702dc2f6ffbcb3a6b77662a128d36395aa45c5dcd6d22c32508c",
+      "state": "succeeded",
+      "reason": null,
+      "startedAt": "2026-11-18T11:31:20.578Z",
+      "finishedAt": "2026-11-18T11:31:21.049Z",
+      "temporaryScheduleDisabled": true,
+      "capture": {
+        "id": "763cb48c-6a68-447f-934a-aababd8be0b4",
+        "capturedAt": "2026-11-18T11:31:21.044Z",
+        "total": 0,
+        "fetched": 0,
+        "complete": true,
+        "partialReason": null
+      },
+      "originalRequirementReplay": {
+        "counts": {},
+        "reasons": {},
+        "itemLevels": []
+      },
+      "observedStatValues": [
+        {
+          "id": "fractured.stat_3680664274",
+          "min": 14,
+          "max": null,
+          "rowsWithExactlyOneValue": 0,
+          "values": []
+        }
+      ]
+    }
+  ],
+  "profileInvariants": {
+    "originalProfiles": 128,
+    "unchangedSpecifications": 128,
+    "unchangedRevisions": 128,
+    "unchangedQueryKeys": 128,
+    "temporarySchedulesDisabled": 7,
+    "enabledSchedules": 131
+  }
+}

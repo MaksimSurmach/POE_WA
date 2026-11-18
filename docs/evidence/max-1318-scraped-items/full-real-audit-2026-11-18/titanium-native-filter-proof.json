@@ -1,0 +1,39 @@
+{
+  "scope": "Actual provider-returned items are checked locally against the authored requirements. These false-positive discovery results stay rejected. No price is inferred from incomplete coverage and no provider-normalization cause is asserted.",
+  "recipeId": "week-one-titanium-shield-woe",
+  "requestId": "10cbf745-fd8a-4a4a-ae92-85e9c914f9e6",
+  "captureId": "db02e138-736a-4654-a0e7-481e97f525b9",
+  "capturedAt": "2026-11-18T08:42:29.571Z",
+  "durationMs": 480014,
+  "fetched": 114,
+  "coverage": "partial",
+  "partialReason": "PRICE_SLICE_LIMIT",
+  "matched": 70,
+  "rejected": 44,
+  "unknown": 0,
+  "wireEnergyShieldFilter": {
+    "min": 200
+  },
+  "rejectedExamples": [
+    {
+      "energyShield": 195,
+      "decision": "REJECT",
+      "reasons": ["and: armour.es: thresholds not met"]
+    },
+    {
+      "energyShield": 189,
+      "decision": "REJECT",
+      "reasons": ["and: armour.es: thresholds not met"]
+    },
+    {
+      "energyShield": 188,
+      "decision": "REJECT",
+      "reasons": ["and: armour.es: thresholds not met"]
+    },
+    {
+      "energyShield": 167,
+      "decision": "REJECT",
+      "reasons": ["and: armour.es: thresholds not met"]
+    }
+  ]
+}

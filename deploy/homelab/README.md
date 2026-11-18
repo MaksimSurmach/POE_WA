@@ -46,8 +46,10 @@ with an autonomous Docker restart policy. An
 API/configuration failure stops the collector and leaves a failed systemd unit
 for inspection; the timer retries on the next minute. API settings are changed
 only when the pause value differs, so an idle timer does not grow the audit log.
-Deployment or manual pause changes during the window are reconciled by the timer.
-For an intentional override, disable the timer first.
+Within the window the timer keeps the process available without changing the
+operator's collection settings. A paused collector stays connected so the UI can
+resume it. Outside the window the timer sets the pause and stops the process;
+opening a later window does not automatically clear that pause.
 
 Check with `systemctl status worksmith-collection-window.timer` and
 `journalctl -u worksmith-collection-window.service`. Tests:

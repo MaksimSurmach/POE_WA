@@ -77,6 +77,7 @@ describe('analysis evidence from existing market pipeline', () => {
     'signature',
     'revision',
     'blocked',
+    'profit-blocked',
     'future',
   ])('rejects unsupported resale: %s', (failure) => {
     const model = { ...craftModelFixture(), prices: {}, valuations: {} };
@@ -90,6 +91,11 @@ describe('analysis evidence from existing market pipeline', () => {
     if (failure === 'revision') evidence.recipeContentHash = 'previous-recipe';
     if (failure === 'blocked')
       evidence.saleEvidence = { status: 'unverified_output_value' };
+    if (failure === 'profit-blocked')
+      evidence.saleEvidence = {
+        status: 'accepted',
+        profitBlockedReason: 'Uncertain craft cost.',
+      };
     if (failure === 'future')
       source.capturedAt = new Date(now.getTime() + 1000).toISOString();
     expect(

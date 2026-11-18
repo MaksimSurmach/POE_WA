@@ -1,5 +1,7 @@
+import { recipeStageFamilies } from './recipes/craftFamilyMetadata.js';
 import {
   generateRecipeMarketQuery,
+  recipeMarketTradeUrl,
   comparableRecipeListings,
   requiresCompleteOutputCoverage,
 } from './recipeMarket.js';
@@ -22,6 +24,7 @@ import {
 } from '@poe-worksmith/contracts';
 import {
   DomainError,
+  recipeCraftFamilies,
   type CanonicalJsonObject,
   type Recipe as StoredRecipe,
   type RecipeEvaluation,
@@ -40,7 +43,10 @@ import {
   type CollectorReadinessReader,
 } from './collectorReadiness.js';
 import type { MarketActivityReader } from './marketActivity.js';
-import { marketTradeUrl } from './marketTradeQuery.js';
+import {
+  derivedRecipeSpecs,
+  type RecipeSpecResolver,
+} from './scrapedItemConfig.js';
 import { recipeResultSchema } from './recipeResult.js';
 import type { recipeResults } from './schema.js';
 import {
@@ -63,7 +69,11 @@ type ResourceEvaluation = Pick<
   | 'status'
 >;
 
-type CollectorResultRow = typeof recipeResults.$inferSelect;
+// Rows arrive already filtered to the recipe's current scraped-item requirements.
+type CollectorResultRow = Omit<
+  typeof recipeResults.$inferSelect,
+  'scrapedIdentity'
+>;
 type CollectorResultsReader = (
   leagueId?: string,
   recipeId?: string,
@@ -77,6 +87,8 @@ export function createResourceReaders(
   readCollectorResults?: CollectorResultsReader,
   readMarketActivity?: MarketActivityReader,
   readReadiness?: CollectorReadinessReader,
+  // Production passes the configured resolver; the default is the authored recipe.
+  specs: RecipeSpecResolver = derivedRecipeSpecs,
 ) {
   const recipeDocuments = new Map<
     string,
@@ -234,6 +246,7 @@ export function createResourceReaders(
                   recipe,
                   repositories,
                   trade,
+                  specs,
                 });
             const entry = toCatalogEntry(
               recipe,
@@ -287,32 +300,42 @@ export function createResourceReaders(
       }
       const { currentLeague, maximumQuoteAgeMs } = market;
       const definition = readRecipeDocument(recipe);
-      const generatedBase =
+      const baseTradeUrl =
         trade && currentLeague
           ? await generateRecipeMarketQuery(
               trade,
               definition,
               currentLeague.gggId,
               true,
-            ).catch(() => null)
-          : null;
-      const baseTradeUrl =
-        generatedBase && currentLeague
-          ? marketTradeUrl(currentLeague.gggId, {
-              query: generatedBase.query.query,
-              sort: { price: 'asc' },
-            })
+              specs,
+            )
+              .then(recipeMarketTradeUrl)
+              .catch(() => null)
           : null;
       const evaluation = market.evaluationFor(recipe);
       // The collector keys a target's schedule by this same query hash.
       const target =
-        (readMarketActivity || readReadiness) && trade && currentLeague
+        trade && currentLeague
           ? await generateRecipeMarketQuery(
               trade,
               definition,
               currentLeague.gggId,
+              false,
+              specs,
             ).catch(() => null)
           : null;
+      let targetTradeUrl: string | null = null;
+      if (target) {
+        try {
+          targetTradeUrl = recipeMarketTradeUrl(target);
+        } catch (error) {
+          if (
+            !(error instanceof DomainError) ||
+            error.code !== 'MARKET_QUERY_INVALID'
+          )
+            throw error;
+        }
+      }
       const now = new Date();
       const key =
         target && currentLeague
@@ -358,6 +381,7 @@ export function createResourceReaders(
             }
           : {}),
         baseTradeUrl,
+        targetTradeUrl,
         snapshot: readCollectorResults
           ? null
           : await latestOutputSnapshot({
@@ -367,6 +391,7 @@ export function createResourceReaders(
               recipe,
               repositories,
               trade,
+              specs,
             }),
       };
       return readCollectorResults
@@ -403,6 +428,38 @@ function collectorEvaluation(
     method.craftInputAt &&
     result.expectedCraftCost !== null &&
     !expired(method.craftExpiresAt, method.craftInputAt);
+  // A fresh output ask survives expired craft inputs only with a proven quote lifetime.
+  const source = method?.source;
+  const outputOnly =
+    stale &&
+    method &&
+    source &&
+    !freshCraftCost &&
+    maximumQuoteAgeMs !== undefined &&
+    method.outputInputAt &&
+    method.outputExpiresAt &&
+    Date.parse(method.outputInputAt) <= Date.parse(source.capturedAt) &&
+    !expired(method.outputExpiresAt, method.outputInputAt) &&
+    result.estimatedSalePrice !== null &&
+    method.saleEvidence.status === 'accepted' &&
+    source.coverage === 'complete' &&
+    source.currencyAvailable &&
+    Date.parse(source.capturedAt) <= now &&
+    Date.parse(source.capturedAt) + maximumQuoteAgeMs > now
+      ? {
+          oldestInputAt: method.oldestInputAt,
+          expiresAt: method.expiresAt,
+          source,
+          marketStatus: 'priced' as const,
+          saleEvidence: {
+            ...method.saleEvidence,
+            reason:
+              method.saleEvidence.reason ??
+              'The craft inputs expired. The output ask is still fresh.',
+          },
+          budget: null,
+        }
+      : undefined;
   const methodCost = !stale
     ? method
     : freshCraftCost
@@ -415,7 +472,7 @@ function collectorEvaluation(
               'The output quote expired. The verified craft inputs are still fresh.',
           },
         }
-      : null;
+      : (outputOnly ?? null);
   return {
     ...result,
     methodCost,
@@ -424,8 +481,9 @@ function collectorEvaluation(
       !stale && result.status === 'success' ? row.evaluatedAt : null,
     ...(stale
       ? {
-          status: 'stale',
-          estimatedSalePrice: null,
+          confidence: outputOnly ? 'low' : result.confidence,
+          status: outputOnly ? 'partial' : 'stale',
+          estimatedSalePrice: outputOnly ? result.estimatedSalePrice : null,
           expectedCraftCost: freshCraftCost ? result.expectedCraftCost : null,
           marginPercent: null,
           profit: null,
@@ -532,7 +590,10 @@ function toCatalogEntry(
   return {
     evaluation: toEvaluation(recipe.id, evaluation),
     ...(itemPreview ? { itemPreview } : {}),
-    recipe: toRecipeSummary(recipe, definition, evaluation),
+    recipe: {
+      ...toRecipeSummary(recipe, definition, evaluation),
+      ...(itemPreview ? { baseName: itemPreview.name } : {}),
+    },
     snapshot: snapshot ?? null,
   };
 }
@@ -546,6 +607,7 @@ async function latestOutputSnapshot(input: {
   recipe: StoredRecipe;
   repositories: Repositories;
   trade: TradeQueryGenerator | undefined;
+  specs: RecipeSpecResolver;
 }): Promise<CatalogEntry['snapshot']> {
   if (!input.currentLeague) return null;
   const definition = validateRecipeDocument(input.recipe.definition);
@@ -554,6 +616,8 @@ async function latestOutputSnapshot(input: {
     input.trade,
     definition,
     input.currentLeague.gggId,
+    false,
+    input.specs,
   ).catch(() => null);
   if (!result) return null;
   const queryHash = await hashMarketQuery({
@@ -654,6 +718,11 @@ function toRecipeSummary(
   return {
     category: recipe.category,
     craftMethod: recipe.craftMethod,
+    craftFamilies: recipeCraftFamilies(
+      definition.craft,
+      recipeStageFamilies[definition.id],
+    ),
+    methodName: definition.craft.name,
     patch: definition.patch,
     id: recipe.id,
     minimumCapital: price(evaluation?.expectedCraftCost, evaluation?.currency),

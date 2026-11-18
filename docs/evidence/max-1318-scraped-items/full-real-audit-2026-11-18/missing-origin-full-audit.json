@@ -1,0 +1,89 @@
+{
+  "snapshotAt": "2026-11-18T10:25:33.507Z",
+  "currentCaptures": 128,
+  "outputCaptures": 66,
+  "activePricedOutputRows": 2678,
+  "nonMatchingOutputRows": 299,
+  "confirmedFalseRejections": 7,
+  "method": "Read-only replay of stored rows against captured handbook targets, temporarily supplying each exact missing origin mapping in process memory.",
+  "findings": [
+    {
+      "recipeId": "suppression-boots-loathing",
+      "hash": "stat.fractured.stat_2250533757",
+      "origin": "fractured",
+      "count": 6,
+      "before": "REJECT",
+      "after": "MATCH",
+      "floors": {
+        "movement": 25,
+        "avoidance": 31,
+        "suppression": 14
+      },
+      "rows": [
+        {
+          "movement": 30,
+          "avoidance": 35,
+          "suppression": 14
+        },
+        {
+          "movement": 35,
+          "avoidance": 34,
+          "suppression": 14
+        },
+        {
+          "movement": 25,
+          "avoidance": 31,
+          "suppression": 14
+        },
+        {
+          "movement": 30,
+          "avoidance": 35,
+          "suppression": 14
+        },
+        {
+          "movement": 35,
+          "avoidance": 32,
+          "suppression": 14
+        },
+        {
+          "movement": 30,
+          "avoidance": 32,
+          "suppression": 14
+        }
+      ],
+      "conditionalExcluded": {
+        "hash": "stat.fractured.stat_1177358866",
+        "value": 11
+      }
+    },
+    {
+      "recipeId": "week-one-thicket-bow-dread",
+      "hash": "stat.fractured.stat_2027269580",
+      "origin": "fractured",
+      "count": 1,
+      "before": "REJECT",
+      "after": "MATCH",
+      "floors": [
+        {
+          "stat": "explicit.stat_2027269580",
+          "min": 2
+        },
+        {
+          "stat": "explicit.stat_210067635",
+          "min": 14
+        },
+        {
+          "stat": "socket.links",
+          "min": 6
+        }
+      ],
+      "rows": [
+        {
+          "socketedBowGems": 2,
+          "attackSpeed": 18,
+          "tier": "P1"
+        }
+      ]
+    }
+  ]
+}

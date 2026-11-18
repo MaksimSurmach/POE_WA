@@ -1,0 +1,268 @@
+{
+  "checkedAt": "2026-11-18T07:33:41.707Z",
+  "scope": "Diagnostic-only authenticated Trade searches queued through PostgreSQL+NOTIFY, temporary allow-list for two verified effect IDs, no recipe price publication. Exactly the two support IDs changed; all other full-goal filters retained.",
+  "a1": {
+    "mode": "legacy",
+    "scheduleId": "d48bb13e-01d8-4372-b48e-88e1045a254e",
+    "key": "diagnostic-rf-legacy-32cd13b80df7ba6e3a87daabae0a87dbfb712573c9e1b99b96c298599812278f",
+    "baselineRequestId": "7d084fd5-5989-4349-a709-68293be2f87f",
+    "sourceItemId": "360a3933-fc72-486c-87d3-b36deae58344",
+    "sourceQueryKey": "32cd13b80df7ba6e3a87daabae0a87dbfb712573c9e1b99b96c298599812278f",
+    "queuedAt": "2026-11-18T07:17:06.128Z",
+    "request": {
+      "query": {
+        "status": {
+          "option": "securable"
+        },
+        "type": "Archdemon Crown",
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.indexable_support_68",
+                "value": {}
+              },
+              {
+                "id": "explicit.indexable_support_98",
+                "value": {}
+              },
+              {
+                "id": "explicit.stat_2551600084",
+                "value": {
+                  "min": 1
+                }
+              },
+              {
+                "id": "explicit.stat_280731498",
+                "value": {
+                  "min": 8
+                }
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "rarity": {
+                "option": "rare"
+              }
+            }
+          },
+          "misc_filters": {
+            "filters": {
+              "corrupted": {
+                "option": "false"
+              }
+            }
+          },
+          "trade_filters": {
+            "filters": {
+              "price": {}
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    },
+    "schedule": {
+      "last_status": "succeeded",
+      "last_error": null,
+      "last_finished_at": "2026-11-18T07:17:07.609Z",
+      "leased_until": null
+    },
+    "capture": {
+      "id": "e9659980-c0da-4e43-9df0-78acf18f437d",
+      "captured_at": "2026-11-18T07:17:07.605Z",
+      "reported_total": 0,
+      "fetched": 0,
+      "complete": true,
+      "partial_reason": null,
+      "duration_ms": 572,
+      "slices": 1
+    },
+    "checkedAt": "2026-11-18T07:18:53.345Z",
+    "scope": "Diagnostic discovery-only real Trade capture via PostgreSQL queue and rate limiter. Temporary allow-list for two verified support effect IDs; no recipe prices published."
+  },
+  "b": {
+    "mode": "effect",
+    "scheduleId": "5b4d85b1-4833-4e99-978d-bbfedce9fb4d",
+    "key": "diagnostic-rf-effect-5296fee6a63c339c80e746b4cec0bc8c6562ea5a2c4d4596b11021abea251562",
+    "baselineRequestId": "7d084fd5-5989-4349-a709-68293be2f87f",
+    "sourceItemId": "360a3933-fc72-486c-87d3-b36deae58344",
+    "sourceQueryKey": "32cd13b80df7ba6e3a87daabae0a87dbfb712573c9e1b99b96c298599812278f",
+    "queuedAt": "2026-11-18T07:19:00.726Z",
+    "request": {
+      "query": {
+        "status": {
+          "option": "securable"
+        },
+        "type": "Archdemon Crown",
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.effect_1200122555",
+                "value": {}
+              },
+              {
+                "id": "explicit.effect_3293595800",
+                "value": {}
+              },
+              {
+                "id": "explicit.stat_2551600084",
+                "value": {
+                  "min": 1
+                }
+              },
+              {
+                "id": "explicit.stat_280731498",
+                "value": {
+                  "min": 8
+                }
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "rarity": {
+                "option": "rare"
+              }
+            }
+          },
+          "misc_filters": {
+            "filters": {
+              "corrupted": {
+                "option": "false"
+              }
+            }
+          },
+          "trade_filters": {
+            "filters": {
+              "price": {}
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    },
+    "schedule": {
+      "last_status": "succeeded",
+      "last_error": null,
+      "last_finished_at": "2026-11-18T07:22:52.870Z",
+      "leased_until": null
+    },
+    "capture": {
+      "id": "d3ae90ae-cefb-4dad-9f5d-fe94fbed4889",
+      "captured_at": "2026-11-18T07:19:01.142Z",
+      "reported_total": 119,
+      "fetched": 118,
+      "complete": false,
+      "partial_reason": "PRICE_SLICE_LIMIT",
+      "duration_ms": 232139,
+      "slices": 5
+    },
+    "checkedAt": "2026-11-18T07:23:00.959Z",
+    "scope": "Diagnostic discovery-only real Trade capture via PostgreSQL queue and rate limiter. Temporary allow-list for two verified support effect IDs; no recipe prices published."
+  },
+  "a2": {
+    "mode": "legacy",
+    "scheduleId": "d48bb13e-01d8-4372-b48e-88e1045a254e",
+    "key": "diagnostic-rf-legacy-32cd13b80df7ba6e3a87daabae0a87dbfb712573c9e1b99b96c298599812278f",
+    "baselineRequestId": "7d084fd5-5989-4349-a709-68293be2f87f",
+    "sourceItemId": "360a3933-fc72-486c-87d3-b36deae58344",
+    "sourceQueryKey": "32cd13b80df7ba6e3a87daabae0a87dbfb712573c9e1b99b96c298599812278f",
+    "queuedAt": "2026-11-18T07:23:48.369Z",
+    "request": {
+      "query": {
+        "status": {
+          "option": "securable"
+        },
+        "type": "Archdemon Crown",
+        "stats": [
+          {
+            "type": "and",
+            "filters": [
+              {
+                "id": "explicit.indexable_support_68",
+                "value": {}
+              },
+              {
+                "id": "explicit.indexable_support_98",
+                "value": {}
+              },
+              {
+                "id": "explicit.stat_2551600084",
+                "value": {
+                  "min": 1
+                }
+              },
+              {
+                "id": "explicit.stat_280731498",
+                "value": {
+                  "min": 8
+                }
+              }
+            ]
+          }
+        ],
+        "filters": {
+          "type_filters": {
+            "filters": {
+              "rarity": {
+                "option": "rare"
+              }
+            }
+          },
+          "misc_filters": {
+            "filters": {
+              "corrupted": {
+                "option": "false"
+              }
+            }
+          },
+          "trade_filters": {
+            "filters": {
+              "price": {}
+            }
+          }
+        }
+      },
+      "sort": {
+        "price": "asc"
+      }
+    },
+    "schedule": {
+      "last_status": "succeeded",
+      "last_error": null,
+      "last_finished_at": "2026-11-18T07:23:48.837Z",
+      "leased_until": null
+    },
+    "capture": {
+      "id": "5215fd65-4c9c-4fcf-a02f-8836389b0bec",
+      "captured_at": "2026-11-18T07:23:48.835Z",
+      "reported_total": 0,
+      "fetched": 0,
+      "complete": true,
+      "partial_reason": null,
+      "duration_ms": 461,
+      "slices": 1
+    },
+    "checkedAt": "2026-11-18T07:32:57.246Z",
+    "scope": "Diagnostic discovery-only real Trade capture via PostgreSQL queue and rate limiter. Temporary allow-list for two verified support effect IDs; no recipe prices published."
+  },
+  "actualEffectRows": 118,
+  "itemComparability": {
+    "MATCH": 118
+  },
+  "diagnosticSchedulesDisabled": true,
+  "priceDerived": false
+}

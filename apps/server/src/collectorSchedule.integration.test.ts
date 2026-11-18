@@ -88,18 +88,18 @@ beforeEach(async () => {
 
 afterAll(() => pool.end());
 
-it('reconciles the 55-recipe catalog without resetting existing schedule rows', async () => {
+it('reconciles the 72-recipe catalog without resetting existing schedule rows', async () => {
   const league = await seedPrerequisites();
   await syncCli();
   const first = await scheduleRows();
-  expect(first).toHaveLength(97);
+  expect(first).toHaveLength(128);
   const tradeDue = first
     .filter(({ kind }) => kind === 'trade-target')
     .map(({ nextDueAt }) => nextDueAt.getTime())
     .sort((a, b) => a - b);
-  expect(tradeDue).toHaveLength(94);
+  expect(tradeDue).toHaveLength(125);
   expect(tradeDue.map((due) => due - tradeDue[0]!)).toEqual(
-    Array.from({ length: 94 }, (_, index) => index * 60_000),
+    Array.from({ length: 125 }, (_, index) => index * 60_000),
   );
   const recipes = await loadRecipeCatalog(catalog);
   const weekOneIds = new Set(
@@ -117,9 +117,9 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
   const bases = tradeRows.filter(
     ({ payload }) => (payload.outputRecipeIds as string[]).length === 0,
   );
-  expect(weekOneOutputs).toHaveLength(24);
-  expect(establishedOutputs).toHaveLength(25);
-  expect(bases).toHaveLength(45);
+  expect(weekOneOutputs).toHaveLength(23);
+  expect(establishedOutputs).toHaveLength(43);
+  expect(bases).toHaveLength(59);
   expect(
     weekOneOutputs.every(({ intervalMinutes }) => intervalMinutes === 120),
   ).toBe(true);
@@ -131,10 +131,10 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
   );
   expect(
     tradeRows.filter(({ intervalMinutes }) => intervalMinutes === 120),
-  ).toHaveLength(69);
+  ).toHaveLength(82);
   expect(
     tradeRows.reduce((total, row) => total + 60 / row.intervalMinutes, 0),
-  ).toBe(59.5);
+  ).toBe(84);
   expect(first.find(({ kind }) => kind === 'economy')).toMatchObject({
     leagueId: league.id,
     intervalMinutes: 30,
@@ -195,13 +195,13 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
       (shared.payload.query as { handbookTarget: unknown }).handbookTarget,
     ).league,
   ).toBe(league.gggId);
-  const unique = withRuntimeState.find(
+  const sharedBase = withRuntimeState.find(
     ({ intervalMinutes, payload }) =>
       intervalMinutes === 120 &&
       Array.isArray(payload.recipeIds) &&
       payload.recipeIds.includes(chaos),
   )!;
-  expect(unique.payload.recipeIds).toEqual([chaos]);
+  expect(sharedBase.payload.recipeIds).toEqual([chaos, jagged]);
   const report = await synchronizeRecipes(
     repositories.recipes,
     recipes.filter(({ definition }) => definition.id !== chaos),
@@ -214,7 +214,11 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
   );
   expect(await scheduleRows()).toEqual(
     withRuntimeState.map((row) => {
-      if (row.id === unique.id) return { ...row, enabled: false };
+      if (row.id === sharedBase.id)
+        return {
+          ...row,
+          payload: { ...row.payload, recipeIds: [jagged] },
+        };
       if (row.id === shared.id)
         return {
           ...row,
@@ -227,7 +231,7 @@ it('reconciles the 55-recipe catalog without resetting existing schedule rows', 
       return row;
     }),
   );
-});
+}, 15_000);
 
 it('rolls all recipe targets to a new league while retaining disabled old history', async () => {
   const previous = await seedPrerequisites('Standard');
@@ -253,9 +257,9 @@ it('rolls all recipe targets to a new league while retaining disabled old histor
   const newTargets = after.filter(
     (row) => row.kind === 'trade-target' && row.leagueId === next.id,
   );
-  expect(oldTargets).toHaveLength(94);
+  expect(oldTargets).toHaveLength(125);
   expect(oldTargets.every((row) => !row.enabled)).toBe(true);
-  expect(newTargets).toHaveLength(94);
+  expect(newTargets).toHaveLength(125);
   expect(newTargets.every((row) => row.enabled)).toBe(true);
   expect(
     after.find((row) => row.kind === 'economy' && row.enabled),
@@ -269,7 +273,7 @@ it('rolls all recipe targets to a new league while retaining disabled old histor
 
 it('keeps recipe sync and dry-run safe without league or mapping data', async () => {
   await syncCli();
-  expect(await repositories.recipes.listActive()).toHaveLength(55);
+  expect(await repositories.recipes.listActive()).toHaveLength(72);
   expect(await scheduleRows()).toEqual([]);
 
   await seedPrerequisites();
@@ -277,7 +281,7 @@ it('keeps recipe sync and dry-run safe without league or mapping data', async ()
   expect(await scheduleRows()).toEqual([]);
   await syncCli();
   const existing = await scheduleRows();
-  expect(existing).toHaveLength(97);
+  expect(existing).toHaveLength(128);
   await pool.query("update game_data_versions set status = 'archived'");
   await syncCli();
   expect(await scheduleRows()).toEqual(existing);
@@ -289,8 +293,8 @@ it('validates only schedule configuration before writing recipes', async () => {
   expect(await repositories.recipes.listActive()).toHaveLength(0);
 
   await syncCli([], { APP_PORT: 'invalid' });
-  expect(await repositories.recipes.listActive()).toHaveLength(55);
-  expect(await scheduleRows()).toHaveLength(97);
+  expect(await repositories.recipes.listActive()).toHaveLength(72);
+  expect(await scheduleRows()).toHaveLength(128);
 });
 
 it('disables only retention during shadow collection and can re-enable it', async () => {

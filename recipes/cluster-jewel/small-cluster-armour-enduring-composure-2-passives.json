@@ -1,0 +1,199 @@
+{
+  "base": {
+    "baseId": "base:small-cluster-armour-2",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 2,
+      "smallPassiveStatId": "armour"
+    }
+  },
+  "category": "cluster-jewel",
+  "notes": "Исследование 16.11.2026: 540 предложений в общей выборке, не подтверждённые продажи. Модель среднего расхода 21.6c, P90 29.0c по историческому курсу и базе; текущая стоимость пересчитывается отдельно. Конкурировать приходится также с magic-предметами от 45c в исходной выборке.",
+  "craft": {
+    "evidence": {
+      "method": "CoE 3.30.0.1 exact single-notable calculation",
+      "patch": "3.30.0.1",
+      "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.41&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2FybW91ciJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTgxIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=188&method=0%2C1",
+      "verifiedAt": "2026-11-16",
+      "settings": "Small · Armour 15% · 2 пассива; starting ilvl 83; target Enduring Composure.",
+      "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+      "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+    },
+    "method": {
+      "currency": "orb-of-alteration",
+      "kind": "currency"
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "CoE 3.30.0.1 exact single-notable calculation",
+        "patch": "3.30.0.1",
+        "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.41&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2FybW91ciJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTgxIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=188&method=0%2C1",
+        "verifiedAt": "2026-11-16",
+        "settings": "Small · Armour 15% · 2 пассива; starting ilvl 83; target Enduring Composure.",
+        "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+        "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+      }
+    },
+    "uncertainties": [
+      "Starting-base acquisition must use exactly item level 83. Higher item levels can change the affix pool and require a separate cost model.",
+      "Model only; asking prices do not prove sales. Small pool verified only at ilvl 83."
+    ],
+    "id": "alt-regal",
+    "name": "Alteration → Regal",
+    "steps": [
+      {
+        "action": "На rare-базу ровно ilvl 83 применить Orb of Scouring, затем Orb of Transmutation.",
+        "continueWhen": "База magic.",
+        "failureAction": "Не менять базу или ilvl без нового расчёта.",
+        "id": "prepare",
+        "materials": [
+          {
+            "itemId": "orb-of-scouring",
+            "quantity": 1
+          },
+          {
+            "itemId": "orb-of-transmutation",
+            "quantity": 1
+          }
+        ],
+        "title": "Подготовить базу"
+      },
+      {
+        "action": "Использовать Alteration до появления любого из: Enduring Composure.",
+        "continueWhen": "Появился один целевой prefix.",
+        "failureAction": "Повторить Alteration.",
+        "id": "alteration",
+        "materials": [
+          {
+            "itemId": "orb-of-alteration",
+            "quantity": 1
+          }
+        ],
+        "success": {
+          "evidence": {
+            "method": "CoE 3.30.0.1 exact single-notable calculation",
+            "patch": "3.30.0.1",
+            "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.41&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2FybW91ciJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTgxIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=188&method=0%2C1",
+            "verifiedAt": "2026-11-16",
+            "settings": "Small · Armour 15% · 2 пассива; starting ilvl 83; target Enduring Composure.",
+            "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+            "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+          },
+          "probability": 0.013981698069240085
+        },
+        "title": "Поймать нужный notable"
+      },
+      {
+        "action": "Применить Regal Orb; цель сохранится, дополнительный мод свободный.",
+        "continueWhen": "Готовый редкий предмет с целью.",
+        "failureAction": "Не перебрасывать готовую цель.",
+        "id": "regal",
+        "materials": [
+          {
+            "itemId": "regal-orb",
+            "quantity": 1
+          }
+        ],
+        "title": "Применить Regal"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 1,
+        "evidence": {
+          "method": "CoE 3.30.0.1 exact single-notable calculation",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.41&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2FybW91ciJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTgxIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=188&method=0%2C1",
+          "verifiedAt": "2026-11-16",
+          "settings": "Small · Armour 15% · 2 пассива; starting ilvl 83; target Enduring Composure.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "prepare"
+      },
+      {
+        "count": 71.52207085632988,
+        "evidence": {
+          "method": "CoE 3.30.0.1 exact single-notable calculation",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.41&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2FybW91ciJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTgxIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=188&method=0%2C1",
+          "verifiedAt": "2026-11-16",
+          "settings": "Small · Armour 15% · 2 пассива; starting ilvl 83; target Enduring Composure.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "alteration"
+      },
+      {
+        "count": 1,
+        "evidence": {
+          "method": "CoE 3.30.0.1 exact single-notable calculation",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.41&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2FybW91ciJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTgxIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=188&method=0%2C1",
+          "verifiedAt": "2026-11-16",
+          "settings": "Small · Armour 15% · 2 пассива; starting ilvl 83; target Enduring Composure.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "regal"
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "base:small-cluster-armour-2",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 2,
+      "smallPassiveStatId": "armour"
+    }
+  },
+  "patch": "3.30.0.1",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Covens"],
+    "checkedAt": "2026-11-16",
+    "sources": [
+      "https://beta.craftofexile.com/?game=poe1&group=4&item=2496.41&details=eyJpIjoiTWV0YWRhdGEvSXRlbXMvSmV3ZWxzL0pld2VsUGFzc2l2ZVRyZWVFeHBhbnNpb25TbWFsbCIsIm0iOltdLCJucyI6MCwicyI6W10sInEiOm51bGwsInF0IjpudWxsLCJsIjo4MywiciI6Im1hZ2ljIiwiaWYiOltdLCJpcCI6W10sImUiOltdLCJwIjp7fSwiZGkiOltdLCJpZyI6MCwibXMiOjAsImYiOlsiYSJdLCJwdCI6bnVsbCwiYXQiOiJhZmZsaWN0aW9uX2FybW91ciJ9&reqs=W3sidCI6ImFuZCIsIm0iOm51bGwsImUiOlt7ImkiOiI1OTgxIiwidCI6bnVsbCwiYiI6dHJ1ZSwicyI6bnVsbH1dfV0%3D&class=188&method=0%2C1",
+      "https://www.pathofexile.com/api/trade/data/stats"
+    ],
+    "notes": "CoE model and current Trade identities checked. Market snapshot is research evidence only; live prices come from collector.",
+    "profitBlockedReason": "Расход — модель CoE 3.30.0.1; продажи, торговое золото и время не подтверждены."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "small-cluster-armour-enduring-composure-2-passives",
+  "schemaVersion": 3,
+  "summary": "Small Cluster Jewel · 15% increased Armour · Enduring Composure.",
+  "tags": ["cluster-craft-330", "armour", "alteration"],
+  "targetSignature": "3.30.0.1:9780bd1b05623840bca6fa0fe402d499",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:enduring-composure"
+      }
+    ],
+    "suffixes": [],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Enduring Composure · 2 passives"
+}

@@ -1,0 +1,40 @@
+{
+  "scope": "One-off diagnostic setup history, not an application defect. Initial controls lacked discovery=true; the existing publisher rejected an empty recipe-ID array and rolled back those transactions. Temporary payloads were corrected to the existing discovery no-publication path; all seven controls then succeeded. Original128 profiles and all regular item tests are unaffected.",
+  "failedTemporaryAttemptsBeforeCorrection": [
+    {
+      "id": "0c8699ab-0f89-4dc7-9bcf-28d7acc95873",
+      "key": "diag-mods:3f40c7551d2f702dc2f6ffbcb3a6b77662a128d36395aa45c5dcd6d22c32508c",
+      "last_status": "failed",
+      "last_error": "RECIPE_RESULTS_PERSISTENCE_FAILED",
+      "last_started_at": "2026-11-18T11:28:29.522Z",
+      "last_finished_at": "2026-11-18T11:28:30.046Z"
+    },
+    {
+      "id": "4415cbed-fd4d-41fd-aab0-21ae61c95c17",
+      "key": "diag-mods:6d4e841d804219f4d3b53398db775d27f3c1b3daa9a40a1df352c0e4d0f880ce",
+      "last_status": "failed",
+      "last_error": "RECIPE_RESULTS_PERSISTENCE_FAILED",
+      "last_started_at": "2026-11-18T11:28:05.198Z",
+      "last_finished_at": "2026-11-18T11:28:20.225Z"
+    },
+    {
+      "id": "5919869b-fafe-4d25-8d97-653c8a61302f",
+      "key": "diag-mods:d2769418ee233dd8312d48e7c5c27c2d841cffd23a186cf7120b90f008b8d48e",
+      "last_status": "failed",
+      "last_error": "RECIPE_RESULTS_PERSISTENCE_FAILED",
+      "last_started_at": "2026-11-18T11:27:19.928Z",
+      "last_finished_at": "2026-11-18T11:28:05.196Z"
+    },
+    {
+      "id": "e8a2ec3d-7162-467e-a30b-706044475d6d",
+      "key": "diag-mods:f0b239972e7f3b6e96c4b20fb9afec39bd93a849f9a83e43d8662e8f617d45f7",
+      "last_status": "failed",
+      "last_error": "RECIPE_RESULTS_PERSISTENCE_FAILED",
+      "last_started_at": "2026-11-18T11:26:55.146Z",
+      "last_finished_at": "2026-11-18T11:26:56.384Z"
+    }
+  ],
+  "correctedAt": "2026-11-18T11:28:57.805Z",
+  "finalControlSuccesses": 7,
+  "temporarySchedulesDisabled": 7
+}

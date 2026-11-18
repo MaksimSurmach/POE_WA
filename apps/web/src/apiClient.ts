@@ -211,10 +211,13 @@ export function createApiClient(
         signal,
       });
     },
-    getRecipe(id: string): Promise<RecipeResponse> {
+    getRecipe(id: string, signal?: AbortSignal): Promise<RecipeResponse> {
       return request(
         `/api/recipes/${encodeURIComponent(id)}`,
         recipeResponseSchema,
+        'GET',
+        undefined,
+        { signal },
       );
     },
     getCollectorStatus() {

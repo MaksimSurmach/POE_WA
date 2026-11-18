@@ -1,0 +1,15 @@
+{
+  "scope": "Original immutable full collection outcome; correlated recoveries are recorded separately.",
+  "run": {
+    "id": "7d084fd5-5989-4349-a709-68293be2f87f",
+    "state": "failed",
+    "scope": "all",
+    "started_at": "2026-11-18T03:44:58.396Z",
+    "finished_at": "2026-11-18T06:26:14.037Z",
+    "summary": {
+      "failed": 1,
+      "pending": [],
+      "succeeded": 130
+    }
+  }
+}

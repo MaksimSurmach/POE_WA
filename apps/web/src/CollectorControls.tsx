@@ -272,7 +272,7 @@ function CollectionState({
         <strong>Collection paused</strong>
         {stale}
         {
-          ' — no new market collection starts, scheduled or manual; a capture already in progress finishes'
+          ' — no new market collection starts, scheduled or manual; an active capture is interrupted'
         }
         {connected
           ? null

@@ -80,6 +80,33 @@ async function auditRows() {
   ).rows;
 }
 describe('market admin settings and collector API', () => {
+  it('persists the UI pause and resume switches and restores automatic dispatch', async () => {
+    for (const [action, paused] of [
+      ['pause', true],
+      ['resume', false],
+    ] as const) {
+      const current = await store.read();
+      const response = await api.inject({
+        method: 'POST',
+        url: `/api/admin/market/${action}`,
+        headers: local,
+        payload: { version: current.version },
+      });
+      expect(response.statusCode).toBe(200);
+      const saved = (
+        await pool.query(
+          'select settings from market_admin_settings where id=1',
+        )
+      ).rows[0].settings;
+      expect(saved).toMatchObject({
+        collectionsPaused: paused,
+        automaticRefreshEnabled: !paused,
+        scheduledCollectionEnabled: !paused,
+      });
+      expect(response.json().data.configured).toEqual(saved);
+    }
+  });
+
   it('caps a long environment TTL at 30-minute initial reuse so unrelated settings and pause/resume remain usable', async () => {
     await pool.query('truncate market_admin_settings');
     const seeded = defaultAdminSettings({

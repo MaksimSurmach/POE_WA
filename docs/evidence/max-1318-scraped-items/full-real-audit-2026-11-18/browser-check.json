@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-18T08:30:33.602Z",
+  "runtime": "Normal shipped API and collector; actual PostgreSQL18.6 copy plus authenticated real Trade",
+  "recipeId": "lichs-circlet-fractured-fire-loathing",
+  "askingPriceChaos": 757.6,
+  "matched": 1,
+  "comparableSellers": 1,
+  "coverage": "complete",
+  "craftCost": null,
+  "margin": null,
+  "desktop": {
+    "documentWidth": 1280,
+    "width": 1280
+  },
+  "mobile": {
+    "documentWidth": 390,
+    "panelScrollWidth": 348,
+    "panelWidth": 348,
+    "width": 390
+  },
+  "settings": "All helmets; four original required modifier floors; revision2; latest real capture 1MATCH,0unknown; updated-after-linking historical label verified",
+  "scope": "Visible UI checks. Does not prove a confirmed sale, profit or crafting result."
+}

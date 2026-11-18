@@ -1,0 +1,781 @@
+{
+  "source": "Actual Covens item fields observed 18 November 2026; neutral test identity and seller envelope; original recorded price/currency unchanged. No provider listing or account identifiers.",
+  "fixtures": [
+    {
+      "item": {
+        "ilvl": 85,
+        "league": "Covens",
+        "rarity": "Rare",
+        "sockets": [
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          }
+        ],
+        "baseType": "Spine Bow",
+        "extended": {
+          "hashes": {
+            "crafted": [
+              ["crafted.stat_1535626285", [0]],
+              ["crafted.stat_2375316951", [0]]
+            ],
+            "explicit": [
+              ["explicit.stat_1509134228", [1]],
+              ["explicit.stat_1940865751", [0]],
+              ["explicit.stat_210067635", [2]],
+              ["explicit.stat_821021828", [3]],
+              ["explicit.stat_691932474", [1]]
+            ],
+            "fractured": [["fractured.stat_1509134228", [0]]]
+          }
+        },
+        "typeLine": "Spine Bow",
+        "verified": true,
+        "fractured": true,
+        "frameType": 2,
+        "properties": [
+          {
+            "name": "Bow",
+            "values": []
+          },
+          {
+            "name": "Quality",
+            "type": 6,
+            "values": [["+20%", 1]]
+          },
+          {
+            "name": "Physical Damage",
+            "type": 9,
+            "values": [["269-682", 1]]
+          },
+          {
+            "name": "Critical Strike Chance",
+            "type": 12,
+            "values": [["7.99%", 1]]
+          },
+          {
+            "name": "Attacks per Second",
+            "type": 13,
+            "values": [["1.65", 1]]
+          }
+        ],
+        "explicitMods": [
+          {
+            "hash": "stat.fractured.stat_1509134228",
+            "mods": [
+              {
+                "tier": "P2"
+              }
+            ],
+            "flags": {
+              "fractured": true
+            },
+            "domain": "fractured",
+            "description": "160% increased Physical Damage"
+          },
+          {
+            "hash": "stat.explicit.stat_1509134228",
+            "mods": [
+              {
+                "tier": "P4"
+              }
+            ],
+            "domain": "explicit",
+            "description": "47% increased Physical Damage"
+          },
+          {
+            "hash": "stat.explicit.stat_1940865751",
+            "mods": [
+              {
+                "tier": "P0"
+              }
+            ],
+            "domain": "explicit",
+            "description": "Adds 35 to 70 Physical Damage"
+          },
+          {
+            "hash": "stat.explicit.stat_210067635",
+            "mods": [
+              {
+                "tier": "S1"
+              }
+            ],
+            "domain": "explicit",
+            "description": "18% increased Attack Speed"
+          },
+          {
+            "hash": "stat.explicit.stat_821021828",
+            "mods": [
+              {
+                "tier": "S7"
+              }
+            ],
+            "domain": "explicit",
+            "description": "Grants 4 Life per Enemy Hit"
+          },
+          {
+            "hash": "stat.explicit.stat_691932474",
+            "mods": [
+              {
+                "tier": "P4"
+              }
+            ],
+            "domain": "explicit",
+            "description": "+120 to Accuracy Rating"
+          },
+          {
+            "hash": "stat.crafted.stat_1535626285",
+            "mods": [
+              {
+                "tier": "S0"
+              }
+            ],
+            "flags": {
+              "crafted": true
+            },
+            "domain": "crafted",
+            "description": "+21 to Strength and Intelligence"
+          },
+          {
+            "hash": "stat.crafted.stat_2375316951",
+            "mods": [
+              {
+                "tier": "S0"
+              }
+            ],
+            "flags": {
+              "crafted": true
+            },
+            "domain": "crafted",
+            "description": "23% increased Critical Strike Chance"
+          }
+        ]
+      },
+      "handbookTarget": {
+        "name": "3.30.0:e7a893b3971e52bc9eabf2c36d883b11",
+        "game": "poe1",
+        "realm": "pc",
+        "league": "Covens",
+        "patch": "3.30.0",
+        "slot": "crafted-item",
+        "baseTypes": ["Spine Bow"],
+        "builds": [],
+        "requiredMods": [],
+        "corrupted": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_1509134228",
+                  "min": 100
+                },
+                {
+                  "id": "explicit.stat_1940865751",
+                  "min": 48
+                },
+                {
+                  "id": "explicit.stat_210067635",
+                  "min": 14
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        },
+        "sources": []
+      },
+      "originalPrice": {
+        "amount": 40,
+        "currency": "divine"
+      },
+      "expectedCanonicalModifier": {
+        "id": "explicit.stat_1509134228",
+        "value": 207
+      }
+    },
+    {
+      "item": {
+        "ilvl": 72,
+        "league": "Covens",
+        "rarity": "Rare",
+        "sockets": [
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 1
+          }
+        ],
+        "baseType": "Spine Bow",
+        "extended": {
+          "hashes": {
+            "crafted": [["crafted.stat_2375316951", [0]]],
+            "explicit": [
+              ["explicit.stat_2843100721", [1]],
+              ["explicit.stat_3988349707", [3]],
+              ["explicit.stat_1940865751", [0]],
+              ["explicit.stat_210067635", [2]]
+            ],
+            "fractured": [
+              ["fractured.stat_1509134228", [0]],
+              ["fractured.stat_3885634897", [0]]
+            ]
+          }
+        },
+        "typeLine": "Spine Bow",
+        "verified": true,
+        "fractured": true,
+        "frameType": 2,
+        "properties": [
+          {
+            "name": "Bow",
+            "values": []
+          },
+          {
+            "name": "Quality",
+            "type": 6,
+            "values": [["+3%", 1]]
+          },
+          {
+            "name": "Physical Damage",
+            "type": 9,
+            "values": [["168-412", 1]]
+          },
+          {
+            "name": "Critical Strike Chance",
+            "type": 12,
+            "values": [["7.73%", 1]]
+          },
+          {
+            "name": "Attacks per Second",
+            "type": 13,
+            "values": [["1.65", 1]]
+          }
+        ],
+        "explicitMods": [
+          {
+            "hash": "stat.fractured.stat_1509134228",
+            "mods": [
+              {
+                "tier": "P1"
+              }
+            ],
+            "flags": {
+              "fractured": true
+            },
+            "domain": "fractured",
+            "description": "121% increased Physical Damage"
+          },
+          {
+            "hash": "stat.fractured.stat_3885634897",
+            "mods": [
+              {
+                "tier": "P1"
+              }
+            ],
+            "flags": {
+              "fractured": true
+            },
+            "domain": "fractured",
+            "description": "25% chance to Poison on Hit"
+          },
+          {
+            "hash": "stat.explicit.stat_2843100721",
+            "mods": [
+              {
+                "tier": "P1"
+              }
+            ],
+            "domain": "explicit",
+            "description": "+1 to Level of Socketed Gems"
+          },
+          {
+            "hash": "stat.explicit.stat_3988349707",
+            "mods": [
+              {
+                "tier": "S5"
+              }
+            ],
+            "domain": "explicit",
+            "description": "+8% to Damage over Time Multiplier"
+          },
+          {
+            "hash": "stat.explicit.stat_1940865751",
+            "mods": [
+              {
+                "tier": "P0"
+              }
+            ],
+            "domain": "explicit",
+            "description": "Adds 36 to 66 Physical Damage"
+          },
+          {
+            "hash": "stat.explicit.stat_210067635",
+            "mods": [
+              {
+                "tier": "S1"
+              }
+            ],
+            "domain": "explicit",
+            "description": "18% increased Attack Speed"
+          },
+          {
+            "hash": "stat.crafted.stat_2375316951",
+            "mods": [
+              {
+                "tier": "R1"
+              }
+            ],
+            "flags": {
+              "crafted": true
+            },
+            "domain": "crafted",
+            "description": "19% increased Critical Strike Chance"
+          }
+        ]
+      },
+      "handbookTarget": {
+        "name": "3.30.0:e7a893b3971e52bc9eabf2c36d883b11",
+        "game": "poe1",
+        "realm": "pc",
+        "league": "Covens",
+        "patch": "3.30.0",
+        "slot": "crafted-item",
+        "baseTypes": ["Spine Bow"],
+        "builds": [],
+        "requiredMods": [],
+        "corrupted": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_1509134228",
+                  "min": 100
+                },
+                {
+                  "id": "explicit.stat_1940865751",
+                  "min": 48
+                },
+                {
+                  "id": "explicit.stat_210067635",
+                  "min": 14
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        },
+        "sources": []
+      },
+      "originalPrice": {
+        "amount": 10,
+        "currency": "chaos"
+      },
+      "expectedCanonicalModifier": {
+        "id": "explicit.stat_1509134228",
+        "value": 121,
+        "tier": 1
+      }
+    },
+    {
+      "item": {
+        "ilvl": 86,
+        "league": "Covens",
+        "rarity": "Rare",
+        "sockets": [
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 1
+          }
+        ],
+        "baseType": "Spine Bow",
+        "extended": {
+          "hashes": {
+            "crafted": [["crafted.stat_2375316951", [0]]],
+            "explicit": [
+              ["explicit.stat_1509134228", [0]],
+              ["explicit.stat_210067635", [1]],
+              ["explicit.stat_691932474", [3]],
+              ["explicit.stat_387439868", [2]]
+            ],
+            "fractured": [["fractured.stat_1940865751", [0]]]
+          }
+        },
+        "typeLine": "Spine Bow",
+        "verified": true,
+        "fractured": true,
+        "frameType": 2,
+        "properties": [
+          {
+            "name": "Bow",
+            "values": []
+          },
+          {
+            "name": "Quality",
+            "type": 6,
+            "values": [["+21%", 1]]
+          },
+          {
+            "name": "Physical Damage",
+            "type": 9,
+            "values": [["262-653", 1]]
+          },
+          {
+            "name": "Critical Strike Chance",
+            "type": 12,
+            "values": [["8.19%", 1]]
+          },
+          {
+            "name": "Attacks per Second",
+            "type": 13,
+            "values": [["1.61", 1]]
+          }
+        ],
+        "explicitMods": [
+          {
+            "hash": "stat.fractured.stat_1940865751",
+            "mods": [
+              {
+                "tier": "P1"
+              }
+            ],
+            "flags": {
+              "fractured": true
+            },
+            "domain": "fractured",
+            "description": "Adds 41 to 82 Physical Damage"
+          },
+          {
+            "hash": "stat.explicit.stat_1509134228",
+            "mods": [
+              {
+                "tier": "P1"
+              }
+            ],
+            "domain": "explicit",
+            "description": "174% increased Physical Damage"
+          },
+          {
+            "hash": "stat.explicit.stat_210067635",
+            "mods": [
+              {
+                "tier": "S2"
+              }
+            ],
+            "domain": "explicit",
+            "description": "15% increased Attack Speed"
+          },
+          {
+            "hash": "stat.explicit.stat_691932474",
+            "mods": [
+              {
+                "tier": "S5"
+              }
+            ],
+            "domain": "explicit",
+            "description": "+202 to Accuracy Rating"
+          },
+          {
+            "hash": "stat.explicit.stat_387439868",
+            "mods": [
+              {
+                "tier": "P4"
+              }
+            ],
+            "domain": "explicit",
+            "description": "58% increased Elemental Damage with Attack Skills"
+          },
+          {
+            "hash": "stat.crafted.stat_2375316951",
+            "mods": [
+              {
+                "tier": "R3"
+              }
+            ],
+            "flags": {
+              "crafted": true
+            },
+            "domain": "crafted",
+            "description": "26% increased Critical Strike Chance"
+          }
+        ]
+      },
+      "handbookTarget": {
+        "name": "3.30.0:e7a893b3971e52bc9eabf2c36d883b11",
+        "game": "poe1",
+        "realm": "pc",
+        "league": "Covens",
+        "patch": "3.30.0",
+        "slot": "crafted-item",
+        "baseTypes": ["Spine Bow"],
+        "builds": [],
+        "requiredMods": [],
+        "corrupted": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_1509134228",
+                  "min": 100
+                },
+                {
+                  "id": "explicit.stat_1940865751",
+                  "min": 48
+                },
+                {
+                  "id": "explicit.stat_210067635",
+                  "min": 14
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        },
+        "sources": []
+      },
+      "originalPrice": {
+        "amount": 15,
+        "currency": "divine"
+      },
+      "expectedCanonicalModifier": {
+        "id": "explicit.stat_1940865751",
+        "value": 61.5,
+        "tier": 1
+      }
+    },
+    {
+      "item": {
+        "ilvl": 82,
+        "league": "Covens",
+        "rarity": "Rare",
+        "sockets": [
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          },
+          {
+            "group": 0
+          }
+        ],
+        "baseType": "Thicket Bow",
+        "extended": {
+          "hashes": {
+            "crafted": [["crafted.stat_3382807662", [0]]],
+            "explicit": [
+              ["explicit.stat_2843100721", [2]],
+              ["explicit.stat_2027269580", [0]],
+              ["explicit.stat_3759663284", [1]]
+            ],
+            "fractured": [["fractured.stat_210067635", [0]]]
+          }
+        },
+        "typeLine": "Thicket Bow",
+        "verified": true,
+        "fractured": true,
+        "frameType": 2,
+        "properties": [
+          {
+            "name": "Bow",
+            "values": []
+          },
+          {
+            "name": "Quality",
+            "type": 6,
+            "values": [["+20%", 1]]
+          },
+          {
+            "name": "Physical Damage",
+            "type": 9,
+            "values": [["38-115", 1]]
+          },
+          {
+            "name": "Critical Strike Chance",
+            "type": 12,
+            "values": [["5.00%", 0]]
+          },
+          {
+            "name": "Attacks per Second",
+            "type": 13,
+            "values": [["1.79", 1]]
+          }
+        ],
+        "explicitMods": [
+          {
+            "hash": "stat.fractured.stat_210067635",
+            "mods": [
+              {
+                "tier": "S1"
+              }
+            ],
+            "flags": {
+              "fractured": true
+            },
+            "domain": "fractured",
+            "description": "19% increased Attack Speed"
+          },
+          {
+            "hash": "stat.explicit.stat_2843100721",
+            "mods": [
+              {
+                "tier": "P1"
+              }
+            ],
+            "domain": "explicit",
+            "description": "+1 to Level of Socketed Gems"
+          },
+          {
+            "hash": "stat.explicit.stat_2027269580",
+            "mods": [
+              {
+                "tier": "P1"
+              }
+            ],
+            "domain": "explicit",
+            "description": "+2 to Level of Socketed Bow Gems"
+          },
+          {
+            "hash": "stat.explicit.stat_3759663284",
+            "mods": [
+              {
+                "tier": "S1"
+              }
+            ],
+            "domain": "explicit",
+            "description": "42% increased Projectile Speed"
+          },
+          {
+            "hash": "stat.crafted.stat_3382807662",
+            "mods": [
+              {
+                "tier": "S0"
+              }
+            ],
+            "flags": {
+              "crafted": true
+            },
+            "domain": "crafted",
+            "description": "+17% to Fire Damage over Time Multiplier"
+          }
+        ]
+      },
+      "handbookTarget": {
+        "name": "3.30.0:134eb25af23fe068823f6af9290696f7",
+        "game": "poe1",
+        "realm": "pc",
+        "league": "Covens",
+        "patch": "3.30.0",
+        "slot": "crafted-item",
+        "baseTypes": ["Thicket Bow"],
+        "builds": [],
+        "requiredMods": [],
+        "corrupted": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_2027269580",
+                  "min": 2
+                },
+                {
+                  "id": "explicit.stat_210067635",
+                  "min": 14
+                }
+              ],
+              "type": "and"
+            },
+            {
+              "filters": [
+                {
+                  "id": "socket.links",
+                  "max": 6,
+                  "min": 6
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        },
+        "sources": []
+      },
+      "originalPrice": {
+        "amount": 19,
+        "currency": "divine"
+      },
+      "expectedCanonicalModifier": {
+        "id": "explicit.stat_210067635",
+        "value": 19,
+        "tier": 1
+      }
+    }
+  ]
+}

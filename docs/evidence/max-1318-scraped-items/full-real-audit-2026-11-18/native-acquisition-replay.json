@@ -1,0 +1,108 @@
+{
+  "checkedAt": "2026-11-18T07:02:37.049Z",
+  "scope": "Original completed full-run raw records compared with original and corrected acquisition profiles. Item matching only, with actual recorded prices/currencies and no FX or quote calculation. No provider item/account identifiers retained.",
+  "reports": [
+    {
+      "recipeId": "week-one-apothecarys-gloves-greed",
+      "captureId": "64b14162-7cb0-4e56-9f87-1c1ad46747ff",
+      "capturedAt": "2026-11-18T03:46:12.742Z",
+      "rawRows": 37,
+      "originalReportedTotal": 37,
+      "counts": {
+        "oldMatch": 37,
+        "newMatch": 35,
+        "newReject": 2,
+        "newPartial": 0
+      },
+      "counterexamples": [
+        {
+          "after": "REJECT",
+          "reasons": ["and: implicit.stat_3988349707: thresholds not met"]
+        },
+        {
+          "after": "REJECT",
+          "reasons": ["and: implicit.stat_3988349707: thresholds not met"]
+        }
+      ],
+      "correctedQueryKey": "d6aa91a8debd911f88437b1a348ed289beae3636658b261d7b9a94f25fea7495"
+    },
+    {
+      "recipeId": "week-one-fingerless-silk-gloves-woe",
+      "captureId": "07d01420-726f-45e1-afab-f206bbadc839",
+      "capturedAt": "2026-11-18T03:58:09.258Z",
+      "rawRows": 31,
+      "originalReportedTotal": 31,
+      "counts": {
+        "oldMatch": 31,
+        "newMatch": 30,
+        "newReject": 1,
+        "newPartial": 0
+      },
+      "counterexamples": [
+        {
+          "after": "REJECT",
+          "reasons": ["and: implicit.stat_2974417149: thresholds not met"]
+        }
+      ],
+      "correctedQueryKey": "f2885742513fd80e2f5709d4459989051ab299d82b33e8a607f9a21b98102b44"
+    },
+    {
+      "recipeId": "week-one-spiked-gloves-zeal",
+      "captureId": "be675cb6-d09e-4cce-a704-826d281c133a",
+      "capturedAt": "2026-11-18T06:00:37.030Z",
+      "rawRows": 38,
+      "originalReportedTotal": 38,
+      "counts": {
+        "oldMatch": 38,
+        "newMatch": 35,
+        "newReject": 3,
+        "newPartial": 0
+      },
+      "counterexamples": [
+        {
+          "after": "REJECT",
+          "reasons": ["and: implicit.stat_1002362373: thresholds not met"]
+        },
+        {
+          "after": "REJECT",
+          "reasons": ["and: implicit.stat_1002362373: thresholds not met"]
+        },
+        {
+          "after": "REJECT",
+          "reasons": ["and: implicit.stat_1002362373: thresholds not met"]
+        }
+      ],
+      "correctedQueryKey": "d9ce472f56315b1730352fe120dd9f882a714ce3f28722aeb3dae9faea29edf4"
+    },
+    {
+      "recipeId": "week-one-gripped-gloves-zeal",
+      "captureId": "fec9fafe-d31b-4161-aa32-bbb9fa0ff27b",
+      "capturedAt": "2026-11-18T05:01:41.721Z",
+      "rawRows": 40,
+      "originalReportedTotal": 40,
+      "counts": {
+        "oldMatch": 40,
+        "newMatch": 40,
+        "newReject": 0,
+        "newPartial": 0
+      },
+      "counterexamples": [],
+      "correctedQueryKey": "40e8ee6b24e2320c03efdcb6cf9551fc4edeac0d80709aab50ec9ab9024ddfb1"
+    },
+    {
+      "recipeId": "week-one-bone-helmet-greed",
+      "captureId": "59d54ff5-7788-49a3-b701-6bba9f43ad2f",
+      "capturedAt": "2026-11-18T04:44:48.984Z",
+      "rawRows": 24,
+      "originalReportedTotal": 24,
+      "counts": {
+        "oldMatch": 24,
+        "newMatch": 24,
+        "newReject": 0,
+        "newPartial": 0
+      },
+      "counterexamples": [],
+      "correctedQueryKey": "4cebf29bfc062618b43415db934e6867724a1696928eb3d96c16f8f6b2020895"
+    }
+  ]
+}

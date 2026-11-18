@@ -1,0 +1,1285 @@
+{
+  "scope": "Unchanged original target retained; one selected filter altered for isolated real collection. Sampling role starting-base bounds dense controls. Every temporary schedule uses existing discovery no-publication mode and is disabled after completion. Original128 queries stay unchanged.",
+  "searches": [
+    {
+      "sourceItemId": "2f4b4162-3959-42dc-95fd-0aa7dd7c7698",
+      "recipeIds": ["week-one-gripped-gloves-zeal"],
+      "originalQueryKey": "219582eee278a157bd08702e70cb8cc48c26ac9e7301b6db07f4304453b39857",
+      "originalHandbookTarget": {
+        "baseTypes": ["Gripped Gloves"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "league": "Covens",
+        "name": "3.30.0:1e917c6251b6a875def9436997a544f0",
+        "patch": "3.30.0",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "crafted-item",
+        "sources": [],
+        "tradeSearch": {
+          "currency": "chaos",
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_3299347043",
+                  "min": 70
+                },
+                {
+                  "id": "explicit.stat_3372524247",
+                  "min": 30
+                },
+                {
+                  "id": "explicit.stat_681332047",
+                  "min": 17
+                },
+                {
+                  "id": "implicit.stat_2162876159",
+                  "min": 22
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "control": "implicit.stat_2162876159",
+      "key": "diag-mods:c1f5f07f4834eac5768cf042fa2d8de05c421e56fda16cc43852eac1b976b751",
+      "target": {
+        "baseTypes": ["Gripped Gloves"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "league": "Covens",
+        "name": "3.30.0:1e917c6251b6a875def9436997a544f0",
+        "patch": "3.30.0",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "tradeSearch": {
+          "currency": "chaos",
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_3299347043",
+                  "min": 70
+                },
+                {
+                  "id": "explicit.stat_3372524247",
+                  "min": 30
+                },
+                {
+                  "id": "explicit.stat_681332047",
+                  "min": 17
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "wire": {
+        "query": {
+          "status": {
+            "option": "securable"
+          },
+          "type": "Gripped Gloves",
+          "stats": [
+            {
+              "type": "and",
+              "filters": [
+                {
+                  "id": "explicit.stat_3299347043",
+                  "value": {
+                    "min": 70
+                  }
+                },
+                {
+                  "id": "explicit.stat_3372524247",
+                  "value": {
+                    "min": 30
+                  }
+                },
+                {
+                  "id": "explicit.stat_681332047",
+                  "value": {
+                    "min": 17
+                  }
+                }
+              ]
+            }
+          ],
+          "filters": {
+            "type_filters": {
+              "filters": {
+                "rarity": {
+                  "option": "rare"
+                }
+              }
+            },
+            "misc_filters": {
+              "filters": {
+                "corrupted": {
+                  "option": "false"
+                }
+              }
+            },
+            "trade_filters": {
+              "filters": {
+                "price": {}
+              }
+            }
+          }
+        },
+        "sort": {
+          "price": "asc"
+        }
+      },
+      "scheduleId": "6ccfe223-80a0-4aa8-a8ef-0176d81d45b7"
+    },
+    {
+      "sourceItemId": "620d0981-6a77-4268-bda7-f976d7151924",
+      "recipeIds": ["week-one-spiked-gloves-zeal"],
+      "originalQueryKey": "834ead1116d9c6c55b33025e1fb20dc61d24d108a0d3758d1eccf3bcbd8da195",
+      "originalHandbookTarget": {
+        "baseTypes": ["Spiked Gloves"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "league": "Covens",
+        "name": "3.30.0:ae39f7446284000605bacd7607218835",
+        "patch": "3.30.0",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "crafted-item",
+        "sources": [],
+        "tradeSearch": {
+          "currency": "chaos",
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_3299347043",
+                  "min": 70
+                },
+                {
+                  "id": "explicit.stat_3372524247",
+                  "min": 30
+                },
+                {
+                  "id": "explicit.stat_681332047",
+                  "min": 17
+                },
+                {
+                  "id": "implicit.stat_1002362373",
+                  "min": 24
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "control": "implicit.stat_1002362373",
+      "key": "diag-mods:7508906bd9d5f36690eb0aae152276f781013a307f06627c043d28a3440f2a1a",
+      "target": {
+        "baseTypes": ["Spiked Gloves"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "league": "Covens",
+        "name": "3.30.0:ae39f7446284000605bacd7607218835",
+        "patch": "3.30.0",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "tradeSearch": {
+          "currency": "chaos",
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_3299347043",
+                  "min": 70
+                },
+                {
+                  "id": "explicit.stat_3372524247",
+                  "min": 30
+                },
+                {
+                  "id": "explicit.stat_681332047",
+                  "min": 17
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "wire": {
+        "query": {
+          "status": {
+            "option": "securable"
+          },
+          "type": "Spiked Gloves",
+          "stats": [
+            {
+              "type": "and",
+              "filters": [
+                {
+                  "id": "explicit.stat_3299347043",
+                  "value": {
+                    "min": 70
+                  }
+                },
+                {
+                  "id": "explicit.stat_3372524247",
+                  "value": {
+                    "min": 30
+                  }
+                },
+                {
+                  "id": "explicit.stat_681332047",
+                  "value": {
+                    "min": 17
+                  }
+                }
+              ]
+            }
+          ],
+          "filters": {
+            "type_filters": {
+              "filters": {
+                "rarity": {
+                  "option": "rare"
+                }
+              }
+            },
+            "misc_filters": {
+              "filters": {
+                "corrupted": {
+                  "option": "false"
+                }
+              }
+            },
+            "trade_filters": {
+              "filters": {
+                "price": {}
+              }
+            }
+          }
+        },
+        "sort": {
+          "price": "asc"
+        }
+      },
+      "scheduleId": "5e8e0a62-f16e-4867-9210-74035dfa9237"
+    },
+    {
+      "sourceItemId": "8d791780-f257-4075-90e3-4a9513b874cc",
+      "recipeIds": ["minion-bone-helmet-greed"],
+      "originalQueryKey": "0b4313e2cd943b76488cdb6134a15d034122e50b8a47b2e91eab0568c520a131",
+      "originalHandbookTarget": {
+        "baseTypes": ["Bone Helmet"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "league": "Covens",
+        "name": "3.29.3.3:dc9daa7d4031b41b996276114275f792",
+        "patch": "3.29.3.3",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "crafted-item",
+        "sources": [],
+        "tradeSearch": {
+          "currency": "chaos",
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_2162097452",
+                  "min": 2
+                },
+                {
+                  "id": "explicit.stat_3299347043",
+                  "min": 91
+                },
+                {
+                  "id": "explicit.stat_3372524247",
+                  "min": 29
+                },
+                {
+                  "id": "implicit.stat_1589917703",
+                  "min": 15
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "control": "explicit.stat_2162097452",
+      "key": "diag-mods:ee70e029f8cf5b5009c0c164f028e998dbc5c899dd7f4c82c11ed86371c289d4",
+      "target": {
+        "baseTypes": ["Bone Helmet"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "league": "Covens",
+        "name": "3.29.3.3:dc9daa7d4031b41b996276114275f792",
+        "patch": "3.29.3.3",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "tradeSearch": {
+          "currency": "chaos",
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_3299347043",
+                  "min": 91
+                },
+                {
+                  "id": "explicit.stat_3372524247",
+                  "min": 29
+                },
+                {
+                  "id": "implicit.stat_1589917703",
+                  "min": 15
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "wire": {
+        "query": {
+          "status": {
+            "option": "securable"
+          },
+          "type": "Bone Helmet",
+          "stats": [
+            {
+              "type": "and",
+              "filters": [
+                {
+                  "id": "explicit.stat_3299347043",
+                  "value": {
+                    "min": 91
+                  }
+                },
+                {
+                  "id": "explicit.stat_3372524247",
+                  "value": {
+                    "min": 29
+                  }
+                },
+                {
+                  "id": "implicit.stat_1589917703",
+                  "value": {
+                    "min": 15
+                  }
+                }
+              ]
+            }
+          ],
+          "filters": {
+            "type_filters": {
+              "filters": {
+                "rarity": {
+                  "option": "rare"
+                }
+              }
+            },
+            "misc_filters": {
+              "filters": {
+                "corrupted": {
+                  "option": "false"
+                }
+              }
+            },
+            "trade_filters": {
+              "filters": {
+                "price": {}
+              }
+            }
+          }
+        },
+        "sort": {
+          "price": "asc"
+        }
+      },
+      "scheduleId": "ff4b0960-b295-4adc-89ed-6321f92950af"
+    },
+    {
+      "sourceItemId": "e4468306-1c93-44df-b93c-9b817be83e33",
+      "recipeIds": ["suppression-gloves-fear", "suppression-gloves-zeal"],
+      "originalQueryKey": "200644c8df62a01efd5980515fb4fa942372bcd6f96fa960434bcbb83cf000ac",
+      "originalHandbookTarget": {
+        "baseTypes": ["Dragonscale Gauntlets"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "influences": [],
+        "league": "Covens",
+        "maxItemLevel": 85,
+        "minItemLevel": 85,
+        "name": "base:base:dragonscale-gauntlets",
+        "patch": "3.29.3.3",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "synthesised": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "fractured": true,
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "fractured.stat_3680664274",
+                  "min": 14
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "control": "fractured.stat_3680664274",
+      "key": "diag-mods:3f40c7551d2f702dc2f6ffbcb3a6b77662a128d36395aa45c5dcd6d22c32508c",
+      "target": {
+        "baseTypes": ["Dragonscale Gauntlets"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "influences": [],
+        "league": "Covens",
+        "maxItemLevel": 85,
+        "minItemLevel": 85,
+        "name": "base:base:dragonscale-gauntlets",
+        "patch": "3.29.3.3",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "synthesised": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "fractured": true,
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "explicit.stat_3680664274",
+                  "min": 14
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "wire": {
+        "query": {
+          "status": {
+            "option": "securable"
+          },
+          "type": "Dragonscale Gauntlets",
+          "stats": [
+            {
+              "type": "and",
+              "filters": [
+                {
+                  "id": "explicit.stat_3680664274",
+                  "value": {
+                    "min": 14
+                  }
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_shaper_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_elder_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_crusader_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_redeemer_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_hunter_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_warlord_influence"
+                }
+              ]
+            }
+          ],
+          "filters": {
+            "type_filters": {
+              "filters": {
+                "rarity": {
+                  "option": "rare"
+                }
+              }
+            },
+            "misc_filters": {
+              "filters": {
+                "ilvl": {
+                  "min": 85,
+                  "max": 85
+                },
+                "corrupted": {
+                  "option": "false"
+                },
+                "synthesised_item": {
+                  "option": "false"
+                },
+                "fractured_item": {
+                  "option": "true"
+                }
+              }
+            },
+            "trade_filters": {
+              "filters": {
+                "price": {}
+              }
+            }
+          }
+        },
+        "sort": {
+          "price": "asc"
+        }
+      },
+      "scheduleId": "0c8699ab-0f89-4dc7-9bcf-28d7acc95873"
+    },
+    {
+      "sourceItemId": "063905f2-80d0-435a-9b25-c6bd3b5c5a34",
+      "recipeIds": [
+        "shield-attack-large-cluster-fuel-the-fight-heavy-hitter-veteran-defender-jagged"
+      ],
+      "originalQueryKey": "7225f142a992736a92bcd11fc0bfdb21eed910f600fd3303a326aab7cd62b6af",
+      "originalHandbookTarget": {
+        "baseTypes": ["Large Cluster Jewel"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "influences": [],
+        "league": "Covens",
+        "maxItemLevel": 68,
+        "minItemLevel": 68,
+        "name": "base:base:large-cluster-shield-attack",
+        "patch": "3.29.3.3",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "synthesised": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "fractured": false,
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "enchant.stat_3086156145",
+                  "max": 8,
+                  "min": 8
+                },
+                {
+                  "id": "enchant.stat_3948993189|8"
+                },
+                {
+                  "id": "enchant.stat_4079888060",
+                  "max": 2,
+                  "min": 2
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "normal",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "control": "rarity",
+      "key": "diag-mods:6d4e841d804219f4d3b53398db775d27f3c1b3daa9a40a1df352c0e4d0f880ce",
+      "target": {
+        "baseTypes": ["Large Cluster Jewel"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "influences": [],
+        "league": "Covens",
+        "maxItemLevel": 68,
+        "minItemLevel": 68,
+        "name": "base:base:large-cluster-shield-attack",
+        "patch": "3.29.3.3",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "synthesised": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "fractured": false,
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "enchant.stat_3086156145",
+                  "max": 8,
+                  "min": 8
+                },
+                {
+                  "id": "enchant.stat_3948993189|8"
+                },
+                {
+                  "id": "enchant.stat_4079888060",
+                  "max": 2,
+                  "min": 2
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "wire": {
+        "query": {
+          "status": {
+            "option": "securable"
+          },
+          "type": "Large Cluster Jewel",
+          "stats": [
+            {
+              "type": "and",
+              "filters": [
+                {
+                  "id": "enchant.stat_3086156145",
+                  "value": {
+                    "min": 8,
+                    "max": 8
+                  }
+                },
+                {
+                  "id": "enchant.stat_3948993189|8"
+                },
+                {
+                  "id": "enchant.stat_4079888060",
+                  "value": {
+                    "min": 2,
+                    "max": 2
+                  }
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_shaper_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_elder_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_crusader_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_redeemer_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_hunter_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_warlord_influence"
+                }
+              ]
+            }
+          ],
+          "filters": {
+            "type_filters": {
+              "filters": {
+                "rarity": {
+                  "option": "rare"
+                }
+              }
+            },
+            "misc_filters": {
+              "filters": {
+                "ilvl": {
+                  "min": 68,
+                  "max": 68
+                },
+                "corrupted": {
+                  "option": "false"
+                },
+                "synthesised_item": {
+                  "option": "false"
+                },
+                "fractured_item": {
+                  "option": "false"
+                }
+              }
+            },
+            "trade_filters": {
+              "filters": {
+                "price": {}
+              }
+            }
+          }
+        },
+        "sort": {
+          "price": "asc"
+        }
+      },
+      "scheduleId": "4415cbed-fd4d-41fd-aab0-21ae61c95c17"
+    },
+    {
+      "sourceItemId": "a0cfd97a-f201-498b-b6c9-07b9d2ce42a6",
+      "recipeIds": [
+        "two-handed-large-cluster-brutal-infamy-feed-the-fury-smite-the-weak",
+        "two-handed-large-cluster-brutal-infamy-fuel-the-fight-smite-the-weak"
+      ],
+      "originalQueryKey": "ce7a190c789f00e8dc329a0cd1c57fea1446a47fa4d864de3b5540341aedf17e",
+      "originalHandbookTarget": {
+        "baseTypes": ["Large Cluster Jewel"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "influences": [],
+        "league": "Covens",
+        "maxItemLevel": 68,
+        "minItemLevel": 68,
+        "name": "base:base:large-cluster-two-handed",
+        "patch": "3.29.3.3",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "synthesised": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "fractured": false,
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "enchant.stat_3086156145",
+                  "max": 8,
+                  "min": 8
+                },
+                {
+                  "id": "enchant.stat_3948993189|6"
+                },
+                {
+                  "id": "enchant.stat_4079888060",
+                  "max": 2,
+                  "min": 2
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "control": "item-level-max",
+      "key": "diag-mods:d2769418ee233dd8312d48e7c5c27c2d841cffd23a186cf7120b90f008b8d48e",
+      "target": {
+        "baseTypes": ["Large Cluster Jewel"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "influences": [],
+        "league": "Covens",
+        "minItemLevel": 68,
+        "name": "base:base:large-cluster-two-handed",
+        "patch": "3.29.3.3",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "synthesised": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "fractured": false,
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "enchant.stat_3086156145",
+                  "max": 8,
+                  "min": 8
+                },
+                {
+                  "id": "enchant.stat_3948993189|6"
+                },
+                {
+                  "id": "enchant.stat_4079888060",
+                  "max": 2,
+                  "min": 2
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "wire": {
+        "query": {
+          "status": {
+            "option": "securable"
+          },
+          "type": "Large Cluster Jewel",
+          "stats": [
+            {
+              "type": "and",
+              "filters": [
+                {
+                  "id": "enchant.stat_3086156145",
+                  "value": {
+                    "min": 8,
+                    "max": 8
+                  }
+                },
+                {
+                  "id": "enchant.stat_3948993189|6"
+                },
+                {
+                  "id": "enchant.stat_4079888060",
+                  "value": {
+                    "min": 2,
+                    "max": 2
+                  }
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_shaper_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_elder_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_crusader_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_redeemer_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_hunter_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_warlord_influence"
+                }
+              ]
+            }
+          ],
+          "filters": {
+            "type_filters": {
+              "filters": {
+                "rarity": {
+                  "option": "rare"
+                }
+              }
+            },
+            "misc_filters": {
+              "filters": {
+                "ilvl": {
+                  "min": 68
+                },
+                "corrupted": {
+                  "option": "false"
+                },
+                "synthesised_item": {
+                  "option": "false"
+                },
+                "fractured_item": {
+                  "option": "false"
+                }
+              }
+            },
+            "trade_filters": {
+              "filters": {
+                "price": {}
+              }
+            }
+          }
+        },
+        "sort": {
+          "price": "asc"
+        }
+      },
+      "scheduleId": "5919869b-fafe-4d25-8d97-653c8a61302f"
+    },
+    {
+      "sourceItemId": "b26a9fe1-b595-4e7d-b231-edb17809448e",
+      "recipeIds": [
+        "bow-large-cluster-arcing-shot-martial-prowess-tempered-arrowheads-jagged",
+        "bow-large-cluster-arcing-shot-martial-prowess-vicious-skewering-jagged"
+      ],
+      "originalQueryKey": "f80d207960972991cb94126d4c2ad5770f61036305ee7e0228ef3f0b6d18275b",
+      "originalHandbookTarget": {
+        "baseTypes": ["Large Cluster Jewel"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "influences": [],
+        "league": "Covens",
+        "maxItemLevel": 68,
+        "minItemLevel": 68,
+        "name": "base:base:large-cluster-bow",
+        "patch": "3.29.3.3",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "synthesised": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "fractured": false,
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "enchant.stat_3086156145",
+                  "max": 8,
+                  "min": 8
+                },
+                {
+                  "id": "enchant.stat_3948993189|4"
+                },
+                {
+                  "id": "enchant.stat_4079888060",
+                  "max": 2,
+                  "min": 2
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "normal",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "control": "rarity",
+      "key": "diag-mods:f0b239972e7f3b6e96c4b20fb9afec39bd93a849f9a83e43d8662e8f617d45f7",
+      "target": {
+        "baseTypes": ["Large Cluster Jewel"],
+        "builds": [],
+        "corrupted": false,
+        "game": "poe1",
+        "influences": [],
+        "league": "Covens",
+        "maxItemLevel": 68,
+        "minItemLevel": 68,
+        "name": "base:base:large-cluster-bow",
+        "patch": "3.29.3.3",
+        "realm": "pc",
+        "requiredMods": [],
+        "slot": "starting-base",
+        "sources": [],
+        "synthesised": false,
+        "tradeSearch": {
+          "currency": "chaos",
+          "fractured": false,
+          "groups": [
+            {
+              "filters": [
+                {
+                  "id": "enchant.stat_3086156145",
+                  "max": 8,
+                  "min": 8
+                },
+                {
+                  "id": "enchant.stat_3948993189|4"
+                },
+                {
+                  "id": "enchant.stat_4079888060",
+                  "max": 2,
+                  "min": 2
+                }
+              ],
+              "type": "and"
+            }
+          ],
+          "includeOtherCurrencies": true,
+          "rarity": "rare",
+          "scope": "strict",
+          "status": "securable",
+          "version": 1
+        }
+      },
+      "wire": {
+        "query": {
+          "status": {
+            "option": "securable"
+          },
+          "type": "Large Cluster Jewel",
+          "stats": [
+            {
+              "type": "and",
+              "filters": [
+                {
+                  "id": "enchant.stat_3086156145",
+                  "value": {
+                    "min": 8,
+                    "max": 8
+                  }
+                },
+                {
+                  "id": "enchant.stat_3948993189|4"
+                },
+                {
+                  "id": "enchant.stat_4079888060",
+                  "value": {
+                    "min": 2,
+                    "max": 2
+                  }
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_shaper_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_elder_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_crusader_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_redeemer_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_hunter_influence"
+                }
+              ]
+            },
+            {
+              "type": "not",
+              "filters": [
+                {
+                  "id": "pseudo.pseudo_has_warlord_influence"
+                }
+              ]
+            }
+          ],
+          "filters": {
+            "type_filters": {
+              "filters": {
+                "rarity": {
+                  "option": "rare"
+                }
+              }
+            },
+            "misc_filters": {
+              "filters": {
+                "ilvl": {
+                  "min": 68,
+                  "max": 68
+                },
+                "corrupted": {
+                  "option": "false"
+                },
+                "synthesised_item": {
+                  "option": "false"
+                },
+                "fractured_item": {
+                  "option": "false"
+                }
+              }
+            },
+            "trade_filters": {
+              "filters": {
+                "price": {}
+              }
+            }
+          }
+        },
+        "sort": {
+          "price": "asc"
+        }
+      },
+      "scheduleId": "e8a2ec3d-7162-467e-a30b-706044475d6d"
+    }
+  ]
+}

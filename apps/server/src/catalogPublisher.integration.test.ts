@@ -1,3 +1,4 @@
+import { convertChaosDivineQuote } from '@poe-worksmith/domain/economics';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -201,8 +202,8 @@ describe('catalog publication with PostgreSQL', () => {
     });
     expect(plan.report).toMatchObject({
       totalRecipes: 2,
-      totalQueries: 5,
-      deduplicatedDependencies: 1,
+      totalQueries: 4,
+      deduplicatedDependencies: 2,
     });
     const finishedQueries = plan.queries.filter(
       ({ marketQuery }) =>
@@ -233,9 +234,7 @@ describe('catalog publication with PostgreSQL', () => {
       const amount = target
         ? finished
           ? '15000'
-          : rarity === 'rare'
-            ? '17'
-            : '10'
+          : '17'
         : JSON.stringify(marketQuery.query.exchange).includes('jagged-fossil')
           ? '2'
           : '3';
@@ -246,15 +245,13 @@ describe('catalog publication with PostgreSQL', () => {
         (_, index) => {
           const account = `seller-${index}`;
           const currency =
-            target?.slot === 'starting-base' && rarity === 'normal'
-              ? 'divine'
-              : 'chaos';
+            target?.slot === 'starting-base' ? 'divine' : 'chaos';
           const id = `${marketQuery.id}-${index}`;
           const ask =
             sortedSampleComplete && index >= 20
-              ? '1'
+              ? '0.005'
               : currency === 'divine'
-                ? '0.05'
+                ? '0.085'
                 : amount;
           return {
             id,
@@ -345,7 +342,10 @@ describe('catalog publication with PostgreSQL', () => {
             fingerprint: null,
             item: { rawItem: item.rawListing?.item ?? null },
             price,
-            priceChaos: price.currency === 'divine' ? '8.5' : price.amount,
+            priceChaos:
+              price.currency === 'divine'
+                ? convertChaosDivineQuote(price, 'chaos', 170).amount
+                : price.amount,
           })),
         };
         if (finished) {
@@ -392,7 +392,7 @@ describe('catalog publication with PostgreSQL', () => {
     expect(published?.evaluations).toHaveLength(2);
     for (const [id, base, cost, profit] of [
       [chaos, '17', 11519, 3481],
-      [jagged, '10', 525, 14475],
+      [jagged, '17', 532, 14468],
     ] as const) {
       const evaluation = published?.evaluations.find(
         ({ recipeId }) => recipeId === id,

@@ -6,8 +6,14 @@ import {
   createMarketTarget,
   createImportedMarketSnapshot,
 } from '../marketResearch.js';
-import { comparableRecipeListings } from '../recipeMarket.js';
-import { analyzeListingComparability } from '../listingComparability.js';
+import {
+  comparableRecipeListings,
+  recipeQueryTarget,
+} from '../recipeMarket.js';
+import {
+  analyzeListingComparability,
+  compareListingItems,
+} from '../listingComparability.js';
 import { generateMarketTradeQuery } from '../marketTradeQuery.js';
 import {
   TradeCompatibleTransport,
@@ -113,6 +119,82 @@ describe('Trade-compatible queries and transport', () => {
       value: 1,
       tier: 1,
     });
+    expect(row.item.mods).toContainEqual({
+      id: 'explicit.stat_3415827027',
+      value: 1,
+      tier: 1,
+    });
+    expect(row.item.mods).toContainEqual({
+      id: 'explicit.stat_3585232432',
+      value: 1,
+      tier: 1,
+    });
+    expect(row.rawListing).toEqual(raw.result[0]);
+  });
+
+  it('reads Trade display labels in string modifiers without rewriting raw evidence', async () => {
+    const raw = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.cluster-modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    ).result[0];
+    raw.item.explicitMods = raw.item.explicitMods.map(
+      (mod: { description: string }) => mod.description,
+    );
+    const before = structuredClone(raw);
+    const row = normalizeTradeCompatibleListing(raw, tradeTarget());
+    for (const id of [
+      'explicit.stat_4188581520',
+      'explicit.stat_3415827027',
+      'explicit.stat_3585232432',
+    ]) {
+      expect(row.item.mods).toEqual(
+        expect.arrayContaining([expect.objectContaining({ id, value: 1 })]),
+      );
+    }
+    expect(raw).toEqual(before);
+    expect(row.rawListing).toEqual(before);
+    expect(row.item.modsComplete).toBe(false);
+  });
+
+  it('keeps malformed labels, wrong hashes and wrong origins unknown', async () => {
+    const raw = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.cluster-modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    ).result[0];
+    const original = raw.item.explicitMods.find(
+      (mod: { hash: string }) => mod.hash === 'stat.explicit.stat_4188581520',
+    );
+    for (const change of [
+      { description: '1 Added Passive Skill is [id|]' },
+      { description: '1 Added Passive Skill is [id|a|Battle-Hardened]' },
+      {
+        description: '1 Added Passive Skill is [outer|[inner|Battle-Hardened]]',
+      },
+      { description: '1 Added Passive Skill is [id|Battle-Hardened' },
+      { hash: 'stat.explicit.stat_3415827027' },
+      { domain: 'crafted' },
+    ]) {
+      const candidate = structuredClone(raw);
+      candidate.item.explicitMods = [{ ...original, ...change }];
+      const before = structuredClone(candidate);
+      const row = normalizeTradeCompatibleListing(candidate, tradeTarget());
+      expect(row.item.mods).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 'explicit.stat_4188581520' }),
+        ]),
+      );
+      expect(candidate).toEqual(before);
+    }
   });
 
   it('omits a currency restriction when comparing converted mixed-currency asks', () => {
@@ -126,6 +208,476 @@ describe('Trade-compatible queries and transport', () => {
       generateMarketTradeQuery(target).request.query.filters.trade_filters
         .filters.price,
     ).toEqual({ option: 'chaos' });
+  });
+
+  it('recognizes the single-socket wording without accepting the wrong origin', () => {
+    const raw = {
+      ...rawTradeListing(),
+      item: {
+        ...rawTradeListing().item,
+        enchantMods: [
+          {
+            domain: 'enchant',
+            hash: 'stat.enchant.stat_4079888060',
+            description: '1 Added Passive Skill is a Jewel Socket',
+          },
+        ],
+      },
+    };
+    expect(
+      normalizeTradeCompatibleListing(raw, tradeTarget()).item.mods,
+    ).toEqual(
+      expect.arrayContaining([{ id: 'enchant.stat_4079888060', value: 1 }]),
+    );
+    raw.item.enchantMods[0]!.domain = 'explicit';
+    expect(
+      normalizeTradeCompatibleListing(raw, tradeTarget()).item.mods,
+    ).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'enchant.stat_4079888060' }),
+      ]),
+    );
+  });
+
+  it('totals output contributions without borrowing a tier or changing starting-base requirements', () => {
+    const raw = {
+      ...rawTradeListing(),
+      item: {
+        ...rawTradeListing().item,
+        explicitMods: [
+          {
+            domain: 'explicit',
+            hash: 'stat.explicit.stat_3299347043',
+            description: '+35 to maximum Life',
+            mods: [{ tier: 'P2' }],
+          },
+        ],
+        fracturedMods: [
+          {
+            domain: 'fractured',
+            hash: 'stat.fractured.stat_3299347043',
+            description: '+25 to maximum Life',
+            mods: [{ tier: 'P1' }],
+          },
+        ],
+        craftedMods: ['+30 to maximum Life'],
+      },
+    };
+    const output = normalizeTradeCompatibleListing(raw, {
+      ...tradeTarget(),
+      slot: 'crafted-item',
+    });
+    expect(output.item.mods).toEqual(
+      expect.arrayContaining([
+        { id: 'explicit.stat_3299347043', value: 90 },
+        { id: 'fractured.stat_3299347043', value: 25, tier: 1 },
+      ]),
+    );
+    const base = normalizeTradeCompatibleListing(raw, {
+      ...tradeTarget(),
+      slot: 'starting-base',
+    });
+    expect(base.item.mods).toEqual(
+      expect.arrayContaining([
+        { id: 'explicit.stat_3299347043', value: 35, tier: 2 },
+      ]),
+    );
+    expect(output.rawListing).toEqual(raw);
+  });
+
+  it('recognizes observed support effect hashes without declaring the requested support absent', async () => {
+    const fixture = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.support-physical-modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    for (const { item, expected } of fixture.supports) {
+      const target = tradeTarget();
+      target.tradeSearch!.groups[0]!.filters = [
+        { id: expected.id, min: expected.value },
+      ];
+      const raw = { ...rawTradeListing(), item };
+      const row = normalizeTradeCompatibleListing(raw, target);
+      expect(row.item.mods).toContainEqual(expected);
+      expect(row.item.verifiedAbsentStats).not.toContain(expected.id);
+      expect(row.rawListing).toEqual(raw);
+      const mod = item.explicitMods[0];
+      const label =
+        expected.id === 'explicit.indexable_support_68'
+          ? 'Burning Damage'
+          : 'Concentrated Effect';
+      const legacy = {
+        ...mod,
+        hash: `stat.${expected.id}`,
+        description: `Socketed Gems are Supported by Level ${expected.value} ${label}`,
+      };
+      expect(
+        normalizeTradeCompatibleListing(
+          { ...raw, item: { ...item, explicitMods: [legacy] } },
+          target,
+        ).item.mods,
+      ).toContainEqual(expected);
+      expect(
+        normalizeTradeCompatibleListing(
+          {
+            ...raw,
+            item: {
+              ...item,
+              explicitMods: [],
+              extended: { hashes: { explicit: [] } },
+            },
+          },
+          target,
+        ).item.verifiedAbsentStats,
+      ).toContain(expected.id);
+      expect(
+        normalizeTradeCompatibleListing(
+          {
+            ...raw,
+            item: {
+              ...item,
+              explicitMods: [{ ...mod, mods: [] }],
+              extended: {
+                hashes: {
+                  explicit: [
+                    [expected.id, [0]],
+                    [mod.hash.replace(/^stat\./, ''), [1]],
+                  ],
+                },
+                mods: { explicit: [{ tier: 'P9' }, ...mod.mods] },
+              },
+            },
+          },
+          target,
+        ).item.mods,
+      ).toContainEqual(expected);
+      for (const rejected of [
+        { ...mod, hash: 'stat.explicit.effect_1' },
+        { ...mod, domain: 'crafted' },
+        { ...mod, description: mod.description.replace('|', '|Awakened ') },
+        { ...mod, description: `${mod.description} while Shapeshifted` },
+      ]) {
+        expect(
+          normalizeTradeCompatibleListing(
+            { ...raw, item: { ...item, explicitMods: [rejected] } },
+            target,
+          ).item.mods,
+        ).not.toContainEqual(expect.objectContaining({ id: expected.id }));
+      }
+    }
+  });
+
+  it('includes observed crafted physical damage in output totals while preserving base origins', async () => {
+    const { physical: item } = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.support-physical-modern.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    const raw = { ...rawTradeListing(), item };
+    expect(
+      normalizeTradeCompatibleListing(raw, {
+        ...tradeTarget(),
+        slot: 'crafted-item',
+      }).item.mods,
+    ).toContainEqual({ id: 'explicit.stat_1509134228', value: 130 });
+    expect(
+      normalizeTradeCompatibleListing(raw, {
+        ...tradeTarget(),
+        slot: 'starting-base',
+      }).item.mods,
+    ).toContainEqual({ id: 'explicit.stat_1509134228', value: 50, tier: 4 });
+    const crafted = item.explicitMods.find(
+      (mod: { domain: string }) => mod.domain === 'crafted',
+    );
+    expect(
+      normalizeTradeCompatibleListing(
+        {
+          ...raw,
+          item: {
+            ...item,
+            explicitMods: [
+              { ...crafted, description: '118% increased Physical Damage' },
+            ],
+          },
+        },
+        { ...tradeTarget(), slot: 'crafted-item' },
+      ).item.mods,
+    ).toContainEqual({ id: 'explicit.stat_1509134228', value: 118 });
+  });
+
+  it.each([0, 1, 2, 3])(
+    'recognizes the observed fractured local modifier in item %i',
+    async (index) => {
+      const { fixtures } = JSON.parse(
+        await readFile(
+          new URL(
+            './fixtures/tradeCompatible/fetch.fractured-local-modern.json',
+            import.meta.url,
+          ),
+          'utf8',
+        ),
+      );
+      expect(fixtures).toHaveLength(4);
+      const fixture = fixtures[index];
+      const target = recipeQueryTarget(JSON.stringify(fixture.handbookTarget));
+      const envelope = rawTradeListing('redacted-fractured-fixture');
+      const raw = {
+        ...envelope,
+        item: fixture.item,
+        listing: { ...envelope.listing, price: fixture.originalPrice },
+      };
+      const row = normalizeTradeCompatibleListing(raw, target);
+      expect(row.item.mods).toContainEqual(fixture.expectedCanonicalModifier);
+      expect(
+        compareListingItems(target, {
+          currency: fixture.originalPrice.currency,
+          listings: [{ ...row, currency: fixture.originalPrice.currency }],
+        })[0]?.status,
+      ).toBe('MATCH');
+      if (index === 0) {
+        const base = normalizeTradeCompatibleListing(raw, {
+          ...target,
+          slot: 'starting-base',
+        });
+        expect(base.item.mods).toContainEqual({
+          id: 'explicit.stat_1509134228',
+          value: 47,
+          tier: 4,
+        });
+        expect(base.item.mods).not.toContainEqual(
+          expect.objectContaining({
+            id: 'explicit.stat_1509134228',
+            value: 207,
+          }),
+        );
+      }
+    },
+  );
+
+  it.each([
+    ['fetch.fractured-movement-modern.json', 'stat_2250533757', 25],
+    ['fetch.fractured-bow-gems-modern.json', 'stat_2027269580', 2],
+  ])(
+    'maps the actual modern fractured origin from %s',
+    async (file, statId, value) => {
+      const fixture = JSON.parse(
+        await readFile(
+          new URL(`./fixtures/tradeCompatible/${file}`, import.meta.url),
+          'utf8',
+        ),
+      );
+      const target = recipeQueryTarget(JSON.stringify(fixture.handbookTarget));
+      const raw = {
+        ...rawTradeListing('redacted-fractured-fixture'),
+        item: fixture.item,
+      };
+      const row = normalizeTradeCompatibleListing(raw, target);
+      expect(row.item.mods).toContainEqual({
+        id: `explicit.${statId}`,
+        value,
+        tier: 1,
+      });
+      expect(
+        compareListingItems(target, {
+          currency: 'chaos',
+          listings: [{ ...row, currency: 'chaos' }],
+        })[0]?.status,
+      ).toBe('MATCH');
+
+      const base = normalizeTradeCompatibleListing(raw, {
+        ...target,
+        slot: 'starting-base',
+      });
+      expect(base.item.mods).toContainEqual(
+        expect.objectContaining({ id: `fractured.${statId}`, value, tier: 1 }),
+      );
+      expect(base.item.mods).not.toContainEqual(
+        expect.objectContaining({ id: `explicit.${statId}` }),
+      );
+
+      const edited = structuredClone(raw);
+      const line = edited.item.explicitMods.find(
+        (mod: { hash: string }) => mod.hash === `stat.fractured.${statId}`,
+      );
+      expect(line).toBeDefined();
+      line.description = line.description.replace(
+        String(value),
+        String(value - 1),
+      );
+      expect(
+        compareListingItems(target, {
+          currency: 'chaos',
+          listings: [
+            {
+              ...normalizeTradeCompatibleListing(edited, target),
+              currency: 'chaos',
+            },
+          ],
+        })[0]?.status,
+      ).toBe('REJECT');
+    },
+  );
+
+  it('matches the actual Prophet Crown returned by both configured Helmet searches', async () => {
+    const fixture = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.helmet-category-actual.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    expect(fixture.handbookTargets).toHaveLength(2);
+    // Neutral unit identity/account envelope only; actual price/currency preserved, no FX.
+    const envelope = rawTradeListing('redacted-helmet-fixture');
+    const raw = {
+      ...envelope,
+      item: fixture.item,
+      listing: { ...envelope.listing, price: fixture.originalPrice },
+    };
+    for (const handbookTarget of fixture.handbookTargets) {
+      const target = recipeQueryTarget(JSON.stringify(handbookTarget));
+      const row = normalizeTradeCompatibleListing(raw, target);
+      expect(row.price).toBe(fixture.originalPrice.amount);
+      expect(
+        compareListingItems(target, {
+          currency: fixture.originalPrice.currency,
+          listings: [{ ...row, currency: fixture.originalPrice.currency }],
+        })[0]?.status,
+      ).toBe('MATCH');
+    }
+  });
+
+  it('sends the current wire IDs for the actual modern RF result and still matches it', async () => {
+    const fixture = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.rf-modern-query-actual.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    const target = createMarketTarget(fixture.handbookTarget);
+    expect(generateMarketTradeQuery(target).request).toEqual(
+      fixture.modernWireRequest,
+    );
+    // Neutral unit identity/account envelope only; actual price/currency preserved, no FX.
+    const envelope = rawTradeListing('redacted-rf-fixture');
+    const raw = {
+      ...envelope,
+      item: fixture.item,
+      listing: { ...envelope.listing, price: fixture.originalPrice },
+    };
+    const row = normalizeTradeCompatibleListing(raw, target);
+    expect(row.price).toBe(fixture.originalPrice.amount);
+    expect(
+      compareListingItems(target, {
+        currency: fixture.originalPrice.currency,
+        listings: [{ ...row, currency: fixture.originalPrice.currency }],
+      })[0]?.status,
+    ).toBe('MATCH');
+  });
+
+  it('keeps support level bounds on the wire ID and rejects wire IDs as input', async () => {
+    const { handbookTarget } = JSON.parse(
+      await readFile(
+        new URL(
+          './fixtures/tradeCompatible/fetch.rf-modern-query-actual.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    handbookTarget.tradeSearch.groups[0].filters[1].min = 20;
+    const filters = generateMarketTradeQuery(createMarketTarget(handbookTarget))
+      .request.query.stats[0]?.filters;
+    expect(filters?.[0]).toEqual({
+      id: 'explicit.effect_1200122555',
+      value: {},
+    });
+    expect(filters?.[1]).toEqual({
+      id: 'explicit.effect_3293595800',
+      value: { min: 20 },
+    });
+    handbookTarget.tradeSearch.groups[0].filters[1].id =
+      'explicit.effect_3293595800';
+    expect(() =>
+      generateMarketTradeQuery(createMarketTarget(handbookTarget)),
+    ).toThrow();
+  });
+
+  it('keeps duplicate same-origin evidence ambiguous instead of increasing its accepted value', () => {
+    const target = { ...tradeTarget(), slot: 'crafted-item' };
+    const raw = rawTradeListing();
+    raw.item.explicitMods = ['+45 to maximum Life', '+45 to maximum Life'];
+    const normalized = normalizeTradeCompatibleListing(raw, target);
+    const imported = createImportedMarketSnapshot(
+      {
+        targetId: target.id,
+        capturedAt: at.toISOString(),
+        sourceUrl: 'https://www.pathofexile.com/trade',
+        currency: 'chaos',
+        dataKind: 'observed',
+        listings: [normalized],
+      },
+      target,
+      at,
+    );
+    expect(
+      analyzeListingComparability(target, imported, at.getTime()).rows[0]
+        ?.status,
+    ).toBe('PARTIAL');
+    expect(normalized.item.mods).not.toEqual(
+      expect.arrayContaining([{ id: 'explicit.stat_3299347043', value: 90 }]),
+    );
+  });
+
+  it('sums hybrid, all-elemental, chaos and negative resistance values, withholding incomplete totals', () => {
+    const raw = rawTradeListing();
+    raw.item.explicitMods = [
+      '+10% to Fire and Cold Resistances',
+      '+7% to Fire and Chaos Resistances',
+      '+3% to all Elemental Resistances',
+      '-2% to Lightning Resistance',
+    ];
+    const normalized = normalizeTradeCompatibleListing(raw, tradeTarget());
+    expect(normalized.item.elementalResistances).toEqual({
+      fire: 20,
+      cold: 13,
+      lightning: 1,
+    });
+    expect(normalized.item.mods).toEqual(
+      expect.arrayContaining([
+        { id: 'pseudo.pseudo_total_elemental_resistance', value: 34 },
+        { id: 'pseudo.pseudo_total_resistance', value: 41 },
+      ]),
+    );
+    raw.item.explicitMods.push('+10% to Fire Resistance while moving');
+    expect(
+      normalizeTradeCompatibleListing(raw, tradeTarget()).item.mods,
+    ).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'pseudo.pseudo_total_resistance' }),
+      ]),
+    );
+    Reflect.deleteProperty(raw.item, 'explicitMods');
+    expect(
+      normalizeTradeCompatibleListing(raw, tradeTarget()).item.mods,
+    ).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'pseudo.pseudo_total_resistance' }),
+      ]),
+    );
   });
 
   it('normalizes the sanitized November 1 object-mod response and preserves crafted origin', async () => {

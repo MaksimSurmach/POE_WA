@@ -1,0 +1,274 @@
+{
+  "base": {
+    "baseId": "base:medium-cluster-critical-chance-5",
+    "influences": [],
+    "itemLevel": 68,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 5,
+      "smallPassiveStatId": "critical-chance"
+    }
+  },
+  "category": "cluster-jewel",
+  "notes": "Исследование 16.11.2026: 59 предложений в общей выборке, не подтверждённые продажи. Модель среднего расхода 39.0c, P90 85.6c по историческому курсу и базе; текущая стоимость пересчитывается отдельно.",
+  "craft": {
+    "evidence": {
+      "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+      "patch": "3.30.0.1",
+      "url": "https://beta.craftofexile.com/",
+      "verifiedAt": "2026-11-16",
+      "settings": "Medium · Critical Strike Chance 15% · 4–5 пассивов; starting ilvl 83; target Pressure Points + Basics of Pain.",
+      "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+      "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+    },
+    "method": {
+      "currency": "orb-of-alteration",
+      "kind": "currency"
+    },
+    "startingMods": [],
+    "baseConsumption": {
+      "expectedBases": 1,
+      "evidence": {
+        "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+        "patch": "3.30.0.1",
+        "url": "https://beta.craftofexile.com/",
+        "verifiedAt": "2026-11-16",
+        "settings": "Medium · Critical Strike Chance 15% · 4–5 пассивов; starting ilvl 83; target Pressure Points + Basics of Pain.",
+        "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+        "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+      }
+    },
+    "uncertainties": [
+      "Starting-base acquisition must use exactly item level 83. Higher item levels can change the affix pool and require a separate cost model.",
+      "Model only; asking prices do not prove sales. Medium affix pool checked unchanged between ilvl 68 and 83. Conditional operations are counted per completed craft, not per Alteration."
+    ],
+    "id": "alt-aug-regal-exalt",
+    "name": "Alteration → Augment → Regal → conditional Exalt",
+    "steps": [
+      {
+        "action": "На rare-базу ровно ilvl 83 применить Orb of Scouring, затем Orb of Transmutation.",
+        "continueWhen": "База magic.",
+        "failureAction": "Не менять базу или ilvl без нового расчёта.",
+        "id": "prepare",
+        "materials": [
+          {
+            "itemId": "orb-of-scouring",
+            "quantity": 1
+          },
+          {
+            "itemId": "orb-of-transmutation",
+            "quantity": 1
+          }
+        ],
+        "title": "Подготовить базу"
+      },
+      {
+        "action": "Использовать Alteration до появления любого из: Pressure Points + Basics of Pain.",
+        "continueWhen": "Появился один целевой prefix.",
+        "failureAction": "Повторить Alteration.",
+        "id": "alteration",
+        "materials": [
+          {
+            "itemId": "orb-of-alteration",
+            "quantity": 1
+          }
+        ],
+        "title": "Поймать нужный notable"
+      },
+      {
+        "action": "Если на magic-предмете только целевой prefix, применить Augmentation. Если suffix уже есть — пропустить.",
+        "continueWhen": "На предмете один целевой prefix и один suffix.",
+        "failureAction": "Не тратить Augmentation на полный magic-предмет.",
+        "id": "augment",
+        "materials": [
+          {
+            "itemId": "orb-of-augmentation",
+            "quantity": 1
+          }
+        ],
+        "title": "При необходимости добавить suffix"
+      },
+      {
+        "action": "Применить Regal Orb; проверить, добавился ли второй целевой prefix.",
+        "continueWhen": "Оба целевых prefix: остановиться. Если добавился suffix, перейти к Exalt.",
+        "failureAction": "Если добавился ненужный prefix — проверить побочную ценность, затем сбросить.",
+        "id": "regal",
+        "materials": [
+          {
+            "itemId": "regal-orb",
+            "quantity": 1
+          }
+        ],
+        "title": "Применить Regal"
+      },
+      {
+        "action": "Только если после Regal один целевой prefix и два suffix: применить обычный Exalted Orb.",
+        "continueWhen": "Оба целевых prefix: остановиться.",
+        "failureAction": "При промахе проверить побочную ценность, затем сбросить.",
+        "id": "exalt",
+        "materials": [
+          {
+            "itemId": "exalted-orb",
+            "quantity": 1
+          }
+        ],
+        "title": "Условный Exalt"
+      },
+      {
+        "action": "Перед сбросом проверить другие дорогие связки. Иначе Scouring → Transmutation и вернуться к Alteration.",
+        "continueWhen": "Снова magic-база.",
+        "failureAction": "Не стирать ценные побочные результаты.",
+        "id": "reset",
+        "materials": [
+          {
+            "itemId": "orb-of-scouring",
+            "quantity": 1
+          },
+          {
+            "itemId": "orb-of-transmutation",
+            "quantity": 1
+          }
+        ],
+        "title": "Сбросить неудачный цикл"
+      }
+    ],
+    "expectedExecutions": [
+      {
+        "count": 1,
+        "evidence": {
+          "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/",
+          "verifiedAt": "2026-11-16",
+          "settings": "Medium · Critical Strike Chance 15% · 4–5 пассивов; starting ilvl 83; target Pressure Points + Basics of Pain.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "prepare"
+      },
+      {
+        "count": 203.8606390210741,
+        "evidence": {
+          "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/",
+          "verifiedAt": "2026-11-16",
+          "settings": "Medium · Critical Strike Chance 15% · 4–5 пассивов; starting ilvl 83; target Pressure Points + Basics of Pain.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "alteration"
+      },
+      {
+        "count": 6.280761386811693,
+        "evidence": {
+          "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/",
+          "verifiedAt": "2026-11-16",
+          "settings": "Medium · Critical Strike Chance 15% · 4–5 пассивов; starting ilvl 83; target Pressure Points + Basics of Pain.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "augment"
+      },
+      {
+        "count": 18.17403127124405,
+        "evidence": {
+          "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/",
+          "verifiedAt": "2026-11-16",
+          "settings": "Medium · Critical Strike Chance 15% · 4–5 пассивов; starting ilvl 83; target Pressure Points + Basics of Pain.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "regal"
+      },
+      {
+        "count": 8.506458191706322,
+        "evidence": {
+          "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/",
+          "verifiedAt": "2026-11-16",
+          "settings": "Medium · Critical Strike Chance 15% · 4–5 пассивов; starting ilvl 83; target Pressure Points + Basics of Pain.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "exalt"
+      },
+      {
+        "count": 17.17403127124405,
+        "evidence": {
+          "method": "Seeded CoE 3.30.0.1 emulator: 300000 Alterations per family; conditional Augment/Regal/Exalt procedure",
+          "patch": "3.30.0.1",
+          "url": "https://beta.craftofexile.com/",
+          "verifiedAt": "2026-11-16",
+          "settings": "Medium · Critical Strike Chance 15% · 4–5 пассивов; starting ilvl 83; target Pressure Points + Basics of Pain.",
+          "artifact": "docs/evidence/cluster-crafts-2026-11-16/models.json",
+          "assumptions": "One reusable base. Includes initial Scour + Transmute and failed-cycle resets. Currency unit costs, trading time and gold are separate. No completed sales verified."
+        },
+        "stepId": "reset"
+      }
+    ]
+  },
+  "startingBase": {
+    "baseId": "base:medium-cluster-critical-chance-5",
+    "influences": [],
+    "itemLevel": 83,
+    "rarity": "rare",
+    "state": {
+      "corrupted": false,
+      "fractured": false,
+      "synthesised": false
+    },
+    "variant": {
+      "kind": "cluster-jewel",
+      "passiveCount": 5,
+      "smallPassiveStatId": "critical-chance"
+    }
+  },
+  "patch": "3.30.0.1",
+  "verification": {
+    "status": "verified",
+    "leagues": ["Covens"],
+    "checkedAt": "2026-11-16",
+    "sources": [
+      "https://beta.craftofexile.com/",
+      "https://www.pathofexile.com/api/trade/data/stats"
+    ],
+    "notes": "CoE model and current Trade identities checked. Market snapshot is research evidence only; live prices come from collector.",
+    "profitBlockedReason": "Расход — модель CoE 3.30.0.1; продажи, торговое золото и время не подтверждены."
+  },
+  "gameDataVersion": "3.29.3.3",
+  "id": "medium-cluster-crit-pressure-points-basics-of-pain-5-passives",
+  "schemaVersion": 3,
+  "summary": "Medium Cluster Jewel · 15% increased Critical Strike Chance · Pressure Points + Basics of Pain.",
+  "tags": ["cluster-craft-330", "critical-chance", "alteration"],
+  "targetSignature": "3.30.0.1:35bec8b55777ba2c5496d5f888fcc6f1",
+  "target": {
+    "prefixes": [
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:pressure-points"
+      },
+      {
+        "excluded": false,
+        "kind": "explicit",
+        "modId": "mod:basics-of-pain"
+      }
+    ],
+    "suffixes": [],
+    "implicits": [],
+    "other": []
+  },
+  "title": "Pressure Points + Basics of Pain · 5 passives"
+}

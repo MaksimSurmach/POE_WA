@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+import { gunzipSync } from 'node:zlib';
 
 import {
   catalogResponseSchema,
@@ -11,17 +12,21 @@ import {
   validateRecipeDocument,
   type TradeQueryGenerator,
 } from '@poe-worksmith/domain';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   synchronizeRecipeCatalog,
   synchronizeRecipes,
 } from './recipes/synchronizeRecipes.js';
 import { loadRecipeCatalog } from './recipes/loader.js';
-import { generateRecipeMarketQuery } from './recipeMarket.js';
+import {
+  generateRecipeMarketQuery,
+  recipeMarketTradeUrl,
+} from './recipeMarket.js';
 import { createResourceReaders } from './resourceViews.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
 import { recipeResultSchema } from './recipeResult.js';
+import { recipeStageFamilies } from './recipes/craftFamilyMetadata.js';
 
 const correlationId = '44444444-4444-4444-8444-444444444444';
 const recipesPath = fileURLToPath(new URL('../../../recipes', import.meta.url));
@@ -33,6 +38,166 @@ const presentationPath = fileURLToPath(
 );
 
 describe('repository-backed resource views', () => {
+  it('keeps a fresh output ask when only the craft inputs expired', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      const at = (time: string) => `2026-11-18T${time}:00.000Z`;
+      vi.setSystemTime(new Date(at('05:45')));
+      const repositories = createInMemoryRepositories();
+      await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
+      const recipeId = 'physical-large-cluster-chaos';
+      const recipe = (await repositories.recipes.findById(recipeId))!;
+      const league = await repositories.leagues.upsert({
+        endAt: null,
+        game: 'poe1',
+        gggId: 'Standard',
+        isCurrent: true,
+        metadata: {},
+        name: 'Standard',
+        realm: 'pc',
+        startAt: null,
+        syncedAt: new Date(),
+      });
+      const captureId = '55555555-5555-4555-8555-555555555555';
+      const base = recipeResultSchema.parse({
+        confidence: 'high',
+        currency: 'chaos',
+        errorCode: null,
+        estimatedSalePrice: '941',
+        expectedCraftCost: '17',
+        marginPercent: '10',
+        profit: '5',
+        status: 'success',
+        methodCost: {
+          oldestInputAt: at('03:44'),
+          expiresAt: at('05:44'),
+          craftInputAt: at('03:44'),
+          craftExpiresAt: at('05:44'),
+          outputInputAt: at('04:22'),
+          outputExpiresAt: at('06:22'),
+          source: {
+            captureId,
+            captureFxSnapshotId: null,
+            capturedAt: at('04:22'),
+            sampleSize: 30,
+            priceBasis: 'asking',
+            coverage: 'complete',
+            sortedPageComplete: true,
+            sortedSampleComplete: true,
+            currencyAvailable: true,
+          },
+          baseCost: { amount: '17', currency: 'chaos' },
+          marketStatus: 'priced',
+          saleEvidence: {
+            comparableSellers: 25,
+            status: 'accepted',
+            grade: 'A',
+          },
+          budget: { p50: '20', p90: '30', currency: 'chaos' },
+        },
+      });
+      const row = {
+        leagueId: league.id,
+        recipeId,
+        recipeContentHash: recipe.contentHash,
+        evaluatedAt: new Date(at('04:22')),
+        result: structuredClone(base),
+      };
+      const presentation = await loadItemPresentationCatalog(presentationPath);
+      const readersWith = (ttl?: () => Promise<number>) =>
+        createResourceReaders(
+          repositories,
+          presentation,
+          undefined,
+          ttl,
+          async () => [row],
+        );
+      const readers = readersWith(async () => 2 * 60 * 60_000);
+      const entry = async (r = readers) => {
+        const data = catalogResponseSchema.parse(
+          await r.readCatalog(correlationId),
+        ).data;
+        expect(data).not.toBeNull();
+        const found = data!.entries.find(
+          ({ recipe }) => recipe.id === recipeId,
+        );
+        expect(found).toBeDefined();
+        return found!;
+      };
+      const detail = async () =>
+        recipeResponseSchema.parse(
+          await readers.readRecipe(correlationId, recipeId),
+        ).data!;
+      const kept = {
+        confidence: 'low',
+        status: 'partial',
+        estimatedSalePrice: { amount: 941, currency: 'chaos' },
+        expectedCraftCost: null,
+        profit: null,
+        marginPercent: null,
+        budget: null,
+        source: { captureId, comparable: true, comparableSellers: 25 },
+      };
+      expect((await entry()).evaluation).toMatchObject(kept);
+      expect((await entry()).recipe.minimumCapital).toBeNull();
+      const view = await detail();
+      expect(view.evaluation).toMatchObject(kept);
+      expect(view.evaluation).not.toHaveProperty('grade');
+      expect(view.method).not.toHaveProperty('saleEvidence');
+      expect(view.method).toMatchObject({
+        baseCost: null,
+        expectedCost: null,
+        marketStatus: 'priced',
+      });
+
+      // Expired output, bad source, unsupported currency, or no TTL: no revival.
+      const mutations: ((m: NonNullable<typeof base.methodCost>) => void)[] = [
+        (m) => void (m.source!.capturedAt = at('03:44')),
+        (m) => void (m.source!.capturedAt = at('06:00')),
+        (m) => void (m.outputInputAt = at('03:44')),
+        (m) => void (m.outputInputAt = at('04:30')),
+        (m) => void (m.outputExpiresAt = at('05:45')),
+        (m) => void (m.outputExpiresAt = at('05:00')),
+        (m) => void delete m.outputInputAt,
+        (m) => void delete m.outputExpiresAt,
+        (m) => void (m.saleEvidence.status = 'insufficient_sellers'),
+        (m) => void (m.source!.currencyAvailable = false),
+        (m) => void (m.source!.coverage = 'partial'),
+        (m) => void delete m.source,
+      ];
+      for (const mutate of mutations) {
+        row.result = structuredClone(base);
+        mutate(row.result.methodCost!);
+        const { evaluation } = await entry();
+        expect(evaluation).toMatchObject({
+          status: 'stale',
+          estimatedSalePrice: null,
+        });
+        expect(evaluation).not.toHaveProperty('source');
+      }
+      row.result = structuredClone(base);
+      const noTtl = (await entry(readersWith())).evaluation;
+      expect(noTtl).toMatchObject({
+        status: 'stale',
+        estimatedSalePrice: null,
+      });
+      expect(noTtl).not.toHaveProperty('source');
+
+      const shrunk = readersWith(async () => 90 * 60_000);
+      row.result = structuredClone(base);
+      expect((await entry(shrunk)).evaluation).toMatchObject(kept);
+      row.result.methodCost!.outputInputAt = at('04:00');
+      const masked = (await entry(shrunk)).evaluation;
+      expect(masked).toMatchObject({
+        status: 'stale',
+        estimatedSalePrice: null,
+      });
+      expect(masked).not.toHaveProperty('source');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('reads collector results for the current league and hides mismatched or expired prices', async () => {
     const repositories = createInMemoryRepositories();
     await synchronizeRecipeCatalog(recipesPath, repositories.recipes);
@@ -317,7 +482,22 @@ describe('repository-backed resource views', () => {
       await readers.readCatalog(correlationId),
     );
     expect(catalog.state).toBe('loading');
-    expect(catalog.data?.entries).toHaveLength(55);
+    expect(catalog.data?.entries).toHaveLength(72);
+    for (const id of Object.keys(recipeStageFamilies))
+      expect(catalog.data?.entries.some((e) => e.recipe.id === id)).toBe(true);
+    expect(
+      catalog.data?.entries.find(
+        (e) => e.recipe.id === 'physical-large-cluster-jagged',
+      )?.recipe,
+    ).toMatchObject({
+      craftFamilies: ['fossil'],
+      methodName: 'Jagged Fossil · 3 Notables',
+    });
+    expect(
+      catalog.data?.entries.find(
+        (e) => e.recipe.id === 'minion-convoking-wand-fear-trigger',
+      )?.recipe.craftFamilies,
+    ).toEqual(['essence', 'bench']);
     expect(
       catalog.data?.entries
         .filter(({ recipe }) =>
@@ -464,7 +644,13 @@ describe('repository-backed resource views', () => {
     );
     const url = new URL(detail.data!.baseTradeUrl!);
     expect(url.pathname).toContain('/trade/search/Mercenaries');
-    expect(JSON.parse(url.searchParams.get('q') ?? 'null')).toMatchObject({
+    expect(
+      JSON.parse(
+        gunzipSync(
+          Buffer.from(url.pathname.split('/').at(-1)!, 'base64url'),
+        ).toString(),
+      ),
+    ).toMatchObject({
       query: {
         type: 'Large Cluster Jewel',
         filters: { misc_filters: { filters: { ilvl: { min: 83, max: 83 } } } },
@@ -482,6 +668,9 @@ describe('repository-backed resource views', () => {
     ).readRecipe(correlationId, 'physical-large-cluster-jagged');
     expect(
       recipeResponseSchema.parse(unavailable).data?.baseTradeUrl,
+    ).toBeNull();
+    expect(
+      recipeResponseSchema.parse(unavailable).data?.targetTradeUrl,
     ).toBeNull();
   });
 
@@ -912,6 +1101,7 @@ it.each(['fresh', 'expired', 'policy-expired'] as const)(
       async () => 300_000,
     );
     const response = await readers.readRecipe(correlationId, recipe.id);
+    expect(response.data?.targetTradeUrl).toBe(recipeMarketTradeUrl(query));
     expect(response.data?.snapshot === null).toBe(state !== 'fresh');
     const catalog = await readers.readCatalog(correlationId);
     expect(

@@ -27,6 +27,13 @@ import {
   type RecipeMarketQuery,
 } from '../recipeMarket.js';
 import { createPostgresRepositories } from '../repositories/index.js';
+import {
+  preloadScrapedItemSpecs,
+  readScrapedItemFingerprint,
+  scrapedItemFingerprintSql,
+  scrapedItemLockSql,
+  seedScrapedItems,
+} from '../repositories/scrapedItemRepository.js';
 import { discoverySchedules } from '../marketDiscovery.js';
 import type { RuntimeConfig } from '../runtimeConfig.js';
 import { collectorSchedule, poeLeagues, recipes } from '../schema.js';
@@ -165,24 +172,66 @@ export async function synchronizeRecipeCatalog(
   );
 }
 
-export async function synchronizeCollectorSchedules(
+type ScheduleSyncResult =
+  'synchronized' | 'league-unavailable' | 'mapping-unavailable' | 'stale-input';
+type ScheduleConfig = Pick<
+  RuntimeConfig,
+  | 'cleanupCron'
+  | 'collectorRetentionEnabled'
+  | 'leagueResolveCron'
+  | 'leagueResolveTimezone'
+>;
+
+export function synchronizeCollectorSchedules(
   pool: Pool,
-  config: Pick<
-    RuntimeConfig,
-    | 'cleanupCron'
-    | 'collectorRetentionEnabled'
-    | 'leagueResolveCron'
-    | 'leagueResolveTimezone'
-  >,
+  config: ScheduleConfig,
   now = new Date(),
   collectorClient?: PoolClient,
-): Promise<
-  'synchronized' | 'league-unavailable' | 'mapping-unavailable' | 'stale-input'
-> {
+): Promise<ScheduleSyncResult> {
+  return synchronizeSchedules(pool, config, now, collectorClient);
+}
+
+/**
+ * Applies recipe and configured scraped-item changes to the trade searches only.
+ * Leaves league, economy and retention schedules to the collector, whose
+ * environment (for example retention) the API process cannot be assumed to share.
+ */
+export async function synchronizeTradeTargetSchedules(
+  pool: Pool,
+  now = new Date(),
+): Promise<ScheduleSyncResult> {
+  // A collector that never bootstrapped must still create its own schedules first.
+  const { rows } = await pool.query<{ ready: boolean }>(
+    "select exists(select 1 from collector_schedule where kind = 'league') as ready",
+  );
+  return rows[0]?.ready
+    ? synchronizeSchedules(pool, null, now)
+    : 'league-unavailable';
+}
+
+async function synchronizeSchedules(
+  pool: Pool,
+  config: ScheduleConfig | null,
+  now: Date,
+  collectorClient?: PoolClient,
+): Promise<ScheduleSyncResult> {
   const repositories = createPostgresRepositories(pool);
   const league = await repositories.leagues.findCurrent();
   if (!league) return 'league-unavailable';
   const activeRecipes = await repositories.recipes.listActive();
+  const definitions = new Map(
+    activeRecipes.map((recipe) => [
+      recipe.id,
+      validateRecipeDocument(recipe.definition),
+    ]),
+  );
+  // Existing links are never rewritten here, so a sync cannot undo an owner edit.
+  await seedScrapedItems(
+    pool,
+    [...definitions].map(([id, definition]) => ({ id, definition })),
+  );
+  const configFingerprint = await readScrapedItemFingerprint(pool);
+  const specs = await preloadScrapedItemSpecs(pool, [...definitions.keys()]);
   const trade = new RegisteredTradeQueryGenerator(
     createPostgresTradeMappingCatalog(pool),
     [noVariantFilter, clusterJewelVariantFilter],
@@ -194,11 +243,12 @@ export async function synchronizeCollectorSchedules(
       query: RecipeMarketQuery;
       recipeIds: Set<string>;
       outputRecipeIds: Set<string>;
+      items: Map<string, { id: string; revision: number; role: string }>;
       intervalMinutes: number;
     }
   >();
   for (const recipe of activeRecipes) {
-    const definition = validateRecipeDocument(recipe.definition);
+    const definition = definitions.get(recipe.id)!;
     for (const starting of [true, false]) {
       let query: RecipeMarketQuery;
       try {
@@ -207,6 +257,7 @@ export async function synchronizeCollectorSchedules(
           definition,
           league.gggId,
           starting,
+          specs,
         );
       } catch (error) {
         // An incomplete catalog must not disable existing collection targets.
@@ -224,8 +275,15 @@ export async function synchronizeCollectorSchedules(
       // New week-one outputs need room for their measured fetch cost and retries.
       const intervalMinutes =
         starting || definition.tags.includes('week-one') ? 120 : 60;
+      const configured = (await specs(definition))[starting ? 'base' : 'output']
+        .configured;
       const target = targets.get(key);
       if (target) {
+        if (configured)
+          target.items.set(configured.id, {
+            ...configured,
+            role: starting ? 'base' : 'output',
+          });
         target.recipeIds.add(recipe.id);
         if (!starting) target.outputRecipeIds.add(recipe.id);
         target.intervalMinutes = Math.min(
@@ -237,6 +295,16 @@ export async function synchronizeCollectorSchedules(
           query,
           recipeIds: new Set([recipe.id]),
           outputRecipeIds: new Set(starting ? [] : [recipe.id]),
+          items: new Map(
+            configured
+              ? [
+                  [
+                    configured.id,
+                    { ...configured, role: starting ? 'base' : 'output' },
+                  ],
+                ]
+              : [],
+          ),
           intervalMinutes,
         });
       }
@@ -247,7 +315,7 @@ export async function synchronizeCollectorSchedules(
     ...Array.from(
       targets,
       (
-        [key, { query, recipeIds, outputRecipeIds, intervalMinutes }],
+        [key, { query, recipeIds, outputRecipeIds, items, intervalMinutes }],
         index,
       ) => ({
         kind: 'trade-target',
@@ -257,30 +325,37 @@ export async function synchronizeCollectorSchedules(
           ...query,
           recipeIds: [...recipeIds].sort(),
           outputRecipeIds: [...outputRecipeIds].sort(),
+          scrapedItems: [...items.values()].sort((a, b) =>
+            a.id.localeCompare(b.id),
+          ),
         },
         intervalMinutes,
         nextDueAt: new Date(now.getTime() + index * 60_000),
       }),
     ),
     ...(await discoverySchedules(league, now)),
-    {
-      kind: 'economy',
-      key: league.gggId,
-      leagueId: league.id,
-      payload: { league: league.gggId },
-      intervalMinutes: 30,
-      nextDueAt: now,
-    },
-    cronSchedule(
-      'league',
-      config.leagueResolveCron,
-      config.leagueResolveTimezone,
-      now,
-    ),
-    {
-      ...cronSchedule('retention', config.cleanupCron, 'UTC', now),
-      enabled: config.collectorRetentionEnabled,
-    },
+    ...(config
+      ? [
+          {
+            kind: 'economy',
+            key: league.gggId,
+            leagueId: league.id,
+            payload: { league: league.gggId },
+            intervalMinutes: 30,
+            nextDueAt: now,
+          },
+          cronSchedule(
+            'league',
+            config.leagueResolveCron,
+            config.leagueResolveTimezone,
+            now,
+          ),
+          {
+            ...cronSchedule('retention', config.cleanupCron, 'UTC', now),
+            enabled: config.collectorRetentionEnabled,
+          },
+        ]
+      : []),
   ];
   const recipeHashes = new Map(
     activeRecipes.map(({ id, contentHash }) => [id, contentHash]),
@@ -296,6 +371,14 @@ export async function synchronizeCollectorSchedules(
       .where(eq(poeLeagues.isCurrent, true))
       .limit(1);
     if (currentLeague?.id !== league.id) return 'stale-input';
+    // Hold edits off until this synchronization commits, then confirm none landed first.
+    await transaction.execute(sql.raw(scrapedItemLockSql));
+    const [{ fingerprint }] = (
+      await transaction.execute<{ fingerprint: string }>(
+        sql.raw(scrapedItemFingerprintSql),
+      )
+    ).rows as [{ fingerprint: string }];
+    if (fingerprint !== configFingerprint) return 'stale-input';
     const currentRecipes = await transaction
       .select({ id: recipes.id, contentHash: recipes.contentHash })
       .from(recipes)
@@ -334,7 +417,10 @@ export async function synchronizeCollectorSchedules(
         and(
           eq(collectorSchedule.enabled, true),
           or(
-            ...['trade-target', 'economy', 'league', 'retention'].map((kind) =>
+            ...(config
+              ? ['trade-target', 'economy', 'league', 'retention']
+              : ['trade-target']
+            ).map((kind) =>
               and(
                 eq(collectorSchedule.kind, kind),
                 notInArray(
