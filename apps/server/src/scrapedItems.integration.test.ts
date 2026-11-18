@@ -33,6 +33,7 @@ import {
 import { loadDatabaseConfig } from './config.js';
 import { createDatabasePool } from './database.js';
 import { loadItemPresentationCatalog } from './itemPresentation.js';
+import { createMarketAdminStore, defaultAdminSettings } from './marketAdmin.js';
 import { recipeResultSchema } from './recipeResult.js';
 import { createRecipeMarketDependencies } from './recipeMarket.js';
 import { recipeQueryTarget } from './recipeMarket.js';
@@ -897,7 +898,10 @@ describe('configured scraped items', () => {
     });
 
     function collect(
-      handle: (job: { id: string }) => Promise<CollectorResult>,
+      handle: (
+        job: { id: string },
+        signal: AbortSignal,
+      ) => Promise<CollectorResult>,
     ) {
       const handler = vi.fn(handle);
       const stop = new AbortController();
@@ -1042,6 +1046,152 @@ describe('configured scraped items', () => {
       });
       expect(edit.item.latestCapture).toBeNull();
     }, 60_000);
+
+    describe('persisted market admin switches', () => {
+      const configure = async (change: Record<string, boolean>) => {
+        const store = createMarketAdminStore({
+          pool,
+          defaults: defaultAdminSettings({
+            refreshCron: '*/10 * * * *',
+            requestTimeoutMs: 10_000,
+            concurrency: 1,
+            snapshotTtlMs: 60_000,
+          }),
+          timezone: 'UTC',
+          concurrencyLimit: 4,
+        });
+        await store.init();
+        const { version } = await store.read();
+        await store.patch({ version, settings: change }, 'test');
+      };
+      const makeTradeDue = async () => {
+        await later();
+        await pool.query(
+          "update collector_schedule set next_due_at = now() - interval '1 minute' where kind = 'trade-target'",
+        );
+      };
+      const startedKeys = async () =>
+        (
+          await pool.query<{ key: string }>(
+            'select key from collector_schedule where last_started_at is not null',
+          )
+        ).rows.map(({ key }) => key);
+      const stopWorker = async () => {
+        stops.at(-1)!.abort();
+        await workers.at(-1);
+      };
+      beforeEach(() => pool.query('delete from market_admin_settings'));
+      afterEach(() => pool.query('delete from market_admin_settings'));
+
+      it('runs a manual item test when periodic collection is off, and nothing else', async () => {
+        await configure({
+          automaticRefreshEnabled: false,
+          scheduledCollectionEnabled: false,
+        });
+        await makeTradeDue();
+        const output = await item('output');
+        const test = await service.startTest(output.id, {
+          expectedRevision: output.revision,
+        });
+        const { handler } = collect(async () => success(3));
+        await vi.waitFor(
+          async () =>
+            expect(
+              (await service.readTest(output.id, test.requestId)).state,
+            ).toBe('succeeded'),
+          { timeout: 20_000 },
+        );
+        await stopWorker();
+        expect(handler).toHaveBeenCalledTimes(1);
+        const result = await service.readTest(output.id, test.requestId);
+        expect(result).toMatchObject({
+          requestId: test.requestId,
+          itemRevision: output.revision,
+          scheduleKey: output.query.key,
+        });
+        expect(result.capture?.queryVersion).toBe(output.query.key);
+        expect(await startedKeys()).toEqual([output.query.key]);
+      }, 60_000);
+
+      it.each(['collectionsPaused', 'manualRefreshEnabled'] as const)(
+        'interrupts the selected active item when %s stops manual collection',
+        async (flag) => {
+          await configure({
+            automaticRefreshEnabled: false,
+            scheduledCollectionEnabled: false,
+          });
+          await makeTradeDue();
+          const output = await item('output');
+          const test = await service.startTest(output.id, {
+            expectedRevision: output.revision,
+          });
+          const { handler } = collect(
+            async (_, signal) =>
+              new Promise<CollectorResult>((_, reject) => {
+                signal.addEventListener('abort', () => reject(signal.reason), {
+                  once: true,
+                });
+              }),
+          );
+          await vi.waitFor(() => expect(handler).toHaveBeenCalledTimes(1));
+          await configure({ [flag]: flag === 'collectionsPaused' });
+          await vi.waitFor(async () =>
+            expect(
+              (await service.readTest(output.id, test.requestId)).state,
+            ).toBe('failed'),
+          );
+          await stopWorker();
+          expect(
+            await service.readTest(output.id, test.requestId),
+          ).toMatchObject({
+            itemRevision: output.revision,
+            scheduleKey: output.query.key,
+            reason: 'MARKET_COLLECTION_PAUSED',
+            capture: null,
+          });
+          expect(handler).toHaveBeenCalledTimes(1);
+          expect(await startedKeys()).toEqual([output.query.key]);
+        },
+        60_000,
+      );
+
+      it.each(['collectionsPaused', 'manualRefreshEnabled'] as const)(
+        'blocks a queued manual item test once %s stops it',
+        async (flag) => {
+          await configure({
+            automaticRefreshEnabled: false,
+            scheduledCollectionEnabled: false,
+          });
+          await makeTradeDue();
+          const output = await item('output');
+          const test = await service.startTest(output.id, {
+            expectedRevision: output.revision,
+          });
+          await configure({ [flag]: flag === 'collectionsPaused' });
+          const { handler } = collect(async () => success(3));
+          await vi.waitFor(
+            async () =>
+              expect(['queued', 'running']).not.toContain(
+                (await service.readTest(output.id, test.requestId)).state,
+              ),
+            { timeout: 20_000 },
+          );
+          await stopWorker();
+          const result = await service.readTest(output.id, test.requestId);
+          expect(result.state).toBe('blocked');
+          expect(result.reason).toBe('COLLECTOR_NO_ELIGIBLE_TARGETS');
+          expect(result).toMatchObject({
+            requestId: test.requestId,
+            itemRevision: output.revision,
+            scheduleKey: output.query.key,
+            capture: null,
+          });
+          expect(handler).not.toHaveBeenCalled();
+          expect(await startedKeys()).toEqual([]);
+        },
+        60_000,
+      );
+    });
 
     it('reads capture facts and overwritten listings from the same database snapshot', async () => {
       const output = await item('output');

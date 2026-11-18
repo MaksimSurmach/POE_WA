@@ -110,10 +110,14 @@ For the server Compose stack, while ingress remains fenced:
 ```bash
 docker compose -f compose.server.yaml stop app collector
 docker compose -f compose.server.yaml build app collector
-docker compose -f compose.server.yaml run --rm --no-deps app node dist/migrate.js
+docker compose -f compose.server.yaml run --rm --no-deps app sh -c \
+  'DATABASE_URL="${COLLECTOR_DATABASE_URL:-$DATABASE_URL}" node dist/migrate.js'
 docker compose -f compose.server.yaml up -d app collector
 ```
 
+Use the direct collector database URL for migrations; verify that it addresses
+the same database as the API URL. Keep the ingress fence upstream of the app
+container so starting a bundled web/API image cannot reopen access.
 The new API starts privately so the collector's health dependency can pass.
 Before reopening ingress, verify the upgraded collector is active, enqueue one
 item test, and confirm its request's submitted revision and schedule key match

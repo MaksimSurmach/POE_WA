@@ -98,7 +98,7 @@ it('states that collection is active only for a connected, unpaused collector', 
 it('explains a pause and withholds the next due time', () => {
   const html = line({ paused: true });
   expect(html).toContain('Collection paused');
-  expect(html).toContain('a capture already in progress finishes');
+  expect(html).toContain('an active capture is interrupted');
   expect(html).not.toContain('Next due');
   expect(html).not.toContain('does not start the collector process');
 });

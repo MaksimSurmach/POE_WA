@@ -16,6 +16,7 @@ import {
 } from './observability/collectorTelemetry.js';
 import {
   nonStandardSchedulePredicate,
+  marketCollectionEnabledSql,
   readCollectorQueue,
 } from './repositories/collectorQueue.js';
 import { collectorSchedule, collectorState, runRequests } from './schema.js';
@@ -154,8 +155,7 @@ async function startRequest(
         and(
           eq(collectorSchedule.enabled, true),
           skipStandard ? sql.raw(nonStandardSchedulePredicate) : undefined,
-          sql`not (${collectorSchedule.kind} in ('trade-target', 'economy') and
-            coalesce((select settings->>'collectionsPaused' = 'true' from market_admin_settings where id = 1), false))`,
+          sql`(${collectorSchedule.kind} not in ('trade-target', 'economy') or ${sql.raw(marketCollectionEnabledSql('true'))})`,
           sql`(${collectorSchedule.payload}->>'discovery') is distinct from 'true'`,
           request.scope === 'recipe'
             ? and(
@@ -249,9 +249,7 @@ async function skipUnavailable(
         inArray(collectorSchedule.id, request.progress.pending),
         eq(collectorSchedule.enabled, true),
         skipStandard ? sql.raw(nonStandardSchedulePredicate) : undefined,
-        paused
-          ? sql`${collectorSchedule.kind} not in ('trade-target', 'economy')`
-          : undefined,
+        sql`(${collectorSchedule.kind} not in ('trade-target', 'economy') or ${sql.raw(marketCollectionEnabledSql('true'))})`,
         tradeBlocked
           ? sql`${collectorSchedule.kind} <> 'trade-target'`
           : undefined,
@@ -289,6 +287,7 @@ async function claimSchedule(
   now: Date,
   recoveryRequest: ActiveRequest | undefined,
   skipStandard: boolean,
+  manual: boolean,
 ) {
   return transaction(client, async () => {
     const [schedule] = await db
@@ -302,6 +301,7 @@ async function claimSchedule(
         and(
           eq(collectorSchedule.id, id),
           eq(collectorSchedule.enabled, true),
+          sql`(${collectorSchedule.kind} not in ('trade-target', 'economy') or ${sql.raw(marketCollectionEnabledSql(manual ? 'true' : 'false'))})`,
           skipStandard ? sql.raw(nonStandardSchedulePredicate) : undefined,
           sql`greatest(${collectorSchedule.nextDueAt}, ${collectorSchedule.retryAt}, ${collectorSchedule.leasedUntil}) <= ${now.toISOString()}::timestamptz`,
         ),
@@ -514,11 +514,26 @@ async function collectSession({
   client.on('end', onDisconnect);
 
   let wake: (() => void) | undefined;
+  let activeJob: { controller: AbortController; manual: boolean } | undefined;
+  async function checkActiveJob() {
+    const job = activeJob;
+    if (!job || job.controller.signal.aborted) return;
+    try {
+      const { rows } = await client.query<{ enabled: boolean }>(
+        `select ${marketCollectionEnabledSql(job.manual ? 'true' : 'false')} as enabled`,
+      );
+      if (!rows[0]?.enabled)
+        job.controller.abort(new DomainError('MARKET_COLLECTION_PAUSED'));
+    } catch (error) {
+      job.controller.abort(error);
+    }
+  }
   let revision = 0;
   const onNotification = ({ channel }: Notification) => {
     if (channel !== 'worksmith_wake') return;
     revision++;
     wake?.();
+    void checkActiveJob();
   };
   const onStop = () => wake?.();
 
@@ -663,16 +678,29 @@ async function collectSession({
         timestamp,
         recoverTradeAuthentication ? request : undefined,
         skipStandard,
+        request?.progress.pending.includes(queue.id) ?? false,
       );
       if (!schedule) continue;
       await telemetry?.start(schedule);
 
+      const controller = new AbortController();
+      if (schedule.kind === 'trade-target' || schedule.kind === 'economy')
+        activeJob = {
+          controller,
+          manual: request?.progress.pending.includes(schedule.id) ?? false,
+        };
+      const checkTimer = activeJob
+        ? setInterval(() => void checkActiveJob(), 1000)
+        : undefined;
       const jobSignal = AbortSignal.any([
         disconnected.signal,
+        controller.signal,
         AbortSignal.timeout(leaseMs),
       ]);
       let result: CollectorResult;
       try {
+        await checkActiveJob();
+        jobSignal.throwIfAborted();
         result = await handlers[schedule.kind as keyof typeof handlers](
           schedule,
           jobSignal,
@@ -686,6 +714,9 @@ async function collectSession({
           status: 'retry',
           reason: failureCode(error, 'COLLECTOR_HANDLER_FAILED'),
         };
+      } finally {
+        clearInterval(checkTimer);
+        activeJob = undefined;
       }
 
       disconnected.signal.throwIfAborted();

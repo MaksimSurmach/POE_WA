@@ -52,7 +52,11 @@ def reconcile(now):
             raise RuntimeError("Refusing to resume without the Standard collection guard")
         if active and info["HostConfig"]["RestartPolicy"]["Name"] != "no":
             raise RuntimeError("The window controller must own collector restarts")
-        pause(not active)
+        if active:
+            # The host owns process availability; only the operator may resume collection.
+            api("/api/admin/market/settings")
+        else:
+            pause(True)
         if active and not running:
             docker("start", container)
             print("Collector started within collection window")
