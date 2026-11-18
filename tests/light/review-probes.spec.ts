@@ -113,9 +113,16 @@ test('Home target methods deduplicate and its observed chart keeps its full size
   await expect(
     dialog.getByRole('tab', { name: 'Market', exact: true }),
   ).toHaveAttribute('aria-selected', 'true');
+  const evidence = dialog.getByRole('region', {
+    name: 'Current asking evidence',
+  });
   await expect(
-    dialog.getByRole('region', { name: 'Current asking evidence' }),
-  ).toContainText('42 c');
+    evidence.getByRole('heading', { name: /Comparable asking estimate/ }),
+  ).toContainText('Not estimated');
+  await expect(evidence).not.toContainText('42 c');
+  await expect(evidence).toContainText(/Captured sample\s*5/);
+  await expect(evidence).toContainText(/Sample sellers\s*4/);
+  await expect(evidence).toContainText('Capture coverage: partial.');
   const chart = dialog.locator('.trend-chart__svg');
   await expect(chart).toBeVisible();
   const chartBounds = await chart.boundingBox();
