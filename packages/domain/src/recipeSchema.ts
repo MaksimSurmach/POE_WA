@@ -31,6 +31,8 @@ const uniqueSlugs = z.array(slugSchema).superRefine((values, context) => {
   });
 });
 
+const scrapingPriority = z.number().int().min(1).max(7);
+
 const evidenceSchema = z.strictObject({
   method: textSchema,
   patch: textSchema,
@@ -197,6 +199,12 @@ export const recipeSchema = z.strictObject({
   imageUrl: z.string().url().optional(),
   id: slugSchema,
   schemaVersion: z.literal(3),
+  scrapingPriority: z
+    .strictObject({
+      base: scrapingPriority.optional(),
+      output: scrapingPriority.optional(),
+    })
+    .optional(),
   summary: textSchema.optional(),
   tags: uniqueSlugs.default([]),
   targetSignature: textSchema,

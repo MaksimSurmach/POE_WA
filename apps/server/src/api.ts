@@ -100,6 +100,7 @@ export function buildApi(
     craftAnalysis?: CraftAnalysisService | undefined;
     factory?: FactoryService | undefined;
     collectorPool?: Pool | undefined;
+    collectorSkipStandard?: boolean;
     readCollectorReadiness?:
       (() => Promise<CollectorReadinessResponse>) | undefined;
     readCircuits?: (() => Promise<ProviderCircuitState[]>) | undefined;
@@ -307,7 +308,7 @@ export function buildApi(
       return reply.code(202).send({ requestId });
     });
     api.get('/api/collector/status', async () =>
-      readCollectorStatus(collectorPool),
+      readCollectorStatus(collectorPool, options.collectorSkipStandard),
     );
   }
 

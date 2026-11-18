@@ -11,7 +11,7 @@ import {
 import { DomainError } from '@poe-worksmith/domain';
 import {
   synchronizeCollectorSchedules,
-  synchronizeRecipeCatalog,
+  synchronizeStoredRecipeCatalog,
 } from './recipes/synchronizeRecipes.js';
 import { runCollector } from './collector.js';
 import {
@@ -265,10 +265,11 @@ export async function runProcess(forcedMode?: ApplicationMode) {
             },
             bootstrap: async (client, jobSignal) => {
               const pinned = createPostgresRepositories(pool, client);
-              const report = await synchronizeRecipeCatalog(
+              const report = await synchronizeStoredRecipeCatalog(
                 catalogPath,
-                pinned.recipes,
+                pool,
                 { gameData: await gameData.openActive() },
+                client,
               );
               if (report.failed.length) throw new Error('RECIPE_SYNC_FAILED');
               jobSignal.throwIfAborted();
@@ -369,11 +370,9 @@ export async function runProcess(forcedMode?: ApplicationMode) {
     }
     return;
   }
-  const sync = await synchronizeRecipeCatalog(
-    catalogPath,
-    repositories.recipes,
-    { gameData: await gameData.openActive() },
-  );
+  const sync = await synchronizeStoredRecipeCatalog(catalogPath, pool, {
+    gameData: await gameData.openActive(),
+  });
   if (sync.failed.length) throw new Error('RECIPE_SYNC_FAILED');
   const trade = new RegisteredTradeQueryGenerator(
     createPostgresTradeMappingCatalog(pool),
@@ -437,6 +436,7 @@ export async function runProcess(forcedMode?: ApplicationMode) {
       }),
       marketAdmin: { store: admin },
       collectorPool: pool,
+      collectorSkipStandard: config.collectorSkipStandard,
       readCollectorReadiness: activityReader
         ? resourceReaders.readCollectorReadiness
         : undefined,

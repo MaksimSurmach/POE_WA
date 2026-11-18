@@ -246,6 +246,13 @@
       "when": 1794330725288,
       "tag": "0034_collector_telemetry",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1795005693328,
+      "tag": "0035_trade_priority_pools",
+      "breakpoints": true
     }
   ]
 }

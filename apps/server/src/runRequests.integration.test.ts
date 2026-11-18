@@ -218,6 +218,7 @@ describe('collector run request API', () => {
     };
     expect(await status()).toEqual({
       collectorState: null,
+      tradePools: [],
       latestRequest: null,
       lockHeld: false,
       nextDueAt: null,

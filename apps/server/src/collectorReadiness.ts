@@ -32,6 +32,7 @@ type ScheduleEvidence = {
   outputRecipeIds: string[];
   captureId: string | null;
   capturedAt: Date | null;
+  lastCheckedAt: Date | null;
   coverage: MarketReadiness['coverage'];
   currentListings: number;
   currentSellers: number;
@@ -161,6 +162,10 @@ export function targetReadiness(
           ? 'price-observed'
           : 'insufficient',
     capturedAt: schedule.capturedAt?.toISOString() ?? null,
+    lastCheckedAt: schedule.lastCheckedAt?.toISOString() ?? null,
+    captureAgeMinutes: schedule.capturedAt
+      ? Math.max(0, Math.floor((now.getTime() - captureAt) / minute))
+      : null,
     fresh,
     coverage: schedule.coverage,
     currentListings: schedule.currentListings,
@@ -223,7 +228,7 @@ export function createCollectorReadinessReader(pool: Pool) {
                or (not (s.payload ? 'outputRecipeIds') and s.interval_minutes = 60)
                then 'output'
              else 'base' end as role,
-        s.interval_minutes as "intervalMinutes",
+        s.interval_minutes as "intervalMinutes", s.last_finished_at as "lastCheckedAt",
         array(select jsonb_array_elements_text(coalesce(s.payload->'outputRecipeIds', '[]'))) as "outputRecipeIds",
         case when latest.captured_at <= $2 then latest.id end as "captureId",
         case when latest.captured_at <= $2 then latest.captured_at end as "capturedAt",

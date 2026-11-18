@@ -233,7 +233,7 @@ export function CollectorControls({
         pauseChange={changing}
         pauseNote={pauseNote}
       />
-      <CollectorDetails />
+      <CollectorDetails tradePools={status?.tradePools} />
     </div>
   );
 }

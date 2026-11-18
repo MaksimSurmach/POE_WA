@@ -27,7 +27,7 @@ export async function enqueueRunRequest(pool: Pool, recipeId: string | null) {
   return request.id;
 }
 
-export async function readCollectorStatus(pool: Pool) {
+export async function readCollectorStatus(pool: Pool, skipStandard = false) {
   const db = drizzle({ client: pool });
   const [[state], [latestRequest], queue] = await Promise.all([
     db
@@ -47,10 +47,11 @@ export async function readCollectorStatus(pool: Pool) {
       .from(runRequests)
       .orderBy(desc(runRequests.requestedAt), desc(runRequests.id))
       .limit(1),
-    readCollectorQueue(pool, new Date()),
+    readCollectorQueue(pool, new Date(), undefined, skipStandard, true),
   ]);
   return {
     collectorState: state ?? null,
+    tradePools: queue.tradePools ?? [],
     latestRequest: latestRequest ?? null,
     lockHeld: queue.leaderPid !== null,
     nextDueAt: queue.nextDueAt,

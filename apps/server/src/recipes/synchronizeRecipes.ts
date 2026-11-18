@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { marketAdminSettingsSchema } from '@poe-worksmith/contracts';
 import type {
   GameDataCatalog,
   JsonRecord,
@@ -52,6 +53,7 @@ export type ReadRecipeAsset = (assetPath: string) => Promise<Uint8Array>;
 export type RecipeSyncOptions = {
   dryRun?: boolean;
   gameData?: GameDataCatalog | null;
+  tradePoolMinutes?: Record<string, number> | undefined;
 };
 
 export async function computeRecipeContentHash(
@@ -82,6 +84,20 @@ export async function synchronizeRecipes(
   readAsset: ReadRecipeAsset,
   options: RecipeSyncOptions = {},
 ): Promise<RecipeSyncReport> {
+  const periods = marketAdminSettingsSchema.shape.tradePoolMinutes.parse(
+    options.tradePoolMinutes,
+  );
+  for (const { definition } of sourceRecipes) {
+    for (const [role, priority] of [
+      ['base', definition.scrapingPriority?.base ?? 2],
+      ['output', definition.scrapingPriority?.output ?? 1],
+    ] as const) {
+      if (!Object.hasOwn(periods, priority))
+        throw new Error(
+          `Recipe ${definition.id} requires a period for Trade pool ${priority} (${role})`,
+        );
+    }
+  }
   const report: RecipeSyncReport = {
     created: [],
     disabled: [],
@@ -165,6 +181,41 @@ export async function synchronizeRecipeCatalog(
   );
 }
 
+export async function synchronizeStoredRecipeCatalog(
+  catalogPath: string,
+  pool: Pool,
+  options: RecipeSyncOptions,
+  collectorClient?: PoolClient,
+) {
+  const catalogRoot = path.resolve(catalogPath);
+  const catalog = await loadRecipeCatalog(catalogRoot, options.gameData);
+  const client = collectorClient ?? (await pool.connect());
+  try {
+    await client.query(
+      "select pg_advisory_lock(hashtext('poe-worksmith:collector-schedule-sync'))",
+    );
+    try {
+      const { rows } = await client.query<{
+        periods: Record<string, number> | null;
+      }>(
+        "select settings->'tradePoolMinutes' as periods from market_admin_settings where id = 1",
+      );
+      return await synchronizeRecipes(
+        createPostgresRepositories(pool, client).recipes,
+        catalog,
+        (assetPath) => readFile(path.resolve(catalogRoot, assetPath)),
+        { ...options, tradePoolMinutes: rows[0]?.periods ?? undefined },
+      );
+    } finally {
+      await client.query(
+        "select pg_advisory_unlock(hashtext('poe-worksmith:collector-schedule-sync'))",
+      );
+    }
+  } finally {
+    if (!collectorClient) client.release();
+  }
+}
+
 export async function synchronizeCollectorSchedules(
   pool: Pool,
   config: Pick<
@@ -194,7 +245,7 @@ export async function synchronizeCollectorSchedules(
       query: RecipeMarketQuery;
       recipeIds: Set<string>;
       outputRecipeIds: Set<string>;
-      intervalMinutes: number;
+      scrapingPriority: number;
     }
   >();
   for (const recipe of activeRecipes) {
@@ -221,23 +272,23 @@ export async function synchronizeCollectorSchedules(
         throw error;
       }
       const key = await hashMarketQuery({ ...query, league: league.gggId });
-      // New week-one outputs need room for their measured fetch cost and retries.
-      const intervalMinutes =
-        starting || definition.tags.includes('week-one') ? 120 : 60;
+      const scrapingPriority = starting
+        ? (definition.scrapingPriority?.base ?? 2)
+        : (definition.scrapingPriority?.output ?? 1);
       const target = targets.get(key);
       if (target) {
         target.recipeIds.add(recipe.id);
         if (!starting) target.outputRecipeIds.add(recipe.id);
-        target.intervalMinutes = Math.min(
-          target.intervalMinutes,
-          intervalMinutes,
+        target.scrapingPriority = Math.min(
+          target.scrapingPriority,
+          scrapingPriority,
         );
       } else {
         targets.set(key, {
           query,
           recipeIds: new Set([recipe.id]),
           outputRecipeIds: new Set(starting ? [] : [recipe.id]),
-          intervalMinutes,
+          scrapingPriority,
         });
       }
     }
@@ -246,10 +297,7 @@ export async function synchronizeCollectorSchedules(
   const rows: (typeof collectorSchedule.$inferInsert)[] = [
     ...Array.from(
       targets,
-      (
-        [key, { query, recipeIds, outputRecipeIds, intervalMinutes }],
-        index,
-      ) => ({
+      ([key, { query, recipeIds, outputRecipeIds, scrapingPriority }]) => ({
         kind: 'trade-target',
         key,
         leagueId: league.id,
@@ -258,8 +306,10 @@ export async function synchronizeCollectorSchedules(
           recipeIds: [...recipeIds].sort(),
           outputRecipeIds: [...outputRecipeIds].sort(),
         },
-        intervalMinutes,
-        nextDueAt: new Date(now.getTime() + index * 60_000),
+        scrapingPriority,
+        // Pool reconciliation assigns the actual interval before commit.
+        intervalMinutes: 1,
+        nextDueAt: now,
       }),
     ),
     ...(await discoverySchedules(league, now)),
@@ -317,7 +367,9 @@ export async function synchronizeCollectorSchedules(
           enabled: sql`excluded.enabled`,
           leagueId: sql`excluded.league_id`,
           payload: sql`excluded.payload`,
-          intervalMinutes: sql`excluded.interval_minutes`,
+          scrapingPriority: sql`excluded.scraping_priority`,
+          intervalMinutes: sql`case when excluded.scraping_priority is null
+            then excluded.interval_minutes else ${collectorSchedule.intervalMinutes} end`,
           nextDueAt: sql`case
             when excluded.kind in ('league', 'retention')
               and ${collectorSchedule.payload} is distinct from excluded.payload
@@ -346,6 +398,10 @@ export async function synchronizeCollectorSchedules(
           ),
         ),
       );
+    await transaction.execute(
+      sql`select reconcile_trade_pools(${now.toISOString()}::timestamptz)`,
+    );
+    await transaction.execute(sql`select pg_notify('worksmith_wake', '')`);
     return 'synchronized';
   });
 }
