@@ -2,13 +2,12 @@ import { scrapedItemMarketCategories } from '@poe-worksmith/domain';
 import { z } from 'zod';
 
 const text = (maximum = 200) => z.string().trim().min(1).max(maximum);
-const httpsUrl = z
-  .url()
-  .max(2048)
-  .refine((value) => {
-    const url = new URL(value);
-    return url.protocol === 'https:' && !url.username && !url.password;
-  }, 'Use an HTTPS URL without credentials');
+const httpsUrlWithoutCredentials = z.url().refine((value) => {
+  const url = new URL(value);
+  return url.protocol === 'https:' && !url.username && !url.password;
+}, 'Use an HTTPS URL without credentials');
+
+const httpsUrl = httpsUrlWithoutCredentials.max(2048);
 
 export const marketSourceEvidenceSchema = z.strictObject({
   title: text(),
@@ -470,7 +469,7 @@ export const marketTradeQueryResponseSchema = z.strictObject({
     version: z.string(),
     scope: z.enum(['strict', 'broad']),
     hash: z.string().regex(/^[a-f0-9]{64}$/),
-    url: httpsUrl,
+    url: httpsUrlWithoutCredentials,
     request: z.record(z.string(), z.json()),
   }),
 });
