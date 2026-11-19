@@ -1,5 +1,4 @@
 import type { MarketTarget } from '@poe-worksmith/contracts';
-import { gzipSync } from 'node:zlib';
 import { DomainError, splitNativeTradeFilters } from '@poe-worksmith/domain';
 import { marketDigest } from './marketResearch.js';
 import { tradeMappingVersion, tradeStatMappings } from './tradeStatMappings.js';
@@ -201,7 +200,6 @@ export function generateMarketTradeQuery(
       scope,
       request,
     }),
-    // Rich searches stay compressed so they fit the existing 2048-character URL contract.
-    url: `https://www.pathofexile.com/trade/search/${encodeURIComponent(target.league)}/${gzipSync(JSON.stringify(request)).toString('base64url')}`,
+    url: marketTradeUrl(target.league, request),
   };
 }

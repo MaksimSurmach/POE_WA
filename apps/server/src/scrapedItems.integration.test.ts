@@ -1,5 +1,4 @@
 import { readFile } from 'node:fs/promises';
-import { gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import {
   RegisteredTradeQueryGenerator,
@@ -184,12 +183,7 @@ describe('configured scraped items', () => {
     expect(after.item.recipes).toEqual(before.recipes);
     expect(after.item.query.key).not.toBe(before.query.key);
     const query = JSON.parse(
-      gunzipSync(
-        Buffer.from(
-          new URL(after.item.query.tradeUrl!).pathname.split('/').at(-1)!,
-          'base64url',
-        ),
-      ).toString(),
+      new URL(after.item.query.tradeUrl!).searchParams.get('q')!,
     );
     expect(query.query).toMatchObject({
       type: 'Convoking Wand',
@@ -211,12 +205,7 @@ describe('configured scraped items', () => {
       }),
     });
     const query = JSON.parse(
-      gunzipSync(
-        Buffer.from(
-          new URL(after.item.query.tradeUrl!).pathname.split('/').at(-1)!,
-          'base64url',
-        ),
-      ).toString(),
+      new URL(after.item.query.tradeUrl!).searchParams.get('q')!,
     );
     expect(query.query.type).toBeUndefined();
     expect(query.query.status.option).toBe('securable');
@@ -321,14 +310,7 @@ describe('configured scraped items', () => {
     expect(output.schedule).toMatchObject({ enabled: true });
     expect(output.modifiers.every(({ tradeMapped }) => tradeMapped)).toBe(true);
     expect(
-      JSON.parse(
-        gunzipSync(
-          Buffer.from(
-            new URL(output.query.tradeUrl!).pathname.split('/').at(-1)!,
-            'base64url',
-          ),
-        ).toString(),
-      ),
+      JSON.parse(new URL(output.query.tradeUrl!).searchParams.get('q')!),
     ).toMatchObject({ query: { status: { option: 'securable' } } });
     expect(output.query.tradeUrl).toContain('FixtureGGG');
     expect(
@@ -439,11 +421,7 @@ describe('configured scraped items', () => {
       after.query.key,
     );
     const url = new URL(after.query.tradeUrl!);
-    const opened = JSON.parse(
-      gunzipSync(
-        Buffer.from(url.pathname.split('/').at(-1)!, 'base64url'),
-      ).toString(),
-    );
+    const opened = JSON.parse(url.searchParams.get('q')!);
     expect(opened).toEqual(
       generateMarketTradeQuery(recipeQueryTarget(target.query.handbookTarget))
         .request,

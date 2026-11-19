@@ -1,6 +1,8 @@
+import { marketTradeQueryResponseSchema } from '@poe-worksmith/contracts';
 import { describe, expect, it } from 'vitest';
 import { createMarketTarget } from './marketResearch.js';
 import { generateMarketTradeQuery } from './marketTradeQuery.js';
+import { tradeStatMappings } from './tradeStatMappings.js';
 
 const input = {
   name: 'Equivalent finished boots',
@@ -44,6 +46,27 @@ describe('category-scoped Trade search', () => {
       });
     },
   );
+  it('opens the full search when many filters produce a long URL', () => {
+    const filters = Object.keys(tradeStatMappings)
+      .slice(0, 20)
+      .map((id) => ({ id, min: 1 }));
+    const target = createMarketTarget({
+      ...input,
+      league: 'Fixture League',
+      tradeSearch: { ...input.tradeSearch, groups: [{ type: 'and', filters }] },
+    });
+    const data = generateMarketTradeQuery(target);
+    const url = new URL(data.url);
+    expect(url.pathname).toBe('/trade/search/Fixture%20League');
+    expect(JSON.parse(url.searchParams.get('q')!)).toEqual(data.request);
+    expect(data.url.length).toBeGreaterThan(2048);
+    expect(
+      marketTradeQueryResponseSchema.safeParse({
+        correlationId: crypto.randomUUID(),
+        data,
+      }).success,
+    ).toBe(true);
+  });
   it('retains an exact base when there is no category policy', () => {
     expect(
       generateMarketTradeQuery(createMarketTarget(input)).request.query,
